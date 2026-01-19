@@ -365,7 +365,7 @@ export default function AssistantPage() {
     const fetchSessions = async () => {
       try {
         const response = await fetch(
-          "http://localhost:8000/assistant/sessions?user_id=demo-user"
+          "/api/assistant/sessions?user_id=demo-user"
         );
         if (response.ok) {
           const data = await response.json();
@@ -393,7 +393,7 @@ export default function AssistantPage() {
   const createNewSession = async () => {
     try {
       const response = await fetch(
-        "http://localhost:8000/assistant/sessions?user_id=demo-user",
+        "/api/assistant/sessions?user_id=demo-user",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -415,7 +415,7 @@ export default function AssistantPage() {
   const loadSessionHistory = async (sessionId: string) => {
     try {
       const response = await fetch(
-        `http://localhost:8000/assistant/sessions/${sessionId}/history`
+        `/api/assistant/sessions/${sessionId}/history`
       );
       if (response.ok) {
         const data = await response.json();
@@ -434,7 +434,7 @@ export default function AssistantPage() {
   const deleteSession = async (sessionId: string) => {
     try {
       const response = await fetch(
-        `http://localhost:8000/assistant/sessions/${sessionId}`,
+        `/api/assistant/sessions/${sessionId}`,
         { method: "DELETE" }
       );
 
@@ -461,7 +461,7 @@ export default function AssistantPage() {
 
     try {
       const response = await fetch(
-        `http://localhost:8000/assistant/sessions/${currentSession.id}/history`,
+        `/api/assistant/sessions/${currentSession.id}/history`,
         { method: "DELETE" }
       );
 
@@ -493,7 +493,7 @@ export default function AssistantPage() {
     setMessages((prev) => [...prev, tempUserMsg]);
 
     try {
-      const response = await fetch("http://localhost:8000/assistant/chat", {
+      const response = await fetch("/api/assistant/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

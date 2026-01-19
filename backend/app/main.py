@@ -16,6 +16,7 @@ from app.api import (
     ErrorHandlerMiddleware,
     MetricsMiddleware,
     RequestIdMiddleware,
+    ai_coding_router,
     assistant_router,
     audit_router,
     auth_router,
@@ -37,6 +38,7 @@ from app.api import (
     llm_router,
     llm_finetuning_router,
     metrics_router,
+    nlp_router,
     notes_router,
     notifications_router,
     patients_router,
@@ -45,6 +47,7 @@ from app.api import (
     quality_measures_router,
     reconciliation_router,
     search_router,
+    semantic_search_router,
     smart_router,
     sse_router,
     tefca_router,
@@ -182,6 +185,13 @@ def prewarm_all_services() -> dict[str, Any]:
         services_loaded["value_extraction"] = "loaded"
     except Exception as e:
         logger.warning(f"Failed to prewarm value_extraction: {e}")
+
+    try:
+        from app.services.nlp_entity_service import get_nlp_entity_service
+        svc = get_nlp_entity_service()
+        services_loaded["nlp_entity_service"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
+    except Exception as e:
+        logger.warning(f"Failed to prewarm nlp_entity_service: {e}")
 
     # Audit Service (HIPAA compliance)
     try:
@@ -542,6 +552,7 @@ app.add_middleware(
 )
 
 # Include routers under versioned API router
+api_v1_router.include_router(ai_coding_router)
 api_v1_router.include_router(assistant_router)
 api_v1_router.include_router(audit_router)
 api_v1_router.include_router(calculators_router)
@@ -560,6 +571,7 @@ api_v1_router.include_router(jobs_router)
 api_v1_router.include_router(job_queue_router)
 api_v1_router.include_router(llm_router)
 api_v1_router.include_router(llm_finetuning_router)
+api_v1_router.include_router(nlp_router)
 api_v1_router.include_router(notes_router)
 api_v1_router.include_router(notifications_router)
 api_v1_router.include_router(patients_router)
@@ -568,6 +580,7 @@ api_v1_router.include_router(quality_router)
 api_v1_router.include_router(quality_measures_router)
 api_v1_router.include_router(reconciliation_router)
 api_v1_router.include_router(search_router)
+api_v1_router.include_router(semantic_search_router)
 api_v1_router.include_router(smart_router)
 api_v1_router.include_router(sse_router)
 api_v1_router.include_router(tefca_router)

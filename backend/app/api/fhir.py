@@ -184,30 +184,32 @@ async def get_fhir_patient_summary(
 class BulkExportRequest(BaseModel):
     """Request to start a bulk export."""
 
-    _outputFormat: str | None = Field(
+    output_format: str | None = Field(
         None,
-        alias="outputFormat",
+        alias="_outputFormat",
         description="Output format (only NDJSON supported)",
     )
-    _type: str | None = Field(
+    resource_type: str | None = Field(
         None,
-        alias="type",
+        alias="_type",
         description="Comma-separated list of resource types to export",
     )
-    _since: datetime | None = Field(
+    since: datetime | None = Field(
         None,
-        alias="since",
+        alias="_since",
         description="Only include resources modified since this time",
     )
-    _typeFilter: str | None = Field(
+    type_filter: str | None = Field(
         None,
-        alias="typeFilter",
+        alias="_typeFilter",
         description="FHIR search parameters to filter exported resources",
     )
     patient: list[str] | None = Field(
         None,
         description="Patient IDs for patient-level export",
     )
+
+    model_config = {"populate_by_name": True}
 
 
 class BulkExportFile(BaseModel):

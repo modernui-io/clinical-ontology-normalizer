@@ -1,5 +1,6 @@
 """API routers for Clinical Ontology Normalizer."""
 
+from app.api.ai_coding import router as ai_coding_router
 from app.api.assistant import router as assistant_router
 from app.api.audit import router as audit_router
 from app.api.auth import router as auth_router
@@ -40,6 +41,7 @@ from app.api.job_queue import router as job_queue_router
 from app.api.llm import router as llm_router
 from app.api.llm_finetuning import router as llm_finetuning_router
 from app.api.metrics import router as metrics_router
+from app.api.nlp import router as nlp_router
 from app.api.notifications import router as notifications_router
 from app.api.middleware import (
     AuditMiddleware,
@@ -71,6 +73,7 @@ from app.api.middleware import (
 )
 from app.api.patients import router as patients_router
 from app.api.search import router as search_router
+from app.api.semantic_search import router as semantic_search_router
 from app.api.smart import router as smart_router
 from app.api.sse import router as sse_router
 from app.api.users import router as users_router
@@ -107,6 +110,7 @@ from app.api.tefca import router as tefca_router
 
 __all__ = [
     # Routers
+    "ai_coding_router",
     "assistant_router",
     "audit_router",
     "auth_router",
@@ -128,6 +132,7 @@ __all__ = [
     "llm_router",
     "llm_finetuning_router",
     "metrics_router",
+    "nlp_router",
     "notifications_router",
     "notes_router",
     "patients_router",
@@ -136,6 +141,7 @@ __all__ = [
     "quality_measures_router",
     "reconciliation_router",
     "search_router",
+    "semantic_search_router",
     "smart_router",
     "sse_router",
     "terminology_router",

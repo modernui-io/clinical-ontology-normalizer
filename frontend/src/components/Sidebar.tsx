@@ -31,6 +31,8 @@ import {
   UserCog,
   Key,
   Server,
+  Sparkles,
+  Bot,
 } from "lucide-react";
 
 interface NavItem {
@@ -64,7 +66,7 @@ const navSections: NavSection[] = [
     title: "Clinical",
     items: [
       { title: "Clinical Tools", href: "/clinical", icon: Stethoscope },
-      { title: "Calculators", href: "/calculators", icon: Calculator },
+      { title: "Calculators", href: "/clinical/calculators", icon: Calculator },
       { title: "Quality Measures", href: "/quality", icon: Activity },
     ],
   },
@@ -81,11 +83,21 @@ const navSections: NavSection[] = [
     ],
   },
   {
+    title: "AI/ML",
+    items: [
+      { title: "NLP Workbench", href: "/nlp", icon: Brain },
+      { title: "AI Auto-Coding", href: "/ai-coding", icon: CreditCard },
+      { title: "Semantic Search", href: "/search/semantic", icon: Search },
+      { title: "AI Assistant", href: "/assistant", icon: Bot },
+      { title: "LLM Fine-tuning", href: "/llm/finetuning", icon: Sparkles },
+    ],
+  },
+  {
     title: "Administration",
     items: [
       { title: "Billing", href: "/billing", icon: CreditCard },
       { title: "Audit Log", href: "/audit", icon: ClipboardList },
-      { title: "Access Control", href: "/access", icon: Shield },
+      { title: "Access Control", href: "/admin/access", icon: Shield },
       { title: "Settings", href: "/settings", icon: Settings },
     ],
   },

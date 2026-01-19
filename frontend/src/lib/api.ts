@@ -2381,3 +2381,668 @@ export async function getDefaultMedications(): Promise<{ medications: unknown[];
 export async function getDefaultLabs(): Promise<{ labs: unknown[]; total: number }> {
   return fetchWithRetry<{ labs: unknown[]; total: number }>(`${API_BASE_URL}/synthetic/default-labs`);
 }
+
+// ============================================================================
+// Semantic Search Types
+// ============================================================================
+
+export type SemanticMatchType = "exact" | "synonym" | "fuzzy" | "semantic" | "hierarchy" | "crosswalk";
+
+export interface SemanticSearchResult {
+  concept_id: number;
+  concept_code: string;
+  concept_name: string;
+  vocabulary_id: string;
+  domain_id: string;
+  score: number;
+  match_type: SemanticMatchType;
+  matched_term: string | null;
+  explanation: string | null;
+  synonyms: string[];
+  crosswalk: Record<string, unknown[]>;
+}
+
+export interface SemanticSearchRequest {
+  query: string;
+  vocabularies?: string[];
+  domains?: string[];
+  top_k?: number;
+  threshold?: number;
+  include_fuzzy?: boolean;
+  expand_query?: boolean;
+}
+
+export interface SemanticSearchResponse {
+  query: string;
+  expanded_queries: string[];
+  results: SemanticSearchResult[];
+  total: number;
+  vocabularies_searched: string[];
+  search_time_ms: number;
+}
+
+export interface SimilarConceptsRequest {
+  concept_id: number;
+  vocabularies?: string[];
+  top_k?: number;
+  threshold?: number;
+}
+
+export interface SimilarConceptsResponse {
+  source_concept_id: number;
+  source_concept_name: string;
+  results: SemanticSearchResult[];
+  total: number;
+}
+
+export interface CrosswalkMapping {
+  source_concept_id: number;
+  source_vocabulary: string;
+  source_code: string;
+  source_name: string;
+  target_concept_id: number;
+  target_vocabulary: string;
+  target_code: string;
+  target_name: string;
+  mapping_type: string;
+  confidence: number;
+}
+
+export interface CrosswalkRequest {
+  concept_id: number;
+  target_vocabulary: string;
+}
+
+export interface CrosswalkResponse {
+  source_concept_id: number;
+  source_vocabulary: string;
+  source_name: string;
+  target_vocabulary: string;
+  mappings: CrosswalkMapping[];
+  total: number;
+}
+
+export interface SearchSuggestion {
+  concept_id: number;
+  concept_code: string;
+  concept_name: string;
+  vocabulary_id: string;
+  domain_id: string;
+  display: string;
+}
+
+export interface SuggestionsResponse {
+  prefix: string;
+  suggestions: SearchSuggestion[];
+  total: number;
+}
+
+export interface ClusterResult {
+  cluster_id: string;
+  cluster_name: string;
+  concept_type: string;
+  results: SemanticSearchResult[];
+  total_count: number;
+}
+
+export interface ClusterResponse {
+  clusters: ClusterResult[];
+  total_clusters: number;
+  total_results: number;
+}
+
+export interface SemanticSearchStats {
+  total_concepts: number;
+  vocabularies: Record<string, number>;
+  domains: Record<string, number>;
+  unique_codes: number;
+  indexed_synonyms: number;
+  load_time_ms: number;
+}
+
+export interface ConceptDetails {
+  concept_id: number;
+  concept_code: string;
+  concept_name: string;
+  vocabulary_id: string;
+  domain_id: string;
+  concept_class_id: string | null;
+  standard_concept: string | null;
+  synonyms: string[];
+  semantic_type: string | null;
+  parents: number[];
+  children: number[];
+  crosswalk_mappings: Record<string, number[]>;
+}
+
+// ============================================================================
+// Semantic Search API Functions
+// ============================================================================
+
+// Perform semantic search across vocabularies
+export async function semanticSearch(request: SemanticSearchRequest): Promise<SemanticSearchResponse> {
+  return fetchWithRetry<SemanticSearchResponse>(`${API_BASE_URL}/search/semantic`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+}
+
+// Find similar concepts to a given concept
+export async function findSimilarConcepts(request: SimilarConceptsRequest): Promise<SimilarConceptsResponse> {
+  return fetchWithRetry<SimilarConceptsResponse>(`${API_BASE_URL}/search/similar`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+}
+
+// Map concept to another vocabulary (crosswalk)
+export async function crosswalkConcept(request: CrosswalkRequest): Promise<CrosswalkResponse> {
+  return fetchWithRetry<CrosswalkResponse>(`${API_BASE_URL}/search/crosswalk`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+}
+
+// Get autocomplete suggestions
+export async function getSearchSuggestions(
+  prefix: string,
+  vocabularies?: string[],
+  limit: number = 10
+): Promise<SuggestionsResponse> {
+  const params = new URLSearchParams({ prefix, limit: limit.toString() });
+  if (vocabularies && vocabularies.length > 0) {
+    params.append("vocabularies", vocabularies.join(","));
+  }
+  return fetchWithRetry<SuggestionsResponse>(`${API_BASE_URL}/search/suggest?${params}`);
+}
+
+// Cluster search results by type
+export async function clusterSearchResults(results: SemanticSearchResult[]): Promise<ClusterResponse> {
+  return fetchWithRetry<ClusterResponse>(`${API_BASE_URL}/search/cluster`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ results }),
+  });
+}
+
+// Get semantic search service statistics
+export async function getSemanticSearchStats(): Promise<SemanticSearchStats> {
+  return fetchWithRetry<SemanticSearchStats>(`${API_BASE_URL}/search/stats`);
+}
+
+// Get concept details by ID
+export async function getConceptDetails(conceptId: number): Promise<ConceptDetails> {
+  return fetchWithRetry<ConceptDetails>(`${API_BASE_URL}/search/concept/${conceptId}`);
+}
+
+// ============================================================================
+// NLP Entity Extraction Types
+// ============================================================================
+
+export type NLPEntityType =
+  | "diagnosis"
+  | "medication"
+  | "procedure"
+  | "lab_result"
+  | "vital_sign"
+  | "anatomical_location"
+  | "temporal"
+  | "symptom"
+  | "allergy";
+
+export type NLPAssertionStatus =
+  | "present"
+  | "absent"
+  | "possible"
+  | "conditional"
+  | "hypothetical"
+  | "family_history";
+
+export type NLPClinicalSection =
+  | "chief_complaint"
+  | "hpi"
+  | "ros"
+  | "pmh"
+  | "psh"
+  | "fhx"
+  | "shx"
+  | "medications"
+  | "allergies"
+  | "vitals"
+  | "physical_exam"
+  | "labs"
+  | "imaging"
+  | "assessment"
+  | "plan"
+  | "unknown";
+
+export type NLPVocabulary =
+  | "SNOMED-CT"
+  | "RxNorm"
+  | "LOINC"
+  | "ICD-10-CM"
+  | "ICD-10-PCS"
+  | "CPT"
+  | "NDC";
+
+export interface NLPEntitySpan {
+  start: number;
+  end: number;
+  text: string;
+}
+
+export interface NLPNormalizedCode {
+  code: string;
+  display: string;
+  system: NLPVocabulary;
+  confidence: number;
+  is_preferred: boolean;
+}
+
+export interface NLPExtractedEntity {
+  id: string;
+  entity_type: NLPEntityType;
+  text: string;
+  normalized_text: string;
+  span: NLPEntitySpan;
+  section: NLPClinicalSection;
+  assertion: NLPAssertionStatus;
+  confidence: number;
+  normalized_codes: NLPNormalizedCode[];
+  value?: string | null;
+  unit?: string | null;
+  reference_range?: string | null;
+  laterality?: string | null;
+  dosage?: string | null;
+  frequency?: string | null;
+  route?: string | null;
+  duration?: string | null;
+  negation_trigger?: string | null;
+  negation_scope_start?: number | null;
+  negation_scope_end?: number | null;
+}
+
+export interface NLPSectionSpan {
+  section: NLPClinicalSection;
+  start: number;
+  end: number;
+  header_text?: string | null;
+}
+
+export interface NLPExtractRequest {
+  text: string;
+  entity_types?: NLPEntityType[];
+  use_ml_models?: boolean;
+  model_id?: string | null;
+  include_normalized_codes?: boolean;
+  detect_negation?: boolean;
+  detect_sections?: boolean;
+  normalize_entities?: boolean;
+}
+
+export interface NLPExtractResponse {
+  request_id: string;
+  text_length: number;
+  entities: NLPExtractedEntity[];
+  sections: NLPSectionSpan[];
+  entity_count: number;
+  entities_by_type: Record<string, number>;
+  processing_time_ms: number;
+  model_used: string;
+}
+
+export interface NLPBatchExtractRequest {
+  texts: string[];
+  entity_types?: NLPEntityType[];
+  use_ml_models?: boolean;
+  model_id?: string | null;
+}
+
+export interface NLPBatchExtractItem {
+  index: number;
+  text_preview: string;
+  entity_count: number;
+  entities_by_type: Record<string, number>;
+  processing_time_ms: number;
+  error?: string | null;
+}
+
+export interface NLPBatchExtractResponse {
+  request_id: string;
+  total_texts: number;
+  successful: number;
+  failed: number;
+  results: NLPBatchExtractItem[];
+  total_time_ms: number;
+}
+
+export interface NLPModelInfo {
+  model_id: string;
+  name: string;
+  description: string;
+  entity_types: NLPEntityType[];
+  is_available: boolean;
+  requires_gpu: boolean;
+  version: string;
+}
+
+export interface NLPModelsResponse {
+  models: NLPModelInfo[];
+  default_model: string;
+}
+
+export interface NLPNormalizeRequest {
+  entities: NLPExtractedEntity[];
+  vocabularies?: NLPVocabulary[];
+}
+
+export interface NLPNormalizationResultItem {
+  entity_id: string;
+  original_text: string;
+  normalized_codes: NLPNormalizedCode[];
+  best_match?: NLPNormalizedCode | null;
+  processing_time_ms: number;
+}
+
+export interface NLPNormalizeResponse {
+  request_id: string;
+  results: NLPNormalizationResultItem[];
+  total_entities: number;
+  entities_with_codes: number;
+  total_time_ms: number;
+}
+
+export interface NLPSampleNote {
+  id: string;
+  title: string;
+  text: string;
+}
+
+export interface NLPSamplesResponse {
+  samples: NLPSampleNote[];
+}
+
+// Type alias for backwards compatibility
+export type NLPExtractionResult = NLPExtractResponse;
+
+export interface NLPServiceStats {
+  registered_ml_models: number;
+  available_entity_types: string[];
+  negation_patterns: number;
+  diagnosis_patterns: number;
+  medication_patterns: number;
+  procedure_patterns: number;
+  lab_patterns: number;
+  vital_sign_patterns: number;
+}
+
+// ============================================================================
+// NLP Entity Extraction API Functions
+// ============================================================================
+
+// Extract entities from clinical text
+export async function nlpExtractEntities(request: NLPExtractRequest): Promise<NLPExtractResponse> {
+  return fetchWithRetry<NLPExtractResponse>(`${API_BASE_URL}/nlp/extract`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+    timeout: 60000, // Longer timeout for NLP processing
+  });
+}
+
+// Batch extract entities from multiple texts
+export async function nlpBatchExtractEntities(request: NLPBatchExtractRequest): Promise<NLPBatchExtractResponse> {
+  return fetchWithRetry<NLPBatchExtractResponse>(`${API_BASE_URL}/nlp/extract/batch`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+    timeout: 120000, // Longer timeout for batch processing
+  });
+}
+
+// List available NLP models
+export async function nlpGetModels(): Promise<NLPModelsResponse> {
+  return fetchWithRetry<NLPModelsResponse>(`${API_BASE_URL}/nlp/models`);
+}
+
+// Normalize entities to standard codes
+export async function nlpNormalizeEntities(request: NLPNormalizeRequest): Promise<NLPNormalizeResponse> {
+  return fetchWithRetry<NLPNormalizeResponse>(`${API_BASE_URL}/nlp/normalize`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+    timeout: 60000,
+  });
+}
+
+// Get sample clinical notes for testing
+export async function nlpGetSamples(): Promise<NLPSamplesResponse> {
+  return fetchWithRetry<NLPSamplesResponse>(`${API_BASE_URL}/nlp/samples`);
+}
+
+// Get NLP service statistics
+export async function nlpGetStats(): Promise<NLPServiceStats> {
+  return fetchWithRetry<NLPServiceStats>(`${API_BASE_URL}/nlp/stats`);
+}
+
+// ============================================================================
+// AI Coding Types
+// ============================================================================
+
+export interface AIEvidenceSnippet {
+  text: string;
+  start_offset: number;
+  end_offset: number;
+  relevance_score: number;
+  highlight_terms: string[];
+}
+
+export interface AICodeSuggestion {
+  code: string;
+  code_type: string;
+  description: string;
+  confidence: string;
+  confidence_score: number;
+  evidence_snippets: AIEvidenceSnippet[];
+  match_reason: string;
+  category: string;
+  is_billable: boolean;
+  parent_code: string | null;
+  more_specific_codes: [string, string][];
+  related_codes: [string, string][];
+  hcc_code: string | null;
+  hcc_description: string | null;
+  raf_value: number;
+  coding_tips: string[];
+  use_additional_code: string | null;
+  code_first: string | null;
+}
+
+export interface AICodingOpportunity {
+  opportunity_type: string;
+  current_code: string | null;
+  suggested_code: string | null;
+  description: string;
+  impact: string;
+  evidence_text: string;
+  priority: string;
+}
+
+export interface AIValidationIssue {
+  issue_type: string;
+  severity: string;
+  codes_involved: string[];
+  message: string;
+  suggestion: string;
+}
+
+export interface AIHCCDetail {
+  hcc_code: string;
+  icd10_code: string;
+  icd10_description: string;
+  raf_value: number;
+}
+
+export interface AIHCCRisk {
+  total_raf_score: number;
+  hcc_codes: string[];
+  hcc_details: AIHCCDetail[];
+  estimated_annual_revenue: number;
+  opportunities: AICodingOpportunity[];
+}
+
+export interface AICodingSuggestRequest {
+  clinical_text: string;
+  max_diagnosis_codes?: number;
+  max_procedure_codes?: number;
+  include_hcc?: boolean;
+  encounter_context?: Record<string, unknown>;
+}
+
+export interface AICodingSuggestResponse {
+  request_id: string;
+  text_length: number;
+  analysis_timestamp: string;
+  processing_time_ms: number;
+  diagnosis_codes: AICodeSuggestion[];
+  procedure_codes: AICodeSuggestion[];
+  coding_opportunities: AICodingOpportunity[];
+  validation_issues: AIValidationIssue[];
+  hcc_analysis: AIHCCRisk | null;
+  em_code: AICodeSuggestion | null;
+  em_rationale: string;
+  total_diagnosis_suggestions: number;
+  total_procedure_suggestions: number;
+  high_confidence_count: number;
+}
+
+export interface AICodingValidateRequest {
+  diagnosis_codes?: string[];
+  procedure_codes?: string[];
+}
+
+export interface AICodingValidateResponse {
+  is_valid: boolean;
+  issues: AIValidationIssue[];
+  summary: string;
+}
+
+export interface AICodingHCCRequest {
+  icd10_codes: string[];
+  clinical_text?: string;
+}
+
+export interface AICodingHCCResponse {
+  total_raf_score: number;
+  hcc_codes: string[];
+  hcc_details: AIHCCDetail[];
+  estimated_annual_revenue: number;
+  opportunities: AICodingOpportunity[];
+}
+
+export interface AICodingRule {
+  rule_id: string;
+  category: string;
+  title: string;
+  description: string;
+  codes_affected: string[];
+  examples: string[];
+  source: string;
+}
+
+export interface AICodingRulesResponse {
+  rules: AICodingRule[];
+  total_count: number;
+}
+
+export interface AICodingServiceStats {
+  total_icd10_codes: number;
+  total_cpt_codes: number;
+  total_icd10_synonyms: number;
+  total_cpt_synonyms: number;
+  hcc_mappings: number;
+}
+
+export interface AICodingCodeDetails {
+  code: string;
+  description: string;
+  synonyms: string[];
+  category: string | null;
+  is_billable: boolean | null;
+  hcc_code: string | null;
+  raf_value: number | null;
+}
+
+export interface AICodingSearchResponse {
+  results: AICodingCodeDetails[];
+  total_count: number;
+}
+
+// ============================================================================
+// AI Coding API Functions
+// ============================================================================
+
+// Suggest codes from clinical text
+export async function suggestCodes(request: AICodingSuggestRequest): Promise<AICodingSuggestResponse> {
+  return fetchWithRetry<AICodingSuggestResponse>(`${API_BASE_URL}/ai-coding/suggest`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+    timeout: 60000, // Longer timeout for AI processing
+  });
+}
+
+// Validate codes for errors and bundling issues
+export async function validateCodes(request: AICodingValidateRequest): Promise<AICodingValidateResponse> {
+  return fetchWithRetry<AICodingValidateResponse>(`${API_BASE_URL}/ai-coding/validate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+}
+
+// Calculate HCC risk scores
+export async function calculateHCC(request: AICodingHCCRequest): Promise<AICodingHCCResponse> {
+  return fetchWithRetry<AICodingHCCResponse>(`${API_BASE_URL}/ai-coding/hcc`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+}
+
+// Get coding rules and guidelines
+export async function getCodingRules(category?: string): Promise<AICodingRulesResponse> {
+  const url = category
+    ? `${API_BASE_URL}/ai-coding/rules?category=${encodeURIComponent(category)}`
+    : `${API_BASE_URL}/ai-coding/rules`;
+  return fetchWithRetry<AICodingRulesResponse>(url);
+}
+
+// Get AI coding service statistics
+export async function getAICodingStats(): Promise<AICodingServiceStats> {
+  return fetchWithRetry<AICodingServiceStats>(`${API_BASE_URL}/ai-coding/stats`);
+}
+
+// Get code details
+export async function getCodeDetails(code: string, codeType: string = "ICD10"): Promise<AICodingCodeDetails> {
+  return fetchWithRetry<AICodingCodeDetails>(
+    `${API_BASE_URL}/ai-coding/code/${encodeURIComponent(code)}?code_type=${encodeURIComponent(codeType)}`
+  );
+}
+
+// Search for codes
+export async function searchCodes(
+  query: string,
+  codeType: string = "ICD10",
+  limit: number = 20
+): Promise<AICodingSearchResponse> {
+  const params = new URLSearchParams({
+    query,
+    code_type: codeType,
+    limit: limit.toString(),
+  });
+  return fetchWithRetry<AICodingSearchResponse>(`${API_BASE_URL}/ai-coding/search?${params.toString()}`);
+}

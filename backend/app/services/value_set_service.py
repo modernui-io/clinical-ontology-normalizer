@@ -13,6 +13,8 @@ Value sets are fundamental to clinical terminologies, allowing grouping of relat
 for use in clinical decision support, quality measures, and data validation.
 """
 
+from __future__ import annotations
+
 import csv
 import io
 import json
