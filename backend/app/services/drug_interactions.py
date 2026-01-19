@@ -2,6 +2,9 @@
 
 Provides drug-drug interaction checking using a curated database of
 known interactions based on FDA and clinical guidelines.
+
+This service integrates with RxNormService for enhanced drug name
+normalization and ingredient extraction.
 """
 
 import json
@@ -10,7 +13,10 @@ from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 from threading import Lock
-from typing import Any
+from typing import Any, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.services.rxnorm_service import RxNormService
 
 logger = logging.getLogger(__name__)
 
@@ -608,6 +614,9 @@ class DrugInteractionService:
     Provides fast lookup of known drug interactions from a curated
     database based on FDA labels and clinical guidelines.
 
+    Integrates with RxNormService for enhanced drug name normalization
+    and ingredient-based interaction checking.
+
     Usage:
         service = DrugInteractionService()
         result = service.check_interactions(["warfarin", "aspirin", "lisinopril"])
@@ -616,26 +625,92 @@ class DrugInteractionService:
             print(f"Found {result.total_interactions} interactions")
             for interaction in result.interactions_found:
                 print(f"  - {interaction.drug1} + {interaction.drug2}: {interaction.severity}")
+
+        # With RxNorm integration for brand name resolution
+        result = service.check_interactions(["Coumadin", "Advil"])  # Resolves to warfarin + ibuprofen
     """
 
-    def __init__(self) -> None:
-        """Initialize the drug interaction service."""
+    def __init__(self, use_rxnorm: bool = True) -> None:
+        """Initialize the drug interaction service.
+
+        Args:
+            use_rxnorm: Whether to use RxNormService for enhanced drug name resolution.
+                       Defaults to True. Set to False to disable RxNorm integration.
+        """
         # Load extended interactions from fixture
         self._interactions, self._drug_index, self._pair_index = load_extended_interactions()
         self._aliases = DRUG_ALIASES
+        self._rxnorm_service: "RxNormService | None" = None
+        self._use_rxnorm = use_rxnorm
+
+        if use_rxnorm:
+            self._init_rxnorm()
+
         logger.info(f"Drug interaction service initialized with {len(self._interactions)} interactions")
+
+    def _init_rxnorm(self) -> None:
+        """Initialize RxNorm service integration."""
+        try:
+            from app.services.rxnorm_service import get_rxnorm_service
+            self._rxnorm_service = get_rxnorm_service()
+            logger.info("RxNorm service integration enabled for drug interactions")
+        except Exception as e:
+            logger.warning(f"Failed to initialize RxNorm service: {e}")
+            self._rxnorm_service = None
 
     def normalize_drug_name(self, drug: str) -> str:
         """Normalize drug name to lowercase, resolving aliases.
+
+        Uses RxNormService if available for enhanced brand-to-generic resolution.
 
         Args:
             drug: Drug name to normalize.
 
         Returns:
-            Normalized drug name.
+            Normalized drug name (generic if possible).
         """
         normalized = drug.lower().strip()
-        return self._aliases.get(normalized, normalized)
+
+        # First check local aliases
+        if normalized in self._aliases:
+            return self._aliases[normalized]
+
+        # Try RxNorm service for brand-to-generic resolution
+        if self._rxnorm_service:
+            try:
+                generic = self._rxnorm_service.normalize_to_generic(drug)
+                if generic:
+                    return generic.lower()
+            except Exception as e:
+                logger.debug(f"RxNorm lookup failed for {drug}: {e}")
+
+        return normalized
+
+    def get_drug_ingredients(self, drug: str) -> list[str]:
+        """Get active ingredients for a drug.
+
+        Uses RxNormService if available to extract ingredients from
+        combination products for more comprehensive interaction checking.
+
+        Args:
+            drug: Drug name (brand or generic).
+
+        Returns:
+            List of ingredient names.
+        """
+        normalized = self.normalize_drug_name(drug)
+
+        # Try RxNorm service for ingredient extraction
+        if self._rxnorm_service:
+            try:
+                ingredients = self._rxnorm_service.get_ingredients(drug)
+                if ingredients:
+                    return [i.lower() for i in ingredients]
+            except Exception as e:
+                logger.debug(f"RxNorm ingredient lookup failed for {drug}: {e}")
+
+        # Fall back to the normalized name as the ingredient
+        return [normalized]
 
     def check_pair(self, drug1: str, drug2: str) -> DrugInteraction | None:
         """Check for interaction between two specific drugs.
@@ -664,15 +739,30 @@ class DrugInteractionService:
     def check_interactions(self, drugs: list[str]) -> InteractionCheckResult:
         """Check for interactions among a list of drugs.
 
+        Uses RxNormService if available to:
+        1. Resolve brand names to generics
+        2. Extract ingredients from combination products
+        3. Check interactions at the ingredient level
+
         Args:
             drugs: List of drug names to check.
 
         Returns:
             InteractionCheckResult with all found interactions.
         """
-        # Normalize all drug names
+        # Normalize all drug names and extract ingredients
+        all_ingredients: set[str] = set()
+
+        for drug in drugs:
+            # Get ingredients (may return multiple for combination products)
+            ingredients = self.get_drug_ingredients(drug)
+            all_ingredients.update(ingredients)
+
+        # Also include normalized names for backward compatibility
         normalized = [self.normalize_drug_name(d) for d in drugs]
-        unique_drugs = list(set(normalized))
+        all_ingredients.update(normalized)
+
+        unique_drugs = list(all_ingredients)
 
         interactions_found: list[DrugInteraction] = []
         seen_pairs: set[tuple[str, str]] = set()

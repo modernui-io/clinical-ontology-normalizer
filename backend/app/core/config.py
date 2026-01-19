@@ -36,5 +36,12 @@ class Settings(BaseSettings):
     api_key_header: str = "X-API-Key"
     auth_enabled: bool = False  # Disabled by default for local dev
 
+    # LLM Configuration
+    openai_api_key: str | None = None
+    anthropic_api_key: str | None = None
+    llm_provider: str = "openai"  # "openai" or "anthropic"
+    llm_model: str = "gpt-4o-mini"  # Default model
+    llm_max_tokens: int = 4096  # Maximum tokens for completion
+
 
 settings = Settings()

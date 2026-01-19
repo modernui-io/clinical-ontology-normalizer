@@ -10,7 +10,33 @@ from typing import Any
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import coding_router, dashboard_router, documents_router, export_router, fhir_router, jobs_router, patients_router, search_router, vocabulary_mapping_router
+from app.api import (
+    AuditMiddleware,
+    ErrorHandlerMiddleware,
+    RequestIdMiddleware,
+    audit_router,
+    auth_router,
+    calculators_router,
+    coding_router,
+    dashboard_router,
+    documents_router,
+    export_router,
+    fhir_router,
+    jobs_router,
+    llm_router,
+    notes_router,
+    patients_router,
+    quality_router,
+    reconciliation_router,
+    search_router,
+    smart_router,
+    sse_router,
+    timeline_router,
+    users_router,
+    vocabulary_mapping_router,
+    websocket_router,
+)
+from app.api.middleware.error_handler import register_exception_handlers
 from app.core.config import settings
 from app.core.database import close_db, init_db
 from app.core.queue import clear_queues
@@ -46,6 +72,13 @@ def prewarm_all_services() -> dict[str, Any]:
         services_loaded["clinical_calculators"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
     except Exception as e:
         logger.warning(f"Failed to prewarm clinical_calculators: {e}")
+
+    try:
+        from app.services.calculator_builder import get_calculator_builder_service
+        svc = get_calculator_builder_service()
+        services_loaded["calculator_builder"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
+    except Exception as e:
+        logger.warning(f"Failed to prewarm calculator_builder: {e}")
 
     try:
         from app.services.lab_reference import get_lab_reference_service
@@ -127,6 +160,30 @@ def prewarm_all_services() -> dict[str, Any]:
     except Exception as e:
         logger.warning(f"Failed to prewarm value_extraction: {e}")
 
+    # Audit Service (HIPAA compliance)
+    try:
+        from app.services.audit_service import get_audit_service
+        svc = get_audit_service()
+        services_loaded["audit_service"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
+    except Exception as e:
+        logger.warning(f"Failed to prewarm audit_service: {e}")
+
+    # Quality Measure Service (HEDIS/CQM)
+    try:
+        from app.services.quality_measures import get_quality_measure_service
+        svc = get_quality_measure_service()
+        services_loaded["quality_measures"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
+    except Exception as e:
+        logger.warning(f"Failed to prewarm quality_measures: {e}")
+
+    # Patient Timeline Service
+    try:
+        from app.services.patient_timeline import get_patient_timeline_service
+        svc = get_patient_timeline_service()
+        services_loaded["patient_timeline"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
+    except Exception as e:
+        logger.warning(f"Failed to prewarm patient_timeline: {e}")
+
     total_time_ms = (time.perf_counter() - start_time) * 1000
 
     return {
@@ -188,25 +245,49 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Configure CORS
+# Register exception handlers for standardized error responses
+register_exception_handlers(app)
+
+# Configure middleware (order matters - first added = last executed)
+# 1. Request ID middleware - adds X-Request-ID header for request tracing
+app.add_middleware(RequestIdMiddleware)
+
+# 2. Audit middleware - HIPAA-compliant request logging (logs all PHI access)
+app.add_middleware(AuditMiddleware)
+
+# 3. Error handler middleware - catches exceptions and returns standardized responses
+app.add_middleware(ErrorHandlerMiddleware)
+
+# 4. CORS middleware - handles cross-origin requests
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"],  # Next.js dev server
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-Request-ID"],  # Allow frontend to read request ID
 )
 
 # Include routers
+app.include_router(audit_router)
+app.include_router(calculators_router)
 app.include_router(coding_router)
 app.include_router(dashboard_router)
 app.include_router(documents_router)
 app.include_router(export_router)
 app.include_router(fhir_router)
 app.include_router(jobs_router)
+app.include_router(llm_router)
+app.include_router(notes_router)
 app.include_router(patients_router)
+app.include_router(quality_router)
+app.include_router(reconciliation_router)
 app.include_router(search_router)
+app.include_router(smart_router)
+app.include_router(sse_router)
+app.include_router(timeline_router)
 app.include_router(vocabulary_mapping_router)
+app.include_router(websocket_router)
 
 
 @app.get("/health", tags=["Health"])

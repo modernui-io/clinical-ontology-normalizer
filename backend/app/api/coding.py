@@ -15,8 +15,10 @@ import time
 from enum import Enum
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from pydantic import BaseModel, Field
+
+from app.api.errors import ErrorCode, InternalError
 
 router = APIRouter(prefix="/coding", tags=["Auto-Coding"])
 
@@ -436,7 +438,10 @@ async def auto_code(request: AutoCodeRequest) -> AutoCodeResponse:
         )
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Auto-coding failed: {str(e)}")
+        raise InternalError(
+            message=f"Auto-coding failed: {str(e)}",
+            error_code=ErrorCode.INTERNAL_NLP_ERROR,
+        )
 
 
 # ============================================================================
@@ -654,7 +659,10 @@ async def validate_code(request: ValidateCodeRequest) -> ValidateCodeResponse:
         )
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Code validation failed: {str(e)}")
+        raise InternalError(
+            message=f"Code validation failed: {str(e)}",
+            error_code=ErrorCode.INTERNAL_NLP_ERROR,
+        )
 
 
 # ============================================================================

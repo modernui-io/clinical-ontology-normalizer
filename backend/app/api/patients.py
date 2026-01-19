@@ -3,10 +3,11 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Query, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.api.errors import ErrorCode, NotFoundError
 from app.core.database import get_sync_engine
 from app.models.clinical_fact import ClinicalFact as ClinicalFactModel
 from app.models.knowledge_graph import KGNode
@@ -67,9 +68,9 @@ def get_patient_graph(patient_id: str) -> PatientGraph:
             )
 
             if facts_exist is None:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"No data found for patient {patient_id}",
+                raise NotFoundError(
+                    message=f"No data found for patient '{patient_id}'",
+                    error_code=ErrorCode.NOT_FOUND_PATIENT,
                 )
 
             # Build graph from facts
@@ -123,9 +124,9 @@ def build_patient_graph(patient_id: str) -> PatientGraph:
         )
 
         if facts_exist is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"No clinical facts found for patient {patient_id}",
+            raise NotFoundError(
+                message=f"No clinical facts found for patient '{patient_id}'",
+                error_code=ErrorCode.NOT_FOUND_PATIENT,
             )
 
         graph_service = DatabaseGraphBuilderService(session)
@@ -200,9 +201,9 @@ def get_patient_facts(
             )
             total = session.execute(count_stmt).scalar()
             if total == 0:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"No clinical facts found for patient {patient_id}",
+                raise NotFoundError(
+                    message=f"No clinical facts found for patient '{patient_id}'",
+                    error_code=ErrorCode.NOT_FOUND_PATIENT,
                 )
 
         logger.info(f"Found {len(facts)} clinical facts for patient_id={patient_id}")

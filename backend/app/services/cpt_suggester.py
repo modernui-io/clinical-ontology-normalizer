@@ -843,7 +843,233 @@ for _code in CPT_CODES:
 # Load Extended CPT/HCPCS Codes from Fixture
 # ============================================================================
 
-FIXTURE_FILE = Path(__file__).parent.parent.parent / "fixtures" / "cpt_codes.json"
+# Use the expanded CPT codes fixture file if available, otherwise fall back to original
+FIXTURE_FILE_FULL = Path(__file__).parent.parent.parent / "fixtures" / "cpt_codes_full.json"
+FIXTURE_FILE_ORIGINAL = Path(__file__).parent.parent.parent / "fixtures" / "cpt_codes.json"
+FIXTURE_FILE = FIXTURE_FILE_FULL if FIXTURE_FILE_FULL.exists() else FIXTURE_FILE_ORIGINAL
+
+
+# =============================================================================
+# ADDITIONAL CLINICAL SYNONYMS - Maps common clinical terms to CPT codes
+# =============================================================================
+CLINICAL_SYNONYM_MAPPINGS: dict[str, list[str]] = {
+    # E/M Office Visits
+    "office visit": ["99202", "99203", "99204", "99205", "99211", "99212", "99213", "99214", "99215"],
+    "new patient visit": ["99202", "99203", "99204", "99205"],
+    "established patient visit": ["99211", "99212", "99213", "99214", "99215"],
+    "follow up": ["99211", "99212", "99213", "99214", "99215"],
+    "routine visit": ["99213", "99214"],
+    "level 3 visit": ["99203", "99213"],
+    "level 4 visit": ["99204", "99214"],
+    "level 5 visit": ["99205", "99215"],
+
+    # Hospital
+    "hospital admission": ["99221", "99222", "99223"],
+    "inpatient admission": ["99221", "99222", "99223"],
+    "hospital visit": ["99231", "99232", "99233"],
+    "subsequent hospital": ["99231", "99232", "99233"],
+    "discharge": ["99238", "99239"],
+    "hospital discharge": ["99238", "99239"],
+
+    # Emergency
+    "er visit": ["99281", "99282", "99283", "99284", "99285"],
+    "ed visit": ["99281", "99282", "99283", "99284", "99285"],
+    "emergency visit": ["99281", "99282", "99283", "99284", "99285"],
+    "emergency room": ["99281", "99282", "99283", "99284", "99285"],
+
+    # Critical Care
+    "critical care": ["99291", "99292"],
+    "icu": ["99291", "99292"],
+
+    # GI Procedures
+    "colonoscopy": ["45378", "45380", "45381", "45382", "45384", "45385", "45386", "45388"],
+    "screening colonoscopy": ["45378"],
+    "colonoscopy with biopsy": ["45380"],
+    "colonoscopy with polypectomy": ["45384", "45385"],
+    "egd": ["43235", "43239", "43249", "43251"],
+    "upper endoscopy": ["43235", "43239", "43249"],
+
+    # Radiology
+    "chest xray": ["71045", "71046", "71047", "71048"],
+    "cxr": ["71045", "71046"],
+    "chest x-ray": ["71045", "71046"],
+    "ct head": ["70450", "70460", "70470"],
+    "ct brain": ["70450", "70460", "70470"],
+    "ct chest": ["71250", "71260", "71270"],
+    "ct abdomen": ["74150", "74160", "74170", "74176", "74177", "74178"],
+    "ct abdomen pelvis": ["74176", "74177", "74178"],
+    "mri brain": ["70551", "70552", "70553"],
+    "mri lumbar": ["72148", "72149", "72158"],
+    "mri knee": ["73721", "73722", "73723"],
+    "ultrasound abdomen": ["76700", "76705"],
+    "echocardiogram": ["93306", "93307", "93308"],
+    "echo": ["93306", "93307", "93308"],
+    "stress test": ["93015", "93016", "93017", "93018"],
+    "mammogram": ["77065", "77066", "77067"],
+    "dexa": ["77080", "77081"],
+    "bone density": ["77080", "77081"],
+
+    # Cardiac
+    "ecg": ["93000", "93005", "93010"],
+    "ekg": ["93000", "93005", "93010"],
+    "electrocardiogram": ["93000", "93005", "93010"],
+    "holter": ["93224", "93225", "93226", "93227"],
+    "cardiac cath": ["93451", "93452", "93453", "93454", "93455", "93456", "93457", "93458", "93459"],
+    "heart cath": ["93458", "93459", "93460"],
+    "pci": ["92920", "92924", "92928", "92933", "92937", "92941", "92943"],
+    "stent": ["92928", "92929", "92933", "92934"],
+
+    # Labs
+    "cbc": ["85025", "85027"],
+    "complete blood count": ["85025", "85027"],
+    "cmp": ["80053"],
+    "comprehensive metabolic": ["80053"],
+    "bmp": ["80048"],
+    "basic metabolic": ["80048"],
+    "lipid panel": ["80061"],
+    "hemoglobin a1c": ["83036"],
+    "hba1c": ["83036"],
+    "a1c": ["83036"],
+    "tsh": ["84443"],
+    "psa": ["84153", "84154"],
+    "urinalysis": ["81001", "81002", "81003"],
+    "ua": ["81001", "81002", "81003"],
+    "urine culture": ["87086", "87088"],
+    "blood culture": ["87040"],
+    "strep test": ["87880"],
+    "flu test": ["87804"],
+    "covid test": ["87635", "87426"],
+    "pt inr": ["85610", "85730"],
+    "troponin": ["84484"],
+    "bnp": ["83880"],
+
+    # Injections
+    "injection": ["96372", "96373", "96374", "96375"],
+    "im injection": ["96372"],
+    "iv injection": ["96374"],
+    "joint injection": ["20600", "20605", "20610"],
+    "knee injection": ["20610"],
+    "shoulder injection": ["20610"],
+    "steroid injection": ["20610", "62320", "62321", "62322", "62323"],
+    "epidural": ["62320", "62321", "62322", "62323"],
+    "trigger point": ["20552", "20553"],
+
+    # Vaccines
+    "flu shot": ["90658", "90686", "90688"],
+    "flu vaccine": ["90658", "90686", "90688"],
+    "influenza vaccine": ["90658", "90686", "90688"],
+    "tdap": ["90715"],
+    "tetanus": ["90714", "90715"],
+    "pneumonia vaccine": ["90670", "90671", "90732"],
+    "shingles vaccine": ["90750"],
+    "covid vaccine": ["91300", "91301", "91303"],
+
+    # Surgery - Orthopedic
+    "knee arthroscopy": ["29870", "29871", "29873", "29874", "29875", "29876", "29877", "29879", "29880", "29881"],
+    "knee scope": ["29870", "29881"],
+    "meniscectomy": ["29880", "29881"],
+    "acl repair": ["29888"],
+    "total knee replacement": ["27447"],
+    "tkr": ["27447"],
+    "total hip replacement": ["27130"],
+    "thr": ["27130"],
+    "hip replacement": ["27130"],
+    "rotator cuff repair": ["23410", "23412", "23420", "29827"],
+    "carpal tunnel": ["64721"],
+
+    # Surgery - General
+    "appendectomy": ["44950", "44955", "44960", "44970"],
+    "cholecystectomy": ["47562", "47563", "47564", "47600", "47605"],
+    "lap chole": ["47562", "47563", "47564"],
+    "gallbladder removal": ["47562", "47563", "47564"],
+    "hernia repair": ["49505", "49507", "49520", "49521", "49560", "49561", "49650", "49651"],
+    "inguinal hernia": ["49505", "49507", "49520", "49521", "49650"],
+    "umbilical hernia": ["49580", "49582", "49585", "49587"],
+    "biopsy": ["11102", "11104", "11106"],
+    "skin biopsy": ["11102", "11104", "11106"],
+    "wound repair": ["12001", "12002", "12004", "12005", "12006", "12007"],
+    "laceration repair": ["12001", "12002", "12004", "12005"],
+
+    # Physical Therapy
+    "physical therapy": ["97110", "97112", "97116", "97140", "97530", "97535"],
+    "pt": ["97110", "97112", "97116", "97140"],
+    "therapeutic exercise": ["97110"],
+    "manual therapy": ["97140"],
+    "gait training": ["97116"],
+
+    # Mental Health
+    "psychotherapy": ["90832", "90834", "90837", "90847"],
+    "therapy session": ["90832", "90834", "90837"],
+    "counseling": ["90832", "90834", "90837", "90847"],
+    "psychiatric evaluation": ["90791", "90792"],
+    "psych eval": ["90791", "90792"],
+
+    # Sleep
+    "sleep study": ["95810", "95811"],
+    "polysomnography": ["95810", "95811"],
+
+    # Pulmonary
+    "pulmonary function": ["94010", "94060", "94726", "94727", "94728", "94729"],
+    "pft": ["94010", "94060", "94726", "94727", "94728", "94729"],
+    "spirometry": ["94010", "94060"],
+
+    # Ophthalmology
+    "cataract surgery": ["66982", "66984"],
+    "cataract removal": ["66982", "66984"],
+    "eye exam": ["92002", "92004", "92012", "92014"],
+
+    # Dialysis
+    "dialysis": ["90935", "90937", "90945", "90947"],
+    "hemodialysis": ["90935", "90937"],
+
+    # Chemotherapy
+    "chemotherapy": ["96401", "96402", "96409", "96411", "96413", "96415"],
+    "chemo": ["96401", "96402", "96409", "96411", "96413", "96415"],
+    "infusion": ["96360", "96361", "96365", "96366", "96367", "96374", "96375"],
+
+    # Wound Care
+    "wound care": ["97597", "97598", "97602", "97605", "97606"],
+    "debridement": ["11042", "11043", "11044", "97597", "97598"],
+}
+
+
+# =============================================================================
+# DOCUMENTATION REQUIREMENTS - Required elements for code categories
+# =============================================================================
+DOCUMENTATION_REQUIREMENTS: dict[str, list[str]] = {
+    # E/M Office New Patient
+    "99202": ["Chief complaint", "History of present illness", "MDM straightforward OR time 15-29 min"],
+    "99203": ["Chief complaint", "HPI", "Review of systems", "MDM low complexity OR time 30-44 min"],
+    "99204": ["Chief complaint", "HPI", "ROS", "PFSH", "MDM moderate complexity OR time 45-59 min", "Prescription drug management"],
+    "99205": ["Chief complaint", "Comprehensive HPI", "Complete ROS", "Complete PFSH", "MDM high complexity OR time 60-74 min"],
+
+    # E/M Office Established Patient
+    "99211": ["Minimal problem", "May not require physician presence"],
+    "99212": ["Chief complaint", "Brief HPI", "MDM straightforward OR time 10-19 min"],
+    "99213": ["Chief complaint", "HPI", "2+ self-limited problems OR 1 stable chronic illness", "MDM low OR time 20-29 min"],
+    "99214": ["Chief complaint", "Extended HPI", "1+ chronic illness with mild exacerbation", "Prescription drug management", "MDM moderate OR time 30-39 min"],
+    "99215": ["Chief complaint", "Comprehensive HPI", "Chronic illness with severe exacerbation", "Drug therapy requiring intensive monitoring", "MDM high OR time 40-54 min"],
+
+    # Hospital
+    "99221": ["Chief complaint", "Comprehensive history", "Admission orders", "MDM low/moderate complexity OR 40 min"],
+    "99222": ["Comprehensive history", "Comprehensive examination", "Multiple conditions requiring workup", "MDM moderate OR 55 min"],
+    "99223": ["Comprehensive history", "Comprehensive examination", "Severely ill patient", "Multiple diagnoses requiring active management", "MDM high OR 75 min"],
+
+    # Emergency
+    "99281": ["Chief complaint", "Self-limited/minor problem"],
+    "99283": ["Chief complaint", "Extended history", "Moderately severe problem"],
+    "99284": ["Chief complaint", "Comprehensive history", "High severity problem requiring urgent evaluation"],
+    "99285": ["Chief complaint", "Comprehensive history", "Life-threatening condition", "Immediate intervention required"],
+
+    # Critical Care
+    "99291": ["Critical illness/injury documentation", "Time spent in critical care activities", "Vital organ dysfunction", "Direct personal management"],
+
+    # Procedures
+    "45378": ["Indication for procedure", "Prep quality", "Extent of examination", "Findings", "Recommendations for follow-up"],
+    "45380": ["Indication", "Prep quality", "Biopsy sites documented", "Pathology correlation"],
+    "45385": ["Indication", "Number and location of polyps", "Removal technique", "Pathology report"],
+    "43239": ["Indication", "Procedure findings", "Biopsy sites", "Pathology report"],
+}
 
 
 def _get_cpt_category(domain: str, concept_class: str) -> CPTCategory:
@@ -902,18 +1128,34 @@ def load_extended_cpt_codes() -> tuple[list[CPTCode], dict[str, list[str]]]:
                 if not code_str or code_str in loaded_codes:
                     continue
 
-                category = _get_cpt_category(
-                    concept.get("domain_id", ""),
-                    concept.get("concept_class_id", "")
-                )
+                # Determine category from the concept data
+                cat_str = concept.get("category", "")
+                if cat_str:
+                    category = _get_cpt_category_from_string(cat_str)
+                else:
+                    category = _get_cpt_category(
+                        concept.get("domain_id", ""),
+                        concept.get("concept_class_id", "")
+                    )
+
                 synonyms = concept.get("synonyms", [])
                 description = concept.get("concept_name", "")
+
+                # Get RVU and time from concept if available
+                work_rvu = concept.get("work_rvu", 0.0)
+                typical_time = concept.get("typical_time_minutes", 0)
+
+                # Get documentation requirements if defined
+                doc_elements = DOCUMENTATION_REQUIREMENTS.get(code_str, [])
 
                 cpt_code = CPTCode(
                     code=code_str,
                     description=description,
                     category=category,
+                    work_rvu=work_rvu,
+                    typical_time_minutes=typical_time,
                     synonyms=synonyms,
+                    documentation_elements=doc_elements,
                 )
 
                 codes.append(cpt_code)
@@ -943,7 +1185,40 @@ def load_extended_cpt_codes() -> tuple[list[CPTCode], dict[str, list[str]]]:
     else:
         logger.warning(f"CPT fixture file not found: {FIXTURE_FILE}")
 
+    # Add clinical synonym mappings to the index
+    for synonym, code_list in CLINICAL_SYNONYM_MAPPINGS.items():
+        syn_lower = synonym.lower()
+        if syn_lower not in synonym_index:
+            synonym_index[syn_lower] = []
+        for code_str in code_list:
+            if code_str not in synonym_index[syn_lower]:
+                synonym_index[syn_lower].append(code_str)
+
     return codes, synonym_index
+
+
+def _get_cpt_category_from_string(cat_str: str) -> CPTCategory:
+    """Determine CPT category from category string."""
+    cat_lower = cat_str.lower()
+
+    if "evaluation" in cat_lower or "e/m" in cat_lower:
+        return CPTCategory.EVALUATION_MANAGEMENT
+    elif "anesthesia" in cat_lower:
+        return CPTCategory.ANESTHESIA
+    elif "surgery" in cat_lower:
+        return CPTCategory.SURGERY
+    elif "radiology" in cat_lower:
+        return CPTCategory.RADIOLOGY
+    elif "pathology" in cat_lower or "laboratory" in cat_lower:
+        return CPTCategory.PATHOLOGY
+    elif "medicine" in cat_lower:
+        return CPTCategory.MEDICINE
+    elif "category ii" in cat_lower:
+        return CPTCategory.MEDICINE  # Category II maps to Medicine
+    elif "category iii" in cat_lower:
+        return CPTCategory.MEDICINE  # Category III maps to Medicine
+    else:
+        return CPTCategory.MEDICINE
 
 
 # ============================================================================

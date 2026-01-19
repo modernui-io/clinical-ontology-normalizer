@@ -8,6 +8,9 @@ This module provides comprehensive drug safety checking including:
 - Black box warnings
 - Common adverse effects
 
+This service integrates with RxNormService for enhanced drug name
+normalization and therapeutic class identification.
+
 Note: This is a clinical decision support tool and should not replace
 clinical judgment. Always consult current prescribing information.
 """
@@ -18,6 +21,10 @@ import json
 import logging
 from pathlib import Path
 import threading
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.services.rxnorm_service import RxNormService
 
 logger = logging.getLogger(__name__)
 
@@ -727,12 +734,23 @@ def reset_drug_safety_service() -> None:
 
 
 class DrugSafetyService:
-    """Service for checking drug safety and contraindications."""
+    """Service for checking drug safety and contraindications.
 
-    def __init__(self) -> None:
-        """Initialize the drug safety service."""
+    Integrates with RxNormService for enhanced drug name normalization
+    and therapeutic class identification.
+    """
+
+    def __init__(self, use_rxnorm: bool = True) -> None:
+        """Initialize the drug safety service.
+
+        Args:
+            use_rxnorm: Whether to use RxNormService for enhanced drug name resolution.
+                       Defaults to True. Set to False to disable RxNorm integration.
+        """
         self._profiles: dict[str, DrugSafetyProfile] = {}
         self._aliases: dict[str, str] = DRUG_ALIASES
+        self._rxnorm_service: "RxNormService | None" = None
+        self._use_rxnorm = use_rxnorm
 
         # Load extended profiles from fixture
         profiles = load_extended_safety_profiles()
@@ -741,12 +759,63 @@ class DrugSafetyService:
         for profile in profiles:
             self._profiles[profile.generic_name.lower()] = profile
 
+        if use_rxnorm:
+            self._init_rxnorm()
+
         logger.info(f"Drug safety service initialized with {len(self._profiles)} drug profiles")
 
+    def _init_rxnorm(self) -> None:
+        """Initialize RxNorm service integration."""
+        try:
+            from app.services.rxnorm_service import get_rxnorm_service
+            self._rxnorm_service = get_rxnorm_service()
+            logger.info("RxNorm service integration enabled for drug safety")
+        except Exception as e:
+            logger.warning(f"Failed to initialize RxNorm service: {e}")
+            self._rxnorm_service = None
+
     def normalize_drug_name(self, drug: str) -> str:
-        """Normalize a drug name to its generic form."""
+        """Normalize a drug name to its generic form.
+
+        Uses RxNormService if available for enhanced brand-to-generic resolution.
+        """
         drug_lower = drug.lower().strip()
-        return self._aliases.get(drug_lower, drug_lower)
+
+        # First check local aliases
+        if drug_lower in self._aliases:
+            return self._aliases[drug_lower]
+
+        # Try RxNorm service for brand-to-generic resolution
+        if self._rxnorm_service:
+            try:
+                generic = self._rxnorm_service.normalize_to_generic(drug)
+                if generic:
+                    return generic.lower()
+            except Exception as e:
+                logger.debug(f"RxNorm lookup failed for {drug}: {e}")
+
+        return drug_lower
+
+    def get_therapeutic_class(self, drug: str) -> list[str]:
+        """Get therapeutic class(es) for a drug.
+
+        Uses RxNormService if available for class identification.
+        """
+        # First check if we have a profile with class info
+        profile = self.get_profile(drug)
+        if profile and profile.drug_class:
+            return [profile.drug_class]
+
+        # Try RxNorm service for therapeutic class
+        if self._rxnorm_service:
+            try:
+                classes = self._rxnorm_service.get_therapeutic_class(drug)
+                if classes:
+                    return classes
+            except Exception as e:
+                logger.debug(f"RxNorm class lookup failed for {drug}: {e}")
+
+        return []
 
     def get_profile(self, drug: str) -> DrugSafetyProfile | None:
         """Get the safety profile for a drug."""

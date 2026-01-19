@@ -4,11 +4,17 @@ import logging
 from typing import Annotated
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.errors import (
+    ErrorCode,
+    InternalError,
+    NotFoundError,
+    create_not_found_error,
+)
 from app.core.database import get_db
 from app.core.queue import QUEUE_NAMES, enqueue_job
 from app.jobs import process_document
@@ -115,10 +121,7 @@ async def get_document(
     document = result.scalar_one_or_none()
 
     if document is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Document with ID {doc_id} not found",
-        )
+        raise create_not_found_error("Document", str(doc_id))
 
     return Document(
         id=UUID(document.id),
@@ -161,10 +164,7 @@ async def get_document_mentions(
     document = result.scalar_one_or_none()
 
     if document is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Document with ID {doc_id} not found",
-        )
+        raise create_not_found_error("Document", str(doc_id))
 
     # Get all mentions for this document
     stmt = select(MentionModel).where(MentionModel.document_id == str(doc_id))

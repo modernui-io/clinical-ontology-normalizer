@@ -3,12 +3,13 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
+from app.api.errors import ErrorCode, NotFoundError
 from app.core.database import get_db, get_sync_engine
 from app.models.clinical_fact import ClinicalFact as ClinicalFactModel
 from app.models.knowledge_graph import KGNode
@@ -335,9 +336,9 @@ def find_similar_concepts(
         row = result.fetchone()
 
         if not row:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Concept {concept_id} not found",
+            raise NotFoundError(
+                message=f"Concept with ID {concept_id} not found",
+                error_code=ErrorCode.NOT_FOUND_CONCEPT,
             )
 
         concept_name, domain_id = row[0], row[1]
