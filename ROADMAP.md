@@ -378,10 +378,10 @@
 |----------|-------|-----------|-------------|-----------|
 | P0 | 45 | 12 | 0 | 33 |
 | P1 | 71 | 13 | 0 | 58 |
-| P2 | 61 | 1 | 0 | 60 |
+| P2 | 61 | 15 | 0 | 46 |
 | P3 | 23 | 1 | 0 | 22 |
 | P4 | 12 | 3 | 0 | 9 |
-| **Total** | **212** | **30** | **0** | **182** |
+| **Total** | **212** | **44** | **0** | **168** |
 
 ### Summary by Phase
 
@@ -443,4 +443,4 @@
 ---
 
 *Last Updated: 2026-01-19*
-*Version: 1.2 - P1 FHIR Terminology Services + Frontend*
+*Version: 1.3 - P2 Competitive Parity (DQD, Value Sets, ETL Config, CDISC)*
