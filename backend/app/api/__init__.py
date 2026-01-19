@@ -1,10 +1,13 @@
 """API routers for Clinical Ontology Normalizer."""
 
+from app.api.assistant import router as assistant_router
 from app.api.audit import router as audit_router
 from app.api.auth import router as auth_router
 from app.api.calculators import router as calculators_router
 from app.api.cdisc import router as cdisc_router
+from app.api.cds_hooks import router as cds_hooks_router
 from app.api.coding import router as coding_router
+from app.api.cohorts import router as cohorts_router
 from app.api.dashboard import router as dashboard_router
 from app.api.documents import router as documents_router
 from app.api.etl import router as etl_router
@@ -28,6 +31,7 @@ from app.api.export import router as export_router
 from app.api.fhir import router as fhir_router
 from app.api.jobs import router as jobs_router
 from app.api.llm import router as llm_router
+from app.api.notifications import router as notifications_router
 from app.api.middleware import (
     AuditMiddleware,
     AsyncAuditMiddleware,
@@ -81,11 +85,14 @@ from app.api.valuesets import router as valuesets_router
 
 __all__ = [
     # Routers
+    "assistant_router",
     "audit_router",
     "auth_router",
     "calculators_router",
     "cdisc_router",
+    "cds_hooks_router",
     "coding_router",
+    "cohorts_router",
     "dashboard_router",
     "documents_router",
     "etl_router",
@@ -93,6 +100,7 @@ __all__ = [
     "fhir_router",
     "jobs_router",
     "llm_router",
+    "notifications_router",
     "notes_router",
     "patients_router",
     "quality_router",

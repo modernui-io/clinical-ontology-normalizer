@@ -896,3 +896,427 @@ async def get_note_types() -> dict:
             },
         ]
     }
+
+
+# ============================================================================
+# Patient Summary Models
+# ============================================================================
+
+
+class PatientFactInput(BaseModel):
+    """A clinical fact about a patient."""
+
+    fact_id: str = Field(..., description="Unique fact identifier")
+    fact_type: str = Field(
+        ..., description="Type of fact (problem, medication, lab, vital, allergy, encounter)"
+    )
+    description: str = Field(..., max_length=1000, description="Fact description")
+    code: str | None = Field(None, description="Clinical code (ICD-10, RxNorm, LOINC)")
+    code_system: str | None = Field(None, description="Code system name")
+    value: str | None = Field(None, description="Value (for labs, vitals)")
+    unit: str | None = Field(None, description="Unit of measurement")
+    date: str | None = Field(None, description="Date of fact (ISO format)")
+    status: str | None = Field(None, description="Status (active, resolved, etc.)")
+    source_document_id: str | None = Field(None, description="Source document ID")
+    confidence: float = Field(1.0, ge=0, le=1, description="Confidence score")
+
+
+class PatientSummaryRequest(BaseModel):
+    """Request to generate a patient summary."""
+
+    patient_id: str = Field(..., description="Patient identifier")
+    facts: list[PatientFactInput] = Field(..., description="Clinical facts about the patient")
+    focus_areas: list[str] = Field(
+        default_factory=list,
+        description="Focus areas: problems, meds, visits, labs, etc.",
+    )
+    max_length: int | None = Field(None, ge=100, le=5000, description="Maximum summary length")
+    include_citations: bool = Field(True, description="Include fact citations")
+    provider: LLMProviderParam | None = Field(None, description="LLM provider to use")
+    model: str | None = Field(None, description="Specific LLM model to use")
+
+
+class FactCitationResponse(BaseModel):
+    """Citation linking summary text to source facts."""
+
+    text_span: str = Field(..., description="The text in the summary")
+    fact_id: str = Field(..., description="ID of the source fact")
+    fact_type: str = Field(..., description="Type of the source fact")
+    source_description: str = Field(..., description="Description of the source")
+
+
+class PatientSummaryResponse(BaseModel):
+    """Response containing generated patient summary."""
+
+    summary_id: str = Field(..., description="Unique summary identifier")
+    patient_id: str = Field(..., description="Patient identifier")
+    content: str = Field(..., description="Full summary content")
+    sections: dict[str, str] = Field(default_factory=dict, description="Summary sections")
+    citations: list[FactCitationResponse] = Field(
+        default_factory=list, description="Fact citations"
+    )
+    generated_at: str = Field(..., description="Generation timestamp")
+    focus_areas: list[str] = Field(default_factory=list, description="Focus areas used")
+    fact_count: int = Field(..., description="Number of facts processed")
+    model_used: str = Field(..., description="LLM model used")
+    token_usage: int = Field(..., description="Total tokens used")
+    cost_usd: float = Field(..., description="Estimated cost in USD")
+    latency_ms: float = Field(..., description="Processing time in milliseconds")
+    confidence: ConfidenceLevelResponse = Field(..., description="Summary confidence")
+
+
+# ============================================================================
+# Note History Models
+# ============================================================================
+
+
+class NoteHistoryEntryResponse(BaseModel):
+    """Entry in the note generation history."""
+
+    note_id: str = Field(..., description="Note identifier")
+    note_type: NoteTypeParam = Field(..., description="Type of note")
+    patient_id: str | None = Field(None, description="Patient identifier")
+    template_id: str | None = Field(None, description="Template used")
+    status: NoteStatusResponse = Field(..., description="Note status")
+    generated_at: str = Field(..., description="Generation timestamp")
+    model_used: str = Field(..., description="LLM model used")
+    token_usage: int = Field(..., description="Tokens used")
+    cost_usd: float = Field(..., description="Cost in USD")
+    preview: str = Field(..., description="Content preview")
+
+
+class NoteHistoryResponse(BaseModel):
+    """Response containing note generation history."""
+
+    history: list[NoteHistoryEntryResponse] = Field(
+        default_factory=list, description="History entries"
+    )
+    total: int = Field(..., description="Total entries")
+
+
+# ============================================================================
+# Template Customization Models
+# ============================================================================
+
+
+class SectionTemplateInput(BaseModel):
+    """Input for a custom note section."""
+
+    name: str = Field(..., description="Section name")
+    key: str = Field(..., description="Section key (unique identifier)")
+    required: bool = Field(True, description="Whether section is required")
+    order: int = Field(0, description="Section order")
+    prompt_hint: str | None = Field(None, description="Prompt hint for generation")
+    subsections: list[str] = Field(default_factory=list, description="Subsection names")
+
+
+class TemplateCustomizationRequest(BaseModel):
+    """Request to customize a note template."""
+
+    base_template_id: str = Field(..., description="Base template to customize")
+    new_template_id: str = Field(..., description="ID for the new template")
+    name: str = Field(..., max_length=100, description="New template name")
+    description: str | None = Field(None, max_length=500, description="Template description")
+    sections_to_add: list[SectionTemplateInput] = Field(
+        default_factory=list, description="Sections to add"
+    )
+    sections_to_remove: list[str] = Field(
+        default_factory=list, description="Section keys to remove"
+    )
+    section_order: list[str] | None = Field(
+        None, description="Ordered list of section keys"
+    )
+    custom_prompts: dict[str, str] = Field(
+        default_factory=dict, description="Custom prompts by section key"
+    )
+
+
+# ============================================================================
+# New Endpoints
+# ============================================================================
+
+
+@router.post(
+    "/summarize",
+    response_model=PatientSummaryResponse,
+    summary="Generate a patient summary",
+    description="Generate a concise patient summary from clinical facts using AI.",
+)
+async def summarize_patient(request: PatientSummaryRequest) -> PatientSummaryResponse:
+    """Generate a patient summary from clinical facts.
+
+    Takes a list of clinical facts (problems, medications, labs, etc.)
+    and generates a concise, clinically useful summary.
+
+    **Features:**
+    - Organizes information by clinical relevance
+    - Includes fact citations for traceability
+    - Supports focus areas to emphasize specific data
+    - HIPAA-compliant generation (no hallucinated PHI)
+
+    **PHI Warning**: Ensure data is properly de-identified before using
+    this endpoint if PHI protection is required.
+
+    Args:
+        request: Summary generation request with patient facts.
+
+    Returns:
+        PatientSummaryResponse with generated summary and citations.
+    """
+    try:
+        from app.services.note_generator import (
+            PatientFact,
+            PatientSummaryRequest as ServiceRequest,
+            get_patient_summary_service,
+        )
+        from app.services.llm_service import LLMProvider
+
+        service = get_patient_summary_service()
+
+        # Map provider
+        provider = None
+        if request.provider:
+            provider = LLMProvider(request.provider.value)
+
+        # Convert facts
+        facts = [
+            PatientFact(
+                fact_id=f.fact_id,
+                fact_type=f.fact_type,
+                description=f.description,
+                code=f.code,
+                code_system=f.code_system,
+                value=f.value,
+                unit=f.unit,
+                date=f.date,
+                status=f.status,
+                source_document_id=f.source_document_id,
+                confidence=f.confidence,
+            )
+            for f in request.facts
+        ]
+
+        # Create service request
+        service_request = ServiceRequest(
+            patient_id=request.patient_id,
+            facts=facts,
+            focus_areas=request.focus_areas,
+            max_length=request.max_length,
+            include_citations=request.include_citations,
+            provider=provider,
+            model=request.model,
+        )
+
+        # Generate summary
+        result = await service.generate_summary(service_request)
+
+        # Convert citations
+        citations = [
+            FactCitationResponse(
+                text_span=c.text_span,
+                fact_id=c.fact_id,
+                fact_type=c.fact_type,
+                source_description=c.source_description,
+            )
+            for c in result.citations
+        ]
+
+        return PatientSummaryResponse(
+            summary_id=result.summary_id,
+            patient_id=result.patient_id,
+            content=result.content,
+            sections=result.sections,
+            citations=citations,
+            generated_at=result.generated_at,
+            focus_areas=result.focus_areas,
+            fact_count=result.fact_count,
+            model_used=result.model_used,
+            token_usage=result.token_usage,
+            cost_usd=round(result.cost_usd, 6),
+            latency_ms=result.latency_ms,
+            confidence=ConfidenceLevelResponse(result.confidence.value),
+        )
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Summary generation failed: {str(e)}"
+        )
+
+
+@router.get(
+    "/history",
+    response_model=NoteHistoryResponse,
+    summary="Get note generation history",
+    description="Get the history of generated clinical notes.",
+)
+async def get_history(
+    limit: int = Query(50, ge=1, le=100, description="Maximum entries to return"),
+    note_type: NoteTypeParam | None = Query(None, description="Filter by note type"),
+    patient_id: str | None = Query(None, description="Filter by patient ID"),
+) -> NoteHistoryResponse:
+    """Get note generation history.
+
+    Returns a list of recently generated notes with metadata.
+    Can be filtered by note type or patient ID.
+
+    Args:
+        limit: Maximum number of entries to return.
+        note_type: Optional filter by note type.
+        patient_id: Optional filter by patient ID.
+
+    Returns:
+        NoteHistoryResponse with history entries.
+    """
+    try:
+        from app.services.note_generator import (
+            NoteType,
+            get_note_generator_service,
+            get_note_history,
+        )
+
+        service = get_note_generator_service()
+
+        # Map note type for filter
+        filter_type = None
+        if note_type:
+            note_type_map = {
+                NoteTypeParam.SOAP: NoteType.SOAP,
+                NoteTypeParam.HP: NoteType.HP,
+                NoteTypeParam.PROGRESS: NoteType.PROGRESS,
+                NoteTypeParam.DISCHARGE: NoteType.DISCHARGE,
+                NoteTypeParam.PROCEDURE: NoteType.PROCEDURE,
+            }
+            filter_type = note_type_map.get(note_type)
+
+        # Get history
+        history = get_note_history(
+            service,
+            limit=limit,
+            note_type=filter_type,
+            patient_id=patient_id,
+        )
+
+        # Convert to response
+        entries = [
+            NoteHistoryEntryResponse(
+                note_id=h.note_id,
+                note_type=NoteTypeParam(h.note_type.value),
+                patient_id=h.patient_id,
+                template_id=h.template_id,
+                status=NoteStatusResponse(h.status.value),
+                generated_at=h.generated_at,
+                model_used=h.model_used,
+                token_usage=h.token_usage,
+                cost_usd=round(h.cost_usd, 6),
+                preview=h.preview,
+            )
+            for h in history
+        ]
+
+        return NoteHistoryResponse(
+            history=entries,
+            total=len(entries),
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get history: {str(e)}"
+        )
+
+
+@router.put(
+    "/templates/{template_id}",
+    response_model=NoteTemplateResponse,
+    summary="Customize a note template",
+    description="Create a customized template based on an existing one.",
+)
+async def customize_template(
+    template_id: str,
+    request: TemplateCustomizationRequest,
+) -> NoteTemplateResponse:
+    """Customize a note template.
+
+    Creates a new template based on an existing one with customizations:
+    - Add or remove sections
+    - Reorder sections
+    - Set custom prompts for sections
+
+    The original template is not modified.
+
+    Args:
+        template_id: ID for the new customized template.
+        request: Customization details.
+
+    Returns:
+        NoteTemplateResponse with the new template.
+    """
+    try:
+        from app.services.note_generator import (
+            CustomTemplateRequest,
+            NoteSectionTemplate,
+            customize_template as service_customize,
+            get_note_generator_service,
+        )
+
+        service = get_note_generator_service()
+
+        # Override template_id from path
+        request.new_template_id = template_id
+
+        # Convert sections to add
+        sections_to_add = [
+            NoteSectionTemplate(
+                name=s.name,
+                key=s.key,
+                required=s.required,
+                order=s.order,
+                prompt_template=s.prompt_hint,
+                subsections=s.subsections,
+            )
+            for s in request.sections_to_add
+        ]
+
+        # Create service request
+        service_request = CustomTemplateRequest(
+            base_template_id=request.base_template_id,
+            new_template_id=request.new_template_id,
+            name=request.name,
+            description=request.description,
+            sections_to_add=sections_to_add,
+            sections_to_remove=request.sections_to_remove,
+            section_order=request.section_order,
+            custom_prompts=request.custom_prompts,
+        )
+
+        # Create customized template
+        template = service_customize(service, service_request)
+
+        # Convert to response
+        note_type_response = NoteTypeParam(template.note_type.value)
+        sections = [
+            NoteSectionTemplateResponse(
+                name=s.name,
+                key=s.key,
+                required=s.required,
+                order=s.order,
+                subsections=s.subsections,
+            )
+            for s in template.sections
+        ]
+
+        return NoteTemplateResponse(
+            template_id=template.template_id,
+            note_type=note_type_response,
+            name=template.name,
+            description=template.description,
+            sections=sections,
+        )
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Template customization failed: {str(e)}"
+        )

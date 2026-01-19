@@ -1,14 +1,29 @@
-"""FHIR API endpoints for importing and interacting with FHIR data."""
+"""FHIR API endpoints for importing, exporting, and interacting with FHIR data.
+
+Includes:
+- FHIR import from external servers
+- FHIR Bulk Data Export ($export) per HL7 specification
+"""
 
 import logging
-from typing import Any
+from datetime import datetime
+from pathlib import Path
+from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.services.fhir_import import FHIRImportService
+from app.services.bulk_export_service import (
+    BulkExportService,
+    ExportStatus,
+    ExportType,
+    ResourceType,
+    get_bulk_export_service,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -159,3 +174,535 @@ async def get_fhir_patient_summary(
         }
     finally:
         await service.close()
+
+
+# =============================================================================
+# Bulk Export Models
+# =============================================================================
+
+
+class BulkExportRequest(BaseModel):
+    """Request to start a bulk export."""
+
+    _outputFormat: str | None = Field(
+        None,
+        alias="outputFormat",
+        description="Output format (only NDJSON supported)",
+    )
+    _type: str | None = Field(
+        None,
+        alias="type",
+        description="Comma-separated list of resource types to export",
+    )
+    _since: datetime | None = Field(
+        None,
+        alias="since",
+        description="Only include resources modified since this time",
+    )
+    _typeFilter: str | None = Field(
+        None,
+        alias="typeFilter",
+        description="FHIR search parameters to filter exported resources",
+    )
+    patient: list[str] | None = Field(
+        None,
+        description="Patient IDs for patient-level export",
+    )
+
+
+class BulkExportFile(BaseModel):
+    """Information about an exported file."""
+
+    type: str = Field(..., description="Resource type")
+    url: str = Field(..., description="Download URL")
+    count: int = Field(..., description="Number of resources")
+
+
+class BulkExportStatusResponse(BaseModel):
+    """Response for bulk export status (completed)."""
+
+    transactionTime: str = Field(..., description="Transaction time")
+    request: str = Field(..., description="Original request URL")
+    requiresAccessToken: bool = Field(False, description="Whether access token is required")
+    output: list[BulkExportFile] = Field(default_factory=list)
+    error: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class BulkExportJobResponse(BaseModel):
+    """Response for bulk export job details."""
+
+    job_id: str
+    status: str
+    export_type: str
+    created_at: str
+    started_at: str | None
+    completed_at: str | None
+    expires_at: str | None
+    resource_types: list[str]
+    since: str | None
+    output_files: list[dict[str, Any]]
+    errors_count: int
+    progress: dict[str, Any]
+
+
+class BulkExportListResponse(BaseModel):
+    """Response for listing bulk export jobs."""
+
+    jobs: list[BulkExportJobResponse]
+    total: int
+
+
+class BulkExportStatsResponse(BaseModel):
+    """Response for bulk export service statistics."""
+
+    total_jobs: int
+    running_jobs: int
+    jobs_by_status: dict[str, int]
+    total_files_exported: int
+    export_base_dir: str
+    file_retention_hours: int
+
+
+# =============================================================================
+# Bulk Export Endpoints (FHIR Bulk Data Access)
+# =============================================================================
+
+
+@router.post(
+    "/$export",
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Start Bulk Export",
+    description="Initiate a system-level bulk export of FHIR resources.",
+    responses={
+        202: {
+            "description": "Export accepted",
+            "headers": {
+                "Content-Location": {
+                    "description": "URL to poll for export status",
+                    "schema": {"type": "string"},
+                }
+            },
+        }
+    },
+)
+async def start_bulk_export(
+    request: Request,
+    _outputFormat: Annotated[
+        str | None,
+        Query(description="Output format (only application/fhir+ndjson supported)"),
+    ] = None,
+    _type: Annotated[
+        str | None,
+        Query(description="Comma-separated list of resource types to export"),
+    ] = None,
+    _since: Annotated[
+        datetime | None,
+        Query(description="Only include resources modified since this time"),
+    ] = None,
+    _typeFilter: Annotated[
+        str | None,
+        Query(description="FHIR search parameters to filter resources"),
+    ] = None,
+) -> Response:
+    """Start a FHIR Bulk Data Export.
+
+    This endpoint initiates an asynchronous export of FHIR resources
+    in NDJSON format per the FHIR Bulk Data Access specification.
+
+    The export runs asynchronously. Poll the Content-Location URL
+    to check status and retrieve results when complete.
+
+    Args:
+        _outputFormat: Output format (only NDJSON supported).
+        _type: Resource types to export.
+        _since: Only resources modified since this time.
+        _typeFilter: Additional FHIR search filters.
+
+    Returns:
+        202 Accepted with Content-Location header for polling.
+    """
+    service = get_bulk_export_service()
+
+    # Parse resource types
+    resource_types = None
+    if _type:
+        resource_types = [t.strip() for t in _type.split(",")]
+
+    # Get base URL for status polling
+    base_url = str(request.base_url).rstrip("/")
+    request_url = f"{base_url}/fhir/$export"
+
+    try:
+        job = await service.start_export(
+            export_type=ExportType.SYSTEM,
+            resource_types=resource_types,
+            since=_since,
+            type_filter=_typeFilter,
+            output_format=_outputFormat or "application/fhir+ndjson",
+            request_url=request_url,
+        )
+
+        # Return 202 with Content-Location header
+        status_url = f"{base_url}/fhir/$export/{job.job_id}"
+        return Response(
+            status_code=status.HTTP_202_ACCEPTED,
+            headers={
+                "Content-Location": status_url,
+            },
+        )
+
+    except RuntimeError as e:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=str(e),
+        )
+
+
+@router.post(
+    "/Patient/$export",
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Start Patient-Level Export",
+    description="Initiate a patient-level bulk export of FHIR resources.",
+)
+async def start_patient_export(
+    request: Request,
+    patient: Annotated[
+        list[str] | None,
+        Query(description="Patient IDs to export (omit for all patients)"),
+    ] = None,
+    _outputFormat: Annotated[str | None, Query()] = None,
+    _type: Annotated[str | None, Query()] = None,
+    _since: Annotated[datetime | None, Query()] = None,
+) -> Response:
+    """Start a patient-level bulk export.
+
+    Exports resources for specific patients or all patients.
+
+    Args:
+        patient: List of patient IDs to export.
+        _outputFormat: Output format.
+        _type: Resource types to export.
+        _since: Only resources modified since this time.
+
+    Returns:
+        202 Accepted with Content-Location header.
+    """
+    service = get_bulk_export_service()
+
+    resource_types = None
+    if _type:
+        resource_types = [t.strip() for t in _type.split(",")]
+
+    base_url = str(request.base_url).rstrip("/")
+
+    try:
+        job = await service.start_export(
+            export_type=ExportType.PATIENT,
+            resource_types=resource_types,
+            since=_since,
+            patient_ids=patient,
+            request_url=f"{base_url}/fhir/Patient/$export",
+        )
+
+        status_url = f"{base_url}/fhir/$export/{job.job_id}"
+        return Response(
+            status_code=status.HTTP_202_ACCEPTED,
+            headers={"Content-Location": status_url},
+        )
+
+    except RuntimeError as e:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=str(e),
+        )
+
+
+@router.get(
+    "/$export/{job_id}",
+    summary="Get Export Status",
+    description="Check the status of a bulk export job.",
+    responses={
+        200: {"description": "Export complete, files available"},
+        202: {"description": "Export in progress"},
+        404: {"description": "Job not found"},
+    },
+)
+async def get_export_status(
+    job_id: str,
+    request: Request,
+) -> Response:
+    """Get the status of a bulk export job.
+
+    Per FHIR Bulk Data spec:
+    - Returns 202 if still in progress
+    - Returns 200 with output manifest when complete
+    - Returns error details if failed
+
+    Args:
+        job_id: The export job ID.
+
+    Returns:
+        Status response per FHIR Bulk Data specification.
+    """
+    service = get_bulk_export_service()
+    job = service.get_job(job_id)
+
+    if not job:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Export job not found: {job_id}",
+        )
+
+    base_url = str(request.base_url).rstrip("/")
+
+    if job.status == ExportStatus.COMPLETED:
+        # Return 200 with output manifest
+        status_response = job.to_status_response(base_url)
+        return Response(
+            status_code=status.HTTP_200_OK,
+            content=__import__("json").dumps(status_response),
+            media_type="application/json",
+        )
+
+    elif job.status == ExportStatus.IN_PROGRESS:
+        # Return 202 with progress
+        progress = job.progress.percent_complete
+        return Response(
+            status_code=status.HTTP_202_ACCEPTED,
+            headers={
+                "X-Progress": f"{progress:.1f}%",
+                "Retry-After": "5",
+            },
+            content=__import__("json").dumps({
+                "status": "in-progress",
+                "progress": progress,
+            }),
+            media_type="application/json",
+        )
+
+    elif job.status == ExportStatus.FAILED:
+        # Return error details
+        return Response(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content=__import__("json").dumps({
+                "status": "failed",
+                "errors": [
+                    {
+                        "type": e.error_type,
+                        "message": e.error_message,
+                    }
+                    for e in job.errors
+                ],
+            }),
+            media_type="application/json",
+        )
+
+    else:
+        # Pending, cancelled, or expired
+        return Response(
+            status_code=status.HTTP_200_OK,
+            content=__import__("json").dumps({
+                "status": job.status.value,
+            }),
+            media_type="application/json",
+        )
+
+
+@router.get(
+    "/$export/{job_id}/download/{filename}",
+    summary="Download Export File",
+    description="Download an NDJSON file from a completed export.",
+)
+async def download_export_file(
+    job_id: str,
+    filename: str,
+) -> FileResponse:
+    """Download an exported NDJSON file.
+
+    Args:
+        job_id: The export job ID.
+        filename: The file name (e.g., "Patient.ndjson").
+
+    Returns:
+        The NDJSON file content.
+    """
+    service = get_bulk_export_service()
+    result = service.get_export_file(job_id, filename)
+
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"File not found: {filename}",
+        )
+
+    file_path, content_type = result
+
+    return FileResponse(
+        path=str(file_path),
+        media_type=content_type,
+        filename=filename,
+    )
+
+
+@router.delete(
+    "/$export/{job_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Cancel or Delete Export",
+    description="Cancel an in-progress export or delete a completed one.",
+)
+async def delete_export(job_id: str) -> Response:
+    """Cancel or delete a bulk export job.
+
+    If the job is in progress, it will be cancelled.
+    If completed or failed, the job and its files will be deleted.
+
+    Args:
+        job_id: The export job ID.
+
+    Returns:
+        204 No Content on success.
+    """
+    service = get_bulk_export_service()
+    job = service.get_job(job_id)
+
+    if not job:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Export job not found: {job_id}",
+        )
+
+    # Try to cancel if running
+    if job.status in [ExportStatus.PENDING, ExportStatus.IN_PROGRESS]:
+        service.cancel_job(job_id)
+    else:
+        # Delete completed/failed job
+        if not service.delete_job(job_id):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cannot delete job in current state",
+            )
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+# =============================================================================
+# Admin Endpoints for Bulk Export
+# =============================================================================
+
+
+@router.get(
+    "/$export/admin/jobs",
+    response_model=BulkExportListResponse,
+    summary="List Export Jobs",
+    description="List all bulk export jobs.",
+    tags=["fhir", "Bulk Export Admin"],
+)
+async def list_export_jobs(
+    status_filter: Annotated[
+        str | None,
+        Query(alias="status", description="Filter by status"),
+    ] = None,
+    limit: Annotated[int, Query(description="Maximum jobs to return")] = 100,
+) -> BulkExportListResponse:
+    """List bulk export jobs.
+
+    Args:
+        status_filter: Filter by export status.
+        limit: Maximum number of jobs to return.
+
+    Returns:
+        List of export jobs.
+    """
+    service = get_bulk_export_service()
+
+    export_status = None
+    if status_filter:
+        try:
+            export_status = ExportStatus(status_filter)
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid status: {status_filter}",
+            )
+
+    jobs = service.get_jobs(status=export_status, limit=limit)
+
+    return BulkExportListResponse(
+        jobs=[
+            BulkExportJobResponse(
+                job_id=j.job_id,
+                status=j.status.value,
+                export_type=j.export_type.value,
+                created_at=j.created_at.isoformat(),
+                started_at=j.started_at.isoformat() if j.started_at else None,
+                completed_at=j.completed_at.isoformat() if j.completed_at else None,
+                expires_at=j.expires_at.isoformat() if j.expires_at else None,
+                resource_types=j.resource_types,
+                since=j.since.isoformat() if j.since else None,
+                output_files=[
+                    {
+                        "resource_type": f.resource_type,
+                        "url": f.url,
+                        "count": f.count,
+                        "size_bytes": f.size_bytes,
+                    }
+                    for f in j.output_files
+                ],
+                errors_count=len(j.errors),
+                progress={
+                    "total_resources": j.progress.total_resources,
+                    "exported_resources": j.progress.exported_resources,
+                    "percent_complete": j.progress.percent_complete,
+                },
+            )
+            for j in jobs
+        ],
+        total=len(jobs),
+    )
+
+
+@router.get(
+    "/$export/admin/stats",
+    response_model=BulkExportStatsResponse,
+    summary="Get Export Statistics",
+    description="Get bulk export service statistics.",
+    tags=["fhir", "Bulk Export Admin"],
+)
+async def get_export_stats() -> BulkExportStatsResponse:
+    """Get bulk export service statistics.
+
+    Returns:
+        Service statistics.
+    """
+    service = get_bulk_export_service()
+    stats = service.get_stats()
+
+    return BulkExportStatsResponse(
+        total_jobs=stats["total_jobs"],
+        running_jobs=stats["running_jobs"],
+        jobs_by_status=stats["jobs_by_status"],
+        total_files_exported=stats["total_files_exported"],
+        export_base_dir=stats["export_base_dir"],
+        file_retention_hours=stats["file_retention_hours"],
+    )
+
+
+@router.post(
+    "/$export/admin/cleanup",
+    summary="Cleanup Expired Exports",
+    description="Clean up expired export files.",
+    tags=["fhir", "Bulk Export Admin"],
+)
+async def cleanup_exports() -> dict[str, Any]:
+    """Clean up expired export files.
+
+    Returns:
+        Number of exports cleaned up.
+    """
+    service = get_bulk_export_service()
+    cleaned = await service.cleanup_expired_exports()
+
+    return {
+        "cleaned_exports": cleaned,
+        "status": "success",
+    }

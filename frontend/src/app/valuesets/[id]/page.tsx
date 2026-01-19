@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, Suspense } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -241,7 +241,7 @@ const RULE_TYPE_LABELS: Record<string, string> = {
   value_set: "From Value Set",
 };
 
-export default function ValueSetDetailPage() {
+function ValueSetDetailContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -1037,5 +1037,13 @@ export default function ValueSetDetailPage() {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+export default function ValueSetDetailPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center">Loading Value Set...</div>}>
+      <ValueSetDetailContent />
+    </Suspense>
   );
 }

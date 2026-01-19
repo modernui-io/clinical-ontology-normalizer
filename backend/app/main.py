@@ -14,11 +14,14 @@ from app.api import (
     AuditMiddleware,
     ErrorHandlerMiddleware,
     RequestIdMiddleware,
+    assistant_router,
     audit_router,
     auth_router,
     calculators_router,
     cdisc_router,
+    cds_hooks_router,
     coding_router,
+    cohorts_router,
     dashboard_router,
     documents_router,
     etl_router,
@@ -27,6 +30,7 @@ from app.api import (
     jobs_router,
     llm_router,
     notes_router,
+    notifications_router,
     patients_router,
     quality_router,
     reconciliation_router,
@@ -196,6 +200,22 @@ def prewarm_all_services() -> dict[str, Any]:
     except Exception as e:
         logger.warning(f"Failed to prewarm value_set_service: {e}")
 
+    # CDS Hooks Service
+    try:
+        from app.services.cds_hooks_service import get_cds_hooks_service
+        svc = get_cds_hooks_service()
+        services_loaded["cds_hooks"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
+    except Exception as e:
+        logger.warning(f"Failed to prewarm cds_hooks: {e}")
+
+    # Bulk Export Service
+    try:
+        from app.services.bulk_export_service import get_bulk_export_service
+        svc = get_bulk_export_service()
+        services_loaded["bulk_export"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
+    except Exception as e:
+        logger.warning(f"Failed to prewarm bulk_export: {e}")
+
     total_time_ms = (time.perf_counter() - start_time) * 1000
 
     return {
@@ -281,10 +301,13 @@ app.add_middleware(
 )
 
 # Include routers
+app.include_router(assistant_router)
 app.include_router(audit_router)
 app.include_router(calculators_router)
 app.include_router(cdisc_router)
+app.include_router(cds_hooks_router)
 app.include_router(coding_router)
+app.include_router(cohorts_router)
 app.include_router(dashboard_router)
 app.include_router(documents_router)
 app.include_router(etl_router)
@@ -293,6 +316,7 @@ app.include_router(fhir_router)
 app.include_router(jobs_router)
 app.include_router(llm_router)
 app.include_router(notes_router)
+app.include_router(notifications_router)
 app.include_router(patients_router)
 app.include_router(quality_router)
 app.include_router(reconciliation_router)

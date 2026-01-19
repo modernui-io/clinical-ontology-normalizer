@@ -1752,3 +1752,571 @@ def reset_note_generator_service() -> None:
     global _service_instance
     with _service_lock:
         _service_instance = None
+
+
+# ============================================================================
+# Patient Summary Generation
+# ============================================================================
+
+PATIENT_SUMMARY_SYSTEM_PROMPT = f"""You are a clinical documentation specialist AI assistant. Generate a concise patient summary based on the provided clinical facts.
+
+{HIPAA_COMPLIANCE_INSTRUCTIONS}
+
+Summary Guidelines:
+1. Organize information by clinical relevance
+2. Highlight active problems and current medications
+3. Include recent encounters and significant findings
+4. Use professional medical terminology
+5. Keep the summary focused on clinically actionable information
+6. Include relevant dates when available
+7. Note any alerts or concerns that need attention
+
+Format the summary in clear sections for easy reading.
+"""
+
+PATIENT_SUMMARY_USER_PROMPT = """Generate a concise patient summary based on the following clinical facts:
+
+Patient Demographics:
+{demographics}
+
+Active Problems:
+{problems}
+
+Current Medications:
+{medications}
+
+Recent Visits/Encounters:
+{encounters}
+
+Recent Lab Results:
+{labs}
+
+Recent Vital Signs:
+{vitals}
+
+Allergies:
+{allergies}
+
+Focus Areas: {focus_areas}
+
+Additional Context:
+{additional_context}
+
+Generate a concise, clinically useful patient summary:"""
+
+
+@dataclass
+class PatientFact:
+    """A clinical fact about a patient."""
+
+    fact_id: str
+    fact_type: str  # problem, medication, lab, vital, allergy, encounter, etc.
+    description: str
+    code: str | None = None  # ICD-10, RxNorm, LOINC, etc.
+    code_system: str | None = None
+    value: str | None = None
+    unit: str | None = None
+    date: str | None = None
+    status: str | None = None  # active, resolved, etc.
+    source_document_id: str | None = None
+    confidence: float = 1.0
+
+
+@dataclass
+class PatientSummaryRequest:
+    """Request to generate a patient summary."""
+
+    patient_id: str
+    facts: list[PatientFact]
+    focus_areas: list[str] = field(default_factory=list)  # problems, meds, visits, etc.
+    max_length: int | None = None
+    include_citations: bool = True
+    provider: LLMProvider | None = None
+    model: str | None = None
+
+
+@dataclass
+class FactCitation:
+    """Citation linking summary text to source facts."""
+
+    text_span: str  # The text in the summary
+    fact_id: str  # ID of the source fact
+    fact_type: str
+    source_description: str
+
+
+@dataclass
+class PatientSummary:
+    """Generated patient summary with citations."""
+
+    summary_id: str
+    patient_id: str
+    content: str
+    sections: dict[str, str]  # section_name -> content
+    citations: list[FactCitation]
+    generated_at: str
+    focus_areas: list[str]
+    fact_count: int
+    model_used: str
+    token_usage: int = 0
+    cost_usd: float = 0.0
+    latency_ms: float = 0.0
+    confidence: ConfidenceLevel = ConfidenceLevel.MEDIUM
+
+
+@dataclass
+class NoteHistoryEntry:
+    """Entry in the note generation history."""
+
+    note_id: str
+    note_type: NoteType
+    patient_id: str | None
+    template_id: str | None
+    status: NoteStatus
+    generated_at: str
+    model_used: str
+    token_usage: int
+    cost_usd: float
+    preview: str  # First 200 chars of content
+
+
+@dataclass
+class CustomTemplateRequest:
+    """Request to customize a note template."""
+
+    base_template_id: str
+    new_template_id: str
+    name: str
+    description: str | None = None
+    sections_to_add: list[NoteSectionTemplate] = field(default_factory=list)
+    sections_to_remove: list[str] = field(default_factory=list)  # section keys
+    section_order: list[str] | None = None  # ordered list of section keys
+    custom_prompts: dict[str, str] = field(default_factory=dict)  # section_key -> prompt
+
+
+class PatientSummaryService:
+    """Service for generating patient summaries from clinical facts."""
+
+    def __init__(self, llm_service: LLMService | None = None):
+        """Initialize the patient summary service."""
+        self._llm_service = llm_service or get_llm_service()
+        self._history: list[NoteHistoryEntry] = []
+        self._max_history = 100
+        logger.info("PatientSummaryService initialized")
+
+    async def generate_summary(
+        self,
+        request: PatientSummaryRequest,
+    ) -> PatientSummary:
+        """Generate a patient summary from clinical facts.
+
+        Args:
+            request: Summary generation request with patient facts.
+
+        Returns:
+            PatientSummary with generated content and citations.
+        """
+        summary_id = str(uuid4())
+        start_time = datetime.now()
+
+        # Organize facts by type
+        facts_by_type = self._organize_facts(request.facts)
+
+        # Build prompt
+        focus_str = ", ".join(request.focus_areas) if request.focus_areas else "all areas"
+
+        prompt = PATIENT_SUMMARY_USER_PROMPT.format(
+            demographics=self._format_demographics(facts_by_type.get("demographic", [])),
+            problems=self._format_problems(facts_by_type.get("problem", [])),
+            medications=self._format_medications(facts_by_type.get("medication", [])),
+            encounters=self._format_encounters(facts_by_type.get("encounter", [])),
+            labs=self._format_labs(facts_by_type.get("lab", [])),
+            vitals=self._format_vitals_facts(facts_by_type.get("vital", [])),
+            allergies=self._format_allergies(facts_by_type.get("allergy", [])),
+            focus_areas=focus_str,
+            additional_context=self._format_other_facts(facts_by_type),
+        )
+
+        try:
+            response = await self._llm_service.generate(
+                prompt=prompt,
+                system_prompt=PATIENT_SUMMARY_SYSTEM_PROMPT,
+                model=request.model,
+                provider=request.provider,
+                temperature=0.3,
+                max_tokens=request.max_length or 2000,
+            )
+
+            # Parse sections from response
+            sections = self._parse_summary_sections(response.content)
+
+            # Generate citations if requested
+            citations = []
+            if request.include_citations:
+                citations = self._generate_citations(response.content, request.facts)
+
+            # Determine confidence
+            confidence = ConfidenceLevel.HIGH if len(request.facts) >= 5 else (
+                ConfidenceLevel.MEDIUM if len(request.facts) >= 2 else ConfidenceLevel.LOW
+            )
+
+            return PatientSummary(
+                summary_id=summary_id,
+                patient_id=request.patient_id,
+                content=response.content,
+                sections=sections,
+                citations=citations,
+                generated_at=start_time.isoformat(),
+                focus_areas=request.focus_areas,
+                fact_count=len(request.facts),
+                model_used=response.model,
+                token_usage=response.token_usage.total_tokens,
+                cost_usd=response.cost_estimate.total_cost,
+                latency_ms=response.latency_ms,
+                confidence=confidence,
+            )
+
+        except Exception as e:
+            logger.error(f"Summary generation failed: {e}")
+            return PatientSummary(
+                summary_id=summary_id,
+                patient_id=request.patient_id,
+                content=f"Error generating summary: {str(e)}",
+                sections={},
+                citations=[],
+                generated_at=start_time.isoformat(),
+                focus_areas=request.focus_areas,
+                fact_count=len(request.facts),
+                model_used="error",
+                confidence=ConfidenceLevel.LOW,
+            )
+
+    def _organize_facts(self, facts: list[PatientFact]) -> dict[str, list[PatientFact]]:
+        """Organize facts by type."""
+        organized: dict[str, list[PatientFact]] = {}
+        for fact in facts:
+            fact_type = fact.fact_type.lower()
+            if fact_type not in organized:
+                organized[fact_type] = []
+            organized[fact_type].append(fact)
+        return organized
+
+    def _format_demographics(self, facts: list[PatientFact]) -> str:
+        """Format demographic facts."""
+        if not facts:
+            return "[Demographics not available]"
+        lines = []
+        for fact in facts:
+            lines.append(f"- {fact.description}")
+        return "\n".join(lines)
+
+    def _format_problems(self, facts: list[PatientFact]) -> str:
+        """Format problem/condition facts."""
+        if not facts:
+            return "[No problems documented]"
+        lines = []
+        for fact in sorted(facts, key=lambda f: f.status == "active", reverse=True):
+            status = f" ({fact.status})" if fact.status else ""
+            code = f" [{fact.code}]" if fact.code else ""
+            date = f" - {fact.date}" if fact.date else ""
+            lines.append(f"- {fact.description}{status}{code}{date}")
+        return "\n".join(lines)
+
+    def _format_medications(self, facts: list[PatientFact]) -> str:
+        """Format medication facts."""
+        if not facts:
+            return "[No medications documented]"
+        lines = []
+        for fact in facts:
+            dose = f" {fact.value} {fact.unit}" if fact.value else ""
+            status = f" ({fact.status})" if fact.status else ""
+            lines.append(f"- {fact.description}{dose}{status}")
+        return "\n".join(lines)
+
+    def _format_encounters(self, facts: list[PatientFact]) -> str:
+        """Format encounter facts."""
+        if not facts:
+            return "[No recent encounters]"
+        lines = []
+        for fact in sorted(facts, key=lambda f: f.date or "", reverse=True)[:5]:
+            date = f" ({fact.date})" if fact.date else ""
+            lines.append(f"- {fact.description}{date}")
+        return "\n".join(lines)
+
+    def _format_labs(self, facts: list[PatientFact]) -> str:
+        """Format lab result facts."""
+        if not facts:
+            return "[No recent labs]"
+        lines = []
+        for fact in sorted(facts, key=lambda f: f.date or "", reverse=True)[:10]:
+            value = f": {fact.value}" if fact.value else ""
+            unit = f" {fact.unit}" if fact.unit else ""
+            date = f" ({fact.date})" if fact.date else ""
+            lines.append(f"- {fact.description}{value}{unit}{date}")
+        return "\n".join(lines)
+
+    def _format_vitals_facts(self, facts: list[PatientFact]) -> str:
+        """Format vital sign facts."""
+        if not facts:
+            return "[No recent vitals]"
+        lines = []
+        for fact in sorted(facts, key=lambda f: f.date or "", reverse=True)[:10]:
+            value = f": {fact.value}" if fact.value else ""
+            unit = f" {fact.unit}" if fact.unit else ""
+            date = f" ({fact.date})" if fact.date else ""
+            lines.append(f"- {fact.description}{value}{unit}{date}")
+        return "\n".join(lines)
+
+    def _format_allergies(self, facts: list[PatientFact]) -> str:
+        """Format allergy facts."""
+        if not facts:
+            return "NKDA (No Known Drug Allergies)"
+        lines = []
+        for fact in facts:
+            reaction = f" - {fact.value}" if fact.value else ""
+            lines.append(f"- {fact.description}{reaction}")
+        return "\n".join(lines)
+
+    def _format_other_facts(self, facts_by_type: dict[str, list[PatientFact]]) -> str:
+        """Format other fact types not covered above."""
+        known_types = {"demographic", "problem", "medication", "encounter", "lab", "vital", "allergy"}
+        other_facts = []
+        for fact_type, facts in facts_by_type.items():
+            if fact_type not in known_types:
+                other_facts.extend(facts)
+
+        if not other_facts:
+            return "[No additional information]"
+
+        lines = []
+        for fact in other_facts:
+            lines.append(f"- {fact.fact_type}: {fact.description}")
+        return "\n".join(lines)
+
+    def _parse_summary_sections(self, content: str) -> dict[str, str]:
+        """Parse sections from summary content."""
+        sections: dict[str, str] = {}
+
+        # Try to identify common section headers
+        section_patterns = [
+            (r"(?:^|\n)(Active Problems|Problems|Diagnoses)[:\s]*\n(.+?)(?=\n[A-Z]|\Z)", "active_problems"),
+            (r"(?:^|\n)(Medications|Current Medications)[:\s]*\n(.+?)(?=\n[A-Z]|\Z)", "medications"),
+            (r"(?:^|\n)(Allergies)[:\s]*\n(.+?)(?=\n[A-Z]|\Z)", "allergies"),
+            (r"(?:^|\n)(Recent Labs|Laboratory)[:\s]*\n(.+?)(?=\n[A-Z]|\Z)", "labs"),
+            (r"(?:^|\n)(Vital Signs|Vitals)[:\s]*\n(.+?)(?=\n[A-Z]|\Z)", "vitals"),
+            (r"(?:^|\n)(Recent Encounters|Visits)[:\s]*\n(.+?)(?=\n[A-Z]|\Z)", "encounters"),
+            (r"(?:^|\n)(Clinical Summary|Summary|Overview)[:\s]*\n(.+?)(?=\n[A-Z]|\Z)", "summary"),
+            (r"(?:^|\n)(Recommendations|Plan)[:\s]*\n(.+?)(?=\n[A-Z]|\Z)", "recommendations"),
+        ]
+
+        for pattern, key in section_patterns:
+            match = re.search(pattern, content, re.IGNORECASE | re.DOTALL)
+            if match:
+                sections[key] = match.group(2).strip()
+
+        # If no sections found, put entire content as summary
+        if not sections:
+            sections["summary"] = content
+
+        return sections
+
+    def _generate_citations(
+        self,
+        content: str,
+        facts: list[PatientFact],
+    ) -> list[FactCitation]:
+        """Generate citations linking summary text to source facts."""
+        citations = []
+
+        for fact in facts:
+            # Simple matching - look for fact description in content
+            desc_lower = fact.description.lower()
+            content_lower = content.lower()
+
+            if desc_lower in content_lower:
+                # Find the actual text span (preserve case)
+                idx = content_lower.find(desc_lower)
+                text_span = content[idx:idx + len(fact.description)]
+
+                citations.append(FactCitation(
+                    text_span=text_span,
+                    fact_id=fact.fact_id,
+                    fact_type=fact.fact_type,
+                    source_description=f"{fact.fact_type}: {fact.description}",
+                ))
+            elif fact.code and fact.code in content:
+                citations.append(FactCitation(
+                    text_span=fact.code,
+                    fact_id=fact.fact_id,
+                    fact_type=fact.fact_type,
+                    source_description=f"{fact.fact_type}: {fact.description}",
+                ))
+
+        return citations
+
+
+# Extended ClinicalNoteGeneratorService methods
+def _add_history_entry(service: ClinicalNoteGeneratorService, note: GeneratedNote, patient_id: str | None = None) -> None:
+    """Add an entry to the note generation history."""
+    if not hasattr(service, '_history'):
+        service._history = []
+
+    entry = NoteHistoryEntry(
+        note_id=note.note_id,
+        note_type=note.note_type,
+        patient_id=patient_id,
+        template_id=note.template_id,
+        status=note.status,
+        generated_at=note.generated_at,
+        model_used=note.model_used,
+        token_usage=note.token_usage,
+        cost_usd=note.cost_usd,
+        preview=note.content[:200] + "..." if len(note.content) > 200 else note.content,
+    )
+
+    service._history.insert(0, entry)
+
+    # Limit history size
+    max_history = getattr(service, '_max_history', 100)
+    if len(service._history) > max_history:
+        service._history = service._history[:max_history]
+
+
+def get_note_history(
+    service: ClinicalNoteGeneratorService,
+    limit: int = 50,
+    note_type: NoteType | None = None,
+    patient_id: str | None = None,
+) -> list[NoteHistoryEntry]:
+    """Get note generation history.
+
+    Args:
+        service: The note generator service.
+        limit: Maximum entries to return.
+        note_type: Filter by note type.
+        patient_id: Filter by patient ID.
+
+    Returns:
+        List of history entries.
+    """
+    if not hasattr(service, '_history'):
+        return []
+
+    history = service._history
+
+    if note_type:
+        history = [h for h in history if h.note_type == note_type]
+
+    if patient_id:
+        history = [h for h in history if h.patient_id == patient_id]
+
+    return history[:limit]
+
+
+def customize_template(
+    service: ClinicalNoteGeneratorService,
+    request: CustomTemplateRequest,
+) -> NoteTemplate:
+    """Create a customized template based on an existing one.
+
+    Args:
+        service: The note generator service.
+        request: Template customization request.
+
+    Returns:
+        The new customized template.
+
+    Raises:
+        ValueError: If base template not found.
+    """
+    # Get base template
+    base = service.get_template(request.base_template_id)
+    if not base:
+        raise ValueError(f"Base template not found: {request.base_template_id}")
+
+    # Start with base sections
+    new_sections = [s for s in base.sections if s.key not in request.sections_to_remove]
+
+    # Add new sections
+    for section in request.sections_to_add:
+        # Check if section key already exists
+        existing_keys = {s.key for s in new_sections}
+        if section.key not in existing_keys:
+            new_sections.append(section)
+
+    # Reorder if specified
+    if request.section_order:
+        ordered_sections = []
+        key_to_section = {s.key: s for s in new_sections}
+        for i, key in enumerate(request.section_order):
+            if key in key_to_section:
+                section = key_to_section[key]
+                # Update order
+                ordered_sections.append(NoteSectionTemplate(
+                    name=section.name,
+                    key=section.key,
+                    required=section.required,
+                    order=i + 1,
+                    prompt_template=section.prompt_template,
+                    min_length=section.min_length,
+                    max_length=section.max_length,
+                    subsections=section.subsections,
+                ))
+        # Add any sections not in the order list at the end
+        for section in new_sections:
+            if section.key not in request.section_order:
+                ordered_sections.append(NoteSectionTemplate(
+                    name=section.name,
+                    key=section.key,
+                    required=section.required,
+                    order=len(ordered_sections) + 1,
+                    prompt_template=section.prompt_template,
+                    min_length=section.min_length,
+                    max_length=section.max_length,
+                    subsections=section.subsections,
+                ))
+        new_sections = ordered_sections
+
+    # Create new template
+    new_template = NoteTemplate(
+        template_id=request.new_template_id,
+        note_type=base.note_type,
+        name=request.name,
+        description=request.description or base.description,
+        sections=new_sections,
+        default_prompts={**base.default_prompts, **request.custom_prompts},
+        formatting=base.formatting.copy(),
+        metadata={
+            "base_template": request.base_template_id,
+            "customized": True,
+        },
+    )
+
+    # Register the new template
+    service.register_template(new_template)
+
+    return new_template
+
+
+# Singleton for patient summary service
+_summary_service_instance: PatientSummaryService | None = None
+_summary_service_lock = threading.Lock()
+
+
+def get_patient_summary_service() -> PatientSummaryService:
+    """Get or create the singleton patient summary service instance."""
+    global _summary_service_instance
+
+    if _summary_service_instance is None:
+        with _summary_service_lock:
+            if _summary_service_instance is None:
+                _summary_service_instance = PatientSummaryService()
+
+    return _summary_service_instance
+
+
+def reset_patient_summary_service() -> None:
+    """Reset the singleton instance (for testing)."""
+    global _summary_service_instance
+    with _summary_service_lock:
+        _summary_service_instance = None

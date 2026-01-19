@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Notifications } from "@/components/Notifications";
 import {
   Bell,
@@ -14,41 +15,168 @@ import {
   Moon,
   Sun,
   Wifi,
+  Check,
+  CheckCheck,
+  AlertTriangle,
+  Info,
+  AlertCircle,
+  Loader2,
 } from "lucide-react";
 
 interface HeaderProps {
   className?: string;
 }
 
+interface Notification {
+  id: string;
+  type: "critical" | "warning" | "info" | "success";
+  title: string;
+  message: string;
+  created_at: string;
+  read: boolean;
+  channel?: string;
+  metadata?: Record<string, unknown>;
+}
+
+// Format relative time
+const formatRelativeTime = (dateString: string): string => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins} min ago`;
+  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
+  if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
+  return date.toLocaleDateString();
+};
+
+// Get notification icon based on type
+const getNotificationIcon = (type: Notification["type"]) => {
+  switch (type) {
+    case "critical":
+      return <AlertCircle className="h-4 w-4 text-destructive" />;
+    case "warning":
+      return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
+    case "success":
+      return <Check className="h-4 w-4 text-green-500" />;
+    case "info":
+    default:
+      return <Info className="h-4 w-4 text-blue-500" />;
+  }
+};
+
 export function Header({ className }: HeaderProps) {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isMarkingRead, setIsMarkingRead] = useState(false);
 
-  // Mock notifications
-  const notifications = [
-    {
-      id: "1",
-      title: "Document processed",
-      message: "Patient discharge summary completed",
-      time: "5 min ago",
-      read: false,
-    },
-    {
-      id: "2",
-      title: "New patient added",
-      message: "John Doe has been added to the system",
-      time: "1 hour ago",
-      read: false,
-    },
-    {
-      id: "3",
-      title: "Quality alert",
-      message: "Missing diagnosis code detected",
-      time: "2 hours ago",
-      read: true,
-    },
-  ];
+  // Fetch notifications from API
+  const fetchNotifications = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(
+        "http://localhost:8000/api/v1/notifications?user_id=demo-user&limit=10"
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setNotifications(data.notifications || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
+      // Use mock data as fallback
+      setNotifications([
+        {
+          id: "1",
+          type: "warning",
+          title: "Drug Interaction Alert",
+          message: "Potential interaction detected between metformin and contrast dye",
+          created_at: new Date(Date.now() - 5 * 60000).toISOString(),
+          read: false,
+        },
+        {
+          id: "2",
+          type: "info",
+          title: "Document Processed",
+          message: "Patient discharge summary completed successfully",
+          created_at: new Date(Date.now() - 60 * 60000).toISOString(),
+          read: false,
+        },
+        {
+          id: "3",
+          type: "critical",
+          title: "Quality Alert",
+          message: "Missing diagnosis code detected for billing",
+          created_at: new Date(Date.now() - 2 * 60 * 60000).toISOString(),
+          read: true,
+        },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Fetch notifications on mount and when dropdown opens
+  useEffect(() => {
+    fetchNotifications();
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, [fetchNotifications]);
+
+  // Mark single notification as read
+  const markAsRead = async (notificationId: string) => {
+    try {
+      await fetch("http://localhost:8000/api/v1/notifications/mark-read", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: "demo-user",
+          notification_ids: [notificationId],
+        }),
+      });
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n))
+      );
+    } catch (error) {
+      console.error("Failed to mark notification as read:", error);
+      // Optimistic update even on error
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n))
+      );
+    }
+  };
+
+  // Mark all notifications as read
+  const markAllAsRead = async () => {
+    const unreadIds = notifications.filter((n) => !n.read).map((n) => n.id);
+    if (unreadIds.length === 0) return;
+
+    try {
+      setIsMarkingRead(true);
+      await fetch("http://localhost:8000/api/v1/notifications/mark-read", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: "demo-user",
+          notification_ids: unreadIds,
+        }),
+      });
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    } catch (error) {
+      console.error("Failed to mark all as read:", error);
+      // Optimistic update even on error
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    } finally {
+      setIsMarkingRead(false);
+    }
+  };
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -120,14 +248,50 @@ export function Header({ className }: HeaderProps) {
                 className="fixed inset-0 z-10"
                 onClick={() => setIsNotificationsOpen(false)}
               />
-              <div className="absolute right-0 top-full z-20 mt-2 w-80 rounded-lg border bg-popover p-0 shadow-lg">
-                <div className="border-b p-4">
-                  <h3 className="font-semibold">Notifications</h3>
+              <div className="absolute right-0 top-full z-20 mt-2 w-96 rounded-lg border bg-popover p-0 shadow-lg">
+                <div className="flex items-center justify-between border-b p-4">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold">Notifications</h3>
+                    {unreadCount > 0 && (
+                      <Badge variant="secondary" className="text-xs">
+                        {unreadCount} new
+                      </Badge>
+                    )}
+                  </div>
+                  {unreadCount > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs h-7"
+                      onClick={markAllAsRead}
+                      disabled={isMarkingRead}
+                    >
+                      {isMarkingRead ? (
+                        <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                      ) : (
+                        <CheckCheck className="h-3 w-3 mr-1" />
+                      )}
+                      Mark all read
+                    </Button>
+                  )}
                 </div>
-                <div className="max-h-80 overflow-y-auto">
-                  {notifications.length === 0 ? (
-                    <div className="p-4 text-center text-sm text-muted-foreground">
-                      No notifications
+                <div className="max-h-96 overflow-y-auto">
+                  {isLoading ? (
+                    <div className="p-8 text-center">
+                      <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Loading notifications...
+                      </p>
+                    </div>
+                  ) : notifications.length === 0 ? (
+                    <div className="p-8 text-center">
+                      <Bell className="h-8 w-8 mx-auto text-muted-foreground/50" />
+                      <p className="text-sm text-muted-foreground mt-2">
+                        No notifications yet
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        You&apos;ll see alerts and updates here
+                      </p>
                     </div>
                   ) : (
                     <ul>
@@ -135,27 +299,41 @@ export function Header({ className }: HeaderProps) {
                         <li
                           key={notification.id}
                           className={cn(
-                            "border-b p-4 last:border-0",
+                            "border-b p-4 last:border-0 cursor-pointer hover:bg-accent/50 transition-colors",
                             !notification.read && "bg-muted/50"
                           )}
+                          onClick={() => {
+                            if (!notification.read) {
+                              markAsRead(notification.id);
+                            }
+                          }}
                         >
                           <div className="flex items-start gap-3">
-                            <div
-                              className={cn(
-                                "mt-1 h-2 w-2 shrink-0 rounded-full",
-                                notification.read ? "bg-transparent" : "bg-primary"
-                              )}
-                            />
-                            <div className="flex-1 space-y-1">
-                              <p className="text-sm font-medium">
-                                {notification.title}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
+                            <div className="mt-0.5 shrink-0">
+                              {getNotificationIcon(notification.type)}
+                            </div>
+                            <div className="flex-1 min-w-0 space-y-1">
+                              <div className="flex items-center justify-between gap-2">
+                                <p className="text-sm font-medium truncate">
+                                  {notification.title}
+                                </p>
+                                {!notification.read && (
+                                  <div className="h-2 w-2 shrink-0 rounded-full bg-primary" />
+                                )}
+                              </div>
+                              <p className="text-xs text-muted-foreground line-clamp-2">
                                 {notification.message}
                               </p>
-                              <p className="text-xs text-muted-foreground">
-                                {notification.time}
-                              </p>
+                              <div className="flex items-center justify-between">
+                                <p className="text-[10px] text-muted-foreground">
+                                  {formatRelativeTime(notification.created_at)}
+                                </p>
+                                {notification.channel && (
+                                  <Badge variant="outline" className="text-[10px] h-4">
+                                    {notification.channel}
+                                  </Badge>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </li>
@@ -163,10 +341,26 @@ export function Header({ className }: HeaderProps) {
                     </ul>
                   )}
                 </div>
-                <div className="border-t p-2">
-                  <Button variant="ghost" size="sm" className="w-full">
-                    View all notifications
-                  </Button>
+                <div className="border-t p-2 flex gap-2">
+                  <Link
+                    href="/settings/notifications"
+                    className="flex-1"
+                    onClick={() => setIsNotificationsOpen(false)}
+                  >
+                    <Button variant="ghost" size="sm" className="w-full text-xs">
+                      <Settings className="h-3 w-3 mr-1" />
+                      Settings
+                    </Button>
+                  </Link>
+                  <Link
+                    href="/notifications"
+                    className="flex-1"
+                    onClick={() => setIsNotificationsOpen(false)}
+                  >
+                    <Button variant="outline" size="sm" className="w-full text-xs">
+                      View all
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </>

@@ -1074,3 +1074,871 @@ export async function getPipelineRuns(
     `${API_BASE_URL}/etl/pipelines/${pipelineId}/runs?limit=${limit}`
   );
 }
+
+// ============================================================================
+// Clinical Note Generation Types
+// ============================================================================
+
+export type NoteType = "soap" | "hp" | "progress" | "discharge" | "procedure";
+export type NoteStatus = "draft" | "complete" | "incomplete" | "needs_review";
+export type ConfidenceLevel = "high" | "medium" | "low";
+export type SectionStatus = "complete" | "partial" | "missing" | "generated" | "user_provided";
+export type LLMProvider = "openai" | "anthropic";
+
+export interface PatientDataInput {
+  age?: number;
+  sex?: "M" | "F" | "Other";
+  chief_complaint?: string;
+  history_present_illness?: string;
+  past_medical_history?: string[];
+  past_surgical_history?: string[];
+  medications?: string[];
+  allergies?: string[];
+  social_history?: string;
+  family_history?: string;
+  review_of_systems?: Record<string, string>;
+  vitals?: Record<string, string | number>;
+}
+
+export interface EncounterDataInput {
+  encounter_type: string;
+  encounter_date?: string;
+  provider_type?: string;
+  location?: string;
+  physical_exam?: Record<string, string>;
+  lab_results?: Record<string, string | number | Record<string, unknown>>;
+  imaging_results?: Record<string, string>;
+  diagnoses?: string[];
+  icd10_codes?: string[];
+  procedures_performed?: string[];
+  cpt_codes?: string[];
+  plan_items?: string[];
+  interval_history?: string;
+  hospital_course?: string;
+  follow_up?: string[];
+  procedure_name?: string;
+  procedure_indication?: string;
+  procedure_findings?: string;
+  procedure_complications?: string;
+  estimated_blood_loss?: string;
+  specimens?: string[];
+}
+
+export interface NoteGenerationRequest {
+  note_type: NoteType;
+  patient_data: PatientDataInput;
+  encounter_data: EncounterDataInput;
+  template_id?: string;
+  custom_instructions?: string;
+  include_codes?: boolean;
+  provider?: LLMProvider;
+  model?: string;
+}
+
+export interface NoteSectionResponse {
+  name: string;
+  key: string;
+  content: string;
+  required: boolean;
+  order: number;
+  status: SectionStatus;
+  word_count: number;
+  warnings: string[];
+}
+
+export interface NoteValidationResponse {
+  is_valid: boolean;
+  completeness_score: number;
+  missing_sections: string[];
+  incomplete_sections: string[];
+  warnings: string[];
+  suggestions: string[];
+}
+
+export interface GeneratedNoteResponse {
+  request_id: string;
+  note_id: string;
+  note_type: NoteType;
+  content: string;
+  sections: NoteSectionResponse[];
+  status: NoteStatus;
+  confidence: ConfidenceLevel;
+  generated_at: string;
+  template_id?: string;
+  model_used: string;
+  token_usage: number;
+  cost_usd: number;
+  latency_ms: number;
+  validation?: NoteValidationResponse;
+  warnings: string[];
+}
+
+export interface NoteSectionTemplate {
+  name: string;
+  key: string;
+  required: boolean;
+  order: number;
+  subsections: string[];
+}
+
+export interface NoteTemplate {
+  template_id: string;
+  note_type: NoteType;
+  name: string;
+  description: string;
+  sections: NoteSectionTemplate[];
+}
+
+export interface NoteTemplatesListResponse {
+  templates: NoteTemplate[];
+  total: number;
+}
+
+export interface NoteEnhanceRequest {
+  content: string;
+  note_type: NoteType;
+  patient_data?: PatientDataInput;
+  encounter_data?: EncounterDataInput;
+  provider?: LLMProvider;
+  model?: string;
+}
+
+export interface NoteEnhanceResponse {
+  request_id: string;
+  enhanced_content: string;
+  original_word_count: number;
+  enhanced_word_count: number;
+  sections_enhanced: string[];
+  sections_added: string[];
+  confidence: ConfidenceLevel;
+  token_usage: number;
+  cost_usd: number;
+  latency_ms: number;
+  warnings: string[];
+}
+
+export interface NoteValidateRequest {
+  content: string;
+  note_type: NoteType;
+  provider?: LLMProvider;
+  model?: string;
+}
+
+export interface NoteServiceStats {
+  total_notes_generated: number;
+  total_tokens_used: number;
+  total_cost_usd: number;
+  available_templates: number;
+}
+
+// Patient Summary Types
+export interface PatientFactInput {
+  fact_id: string;
+  fact_type: string;
+  description: string;
+  code?: string;
+  code_system?: string;
+  value?: string;
+  unit?: string;
+  date?: string;
+  status?: string;
+  source_document_id?: string;
+  confidence?: number;
+}
+
+export interface PatientSummaryRequest {
+  patient_id: string;
+  facts: PatientFactInput[];
+  focus_areas?: string[];
+  max_length?: number;
+  include_citations?: boolean;
+  provider?: LLMProvider;
+  model?: string;
+}
+
+export interface FactCitation {
+  text_span: string;
+  fact_id: string;
+  fact_type: string;
+  source_description: string;
+}
+
+export interface PatientSummaryResponse {
+  summary_id: string;
+  patient_id: string;
+  content: string;
+  sections: Record<string, string>;
+  citations: FactCitation[];
+  generated_at: string;
+  focus_areas: string[];
+  fact_count: number;
+  model_used: string;
+  token_usage: number;
+  cost_usd: number;
+  latency_ms: number;
+  confidence: ConfidenceLevel;
+}
+
+// Note History Types
+export interface NoteHistoryEntry {
+  note_id: string;
+  note_type: NoteType;
+  patient_id?: string;
+  template_id?: string;
+  status: NoteStatus;
+  generated_at: string;
+  model_used: string;
+  token_usage: number;
+  cost_usd: number;
+  preview: string;
+}
+
+export interface NoteHistoryResponse {
+  history: NoteHistoryEntry[];
+  total: number;
+}
+
+// Template Customization Types
+export interface SectionTemplateInput {
+  name: string;
+  key: string;
+  required?: boolean;
+  order?: number;
+  prompt_hint?: string;
+  subsections?: string[];
+}
+
+export interface TemplateCustomizationRequest {
+  base_template_id: string;
+  new_template_id: string;
+  name: string;
+  description?: string;
+  sections_to_add?: SectionTemplateInput[];
+  sections_to_remove?: string[];
+  section_order?: string[];
+  custom_prompts?: Record<string, string>;
+}
+
+// Note Type Info
+export interface NoteTypeInfo {
+  type: NoteType;
+  name: string;
+  description: string;
+  typical_use: string;
+}
+
+export interface NoteTypesResponse {
+  note_types: NoteTypeInfo[];
+}
+
+// ============================================================================
+// Clinical Note Generation API Methods
+// ============================================================================
+
+// Generate a clinical note
+export async function generateNote(
+  request: NoteGenerationRequest
+): Promise<GeneratedNoteResponse> {
+  return fetchWithRetry<GeneratedNoteResponse>(`${API_BASE_URL}/notes/generate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+    timeout: 120000, // 2 minute timeout for AI generation
+  });
+}
+
+// List available note templates
+export async function getNoteTemplates(
+  noteType?: NoteType
+): Promise<NoteTemplatesListResponse> {
+  const params = new URLSearchParams();
+  if (noteType) params.append("note_type", noteType);
+  const queryString = params.toString();
+  const url = `${API_BASE_URL}/notes/templates${queryString ? `?${queryString}` : ""}`;
+  return fetchWithRetry<NoteTemplatesListResponse>(url);
+}
+
+// Get a specific template
+export async function getNoteTemplate(templateId: string): Promise<NoteTemplate> {
+  return fetchWithRetry<NoteTemplate>(`${API_BASE_URL}/notes/templates/${templateId}`);
+}
+
+// Enhance a partial note
+export async function enhanceNote(
+  request: NoteEnhanceRequest
+): Promise<NoteEnhanceResponse> {
+  return fetchWithRetry<NoteEnhanceResponse>(`${API_BASE_URL}/notes/enhance`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+    timeout: 120000,
+  });
+}
+
+// Validate a note
+export async function validateNote(
+  request: NoteValidateRequest
+): Promise<NoteValidationResponse> {
+  return fetchWithRetry<NoteValidationResponse>(`${API_BASE_URL}/notes/validate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+    timeout: 60000,
+  });
+}
+
+// Get note generation stats
+export async function getNoteStats(): Promise<NoteServiceStats> {
+  return fetchWithRetry<NoteServiceStats>(`${API_BASE_URL}/notes/stats`);
+}
+
+// Get supported note types
+export async function getNoteTypes(): Promise<NoteTypesResponse> {
+  return fetchWithRetry<NoteTypesResponse>(`${API_BASE_URL}/notes/note-types`);
+}
+
+// Generate patient summary
+export async function generatePatientSummary(
+  request: PatientSummaryRequest
+): Promise<PatientSummaryResponse> {
+  return fetchWithRetry<PatientSummaryResponse>(`${API_BASE_URL}/notes/summarize`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+    timeout: 120000,
+  });
+}
+
+// Get note generation history
+export async function getNoteHistory(params?: {
+  limit?: number;
+  note_type?: NoteType;
+  patient_id?: string;
+}): Promise<NoteHistoryResponse> {
+  const searchParams = new URLSearchParams();
+  if (params?.limit) searchParams.append("limit", params.limit.toString());
+  if (params?.note_type) searchParams.append("note_type", params.note_type);
+  if (params?.patient_id) searchParams.append("patient_id", params.patient_id);
+  const queryString = searchParams.toString();
+  const url = `${API_BASE_URL}/notes/history${queryString ? `?${queryString}` : ""}`;
+  return fetchWithRetry<NoteHistoryResponse>(url);
+}
+
+// Customize a template
+export async function customizeNoteTemplate(
+  templateId: string,
+  request: TemplateCustomizationRequest
+): Promise<NoteTemplate> {
+  return fetchWithRetry<NoteTemplate>(`${API_BASE_URL}/notes/templates/${templateId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+}
+
+// ============================================================================
+// Cohort Builder Types and API Functions
+// ============================================================================
+
+// Enums
+export type CohortStatus = "draft" | "active" | "archived";
+export type LogicOperator = "AND" | "OR" | "NOT";
+export type TemporalOperator = "before" | "after" | "during" | "within" | "overlaps";
+export type CriterionType = "demographic" | "condition" | "drug" | "procedure" | "measurement" | "visit";
+export type Gender = "male" | "female" | "other" | "unknown";
+export type Race = "white" | "black" | "asian" | "native_american" | "pacific_islander" | "other" | "unknown";
+export type Ethnicity = "hispanic" | "non_hispanic" | "unknown";
+export type VisitType = "inpatient" | "outpatient" | "emergency" | "long_term_care" | "telehealth" | "home_health";
+
+// Base criterion interface
+export interface BaseCriterion {
+  id: string;
+  type: CriterionType;
+  name: string;
+  description?: string;
+  exclude?: boolean;
+}
+
+// Demographic criterion
+export interface DemographicCriterion extends BaseCriterion {
+  type: "demographic";
+  age_min?: number;
+  age_max?: number;
+  gender?: Gender[];
+  race?: Race[];
+  ethnicity?: Ethnicity[];
+}
+
+// Condition criterion
+export interface ConditionCriterion extends BaseCriterion {
+  type: "condition";
+  concept_ids?: number[];
+  concept_codes?: string[];
+  vocabulary_id?: string;
+  include_descendants?: boolean;
+  start_date?: string;
+  end_date?: string;
+  min_occurrences?: number;
+  condition_status?: string[];
+}
+
+// Drug criterion
+export interface DrugCriterion extends BaseCriterion {
+  type: "drug";
+  concept_ids?: number[];
+  concept_codes?: string[];
+  vocabulary_id?: string;
+  include_descendants?: boolean;
+  start_date?: string;
+  end_date?: string;
+  min_days_supply?: number;
+  max_days_supply?: number;
+  min_quantity?: number;
+  route?: string[];
+}
+
+// Procedure criterion
+export interface ProcedureCriterion extends BaseCriterion {
+  type: "procedure";
+  concept_ids?: number[];
+  concept_codes?: string[];
+  vocabulary_id?: string;
+  include_descendants?: boolean;
+  start_date?: string;
+  end_date?: string;
+  min_occurrences?: number;
+  modifier?: string[];
+}
+
+// Measurement criterion
+export interface MeasurementCriterion extends BaseCriterion {
+  type: "measurement";
+  concept_ids?: number[];
+  concept_codes?: string[];
+  vocabulary_id?: string;
+  value_as_number_min?: number;
+  value_as_number_max?: number;
+  value_as_concept_id?: number;
+  operator?: "eq" | "lt" | "le" | "gt" | "ge" | "between";
+  unit_concept_id?: number;
+  start_date?: string;
+  end_date?: string;
+  abnormal_only?: boolean;
+}
+
+// Visit criterion
+export interface VisitCriterion extends BaseCriterion {
+  type: "visit";
+  visit_type?: VisitType[];
+  start_date?: string;
+  end_date?: string;
+  min_length_of_stay?: number;
+  max_length_of_stay?: number;
+  min_visits?: number;
+  care_site_id?: number;
+  provider_id?: number;
+}
+
+// Union type for all criteria
+export type AnyCriterion =
+  | DemographicCriterion
+  | ConditionCriterion
+  | DrugCriterion
+  | ProcedureCriterion
+  | MeasurementCriterion
+  | VisitCriterion;
+
+// Temporal constraint
+export interface TemporalConstraint {
+  operator: TemporalOperator;
+  reference_criterion_id: string;
+  days_before?: number;
+  days_after?: number;
+  index_date_field?: string;
+}
+
+// Criteria group for complex logic
+export interface CriteriaGroup {
+  id: string;
+  operator: LogicOperator;
+  criteria: (AnyCriterion | CriteriaGroup)[];
+  temporal_constraint?: TemporalConstraint;
+}
+
+// Cohort definition
+export interface CohortDefinition {
+  id: string;
+  name: string;
+  description?: string;
+  owner_id: string;
+  status: CohortStatus;
+  inclusion_criteria: CriteriaGroup;
+  exclusion_criteria?: CriteriaGroup;
+  index_date_criterion_id?: string;
+  observation_period_days?: number;
+  created_at: string;
+  updated_at: string;
+  version: number;
+  patient_count?: number;
+  last_executed?: string;
+  tags?: string[];
+}
+
+// Cohort summary (for list views)
+export interface CohortSummary {
+  id: string;
+  name: string;
+  description?: string;
+  status: CohortStatus;
+  patient_count?: number;
+  criteria_count: number;
+  created_at: string;
+  updated_at: string;
+  owner_id: string;
+  tags?: string[];
+}
+
+// Cohort count result
+export interface CohortCountResult {
+  cohort_id: string;
+  count: number;
+  execution_time_ms: number;
+  cached: boolean;
+  criteria_breakdown?: Record<string, number>;
+}
+
+// Cohort execution result
+export interface CohortExecutionResult {
+  cohort_id: string;
+  patient_ids: string[];
+  total_count: number;
+  execution_time_ms: number;
+  page: number;
+  page_size: number;
+  has_more: boolean;
+}
+
+// Demographic breakdown
+export interface DemographicBreakdown {
+  cohort_id: string;
+  total_patients: number;
+  age_distribution: {
+    range: string;
+    count: number;
+    percentage: number;
+  }[];
+  gender_distribution: {
+    gender: string;
+    count: number;
+    percentage: number;
+  }[];
+  race_distribution: {
+    race: string;
+    count: number;
+    percentage: number;
+  }[];
+  ethnicity_distribution: {
+    ethnicity: string;
+    count: number;
+    percentage: number;
+  }[];
+}
+
+// Cohort comparison result
+export interface CohortComparisonResult {
+  cohort_a_id: string;
+  cohort_b_id: string;
+  cohort_a_count: number;
+  cohort_b_count: number;
+  intersection_count: number;
+  union_count: number;
+  cohort_a_only: number;
+  cohort_b_only: number;
+  jaccard_similarity: number;
+  demographics_comparison: {
+    cohort_a: DemographicBreakdown;
+    cohort_b: DemographicBreakdown;
+  };
+  condition_comparison?: {
+    concept_id: number;
+    concept_name: string;
+    cohort_a_count: number;
+    cohort_a_percentage: number;
+    cohort_b_count: number;
+    cohort_b_percentage: number;
+    difference: number;
+  }[];
+  drug_comparison?: {
+    concept_id: number;
+    concept_name: string;
+    cohort_a_count: number;
+    cohort_a_percentage: number;
+    cohort_b_count: number;
+    cohort_b_percentage: number;
+    difference: number;
+  }[];
+}
+
+// Cohort version history
+export interface CohortVersion {
+  version: number;
+  created_at: string;
+  created_by: string;
+  changes_summary: string;
+  patient_count?: number;
+}
+
+// Saved criterion for criteria library
+export interface SavedCriterion {
+  id: string;
+  name: string;
+  description?: string;
+  criterion: AnyCriterion;
+  category: string;
+  usage_count: number;
+  created_by: string;
+  created_at: string;
+  is_public: boolean;
+  tags?: string[];
+}
+
+// Criteria library response
+export interface CriteriaLibraryResponse {
+  criteria: SavedCriterion[];
+  total: number;
+  categories: string[];
+}
+
+// Cohort list response
+export interface CohortListResponse {
+  cohorts: CohortSummary[];
+  total: number;
+  page: number;
+  page_size: number;
+}
+
+// Create/Update cohort request
+export interface CohortRequest {
+  name: string;
+  description?: string;
+  status?: CohortStatus;
+  inclusion_criteria: CriteriaGroup;
+  exclusion_criteria?: CriteriaGroup;
+  index_date_criterion_id?: string;
+  observation_period_days?: number;
+  tags?: string[];
+}
+
+// Export options
+export interface CohortExportOptions {
+  format: "json" | "sql" | "csv";
+  include_patients?: boolean;
+  include_demographics?: boolean;
+}
+
+// ============================================================================
+// Cohort API Functions
+// ============================================================================
+
+// List cohorts with optional filters
+export async function fetchCohorts(params?: {
+  page?: number;
+  page_size?: number;
+  status?: CohortStatus;
+  search?: string;
+  owner_id?: string;
+  tags?: string[];
+}): Promise<CohortListResponse> {
+  const searchParams = new URLSearchParams();
+  if (params?.page) searchParams.append("page", params.page.toString());
+  if (params?.page_size) searchParams.append("page_size", params.page_size.toString());
+  if (params?.status) searchParams.append("status", params.status);
+  if (params?.search) searchParams.append("search", params.search);
+  if (params?.owner_id) searchParams.append("owner_id", params.owner_id);
+  if (params?.tags) params.tags.forEach(tag => searchParams.append("tags", tag));
+  const queryString = searchParams.toString();
+  const url = `${API_BASE_URL}/cohorts${queryString ? `?${queryString}` : ""}`;
+  return fetchWithRetry<CohortListResponse>(url);
+}
+
+// Get a single cohort by ID
+export async function getCohort(id: string): Promise<CohortDefinition> {
+  return fetchWithRetry<CohortDefinition>(`${API_BASE_URL}/cohorts/${id}`);
+}
+
+// Create a new cohort
+export async function createCohort(request: CohortRequest): Promise<CohortDefinition> {
+  return fetchWithRetry<CohortDefinition>(`${API_BASE_URL}/cohorts`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+}
+
+// Update an existing cohort
+export async function updateCohort(id: string, request: Partial<CohortRequest>): Promise<CohortDefinition> {
+  return fetchWithRetry<CohortDefinition>(`${API_BASE_URL}/cohorts/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+}
+
+// Delete a cohort
+export async function deleteCohort(id: string): Promise<{ success: boolean; message: string }> {
+  return fetchWithRetry<{ success: boolean; message: string }>(`${API_BASE_URL}/cohorts/${id}`, {
+    method: "DELETE",
+  });
+}
+
+// Get cohort patient count
+export async function getCohortCount(id: string, useCache?: boolean): Promise<CohortCountResult> {
+  const searchParams = new URLSearchParams();
+  if (useCache !== undefined) searchParams.append("use_cache", useCache.toString());
+  const queryString = searchParams.toString();
+  const url = `${API_BASE_URL}/cohorts/${id}/count${queryString ? `?${queryString}` : ""}`;
+  return fetchWithRetry<CohortCountResult>(url, {
+    method: "POST",
+    timeout: 60000, // Longer timeout for count queries
+  });
+}
+
+// Execute cohort and get patient list
+export async function executeCohort(
+  id: string,
+  params?: { page?: number; page_size?: number }
+): Promise<CohortExecutionResult> {
+  const searchParams = new URLSearchParams();
+  if (params?.page) searchParams.append("page", params.page.toString());
+  if (params?.page_size) searchParams.append("page_size", params.page_size.toString());
+  const queryString = searchParams.toString();
+  const url = `${API_BASE_URL}/cohorts/${id}/execute${queryString ? `?${queryString}` : ""}`;
+  return fetchWithRetry<CohortExecutionResult>(url, {
+    method: "POST",
+    timeout: 120000, // Longer timeout for execution
+  });
+}
+
+// Get cohort demographics breakdown
+export async function getCohortDemographics(id: string): Promise<DemographicBreakdown> {
+  return fetchWithRetry<DemographicBreakdown>(`${API_BASE_URL}/cohorts/${id}/demographics`);
+}
+
+// Compare two cohorts
+export async function compareCohorts(
+  cohortAId: string,
+  cohortBId: string,
+  options?: { include_conditions?: boolean; include_drugs?: boolean }
+): Promise<CohortComparisonResult> {
+  const searchParams = new URLSearchParams();
+  searchParams.append("cohort_b_id", cohortBId);
+  if (options?.include_conditions !== undefined) {
+    searchParams.append("include_conditions", options.include_conditions.toString());
+  }
+  if (options?.include_drugs !== undefined) {
+    searchParams.append("include_drugs", options.include_drugs.toString());
+  }
+  const url = `${API_BASE_URL}/cohorts/${cohortAId}/compare?${searchParams.toString()}`;
+  return fetchWithRetry<CohortComparisonResult>(url, {
+    method: "POST",
+    timeout: 120000, // Longer timeout for comparison
+  });
+}
+
+// Get cohort version history
+export async function getCohortVersions(id: string): Promise<{ versions: CohortVersion[] }> {
+  return fetchWithRetry<{ versions: CohortVersion[] }>(`${API_BASE_URL}/cohorts/${id}/versions`);
+}
+
+// Export cohort
+export async function exportCohort(
+  id: string,
+  options: CohortExportOptions
+): Promise<{ data: string; filename: string; content_type: string }> {
+  const searchParams = new URLSearchParams();
+  searchParams.append("format", options.format);
+  if (options.include_patients !== undefined) {
+    searchParams.append("include_patients", options.include_patients.toString());
+  }
+  if (options.include_demographics !== undefined) {
+    searchParams.append("include_demographics", options.include_demographics.toString());
+  }
+  const url = `${API_BASE_URL}/cohorts/${id}/export?${searchParams.toString()}`;
+  return fetchWithRetry<{ data: string; filename: string; content_type: string }>(url, {
+    method: "POST",
+  });
+}
+
+// Clone a cohort
+export async function cloneCohort(id: string, newName?: string): Promise<CohortDefinition> {
+  const body = newName ? { name: newName } : {};
+  return fetchWithRetry<CohortDefinition>(`${API_BASE_URL}/cohorts/${id}/clone`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+// Get criteria library
+export async function getCriteriaLibrary(params?: {
+  category?: string;
+  search?: string;
+  is_public?: boolean;
+}): Promise<CriteriaLibraryResponse> {
+  const searchParams = new URLSearchParams();
+  if (params?.category) searchParams.append("category", params.category);
+  if (params?.search) searchParams.append("search", params.search);
+  if (params?.is_public !== undefined) searchParams.append("is_public", params.is_public.toString());
+  const queryString = searchParams.toString();
+  const url = `${API_BASE_URL}/cohorts/criteria-library${queryString ? `?${queryString}` : ""}`;
+  return fetchWithRetry<CriteriaLibraryResponse>(url);
+}
+
+// Save criterion to library
+export async function saveCriterionToLibrary(
+  criterion: AnyCriterion,
+  metadata: {
+    name: string;
+    description?: string;
+    category: string;
+    is_public?: boolean;
+    tags?: string[];
+  }
+): Promise<SavedCriterion> {
+  return fetchWithRetry<SavedCriterion>(`${API_BASE_URL}/cohorts/criteria-library`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ criterion, ...metadata }),
+  });
+}
+
+// Preview cohort count (for real-time builder)
+export async function previewCohortCount(
+  criteria: CriteriaGroup,
+  exclusion?: CriteriaGroup
+): Promise<{ count: number; execution_time_ms: number }> {
+  return fetchWithRetry<{ count: number; execution_time_ms: number }>(
+    `${API_BASE_URL}/cohorts/preview/count`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ inclusion_criteria: criteria, exclusion_criteria: exclusion }),
+      timeout: 30000,
+    }
+  );
+}
+
+// Get SQL preview for cohort definition
+export async function getCohortSQLPreview(
+  criteria: CriteriaGroup,
+  exclusion?: CriteriaGroup
+): Promise<{ sql: string; parameters: Record<string, unknown> }> {
+  return fetchWithRetry<{ sql: string; parameters: Record<string, unknown> }>(
+    `${API_BASE_URL}/cohorts/preview/sql`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ inclusion_criteria: criteria, exclusion_criteria: exclusion }),
+    }
+  );
+}

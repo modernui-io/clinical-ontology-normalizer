@@ -754,4 +754,21 @@ __all__ = [
     "ValueSetVersion",
     "get_value_set_service",
     "reset_value_set_service",
+    # CDS Hooks Service
+    "CDSHooksService",
+    "CDSCard",
+    "CDSResponse",
+    "CDSIndicator",
+    "CDSServiceDefinition",
+    "HookType",
+    "get_cds_hooks_service",
+    "reset_cds_hooks_service",
+    # Bulk Export Service
+    "BulkExportService",
+    "ExportJob",
+    "ExportStatus",
+    "ExportType",
+    "ResourceType",
+    "get_bulk_export_service",
+    "reset_bulk_export_service",
 ]
