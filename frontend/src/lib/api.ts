@@ -1942,3 +1942,442 @@ export async function getCohortSQLPreview(
     }
   );
 }
+
+// ============================================================================
+// Job Queue Types
+// ============================================================================
+
+export type QueueJobStatus = "pending" | "queued" | "running" | "completed" | "failed" | "cancelled" | "retrying";
+export type JobPriority = "low" | "normal" | "high" | "critical";
+export type WorkerState = "idle" | "busy" | "offline" | "draining";
+
+export interface QueueStats {
+  pending_count: number;
+  queued_count: number;
+  running_count: number;
+  completed_count: number;
+  failed_count: number;
+  cancelled_count: number;
+  total_count: number;
+  avg_wait_time_seconds: number;
+  avg_processing_time_seconds: number;
+  throughput_per_minute: number;
+  oldest_pending_job_age_seconds: number;
+  by_priority: Record<string, number>;
+  by_type: Record<string, number>;
+}
+
+export interface QueueDepthPoint {
+  timestamp: string;
+  pending: number;
+  running: number;
+  completed: number;
+  failed: number;
+}
+
+export interface QueueDepthResponse {
+  history: QueueDepthPoint[];
+  hours: number;
+}
+
+export interface ProcessingRate {
+  jobs_per_minute: number;
+  jobs_per_hour: number;
+  avg_duration_seconds: number;
+  success_rate: number;
+  error_rate: number;
+  trend: "increasing" | "decreasing" | "stable";
+}
+
+export interface WorkerStatus {
+  worker_id: string;
+  name: string;
+  state: WorkerState;
+  current_job_id: string | null;
+  current_job_type: string | null;
+  jobs_completed: number;
+  jobs_failed: number;
+  started_at: string;
+  last_heartbeat: string;
+  avg_processing_time_seconds: number;
+  memory_usage_mb: number;
+  cpu_usage_percent: number;
+}
+
+export interface WorkerListResponse {
+  workers: WorkerStatus[];
+  total: number;
+}
+
+export interface QueueJob {
+  id: string;
+  job_type: string;
+  status: QueueJobStatus;
+  priority: JobPriority;
+  created_at: string;
+  started_at: string | null;
+  completed_at: string | null;
+  worker_id: string | null;
+  error: string | null;
+  retry_count: number;
+  max_retries: number;
+  position_in_queue: number | null;
+  estimated_duration_seconds: number | null;
+}
+
+export interface QueueJobListResponse {
+  jobs: QueueJob[];
+  total: number;
+  page: number;
+  page_size: number;
+}
+
+export interface JobEstimate {
+  job_id: string;
+  status: string;
+  position_in_queue: number | null;
+  started_at: string | null;
+  elapsed_seconds: number | null;
+  estimated_wait_seconds: number | null;
+  estimated_remaining_seconds: number | null;
+  estimated_completion: string | null;
+}
+
+export interface RetryAttempt {
+  attempt_number: number;
+  timestamp: string;
+  error: string;
+  worker_id: string | null;
+  duration_seconds: number | null;
+}
+
+export interface RetryHistoryResponse {
+  job_id: string;
+  retry_count: number;
+  max_retries: number;
+  attempts: RetryAttempt[];
+}
+
+export interface WaitTimeEstimate {
+  job_type: string;
+  estimated_wait_seconds: number;
+  estimated_wait_formatted: string;
+}
+
+export interface BulkActionResponse {
+  succeeded: number;
+  failed: number;
+  jobs: QueueJob[];
+}
+
+export interface JobQueueFilterParams {
+  status?: QueueJobStatus;
+  job_type?: string;
+  priority?: JobPriority;
+  page?: number;
+  page_size?: number;
+}
+
+// ============================================================================
+// Job Queue API Functions
+// ============================================================================
+
+// Get queue statistics
+export async function getQueueStats(): Promise<QueueStats> {
+  return fetchWithRetry<QueueStats>(`${API_BASE_URL}/jobs/queue/stats`);
+}
+
+// Get queue depth history
+export async function getQueueDepth(hours: number = 24): Promise<QueueDepthResponse> {
+  return fetchWithRetry<QueueDepthResponse>(`${API_BASE_URL}/jobs/queue/depth?hours=${hours}`);
+}
+
+// Get processing rate
+export async function getProcessingRate(): Promise<ProcessingRate> {
+  return fetchWithRetry<ProcessingRate>(`${API_BASE_URL}/jobs/queue/rate`);
+}
+
+// Get worker status
+export async function getWorkers(): Promise<WorkerListResponse> {
+  return fetchWithRetry<WorkerListResponse>(`${API_BASE_URL}/jobs/queue/workers`);
+}
+
+// Get wait time estimate for job type
+export async function getWaitTimeEstimate(jobType: string): Promise<WaitTimeEstimate> {
+  return fetchWithRetry<WaitTimeEstimate>(`${API_BASE_URL}/jobs/queue/estimate/${encodeURIComponent(jobType)}`);
+}
+
+// List queue jobs with filtering
+export async function getQueueJobs(params?: JobQueueFilterParams): Promise<QueueJobListResponse> {
+  const searchParams = new URLSearchParams();
+  if (params?.status) searchParams.append("status", params.status);
+  if (params?.job_type) searchParams.append("job_type", params.job_type);
+  if (params?.priority) searchParams.append("priority", params.priority);
+  if (params?.page) searchParams.append("page", params.page.toString());
+  if (params?.page_size) searchParams.append("page_size", params.page_size.toString());
+
+  const queryString = searchParams.toString();
+  const url = `${API_BASE_URL}/jobs/list${queryString ? `?${queryString}` : ""}`;
+  return fetchWithRetry<QueueJobListResponse>(url);
+}
+
+// Get job estimate
+export async function getJobEstimate(jobId: string): Promise<JobEstimate> {
+  return fetchWithRetry<JobEstimate>(`${API_BASE_URL}/jobs/${jobId}/estimate`);
+}
+
+// Retry a failed job
+export async function retryQueueJob(jobId: string): Promise<QueueJob> {
+  return fetchWithRetry<QueueJob>(`${API_BASE_URL}/jobs/${jobId}/retry`, {
+    method: "POST",
+  });
+}
+
+// Cancel a job
+export async function cancelQueueJob(jobId: string): Promise<QueueJob> {
+  return fetchWithRetry<QueueJob>(`${API_BASE_URL}/jobs/${jobId}/cancel`, {
+    method: "POST",
+  });
+}
+
+// Get retry history for a job
+export async function getRetryHistory(jobId: string): Promise<RetryHistoryResponse> {
+  return fetchWithRetry<RetryHistoryResponse>(`${API_BASE_URL}/jobs/${jobId}/retries`);
+}
+
+// Retry all failed jobs
+export async function retryAllFailedJobs(): Promise<BulkActionResponse> {
+  return fetchWithRetry<BulkActionResponse>(`${API_BASE_URL}/jobs/bulk/retry`, {
+    method: "POST",
+  });
+}
+
+// Cancel selected jobs
+export async function cancelSelectedJobs(jobIds: string[]): Promise<BulkActionResponse> {
+  return fetchWithRetry<BulkActionResponse>(`${API_BASE_URL}/jobs/bulk/cancel`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ job_ids: jobIds }),
+  });
+}
+
+// ============================================================================
+// Synthetic Data Types
+// ============================================================================
+
+export interface SyntheticTemplate {
+  template_id: string;
+  name: string;
+  description: string;
+  patient_count: number;
+  has_privacy_config: boolean;
+}
+
+export interface SyntheticTemplateListResponse {
+  templates: SyntheticTemplate[];
+  total: number;
+}
+
+export interface SyntheticStats {
+  total_patients_generated: number;
+  total_jobs: number;
+  completed_jobs: number;
+  available_templates: number;
+  default_conditions: number;
+  default_medications: number;
+  default_labs: number;
+}
+
+export interface SyntheticJob {
+  job_id: string;
+  status: string;
+  progress_percent: number;
+  patients_generated: number;
+  created_at: string;
+  started_at: string | null;
+  completed_at: string | null;
+  error: string | null;
+  result_path: string | null;
+}
+
+export interface SyntheticGenerateResponse {
+  job_id: string;
+  status: string;
+  message: string;
+}
+
+export interface AgeDistributionRequest {
+  min_age: number;
+  max_age: number;
+  mean_age: number;
+  std_dev: number;
+}
+
+export interface GenderDistributionRequest {
+  male_ratio: number;
+  female_ratio: number;
+  other_ratio: number;
+}
+
+export interface PrivacyConfigRequest {
+  epsilon: number;
+  delta: number;
+  k_anonymity: number;
+  l_diversity: number;
+  t_closeness: number;
+}
+
+export interface SyntheticGenerateRequest {
+  patient_count: number;
+  output_format?: string;
+  template_id?: string;
+  age_distribution?: AgeDistributionRequest;
+  gender_distribution?: GenderDistributionRequest;
+  privacy_config?: PrivacyConfigRequest;
+  seed?: number;
+}
+
+export interface SyntheticPreviewResponse {
+  patient_count: number;
+  preview: SyntheticPatientPreview[];
+}
+
+export interface SyntheticPatientPreview {
+  patient_id: string;
+  gender: string;
+  race: string;
+  ethnicity: string;
+  age: number;
+  birth_date: string;
+  conditions: { code: string; name: string }[];
+  medications: { code: string; name: string }[];
+  observation_count: number;
+  encounter_count: number;
+}
+
+export interface ValidationReportResponse {
+  generated_at: string;
+  synthetic_row_count: number;
+  real_row_count: number;
+  overall_score: number;
+  passed: boolean;
+  metrics: ValidationMetric[];
+}
+
+export interface ValidationMetric {
+  metric_name: string;
+  column: string | null;
+  expected_value: number;
+  actual_value: number;
+  passed: boolean;
+  message: string;
+}
+
+export interface PrivacyReportResponse {
+  generated_at: string;
+  epsilon: number;
+  delta: number;
+  k_anonymity_satisfied: boolean;
+  actual_k: number;
+  l_diversity_satisfied: boolean;
+  actual_l: number;
+  t_closeness_satisfied: boolean;
+  actual_t: number;
+  privacy_score: number;
+  utility_score: number;
+  recommendations: string[];
+}
+
+// ============================================================================
+// Synthetic Data API Functions
+// ============================================================================
+
+// Get available templates
+export async function getSyntheticTemplates(): Promise<SyntheticTemplateListResponse> {
+  return fetchWithRetry<SyntheticTemplateListResponse>(`${API_BASE_URL}/synthetic/templates`);
+}
+
+// Get service statistics
+export async function getSyntheticStats(): Promise<SyntheticStats> {
+  return fetchWithRetry<SyntheticStats>(`${API_BASE_URL}/synthetic/stats`);
+}
+
+// Start synthetic data generation
+export async function generateSyntheticData(request: SyntheticGenerateRequest): Promise<SyntheticGenerateResponse> {
+  return fetchWithRetry<SyntheticGenerateResponse>(`${API_BASE_URL}/synthetic/generate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+}
+
+// Get job status
+export async function getSyntheticJobStatus(jobId: string): Promise<SyntheticJob> {
+  return fetchWithRetry<SyntheticJob>(`${API_BASE_URL}/synthetic/jobs/${jobId}`);
+}
+
+// Preview synthetic data
+export async function previewSyntheticData(
+  patientCount: number = 10,
+  templateId?: string
+): Promise<SyntheticPreviewResponse> {
+  const params = new URLSearchParams({ patient_count: patientCount.toString() });
+  if (templateId) {
+    params.append("template_id", templateId);
+  }
+  return fetchWithRetry<SyntheticPreviewResponse>(`${API_BASE_URL}/synthetic/preview?${params}`);
+}
+
+// Download generated data
+export async function downloadSyntheticData(jobId: string, format: string = "fhir_json"): Promise<void> {
+  const url = `${API_BASE_URL}/synthetic/jobs/${jobId}/download?format=${format}`;
+
+  // Use a direct download via anchor element
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Download failed: ${response.statusText}`);
+  }
+
+  const blob = await response.blob();
+  const downloadUrl = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = downloadUrl;
+
+  // Extract filename from content-disposition or use default
+  const contentDisposition = response.headers.get("content-disposition");
+  let filename = `synthetic_data_${jobId}.json`;
+  if (contentDisposition) {
+    const match = contentDisposition.match(/filename=([^;]+)/);
+    if (match) {
+      filename = match[1].replace(/"/g, "");
+    }
+  } else if (format === "csv") {
+    filename = `synthetic_data_${jobId}.csv`;
+  }
+
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(downloadUrl);
+}
+
+// Get template details
+export async function getSyntheticTemplateDetails(templateId: string): Promise<Record<string, unknown>> {
+  return fetchWithRetry<Record<string, unknown>>(`${API_BASE_URL}/synthetic/templates/${templateId}`);
+}
+
+// Get default conditions
+export async function getDefaultConditions(): Promise<{ conditions: unknown[]; total: number }> {
+  return fetchWithRetry<{ conditions: unknown[]; total: number }>(`${API_BASE_URL}/synthetic/default-conditions`);
+}
+
+// Get default medications
+export async function getDefaultMedications(): Promise<{ medications: unknown[]; total: number }> {
+  return fetchWithRetry<{ medications: unknown[]; total: number }>(`${API_BASE_URL}/synthetic/default-medications`);
+}
+
+// Get default labs
+export async function getDefaultLabs(): Promise<{ labs: unknown[]; total: number }> {
+  return fetchWithRetry<{ labs: unknown[]; total: number }>(`${API_BASE_URL}/synthetic/default-labs`);
+}

@@ -69,6 +69,28 @@ class ProcedureStatus(str, Enum):
     UNKNOWN = "unknown"
 
 
+class DeviceStatus(str, Enum):
+    """Status of a device record."""
+
+    ACTIVE = "active"
+    COMPLETED = "completed"
+    ENTERED_IN_ERROR = "entered-in-error"
+    INTENDED = "intended"
+    STOPPED = "stopped"
+    ON_HOLD = "on-hold"
+    UNKNOWN = "unknown"
+
+
+class SpecimenStatus(str, Enum):
+    """Status of a specimen record."""
+
+    AVAILABLE = "available"
+    UNAVAILABLE = "unavailable"
+    UNSATISFACTORY = "unsatisfactory"
+    ENTERED_IN_ERROR = "entered-in-error"
+    UNKNOWN = "unknown"
+
+
 class VisitType(str, Enum):
     """Type of clinical visit."""
 
@@ -373,6 +395,98 @@ class SourceObservation(SourceRecord):
     reaction: str | None = None
 
 
+@dataclass
+class SourceDevice(SourceRecord):
+    """Standardized device record.
+
+    Maps to OMOP Device_Exposure table.
+    Represents FHIR DeviceRequest, DeviceUseStatement, or Device resources.
+    """
+
+    patient_source_id: str = ""
+    visit_source_id: str | None = None
+
+    # Device identification
+    device_code: str | None = None
+    device_code_system: str | None = None
+    device_name: str | None = None
+    unique_device_id: str | None = None  # UDI
+    production_id: str | None = None  # Lot number or serial
+
+    # Status
+    status: DeviceStatus = DeviceStatus.UNKNOWN
+
+    # Timing
+    start_datetime: datetime | None = None
+    end_datetime: datetime | None = None
+    authored_datetime: datetime | None = None
+
+    # Quantity
+    quantity: int = 1
+
+    # Provider/performer
+    provider_id: str | None = None
+    provider_name: str | None = None
+
+    # FHIR resource type for mapping context
+    fhir_resource_type: str | None = None  # DeviceRequest, DeviceUseStatement, Device
+
+    # Body site (from DeviceUseStatement)
+    body_site_code: str | None = None
+    body_site_text: str | None = None
+
+
+@dataclass
+class SourceSpecimen(SourceRecord):
+    """Standardized specimen record.
+
+    Maps to OMOP Specimen table.
+    Represents FHIR Specimen resource.
+    """
+
+    patient_source_id: str = ""
+
+    # Specimen identification
+    specimen_code: str | None = None
+    specimen_code_system: str | None = None
+    specimen_type: str | None = None  # Display text
+
+    # Status
+    status: SpecimenStatus = SpecimenStatus.UNKNOWN
+
+    # Collection timing
+    collected_datetime: datetime | None = None
+    received_datetime: datetime | None = None
+
+    # Quantity
+    quantity_value: float | None = None
+    quantity_unit: str | None = None
+    quantity_unit_code: str | None = None  # UCUM code
+
+    # Anatomic site (collection body site)
+    body_site_code: str | None = None
+    body_site_code_system: str | None = None
+    body_site_text: str | None = None
+
+    # Disease status (condition at time of collection)
+    disease_status_code: str | None = None
+    disease_status_text: str | None = None
+
+    # Container information
+    container_type: str | None = None
+    container_description: str | None = None
+
+    # Processing information
+    processing_method: str | None = None
+    additive: str | None = None
+
+    # Accession identifier
+    accession_identifier: str | None = None
+
+    # Parent specimen (for derived specimens)
+    parent_specimen_id: str | None = None
+
+
 # ============================================================================
 # Connector Configuration
 # ============================================================================
@@ -436,6 +550,8 @@ class ExtractionResult:
     procedures_extracted: int = 0
     measurements_extracted: int = 0
     observations_extracted: int = 0
+    devices_extracted: int = 0
+    specimens_extracted: int = 0
 
     # Errors
     errors: list[dict[str, Any]] = field(default_factory=list)
@@ -452,6 +568,8 @@ class ExtractionResult:
             + self.procedures_extracted
             + self.measurements_extracted
             + self.observations_extracted
+            + self.devices_extracted
+            + self.specimens_extracted
         )
 
     @property
@@ -482,6 +600,8 @@ class ExtractionResult:
             "procedures": self.procedures_extracted,
             "measurements": self.measurements_extracted,
             "observations": self.observations_extracted,
+            "devices": self.devices_extracted,
+            "specimens": self.specimens_extracted,
             "errors": len(self.errors),
             "warnings": len(self.warnings),
             "success": self.success,
@@ -674,6 +794,42 @@ class SourceConnector(ABC):
         """
         pass
 
+    async def extract_devices(
+        self, patient_source_id: str | None = None
+    ) -> AsyncIterator[SourceDevice]:
+        """Extract device records from the source.
+
+        Args:
+            patient_source_id: Optional patient ID to filter devices
+
+        Yields:
+            SourceDevice records
+
+        Note:
+            Default implementation yields nothing. Override in connectors
+            that support device extraction.
+        """
+        return
+        yield  # Makes this an async generator
+
+    async def extract_specimens(
+        self, patient_source_id: str | None = None
+    ) -> AsyncIterator[SourceSpecimen]:
+        """Extract specimen records from the source.
+
+        Args:
+            patient_source_id: Optional patient ID to filter specimens
+
+        Yields:
+            SourceSpecimen records
+
+        Note:
+            Default implementation yields nothing. Override in connectors
+            that support specimen extraction.
+        """
+        return
+        yield  # Makes this an async generator
+
     # -------------------------------------------------------------------------
     # Convenience Methods
     # -------------------------------------------------------------------------
@@ -696,6 +852,8 @@ class SourceConnector(ABC):
             "procedures": [],
             "measurements": [],
             "observations": [],
+            "devices": [],
+            "specimens": [],
         }
 
         async for visit in self.extract_visits(patient_source_id):
@@ -715,6 +873,12 @@ class SourceConnector(ABC):
 
         async for observation in self.extract_observations(patient_source_id):
             result["observations"].append(observation)
+
+        async for device in self.extract_devices(patient_source_id):
+            result["devices"].append(device)
+
+        async for specimen in self.extract_specimens(patient_source_id):
+            result["specimens"].append(specimen)
 
         return result
 
@@ -764,6 +928,14 @@ class SourceConnector(ABC):
             # Extract observations
             async for _ in self.extract_observations():
                 result.observations_extracted += 1
+
+            # Extract devices
+            async for _ in self.extract_devices():
+                result.devices_extracted += 1
+
+            # Extract specimens
+            async for _ in self.extract_specimens():
+                result.specimens_extracted += 1
 
         except Exception as e:
             result.errors.append({"error": str(e), "type": type(e).__name__})

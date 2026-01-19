@@ -1566,3 +1566,628 @@ class CPTSuggesterService:
             "total_synonyms": len(self._synonym_index),
             "by_category": by_category,
         }
+
+    # =========================================================================
+    # AI-POWERED SUGGESTIONS FROM CLINICAL TEXT
+    # =========================================================================
+
+    def suggest_codes_from_text(
+        self,
+        clinical_text: str,
+        encounter_context: dict[str, Any] | None = None,
+        max_suggestions: int = 15,
+    ) -> "TextCodeSuggestionResult":
+        """AI-powered code suggestion from clinical text.
+
+        Extracts diagnoses from clinical notes and suggests ICD-10/CPT codes
+        with confidence scores and cited evidence from the text.
+
+        Args:
+            clinical_text: Clinical note text (progress note, H&P, etc.)
+            encounter_context: Optional context (setting, patient type, etc.)
+            max_suggestions: Maximum suggestions to return
+
+        Returns:
+            TextCodeSuggestionResult with suggestions and evidence
+        """
+        import re
+        import time
+        from uuid import uuid4
+
+        start_time = time.perf_counter()
+        encounter_context = encounter_context or {}
+        suggestions: list["TextCodeSuggestion"] = []
+
+        # Extract clinical concepts from text using pattern matching
+        extracted_concepts = self._extract_clinical_concepts(clinical_text)
+
+        # For each concept, suggest codes
+        for concept in extracted_concepts:
+            # Get CPT suggestions for procedures
+            if concept["type"] == "procedure":
+                cpt_result = self.suggest_codes(
+                    query=concept["text"],
+                    clinical_context=encounter_context,
+                    max_suggestions=3,
+                )
+                for s in cpt_result.suggestions:
+                    suggestions.append(TextCodeSuggestion(
+                        code=s.code,
+                        code_type="CPT",
+                        description=s.description,
+                        confidence=0.85 if s.confidence == ConfidenceLevel.HIGH else 0.65 if s.confidence == ConfidenceLevel.MEDIUM else 0.45,
+                        evidence_text=concept["evidence"],
+                        evidence_span=(concept["start"], concept["end"]),
+                        rationale=s.cer_citation.claim if s.cer_citation else f"Matched '{concept['text']}'",
+                        category=s.category,
+                        work_rvu=s.work_rvu,
+                    ))
+
+        # E/M code suggestion based on encounter context
+        em_suggestion = self._suggest_em_code(clinical_text, encounter_context)
+        if em_suggestion:
+            suggestions.insert(0, em_suggestion)
+
+        # Sort by confidence
+        suggestions.sort(key=lambda s: s.confidence, reverse=True)
+
+        processing_time = (time.perf_counter() - start_time) * 1000
+
+        return TextCodeSuggestionResult(
+            request_id=str(uuid4()),
+            text_length=len(clinical_text),
+            suggestions=suggestions[:max_suggestions],
+            total_concepts=len(extracted_concepts),
+            em_level=em_suggestion.code if em_suggestion else None,
+            processing_time_ms=round(processing_time, 2),
+        )
+
+    def _extract_clinical_concepts(self, text: str) -> list[dict[str, Any]]:
+        """Extract clinical concepts from text using pattern matching."""
+        import re
+
+        concepts = []
+        text_lower = text.lower()
+
+        # Procedure patterns
+        procedure_patterns = [
+            (r"performed\s+([\w\s]+(?:ectomy|oscopy|otomy|plasty|ography))", "procedure"),
+            (r"underwent\s+([\w\s]+(?:surgery|procedure|biopsy|injection))", "procedure"),
+            (r"(ct\s+scan|mri|x-?ray|ultrasound|ecg|ekg|echo)\s+(?:of\s+)?(?:the\s+)?([\w\s]+)", "imaging"),
+            (r"(colonoscopy|endoscopy|bronchoscopy|arthroscopy)", "procedure"),
+            (r"(injection|vaccination|immunization)\s+(?:of\s+|with\s+)?([\w\s]+)?", "procedure"),
+        ]
+
+        for pattern, concept_type in procedure_patterns:
+            for match in re.finditer(pattern, text_lower):
+                concepts.append({
+                    "text": match.group(0).strip(),
+                    "type": concept_type,
+                    "start": match.start(),
+                    "end": match.end(),
+                    "evidence": text[max(0, match.start()-50):min(len(text), match.end()+50)].strip(),
+                })
+
+        return concepts
+
+    def _suggest_em_code(
+        self,
+        clinical_text: str,
+        encounter_context: dict[str, Any]
+    ) -> "TextCodeSuggestion | None":
+        """Suggest E/M code based on clinical text and context."""
+        import re
+
+        text_lower = clinical_text.lower()
+
+        # Time-based detection
+        time_match = re.search(r"(?:total\s+)?(?:time|duration)[:\s]+(\d+)\s*(?:min|minutes)", text_lower)
+        documented_time = int(time_match.group(1)) if time_match else None
+
+        # Check for patient type
+        is_new = encounter_context.get("new_patient", False)
+        if "new patient" in text_lower:
+            is_new = True
+        elif "established patient" in text_lower or "follow up" in text_lower:
+            is_new = False
+
+        # Check for setting
+        setting = encounter_context.get("setting", "office")
+        if "emergency" in text_lower or "ed " in text_lower:
+            setting = "emergency"
+        elif "hospital" in text_lower or "inpatient" in text_lower:
+            setting = "inpatient"
+
+        # Determine MDM complexity based on text analysis
+        mdm_complexity = self._assess_mdm_complexity(text_lower)
+
+        # Select E/M code
+        if setting == "emergency":
+            codes = {"low": "99283", "moderate": "99284", "high": "99285"}
+            code = codes.get(mdm_complexity, "99283")
+        elif setting == "inpatient":
+            codes = {"low": "99221", "moderate": "99222", "high": "99223"}
+            code = codes.get(mdm_complexity, "99222")
+        elif is_new:
+            if documented_time:
+                if documented_time >= 60:
+                    code = "99205"
+                elif documented_time >= 45:
+                    code = "99204"
+                elif documented_time >= 30:
+                    code = "99203"
+                else:
+                    code = "99202"
+            else:
+                codes = {"low": "99203", "moderate": "99204", "high": "99205"}
+                code = codes.get(mdm_complexity, "99203")
+        else:  # Established
+            if documented_time:
+                if documented_time >= 40:
+                    code = "99215"
+                elif documented_time >= 30:
+                    code = "99214"
+                elif documented_time >= 20:
+                    code = "99213"
+                else:
+                    code = "99212"
+            else:
+                codes = {"straightforward": "99212", "low": "99213", "moderate": "99214", "high": "99215"}
+                code = codes.get(mdm_complexity, "99213")
+
+        # Get code details
+        cpt_code = self.get_code(code)
+        if not cpt_code:
+            return None
+
+        rationale_parts = []
+        if documented_time:
+            rationale_parts.append(f"Time documented: {documented_time} minutes")
+        rationale_parts.append(f"MDM complexity: {mdm_complexity}")
+        if is_new:
+            rationale_parts.append("New patient")
+        else:
+            rationale_parts.append("Established patient")
+
+        return TextCodeSuggestion(
+            code=code,
+            code_type="CPT",
+            description=cpt_code.description,
+            confidence=0.85 if documented_time else 0.70,
+            evidence_text=time_match.group(0) if time_match else "MDM-based selection",
+            evidence_span=(time_match.start(), time_match.end()) if time_match else (0, 0),
+            rationale="; ".join(rationale_parts),
+            category="Evaluation and Management",
+            work_rvu=cpt_code.work_rvu,
+        )
+
+    def _assess_mdm_complexity(self, text: str) -> str:
+        """Assess MDM complexity from clinical text."""
+        score = 0
+
+        # Number of problems addressed
+        problem_indicators = [
+            "chronic", "condition", "diagnosis", "problem", "disease",
+            "disorder", "syndrome", "illness"
+        ]
+        problem_count = sum(1 for p in problem_indicators if p in text)
+        if problem_count >= 4:
+            score += 3
+        elif problem_count >= 2:
+            score += 2
+        else:
+            score += 1
+
+        # Data reviewed
+        data_indicators = [
+            "lab", "imaging", "ct", "mri", "x-ray", "ecg", "ekg",
+            "pathology", "biopsy", "culture", "result"
+        ]
+        data_count = sum(1 for d in data_indicators if d in text)
+        if data_count >= 3:
+            score += 2
+        elif data_count >= 1:
+            score += 1
+
+        # Risk indicators
+        risk_indicators = [
+            "hospitalization", "surgery", "high risk", "severe", "acute",
+            "emergent", "critical", "intensive", "iv drug", "parenteral"
+        ]
+        risk_count = sum(1 for r in risk_indicators if r in text)
+        if risk_count >= 2:
+            score += 3
+        elif risk_count >= 1:
+            score += 2
+
+        # Prescription drug management
+        if any(x in text for x in ["prescription", "medication", "drug", "started on", "adjusted"]):
+            score += 1
+
+        # Map score to complexity
+        if score >= 7:
+            return "high"
+        elif score >= 4:
+            return "moderate"
+        elif score >= 2:
+            return "low"
+        else:
+            return "straightforward"
+
+    # =========================================================================
+    # E/M LEVEL CALCULATION
+    # =========================================================================
+
+    def calculate_em_level(
+        self,
+        time_spent_minutes: int | None = None,
+        mdm_elements: dict[str, Any] | None = None,
+        is_new_patient: bool = False,
+        setting: str = "office",
+    ) -> "EMLevelResult":
+        """Calculate appropriate E/M code based on time or MDM.
+
+        Args:
+            time_spent_minutes: Total time spent on encounter date
+            mdm_elements: Dict with MDM element assessments
+            is_new_patient: Whether this is a new patient
+            setting: office, inpatient, emergency, etc.
+
+        Returns:
+            EMLevelResult with recommended code and rationale
+        """
+        # MDM-based calculation
+        mdm_result = None
+        if mdm_elements:
+            mdm_result = self._calculate_mdm_level(mdm_elements, is_new_patient, setting)
+
+        # Time-based calculation
+        time_result = None
+        if time_spent_minutes:
+            time_result = self._calculate_time_based_level(time_spent_minutes, is_new_patient, setting)
+
+        # Use higher of the two
+        if mdm_result and time_result:
+            if self._code_level(time_result.code) > self._code_level(mdm_result.code):
+                final_result = time_result
+                final_result.rationale = f"Time-based: {time_result.rationale}. MDM would support {mdm_result.code}."
+            else:
+                final_result = mdm_result
+                if time_result:
+                    final_result.rationale = f"MDM-based: {mdm_result.rationale}. Time would support {time_result.code}."
+        elif time_result:
+            final_result = time_result
+        elif mdm_result:
+            final_result = mdm_result
+        else:
+            # Default
+            code = "99213" if not is_new_patient else "99203"
+            cpt = self.get_code(code)
+            final_result = EMLevelResult(
+                code=code,
+                description=cpt.description if cpt else "Office visit",
+                rationale="Insufficient information; defaulting to moderate level",
+                work_rvu=cpt.work_rvu if cpt else 1.30,
+                calculation_method="default",
+                mdm_level=None,
+                time_documented=None,
+            )
+
+        return final_result
+
+    def _calculate_mdm_level(
+        self,
+        mdm_elements: dict[str, Any],
+        is_new_patient: bool,
+        setting: str
+    ) -> "EMLevelResult":
+        """Calculate E/M level based on MDM elements."""
+        # MDM has 3 elements: problems, data, risk
+        # Need 2 of 3 to meet a level
+
+        problems = mdm_elements.get("problems", "minimal")  # minimal, low, moderate, high
+        data = mdm_elements.get("data", "minimal")  # minimal, limited, moderate, extensive
+        risk = mdm_elements.get("risk", "minimal")  # minimal, low, moderate, high
+
+        level_map = {"minimal": 1, "low": 2, "limited": 2, "moderate": 3, "extensive": 4, "high": 4}
+        levels = sorted([
+            level_map.get(problems, 1),
+            level_map.get(data, 1),
+            level_map.get(risk, 1)
+        ], reverse=True)
+
+        # Second highest determines level
+        mdm_level = levels[1]
+
+        # Map to E/M code
+        if setting == "emergency":
+            code_map = {1: "99281", 2: "99283", 3: "99284", 4: "99285"}
+        elif setting == "inpatient":
+            code_map = {1: "99221", 2: "99221", 3: "99222", 4: "99223"}
+        elif is_new_patient:
+            code_map = {1: "99202", 2: "99203", 3: "99204", 4: "99205"}
+        else:
+            code_map = {1: "99212", 2: "99213", 3: "99214", 4: "99215"}
+
+        code = code_map.get(mdm_level, "99213")
+        cpt = self.get_code(code)
+
+        mdm_text = {1: "straightforward", 2: "low", 3: "moderate", 4: "high"}
+
+        return EMLevelResult(
+            code=code,
+            description=cpt.description if cpt else "Office visit",
+            rationale=f"MDM {mdm_text.get(mdm_level, 'moderate')} (Problems: {problems}, Data: {data}, Risk: {risk})",
+            work_rvu=cpt.work_rvu if cpt else 0,
+            calculation_method="mdm",
+            mdm_level=mdm_text.get(mdm_level),
+            time_documented=None,
+        )
+
+    def _calculate_time_based_level(
+        self,
+        time_minutes: int,
+        is_new_patient: bool,
+        setting: str
+    ) -> "EMLevelResult":
+        """Calculate E/M level based on time."""
+        if setting == "emergency":
+            # ED doesn't use time-based coding in the same way
+            return EMLevelResult(
+                code="99283",
+                description="ED visit",
+                rationale="Time-based coding not standard for ED visits",
+                work_rvu=1.42,
+                calculation_method="time",
+                mdm_level=None,
+                time_documented=time_minutes,
+            )
+        elif setting == "inpatient":
+            if time_minutes >= 75:
+                code = "99223"
+            elif time_minutes >= 55:
+                code = "99222"
+            else:
+                code = "99221"
+        elif is_new_patient:
+            if time_minutes >= 60:
+                code = "99205"
+            elif time_minutes >= 45:
+                code = "99204"
+            elif time_minutes >= 30:
+                code = "99203"
+            else:
+                code = "99202"
+        else:
+            if time_minutes >= 40:
+                code = "99215"
+            elif time_minutes >= 30:
+                code = "99214"
+            elif time_minutes >= 20:
+                code = "99213"
+            elif time_minutes >= 10:
+                code = "99212"
+            else:
+                code = "99211"
+
+        cpt = self.get_code(code)
+
+        return EMLevelResult(
+            code=code,
+            description=cpt.description if cpt else "Office visit",
+            rationale=f"Time-based: {time_minutes} minutes documented",
+            work_rvu=cpt.work_rvu if cpt else 0,
+            calculation_method="time",
+            mdm_level=None,
+            time_documented=time_minutes,
+        )
+
+    def _code_level(self, code: str) -> int:
+        """Get numeric level from E/M code."""
+        level_map = {
+            "99211": 1, "99212": 2, "99213": 3, "99214": 4, "99215": 5,
+            "99202": 2, "99203": 3, "99204": 4, "99205": 5,
+            "99221": 2, "99222": 3, "99223": 4,
+            "99281": 1, "99283": 3, "99284": 4, "99285": 5,
+        }
+        return level_map.get(code, 3)
+
+
+# ============================================================================
+# Additional Data Classes for Enhanced Features
+# ============================================================================
+
+from typing import Any
+
+
+@dataclass
+class TextCodeSuggestion:
+    """A code suggestion from clinical text analysis."""
+
+    code: str
+    code_type: str  # "CPT", "ICD10"
+    description: str
+    confidence: float  # 0-1
+    evidence_text: str  # The text that supports this code
+    evidence_span: tuple[int, int]  # Start, end offsets
+    rationale: str
+    category: str
+    work_rvu: float = 0.0
+
+
+@dataclass
+class TextCodeSuggestionResult:
+    """Result of AI-powered code suggestion from text."""
+
+    request_id: str
+    text_length: int
+    suggestions: list[TextCodeSuggestion]
+    total_concepts: int
+    em_level: str | None
+    processing_time_ms: float
+
+
+@dataclass
+class EMLevelResult:
+    """Result of E/M level calculation."""
+
+    code: str
+    description: str
+    rationale: str
+    work_rvu: float
+    calculation_method: str  # "time", "mdm", "default"
+    mdm_level: str | None
+    time_documented: int | None
+
+
+@dataclass
+class CodingWorksheetEntry:
+    """An entry in a coding worksheet."""
+
+    code: str
+    code_type: str  # "ICD10", "CPT"
+    description: str
+    sequence: int
+    is_primary: bool = False
+    confidence: float = 1.0
+    status: str = "pending"  # pending, accepted, rejected
+    source: str = "manual"  # manual, ai_suggested, extracted
+    evidence_text: str | None = None
+    modifier: str | None = None
+    notes: str | None = None
+
+
+@dataclass
+class CodingWorksheet:
+    """A coding worksheet for an encounter."""
+
+    encounter_id: str
+    patient_id: str
+    encounter_date: str
+    status: str  # draft, submitted, finalized
+    diagnosis_codes: list[CodingWorksheetEntry] = field(default_factory=list)
+    procedure_codes: list[CodingWorksheetEntry] = field(default_factory=list)
+    em_code: CodingWorksheetEntry | None = None
+    validation_warnings: list[str] = field(default_factory=list)
+    audit_trail: list[dict[str, Any]] = field(default_factory=list)
+    created_at: str = ""
+    updated_at: str = ""
+    submitted_at: str | None = None
+    submitted_by: str | None = None
+
+
+# In-memory worksheet storage (would be database in production)
+_worksheets: dict[str, CodingWorksheet] = {}
+_worksheet_lock = threading.Lock()
+
+
+def get_worksheet(encounter_id: str) -> CodingWorksheet | None:
+    """Get a coding worksheet by encounter ID."""
+    with _worksheet_lock:
+        return _worksheets.get(encounter_id)
+
+
+def save_worksheet(worksheet: CodingWorksheet) -> None:
+    """Save a coding worksheet."""
+    from datetime import datetime
+    with _worksheet_lock:
+        worksheet.updated_at = datetime.now().isoformat()
+        _worksheets[worksheet.encounter_id] = worksheet
+
+
+def create_worksheet(
+    encounter_id: str,
+    patient_id: str,
+    encounter_date: str
+) -> CodingWorksheet:
+    """Create a new coding worksheet."""
+    from datetime import datetime
+    worksheet = CodingWorksheet(
+        encounter_id=encounter_id,
+        patient_id=patient_id,
+        encounter_date=encounter_date,
+        status="draft",
+        created_at=datetime.now().isoformat(),
+        updated_at=datetime.now().isoformat(),
+    )
+    save_worksheet(worksheet)
+    return worksheet
+
+
+def add_worksheet_entry(
+    encounter_id: str,
+    entry: CodingWorksheetEntry,
+    entry_type: str  # "diagnosis", "procedure", "em"
+) -> CodingWorksheet | None:
+    """Add an entry to a coding worksheet."""
+    from datetime import datetime
+    worksheet = get_worksheet(encounter_id)
+    if not worksheet:
+        return None
+
+    if entry_type == "diagnosis":
+        worksheet.diagnosis_codes.append(entry)
+    elif entry_type == "procedure":
+        worksheet.procedure_codes.append(entry)
+    elif entry_type == "em":
+        worksheet.em_code = entry
+
+    worksheet.audit_trail.append({
+        "action": f"add_{entry_type}",
+        "code": entry.code,
+        "timestamp": datetime.now().isoformat(),
+    })
+
+    save_worksheet(worksheet)
+    return worksheet
+
+
+def submit_worksheet(encounter_id: str, submitted_by: str) -> CodingWorksheet | None:
+    """Submit a coding worksheet for billing."""
+    from datetime import datetime
+    worksheet = get_worksheet(encounter_id)
+    if not worksheet:
+        return None
+
+    # Validate before submission
+    warnings = validate_worksheet(worksheet)
+    worksheet.validation_warnings = warnings
+
+    if not any("ERROR" in w for w in warnings):
+        worksheet.status = "submitted"
+        worksheet.submitted_at = datetime.now().isoformat()
+        worksheet.submitted_by = submitted_by
+
+        worksheet.audit_trail.append({
+            "action": "submit",
+            "submitted_by": submitted_by,
+            "timestamp": datetime.now().isoformat(),
+        })
+
+    save_worksheet(worksheet)
+    return worksheet
+
+
+def validate_worksheet(worksheet: CodingWorksheet) -> list[str]:
+    """Validate a coding worksheet before submission."""
+    warnings = []
+
+    # Must have at least one diagnosis
+    if not worksheet.diagnosis_codes:
+        warnings.append("ERROR: At least one diagnosis code is required")
+
+    # Must have E/M code
+    if not worksheet.em_code:
+        warnings.append("WARNING: No E/M code assigned")
+
+    # Check for primary diagnosis
+    has_primary = any(d.is_primary for d in worksheet.diagnosis_codes)
+    if worksheet.diagnosis_codes and not has_primary:
+        warnings.append("WARNING: No primary diagnosis designated")
+
+    # Check diagnosis sequence
+    sequences = [d.sequence for d in worksheet.diagnosis_codes]
+    if sequences and sequences != sorted(sequences):
+        warnings.append("INFO: Diagnosis sequence may need review")
+
+    return warnings

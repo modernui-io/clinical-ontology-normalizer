@@ -814,6 +814,665 @@ QUALITY_MEASURES: list[QualityMeasure] = [
         default_priority=MeasurePriority.HIGH,
         clinical_guidance="Continuation phase (180+ days) reduces relapse risk. Monitor for side effects.",
     ),
+
+    # =========================================================================
+    # ADDITIONAL HEDIS/CQM MEASURES
+    # =========================================================================
+    QualityMeasure(
+        id="HEDIS-AWC",
+        name="Annual Wellness Visit",
+        description="Percentage of adults 18+ who had an annual wellness visit during the measurement year",
+        category=MeasureCategory.PREVENTIVE,
+        measure_type=MeasureType.HEDIS,
+        version="2024",
+        eligibility=EligibilityCriteria(
+            age_range=AgeRange(18, 120),
+            continuous_enrollment_days=365,
+        ),
+        numerator=NumeratorCriteria(
+            required_procedures=[
+                "99381", "99382", "99383", "99384", "99385",  # Preventive visit new
+                "99391", "99392", "99393", "99394", "99395",  # Preventive visit established
+                "G0438", "G0439",  # Medicare AWV
+            ],
+            lookback_days=365,
+        ),
+        steward="NCQA",
+        domain="Preventive Care",
+        nqf_number="0039",
+        benchmark_50th=0.52,
+        benchmark_90th=0.68,
+        default_priority=MeasurePriority.MEDIUM,
+        clinical_guidance="Schedule annual wellness visit to assess health status and preventive care needs.",
+    ),
+
+    QualityMeasure(
+        id="HEDIS-CCS",
+        name="Cervical Cancer Screening",
+        description="Percentage of women 21-64 who had cervical cancer screening",
+        category=MeasureCategory.WOMENS_HEALTH,
+        measure_type=MeasureType.HEDIS,
+        version="2024",
+        eligibility=EligibilityCriteria(
+            age_range=AgeRange(21, 64),
+            gender="F",
+            exclusion_diagnoses=[
+                "Z90.710", "Z90.711", "Z90.712",  # Acquired absence of cervix/uterus
+                "Q51.5",  # Agenesis of cervix
+            ],
+            continuous_enrollment_days=365,
+        ),
+        numerator=NumeratorCriteria(
+            required_procedures=[
+                "88141", "88142", "88143", "88147", "88148", "88150",  # Pap smear
+                "88152", "88153", "88154", "88155", "88164", "88165",
+                "88166", "88167", "88174", "88175",
+                "G0101", "G0123", "G0124",  # Screening pap
+                "87620", "87621", "87622", "87624", "87625",  # HPV testing
+            ],
+            lookback_days=1095,  # 3 years for Pap, 5 years for co-testing
+        ),
+        steward="NCQA",
+        domain="Cancer Screening",
+        nqf_number="0032",
+        benchmark_50th=0.75,
+        benchmark_90th=0.85,
+        default_priority=MeasurePriority.HIGH,
+        clinical_guidance="Pap test every 3 years (21-29), or Pap + HPV every 5 years (30-64).",
+    ),
+
+    QualityMeasure(
+        id="HEDIS-FMC",
+        name="Follow-Up After Hospitalization for Mental Illness - 30 Day",
+        description="Percentage of discharges for mental illness with follow-up within 30 days",
+        category=MeasureCategory.BEHAVIORAL_HEALTH,
+        measure_type=MeasureType.HEDIS,
+        version="2024",
+        eligibility=EligibilityCriteria(
+            age_range=AgeRange(6, 120),
+            diagnoses=[
+                "F20", "F21", "F22", "F23", "F24", "F25",  # Schizophrenia spectrum
+                "F28", "F29",
+                "F30", "F31", "F32", "F33", "F34",  # Mood disorders
+                "F39", "F40", "F41", "F42", "F43",  # Anxiety disorders
+                "F44", "F45", "F48",
+                "F50", "F51", "F52", "F53",  # Behavioral syndromes
+                "F60", "F63", "F64", "F65", "F66", "F68", "F69",  # Personality disorders
+            ],
+            anchor_date_procedure="inpatient_discharge",
+            continuous_enrollment_days=30,
+        ),
+        numerator=NumeratorCriteria(
+            required_procedures=[
+                "90791", "90792",  # Psychiatric evaluation
+                "90832", "90833", "90834", "90836", "90837", "90838",  # Psychotherapy
+                "90839", "90840", "90845", "90846", "90847", "90849",
+                "99201", "99202", "99203", "99204", "99205",  # Office visits
+                "99211", "99212", "99213", "99214", "99215",
+            ],
+            lookback_days=30,
+        ),
+        steward="NCQA",
+        domain="Behavioral Health",
+        nqf_number="0576",
+        benchmark_50th=0.45,
+        benchmark_90th=0.62,
+        default_priority=MeasurePriority.CRITICAL,
+        clinical_guidance="Schedule outpatient follow-up within 30 days of mental health discharge.",
+    ),
+
+    QualityMeasure(
+        id="HEDIS-FMC-7",
+        name="Follow-Up After Hospitalization for Mental Illness - 7 Day",
+        description="Percentage of discharges for mental illness with follow-up within 7 days",
+        category=MeasureCategory.BEHAVIORAL_HEALTH,
+        measure_type=MeasureType.HEDIS,
+        version="2024",
+        eligibility=EligibilityCriteria(
+            age_range=AgeRange(6, 120),
+            diagnoses=[
+                "F20", "F21", "F22", "F23", "F24", "F25",
+                "F28", "F29", "F30", "F31", "F32", "F33", "F34",
+                "F39", "F40", "F41", "F42", "F43", "F44", "F45", "F48",
+            ],
+            anchor_date_procedure="inpatient_discharge",
+            continuous_enrollment_days=7,
+        ),
+        numerator=NumeratorCriteria(
+            required_procedures=[
+                "90791", "90792", "90832", "90833", "90834", "90836",
+                "90837", "90838", "90839", "90840",
+                "99211", "99212", "99213", "99214", "99215",
+            ],
+            lookback_days=7,
+        ),
+        steward="NCQA",
+        domain="Behavioral Health",
+        nqf_number="0576",
+        benchmark_50th=0.32,
+        benchmark_90th=0.48,
+        default_priority=MeasurePriority.CRITICAL,
+        clinical_guidance="Schedule outpatient follow-up within 7 days of mental health discharge for high-risk patients.",
+    ),
+
+    QualityMeasure(
+        id="HEDIS-DSF-MH",
+        name="Depression Screening and Follow-Up",
+        description="Percentage of patients 12+ screened for depression with follow-up if positive",
+        category=MeasureCategory.BEHAVIORAL_HEALTH,
+        measure_type=MeasureType.HEDIS,
+        version="2024",
+        eligibility=EligibilityCriteria(
+            age_range=AgeRange(12, 120),
+            exclusion_diagnoses=[
+                "F32", "F33",  # Already diagnosed depression
+                "F31",  # Bipolar disorder
+            ],
+            continuous_enrollment_days=365,
+        ),
+        numerator=NumeratorCriteria(
+            required_procedures=[
+                "96127",  # Brief emotional/behavioral assessment
+                "G0444",  # Annual depression screening
+                "G8431", "G8510",  # Depression screening CPT II
+            ],
+            lookback_days=365,
+        ),
+        steward="NCQA",
+        domain="Behavioral Health",
+        nqf_number="0418",
+        benchmark_50th=0.55,
+        benchmark_90th=0.72,
+        default_priority=MeasurePriority.MEDIUM,
+        clinical_guidance="Use PHQ-2 or PHQ-9 for screening. If positive, document follow-up plan.",
+    ),
+
+    QualityMeasure(
+        id="HEDIS-KED",
+        name="Kidney Health Evaluation for Patients with Diabetes",
+        description="Percentage of patients with diabetes who had kidney health evaluation (eGFR + uACR)",
+        category=MeasureCategory.DIABETES,
+        measure_type=MeasureType.HEDIS,
+        version="2024",
+        eligibility=EligibilityCriteria(
+            age_range=AgeRange(18, 85),
+            diagnoses=["E10", "E11", "E13"],
+            continuous_enrollment_days=365,
+        ),
+        numerator=NumeratorCriteria(
+            required_labs=[
+                {"name": "eGFR", "loinc": "33914-3", "presence": True},
+                {"name": "eGFR", "loinc": "48642-3", "presence": True},
+                {"name": "eGFR", "loinc": "48643-1", "presence": True},
+                {"name": "UACR", "loinc": "9318-7", "presence": True},
+                {"name": "UACR", "loinc": "13705-9", "presence": True},
+            ],
+            lookback_days=365,
+        ),
+        steward="NCQA",
+        domain="Diabetes",
+        nqf_number="3061",
+        benchmark_50th=0.38,
+        benchmark_90th=0.55,
+        default_priority=MeasurePriority.HIGH,
+        clinical_guidance="Order both eGFR and urine albumin-to-creatinine ratio annually for diabetic patients.",
+    ),
+
+    QualityMeasure(
+        id="HEDIS-OMW",
+        name="Osteoporosis Management in Women Who Had a Fracture",
+        description="Percentage of women 67+ with fracture who had bone mineral density test or osteoporosis medication",
+        category=MeasureCategory.MUSCULOSKELETAL,
+        measure_type=MeasureType.HEDIS,
+        version="2024",
+        eligibility=EligibilityCriteria(
+            age_range=AgeRange(67, 85),
+            gender="F",
+            diagnoses=[
+                "S12", "S22", "S32", "S42", "S52", "S62",  # Fracture codes
+                "S72", "S82", "S92", "M80",  # Hip, leg, foot, pathological
+            ],
+            continuous_enrollment_days=180,
+        ),
+        numerator=NumeratorCriteria(
+            required_procedures=[
+                "77080", "77081", "77085", "77086",  # DXA scans
+            ],
+            required_medications=[
+                "3002", "48078", "75203",  # Bisphosphonates (alendronate, risedronate)
+                "121268", "284460",  # Denosumab, teriparatide
+            ],
+            lookback_days=180,
+        ),
+        steward="NCQA",
+        domain="Musculoskeletal",
+        nqf_number="0053",
+        benchmark_50th=0.35,
+        benchmark_90th=0.52,
+        default_priority=MeasurePriority.HIGH,
+        clinical_guidance="Order BMD test or start osteoporosis treatment within 6 months of fracture.",
+    ),
+
+    QualityMeasure(
+        id="HEDIS-AIS",
+        name="Adult Immunization Status - Td/Tdap",
+        description="Percentage of adults 19+ who have received Td or Tdap vaccine",
+        category=MeasureCategory.PREVENTIVE,
+        measure_type=MeasureType.HEDIS,
+        version="2024",
+        eligibility=EligibilityCriteria(
+            age_range=AgeRange(19, 120),
+            continuous_enrollment_days=365,
+        ),
+        numerator=NumeratorCriteria(
+            required_procedures=[
+                "90714", "90715",  # Td vaccine
+                "90702",  # Tdap
+            ],
+            lookback_days=3650,  # 10 years
+        ),
+        steward="NCQA",
+        domain="Immunizations",
+        nqf_number="0041",
+        benchmark_50th=0.60,
+        benchmark_90th=0.78,
+        default_priority=MeasurePriority.MEDIUM,
+        clinical_guidance="Td booster every 10 years. One dose should be Tdap if not previously received.",
+    ),
+
+    QualityMeasure(
+        id="HEDIS-AIS-HZ",
+        name="Adult Immunization Status - Herpes Zoster",
+        description="Percentage of adults 50+ who have received shingles vaccine",
+        category=MeasureCategory.PREVENTIVE,
+        measure_type=MeasureType.HEDIS,
+        version="2024",
+        eligibility=EligibilityCriteria(
+            age_range=AgeRange(50, 120),
+            continuous_enrollment_days=365,
+        ),
+        numerator=NumeratorCriteria(
+            required_procedures=[
+                "90750",  # Shingrix (recombinant)
+                "90736",  # Zostavax (live)
+            ],
+            lookback_days=3650,  # Lifetime for 2-dose series
+        ),
+        steward="NCQA",
+        domain="Immunizations",
+        nqf_number="0041",
+        benchmark_50th=0.38,
+        benchmark_90th=0.55,
+        default_priority=MeasurePriority.MEDIUM,
+        clinical_guidance="Shingrix 2-dose series recommended for adults 50+, regardless of prior shingles.",
+    ),
+
+    QualityMeasure(
+        id="CQM-DMS",
+        name="Diabetes Medication Adherence - SGLT2 Inhibitors",
+        description="Percentage of patients on SGLT2 inhibitors with PDC >=80%",
+        category=MeasureCategory.MEDICATION_ADHERENCE,
+        measure_type=MeasureType.CQM,
+        version="2024",
+        eligibility=EligibilityCriteria(
+            age_range=AgeRange(18, 120),
+            diagnoses=["E10", "E11", "E13"],
+            medications=[
+                "1545149", "1545150",  # Canagliflozin
+                "1486436", "1486437",  # Dapagliflozin
+                "1373458", "1373459",  # Empagliflozin
+            ],
+            continuous_enrollment_days=365,
+        ),
+        numerator=NumeratorCriteria(
+            value_thresholds=[
+                {"name": "PDC", "operator": ">=", "value": 80, "unit": "%"}
+            ],
+            lookback_days=365,
+        ),
+        steward="CMS",
+        domain="Medication Adherence",
+        cms_id="CMS156v10",
+        benchmark_50th=0.75,
+        benchmark_90th=0.85,
+        default_priority=MeasurePriority.HIGH,
+        clinical_guidance="SGLT2 inhibitors provide cardiovascular and renal benefits in diabetes.",
+    ),
+
+    QualityMeasure(
+        id="CQM-HF-BB",
+        name="Heart Failure: Beta-Blocker Therapy",
+        description="Percentage of patients with HF and LVEF <40% prescribed beta-blocker",
+        category=MeasureCategory.CARDIOVASCULAR,
+        measure_type=MeasureType.CQM,
+        version="2024",
+        eligibility=EligibilityCriteria(
+            age_range=AgeRange(18, 120),
+            diagnoses=[
+                "I50.1", "I50.20", "I50.21", "I50.22", "I50.23",  # Systolic HF
+                "I50.40", "I50.41", "I50.42", "I50.43",  # Combined HF
+            ],
+            continuous_enrollment_days=365,
+        ),
+        numerator=NumeratorCriteria(
+            required_medications=[
+                "866924", "866932",  # Carvedilol
+                "854901", "854905",  # Metoprolol succinate
+                "200031", "200032",  # Bisoprolol
+            ],
+            lookback_days=365,
+        ),
+        steward="CMS",
+        domain="Cardiovascular",
+        cms_id="CMS144v10",
+        nqf_number="0083",
+        benchmark_50th=0.88,
+        benchmark_90th=0.95,
+        default_priority=MeasurePriority.CRITICAL,
+        clinical_guidance="Evidence-based beta-blocker (carvedilol, metoprolol succinate, bisoprolol) for HFrEF.",
+    ),
+
+    QualityMeasure(
+        id="CQM-HF-ACEI",
+        name="Heart Failure: ACE Inhibitor/ARB/ARNI Therapy",
+        description="Percentage of patients with HF and LVEF <40% prescribed ACEI/ARB/ARNI",
+        category=MeasureCategory.CARDIOVASCULAR,
+        measure_type=MeasureType.CQM,
+        version="2024",
+        eligibility=EligibilityCriteria(
+            age_range=AgeRange(18, 120),
+            diagnoses=[
+                "I50.1", "I50.20", "I50.21", "I50.22", "I50.23",
+                "I50.40", "I50.41", "I50.42", "I50.43",
+            ],
+            continuous_enrollment_days=365,
+        ),
+        numerator=NumeratorCriteria(
+            required_medications=[
+                "197885", "310792", "310793",  # ACE inhibitors
+                "283316", "314076", "349483",  # ARBs
+                "1656340", "1656349", "1656354",  # Sacubitril/valsartan (ARNI)
+            ],
+            lookback_days=365,
+        ),
+        steward="CMS",
+        domain="Cardiovascular",
+        cms_id="CMS135v10",
+        nqf_number="0081",
+        benchmark_50th=0.85,
+        benchmark_90th=0.93,
+        default_priority=MeasurePriority.CRITICAL,
+        clinical_guidance="ARNI preferred over ACEI/ARB for symptomatic HFrEF if tolerated.",
+    ),
+
+    QualityMeasure(
+        id="HEDIS-ASM",
+        name="Asthma Medication Ratio",
+        description="Percentage of patients with asthma who have ratio of controller to total asthma medications >=50%",
+        category=MeasureCategory.RESPIRATORY,
+        measure_type=MeasureType.HEDIS,
+        version="2024",
+        eligibility=EligibilityCriteria(
+            age_range=AgeRange(5, 64),
+            diagnoses=[
+                "J45.20", "J45.21", "J45.22",  # Mild intermittent asthma
+                "J45.30", "J45.31", "J45.32",  # Mild persistent
+                "J45.40", "J45.41", "J45.42",  # Moderate persistent
+                "J45.50", "J45.51", "J45.52",  # Severe persistent
+            ],
+            continuous_enrollment_days=365,
+        ),
+        numerator=NumeratorCriteria(
+            value_thresholds=[
+                {"name": "controller_ratio", "operator": ">=", "value": 50, "unit": "%"}
+            ],
+            lookback_days=365,
+        ),
+        steward="NCQA",
+        domain="Respiratory",
+        nqf_number="1800",
+        benchmark_50th=0.70,
+        benchmark_90th=0.82,
+        default_priority=MeasurePriority.HIGH,
+        clinical_guidance="Controller medications (ICS, ICS-LABA) should exceed rescue inhaler use.",
+    ),
+
+    QualityMeasure(
+        id="CQM-COPD-SPR",
+        name="COPD: Spirometry Evaluation",
+        description="Percentage of patients with new COPD diagnosis who received spirometry testing",
+        category=MeasureCategory.RESPIRATORY,
+        measure_type=MeasureType.CQM,
+        version="2024",
+        eligibility=EligibilityCriteria(
+            age_range=AgeRange(40, 120),
+            diagnoses=[
+                "J44.0", "J44.1", "J44.9",  # COPD
+            ],
+            continuous_enrollment_days=365,
+        ),
+        numerator=NumeratorCriteria(
+            required_procedures=[
+                "94010", "94060", "94070", "94375",  # Spirometry codes
+                "94729",  # Diffusing capacity
+            ],
+            lookback_days=730,  # 2 years around diagnosis
+        ),
+        steward="CMS",
+        domain="Respiratory",
+        cms_id="CMS165v10",
+        benchmark_50th=0.42,
+        benchmark_90th=0.58,
+        default_priority=MeasurePriority.MEDIUM,
+        clinical_guidance="Spirometry required to confirm COPD diagnosis and assess severity.",
+    ),
+
+    QualityMeasure(
+        id="HEDIS-W15",
+        name="Well-Child Visits in the First 15 Months of Life",
+        description="Percentage of children with 6+ well-child visits in first 15 months",
+        category=MeasureCategory.PEDIATRIC,
+        measure_type=MeasureType.HEDIS,
+        version="2024",
+        eligibility=EligibilityCriteria(
+            age_range=AgeRange(0, 15, AgeUnit.MONTHS),
+            continuous_enrollment_days=365,
+        ),
+        numerator=NumeratorCriteria(
+            required_procedures=[
+                "99381",  # Preventive visit, new, infant
+                "99391",  # Preventive visit, established, infant
+            ],
+            value_thresholds=[
+                {"name": "visit_count", "operator": ">=", "value": 6, "unit": "visits"}
+            ],
+            lookback_days=456,  # ~15 months
+        ),
+        steward="NCQA",
+        domain="Pediatric",
+        nqf_number="1392",
+        benchmark_50th=0.68,
+        benchmark_90th=0.82,
+        default_priority=MeasurePriority.HIGH,
+        clinical_guidance="AAP recommends visits at 3-5 days, 1, 2, 4, 6, 9, and 12 months.",
+    ),
+
+    QualityMeasure(
+        id="HEDIS-IMA",
+        name="Immunizations for Adolescents",
+        description="Percentage of adolescents 13 who have received recommended immunizations",
+        category=MeasureCategory.PEDIATRIC,
+        measure_type=MeasureType.HEDIS,
+        version="2024",
+        eligibility=EligibilityCriteria(
+            age_range=AgeRange(13, 13),
+            continuous_enrollment_days=365,
+        ),
+        numerator=NumeratorCriteria(
+            required_procedures=[
+                "90651", "90649", "90650",  # HPV vaccine
+                "90734",  # Meningococcal
+                "90715",  # Tdap
+            ],
+            lookback_days=4745,  # ~13 years
+        ),
+        steward="NCQA",
+        domain="Immunizations",
+        nqf_number="1407",
+        benchmark_50th=0.42,
+        benchmark_90th=0.58,
+        default_priority=MeasurePriority.HIGH,
+        clinical_guidance="HPV series, meningococcal, and Tdap by age 13.",
+    ),
+
+    QualityMeasure(
+        id="HEDIS-PPC-PRENATAL",
+        name="Prenatal Care: Timeliness",
+        description="Percentage of deliveries with prenatal care visit in first trimester",
+        category=MeasureCategory.WOMENS_HEALTH,
+        measure_type=MeasureType.HEDIS,
+        version="2024",
+        eligibility=EligibilityCriteria(
+            age_range=AgeRange(15, 44),
+            gender="F",
+            diagnoses=[
+                "Z34.00", "Z34.80", "Z34.90",  # Supervision of normal pregnancy
+                "O09.00", "O09.10", "O09.20",  # Duration of pregnancy
+            ],
+            continuous_enrollment_days=280,
+        ),
+        numerator=NumeratorCriteria(
+            required_procedures=[
+                "99201", "99202", "99203", "99204", "99205",  # Office visit (prenatal)
+                "99211", "99212", "99213", "99214", "99215",
+                "0500F", "0501F", "0502F",  # Initial prenatal care visit
+            ],
+            lookback_days=84,  # First trimester
+        ),
+        steward="NCQA",
+        domain="Women's Health",
+        nqf_number="1517",
+        benchmark_50th=0.82,
+        benchmark_90th=0.92,
+        default_priority=MeasurePriority.CRITICAL,
+        clinical_guidance="First prenatal visit within first 13 weeks of pregnancy.",
+    ),
+
+    QualityMeasure(
+        id="HEDIS-PPC-POSTPARTUM",
+        name="Postpartum Care",
+        description="Percentage of deliveries with postpartum visit 7-84 days after delivery",
+        category=MeasureCategory.WOMENS_HEALTH,
+        measure_type=MeasureType.HEDIS,
+        version="2024",
+        eligibility=EligibilityCriteria(
+            age_range=AgeRange(15, 44),
+            gender="F",
+            anchor_date_procedure="delivery",
+            continuous_enrollment_days=84,
+        ),
+        numerator=NumeratorCriteria(
+            required_procedures=[
+                "99201", "99202", "99203", "99204", "99205",
+                "99211", "99212", "99213", "99214", "99215",
+                "0503F",  # Postpartum care visit
+            ],
+            lookback_days=84,
+        ),
+        steward="NCQA",
+        domain="Women's Health",
+        nqf_number="1517",
+        benchmark_50th=0.72,
+        benchmark_90th=0.85,
+        default_priority=MeasurePriority.HIGH,
+        clinical_guidance="Postpartum visit between 7 and 84 days after delivery.",
+    ),
+
+    QualityMeasure(
+        id="HEDIS-PSA",
+        name="Non-Recommended Cervical Cancer Screening",
+        description="Percentage of women 21-64 who had cervical cancer screening at inappropriate intervals (lower is better)",
+        category=MeasureCategory.SAFETY,
+        measure_type=MeasureType.HEDIS,
+        version="2024",
+        eligibility=EligibilityCriteria(
+            age_range=AgeRange(21, 64),
+            gender="F",
+            continuous_enrollment_days=365,
+        ),
+        numerator=NumeratorCriteria(
+            required_procedures=[
+                "88141", "88142", "88143", "88147", "88148", "88150",
+            ],
+            lookback_days=365,  # Looking for screening within 2 years when not needed
+        ),
+        steward="NCQA",
+        domain="Overuse",
+        nqf_number="0032",
+        benchmark_50th=0.08,  # Lower is better
+        benchmark_90th=0.03,
+        default_priority=MeasurePriority.LOW,
+        clinical_guidance="Avoid screening more frequently than recommended guidelines.",
+    ),
+
+    QualityMeasure(
+        id="CQM-OPU-BENZO",
+        name="High-Risk Medication Use: Benzodiazepines in Elderly",
+        description="Percentage of adults 65+ prescribed benzodiazepines (lower is better)",
+        category=MeasureCategory.SAFETY,
+        measure_type=MeasureType.CQM,
+        version="2024",
+        eligibility=EligibilityCriteria(
+            age_range=AgeRange(65, 120),
+            continuous_enrollment_days=365,
+        ),
+        numerator=NumeratorCriteria(
+            required_medications=[
+                "6470",  # Diazepam
+                "7781",  # Lorazepam
+                "596",  # Alprazolam
+                "2356",  # Clonazepam
+            ],
+            lookback_days=365,
+        ),
+        steward="CMS",
+        domain="Safety",
+        cms_id="CMS156v10",
+        nqf_number="0022",
+        benchmark_50th=0.12,  # Lower is better
+        benchmark_90th=0.05,
+        default_priority=MeasurePriority.HIGH,
+        clinical_guidance="Avoid benzodiazepines in elderly due to fall and cognitive impairment risk.",
+    ),
+
+    QualityMeasure(
+        id="CQM-OPU-OPIOID",
+        name="Use of High-Dose Opioids",
+        description="Percentage of patients on opioids with daily MME >90 (lower is better)",
+        category=MeasureCategory.SAFETY,
+        measure_type=MeasureType.CQM,
+        version="2024",
+        eligibility=EligibilityCriteria(
+            age_range=AgeRange(18, 120),
+            medications=[
+                "7804", "5489", "4337", "3423", "6813",  # Common opioids
+            ],
+            continuous_enrollment_days=365,
+        ),
+        numerator=NumeratorCriteria(
+            value_thresholds=[
+                {"name": "daily_MME", "operator": ">", "value": 90, "unit": "mg"}
+            ],
+            lookback_days=365,
+        ),
+        steward="CMS",
+        domain="Safety",
+        cms_id="CMS460v3",
+        benchmark_50th=0.05,  # Lower is better
+        benchmark_90th=0.02,
+        default_priority=MeasurePriority.CRITICAL,
+        clinical_guidance="Avoid >90 MME/day. Consider taper and multimodal pain management.",
+    ),
 ]
 
 # Build lookup indexes

@@ -1,0 +1,122 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: clinical-ontology-alerts
+  namespace: clinical-ontology
+  labels:
+    app.kubernetes.io/name: prometheus-rules
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: clinical-ontology-normalizer
+    release: prometheus
+spec:
+  groups:
+    - name: clinical-ontology.backend
+      rules:
+        - alert: BackendHighErrorRate
+          expr: |
+            sum(rate(http_requests_total{namespace="clinical-ontology", job="backend", status=~"5.."}[5m]))
+            /
+            sum(rate(http_requests_total{namespace="clinical-ontology", job="backend"}[5m])) > 0.05
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "High error rate in Clinical Ontology Backend"
+            description: "Backend error rate is {{ $value | humanizePercentage }} over the last 5 minutes"
+
+        - alert: BackendHighLatency
+          expr: |
+            histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{namespace="clinical-ontology", job="backend"}[5m])) by (le)) > 2
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High latency in Clinical Ontology Backend"
+            description: "95th percentile latency is {{ $value }}s"
+
+        - alert: BackendPodNotReady
+          expr: |
+            kube_deployment_status_replicas_available{namespace="clinical-ontology", deployment="backend"}
+            < kube_deployment_spec_replicas{namespace="clinical-ontology", deployment="backend"}
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Backend pods not ready"
+            description: "{{ $value }} backend pods are not ready"
+
+    - name: clinical-ontology.database
+      rules:
+        - alert: PostgresHighConnections
+          expr: |
+            sum(pg_stat_activity_count{namespace="clinical-ontology"}) > 150
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High PostgreSQL connections"
+            description: "PostgreSQL has {{ $value }} active connections"
+
+        - alert: PostgresReplicationLag
+          expr: |
+            pg_replication_lag{namespace="clinical-ontology"} > 60
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "PostgreSQL replication lag"
+            description: "Replication lag is {{ $value }}s"
+
+        - alert: PostgresDiskSpaceLow
+          expr: |
+            (1 - (node_filesystem_avail_bytes{mountpoint="/var/lib/postgresql"} / node_filesystem_size_bytes{mountpoint="/var/lib/postgresql"})) > 0.85
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "PostgreSQL disk space low"
+            description: "Disk usage is {{ $value | humanizePercentage }}"
+
+    - name: clinical-ontology.redis
+      rules:
+        - alert: RedisMemoryHigh
+          expr: |
+            redis_memory_used_bytes{namespace="clinical-ontology"} / redis_memory_max_bytes{namespace="clinical-ontology"} > 0.9
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Redis memory usage high"
+            description: "Redis memory usage is {{ $value | humanizePercentage }}"
+
+        - alert: RedisConnectionsHigh
+          expr: |
+            redis_connected_clients{namespace="clinical-ontology"} > 100
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High Redis connections"
+            description: "Redis has {{ $value }} connected clients"
+
+    - name: clinical-ontology.kubernetes
+      rules:
+        - alert: PodCrashLooping
+          expr: |
+            rate(kube_pod_container_status_restarts_total{namespace="clinical-ontology"}[15m]) > 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Pod is crash looping"
+            description: "Pod {{ $labels.pod }} is crash looping"
+
+        - alert: PVCAlmostFull
+          expr: |
+            kubelet_volume_stats_used_bytes{namespace="clinical-ontology"} / kubelet_volume_stats_capacity_bytes{namespace="clinical-ontology"} > 0.85
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "PVC almost full"
+            description: "PVC {{ $labels.persistentvolumeclaim }} is {{ $value | humanizePercentage }} full"

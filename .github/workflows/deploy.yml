@@ -1,0 +1,325 @@
+name: Deploy
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Deployment environment"
+        required: true
+        default: "staging"
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Build and Push Docker Images
+  build-and-push:
+    name: Build and Push Images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      backend-image: ${{ steps.meta-backend.outputs.tags }}
+      frontend-image: ${{ steps.meta-frontend.outputs.tags }}
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version
+        id: version
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/v}
+          else
+            VERSION=sha-${GITHUB_SHA::8}
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_REF: ${{ github.ref }}
+          GITHUB_SHA: ${{ github.sha }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for backend
+        id: meta-backend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix=sha-
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
+
+      - name: Extract metadata for frontend
+        id: meta-frontend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix=sha-
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ steps.meta-backend.outputs.tags }}
+          labels: ${{ steps.meta-backend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: ${{ steps.meta-frontend.outputs.tags }}
+          labels: ${{ steps.meta-frontend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL }}
+
+  # Deploy to Staging
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    environment:
+      name: staging
+      url: https://staging.clinical-ontology.example.com
+    if: |
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging') ||
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && contains(github.ref, '-'))
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: "latest"
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "$KUBE_CONFIG" | base64 -d > ~/.kube/config
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG_STAGING }}
+
+      - name: Deploy to Kubernetes
+        run: |
+          # Update image tags in manifests
+          cd infra/kubernetes/staging
+
+          # Apply database migrations first
+          kubectl apply -f migration-job.yaml
+          kubectl wait --for=condition=complete job/db-migration --timeout=300s
+
+          # Deploy backend
+          kubectl set image deployment/backend \
+            backend=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ needs.build-and-push.outputs.version }}
+
+          # Deploy frontend
+          kubectl set image deployment/frontend \
+            frontend=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ needs.build-and-push.outputs.version }}
+
+          # Wait for rollout
+          kubectl rollout status deployment/backend --timeout=300s
+          kubectl rollout status deployment/frontend --timeout=300s
+
+      - name: Run smoke tests
+        run: |
+          # Wait for services to be ready
+          sleep 30
+
+          # Health check
+          curl -f https://staging-api.clinical-ontology.example.com/health || exit 1
+          curl -f https://staging.clinical-ontology.example.com/ || exit 1
+
+      - name: Notify on failure
+        if: failure()
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          payload: |
+            {
+              "text": "Staging deployment failed",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Staging Deployment Failed*\nVersion: ${{ needs.build-and-push.outputs.version }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # Deploy to Production
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build-and-push, deploy-staging]
+    environment:
+      name: production
+      url: https://clinical-ontology.example.com
+    if: |
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production') ||
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-'))
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: "latest"
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "$KUBE_CONFIG" | base64 -d > ~/.kube/config
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG_PRODUCTION }}
+
+      - name: Create database backup
+        run: |
+          kubectl exec deployment/postgres -- pg_dump -U postgres clinical_ontology > backup-$(date +%Y%m%d-%H%M%S).sql
+          # Upload to S3 or other backup storage
+
+      - name: Deploy to Kubernetes
+        run: |
+          cd infra/kubernetes/production
+
+          # Apply database migrations
+          kubectl apply -f migration-job.yaml
+          kubectl wait --for=condition=complete job/db-migration --timeout=300s
+
+          # Blue-green deployment for backend
+          kubectl set image deployment/backend \
+            backend=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ needs.build-and-push.outputs.version }}
+
+          # Blue-green deployment for frontend
+          kubectl set image deployment/frontend \
+            frontend=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ needs.build-and-push.outputs.version }}
+
+          # Wait for rollout
+          kubectl rollout status deployment/backend --timeout=300s
+          kubectl rollout status deployment/frontend --timeout=300s
+
+      - name: Run production smoke tests
+        run: |
+          sleep 30
+          curl -f https://api.clinical-ontology.example.com/health || exit 1
+          curl -f https://clinical-ontology.example.com/ || exit 1
+
+      - name: Notify on success
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          payload: |
+            {
+              "text": "Production deployment successful",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Production Deployment Successful* :rocket:\nVersion: ${{ needs.build-and-push.outputs.version }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Notify on failure
+        if: failure()
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          payload: |
+            {
+              "text": "Production deployment FAILED",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Production Deployment FAILED* :x:\nVersion: ${{ needs.build-and-push.outputs.version }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # Rollback job (manual trigger)
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && failure()
+    needs: [deploy-staging, deploy-production]
+    environment:
+      name: ${{ github.event.inputs.environment }}
+    steps:
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          if [ "$DEPLOY_ENV" == "production" ]; then
+            echo "$KUBE_CONFIG_PROD" | base64 -d > ~/.kube/config
+          else
+            echo "$KUBE_CONFIG_STAGING" | base64 -d > ~/.kube/config
+          fi
+        env:
+          DEPLOY_ENV: ${{ github.event.inputs.environment }}
+          KUBE_CONFIG_PROD: ${{ secrets.KUBE_CONFIG_PRODUCTION }}
+          KUBE_CONFIG_STAGING: ${{ secrets.KUBE_CONFIG_STAGING }}
+
+      - name: Rollback deployments
+        run: |
+          kubectl rollout undo deployment/backend
+          kubectl rollout undo deployment/frontend
+          kubectl rollout status deployment/backend --timeout=300s
+          kubectl rollout status deployment/frontend --timeout=300s
+
+      - name: Notify rollback
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          payload: |
+            {
+              "text": "Deployment rolled back",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Deployment Rolled Back* :rewind:\nEnvironment: ${{ github.event.inputs.environment }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -11,24 +11,29 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { SearchWithDebounce } from "@/components/SearchWithDebounce";
+import { SkeletonCard } from "@/components/ui/skeleton";
 import { getPatientGraph, PatientGraph } from "@/lib/api";
+import { Users, Network, ArrowRight } from "lucide-react";
 
 export default function PatientsPage() {
   const [patientId, setPatientId] = useState("");
   const [graph, setGraph] = useState<PatientGraph | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!patientId.trim()) {
-      toast.error("Please enter a patient ID");
+  const handleSearch = useCallback(async (searchValue: string) => {
+    if (!searchValue.trim()) {
+      setGraph(null);
+      setHasSearched(false);
       return;
     }
 
     setIsLoading(true);
+    setHasSearched(true);
+
     try {
-      const patientGraph = await getPatientGraph(patientId.trim());
+      const patientGraph = await getPatientGraph(searchValue.trim());
       setGraph(patientGraph);
     } catch (error) {
       console.error("Failed to fetch patient graph:", error);
@@ -37,7 +42,12 @@ export default function PatientsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  const handleClear = useCallback(() => {
+    setGraph(null);
+    setHasSearched(false);
+  }, []);
 
   return (
     <div className="p-6">
@@ -49,61 +59,99 @@ export default function PatientsPage() {
       </div>
 
       <div className="mx-auto max-w-2xl space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Find Patient
+            </CardTitle>
+            <CardDescription>
+              Search for a patient by ID to view their knowledge graph
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <SearchWithDebounce
+              placeholder="Search by Patient ID (e.g., P001)..."
+              value={patientId}
+              onChange={setPatientId}
+              onSearch={handleSearch}
+              onClear={handleClear}
+              isLoading={isLoading}
+              debounceMs={500}
+              size="lg"
+            />
+          </CardContent>
+        </Card>
+
+        {/* Loading State */}
+        {isLoading && (
+          <SkeletonCard showHeader showFooter contentLines={2} />
+        )}
+
+        {/* Results */}
+        {!isLoading && graph && (
           <Card>
             <CardHeader>
-              <CardTitle>Find Patient</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Network className="h-5 w-5 text-primary" />
+                Patient {graph.patient_id}
+              </CardTitle>
               <CardDescription>
-                Enter a patient ID to view their knowledge graph
+                Knowledge graph containing {graph.node_count} nodes and {graph.edge_count} edges
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSearch} className="flex gap-4">
-                <Input
-                  placeholder="Patient ID (e.g., P001)"
-                  value={patientId}
-                  onChange={(e) => setPatientId(e.target.value)}
-                />
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? "Searching..." : "Search"}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-
-          {graph && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Patient {graph.patient_id}</CardTitle>
-                <CardDescription>
-                  {graph.node_count} nodes, {graph.edge_count} edges
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
-                    <div className="text-2xl font-bold text-blue-800 dark:text-blue-200">
-                      {graph.node_count}
-                    </div>
-                    <div className="text-sm text-blue-600 dark:text-blue-300">
-                      Total Nodes
-                    </div>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20 transition-colors">
+                  <div className="text-2xl font-bold text-blue-800 dark:text-blue-200">
+                    {graph.node_count}
                   </div>
-                  <div className="rounded-lg bg-green-50 p-4 dark:bg-green-900/20">
-                    <div className="text-2xl font-bold text-green-800 dark:text-green-200">
-                      {graph.edge_count}
-                    </div>
-                    <div className="text-sm text-green-600 dark:text-green-300">
-                      Total Edges
-                    </div>
+                  <div className="text-sm text-blue-600 dark:text-blue-300">
+                    Total Nodes
                   </div>
                 </div>
-                <Link href={`/patients/${graph.patient_id}/graph`}>
-                  <Button className="w-full">View Knowledge Graph</Button>
+                <div className="rounded-lg bg-green-50 p-4 dark:bg-green-900/20 transition-colors">
+                  <div className="text-2xl font-bold text-green-800 dark:text-green-200">
+                    {graph.edge_count}
+                  </div>
+                  <div className="text-sm text-green-600 dark:text-green-300">
+                    Total Edges
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Link href={`/patients/${graph.patient_id}/graph`} className="flex-1">
+                  <Button className="w-full gap-2">
+                    View Knowledge Graph
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
                 </Link>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+                <Link href={`/patients/${graph.patient_id}/timeline`}>
+                  <Button variant="outline">Timeline</Button>
+                </Link>
+                <Link href={`/patients/${graph.patient_id}/facts`}>
+                  <Button variant="outline">Facts</Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* No Results */}
+        {!isLoading && hasSearched && !graph && (
+          <Card>
+            <CardContent className="py-8">
+              <div className="text-center text-muted-foreground">
+                <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg font-medium">No patient found</p>
+                <p className="text-sm">
+                  Try searching with a different patient ID
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
+    </div>
   );
 }

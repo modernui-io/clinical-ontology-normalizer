@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Notifications } from "@/components/Notifications";
+import { Breadcrumb } from "@/components/Breadcrumb";
 import {
   Bell,
   ChevronDown,
@@ -192,11 +193,9 @@ export function Header({ className }: HeaderProps) {
         className
       )}
     >
-      {/* Left side - Page title area (placeholder for breadcrumbs or title) */}
+      {/* Left side - Breadcrumb navigation */}
       <div className="flex items-center gap-4 lg:pl-0 pl-12">
-        <h2 className="text-lg font-semibold text-foreground">
-          Clinical Ontology Normalizer
-        </h2>
+        <Breadcrumb maxLength={25} />
       </div>
 
       {/* Right side - Actions */}

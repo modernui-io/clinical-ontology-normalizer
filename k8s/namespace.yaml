@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: clinical-ontology
+  labels:
+    app.kubernetes.io/name: clinical-ontology-normalizer
+    app.kubernetes.io/managed-by: kustomize
+    environment: production
+  annotations:
+    description: "Clinical Ontology Normalizer - Healthcare terminology mapping and normalization"

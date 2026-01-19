@@ -1,11 +1,18 @@
-"""Custom Calculator API Endpoints.
+"""Clinical Calculator API Endpoints.
 
-Provides API for managing and executing custom clinical calculators:
-- List all calculators (built-in + custom)
-- Create custom calculators with safe formula DSL
-- Update and delete custom calculators
-- Execute calculators with input validation
-- Validate formulas before saving
+Provides API for clinical calculators:
+- List all calculators with categories
+- Get calculator details and input schema
+- Execute calculators with validation
+- User favorites management
+- Custom calculator creation (via calculator builder)
+
+Categories:
+- Cardiovascular: ASCVD, Framingham, HEART, CHA2DS2-VASc, HAS-BLED
+- Renal: CKD-EPI eGFR, Cockcroft-Gault, UACR
+- Hepatic: MELD, Child-Pugh, FIB-4
+- Critical Care: SOFA, qSOFA, Wells PE/DVT
+- General: BMI, BSA, Corrected Calcium, Anion Gap
 """
 
 import time
@@ -13,10 +20,10 @@ from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, HTTPException, Query, status, Header
 from pydantic import BaseModel, Field
 
-router = APIRouter(prefix="/calculators", tags=["Custom Calculators"])
+router = APIRouter(prefix="/calculators", tags=["Clinical Calculators"])
 
 
 # ============================================================================
@@ -654,3 +661,277 @@ async def get_formula_examples() -> dict[str, Any]:
             "Use nested if() statements for multiple conditions",
         ],
     }
+
+
+# =============================================================================
+# Clinical Calculator Endpoints (using clinical_calculator_service)
+# =============================================================================
+
+
+class ClinicalCalculatorSummary(BaseModel):
+    """Summary of a clinical calculator."""
+    id: str
+    name: str
+    short_name: str
+    category: str
+    description: str
+
+
+class ClinicalCalculatorDetail(BaseModel):
+    """Detailed clinical calculator with input schema."""
+    id: str
+    name: str
+    short_name: str
+    category: str
+    description: str
+    inputs: dict[str, Any]
+    required: list[str]
+
+
+class ClinicalCalculationRequest(BaseModel):
+    """Request to execute a clinical calculator."""
+    inputs: dict[str, Any] = Field(..., description="Input values keyed by parameter name")
+
+
+class ClinicalCalculationResult(BaseModel):
+    """Result from a clinical calculation."""
+    calculator_id: str
+    calculator_name: str
+    score: float
+    score_unit: str
+    risk_level: str
+    interpretation: str
+    recommendations: list[str]
+    components: dict[str, Any]
+    references: list[str]
+    formula_used: str = ""
+    warnings: list[str] = []
+
+
+class CategoryInfo(BaseModel):
+    """Category information with calculator count."""
+    id: str
+    name: str
+    count: int
+
+
+class ListClinicalCalculatorsResponse(BaseModel):
+    """Response for listing clinical calculators."""
+    calculators: list[ClinicalCalculatorSummary]
+    total_count: int
+    categories: list[CategoryInfo]
+
+
+class FavoriteToggleResponse(BaseModel):
+    """Response from toggling favorite status."""
+    calculator_id: str
+    is_favorite: bool
+    message: str
+
+
+@router.get(
+    "/clinical",
+    response_model=ListClinicalCalculatorsResponse,
+    summary="List clinical calculators",
+    description="Get all validated clinical calculators grouped by category.",
+)
+async def list_clinical_calculators(
+    category: str | None = Query(None, description="Filter by category"),
+) -> ListClinicalCalculatorsResponse:
+    """List all available clinical calculators.
+
+    Returns validated clinical calculators including:
+    - Cardiovascular risk scores (ASCVD, HEART, CHA2DS2-VASc, etc.)
+    - Renal function calculators (eGFR, CrCl, UACR)
+    - Hepatic scores (MELD, Child-Pugh, FIB-4)
+    - Critical care scores (SOFA, qSOFA, Wells)
+    - General calculators (BMI, BSA, Anion Gap)
+    """
+    from app.services.clinical_calculator_service import get_clinical_calculator_service
+
+    service = get_clinical_calculator_service()
+    calculators = service.list_calculators(category=category)
+    categories = service.get_categories()
+
+    return ListClinicalCalculatorsResponse(
+        calculators=[ClinicalCalculatorSummary(**c) for c in calculators],
+        total_count=len(calculators),
+        categories=[CategoryInfo(**cat) for cat in categories],
+    )
+
+
+@router.get(
+    "/clinical/{calculator_id}",
+    response_model=ClinicalCalculatorDetail,
+    summary="Get clinical calculator details",
+    description="Get detailed information about a clinical calculator including input schema.",
+)
+async def get_clinical_calculator(calculator_id: str) -> ClinicalCalculatorDetail:
+    """Get details of a specific clinical calculator.
+
+    Returns the calculator definition including:
+    - Input parameter schema with types and validation rules
+    - Description and references
+    - Category information
+    """
+    from app.services.clinical_calculator_service import get_clinical_calculator_service
+
+    service = get_clinical_calculator_service()
+    calc = service.get_calculator(calculator_id)
+
+    if not calc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Calculator not found: {calculator_id}",
+        )
+
+    return ClinicalCalculatorDetail(**calc)
+
+
+@router.post(
+    "/clinical/{calculator_id}/calculate",
+    response_model=ClinicalCalculationResult,
+    summary="Execute clinical calculator",
+    description="Run a clinical calculator with provided input values.",
+)
+async def execute_clinical_calculator(
+    calculator_id: str,
+    request: ClinicalCalculationRequest,
+) -> ClinicalCalculationResult:
+    """Execute a clinical calculator.
+
+    Validates inputs and computes the clinical score with:
+    - Risk interpretation
+    - Clinical recommendations
+    - Component breakdown
+    - References
+
+    Example for BMI:
+    ```json
+    {
+        "inputs": {
+            "weight_kg": 70,
+            "height_cm": 175
+        }
+    }
+    ```
+
+    Example for CHA2DS2-VASc:
+    ```json
+    {
+        "inputs": {
+            "age": 72,
+            "sex": "female",
+            "chf": false,
+            "hypertension": true,
+            "diabetes": true,
+            "stroke_tia": false,
+            "vascular_disease": true
+        }
+    }
+    ```
+    """
+    from app.services.clinical_calculator_service import get_clinical_calculator_service
+
+    service = get_clinical_calculator_service()
+
+    try:
+        result = service.calculate(calculator_id, request.inputs)
+        return ClinicalCalculationResult(
+            calculator_id=result.calculator_id,
+            calculator_name=result.calculator_name,
+            score=result.score,
+            score_unit=result.score_unit,
+            risk_level=result.risk_level.value,
+            interpretation=result.interpretation,
+            recommendations=result.recommendations,
+            components=result.components,
+            references=result.references,
+            formula_used=result.formula_used,
+            warnings=result.warnings,
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+
+
+@router.get(
+    "/clinical/favorites/list",
+    response_model=list[ClinicalCalculatorSummary],
+    summary="Get favorite calculators",
+    description="Get user's favorite clinical calculators.",
+)
+async def get_favorite_calculators(
+    x_user_id: str = Header(default="anonymous", alias="X-User-ID"),
+) -> list[ClinicalCalculatorSummary]:
+    """Get user's favorite calculators.
+
+    Returns the list of calculators marked as favorites by the user.
+    User is identified by the X-User-ID header.
+    """
+    from app.services.clinical_calculator_service import get_clinical_calculator_service
+
+    service = get_clinical_calculator_service()
+    favorites = service.get_favorites(x_user_id)
+
+    return [ClinicalCalculatorSummary(**c) for c in favorites]
+
+
+@router.post(
+    "/clinical/{calculator_id}/favorite",
+    response_model=FavoriteToggleResponse,
+    summary="Toggle favorite status",
+    description="Toggle a calculator's favorite status for the user.",
+)
+async def toggle_calculator_favorite(
+    calculator_id: str,
+    x_user_id: str = Header(default="anonymous", alias="X-User-ID"),
+) -> FavoriteToggleResponse:
+    """Toggle favorite status for a calculator.
+
+    If the calculator is currently a favorite, it will be unfavorited.
+    If not a favorite, it will be added to favorites.
+
+    User is identified by the X-User-ID header.
+    """
+    from app.services.clinical_calculator_service import get_clinical_calculator_service
+
+    service = get_clinical_calculator_service()
+
+    try:
+        is_favorite = service.toggle_favorite(x_user_id, calculator_id)
+        return FavoriteToggleResponse(
+            calculator_id=calculator_id,
+            is_favorite=is_favorite,
+            message="Added to favorites" if is_favorite else "Removed from favorites",
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+
+
+@router.get(
+    "/clinical/categories/list",
+    response_model=list[CategoryInfo],
+    summary="List calculator categories",
+    description="Get all clinical calculator categories with counts.",
+)
+async def list_clinical_categories() -> list[CategoryInfo]:
+    """Get all calculator categories.
+
+    Returns categories with their calculator counts:
+    - cardiovascular
+    - renal
+    - hepatic
+    - critical_care
+    - general
+    - laboratory
+    """
+    from app.services.clinical_calculator_service import get_clinical_calculator_service
+
+    service = get_clinical_calculator_service()
+    return [CategoryInfo(**cat) for cat in service.get_categories()]

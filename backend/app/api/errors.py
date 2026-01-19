@@ -113,9 +113,12 @@ class ErrorDetail(BaseModel):
     """Detailed information about a specific error."""
 
     field: str | None = Field(None, description="Field that caused the error (for validation errors)")
+    location: list[str] | None = Field(None, description="Full path to the invalid field (e.g., ['body', 'patient', 'id'])")
     message: str = Field(..., description="Human-readable error message")
     code: str | None = Field(None, description="Specific error sub-code")
     value: Any = Field(None, description="The invalid value (sanitized)")
+    suggestion: str | None = Field(None, description="Suggested fix or valid values")
+    constraints: dict[str, Any] | None = Field(None, description="Validation constraints that were violated")
 
 
 class ErrorResponse(BaseModel):
@@ -579,3 +582,193 @@ def _sanitize_value(value: Any) -> Any:
         return f"<{type(value).__name__}>"
 
     return value
+
+
+# ============================================================================
+# Validation Suggestion Helpers
+# ============================================================================
+
+# Common field suggestions
+FIELD_SUGGESTIONS: dict[str, dict[str, str]] = {
+    "icd10_code": {
+        "pattern": r"^[A-TV-Z]\d{2}(\.\d{1,4})?$",
+        "suggestion": "ICD-10 codes should match format like 'E11.9' or 'J45.20'. Format: Letter + 2 digits + optional decimal with up to 4 digits.",
+        "examples": "E11.9, J45.20, I10, M54.5",
+    },
+    "snomed_code": {
+        "pattern": r"^\d{6,18}$",
+        "suggestion": "SNOMED CT codes are numeric identifiers between 6-18 digits.",
+        "examples": "73211009, 386661006, 44054006",
+    },
+    "cpt_code": {
+        "pattern": r"^\d{5}$",
+        "suggestion": "CPT codes are 5-digit numeric codes.",
+        "examples": "99213, 99214, 71046",
+    },
+    "patient_id": {
+        "pattern": r"^[a-zA-Z0-9_-]{1,64}$",
+        "suggestion": "Patient IDs should be alphanumeric with optional hyphens/underscores, max 64 characters.",
+        "examples": "P12345, patient-001, MRN_2024_001",
+    },
+    "uuid": {
+        "pattern": r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "suggestion": "UUIDs should be in format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.",
+        "examples": "123e4567-e89b-12d3-a456-426614174000",
+    },
+    "email": {
+        "pattern": r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
+        "suggestion": "Please provide a valid email address.",
+        "examples": "user@example.com",
+    },
+    "date": {
+        "pattern": r"^\d{4}-\d{2}-\d{2}$",
+        "suggestion": "Dates should be in ISO 8601 format (YYYY-MM-DD).",
+        "examples": "2024-01-15, 2023-12-31",
+    },
+    "datetime": {
+        "pattern": r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}",
+        "suggestion": "Datetimes should be in ISO 8601 format (YYYY-MM-DDTHH:MM:SS).",
+        "examples": "2024-01-15T10:30:00Z, 2024-01-15T10:30:00+00:00",
+    },
+}
+
+
+def get_field_suggestion(field_name: str, error_type: str | None = None) -> str | None:
+    """Get a suggestion for fixing an invalid field value.
+
+    Args:
+        field_name: Name of the field that failed validation
+        error_type: The type of validation error (from Pydantic)
+
+    Returns:
+        Suggestion string or None if no suggestion available
+    """
+    # Normalize field name for lookup
+    normalized = field_name.lower().replace("-", "_").replace(" ", "_")
+
+    # Direct match
+    if normalized in FIELD_SUGGESTIONS:
+        info = FIELD_SUGGESTIONS[normalized]
+        return f"{info['suggestion']} Examples: {info['examples']}"
+
+    # Partial matches (field contains a known pattern)
+    for key, info in FIELD_SUGGESTIONS.items():
+        if key in normalized:
+            return f"{info['suggestion']} Examples: {info['examples']}"
+
+    # Error type based suggestions
+    if error_type:
+        error_type_lower = error_type.lower()
+        if "string_too_short" in error_type_lower:
+            return "Value is too short. Please provide more characters."
+        if "string_too_long" in error_type_lower:
+            return "Value exceeds maximum length. Please shorten your input."
+        if "missing" in error_type_lower:
+            return "This field is required. Please provide a value."
+        if "type_error" in error_type_lower:
+            return "The value type is incorrect. Please check the expected data type."
+        if "enum" in error_type_lower:
+            return "Value must be one of the allowed options."
+        if "regex" in error_type_lower or "pattern" in error_type_lower:
+            return "Value does not match the required format."
+
+    return None
+
+
+def create_field_error(
+    field: str,
+    message: str,
+    value: Any = None,
+    error_code: ErrorCode = ErrorCode.VALIDATION_ERROR,
+    error_type: str | None = None,
+    location: list[str] | None = None,
+    constraints: dict[str, Any] | None = None,
+) -> ErrorDetail:
+    """Create a detailed field error with suggestions.
+
+    Args:
+        field: The field name that caused the error
+        message: Human-readable error message
+        value: The invalid value (will be sanitized)
+        error_code: Specific error code
+        error_type: Pydantic error type (for auto-suggestions)
+        location: Full path to the field
+        constraints: Validation constraints that were violated
+
+    Returns:
+        ErrorDetail with field-level information and suggestions
+    """
+    sanitized_value = _sanitize_value(value)
+    suggestion = get_field_suggestion(field, error_type)
+
+    return ErrorDetail(
+        field=field,
+        location=location,
+        message=message,
+        code=error_code.value if isinstance(error_code, ErrorCode) else error_code,
+        value=sanitized_value,
+        suggestion=suggestion,
+        constraints=constraints,
+    )
+
+
+def create_validation_errors_from_pydantic(
+    errors: list[dict[str, Any]],
+) -> list[ErrorDetail]:
+    """Convert Pydantic validation errors to our ErrorDetail format with suggestions.
+
+    Args:
+        errors: List of error dictionaries from Pydantic
+
+    Returns:
+        List of ErrorDetail objects with field-level information
+    """
+    details = []
+
+    for error in errors:
+        # Extract location path
+        loc = error.get("loc", [])
+        # Filter out 'body' from location path for cleaner display
+        location = [str(part) for part in loc]
+        field_parts = [str(part) for part in loc if part != "body"]
+        field = ".".join(field_parts) if field_parts else None
+
+        # Get error message and type
+        msg = error.get("msg", "Invalid value")
+        error_type = error.get("type")
+
+        # Extract constraints from context
+        ctx = error.get("ctx", {})
+        constraints = None
+        if ctx:
+            constraints = {}
+            if "min_length" in ctx:
+                constraints["min_length"] = ctx["min_length"]
+            if "max_length" in ctx:
+                constraints["max_length"] = ctx["max_length"]
+            if "pattern" in ctx:
+                constraints["pattern"] = ctx["pattern"]
+            if "ge" in ctx:
+                constraints["minimum"] = ctx["ge"]
+            if "le" in ctx:
+                constraints["maximum"] = ctx["le"]
+            if "enum_values" in ctx or "expected" in ctx:
+                constraints["allowed_values"] = ctx.get("enum_values") or ctx.get("expected")
+            if not constraints:
+                constraints = None
+
+        # Get suggestion
+        suggestion = get_field_suggestion(field or "", error_type)
+
+        # Create error detail
+        details.append(ErrorDetail(
+            field=field,
+            location=location if location else None,
+            message=msg,
+            code=error_type,
+            value=_sanitize_value(error.get("input")),
+            suggestion=suggestion,
+            constraints=constraints,
+        ))
+
+    return details

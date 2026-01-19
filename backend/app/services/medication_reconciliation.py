@@ -10,6 +10,8 @@ Key Features:
 - Detect therapeutic duplicates (e.g., two statins)
 - Identify high-risk discrepancies (anticoagulants, insulin, opioids)
 - Support for generic/brand name matching using RxNormService
+- Session-based reconciliation workflow with audit trail
+- Drug safety and interaction integration
 
 Clinical Use Cases:
 - Hospital admission medication reconciliation
@@ -29,6 +31,8 @@ from typing import Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from app.services.rxnorm_service import RxNormService
+    from app.services.drug_interactions import DrugInteractionService
+    from app.services.drug_safety import DrugSafetyService
 
 logger = logging.getLogger(__name__)
 
@@ -85,6 +89,31 @@ class ReconciliationStatus(str, Enum):
     IN_PROGRESS = "in_progress"  # Under review
     COMPLETED = "completed"  # Review complete
     REQUIRES_ACTION = "requires_action"  # Discrepancies need resolution
+
+
+class ResolutionAction(str, Enum):
+    """Action taken to resolve a discrepancy."""
+
+    ACCEPT = "accept"  # Accept the change
+    REJECT = "reject"  # Reject the change
+    MODIFY = "modify"  # Modify the change
+    DEFER = "defer"  # Defer decision
+
+
+class ResolutionReason(str, Enum):
+    """Reason for resolution action."""
+
+    INTENDED_CHANGE = "intended_change"  # Change was intentional
+    DOSING_ADJUSTMENT = "dosing_adjustment"  # Dose was adjusted
+    THERAPEUTIC_SUBSTITUTION = "therapeutic_substitution"  # Substituted equivalent
+    DISCONTINUE_DUPLICATE = "discontinue_duplicate"  # Removed duplicate therapy
+    ADVERSE_REACTION = "adverse_reaction"  # Stopped due to adverse reaction
+    COST_SUBSTITUTION = "cost_substitution"  # Generic substitution for cost
+    FORMULARY_CHANGE = "formulary_change"  # Formulary-driven change
+    PATIENT_PREFERENCE = "patient_preference"  # Patient requested change
+    CLINICAL_INDICATION = "clinical_indication"  # Indication-based change
+    DOCUMENTATION_ERROR = "documentation_error"  # Was an error in documentation
+    OTHER = "other"  # Other reason
 
 
 # High-risk medication categories that require special attention
@@ -269,6 +298,108 @@ class MedicationListAnalysis:
     medications_by_class: dict[str, list[MedicationEntry]]
 
 
+@dataclass
+class DiscrepancyResolution:
+    """Resolution for a discrepancy."""
+
+    id: str  # ID of the discrepancy being resolved
+    action: ResolutionAction
+    reason: ResolutionReason
+    reason_text: str = ""  # Free-text reason
+    resolved_by: str = ""  # User who resolved
+    resolved_at: datetime | None = None
+    notes: str = ""
+
+
+@dataclass
+class DrugInteractionWarning:
+    """Drug interaction warning from reconciled list."""
+
+    drug1: str
+    drug2: str
+    severity: str  # "contraindicated", "major", "moderate", "minor"
+    description: str
+    clinical_effect: str
+    management: str
+
+
+@dataclass
+class DrugSafetyWarning:
+    """Drug safety warning for a medication."""
+
+    drug_name: str
+    warning_type: str  # "black_box", "contraindication", "allergy", "high_risk"
+    severity: str
+    description: str
+    recommended_action: str
+
+
+@dataclass
+class ReconciliationSession:
+    """A reconciliation session with workflow state.
+
+    Tracks the complete lifecycle of a medication reconciliation,
+    including all discrepancies, resolutions, and the final reconciled list.
+    """
+
+    id: str
+    patient_id: str = ""
+    encounter_id: str = ""
+    created_at: datetime = field(default_factory=datetime.utcnow)
+    updated_at: datetime = field(default_factory=datetime.utcnow)
+    status: ReconciliationStatus = ReconciliationStatus.PENDING
+    created_by: str = ""
+    assigned_to: str = ""
+
+    # Source and target medication lists
+    source_list_name: str = "Source Medications"
+    target_list_name: str = "Target Medications"
+    source_medications: list[MedicationEntry] = field(default_factory=list)
+    target_medications: list[MedicationEntry] = field(default_factory=list)
+
+    # Reconciliation result (computed)
+    reconciliation_result: ReconciliationResult | None = None
+
+    # Resolutions for discrepancies
+    resolutions: dict[str, DiscrepancyResolution] = field(default_factory=dict)
+
+    # Drug safety integration
+    interaction_warnings: list[DrugInteractionWarning] = field(default_factory=list)
+    safety_warnings: list[DrugSafetyWarning] = field(default_factory=list)
+    patient_allergies: list[str] = field(default_factory=list)
+
+    # Final reconciled list (after resolutions)
+    reconciled_medications: list[MedicationEntry] = field(default_factory=list)
+
+    # Completion
+    completed_at: datetime | None = None
+    completed_by: str = ""
+    completion_notes: str = ""
+
+    def get_unresolved_count(self) -> int:
+        """Get count of unresolved discrepancies."""
+        if not self.reconciliation_result:
+            return 0
+        total = len(self.reconciliation_result.alerts)
+        resolved = len(self.resolutions)
+        return total - resolved
+
+    def get_high_risk_unresolved(self) -> int:
+        """Get count of unresolved high-risk discrepancies."""
+        if not self.reconciliation_result:
+            return 0
+        count = 0
+        for alert in self.reconciliation_result.alerts:
+            if alert.severity == DiscrepancySeverity.HIGH:
+                if alert.id not in self.resolutions:
+                    count += 1
+        return count
+
+    def is_complete(self) -> bool:
+        """Check if all discrepancies are resolved."""
+        return self.get_unresolved_count() == 0
+
+
 # ============================================================================
 # Medication Reconciliation Service
 # ============================================================================
@@ -284,40 +415,51 @@ class MedicationReconciliationService:
     Usage:
         service = get_medication_reconciliation_service()
 
-        # Compare admission vs discharge
-        result = service.compare_medication_lists(
-            source_list=admission_meds,
-            target_list=discharge_meds,
+        # Create a reconciliation session
+        session = service.create_session(
+            source_meds=admission_meds,
+            target_meds=discharge_meds,
             source_name="Admission Medications",
             target_name="Discharge Medications",
+            patient_id="P12345",
         )
 
-        # Check for issues
-        if result.high_risk_discrepancies > 0:
-            print("High-risk discrepancies found!")
-            for alert in result.alerts:
-                if alert.severity == DiscrepancySeverity.HIGH:
-                    print(f"  - {alert.description}")
-
-        # Analyze single list for duplicates
-        analysis = service.analyze_medication_list(
-            medications=current_meds,
-            list_name="Current Medications",
+        # Resolve discrepancies
+        service.resolve_discrepancy(
+            session_id=session.id,
+            discrepancy_id=alert.id,
+            action=ResolutionAction.ACCEPT,
+            reason=ResolutionReason.INTENDED_CHANGE,
+            resolved_by="Dr. Smith",
         )
+
+        # Complete the session
+        service.complete_session(session.id, completed_by="Dr. Smith")
+
+        # Get the final reconciled list
+        reconciled_meds = session.reconciled_medications
     """
 
-    def __init__(self, use_rxnorm: bool = True) -> None:
+    def __init__(self, use_rxnorm: bool = True, use_drug_safety: bool = True) -> None:
         """Initialize the medication reconciliation service.
 
         Args:
             use_rxnorm: Whether to use RxNormService for drug name normalization.
+            use_drug_safety: Whether to integrate drug safety checks.
         """
         self._rxnorm_service: "RxNormService | None" = None
+        self._drug_interaction_service: "DrugInteractionService | None" = None
+        self._drug_safety_service: "DrugSafetyService | None" = None
         self._use_rxnorm = use_rxnorm
+        self._use_drug_safety = use_drug_safety
         self._reconciliation_store: dict[str, ReconciliationResult] = {}
+        self._session_store: dict[str, ReconciliationSession] = {}
 
         if use_rxnorm:
             self._init_rxnorm()
+
+        if use_drug_safety:
+            self._init_drug_safety()
 
         logger.info("Medication reconciliation service initialized")
 
@@ -330,6 +472,24 @@ class MedicationReconciliationService:
         except Exception as e:
             logger.warning(f"Failed to initialize RxNorm service: {e}")
             self._rxnorm_service = None
+
+    def _init_drug_safety(self) -> None:
+        """Initialize drug safety service integrations."""
+        try:
+            from app.services.drug_interactions import get_drug_interaction_service
+            self._drug_interaction_service = get_drug_interaction_service()
+            logger.info("Drug interaction service integration enabled for medication reconciliation")
+        except Exception as e:
+            logger.warning(f"Failed to initialize drug interaction service: {e}")
+            self._drug_interaction_service = None
+
+        try:
+            from app.services.drug_safety import get_drug_safety_service
+            self._drug_safety_service = get_drug_safety_service()
+            logger.info("Drug safety service integration enabled for medication reconciliation")
+        except Exception as e:
+            logger.warning(f"Failed to initialize drug safety service: {e}")
+            self._drug_safety_service = None
 
     def _normalize_medication(self, med: MedicationEntry) -> MedicationEntry:
         """Normalize medication entry using RxNorm.
@@ -822,10 +982,505 @@ class MedicationReconciliationService:
         """
         return {
             "total_reconciliations_stored": len(self._reconciliation_store),
+            "total_sessions_stored": len(self._session_store),
             "rxnorm_enabled": self._rxnorm_service is not None,
+            "drug_interactions_enabled": self._drug_interaction_service is not None,
+            "drug_safety_enabled": self._drug_safety_service is not None,
             "high_risk_categories": len(HIGH_RISK_CATEGORIES),
             "therapeutic_classes": len(THERAPEUTIC_CLASSES),
         }
+
+    # ========================================================================
+    # Session Management Methods
+    # ========================================================================
+
+    def create_session(
+        self,
+        source_medications: list[MedicationEntry],
+        target_medications: list[MedicationEntry],
+        source_name: str = "Source Medications",
+        target_name: str = "Target Medications",
+        patient_id: str = "",
+        encounter_id: str = "",
+        created_by: str = "",
+        patient_allergies: list[str] | None = None,
+    ) -> ReconciliationSession:
+        """Create a new reconciliation session.
+
+        Creates a session and automatically performs the comparison and
+        drug safety checks.
+
+        Args:
+            source_medications: First medication list (e.g., home meds)
+            target_medications: Second medication list (e.g., discharge meds)
+            source_name: Display name for source list
+            target_name: Display name for target list
+            patient_id: Optional patient identifier
+            encounter_id: Optional encounter identifier
+            created_by: User who created the session
+            patient_allergies: List of patient allergies for cross-reference
+
+        Returns:
+            ReconciliationSession with comparison results and safety checks.
+        """
+        session_id = str(uuid.uuid4())
+
+        # Perform the comparison
+        result = self.compare_medication_lists(
+            source_list=source_medications,
+            target_list=target_medications,
+            source_name=source_name,
+            target_name=target_name,
+        )
+
+        # Check drug interactions for reconciled (target) list
+        interaction_warnings = self._check_interactions(target_medications)
+
+        # Check drug safety including allergies
+        safety_warnings = self._check_safety(
+            medications=target_medications,
+            allergies=patient_allergies or [],
+        )
+
+        # Create the session
+        session = ReconciliationSession(
+            id=session_id,
+            patient_id=patient_id,
+            encounter_id=encounter_id,
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow(),
+            status=ReconciliationStatus.PENDING if result.alerts else ReconciliationStatus.COMPLETED,
+            created_by=created_by,
+            source_list_name=source_name,
+            target_list_name=target_name,
+            source_medications=source_medications,
+            target_medications=target_medications,
+            reconciliation_result=result,
+            interaction_warnings=interaction_warnings,
+            safety_warnings=safety_warnings,
+            patient_allergies=patient_allergies or [],
+        )
+
+        # Store the session
+        self._session_store[session_id] = session
+
+        logger.info(
+            f"Created reconciliation session {session_id}: "
+            f"{len(result.alerts)} discrepancies, "
+            f"{len(interaction_warnings)} interactions, "
+            f"{len(safety_warnings)} safety warnings"
+        )
+
+        return session
+
+    def get_session(self, session_id: str) -> ReconciliationSession | None:
+        """Get a reconciliation session by ID.
+
+        Args:
+            session_id: Session identifier
+
+        Returns:
+            ReconciliationSession or None if not found.
+        """
+        return self._session_store.get(session_id)
+
+    def list_sessions(
+        self,
+        patient_id: str | None = None,
+        status: ReconciliationStatus | None = None,
+        limit: int = 50,
+    ) -> list[ReconciliationSession]:
+        """List reconciliation sessions with optional filters.
+
+        Args:
+            patient_id: Filter by patient ID
+            status: Filter by status
+            limit: Maximum sessions to return
+
+        Returns:
+            List of matching sessions.
+        """
+        sessions = list(self._session_store.values())
+
+        if patient_id:
+            sessions = [s for s in sessions if s.patient_id == patient_id]
+
+        if status:
+            sessions = [s for s in sessions if s.status == status]
+
+        # Sort by created_at descending
+        sessions.sort(key=lambda s: s.created_at, reverse=True)
+
+        return sessions[:limit]
+
+    def resolve_discrepancy(
+        self,
+        session_id: str,
+        discrepancy_id: str,
+        action: ResolutionAction,
+        reason: ResolutionReason,
+        reason_text: str = "",
+        resolved_by: str = "",
+        notes: str = "",
+    ) -> ReconciliationSession | None:
+        """Resolve a discrepancy in a reconciliation session.
+
+        Args:
+            session_id: Session identifier
+            discrepancy_id: ID of the discrepancy (alert) to resolve
+            action: Action taken (accept, reject, modify, defer)
+            reason: Reason for the action
+            reason_text: Optional free-text reason
+            resolved_by: User who resolved
+            notes: Additional notes
+
+        Returns:
+            Updated ReconciliationSession or None if not found.
+        """
+        session = self._session_store.get(session_id)
+        if not session:
+            return None
+
+        # Create resolution
+        resolution = DiscrepancyResolution(
+            id=discrepancy_id,
+            action=action,
+            reason=reason,
+            reason_text=reason_text,
+            resolved_by=resolved_by,
+            resolved_at=datetime.utcnow(),
+            notes=notes,
+        )
+
+        # Store the resolution
+        session.resolutions[discrepancy_id] = resolution
+        session.updated_at = datetime.utcnow()
+
+        # Update status
+        if session.get_unresolved_count() == 0:
+            session.status = ReconciliationStatus.COMPLETED
+        else:
+            session.status = ReconciliationStatus.IN_PROGRESS
+
+        logger.info(
+            f"Resolved discrepancy {discrepancy_id} in session {session_id}: "
+            f"{action.value} - {reason.value}"
+        )
+
+        return session
+
+    def complete_session(
+        self,
+        session_id: str,
+        completed_by: str = "",
+        notes: str = "",
+        force: bool = False,
+    ) -> ReconciliationSession | None:
+        """Complete a reconciliation session.
+
+        Generates the final reconciled medication list based on resolutions.
+
+        Args:
+            session_id: Session identifier
+            completed_by: User completing the session
+            notes: Completion notes
+            force: Force completion even with unresolved discrepancies
+
+        Returns:
+            Completed ReconciliationSession or None if not found or invalid.
+        """
+        session = self._session_store.get(session_id)
+        if not session:
+            return None
+
+        # Check if all discrepancies are resolved
+        if not force and session.get_unresolved_count() > 0:
+            logger.warning(
+                f"Cannot complete session {session_id}: "
+                f"{session.get_unresolved_count()} unresolved discrepancies"
+            )
+            return None
+
+        # Build the reconciled medication list
+        reconciled = self._build_reconciled_list(session)
+
+        session.reconciled_medications = reconciled
+        session.completed_at = datetime.utcnow()
+        session.completed_by = completed_by
+        session.completion_notes = notes
+        session.status = ReconciliationStatus.COMPLETED
+        session.updated_at = datetime.utcnow()
+
+        # Re-check interactions for final list
+        session.interaction_warnings = self._check_interactions(reconciled)
+        session.safety_warnings = self._check_safety(reconciled, session.patient_allergies)
+
+        logger.info(
+            f"Completed session {session_id}: "
+            f"{len(reconciled)} medications in final list"
+        )
+
+        return session
+
+    def _build_reconciled_list(
+        self,
+        session: ReconciliationSession,
+    ) -> list[MedicationEntry]:
+        """Build the final reconciled medication list based on resolutions.
+
+        Logic:
+        - Start with target list (proposed medications)
+        - For additions: included unless rejected
+        - For discontinuations: not included unless rejected (keep original)
+        - For changes: use target version unless rejected (use source version)
+        """
+        result = session.reconciliation_result
+        if not result:
+            return list(session.target_medications)
+
+        reconciled: list[MedicationEntry] = []
+
+        # Add unchanged matches (from target)
+        for match in result.matches:
+            reconciled.append(match.target_medication)
+
+        # Handle changes based on resolutions
+        for match in result.changes:
+            discrepancy_ids = [
+                alert.id for alert in result.alerts
+                if match.target_medication in alert.medications_involved
+                or match.source_medication in alert.medications_involved
+            ]
+
+            # Check if any related resolution rejects the change
+            rejected = False
+            for did in discrepancy_ids:
+                if did in session.resolutions:
+                    if session.resolutions[did].action == ResolutionAction.REJECT:
+                        rejected = True
+                        break
+
+            if rejected:
+                # Use source version
+                reconciled.append(match.source_medication)
+            else:
+                # Use target version (accept the change)
+                reconciled.append(match.target_medication)
+
+        # Handle additions based on resolutions
+        for med in result.additions:
+            # Find the alert for this addition
+            alert_id = None
+            for alert in result.alerts:
+                if (
+                    alert.discrepancy_type == DiscrepancyType.ADDITION
+                    and med in alert.medications_involved
+                ):
+                    alert_id = alert.id
+                    break
+
+            # Include unless explicitly rejected
+            if alert_id and alert_id in session.resolutions:
+                if session.resolutions[alert_id].action == ResolutionAction.REJECT:
+                    continue  # Don't include
+
+            reconciled.append(med)
+
+        # Handle discontinuations based on resolutions
+        for med in result.discontinuations:
+            # Find the alert for this discontinuation
+            alert_id = None
+            for alert in result.alerts:
+                if (
+                    alert.discrepancy_type == DiscrepancyType.DISCONTINUATION
+                    and med in alert.medications_involved
+                ):
+                    alert_id = alert.id
+                    break
+
+            # Include (keep) if explicitly rejected
+            if alert_id and alert_id in session.resolutions:
+                if session.resolutions[alert_id].action == ResolutionAction.REJECT:
+                    reconciled.append(med)  # Keep the medication
+
+        return reconciled
+
+    def _check_interactions(
+        self,
+        medications: list[MedicationEntry],
+    ) -> list[DrugInteractionWarning]:
+        """Check for drug interactions in a medication list."""
+        warnings: list[DrugInteractionWarning] = []
+
+        if not self._drug_interaction_service:
+            return warnings
+
+        try:
+            # Get drug names
+            drug_names = [
+                med.normalized_name or med.drug_name.lower()
+                for med in medications
+            ]
+
+            # Check interactions
+            result = self._drug_interaction_service.check_interactions(drug_names)
+
+            for interaction in result.interactions_found:
+                warnings.append(DrugInteractionWarning(
+                    drug1=interaction.drug1,
+                    drug2=interaction.drug2,
+                    severity=interaction.severity.value,
+                    description=interaction.description,
+                    clinical_effect=interaction.clinical_effect,
+                    management=interaction.management,
+                ))
+
+        except Exception as e:
+            logger.warning(f"Drug interaction check failed: {e}")
+
+        return warnings
+
+    def _check_safety(
+        self,
+        medications: list[MedicationEntry],
+        allergies: list[str],
+    ) -> list[DrugSafetyWarning]:
+        """Check drug safety for a medication list."""
+        warnings: list[DrugSafetyWarning] = []
+
+        if not self._drug_safety_service:
+            return warnings
+
+        try:
+            for med in medications:
+                drug_name = med.normalized_name or med.drug_name
+
+                # Get safety profile
+                profile = self._drug_safety_service.get_profile(drug_name)
+                if not profile:
+                    continue
+
+                # Black box warnings
+                for bbw in profile.black_box_warnings:
+                    warnings.append(DrugSafetyWarning(
+                        drug_name=drug_name,
+                        warning_type="black_box",
+                        severity="high",
+                        description=bbw,
+                        recommended_action="Review FDA black box warning",
+                    ))
+
+                # High-risk medication
+                if med.is_high_risk:
+                    warnings.append(DrugSafetyWarning(
+                        drug_name=drug_name,
+                        warning_type="high_risk",
+                        severity="high",
+                        description=f"{drug_name} is a high-alert medication",
+                        recommended_action="Requires independent double-check",
+                    ))
+
+                # Allergy cross-reference
+                for allergy in allergies:
+                    allergy_lower = allergy.lower()
+                    if (
+                        allergy_lower in drug_name.lower()
+                        or drug_name.lower() in allergy_lower
+                        or (profile.drug_class and allergy_lower in profile.drug_class.lower())
+                    ):
+                        warnings.append(DrugSafetyWarning(
+                            drug_name=drug_name,
+                            warning_type="allergy",
+                            severity="high",
+                            description=f"Potential allergy: patient allergic to {allergy}",
+                            recommended_action="Verify allergy and avoid if contraindicated",
+                        ))
+
+        except Exception as e:
+            logger.warning(f"Drug safety check failed: {e}")
+
+        return warnings
+
+    def generate_report(
+        self,
+        session_id: str,
+    ) -> dict[str, Any] | None:
+        """Generate a reconciliation report for a session.
+
+        Args:
+            session_id: Session identifier
+
+        Returns:
+            Dictionary with full report data or None if not found.
+        """
+        session = self._session_store.get(session_id)
+        if not session:
+            return None
+
+        result = session.reconciliation_result
+
+        # Build resolution summary
+        resolution_summary = {
+            "total_discrepancies": len(result.alerts) if result else 0,
+            "resolved": len(session.resolutions),
+            "unresolved": session.get_unresolved_count(),
+            "by_action": {},
+            "by_reason": {},
+        }
+
+        for res in session.resolutions.values():
+            action = res.action.value
+            reason = res.reason.value
+            resolution_summary["by_action"][action] = resolution_summary["by_action"].get(action, 0) + 1
+            resolution_summary["by_reason"][reason] = resolution_summary["by_reason"].get(reason, 0) + 1
+
+        return {
+            "session_id": session.id,
+            "patient_id": session.patient_id,
+            "encounter_id": session.encounter_id,
+            "status": session.status.value,
+            "created_at": session.created_at.isoformat(),
+            "completed_at": session.completed_at.isoformat() if session.completed_at else None,
+            "created_by": session.created_by,
+            "completed_by": session.completed_by,
+            "source_list_name": session.source_list_name,
+            "target_list_name": session.target_list_name,
+            "source_medication_count": len(session.source_medications),
+            "target_medication_count": len(session.target_medications),
+            "reconciled_medication_count": len(session.reconciled_medications),
+            "summary": {
+                "total_matches": len(result.matches) if result else 0,
+                "total_additions": len(result.additions) if result else 0,
+                "total_discontinuations": len(result.discontinuations) if result else 0,
+                "total_changes": len(result.changes) if result else 0,
+                "high_risk_discrepancies": result.high_risk_discrepancies if result else 0,
+                "therapeutic_duplicates": len(result.therapeutic_duplicates) if result else 0,
+                "requires_pharmacist_review": result.requires_pharmacist_review if result else False,
+            },
+            "resolution_summary": resolution_summary,
+            "safety_summary": {
+                "total_interaction_warnings": len(session.interaction_warnings),
+                "total_safety_warnings": len(session.safety_warnings),
+                "by_interaction_severity": self._count_by_severity(session.interaction_warnings),
+                "by_warning_type": self._count_by_warning_type(session.safety_warnings),
+            },
+            "patient_allergies": session.patient_allergies,
+            "completion_notes": session.completion_notes,
+        }
+
+    def _count_by_severity(self, warnings: list[DrugInteractionWarning]) -> dict[str, int]:
+        """Count interaction warnings by severity."""
+        counts: dict[str, int] = {}
+        for w in warnings:
+            counts[w.severity] = counts.get(w.severity, 0) + 1
+        return counts
+
+    def _count_by_warning_type(self, warnings: list[DrugSafetyWarning]) -> dict[str, int]:
+        """Count safety warnings by type."""
+        counts: dict[str, int] = {}
+        for w in warnings:
+            counts[w.warning_type] = counts.get(w.warning_type, 0) + 1
+        return counts
 
 
 # ============================================================================

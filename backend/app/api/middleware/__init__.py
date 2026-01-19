@@ -18,6 +18,13 @@ from app.api.middleware.auth_middleware import (
     require_role,
 )
 from app.api.middleware.error_handler import ErrorHandlerMiddleware
+from app.api.middleware.metrics import MetricsMiddleware, MetricsTimer, track_time
+from app.api.middleware.rate_limit import (
+    RateLimitConfig,
+    RateLimitMiddleware,
+    get_rate_limiter_store,
+    rate_limit,
+)
 from app.api.middleware.request_id import RequestIdMiddleware, get_request_id
 
 __all__ = [
@@ -41,6 +48,15 @@ __all__ = [
     "require_role",
     # Error Handler Middleware
     "ErrorHandlerMiddleware",
+    # Metrics Middleware
+    "MetricsMiddleware",
+    "MetricsTimer",
+    "track_time",
+    # Rate Limit Middleware
+    "RateLimitConfig",
+    "RateLimitMiddleware",
+    "get_rate_limiter_store",
+    "rate_limit",
     # Request ID Middleware
     "RequestIdMiddleware",
     "get_request_id",

@@ -1,0 +1,254 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: "Version bump type"
+        required: true
+        default: "patch"
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  # Determine version bump
+  analyze:
+    name: Analyze Changes
+    runs-on: ubuntu-latest
+    outputs:
+      should_release: ${{ steps.analyze.outputs.should_release }}
+      version_type: ${{ steps.analyze.outputs.version_type }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Analyze commits for release
+        id: analyze
+        run: |
+          # Get commits since last tag
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+
+          if [ -z "$LAST_TAG" ]; then
+            echo "No previous tags found, will create initial release"
+            echo "should_release=true" >> $GITHUB_OUTPUT
+            echo "version_type=minor" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Check for conventional commits
+          COMMITS=$(git log "$LAST_TAG"..HEAD --oneline)
+
+          if [ -z "$COMMITS" ]; then
+            echo "No new commits since $LAST_TAG"
+            echo "should_release=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Determine version bump based on commit messages
+          if echo "$COMMITS" | grep -qE "^[a-f0-9]+ (BREAKING CHANGE|!:)"; then
+            VERSION_TYPE="major"
+          elif echo "$COMMITS" | grep -qE "^[a-f0-9]+ feat"; then
+            VERSION_TYPE="minor"
+          elif echo "$COMMITS" | grep -qE "^[a-f0-9]+ (fix|perf|refactor)"; then
+            VERSION_TYPE="patch"
+          else
+            VERSION_TYPE="patch"
+          fi
+
+          # Override with manual input if provided
+          if [ "$EVENT_NAME" == "workflow_dispatch" ]; then
+            VERSION_TYPE="$INPUT_VERSION_TYPE"
+          fi
+
+          echo "should_release=true" >> $GITHUB_OUTPUT
+          echo "version_type=$VERSION_TYPE" >> $GITHUB_OUTPUT
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_VERSION_TYPE: ${{ inputs.version_type }}
+
+  # Create release
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: analyze
+    if: needs.analyze.outputs.should_release == 'true'
+    outputs:
+      version: ${{ steps.version.outputs.new_version }}
+      tag: ${{ steps.version.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Calculate new version
+        id: version
+        run: |
+          # Get current version from last tag or default to 0.0.0
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          CURRENT_VERSION=${LAST_TAG#v}
+
+          # Parse version
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+          MAJOR=${MAJOR:-0}
+          MINOR=${MINOR:-0}
+          PATCH=${PATCH:-0}
+
+          # Remove any pre-release suffix
+          PATCH=${PATCH%%-*}
+
+          # Bump version
+          case "$VERSION_TYPE" in
+            major)
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              ;;
+            minor)
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              ;;
+            patch)
+              PATCH=$((PATCH + 1))
+              ;;
+          esac
+
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          TAG="v$NEW_VERSION"
+
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "New version: $NEW_VERSION"
+        env:
+          VERSION_TYPE: ${{ needs.analyze.outputs.version_type }}
+
+      - name: Update version in files
+        run: |
+          NEW_VERSION="${{ steps.version.outputs.new_version }}"
+
+          # Update backend pyproject.toml
+          sed -i "s/^version = \".*\"/version = \"$NEW_VERSION\"/" backend/pyproject.toml
+
+          # Update frontend package.json
+          cd frontend
+          npm version "$NEW_VERSION" --no-git-tag-version
+          cd ..
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+
+          echo "## What's Changed" > CHANGELOG_ENTRY.md
+          echo "" >> CHANGELOG_ENTRY.md
+
+          if [ -n "$LAST_TAG" ]; then
+            # Group commits by type
+            echo "### Features" >> CHANGELOG_ENTRY.md
+            git log "$LAST_TAG"..HEAD --oneline | grep -E "^[a-f0-9]+ feat" | sed 's/^[a-f0-9]* /- /' >> CHANGELOG_ENTRY.md || echo "- No new features" >> CHANGELOG_ENTRY.md
+            echo "" >> CHANGELOG_ENTRY.md
+
+            echo "### Bug Fixes" >> CHANGELOG_ENTRY.md
+            git log "$LAST_TAG"..HEAD --oneline | grep -E "^[a-f0-9]+ fix" | sed 's/^[a-f0-9]* /- /' >> CHANGELOG_ENTRY.md || echo "- No bug fixes" >> CHANGELOG_ENTRY.md
+            echo "" >> CHANGELOG_ENTRY.md
+
+            echo "### Performance" >> CHANGELOG_ENTRY.md
+            git log "$LAST_TAG"..HEAD --oneline | grep -E "^[a-f0-9]+ perf" | sed 's/^[a-f0-9]* /- /' >> CHANGELOG_ENTRY.md || echo "- No performance improvements" >> CHANGELOG_ENTRY.md
+            echo "" >> CHANGELOG_ENTRY.md
+
+            echo "### Other Changes" >> CHANGELOG_ENTRY.md
+            git log "$LAST_TAG"..HEAD --oneline | grep -vE "^[a-f0-9]+ (feat|fix|perf)" | sed 's/^[a-f0-9]* /- /' >> CHANGELOG_ENTRY.md || echo "- No other changes" >> CHANGELOG_ENTRY.md
+          else
+            echo "Initial release" >> CHANGELOG_ENTRY.md
+          fi
+
+          echo "" >> CHANGELOG_ENTRY.md
+
+      - name: Commit version changes
+        run: |
+          git add backend/pyproject.toml frontend/package.json frontend/package-lock.json 2>/dev/null || true
+          git commit -m "chore(release): bump version to ${{ steps.version.outputs.new_version }}" || echo "No changes to commit"
+          git push
+
+      - name: Create and push tag
+        run: |
+          git tag -a "$TAG" -m "Release $TAG"
+          git push origin "$TAG"
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: Release ${{ steps.version.outputs.tag }}
+          body_path: CHANGELOG_ENTRY.md
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.tag, '-') }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Update CHANGELOG.md
+  update-changelog:
+    name: Update Changelog
+    runs-on: ubuntu-latest
+    needs: release
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Pull latest changes
+        run: git pull origin "$GITHUB_REF_NAME"
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+
+      - name: Update CHANGELOG.md
+        run: |
+          VERSION="${{ needs.release.outputs.version }}"
+          DATE=$(date +%Y-%m-%d)
+
+          # Create new changelog entry
+          {
+            echo "# Changelog"
+            echo ""
+            echo "## [$VERSION] - $DATE"
+            echo ""
+            cat CHANGELOG_ENTRY.md 2>/dev/null || echo "See GitHub release for details."
+            echo ""
+            if [ -f CHANGELOG.md ]; then
+              tail -n +2 CHANGELOG.md
+            fi
+          } > CHANGELOG_NEW.md
+
+          mv CHANGELOG_NEW.md CHANGELOG.md
+
+      - name: Commit changelog
+        run: |
+          git add CHANGELOG.md
+          git commit -m "docs: update CHANGELOG for ${{ needs.release.outputs.tag }}" || echo "No changes to commit"
+          git push

@@ -10,6 +10,8 @@ ENV/
 env/
 *.egg-info/
 *.egg
+dist/
+build/
 
 # Testing
 .pytest_cache/
@@ -23,21 +25,19 @@ htmlcov/
 .vscode/
 *.swp
 *.swo
+*~
 
 # Local development
 .env
 .env.local
+.env.*.local
 *.db
 *.sqlite
-
-# Build artifacts
-dist/
-build/
-*.egg-info/
 
 # Cache
 .mypy_cache/
 .ruff_cache/
+.cache/
 
 # Git
 .git/
@@ -49,3 +49,16 @@ tests/
 # Documentation
 *.md
 docs/
+
+# Logs
+*.log
+logs/
+
+# Docker
+Dockerfile*
+docker-compose*
+.docker/
+
+# Misc
+.DS_Store
+Thumbs.db

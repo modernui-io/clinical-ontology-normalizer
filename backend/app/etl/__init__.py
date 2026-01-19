@@ -11,10 +11,15 @@ Modules:
     - visit_etl: Transforms SourceVisit → VisitOccurrence table
     - condition_etl: Transforms SourceCondition → ConditionOccurrence table
     - drug_etl: Transforms SourceDrug → DrugExposure table
+    - procedure_etl: Transforms SourceProcedure → ProcedureOccurrence table
     - measurement_etl: Transforms SourceMeasurement → Measurement table
+    - observation_etl: Transforms SourceObservation → Observation table
+    - device_etl: Transforms SourceDevice → DeviceExposure table
+    - specimen_etl: Transforms SourceSpecimen → Specimen table
+    - death_etl: Transforms SourceDeath → Death table
 
 Usage:
-    from app.etl import PersonETL, VisitETL, ConditionETL
+    from app.etl import PersonETL, VisitETL, ConditionETL, DeviceETL, SpecimenETL
     from app.connectors import CCDAConnector, CCDAConnectorConfig
 
     # Extract from source
@@ -23,6 +28,8 @@ Usage:
     # Transform and load
     person_etl = PersonETL(db_session)
     visit_etl = VisitETL(db_session)
+    device_etl = DeviceETL(db_session)
+    specimen_etl = SpecimenETL(db_session)
 
     async for patient in connector.extract_patients():
         person = await person_etl.transform_and_load(patient)
@@ -30,6 +37,12 @@ Usage:
 
     async for visit in connector.extract_visits():
         visit_occ = await visit_etl.transform_and_load(visit, person_id=person.person_id)
+
+    async for device in connector.extract_devices():
+        device_exp = await device_etl.transform_and_load(device, person_id=person.person_id)
+
+    async for specimen in connector.extract_specimens():
+        spec = await specimen_etl.transform_and_load(specimen, person_id=person.person_id)
 """
 
 from app.etl.condition_etl import (
@@ -42,6 +55,12 @@ from app.etl.death_etl import (
     DeathETLConfig,
     DeathETLResult,
     SourceDeath,
+)
+from app.etl.device_etl import (
+    DeviceETL,
+    DeviceETLConfig,
+    DeviceETLResult,
+    SourceDevice,
 )
 from app.etl.drug_etl import (
     DrugETL,
@@ -68,6 +87,12 @@ from app.etl.procedure_etl import (
     ProcedureETL,
     ProcedureETLConfig,
     ProcedureETLResult,
+)
+from app.etl.specimen_etl import (
+    SourceSpecimen,
+    SpecimenETL,
+    SpecimenETLConfig,
+    SpecimenETLResult,
 )
 from app.etl.visit_etl import (
     VisitETL,
@@ -110,4 +135,14 @@ __all__ = [
     "ObservationETL",
     "ObservationETLConfig",
     "ObservationETLResult",
+    # Device ETL
+    "DeviceETL",
+    "DeviceETLConfig",
+    "DeviceETLResult",
+    "SourceDevice",
+    # Specimen ETL
+    "SpecimenETL",
+    "SpecimenETLConfig",
+    "SpecimenETLResult",
+    "SourceSpecimen",
 ]

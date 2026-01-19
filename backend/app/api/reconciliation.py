@@ -1,9 +1,11 @@
 """Medication Reconciliation API Endpoints.
 
 Provides medication reconciliation services:
+- Create and manage reconciliation sessions
 - Compare two medication lists for discrepancies
-- Analyze single medication list for issues
-- Retrieve reconciliation reports
+- Resolve discrepancies with audit trail
+- Drug safety and interaction checking
+- Generate reconciliation reports
 
 Clinical Use Cases:
 - Hospital admission/discharge reconciliation
@@ -18,10 +20,10 @@ from enum import Enum
 from typing import Any
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel, Field
 
-from app.api.errors import ErrorCode, InternalError, NotFoundError
+from app.api.errors import ErrorCode, InternalError, NotFoundError, ValidationError
 
 router = APIRouter(prefix="/reconciliation", tags=["Medication Reconciliation"])
 
@@ -59,6 +61,31 @@ class ReconciliationStatus(str, Enum):
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
     REQUIRES_ACTION = "requires_action"
+
+
+class ResolutionAction(str, Enum):
+    """Action taken to resolve a discrepancy."""
+
+    ACCEPT = "accept"
+    REJECT = "reject"
+    MODIFY = "modify"
+    DEFER = "defer"
+
+
+class ResolutionReason(str, Enum):
+    """Reason for resolution action."""
+
+    INTENDED_CHANGE = "intended_change"
+    DOSING_ADJUSTMENT = "dosing_adjustment"
+    THERAPEUTIC_SUBSTITUTION = "therapeutic_substitution"
+    DISCONTINUE_DUPLICATE = "discontinue_duplicate"
+    ADVERSE_REACTION = "adverse_reaction"
+    COST_SUBSTITUTION = "cost_substitution"
+    FORMULARY_CHANGE = "formulary_change"
+    PATIENT_PREFERENCE = "patient_preference"
+    CLINICAL_INDICATION = "clinical_indication"
+    DOCUMENTATION_ERROR = "documentation_error"
+    OTHER = "other"
 
 
 # ============================================================================
@@ -722,3 +749,678 @@ async def get_reconciliation_stats() -> dict[str, Any]:
 
     service = get_medication_reconciliation_service()
     return service.get_stats()
+
+
+# ============================================================================
+# Session-based Reconciliation Models
+# ============================================================================
+
+
+class DrugInteractionWarningOutput(BaseModel):
+    """Output model for drug interaction warning."""
+
+    drug1: str = Field(..., description="First drug in interaction")
+    drug2: str = Field(..., description="Second drug in interaction")
+    severity: str = Field(..., description="Interaction severity")
+    description: str = Field(..., description="Description of interaction")
+    clinical_effect: str = Field(..., description="Clinical effect")
+    management: str = Field(..., description="Management recommendation")
+
+
+class DrugSafetyWarningOutput(BaseModel):
+    """Output model for drug safety warning."""
+
+    drug_name: str = Field(..., description="Drug name")
+    warning_type: str = Field(..., description="Type of warning (black_box, allergy, high_risk)")
+    severity: str = Field(..., description="Severity level")
+    description: str = Field(..., description="Warning description")
+    recommended_action: str = Field(..., description="Recommended action")
+
+
+class DiscrepancyResolutionOutput(BaseModel):
+    """Output model for discrepancy resolution."""
+
+    id: str = Field(..., description="Discrepancy ID")
+    action: ResolutionAction = Field(..., description="Action taken")
+    reason: ResolutionReason = Field(..., description="Reason for action")
+    reason_text: str = Field(default="", description="Free-text reason")
+    resolved_by: str = Field(default="", description="User who resolved")
+    resolved_at: datetime | None = Field(default=None, description="When resolved")
+    notes: str = Field(default="", description="Additional notes")
+
+
+class CreateSessionRequest(BaseModel):
+    """Request to create a new reconciliation session."""
+
+    source_medications: list[MedicationInput] = Field(
+        ...,
+        min_length=0,
+        max_length=200,
+        description="Source medication list (e.g., home medications)",
+    )
+    target_medications: list[MedicationInput] = Field(
+        ...,
+        min_length=0,
+        max_length=200,
+        description="Target medication list (e.g., discharge medications)",
+    )
+    source_list_name: str = Field(
+        default="Home Medications",
+        max_length=100,
+        description="Display name for source list",
+    )
+    target_list_name: str = Field(
+        default="Discharge Medications",
+        max_length=100,
+        description="Display name for target list",
+    )
+    patient_id: str = Field(
+        default="",
+        max_length=100,
+        description="Patient identifier",
+    )
+    encounter_id: str = Field(
+        default="",
+        max_length=100,
+        description="Encounter identifier",
+    )
+    created_by: str = Field(
+        default="",
+        max_length=200,
+        description="User creating the session",
+    )
+    patient_allergies: list[str] = Field(
+        default_factory=list,
+        max_length=50,
+        description="List of patient allergies for cross-reference",
+    )
+
+
+class SessionSummary(BaseModel):
+    """Summary of a reconciliation session."""
+
+    id: str = Field(..., description="Session identifier")
+    patient_id: str = Field(default="", description="Patient identifier")
+    encounter_id: str = Field(default="", description="Encounter identifier")
+    status: ReconciliationStatus = Field(..., description="Session status")
+    created_at: datetime = Field(..., description="Creation timestamp")
+    updated_at: datetime = Field(..., description="Last update timestamp")
+    created_by: str = Field(default="", description="User who created")
+    source_list_name: str = Field(..., description="Source list name")
+    target_list_name: str = Field(..., description="Target list name")
+    source_count: int = Field(..., description="Source medication count")
+    target_count: int = Field(..., description="Target medication count")
+    total_discrepancies: int = Field(..., description="Total discrepancies")
+    unresolved_count: int = Field(..., description="Unresolved discrepancies")
+    high_risk_unresolved: int = Field(..., description="High-risk unresolved")
+    interaction_count: int = Field(..., description="Drug interaction warnings")
+    safety_warning_count: int = Field(..., description="Safety warnings")
+
+
+class SessionResponse(BaseModel):
+    """Full response for a reconciliation session."""
+
+    id: str = Field(..., description="Session identifier")
+    patient_id: str = Field(default="", description="Patient identifier")
+    encounter_id: str = Field(default="", description="Encounter identifier")
+    status: ReconciliationStatus = Field(..., description="Session status")
+    created_at: datetime = Field(..., description="Creation timestamp")
+    updated_at: datetime = Field(..., description="Last update timestamp")
+    created_by: str = Field(default="", description="User who created")
+    assigned_to: str = Field(default="", description="User assigned to")
+    source_list_name: str = Field(..., description="Source list name")
+    target_list_name: str = Field(..., description="Target list name")
+
+    # Medications
+    source_medications: list[MedicationOutput] = Field(
+        default_factory=list, description="Source medications"
+    )
+    target_medications: list[MedicationOutput] = Field(
+        default_factory=list, description="Target medications"
+    )
+    reconciled_medications: list[MedicationOutput] = Field(
+        default_factory=list, description="Final reconciled list"
+    )
+
+    # Reconciliation result
+    matches: list[MedicationMatchOutput] = Field(
+        default_factory=list, description="Matched medications"
+    )
+    additions: list[MedicationOutput] = Field(
+        default_factory=list, description="Added medications"
+    )
+    discontinuations: list[MedicationOutput] = Field(
+        default_factory=list, description="Discontinued medications"
+    )
+    changes: list[MedicationMatchOutput] = Field(
+        default_factory=list, description="Changed medications"
+    )
+    alerts: list[DiscrepancyAlertOutput] = Field(
+        default_factory=list, description="Discrepancy alerts"
+    )
+    therapeutic_duplicates: list[TherapeuticDuplicateOutput] = Field(
+        default_factory=list, description="Therapeutic duplications"
+    )
+
+    # Resolutions
+    resolutions: list[DiscrepancyResolutionOutput] = Field(
+        default_factory=list, description="Discrepancy resolutions"
+    )
+
+    # Safety
+    interaction_warnings: list[DrugInteractionWarningOutput] = Field(
+        default_factory=list, description="Drug interaction warnings"
+    )
+    safety_warnings: list[DrugSafetyWarningOutput] = Field(
+        default_factory=list, description="Drug safety warnings"
+    )
+    patient_allergies: list[str] = Field(
+        default_factory=list, description="Patient allergies"
+    )
+
+    # Summary
+    summary: ReconciliationSummary = Field(..., description="Summary statistics")
+
+    # Completion
+    completed_at: datetime | None = Field(default=None, description="Completion timestamp")
+    completed_by: str = Field(default="", description="User who completed")
+    completion_notes: str = Field(default="", description="Completion notes")
+
+
+class ResolveDiscrepancyRequest(BaseModel):
+    """Request to resolve a discrepancy."""
+
+    discrepancy_id: str = Field(
+        ...,
+        min_length=1,
+        description="ID of the discrepancy to resolve",
+    )
+    action: ResolutionAction = Field(
+        ...,
+        description="Action to take (accept, reject, modify, defer)",
+    )
+    reason: ResolutionReason = Field(
+        ...,
+        description="Reason for the action",
+    )
+    reason_text: str = Field(
+        default="",
+        max_length=500,
+        description="Optional free-text reason",
+    )
+    resolved_by: str = Field(
+        default="",
+        max_length=200,
+        description="User resolving the discrepancy",
+    )
+    notes: str = Field(
+        default="",
+        max_length=1000,
+        description="Additional notes",
+    )
+
+
+class CompleteSessionRequest(BaseModel):
+    """Request to complete a reconciliation session."""
+
+    completed_by: str = Field(
+        default="",
+        max_length=200,
+        description="User completing the session",
+    )
+    notes: str = Field(
+        default="",
+        max_length=2000,
+        description="Completion notes",
+    )
+    force: bool = Field(
+        default=False,
+        description="Force completion even with unresolved discrepancies",
+    )
+
+
+# ============================================================================
+# Session Helper Functions
+# ============================================================================
+
+
+def _convert_session_to_response(session: Any) -> SessionResponse:
+    """Convert service ReconciliationSession to API response."""
+    result = session.reconciliation_result
+
+    # Convert medications
+    source_meds = [_convert_to_medication_output(m) for m in session.source_medications]
+    target_meds = [_convert_to_medication_output(m) for m in session.target_medications]
+    reconciled_meds = [_convert_to_medication_output(m) for m in session.reconciled_medications]
+
+    # Convert result components
+    matches = [_convert_match(m) for m in result.matches] if result else []
+    additions = [_convert_to_medication_output(m) for m in result.additions] if result else []
+    discontinuations = [_convert_to_medication_output(m) for m in result.discontinuations] if result else []
+    changes = [_convert_match(m) for m in result.changes] if result else []
+    alerts = [_convert_alert(a) for a in result.alerts] if result else []
+    therapeutic_duplicates = [_convert_duplicate(d) for d in result.therapeutic_duplicates] if result else []
+
+    # Convert resolutions
+    resolutions = [
+        DiscrepancyResolutionOutput(
+            id=r.id,
+            action=ResolutionAction(r.action.value),
+            reason=ResolutionReason(r.reason.value),
+            reason_text=r.reason_text,
+            resolved_by=r.resolved_by,
+            resolved_at=r.resolved_at,
+            notes=r.notes,
+        )
+        for r in session.resolutions.values()
+    ]
+
+    # Convert safety warnings
+    interaction_warnings = [
+        DrugInteractionWarningOutput(
+            drug1=w.drug1,
+            drug2=w.drug2,
+            severity=w.severity,
+            description=w.description,
+            clinical_effect=w.clinical_effect,
+            management=w.management,
+        )
+        for w in session.interaction_warnings
+    ]
+
+    safety_warnings = [
+        DrugSafetyWarningOutput(
+            drug_name=w.drug_name,
+            warning_type=w.warning_type,
+            severity=w.severity,
+            description=w.description,
+            recommended_action=w.recommended_action,
+        )
+        for w in session.safety_warnings
+    ]
+
+    # Build summary
+    summary = ReconciliationSummary(
+        total_source_medications=len(session.source_medications),
+        total_target_medications=len(session.target_medications),
+        total_matches=len(matches),
+        total_additions=len(additions),
+        total_discontinuations=len(discontinuations),
+        total_changes=len(changes),
+        total_alerts=len(alerts),
+        high_risk_discrepancies=result.high_risk_discrepancies if result else 0,
+        therapeutic_duplicates_count=len(therapeutic_duplicates),
+        requires_pharmacist_review=result.requires_pharmacist_review if result else False,
+    )
+
+    return SessionResponse(
+        id=session.id,
+        patient_id=session.patient_id,
+        encounter_id=session.encounter_id,
+        status=ReconciliationStatus(session.status.value),
+        created_at=session.created_at,
+        updated_at=session.updated_at,
+        created_by=session.created_by,
+        assigned_to=session.assigned_to,
+        source_list_name=session.source_list_name,
+        target_list_name=session.target_list_name,
+        source_medications=source_meds,
+        target_medications=target_meds,
+        reconciled_medications=reconciled_meds,
+        matches=matches,
+        additions=additions,
+        discontinuations=discontinuations,
+        changes=changes,
+        alerts=alerts,
+        therapeutic_duplicates=therapeutic_duplicates,
+        resolutions=resolutions,
+        interaction_warnings=interaction_warnings,
+        safety_warnings=safety_warnings,
+        patient_allergies=session.patient_allergies,
+        summary=summary,
+        completed_at=session.completed_at,
+        completed_by=session.completed_by,
+        completion_notes=session.completion_notes,
+    )
+
+
+def _convert_session_to_summary(session: Any) -> SessionSummary:
+    """Convert service ReconciliationSession to summary."""
+    result = session.reconciliation_result
+
+    return SessionSummary(
+        id=session.id,
+        patient_id=session.patient_id,
+        encounter_id=session.encounter_id,
+        status=ReconciliationStatus(session.status.value),
+        created_at=session.created_at,
+        updated_at=session.updated_at,
+        created_by=session.created_by,
+        source_list_name=session.source_list_name,
+        target_list_name=session.target_list_name,
+        source_count=len(session.source_medications),
+        target_count=len(session.target_medications),
+        total_discrepancies=len(result.alerts) if result else 0,
+        unresolved_count=session.get_unresolved_count(),
+        high_risk_unresolved=session.get_high_risk_unresolved(),
+        interaction_count=len(session.interaction_warnings),
+        safety_warning_count=len(session.safety_warnings),
+    )
+
+
+# ============================================================================
+# Session Endpoints
+# ============================================================================
+
+
+@router.post(
+    "/sessions",
+    response_model=SessionResponse,
+    summary="Create reconciliation session",
+    description="Create a new medication reconciliation session.",
+    responses={
+        200: {"description": "Session created successfully"},
+        500: {"description": "Internal server error"},
+    },
+)
+async def create_session(request: CreateSessionRequest) -> SessionResponse:
+    """Create a new medication reconciliation session.
+
+    Creates a session with two medication lists and automatically:
+    - Compares the lists for discrepancies
+    - Checks for drug interactions
+    - Checks drug safety and allergies
+    - Identifies high-risk medications
+
+    The session can then be used to resolve discrepancies and generate
+    a final reconciled medication list.
+
+    Args:
+        request: Session creation request with medications.
+
+    Returns:
+        SessionResponse with full session details.
+    """
+    start_time = time.perf_counter()
+
+    try:
+        from app.services.medication_reconciliation import (
+            get_medication_reconciliation_service,
+            MedicationEntry,
+        )
+
+        service = get_medication_reconciliation_service()
+
+        # Convert inputs
+        source_entries = [
+            MedicationEntry(
+                drug_name=m.drug_name,
+                dose=m.dose,
+                frequency=m.frequency,
+                route=m.route,
+                start_date=m.start_date,
+                end_date=m.end_date,
+                prescriber=m.prescriber,
+                indication=m.indication,
+                is_prn=m.is_prn,
+                notes=m.notes,
+            )
+            for m in request.source_medications
+        ]
+
+        target_entries = [
+            MedicationEntry(
+                drug_name=m.drug_name,
+                dose=m.dose,
+                frequency=m.frequency,
+                route=m.route,
+                start_date=m.start_date,
+                end_date=m.end_date,
+                prescriber=m.prescriber,
+                indication=m.indication,
+                is_prn=m.is_prn,
+                notes=m.notes,
+            )
+            for m in request.target_medications
+        ]
+
+        # Create session
+        session = service.create_session(
+            source_medications=source_entries,
+            target_medications=target_entries,
+            source_name=request.source_list_name,
+            target_name=request.target_list_name,
+            patient_id=request.patient_id,
+            encounter_id=request.encounter_id,
+            created_by=request.created_by,
+            patient_allergies=request.patient_allergies,
+        )
+
+        return _convert_session_to_response(session)
+
+    except Exception as e:
+        raise InternalError(
+            message=f"Failed to create reconciliation session: {str(e)}",
+            error_code=ErrorCode.INTERNAL_ERROR,
+        )
+
+
+@router.get(
+    "/sessions",
+    response_model=list[SessionSummary],
+    summary="List reconciliation sessions",
+    description="List reconciliation sessions with optional filters.",
+    responses={
+        200: {"description": "Sessions retrieved successfully"},
+    },
+)
+async def list_sessions(
+    patient_id: str | None = Query(None, description="Filter by patient ID"),
+    status: ReconciliationStatus | None = Query(None, description="Filter by status"),
+    limit: int = Query(50, ge=1, le=200, description="Maximum sessions to return"),
+) -> list[SessionSummary]:
+    """List reconciliation sessions with optional filters.
+
+    Args:
+        patient_id: Filter by patient ID
+        status: Filter by session status
+        limit: Maximum sessions to return
+
+    Returns:
+        List of session summaries.
+    """
+    from app.services.medication_reconciliation import (
+        get_medication_reconciliation_service,
+        ReconciliationStatus as ServiceStatus,
+    )
+
+    service = get_medication_reconciliation_service()
+
+    service_status = None
+    if status:
+        service_status = ServiceStatus(status.value)
+
+    sessions = service.list_sessions(
+        patient_id=patient_id,
+        status=service_status,
+        limit=limit,
+    )
+
+    return [_convert_session_to_summary(s) for s in sessions]
+
+
+@router.get(
+    "/sessions/{session_id}",
+    response_model=SessionResponse,
+    summary="Get reconciliation session",
+    description="Get full details of a reconciliation session.",
+    responses={
+        200: {"description": "Session retrieved successfully"},
+        404: {"description": "Session not found"},
+    },
+)
+async def get_session(session_id: str) -> SessionResponse:
+    """Get full details of a reconciliation session.
+
+    Args:
+        session_id: Session identifier
+
+    Returns:
+        SessionResponse with full session details.
+    """
+    from app.services.medication_reconciliation import get_medication_reconciliation_service
+
+    service = get_medication_reconciliation_service()
+    session = service.get_session(session_id)
+
+    if not session:
+        raise NotFoundError(
+            message=f"Session not found: {session_id}",
+            error_code=ErrorCode.NOT_FOUND,
+        )
+
+    return _convert_session_to_response(session)
+
+
+@router.post(
+    "/sessions/{session_id}/resolve",
+    response_model=SessionResponse,
+    summary="Resolve discrepancy",
+    description="Resolve a discrepancy in a reconciliation session.",
+    responses={
+        200: {"description": "Discrepancy resolved successfully"},
+        404: {"description": "Session not found"},
+        400: {"description": "Invalid request"},
+    },
+)
+async def resolve_discrepancy(
+    session_id: str,
+    request: ResolveDiscrepancyRequest,
+) -> SessionResponse:
+    """Resolve a discrepancy in a reconciliation session.
+
+    Records the resolution action and reason for audit purposes.
+    Updates the session status based on remaining unresolved discrepancies.
+
+    Args:
+        session_id: Session identifier
+        request: Resolution details
+
+    Returns:
+        Updated SessionResponse.
+    """
+    from app.services.medication_reconciliation import (
+        get_medication_reconciliation_service,
+        ResolutionAction as ServiceAction,
+        ResolutionReason as ServiceReason,
+    )
+
+    service = get_medication_reconciliation_service()
+
+    session = service.resolve_discrepancy(
+        session_id=session_id,
+        discrepancy_id=request.discrepancy_id,
+        action=ServiceAction(request.action.value),
+        reason=ServiceReason(request.reason.value),
+        reason_text=request.reason_text,
+        resolved_by=request.resolved_by,
+        notes=request.notes,
+    )
+
+    if not session:
+        raise NotFoundError(
+            message=f"Session not found: {session_id}",
+            error_code=ErrorCode.NOT_FOUND,
+        )
+
+    return _convert_session_to_response(session)
+
+
+@router.post(
+    "/sessions/{session_id}/complete",
+    response_model=SessionResponse,
+    summary="Complete reconciliation session",
+    description="Complete a reconciliation session and generate final list.",
+    responses={
+        200: {"description": "Session completed successfully"},
+        404: {"description": "Session not found"},
+        400: {"description": "Cannot complete - unresolved discrepancies"},
+    },
+)
+async def complete_session(
+    session_id: str,
+    request: CompleteSessionRequest,
+) -> SessionResponse:
+    """Complete a reconciliation session.
+
+    Generates the final reconciled medication list based on all resolutions.
+    Re-checks drug interactions and safety for the final list.
+
+    Args:
+        session_id: Session identifier
+        request: Completion details
+
+    Returns:
+        Completed SessionResponse.
+    """
+    from app.services.medication_reconciliation import get_medication_reconciliation_service
+
+    service = get_medication_reconciliation_service()
+
+    session = service.complete_session(
+        session_id=session_id,
+        completed_by=request.completed_by,
+        notes=request.notes,
+        force=request.force,
+    )
+
+    if not session:
+        # Check if session exists
+        existing = service.get_session(session_id)
+        if not existing:
+            raise NotFoundError(
+                message=f"Session not found: {session_id}",
+                error_code=ErrorCode.NOT_FOUND,
+            )
+        else:
+            raise ValidationError(
+                message=f"Cannot complete session: {existing.get_unresolved_count()} unresolved discrepancies",
+                error_code=ErrorCode.VALIDATION_ERROR,
+            )
+
+    return _convert_session_to_response(session)
+
+
+@router.get(
+    "/sessions/{session_id}/report",
+    summary="Generate reconciliation report",
+    description="Generate a detailed reconciliation report for a session.",
+    responses={
+        200: {"description": "Report generated successfully"},
+        404: {"description": "Session not found"},
+    },
+)
+async def get_session_report(session_id: str) -> dict[str, Any]:
+    """Generate a detailed reconciliation report.
+
+    Produces a comprehensive report suitable for documentation
+    and compliance purposes.
+
+    Args:
+        session_id: Session identifier
+
+    Returns:
+        Dictionary with full report data.
+    """
+    from app.services.medication_reconciliation import get_medication_reconciliation_service
+
+    service = get_medication_reconciliation_service()
+    report = service.generate_report(session_id)
+
+    if not report:
+        raise NotFoundError(
+            message=f"Session not found: {session_id}",
+            error_code=ErrorCode.NOT_FOUND,
+        )
+
+    return report

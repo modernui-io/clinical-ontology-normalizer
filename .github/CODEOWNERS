@@ -1,0 +1,51 @@
+# CODEOWNERS file for Clinical Ontology Normalizer
+# These owners will be requested for review when someone opens a pull request.
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything
+* @alexstinard
+
+# Backend code
+/backend/ @alexstinard
+/backend/app/api/ @alexstinard
+/backend/app/services/ @alexstinard
+/backend/app/models/ @alexstinard
+/backend/tests/ @alexstinard
+
+# Frontend code
+/frontend/ @alexstinard
+/frontend/src/components/ @alexstinard
+/frontend/src/app/ @alexstinard
+
+# Infrastructure and DevOps
+/.github/ @alexstinard
+/infra/ @alexstinard
+/docker-compose*.yml @alexstinard
+**/Dockerfile* @alexstinard
+
+# Database migrations
+/backend/alembic/ @alexstinard
+/alembic/ @alexstinard
+
+# Configuration files
+*.toml @alexstinard
+*.json @alexstinard
+*.yml @alexstinard
+*.yaml @alexstinard
+
+# Security-sensitive files
+**/auth* @alexstinard
+**/security* @alexstinard
+**/rbac* @alexstinard
+
+# Documentation
+*.md @alexstinard
+/docs/ @alexstinard
+/specs/ @alexstinard
+
+# FHIR MCP integration
+/fhir-mcp/ @alexstinard
+
+# Fixtures and test data
+/fixtures/ @alexstinard
+/backend/fixtures/ @alexstinard

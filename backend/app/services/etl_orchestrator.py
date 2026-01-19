@@ -76,6 +76,8 @@ from app.connectors import (
 from app.etl import (
     ConditionETL,
     ConditionETLConfig,
+    DeviceETL,
+    DeviceETLConfig,
     DrugETL,
     DrugETLConfig,
     MeasurementETL,
@@ -86,6 +88,8 @@ from app.etl import (
     PersonETLConfig,
     ProcedureETL,
     ProcedureETLConfig,
+    SpecimenETL,
+    SpecimenETLConfig,
     VisitETL,
     VisitETLConfig,
 )
@@ -130,6 +134,8 @@ class ETLPhase(str, Enum):
     EXTRACTING_PROCEDURES = "extracting_procedures"
     EXTRACTING_MEASUREMENTS = "extracting_measurements"
     EXTRACTING_OBSERVATIONS = "extracting_observations"
+    EXTRACTING_DEVICES = "extracting_devices"
+    EXTRACTING_SPECIMENS = "extracting_specimens"
     TRANSFORMING = "transforming"
     LOADING = "loading"
     FINALIZING = "finalizing"
@@ -159,6 +165,8 @@ class ETLJobStatistics:
         procedures_processed: Number of procedure records processed.
         measurements_processed: Number of measurement records processed.
         observations_processed: Number of observation records processed.
+        devices_processed: Number of device records processed.
+        specimens_processed: Number of specimen records processed.
         records_created: Number of new OMOP records created.
         records_updated: Number of existing OMOP records updated.
         records_skipped: Number of records skipped (duplicates, filtered).
@@ -174,6 +182,8 @@ class ETLJobStatistics:
     procedures_processed: int = 0
     measurements_processed: int = 0
     observations_processed: int = 0
+    devices_processed: int = 0
+    specimens_processed: int = 0
     records_created: int = 0
     records_updated: int = 0
     records_skipped: int = 0
@@ -190,6 +200,8 @@ class ETLJobStatistics:
             + self.procedures_processed
             + self.measurements_processed
             + self.observations_processed
+            + self.devices_processed
+            + self.specimens_processed
         )
 
     def to_dict(self) -> dict[str, int]:
@@ -203,6 +215,8 @@ class ETLJobStatistics:
             "procedures_processed": self.procedures_processed,
             "measurements_processed": self.measurements_processed,
             "observations_processed": self.observations_processed,
+            "devices_processed": self.devices_processed,
+            "specimens_processed": self.specimens_processed,
             "records_created": self.records_created,
             "records_updated": self.records_updated,
             "records_skipped": self.records_skipped,
@@ -757,13 +771,15 @@ class ETLOrchestrator:
         """
         # Define phase weights for progress calculation
         phase_weights = {
-            ETLPhase.EXTRACTING_PATIENTS: 0.20,
-            ETLPhase.EXTRACTING_VISITS: 0.15,
-            ETLPhase.EXTRACTING_CONDITIONS: 0.15,
-            ETLPhase.EXTRACTING_DRUGS: 0.15,
+            ETLPhase.EXTRACTING_PATIENTS: 0.15,
+            ETLPhase.EXTRACTING_VISITS: 0.12,
+            ETLPhase.EXTRACTING_CONDITIONS: 0.12,
+            ETLPhase.EXTRACTING_DRUGS: 0.12,
             ETLPhase.EXTRACTING_PROCEDURES: 0.10,
-            ETLPhase.EXTRACTING_MEASUREMENTS: 0.15,
-            ETLPhase.EXTRACTING_OBSERVATIONS: 0.10,
+            ETLPhase.EXTRACTING_MEASUREMENTS: 0.12,
+            ETLPhase.EXTRACTING_OBSERVATIONS: 0.09,
+            ETLPhase.EXTRACTING_DEVICES: 0.09,
+            ETLPhase.EXTRACTING_SPECIMENS: 0.09,
         }
 
         completed_weight = 0.0
@@ -794,6 +810,14 @@ class ETLOrchestrator:
 
         # Extract and transform observations
         await self._run_observation_phase(job, connector, phase_weights, completed_weight)
+        completed_weight += phase_weights[ETLPhase.EXTRACTING_OBSERVATIONS]
+
+        # Extract and transform devices
+        await self._run_device_phase(job, connector, phase_weights, completed_weight)
+        completed_weight += phase_weights[ETLPhase.EXTRACTING_DEVICES]
+
+        # Extract and transform specimens
+        await self._run_specimen_phase(job, connector, phase_weights, completed_weight)
 
     async def _run_patient_phase(
         self,
@@ -1248,6 +1272,132 @@ class ETLOrchestrator:
 
             except Exception as e:
                 await self._handle_record_error(job, phase, observation.source_id, e)
+
+        job.progress.phases_completed.append(phase.value)
+
+    async def _run_device_phase(
+        self,
+        job: ETLJob,
+        connector: SourceConnector,
+        phase_weights: dict[ETLPhase, float],
+        completed_weight: float,
+    ) -> None:
+        """Extract and transform device records."""
+        phase = ETLPhase.EXTRACTING_DEVICES
+        job.progress.current_phase = phase
+        job.progress.records_in_phase = 0
+
+        if not self._session:
+            job.progress.phases_completed.append(phase.value)
+            return
+
+        device_etl = DeviceETL(
+            self._session,
+            DeviceETLConfig(
+                batch_size=job.config.batch_size,
+                **job.config.etl_options.get("device", {}),
+            ),
+            vocabulary_service=self._vocabulary_service,
+        )
+
+        count = 0
+        async for device in connector.extract_devices():
+            if job._cancel_requested:
+                raise asyncio.CancelledError()
+
+            person_id = job.source_patient_mapping.get(device.patient_source_id)
+            if not person_id:
+                continue
+
+            visit_id = job.source_visit_mapping.get(device.visit_source_id) if device.visit_source_id else None
+
+            try:
+                device_exp = await self._with_retry(
+                    lambda d=device, pid=person_id, vid=visit_id: device_etl.transform_and_load(
+                        d, pid, vid
+                    ),
+                    job,
+                    phase,
+                    device.source_id,
+                )
+
+                if device_exp:
+                    job.statistics.records_created += 1
+                    if device_exp.device_concept_id == 0:
+                        job.statistics.unmapped_codes += 1
+
+                count += 1
+                job.statistics.devices_processed += 1
+                job.progress.records_in_phase = count
+
+                self._update_progress(job, phase, phase_weights, completed_weight, count)
+
+                if count % 100 == 0:
+                    await self._publish_progress(job)
+
+            except Exception as e:
+                await self._handle_record_error(job, phase, device.source_id, e)
+
+        job.progress.phases_completed.append(phase.value)
+
+    async def _run_specimen_phase(
+        self,
+        job: ETLJob,
+        connector: SourceConnector,
+        phase_weights: dict[ETLPhase, float],
+        completed_weight: float,
+    ) -> None:
+        """Extract and transform specimen records."""
+        phase = ETLPhase.EXTRACTING_SPECIMENS
+        job.progress.current_phase = phase
+        job.progress.records_in_phase = 0
+
+        if not self._session:
+            job.progress.phases_completed.append(phase.value)
+            return
+
+        specimen_etl = SpecimenETL(
+            self._session,
+            SpecimenETLConfig(
+                batch_size=job.config.batch_size,
+                **job.config.etl_options.get("specimen", {}),
+            ),
+            vocabulary_service=self._vocabulary_service,
+        )
+
+        count = 0
+        async for specimen in connector.extract_specimens():
+            if job._cancel_requested:
+                raise asyncio.CancelledError()
+
+            person_id = job.source_patient_mapping.get(specimen.patient_source_id)
+            if not person_id:
+                continue
+
+            try:
+                spec = await self._with_retry(
+                    lambda s=specimen, pid=person_id: specimen_etl.transform_and_load(s, pid),
+                    job,
+                    phase,
+                    specimen.source_id,
+                )
+
+                if spec:
+                    job.statistics.records_created += 1
+                    if spec.specimen_concept_id == 0:
+                        job.statistics.unmapped_codes += 1
+
+                count += 1
+                job.statistics.specimens_processed += 1
+                job.progress.records_in_phase = count
+
+                self._update_progress(job, phase, phase_weights, completed_weight, count)
+
+                if count % 100 == 0:
+                    await self._publish_progress(job)
+
+            except Exception as e:
+                await self._handle_record_error(job, phase, specimen.source_id, e)
 
         job.progress.phases_completed.append(phase.value)
 

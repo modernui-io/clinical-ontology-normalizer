@@ -1,0 +1,31 @@
+# Clinical Ontology Normalizer - Python Dependencies
+# Generated from pyproject.toml for Docker compatibility
+
+# Web Framework
+fastapi>=0.109.0
+uvicorn>=0.27.0
+
+# Database
+sqlalchemy>=2.0.0
+asyncpg>=0.29.0
+psycopg2-binary>=2.9.0
+alembic>=1.13.0
+
+# Validation & Settings
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+
+# Caching & Queue
+redis>=5.0.0
+rq>=1.16.0
+
+# ML & NLP
+sentence-transformers>=2.2.0
+numpy>=1.24.0
+
+# HTTP Client
+httpx>=0.26.0
+
+# Utilities
+greenlet>=3.3.0
+pyahocorasick>=2.3.0

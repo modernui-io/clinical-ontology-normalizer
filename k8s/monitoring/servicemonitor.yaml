@@ -1,0 +1,72 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: backend-monitor
+  namespace: clinical-ontology
+  labels:
+    app.kubernetes.io/name: backend-monitor
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: clinical-ontology-normalizer
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: backend
+      app.kubernetes.io/component: api
+  namespaceSelector:
+    matchNames:
+      - clinical-ontology
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
+      scheme: http
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: postgres-monitor
+  namespace: clinical-ontology
+  labels:
+    app.kubernetes.io/name: postgres-monitor
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: clinical-ontology-normalizer
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgres
+      app.kubernetes.io/component: database
+  namespaceSelector:
+    matchNames:
+      - clinical-ontology
+  endpoints:
+    - port: postgresql
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: redis-monitor
+  namespace: clinical-ontology
+  labels:
+    app.kubernetes.io/name: redis-monitor
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: clinical-ontology-normalizer
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: redis
+      app.kubernetes.io/component: cache
+  namespaceSelector:
+    matchNames:
+      - clinical-ontology
+  endpoints:
+    - port: redis
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s

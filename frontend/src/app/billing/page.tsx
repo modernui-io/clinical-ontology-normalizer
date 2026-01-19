@@ -713,22 +713,34 @@ export default function BillingDashboardPage() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <Link href="/billing/suggestions" className="block">
+              <Button variant="outline" className="w-full justify-start">
+                <Zap className="mr-2 h-4 w-4" />
+                AI Code Suggestions
+              </Button>
+            </Link>
             <Link href="/billing/hcc" className="block">
               <Button variant="outline" className="w-full justify-start">
                 <Target className="mr-2 h-4 w-4" />
-                Run HCC Analysis
+                HCC Gap Analysis
+              </Button>
+            </Link>
+            <Link href="/billing/worksheet" className="block">
+              <Button variant="outline" className="w-full justify-start">
+                <FileText className="mr-2 h-4 w-4" />
+                Coding Worksheet
               </Button>
             </Link>
             <Link href="/billing/coding" className="block">
               <Button variant="outline" className="w-full justify-start">
-                <FileText className="mr-2 h-4 w-4" />
-                Review Coding Suggestions
+                <CheckCircle className="mr-2 h-4 w-4" />
+                Review Suggestions
               </Button>
             </Link>
             <Link href="/billing/queries" className="block">
               <Button variant="outline" className="w-full justify-start">
                 <MessageSquare className="mr-2 h-4 w-4" />
-                View CDI Queries
+                CDI Queries
               </Button>
             </Link>
             <Link href="/billing/reports" className="block">

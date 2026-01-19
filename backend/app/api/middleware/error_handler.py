@@ -5,6 +5,7 @@ This module provides:
 - Structured error logging with request context
 - Sanitization of sensitive data in error responses
 - Integration with request ID tracking
+- Stack traces in development mode for debugging
 
 Usage:
     from app.api.middleware.error_handler import ErrorHandlerMiddleware
@@ -39,8 +40,10 @@ from app.api.errors import (
     RateLimitError,
     ServiceUnavailableError,
     ValidationError,
+    create_validation_errors_from_pydantic,
 )
 from app.api.middleware.request_id import get_request_id
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -142,10 +145,21 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
             path=str(request.url.path),
         )
 
+        # Build response content
+        response_content = error_response.model_dump(mode="json", exclude_none=True)
+
+        # Include stack trace in development mode for server errors
+        if settings.debug and api_error.status_code >= 500:
+            response_content["debug"] = {
+                "exception_type": type(exc).__name__,
+                "exception_message": str(exc),
+                "stack_trace": traceback.format_exception(type(exc), exc, exc.__traceback__),
+            }
+
         # Create JSON response
         response = JSONResponse(
             status_code=api_error.status_code,
-            content=error_response.model_dump(mode="json", exclude_none=True),
+            content=response_content,
             headers=api_error.headers,
         )
 
@@ -191,31 +205,12 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
             exc: The validation error
 
         Returns:
-            ValidationError with field-level details
+            ValidationError with field-level details and suggestions
         """
-        details = []
-
         errors = exc.errors() if hasattr(exc, "errors") else []
-        for error in errors:
-            # Build field path
-            loc = error.get("loc", [])
-            # Filter out 'body' from location path
-            field_parts = [str(part) for part in loc if part != "body"]
-            field = ".".join(field_parts) if field_parts else None
 
-            # Get error message
-            msg = error.get("msg", "Invalid value")
-
-            # Get the invalid value (sanitized)
-            input_value = error.get("input")
-            sanitized_value = self._sanitize_value(input_value, field)
-
-            details.append(ErrorDetail(
-                field=field,
-                message=msg,
-                code=error.get("type"),
-                value=sanitized_value,
-            ))
+        # Use the enhanced validation error converter
+        details = create_validation_errors_from_pydantic(errors)
 
         return ValidationError(
             message="Request validation failed",
@@ -461,20 +456,11 @@ def register_exception_handlers(app: FastAPI) -> None:
     async def validation_error_handler(
         request: Request, exc: RequestValidationError
     ) -> JSONResponse:
-        """Handle FastAPI validation errors."""
+        """Handle FastAPI validation errors with field-level details and suggestions."""
         request_id = get_request_id()
 
-        details = []
-        for error in exc.errors():
-            loc = error.get("loc", [])
-            field_parts = [str(part) for part in loc if part != "body"]
-            field = ".".join(field_parts) if field_parts else None
-
-            details.append(ErrorDetail(
-                field=field,
-                message=error.get("msg", "Invalid value"),
-                code=error.get("type"),
-            ))
+        # Use the enhanced validation error converter for suggestions
+        details = create_validation_errors_from_pydantic(exc.errors())
 
         error_response = ErrorResponse(
             error_code=ErrorCode.VALIDATION_ERROR,
@@ -522,7 +508,17 @@ def register_exception_handlers(app: FastAPI) -> None:
             path=str(request.url.path),
         )
 
+        response_content = error_response.model_dump(mode="json", exclude_none=True)
+
+        # Include stack trace in development mode
+        if settings.debug:
+            response_content["debug"] = {
+                "exception_type": type(exc).__name__,
+                "exception_message": str(exc),
+                "stack_trace": traceback.format_exception(type(exc), exc, exc.__traceback__),
+            }
+
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content=error_response.model_dump(mode="json", exclude_none=True),
+            content=response_content,
         )

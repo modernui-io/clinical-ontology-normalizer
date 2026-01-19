@@ -694,3 +694,648 @@ def _infer_match_type(match_reason: str) -> str:
     if "partial" in reason_lower or "fuzzy" in reason_lower:
         return "fuzzy"
     return "semantic"
+
+
+# ============================================================================
+# Code Suggestion from Clinical Text
+# ============================================================================
+
+
+class SuggestCodesRequest(BaseModel):
+    """Request for code suggestion from clinical text."""
+
+    text: str = Field(
+        ...,
+        min_length=1,
+        max_length=100000,
+        description="Clinical note text to analyze",
+    )
+    encounter_context: dict | None = Field(
+        default=None,
+        description="Optional encounter context (setting, patient_type, etc.)",
+    )
+    max_suggestions: int = Field(
+        default=15,
+        ge=1,
+        le=50,
+        description="Maximum number of suggestions to return",
+    )
+
+
+class SuggestedCode(BaseModel):
+    """A suggested code from text analysis."""
+
+    code: str = Field(..., description="The suggested code")
+    code_type: str = Field(..., description="Code type (CPT, ICD10)")
+    description: str = Field(..., description="Code description")
+    confidence: float = Field(..., ge=0, le=1, description="Confidence score")
+    evidence_text: str = Field(..., description="Supporting evidence from text")
+    evidence_start: int = Field(..., description="Evidence start offset")
+    evidence_end: int = Field(..., description="Evidence end offset")
+    rationale: str = Field(..., description="Explanation for suggestion")
+    category: str = Field(..., description="Code category")
+    work_rvu: float = Field(default=0.0, description="Work RVU value")
+
+
+class SuggestCodesResponse(BaseModel):
+    """Response with code suggestions."""
+
+    request_id: str = Field(..., description="Request ID")
+    text_length: int = Field(..., description="Input text length")
+    suggestions: list[SuggestedCode] = Field(..., description="Suggested codes")
+    total_concepts: int = Field(..., description="Number of concepts extracted")
+    em_level: str | None = Field(None, description="Suggested E/M level")
+    processing_time_ms: float = Field(..., description="Processing time")
+
+
+@router.post(
+    "/suggest",
+    response_model=SuggestCodesResponse,
+    summary="Suggest codes from clinical text",
+    description="AI-powered extraction of ICD-10 and CPT codes from clinical notes.",
+)
+async def suggest_codes_from_text(request: SuggestCodesRequest) -> SuggestCodesResponse:
+    """Suggest ICD-10 and CPT codes from clinical text.
+
+    Uses NLP to extract clinical concepts and suggest appropriate codes
+    with confidence scores and evidence citations.
+
+    Args:
+        request: Clinical text and context.
+
+    Returns:
+        SuggestCodesResponse with suggested codes.
+    """
+    try:
+        from app.services import get_cpt_suggester_service
+
+        cpt_service = get_cpt_suggester_service()
+        result = cpt_service.suggest_codes_from_text(
+            clinical_text=request.text,
+            encounter_context=request.encounter_context,
+            max_suggestions=request.max_suggestions,
+        )
+
+        suggestions = [
+            SuggestedCode(
+                code=s.code,
+                code_type=s.code_type,
+                description=s.description,
+                confidence=s.confidence,
+                evidence_text=s.evidence_text,
+                evidence_start=s.evidence_span[0],
+                evidence_end=s.evidence_span[1],
+                rationale=s.rationale,
+                category=s.category,
+                work_rvu=s.work_rvu,
+            )
+            for s in result.suggestions
+        ]
+
+        return SuggestCodesResponse(
+            request_id=result.request_id,
+            text_length=result.text_length,
+            suggestions=suggestions,
+            total_concepts=result.total_concepts,
+            em_level=result.em_level,
+            processing_time_ms=result.processing_time_ms,
+        )
+
+    except Exception as e:
+        raise InternalError(
+            message=f"Code suggestion failed: {str(e)}",
+            error_code=ErrorCode.INTERNAL_NLP_ERROR,
+        )
+
+
+# ============================================================================
+# E/M Level Calculation
+# ============================================================================
+
+
+class EMLevelRequest(BaseModel):
+    """Request for E/M level calculation."""
+
+    time_spent_minutes: int | None = Field(
+        default=None,
+        ge=1,
+        le=600,
+        description="Total time spent on encounter date",
+    )
+    mdm_elements: dict | None = Field(
+        default=None,
+        description="MDM elements: {problems, data, risk}",
+    )
+    is_new_patient: bool = Field(
+        default=False,
+        description="Whether this is a new patient",
+    )
+    setting: str = Field(
+        default="office",
+        description="Encounter setting (office, inpatient, emergency)",
+    )
+
+
+class EMLevelResponse(BaseModel):
+    """Response with E/M level calculation."""
+
+    code: str = Field(..., description="Recommended E/M code")
+    description: str = Field(..., description="Code description")
+    rationale: str = Field(..., description="Explanation for selection")
+    work_rvu: float = Field(..., description="Work RVU value")
+    calculation_method: str = Field(..., description="time, mdm, or default")
+    mdm_level: str | None = Field(None, description="MDM complexity level if applicable")
+    time_documented: int | None = Field(None, description="Documented time if applicable")
+
+
+@router.post(
+    "/em-level",
+    response_model=EMLevelResponse,
+    summary="Calculate E/M level",
+    description="Calculate appropriate E/M code based on time or MDM complexity.",
+)
+async def calculate_em_level(request: EMLevelRequest) -> EMLevelResponse:
+    """Calculate appropriate E/M code based on time or MDM.
+
+    Uses either time-based or MDM-based calculation, returning the
+    code that supports the higher level.
+
+    Args:
+        request: Time, MDM elements, patient type, and setting.
+
+    Returns:
+        EMLevelResponse with recommended E/M code.
+    """
+    try:
+        from app.services import get_cpt_suggester_service
+
+        cpt_service = get_cpt_suggester_service()
+        result = cpt_service.calculate_em_level(
+            time_spent_minutes=request.time_spent_minutes,
+            mdm_elements=request.mdm_elements,
+            is_new_patient=request.is_new_patient,
+            setting=request.setting,
+        )
+
+        return EMLevelResponse(
+            code=result.code,
+            description=result.description,
+            rationale=result.rationale,
+            work_rvu=result.work_rvu,
+            calculation_method=result.calculation_method,
+            mdm_level=result.mdm_level,
+            time_documented=result.time_documented,
+        )
+
+    except Exception as e:
+        raise InternalError(
+            message=f"E/M calculation failed: {str(e)}",
+            error_code=ErrorCode.INTERNAL_NLP_ERROR,
+        )
+
+
+# ============================================================================
+# HCC Analysis
+# ============================================================================
+
+
+class HCCAnalysisRequest(BaseModel):
+    """Request for HCC analysis."""
+
+    clinical_text: str = Field(
+        ...,
+        min_length=1,
+        max_length=100000,
+        description="Clinical documentation to analyze",
+    )
+    current_icd10_codes: list[str] = Field(
+        default_factory=list,
+        description="Currently coded ICD-10 codes",
+    )
+    lab_values: list[dict] = Field(
+        default_factory=list,
+        description="Lab results (name, value, unit, date)",
+    )
+    patient_context: dict | None = Field(
+        default=None,
+        description="Patient context (patient_id, encounter_id, setting)",
+    )
+
+
+class HCCEvidenceItem(BaseModel):
+    """Evidence supporting an HCC opportunity."""
+
+    source_type: str
+    source_text: str
+    source_date: str | None = None
+    confidence: float
+
+
+class HCCOpportunityItem(BaseModel):
+    """An HCC coding opportunity."""
+
+    hcc_code: str
+    hcc_description: str
+    category: str
+    gap_type: str
+    capture_confidence: str
+    raf_value: float
+    estimated_revenue: float
+    evidence: list[HCCEvidenceItem]
+    current_icd10: str | None = None
+    recommended_icd10: str | None = None
+    documentation_needed: list[str]
+    coder_notes: str
+
+
+class HCCAnalysisResponse(BaseModel):
+    """Response with HCC analysis results."""
+
+    patient_id: str | None = None
+    opportunities: list[HCCOpportunityItem]
+    total_opportunities: int
+    total_raf_opportunity: float
+    total_estimated_revenue: float
+    high_confidence_revenue: float
+    current_hccs: list[str]
+    current_raf_score: float
+    projected_hccs: list[str]
+    projected_raf_score: float
+    priority_actions: list[str]
+    by_category: dict[str, int]
+    by_gap_type: dict[str, int]
+    analysis_time_ms: float
+
+
+@router.post(
+    "/hcc/analyze",
+    response_model=HCCAnalysisResponse,
+    summary="Analyze for HCC opportunities",
+    description="Identify HCC coding gaps and revenue opportunities.",
+)
+async def analyze_hcc(request: HCCAnalysisRequest) -> HCCAnalysisResponse:
+    """Analyze clinical documentation for HCC opportunities.
+
+    Identifies HCC coding gaps with evidence and revenue impact.
+
+    Args:
+        request: Clinical text, current codes, labs, and context.
+
+    Returns:
+        HCCAnalysisResponse with opportunities and financial impact.
+    """
+    try:
+        from app.services import get_hcc_analyzer_service
+
+        hcc_service = get_hcc_analyzer_service()
+        result = hcc_service.analyze_patient(
+            clinical_text=request.clinical_text,
+            current_icd10_codes=request.current_icd10_codes,
+            lab_values=request.lab_values,
+            patient_context=request.patient_context or {},
+        )
+
+        opportunities = [
+            HCCOpportunityItem(
+                hcc_code=opp.hcc_code,
+                hcc_description=opp.hcc_description,
+                category=opp.category.value,
+                gap_type=opp.gap_type.value,
+                capture_confidence=opp.capture_confidence.value,
+                raf_value=opp.raf_value,
+                estimated_revenue=opp.estimated_revenue,
+                evidence=[
+                    HCCEvidenceItem(
+                        source_type=e.source_type,
+                        source_text=e.source_text,
+                        source_date=e.source_date,
+                        confidence=e.confidence,
+                    )
+                    for e in opp.evidence
+                ],
+                current_icd10=opp.current_coded_icd10,
+                recommended_icd10=opp.recommended_icd10,
+                documentation_needed=opp.documentation_needed,
+                coder_notes=opp.coder_notes,
+            )
+            for opp in result.opportunities
+        ]
+
+        return HCCAnalysisResponse(
+            patient_id=request.patient_context.get("patient_id") if request.patient_context else None,
+            opportunities=opportunities,
+            total_opportunities=result.total_opportunities,
+            total_raf_opportunity=result.total_raf_opportunity,
+            total_estimated_revenue=result.total_estimated_revenue,
+            high_confidence_revenue=result.high_confidence_revenue,
+            current_hccs=result.current_hccs,
+            current_raf_score=result.current_raf_score,
+            projected_hccs=result.projected_hccs,
+            projected_raf_score=result.projected_raf_score,
+            priority_actions=result.priority_actions,
+            by_category=result.by_category,
+            by_gap_type=result.by_gap_type,
+            analysis_time_ms=result.analysis_time_ms,
+        )
+
+    except Exception as e:
+        raise InternalError(
+            message=f"HCC analysis failed: {str(e)}",
+            error_code=ErrorCode.INTERNAL_NLP_ERROR,
+        )
+
+
+@router.get(
+    "/hcc/{patient_id}",
+    response_model=HCCAnalysisResponse,
+    summary="Get HCC analysis for patient",
+    description="Retrieve HCC analysis for a specific patient.",
+)
+async def get_hcc_analysis(patient_id: str) -> HCCAnalysisResponse:
+    """Get HCC analysis for a specific patient.
+
+    This endpoint would typically fetch patient data from the database
+    and run HCC analysis. Currently returns mock data.
+
+    Args:
+        patient_id: Patient identifier.
+
+    Returns:
+        HCCAnalysisResponse with patient's HCC analysis.
+    """
+    # Mock implementation - would fetch from database in production
+    mock_clinical_text = """
+    Patient is a 68-year-old male with type 2 diabetes mellitus with diabetic nephropathy.
+    Recent labs show eGFR 42 mL/min, HbA1c 9.2%. Also has chronic systolic heart failure
+    with EF 35% on echo. Currently on lisinopril and carvedilol.
+    """
+
+    mock_request = HCCAnalysisRequest(
+        clinical_text=mock_clinical_text,
+        current_icd10_codes=["E11.9", "I50.9"],  # Non-specific codes currently
+        lab_values=[
+            {"name": "eGFR", "value": 42, "unit": "mL/min"},
+            {"name": "HbA1c", "value": 9.2, "unit": "%"},
+            {"name": "BNP", "value": 450, "unit": "pg/mL"},
+        ],
+        patient_context={"patient_id": patient_id, "setting": "community"},
+    )
+
+    return await analyze_hcc(mock_request)
+
+
+# ============================================================================
+# Coding Worksheet
+# ============================================================================
+
+
+class WorksheetCodeEntry(BaseModel):
+    """A code entry in a worksheet."""
+
+    code: str
+    code_type: str
+    description: str
+    sequence: int
+    is_primary: bool = False
+    confidence: float = 1.0
+    status: str = "pending"
+    source: str = "manual"
+    evidence_text: str | None = None
+    modifier: str | None = None
+    notes: str | None = None
+
+
+class WorksheetResponse(BaseModel):
+    """Response with coding worksheet."""
+
+    encounter_id: str
+    patient_id: str
+    encounter_date: str
+    status: str
+    diagnosis_codes: list[WorksheetCodeEntry]
+    procedure_codes: list[WorksheetCodeEntry]
+    em_code: WorksheetCodeEntry | None = None
+    validation_warnings: list[str]
+    created_at: str
+    updated_at: str
+    submitted_at: str | None = None
+    submitted_by: str | None = None
+
+
+class CreateWorksheetRequest(BaseModel):
+    """Request to create a coding worksheet."""
+
+    encounter_id: str
+    patient_id: str
+    encounter_date: str
+
+
+class AddCodeRequest(BaseModel):
+    """Request to add a code to worksheet."""
+
+    code: str
+    code_type: str  # ICD10, CPT
+    description: str
+    entry_type: str  # diagnosis, procedure, em
+    sequence: int = 1
+    is_primary: bool = False
+    source: str = "manual"
+    evidence_text: str | None = None
+    modifier: str | None = None
+    notes: str | None = None
+
+
+class SubmitWorksheetRequest(BaseModel):
+    """Request to submit a worksheet."""
+
+    submitted_by: str
+
+
+@router.get(
+    "/worksheet/{encounter_id}",
+    response_model=WorksheetResponse,
+    summary="Get coding worksheet",
+    description="Retrieve a coding worksheet for an encounter.",
+)
+async def get_coding_worksheet(encounter_id: str) -> WorksheetResponse:
+    """Get coding worksheet for an encounter.
+
+    Args:
+        encounter_id: Encounter identifier.
+
+    Returns:
+        WorksheetResponse with worksheet data.
+    """
+    from app.services.cpt_suggester import get_worksheet, create_worksheet
+
+    worksheet = get_worksheet(encounter_id)
+    if not worksheet:
+        # Create a mock worksheet for demo
+        worksheet = create_worksheet(
+            encounter_id=encounter_id,
+            patient_id="P001",
+            encounter_date="2026-01-19",
+        )
+
+    return WorksheetResponse(
+        encounter_id=worksheet.encounter_id,
+        patient_id=worksheet.patient_id,
+        encounter_date=worksheet.encounter_date,
+        status=worksheet.status,
+        diagnosis_codes=[
+            WorksheetCodeEntry(
+                code=d.code,
+                code_type=d.code_type,
+                description=d.description,
+                sequence=d.sequence,
+                is_primary=d.is_primary,
+                confidence=d.confidence,
+                status=d.status,
+                source=d.source,
+                evidence_text=d.evidence_text,
+                modifier=d.modifier,
+                notes=d.notes,
+            )
+            for d in worksheet.diagnosis_codes
+        ],
+        procedure_codes=[
+            WorksheetCodeEntry(
+                code=p.code,
+                code_type=p.code_type,
+                description=p.description,
+                sequence=p.sequence,
+                is_primary=p.is_primary,
+                confidence=p.confidence,
+                status=p.status,
+                source=p.source,
+                evidence_text=p.evidence_text,
+                modifier=p.modifier,
+                notes=p.notes,
+            )
+            for p in worksheet.procedure_codes
+        ],
+        em_code=WorksheetCodeEntry(
+            code=worksheet.em_code.code,
+            code_type=worksheet.em_code.code_type,
+            description=worksheet.em_code.description,
+            sequence=worksheet.em_code.sequence,
+            is_primary=worksheet.em_code.is_primary,
+            confidence=worksheet.em_code.confidence,
+            status=worksheet.em_code.status,
+            source=worksheet.em_code.source,
+            evidence_text=worksheet.em_code.evidence_text,
+            modifier=worksheet.em_code.modifier,
+            notes=worksheet.em_code.notes,
+        ) if worksheet.em_code else None,
+        validation_warnings=worksheet.validation_warnings,
+        created_at=worksheet.created_at,
+        updated_at=worksheet.updated_at,
+        submitted_at=worksheet.submitted_at,
+        submitted_by=worksheet.submitted_by,
+    )
+
+
+@router.post(
+    "/worksheet",
+    response_model=WorksheetResponse,
+    summary="Create coding worksheet",
+    description="Create a new coding worksheet for an encounter.",
+)
+async def create_coding_worksheet(request: CreateWorksheetRequest) -> WorksheetResponse:
+    """Create a new coding worksheet.
+
+    Args:
+        request: Encounter details.
+
+    Returns:
+        WorksheetResponse with new worksheet.
+    """
+    from app.services.cpt_suggester import create_worksheet
+
+    worksheet = create_worksheet(
+        encounter_id=request.encounter_id,
+        patient_id=request.patient_id,
+        encounter_date=request.encounter_date,
+    )
+
+    return await get_coding_worksheet(worksheet.encounter_id)
+
+
+@router.post(
+    "/worksheet/{encounter_id}/add",
+    response_model=WorksheetResponse,
+    summary="Add code to worksheet",
+    description="Add a code entry to a coding worksheet.",
+)
+async def add_code_to_worksheet(
+    encounter_id: str,
+    request: AddCodeRequest
+) -> WorksheetResponse:
+    """Add a code to a coding worksheet.
+
+    Args:
+        encounter_id: Encounter identifier.
+        request: Code entry details.
+
+    Returns:
+        WorksheetResponse with updated worksheet.
+    """
+    from app.services.cpt_suggester import (
+        get_worksheet, add_worksheet_entry, CodingWorksheetEntry
+    )
+
+    worksheet = get_worksheet(encounter_id)
+    if not worksheet:
+        raise InternalError(
+            message=f"Worksheet not found: {encounter_id}",
+            error_code=ErrorCode.NOT_FOUND,
+        )
+
+    entry = CodingWorksheetEntry(
+        code=request.code,
+        code_type=request.code_type,
+        description=request.description,
+        sequence=request.sequence,
+        is_primary=request.is_primary,
+        source=request.source,
+        evidence_text=request.evidence_text,
+        modifier=request.modifier,
+        notes=request.notes,
+    )
+
+    add_worksheet_entry(encounter_id, entry, request.entry_type)
+
+    return await get_coding_worksheet(encounter_id)
+
+
+@router.post(
+    "/worksheet/{encounter_id}/submit",
+    response_model=WorksheetResponse,
+    summary="Submit coding worksheet",
+    description="Submit a coding worksheet for billing.",
+)
+async def submit_coding_worksheet(
+    encounter_id: str,
+    request: SubmitWorksheetRequest
+) -> WorksheetResponse:
+    """Submit a coding worksheet for billing.
+
+    Validates the worksheet and marks it as submitted.
+
+    Args:
+        encounter_id: Encounter identifier.
+        request: Submission details.
+
+    Returns:
+        WorksheetResponse with updated worksheet.
+    """
+    from app.services.cpt_suggester import submit_worksheet
+
+    worksheet = submit_worksheet(encounter_id, request.submitted_by)
+    if not worksheet:
+        raise InternalError(
+            message=f"Worksheet not found: {encounter_id}",
+            error_code=ErrorCode.NOT_FOUND,
+        )
+
+    return await get_coding_worksheet(encounter_id)

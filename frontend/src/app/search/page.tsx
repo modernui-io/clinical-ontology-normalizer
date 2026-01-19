@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { SkeletonCard, SkeletonText } from "@/components/ui/skeleton";
+import { SearchWithDebounce } from "@/components/SearchWithDebounce";
 import {
   Dialog,
   DialogContent,
@@ -299,12 +301,7 @@ export default function SearchPage() {
     "recent labs",
   ]);
 
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  // Focus input on mount
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
+  // Note: SearchWithDebounce handles auto-focus via its own ref
 
   // Search function
   const performSearch = useCallback(async () => {
@@ -615,28 +612,18 @@ export default function SearchPage() {
           <CardContent className="pt-6">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    ref={inputRef}
-                    type="text"
-                    placeholder="Search clinical notes..."
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    className="pl-9 h-11 text-lg"
-                  />
-                  {query && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 p-0"
-                      onClick={() => setQuery("")}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
+                <SearchWithDebounce
+                  placeholder="Search clinical notes..."
+                  value={query}
+                  onChange={setQuery}
+                  onSearch={performSearch}
+                  onSubmit={performSearch}
+                  isLoading={isLoading}
+                  debounceMs={400}
+                  size="lg"
+                  containerClassName="flex-1"
+                  showShortcut={!query}
+                />
                 <Button type="submit" disabled={isLoading || !query.trim()}>
                   {isLoading ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -708,7 +695,7 @@ export default function SearchPage() {
                       size="sm"
                       onClick={() => {
                         setQuery(recent);
-                        inputRef.current?.focus();
+                        // Focus handled by SearchWithDebounce (Cmd+K)
                       }}
                     >
                       {recent}
@@ -789,8 +776,22 @@ export default function SearchPage() {
           </CardContent>
         </Card>
 
+        {/* Results Loading State */}
+        {isLoading && hasSearched && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <SkeletonText lines={1} className="w-48" />
+            </div>
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <SkeletonCard key={i} showHeader={false} contentLines={4} />
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Results */}
-        {hasSearched && (
+        {hasSearched && !isLoading && (
           <div className="space-y-4">
             {/* Results Header */}
             <div className="flex items-center justify-between">
@@ -937,7 +938,7 @@ export default function SearchPage() {
                       size="sm"
                       onClick={() => {
                         setQuery(example);
-                        inputRef.current?.focus();
+                        // Focus handled by SearchWithDebounce (Cmd+K)
                       }}
                     >
                       <Sparkles className="mr-2 h-3 w-3" />

@@ -1,0 +1,76 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: clinical-ontology-normalizer
+
+namespace: clinical-ontology
+
+labels:
+  - includeSelectors: true
+    pairs:
+      app.kubernetes.io/part-of: clinical-ontology-normalizer
+      app.kubernetes.io/managed-by: kustomize
+
+resources:
+  # Namespace
+  - namespace.yaml
+
+  # Config and Secrets
+  - config/configmap.yaml
+  - config/secrets.yaml
+
+  # Backend
+  - backend/deployment.yaml
+  - backend/service.yaml
+  - backend/hpa.yaml
+
+  # Frontend
+  - frontend/deployment.yaml
+  - frontend/service.yaml
+
+  # Ingress
+  - ingress.yaml
+
+  # PostgreSQL
+  - postgres/statefulset.yaml
+  - postgres/service.yaml
+  - postgres/configmap.yaml
+  - postgres/pvc.yaml
+
+  # Redis
+  - redis/deployment.yaml
+  - redis/service.yaml
+  - redis/configmap.yaml
+  - redis/pvc.yaml
+
+  # Monitoring
+  - monitoring/servicemonitor.yaml
+  - monitoring/prometheus-rules.yaml
+  - monitoring/grafana-dashboard.yaml
+
+  # RBAC
+  - rbac/serviceaccounts.yaml
+  - rbac/roles.yaml
+  - rbac/rolebindings.yaml
+
+  # Network Policies
+  - network-policies.yaml
+
+  # Pod Disruption Budgets
+  - pdb.yaml
+
+images:
+  - name: clinical-ontology/backend
+    newTag: latest
+  - name: clinical-ontology/frontend
+    newTag: latest
+
+configMapGenerator:
+  - name: app-version
+    literals:
+      - VERSION=1.0.0
+      - BUILD_DATE=2026-01-19
+
+commonAnnotations:
+  app.kubernetes.io/version: "1.0.0"

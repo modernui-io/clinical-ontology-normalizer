@@ -1,0 +1,99 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: clinical-ontology-staging
+
+namePrefix: staging-
+
+resources:
+  - ../../
+
+patches:
+  # Moderate replicas for staging
+  - patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2
+    target:
+      kind: Deployment
+      name: backend
+  - patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+    target:
+      kind: Deployment
+      name: frontend
+
+  # Moderate HPA for staging
+  - patch: |-
+      - op: replace
+        path: /spec/minReplicas
+        value: 2
+      - op: replace
+        path: /spec/maxReplicas
+        value: 5
+    target:
+      kind: HorizontalPodAutoscaler
+      name: backend-hpa
+
+  # Moderate resource limits for staging
+  - patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/cpu
+        value: "200m"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/memory
+        value: "384Mi"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/cpu
+        value: "750m"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: "1.5Gi"
+    target:
+      kind: Deployment
+      name: backend
+
+  # Moderate PVC for staging
+  - patch: |-
+      - op: replace
+        path: /spec/resources/requests/storage
+        value: 25Gi
+    target:
+      kind: PersistentVolumeClaim
+      name: redis-pvc
+
+  # Update ingress host for staging
+  - patch: |-
+      - op: replace
+        path: /spec/rules/0/host
+        value: staging.clinical-ontology.example.com
+      - op: replace
+        path: /spec/tls/0/hosts/0
+        value: staging.clinical-ontology.example.com
+    target:
+      kind: Ingress
+      name: clinical-ontology-ingress
+
+configMapGenerator:
+  - name: app-config
+    behavior: merge
+    literals:
+      - ENVIRONMENT=staging
+      - LOG_LEVEL=INFO
+      - API_URL=https://staging.clinical-ontology.example.com/api
+      - CORS_ORIGINS=https://staging.clinical-ontology.example.com
+      - FEATURE_AUDIT_LOGGING=true
+
+images:
+  - name: clinical-ontology/backend
+    newTag: staging
+  - name: clinical-ontology/frontend
+    newTag: staging
+
+commonLabels:
+  environment: staging
+
+commonAnnotations:
+  app.kubernetes.io/environment: "staging"

@@ -28,6 +28,9 @@ import {
   Route,
   AlertTriangle,
   Brain,
+  UserCog,
+  Key,
+  Server,
 } from "lucide-react";
 
 interface NavItem {
@@ -84,6 +87,16 @@ const navSections: NavSection[] = [
       { title: "Audit Log", href: "/audit", icon: ClipboardList },
       { title: "Access Control", href: "/access", icon: Shield },
       { title: "Settings", href: "/settings", icon: Settings },
+    ],
+  },
+  {
+    title: "Admin",
+    items: [
+      { title: "Dashboard", href: "/admin/dashboard", icon: Server },
+      { title: "Users", href: "/admin/users", icon: UserCog },
+      { title: "Roles", href: "/admin/roles", icon: Key },
+      { title: "Audit Logs", href: "/admin/audit", icon: ClipboardList },
+      { title: "System Health", href: "/admin/dashboard", icon: Activity },
     ],
   },
 ];
