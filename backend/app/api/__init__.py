@@ -3,6 +3,7 @@
 from app.api.audit import router as audit_router
 from app.api.auth import router as auth_router
 from app.api.calculators import router as calculators_router
+from app.api.cdisc import router as cdisc_router
 from app.api.coding import router as coding_router
 from app.api.dashboard import router as dashboard_router
 from app.api.documents import router as documents_router
@@ -76,12 +77,14 @@ from app.api.notes import router as notes_router
 from app.api.quality import router as quality_router
 from app.api.terminology import router as terminology_router
 from app.api.timeline import router as timeline_router
+from app.api.valuesets import router as valuesets_router
 
 __all__ = [
     # Routers
     "audit_router",
     "auth_router",
     "calculators_router",
+    "cdisc_router",
     "coding_router",
     "dashboard_router",
     "documents_router",
@@ -100,6 +103,7 @@ __all__ = [
     "terminology_router",
     "timeline_router",
     "users_router",
+    "valuesets_router",
     "vocabulary_mapping_router",
     "websocket_router",
     # Middleware

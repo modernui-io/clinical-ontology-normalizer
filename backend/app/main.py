@@ -17,6 +17,7 @@ from app.api import (
     audit_router,
     auth_router,
     calculators_router,
+    cdisc_router,
     coding_router,
     dashboard_router,
     documents_router,
@@ -35,6 +36,7 @@ from app.api import (
     terminology_router,
     timeline_router,
     users_router,
+    valuesets_router,
     vocabulary_mapping_router,
     websocket_router,
 )
@@ -186,6 +188,14 @@ def prewarm_all_services() -> dict[str, Any]:
     except Exception as e:
         logger.warning(f"Failed to prewarm patient_timeline: {e}")
 
+    # Value Set Service (Terminology Management)
+    try:
+        from app.services.value_set_service import get_value_set_service
+        svc = get_value_set_service()
+        services_loaded["value_set_service"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
+    except Exception as e:
+        logger.warning(f"Failed to prewarm value_set_service: {e}")
+
     total_time_ms = (time.perf_counter() - start_time) * 1000
 
     return {
@@ -273,6 +283,7 @@ app.add_middleware(
 # Include routers
 app.include_router(audit_router)
 app.include_router(calculators_router)
+app.include_router(cdisc_router)
 app.include_router(coding_router)
 app.include_router(dashboard_router)
 app.include_router(documents_router)
@@ -290,6 +301,7 @@ app.include_router(smart_router)
 app.include_router(sse_router)
 app.include_router(terminology_router)
 app.include_router(timeline_router)
+app.include_router(valuesets_router)
 app.include_router(vocabulary_mapping_router)
 app.include_router(websocket_router)
 

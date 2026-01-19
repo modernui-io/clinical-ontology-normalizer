@@ -655,3 +655,422 @@ export async function deleteETLJob(jobId: string): Promise<DeleteETLJobResponse>
     }
   );
 }
+
+// ============================================================================
+// ETL Source Types
+// ============================================================================
+
+export interface SourceCredentials {
+  username: string | null;
+  password: string | null;
+  api_key: string | null;
+  client_id: string | null;
+  client_secret: string | null;
+  auth_token: string | null;
+  extra: Record<string, string> | null;
+}
+
+export interface ConnectionParams {
+  host: string | null;
+  port: number | null;
+  path: string | null;
+  database: string | null;
+  schema: string | null;
+  ssl_enabled: boolean;
+  verify_ssl: boolean;
+  timeout_seconds: number;
+  extra: Record<string, unknown>;
+}
+
+export interface Source {
+  id: string;
+  name: string;
+  description: string;
+  source_type: "fhir" | "hl7v2" | "ccda" | "csv" | "database";
+  connection_params: ConnectionParams;
+  credentials: SourceCredentials | null;
+  status: "unknown" | "connected" | "disconnected" | "error" | "testing";
+  enabled: boolean;
+  last_tested_at: string | null;
+  last_sync_at: string | null;
+  test_result: string | null;
+  created_at: string;
+  updated_at: string;
+  metadata: Record<string, unknown>;
+}
+
+export interface SourceListResponse {
+  sources: Source[];
+  total: number;
+}
+
+export interface CreateSourceRequest {
+  name: string;
+  description?: string;
+  source_type: string;
+  connection_params: {
+    host?: string;
+    port?: number;
+    path?: string;
+    database?: string;
+    schema?: string;
+    ssl_enabled?: boolean;
+    verify_ssl?: boolean;
+    timeout_seconds?: number;
+    extra?: Record<string, unknown>;
+  };
+  credentials?: {
+    username?: string;
+    password?: string;
+    api_key?: string;
+    client_id?: string;
+    client_secret?: string;
+    auth_token?: string;
+    extra?: Record<string, string>;
+  };
+  metadata?: Record<string, unknown>;
+}
+
+export interface UpdateSourceRequest {
+  name?: string;
+  description?: string;
+  connection_params?: {
+    host?: string;
+    port?: number;
+    path?: string;
+    database?: string;
+    schema?: string;
+    ssl_enabled?: boolean;
+    verify_ssl?: boolean;
+    timeout_seconds?: number;
+    extra?: Record<string, unknown>;
+  };
+  credentials?: {
+    username?: string;
+    password?: string;
+    api_key?: string;
+    client_id?: string;
+    client_secret?: string;
+    auth_token?: string;
+    extra?: Record<string, string>;
+  };
+  enabled?: boolean;
+  metadata?: Record<string, unknown>;
+}
+
+export interface ConnectionTestResponse {
+  success: boolean;
+  message: string;
+  latency_ms: number | null;
+  server_info: Record<string, unknown>;
+  error_details: string | null;
+  tested_at: string;
+}
+
+export interface SampleDataResponse {
+  source_id: string;
+  record_count: number;
+  records: Record<string, unknown>[];
+  schema_info: Record<string, unknown>;
+  fetched_at: string;
+}
+
+export interface SourceFilterParams {
+  source_type?: string;
+  enabled_only?: boolean;
+  limit?: number;
+}
+
+// ============================================================================
+// ETL Pipeline Types
+// ============================================================================
+
+export interface PipelineSchedule {
+  frequency: "manual" | "hourly" | "daily" | "weekly" | "monthly" | "custom";
+  cron_expression: string | null;
+  time_of_day: string;
+  day_of_week: number | null;
+  day_of_month: number | null;
+  timezone: string;
+  enabled: boolean;
+}
+
+export interface PipelineStage {
+  name: string;
+  stage_type: string;
+  config: Record<string, unknown>;
+  order: number;
+  enabled: boolean;
+}
+
+export interface PipelineRun {
+  id: string;
+  pipeline_id: string;
+  status: string;
+  started_at: string;
+  completed_at: string | null;
+  records_processed: number;
+  records_failed: number;
+  error_message: string | null;
+  duration_seconds: number | null;
+}
+
+export interface Pipeline {
+  id: string;
+  name: string;
+  description: string;
+  source_id: string;
+  status: "active" | "paused" | "disabled" | "error";
+  schedule: PipelineSchedule;
+  stages: PipelineStage[];
+  batch_size: number;
+  max_records: number | null;
+  skip_on_error: boolean;
+  created_at: string;
+  updated_at: string;
+  last_run_at: string | null;
+  last_run_status: string | null;
+  run_count: number;
+}
+
+export interface PipelineListResponse {
+  pipelines: Pipeline[];
+  total: number;
+}
+
+export interface PipelineRunListResponse {
+  runs: PipelineRun[];
+  total: number;
+}
+
+export interface CreatePipelineRequest {
+  name: string;
+  description?: string;
+  source_id: string;
+  schedule?: {
+    frequency?: string;
+    cron_expression?: string;
+    time_of_day?: string;
+    day_of_week?: number;
+    day_of_month?: number;
+    timezone?: string;
+    enabled?: boolean;
+  };
+  stages?: {
+    name: string;
+    stage_type: string;
+    config?: Record<string, unknown>;
+    order?: number;
+    enabled?: boolean;
+  }[];
+  batch_size?: number;
+  max_records?: number;
+  skip_on_error?: boolean;
+}
+
+export interface UpdatePipelineRequest {
+  name?: string;
+  description?: string;
+  status?: string;
+  schedule?: {
+    frequency?: string;
+    cron_expression?: string;
+    time_of_day?: string;
+    day_of_week?: number;
+    day_of_month?: number;
+    timezone?: string;
+    enabled?: boolean;
+  };
+  stages?: {
+    name: string;
+    stage_type: string;
+    config?: Record<string, unknown>;
+    order?: number;
+    enabled?: boolean;
+  }[];
+  batch_size?: number;
+  max_records?: number;
+  skip_on_error?: boolean;
+}
+
+export interface TriggerPipelineResponse {
+  run_id: string;
+  pipeline_id: string;
+  status: string;
+  message: string;
+}
+
+export interface PipelineFilterParams {
+  source_id?: string;
+  status?: string;
+  limit?: number;
+}
+
+// ============================================================================
+// ETL Source API Methods
+// ============================================================================
+
+// List data sources
+export async function getSources(
+  params?: SourceFilterParams
+): Promise<SourceListResponse> {
+  const searchParams = new URLSearchParams();
+  if (params?.source_type) searchParams.append("source_type", params.source_type);
+  if (params?.enabled_only) searchParams.append("enabled_only", "true");
+  if (params?.limit) searchParams.append("limit", params.limit.toString());
+
+  const queryString = searchParams.toString();
+  const url = `${API_BASE_URL}/etl/sources${queryString ? `?${queryString}` : ""}`;
+  return fetchWithRetry<SourceListResponse>(url);
+}
+
+// Get a single source
+export async function getSource(sourceId: string): Promise<Source> {
+  return fetchWithRetry<Source>(`${API_BASE_URL}/etl/sources/${sourceId}`);
+}
+
+// Create a new source
+export async function createSource(
+  request: CreateSourceRequest
+): Promise<Source> {
+  return fetchWithRetry<Source>(`${API_BASE_URL}/etl/sources`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+}
+
+// Update a source
+export async function updateSource(
+  sourceId: string,
+  request: UpdateSourceRequest
+): Promise<Source> {
+  return fetchWithRetry<Source>(`${API_BASE_URL}/etl/sources/${sourceId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+}
+
+// Delete a source
+export async function deleteSource(sourceId: string): Promise<void> {
+  return fetchWithRetry<void>(`${API_BASE_URL}/etl/sources/${sourceId}`, {
+    method: "DELETE",
+  });
+}
+
+// Test source connection
+export async function testSourceConnection(
+  sourceId: string
+): Promise<ConnectionTestResponse> {
+  return fetchWithRetry<ConnectionTestResponse>(
+    `${API_BASE_URL}/etl/sources/${sourceId}/test`,
+    { method: "POST" }
+  );
+}
+
+// Get sample data from source
+export async function getSourcePreview(
+  sourceId: string,
+  limit: number = 10
+): Promise<SampleDataResponse> {
+  return fetchWithRetry<SampleDataResponse>(
+    `${API_BASE_URL}/etl/sources/${sourceId}/preview?limit=${limit}`
+  );
+}
+
+// ============================================================================
+// ETL Pipeline API Methods
+// ============================================================================
+
+// List pipelines
+export async function getPipelines(
+  params?: PipelineFilterParams
+): Promise<PipelineListResponse> {
+  const searchParams = new URLSearchParams();
+  if (params?.source_id) searchParams.append("source_id", params.source_id);
+  if (params?.status) searchParams.append("pipeline_status", params.status);
+  if (params?.limit) searchParams.append("limit", params.limit.toString());
+
+  const queryString = searchParams.toString();
+  const url = `${API_BASE_URL}/etl/pipelines${queryString ? `?${queryString}` : ""}`;
+  return fetchWithRetry<PipelineListResponse>(url);
+}
+
+// Get a single pipeline
+export async function getPipeline(pipelineId: string): Promise<Pipeline> {
+  return fetchWithRetry<Pipeline>(`${API_BASE_URL}/etl/pipelines/${pipelineId}`);
+}
+
+// Create a new pipeline
+export async function createPipeline(
+  request: CreatePipelineRequest
+): Promise<Pipeline> {
+  return fetchWithRetry<Pipeline>(`${API_BASE_URL}/etl/pipelines`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+}
+
+// Update a pipeline
+export async function updatePipeline(
+  pipelineId: string,
+  request: UpdatePipelineRequest
+): Promise<Pipeline> {
+  return fetchWithRetry<Pipeline>(`${API_BASE_URL}/etl/pipelines/${pipelineId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+}
+
+// Delete a pipeline
+export async function deletePipeline(pipelineId: string): Promise<void> {
+  return fetchWithRetry<void>(`${API_BASE_URL}/etl/pipelines/${pipelineId}`, {
+    method: "DELETE",
+  });
+}
+
+// Update pipeline schedule
+export async function updatePipelineSchedule(
+  pipelineId: string,
+  schedule: {
+    frequency?: string;
+    cron_expression?: string;
+    time_of_day?: string;
+    day_of_week?: number;
+    day_of_month?: number;
+    timezone?: string;
+    enabled?: boolean;
+  }
+): Promise<Pipeline> {
+  return fetchWithRetry<Pipeline>(
+    `${API_BASE_URL}/etl/pipelines/${pipelineId}/schedule`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(schedule),
+    }
+  );
+}
+
+// Trigger a pipeline run
+export async function triggerPipelineRun(
+  pipelineId: string
+): Promise<TriggerPipelineResponse> {
+  return fetchWithRetry<TriggerPipelineResponse>(
+    `${API_BASE_URL}/etl/pipelines/${pipelineId}/run`,
+    { method: "POST" }
+  );
+}
+
+// Get pipeline run history
+export async function getPipelineRuns(
+  pipelineId: string,
+  limit: number = 20
+): Promise<PipelineRunListResponse> {
+  return fetchWithRetry<PipelineRunListResponse>(
+    `${API_BASE_URL}/etl/pipelines/${pipelineId}/runs?limit=${limit}`
+  );
+}
