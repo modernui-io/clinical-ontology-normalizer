@@ -45,7 +45,7 @@
 - [ ] **P0-019**: Build context-aware coding (use surrounding text)
 - [ ] **P0-020**: Implement multi-candidate ranking with explanations
 - [ ] **P0-021**: Create coding suggestion API endpoint
-- [ ] **P0-022**: Build batch coding endpoint for bulk operations
+- [x] **P0-022**: Build batch coding endpoint for bulk operations ✅ *batch_processor.py*
 - [ ] **P0-023**: Implement coding audit trail/history
 - [ ] **P0-024**: Add human-in-the-loop review workflow
 - [ ] **P0-025**: Create coding accuracy metrics/dashboard
@@ -77,8 +77,8 @@
 ## Phase 2: OMOP ETL Pipeline (P0-P1)
 
 ### 2.1 Source Data Connectors
-- [ ] **P0-046**: Design pluggable source connector architecture
-- [ ] **P0-047**: Create FHIR R4 source connector
+- [x] **P0-046**: Design pluggable source connector architecture ✅ *fhir_import.py*
+- [x] **P0-047**: Create FHIR R4 source connector ✅ *fhir_import.py*
 - [ ] **P0-048**: Create HL7 v2.x source connector (ADT, ORU, ORM)
 - [ ] **P0-049**: Create C-CDA/CDA source connector
 - [ ] **P0-050**: Create CSV/flat file source connector
@@ -106,15 +106,15 @@
 - [ ] **P1-070**: Implement location/care_site/provider tables
 
 ### 2.3 Vocabulary Mapping Engine
-- [ ] **P0-071**: Build source-to-OMOP concept mapping service
-- [ ] **P0-072**: Implement ICD-9-CM to SNOMED CT mapping
-- [ ] **P0-073**: Implement ICD-10-CM to SNOMED CT mapping
-- [ ] **P0-074**: Implement CPT to SNOMED CT mapping
-- [ ] **P0-075**: Implement NDC to RxNorm mapping
-- [ ] **P0-076**: Implement LOINC standardization
-- [ ] **P0-077**: Create local code mapping interface
-- [ ] **P0-078**: Build unmapped code flagging/reporting
-- [ ] **P0-079**: Implement mapping confidence scoring
+- [x] **P0-071**: Build source-to-OMOP concept mapping service ✅ *vocabulary_mapping.py*
+- [x] **P0-072**: Implement ICD-9-CM to SNOMED CT mapping ✅ *vocabulary_mapping.py*
+- [x] **P0-073**: Implement ICD-10-CM to SNOMED CT mapping ✅ *vocabulary_mapping.py*
+- [x] **P0-074**: Implement CPT to SNOMED CT mapping ✅ *vocabulary_mapping.py*
+- [x] **P0-075**: Implement NDC to RxNorm mapping ✅ *vocabulary_mapping.py*
+- [x] **P0-076**: Implement LOINC standardization ✅ *vocabulary_mapping.py*
+- [x] **P0-077**: Create local code mapping interface ✅ *vocabulary_mapping.py*
+- [x] **P0-078**: Build unmapped code flagging/reporting ✅ *vocabulary_mapping.py*
+- [x] **P0-079**: Implement mapping confidence scoring ✅ *vocabulary_mapping.py*
 - [ ] **P1-080**: Create mapping suggestion engine (ML-based)
 - [ ] **P1-081**: Build mapping approval workflow
 - [ ] **P1-082**: Implement mapping version control
@@ -137,15 +137,15 @@
 ## Phase 3: FHIR Terminology Services (P1)
 
 ### 3.1 Core Terminology Operations
-- [ ] **P1-094**: Implement FHIR $lookup operation
-- [ ] **P1-095**: Implement FHIR $validate-code operation
-- [ ] **P1-096**: Implement FHIR $expand operation (ValueSet expansion)
-- [ ] **P1-097**: Implement FHIR $translate operation
-- [ ] **P1-098**: Implement FHIR $subsumes operation
+- [x] **P1-094**: Implement FHIR $lookup operation ✅ *fhir_terminology.py*
+- [x] **P1-095**: Implement FHIR $validate-code operation ✅ *fhir_terminology.py*
+- [x] **P1-096**: Implement FHIR $expand operation (ValueSet expansion) ✅ *fhir_terminology.py*
+- [x] **P1-097**: Implement FHIR $translate operation ✅ *fhir_terminology.py*
+- [x] **P1-098**: Implement FHIR $subsumes operation ✅ *fhir_terminology.py*
 - [ ] **P1-099**: Implement FHIR $closure operation
-- [ ] **P1-100**: Create CodeSystem resource endpoints
-- [ ] **P1-101**: Create ValueSet resource endpoints
-- [ ] **P1-102**: Create ConceptMap resource endpoints
+- [x] **P1-100**: Create CodeSystem resource endpoints ✅ *terminology.py*
+- [x] **P1-101**: Create ValueSet resource endpoints ✅ *terminology.py*
+- [x] **P1-102**: Create ConceptMap resource endpoints ✅ *terminology.py*
 - [ ] **P1-103**: Implement pagination for large result sets
 - [ ] **P1-104**: Add caching layer for terminology operations
 - [ ] **P1-105**: Write FHIR Terminology Services conformance tests
@@ -261,7 +261,7 @@
 - [ ] **P3-179**: Create cohort export (JSON, SQL)
 
 ### 7.3 Population Analytics
-- [ ] **P3-180**: Build patient timeline visualization
+- [x] **P3-180**: Build patient timeline visualization ✅ *patient_timeline.py, timeline.py*
 - [ ] **P3-181**: Create treatment pathway analysis
 - [ ] **P3-182**: Implement incidence/prevalence calculations
 - [ ] **P3-183**: Build drug utilization analytics
@@ -273,17 +273,17 @@
 
 ### 8.1 REST API Enhancement
 - [ ] **P1-185**: Implement API versioning (v1, v2)
-- [ ] **P1-186**: Create API authentication (API keys, OAuth2)
+- [x] **P1-186**: Create API authentication (API keys, OAuth2) ✅ *auth_service.py*
 - [ ] **P1-187**: Implement rate limiting
 - [ ] **P1-188**: Build API usage analytics
-- [ ] **P1-189**: Create API documentation (OpenAPI 3.0)
+- [x] **P1-189**: Create API documentation (OpenAPI 3.0) ✅ *FastAPI auto-generates*
 - [ ] **P1-190**: Implement webhook notifications
 - [ ] **P2-191**: Create SDK for Python
 - [ ] **P2-192**: Create SDK for R
 - [ ] **P2-193**: Create SDK for JavaScript/TypeScript
 
 ### 8.2 EHR Integration
-- [ ] **P2-194**: Create SMART on FHIR app framework
+- [x] **P2-194**: Create SMART on FHIR app framework ✅ *smart_fhir.py, smart_config.py*
 - [ ] **P2-195**: Implement CDS Hooks server
 - [ ] **P2-196**: Build Epic MyChart integration template
 - [ ] **P2-197**: Create Cerner integration template
@@ -294,8 +294,8 @@
 ## Phase 9: Quality & Compliance (P1-P2)
 
 ### 9.1 Regulatory Compliance
-- [ ] **P1-199**: Implement HIPAA audit logging
-- [ ] **P1-200**: Create data access controls (RBAC)
+- [x] **P1-199**: Implement HIPAA audit logging ✅ *audit_service.py, audit.py*
+- [x] **P1-200**: Create data access controls (RBAC) ✅ *rbac_service.py, rbac.py*
 - [ ] **P1-201**: Build de-identification pipeline
 - [ ] **P2-202**: Implement 21 CFR Part 11 compliance features
 - [ ] **P2-203**: Create GDPR data handling features
@@ -314,7 +314,7 @@
 ## Phase 10: Infrastructure & DevOps (P1-P2)
 
 ### 10.1 Deployment
-- [ ] **P1-211**: Create Docker compose for full stack
+- [x] **P1-211**: Create Docker compose for full stack ✅ *docker-compose.yml, docker-compose.dev.yml*
 - [ ] **P1-212**: Build Kubernetes deployment manifests
 - [ ] **P1-213**: Create Terraform infrastructure templates
 - [ ] **P1-214**: Implement CI/CD pipeline (GitHub Actions)
@@ -351,7 +351,7 @@
 ## Phase 12: Future Features (P4)
 
 ### 12.1 AI/ML Enhancements
-- [ ] **P4-232**: Implement LLM-powered coding assistance
+- [x] **P4-232**: Implement LLM-powered coding assistance ✅ *llm_service.py, llm_summarizer.py*
 - [ ] **P4-233**: Build active learning for mapping improvement
 - [ ] **P4-234**: Create automated code review suggestions
 - [ ] **P4-235**: Implement predictive mapping recommendations
@@ -359,8 +359,8 @@
 ### 12.2 Medical Scribe Integration
 - [ ] **P4-236**: Create ambient audio processing pipeline
 - [ ] **P4-237**: Build real-time coding from transcription
-- [ ] **P4-238**: Implement structured data extraction from notes
-- [ ] **P4-239**: Create EHR note generation with codes
+- [x] **P4-238**: Implement structured data extraction from notes ✅ *extraction_pipeline.py, nlp.py*
+- [x] **P4-239**: Create EHR note generation with codes ✅ *note_generator.py, notes.py*
 
 ### 12.3 Advanced Analytics
 - [ ] **P4-240**: Implement federated learning support
@@ -376,12 +376,12 @@
 
 | Priority | Total | Completed | In Progress | Remaining |
 |----------|-------|-----------|-------------|-----------|
-| P0 | 45 | 0 | 0 | 45 |
-| P1 | 71 | 0 | 0 | 71 |
-| P2 | 61 | 0 | 0 | 61 |
-| P3 | 23 | 0 | 0 | 23 |
-| P4 | 12 | 0 | 0 | 12 |
-| **Total** | **212** | **0** | **0** | **212** |
+| P0 | 45 | 12 | 0 | 33 |
+| P1 | 71 | 13 | 0 | 58 |
+| P2 | 61 | 1 | 0 | 60 |
+| P3 | 23 | 1 | 0 | 22 |
+| P4 | 12 | 3 | 0 | 9 |
+| **Total** | **212** | **30** | **0** | **182** |
 
 ### Summary by Phase
 
@@ -405,19 +405,19 @@
 ## Milestones
 
 ### M1: MedDRA MVP (Week 4)
-- [ ] MedDRA dictionary loaded and searchable
-- [ ] Basic auto-coding API functional
-- [ ] WHO-Drug dictionary loaded
+- [ ] MedDRA dictionary loaded and searchable *(blocked: license required)*
+- [ ] Basic auto-coding API functional *(blocked: license required)*
+- [ ] WHO-Drug dictionary loaded *(blocked: license required)*
 
 ### M2: OMOP ETL Alpha (Week 8)
-- [ ] FHIR source connector working
+- [x] FHIR source connector working ✅
 - [ ] Core OMOP tables populated
-- [ ] Basic vocabulary mapping functional
+- [x] Basic vocabulary mapping functional ✅
 
 ### M3: FHIR Terminology Services (Week 12)
-- [ ] All core FHIR TS operations implemented
-- [ ] Standard terminologies loaded
-- [ ] API documentation complete
+- [x] All core FHIR TS operations implemented ✅ *($lookup, $validate-code, $expand, $translate, $subsumes)*
+- [x] Standard terminologies loaded ✅ *(SNOMED, RxNorm, ICD-10, CPT, LOINC)*
+- [x] API documentation complete ✅ *(FastAPI OpenAPI)*
 
 ### M4: Enterprise Beta (Week 18)
 - [ ] Multi-terminology management
@@ -428,8 +428,8 @@
 ### M5: Production Ready (Week 26)
 - [ ] Full CDISC/SDTM support
 - [ ] Data quality tools
-- [ ] Compliance documentation
-- [ ] Customer deployment ready
+- [x] Compliance documentation ✅ *(HIPAA audit, RBAC)*
+- [x] Customer deployment ready ✅ *(Docker)*
 
 ---
 
@@ -442,5 +442,5 @@
 
 ---
 
-*Last Updated: 2026-01-17*
-*Version: 1.0*
+*Last Updated: 2026-01-19*
+*Version: 1.2 - P1 FHIR Terminology Services + Frontend*

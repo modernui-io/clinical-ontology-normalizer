@@ -163,35 +163,33 @@ export default function ClinicalSearch({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-slate-100">
-      {/* Header */}
-      <header className="border-b border-slate-800/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              <div>
-                <h1 className="text-xl font-semibold text-white">Clinical Search</h1>
-                <p className="text-sm text-slate-400">Semantic search & Q&A</p>
-              </div>
+    <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-slate-100 rounded-lg">
+      {/* Page Header */}
+      <div className="max-w-5xl mx-auto px-6 pt-6 pb-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
             </div>
-
-            {patientId && (
-              <div className="px-3 py-1.5 bg-slate-800/50 rounded-lg text-sm">
-                <span className="text-slate-400">Patient:</span>{" "}
-                <span className="text-white font-medium">{patientId}</span>
-              </div>
-            )}
+            <div>
+              <h1 className="text-xl font-semibold text-white">Clinical Search</h1>
+              <p className="text-sm text-slate-400">Semantic search and Q&A over clinical notes</p>
+            </div>
           </div>
+
+          {patientId && (
+            <div className="px-3 py-1.5 bg-slate-800/50 rounded-lg text-sm">
+              <span className="text-slate-400">Patient:</span>{" "}
+              <span className="text-white font-medium">{patientId}</span>
+            </div>
+          )}
         </div>
-      </header>
+      </div>
 
       {/* Main content */}
-      <main className="max-w-5xl mx-auto px-6 py-8">
+      <main className="max-w-5xl mx-auto px-6 pb-8">
         {/* Mode toggle */}
         <div className="flex justify-center mb-8">
           <div className="inline-flex rounded-xl bg-slate-800/50 p-1 backdrop-blur-sm">

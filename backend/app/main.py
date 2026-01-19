@@ -20,6 +20,7 @@ from app.api import (
     coding_router,
     dashboard_router,
     documents_router,
+    etl_router,
     export_router,
     fhir_router,
     jobs_router,
@@ -31,6 +32,7 @@ from app.api import (
     search_router,
     smart_router,
     sse_router,
+    terminology_router,
     timeline_router,
     users_router,
     vocabulary_mapping_router,
@@ -274,6 +276,7 @@ app.include_router(calculators_router)
 app.include_router(coding_router)
 app.include_router(dashboard_router)
 app.include_router(documents_router)
+app.include_router(etl_router)
 app.include_router(export_router)
 app.include_router(fhir_router)
 app.include_router(jobs_router)
@@ -285,6 +288,7 @@ app.include_router(reconciliation_router)
 app.include_router(search_router)
 app.include_router(smart_router)
 app.include_router(sse_router)
+app.include_router(terminology_router)
 app.include_router(timeline_router)
 app.include_router(vocabulary_mapping_router)
 app.include_router(websocket_router)

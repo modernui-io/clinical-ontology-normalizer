@@ -40,22 +40,15 @@ export default function PatientsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
-      <header className="border-b bg-white dark:bg-zinc-950">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100">
-              &larr; Home
-            </Link>
-            <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-              Patients
-            </h1>
-          </div>
-        </div>
-      </header>
+    <div className="p-6">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold tracking-tight">Patients</h1>
+        <p className="text-muted-foreground">
+          View and manage patient records and knowledge graphs
+        </p>
+      </div>
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="mx-auto max-w-2xl space-y-6">
+      <div className="mx-auto max-w-2xl space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Find Patient</CardTitle>
@@ -111,7 +104,6 @@ export default function PatientsPage() {
             </Card>
           )}
         </div>
-      </main>
-    </div>
+      </div>
   );
 }
