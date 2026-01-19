@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-This roadmap covers 4 priority levels (P0-P3) with **147 detailed tasks** spanning backend infrastructure, frontend development, integrations, and documentation. Estimated total effort: **12-16 weeks** with parallel execution.
+This roadmap covers 5 priority levels (P0-P4) with **177 detailed tasks** spanning backend infrastructure, frontend development, integrations, and documentation. Estimated total effort: **18-22 weeks** with parallel execution.
 
 ### Priority Definitions
 
@@ -18,7 +18,8 @@ This roadmap covers 4 priority levels (P0-P3) with **147 detailed tasks** spanni
 | **P0** | 42 tasks | Weeks 1-3 | Critical foundation - production blockers |
 | **P1** | 48 tasks | Weeks 4-7 | Enterprise features - customer requirements |
 | **P2** | 35 tasks | Weeks 8-11 | Competitive parity - market differentiation |
-| **P3** | 22 tasks | Weeks 12-16 | Nice to have - future innovation |
+| **P3** | 22 tasks | Weeks 12-16 | Differentiators - AI & integrations |
+| **P4** | 30 tasks | Weeks 17-22 | Advanced analytics - ML, graphs, streaming |
 
 ---
 
@@ -737,6 +738,163 @@ This roadmap covers 4 priority levels (P0-P3) with **147 detailed tasks** spanni
 
 ---
 
+## P4: Advanced Analytics & Intelligence (Weeks 17-22)
+
+### P4.1 Predictive Analytics Engine (8 tasks)
+
+#### P4.1.1 Risk Prediction Models
+**Owner:** Backend + Data Science
+**Effort:** 5 days
+**Dependencies:** P3-009
+
+- [ ] **P4-001** Create ML model service with scikit-learn/XGBoost integration
+  - Acceptance: Model training, versioning, inference API
+
+- [ ] **P4-002** Implement 30-day readmission risk prediction model
+  - Acceptance: LACE+ features, AUC > 0.75, calibration curves
+
+- [ ] **P4-003** Build clinical deterioration early warning score (EWS)
+  - Acceptance: NEWS2/MEWS calculation, real-time scoring
+
+- [ ] **P4-004** Create mortality risk stratification model
+  - Acceptance: Charlson/Elixhauser comorbidity features, risk tiers
+
+#### P4.1.2 Predictive Analytics UI
+**Owner:** Frontend
+**Effort:** 3 days
+**Dependencies:** P4-001
+
+- [ ] **P4-005** Build risk dashboard with patient risk scores
+  - Acceptance: Sortable risk list, trend sparklines, drill-down
+
+- [ ] **P4-006** Create model explainability view (SHAP values)
+  - Acceptance: Feature importance, waterfall charts, what-if analysis
+
+- [ ] **P4-007** Add prediction audit trail and monitoring
+  - Acceptance: Track predictions, model drift detection, performance metrics
+
+- [ ] **P4-008** Implement alert rules based on risk thresholds
+  - Acceptance: Configurable thresholds, auto-notify care teams
+
+---
+
+### P4.2 Knowledge Graph Database (6 tasks)
+
+#### P4.2.1 Graph Infrastructure
+**Owner:** Backend
+**Effort:** 4 days
+**Dependencies:** P0-001
+
+- [ ] **P4-009** Integrate Neo4j graph database for ontology relationships
+  - Acceptance: Docker compose, connection pooling, Cypher queries
+
+- [ ] **P4-010** Create graph ETL for OMOP concept relationships
+  - Acceptance: Load concept ancestors, relationships, synonyms to graph
+
+- [ ] **P4-011** Implement graph-based similarity search
+  - Acceptance: Find similar patients, conditions, treatments via graph traversal
+
+#### P4.2.2 Graph Visualization
+**Owner:** Frontend
+**Effort:** 3 days
+**Dependencies:** P4-009
+
+- [ ] **P4-012** Build interactive 3D knowledge graph explorer
+  - Acceptance: Force-directed layout, zoom/pan, node filtering, WebGL rendering
+
+- [ ] **P4-013** Create drug-disease-gene network visualization
+  - Acceptance: Multi-layer graph, pathway highlighting, literature links
+
+- [ ] **P4-014** Add patient similarity network view
+  - Acceptance: Cluster patients by features, explore similar cases
+
+---
+
+### P4.3 Real-time Streaming Pipeline (6 tasks)
+
+#### P4.3.1 Streaming Infrastructure
+**Owner:** Backend
+**Effort:** 4 days
+**Dependencies:** P1-023
+
+- [ ] **P4-015** Integrate Apache Kafka for event streaming
+  - Acceptance: Docker compose, producers/consumers, topic management
+
+- [ ] **P4-016** Create streaming ETL with real-time OMOP transformation
+  - Acceptance: Process HL7v2/FHIR messages in real-time to OMOP
+
+- [ ] **P4-017** Implement streaming aggregations for live metrics
+  - Acceptance: Tumbling windows, patient counts, alert volumes
+
+#### P4.3.2 Streaming UI
+**Owner:** Frontend
+**Effort:** 3 days
+**Dependencies:** P4-015
+
+- [ ] **P4-018** Build real-time streaming dashboard
+  - Acceptance: Live event feed, throughput charts, lag monitoring
+
+- [ ] **P4-019** Create streaming alert console
+  - Acceptance: Real-time clinical alerts, acknowledge workflow, escalation
+
+- [ ] **P4-020** Add streaming data quality monitor
+  - Acceptance: Live validation errors, schema drift detection
+
+---
+
+### P4.4 Advanced Visualization Suite (6 tasks)
+
+#### P4.4.1 Clinical Visualizations
+**Owner:** Frontend
+**Effort:** 4 days
+**Dependencies:** P2-020
+
+- [ ] **P4-021** Create interactive Sankey diagram for treatment pathways
+  - Acceptance: D3.js Sankey, filter by cohort, export as SVG
+
+- [ ] **P4-022** Build geospatial health mapping dashboard
+  - Acceptance: Mapbox/Leaflet, choropleth by region, drill-down
+
+- [ ] **P4-023** Implement survival curve visualization (Kaplan-Meier)
+  - Acceptance: Survival analysis, confidence intervals, log-rank test
+
+#### P4.4.2 Research Visualizations
+**Owner:** Frontend
+**Effort:** 3 days
+**Dependencies:** P3-009
+
+- [ ] **P4-024** Create study timeline Gantt chart
+  - Acceptance: Protocol events, enrollment, milestones visualization
+
+- [ ] **P4-025** Build forest plot for meta-analysis results
+  - Acceptance: Effect sizes, confidence intervals, heterogeneity stats
+
+- [ ] **P4-026** Add volcano plot for differential analysis
+  - Acceptance: Log fold change vs p-value, interactive brushing
+
+---
+
+### P4.5 Synthetic Data Generator (4 tasks)
+
+#### P4.5.1 Data Synthesis
+**Owner:** Backend
+**Effort:** 4 days
+**Dependencies:** P0-001
+
+- [ ] **P4-027** Implement Synthea integration for realistic patient generation
+  - Acceptance: Generate FHIR bundles, configurable demographics
+
+- [ ] **P4-028** Create privacy-preserving synthetic data API
+  - Acceptance: Differential privacy, statistical similarity metrics
+
+- [ ] **P4-029** Build synthetic data configuration UI
+  - Acceptance: Select cohort characteristics, volume, time range
+
+- [ ] **P4-030** Add synthetic data validation and comparison
+  - Acceptance: Compare distributions, utility metrics, privacy scores
+
+---
+
 ## Milestone Summary
 
 ### M1: MVP Foundation (Week 3)
@@ -758,10 +916,17 @@ This roadmap covers 4 priority levels (P0-P3) with **147 detailed tasks** spanni
 - [ ] Data quality dashboards
 
 ### M4: Innovation Features (Week 16)
-- [ ] AI-powered note generation
-- [ ] Cohort builder functional
-- [ ] CDS Hooks integration
-- [ ] Bulk export support
+- [x] AI-powered note generation
+- [x] Cohort builder functional
+- [x] CDS Hooks integration
+- [x] Bulk export support
+
+### M5: Advanced Analytics (Week 22)
+- [ ] Predictive analytics engine with risk models
+- [ ] Knowledge graph database integration
+- [ ] Real-time streaming pipeline
+- [ ] Advanced visualization suite
+- [ ] Synthetic data generation
 
 ---
 
@@ -803,13 +968,13 @@ P3.3 (Integrations)────────────────────�
 
 ## Task Count by Area
 
-| Area | P0 | P1 | P2 | P3 | Total |
-|------|-----|-----|-----|-----|-------|
-| Database/Infrastructure | 12 | 0 | 0 | 0 | 12 |
-| API/Backend | 10 | 12 | 10 | 8 | 40 |
-| Frontend Core | 20 | 0 | 0 | 0 | 20 |
-| Frontend Features | 0 | 36 | 25 | 14 | 75 |
-| **Total** | **42** | **48** | **35** | **22** | **147** |
+| Area | P0 | P1 | P2 | P3 | P4 | Total |
+|------|-----|-----|-----|-----|-----|-------|
+| Database/Infrastructure | 12 | 0 | 0 | 0 | 6 | 18 |
+| API/Backend | 10 | 12 | 10 | 8 | 10 | 50 |
+| Frontend Core | 20 | 0 | 0 | 0 | 0 | 20 |
+| Frontend Features | 0 | 36 | 25 | 14 | 14 | 89 |
+| **Total** | **42** | **48** | **35** | **22** | **30** | **177** |
 
 ---
 

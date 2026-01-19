@@ -21,6 +21,13 @@ import {
   ClipboardList,
   Calculator,
   Shield,
+  BarChart3,
+  Radio,
+  Network,
+  GitBranch,
+  Route,
+  AlertTriangle,
+  Brain,
 } from "lucide-react";
 
 interface NavItem {
@@ -56,6 +63,18 @@ const navSections: NavSection[] = [
       { title: "Clinical Tools", href: "/clinical", icon: Stethoscope },
       { title: "Calculators", href: "/calculators", icon: Calculator },
       { title: "Quality Measures", href: "/quality", icon: Activity },
+    ],
+  },
+  {
+    title: "Analytics",
+    items: [
+      { title: "Risk Dashboard", href: "/analytics/risks", icon: AlertTriangle },
+      { title: "Model Management", href: "/analytics/models", icon: Brain },
+      { title: "Visualizations", href: "/analytics/visualizations", icon: BarChart3 },
+      { title: "Real-time Streaming", href: "/analytics/streaming", icon: Radio },
+      { title: "Knowledge Graph", href: "/analytics/graph", icon: Network },
+      { title: "Patient Similarity", href: "/analytics/graph/patients", icon: GitBranch },
+      { title: "Drug Pathways", href: "/analytics/graph/pathways", icon: Route },
     ],
   },
   {

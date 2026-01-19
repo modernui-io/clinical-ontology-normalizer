@@ -27,11 +27,13 @@ from app.api import (
     etl_router,
     export_router,
     fhir_router,
+    graph_router,
     jobs_router,
     llm_router,
     notes_router,
     notifications_router,
     patients_router,
+    predictions_router,
     quality_router,
     reconciliation_router,
     search_router,
@@ -41,8 +43,10 @@ from app.api import (
     timeline_router,
     users_router,
     valuesets_router,
+    visualizations_router,
     vocabulary_mapping_router,
     websocket_router,
+    streaming_router,
 )
 from app.api.middleware.error_handler import register_exception_handlers
 from app.core.config import settings
@@ -216,6 +220,38 @@ def prewarm_all_services() -> dict[str, Any]:
     except Exception as e:
         logger.warning(f"Failed to prewarm bulk_export: {e}")
 
+    # Graph Database Service (Neo4j Knowledge Graph)
+    try:
+        from app.services.graph_database_service import get_graph_database_service
+        svc = get_graph_database_service()
+        services_loaded["graph_database"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
+    except Exception as e:
+        logger.warning(f"Failed to prewarm graph_database: {e}")
+
+    # Graph Analytics Service
+    try:
+        from app.services.graph_analytics_service import get_graph_analytics_service
+        svc = get_graph_analytics_service()
+        services_loaded["graph_analytics"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
+    except Exception as e:
+        logger.warning(f"Failed to prewarm graph_analytics: {e}")
+
+    # ML Model Service (Predictive Analytics)
+    try:
+        from app.services.ml_model_service import get_ml_model_service
+        svc = get_ml_model_service()
+        services_loaded["ml_model_service"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
+    except Exception as e:
+        logger.warning(f"Failed to prewarm ml_model_service: {e}")
+
+    # Risk Prediction Service
+    try:
+        from app.services.risk_prediction_service import get_risk_prediction_service
+        svc = get_risk_prediction_service()
+        services_loaded["risk_prediction"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
+    except Exception as e:
+        logger.warning(f"Failed to prewarm risk_prediction: {e}")
+
     total_time_ms = (time.perf_counter() - start_time) * 1000
 
     return {
@@ -313,11 +349,13 @@ app.include_router(documents_router)
 app.include_router(etl_router)
 app.include_router(export_router)
 app.include_router(fhir_router)
+app.include_router(graph_router)
 app.include_router(jobs_router)
 app.include_router(llm_router)
 app.include_router(notes_router)
 app.include_router(notifications_router)
 app.include_router(patients_router)
+app.include_router(predictions_router)
 app.include_router(quality_router)
 app.include_router(reconciliation_router)
 app.include_router(search_router)
@@ -326,8 +364,10 @@ app.include_router(sse_router)
 app.include_router(terminology_router)
 app.include_router(timeline_router)
 app.include_router(valuesets_router)
+app.include_router(visualizations_router)
 app.include_router(vocabulary_mapping_router)
 app.include_router(websocket_router)
+app.include_router(streaming_router)
 
 
 @app.get("/health", tags=["Health"])

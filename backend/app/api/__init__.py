@@ -11,6 +11,7 @@ from app.api.cohorts import router as cohorts_router
 from app.api.dashboard import router as dashboard_router
 from app.api.documents import router as documents_router
 from app.api.etl import router as etl_router
+from app.api.graph import router as graph_router
 from app.api.errors import (
     APIError,
     AuthenticationError,
@@ -78,10 +79,13 @@ from app.api.vocabulary_mapping import router as vocabulary_mapping_router
 from app.api.websocket import router as websocket_router
 from app.api.reconciliation import router as reconciliation_router
 from app.api.notes import router as notes_router
+from app.api.predictions import router as predictions_router
 from app.api.quality import router as quality_router
 from app.api.terminology import router as terminology_router
 from app.api.timeline import router as timeline_router
 from app.api.valuesets import router as valuesets_router
+from app.api.visualizations import router as visualizations_router
+from app.api.streaming import router as streaming_router
 
 __all__ = [
     # Routers
@@ -96,6 +100,7 @@ __all__ = [
     "dashboard_router",
     "documents_router",
     "etl_router",
+    "graph_router",
     "export_router",
     "fhir_router",
     "jobs_router",
@@ -103,6 +108,7 @@ __all__ = [
     "notifications_router",
     "notes_router",
     "patients_router",
+    "predictions_router",
     "quality_router",
     "reconciliation_router",
     "search_router",
@@ -112,8 +118,10 @@ __all__ = [
     "timeline_router",
     "users_router",
     "valuesets_router",
+    "visualizations_router",
     "vocabulary_mapping_router",
     "websocket_router",
+    "streaming_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",
