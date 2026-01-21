@@ -464,6 +464,8 @@ class ClinicalNLPEntityService:
         (r"\b(?:pancreatitis)\b", "Pancreatitis"),
         (r"\b(?:cholecystitis)\b", "Cholecystitis"),
         (r"\b(?:cholelithiasis|gallstone(?:s)?)\b", "Cholelithiasis"),
+        (r"\b(?:appendicitis)\b", "Appendicitis"),
+        (r"\b(?:perforated\s+appendix|ruptured\s+appendix)\b", "Perforated Appendicitis"),
         (r"\b(?:diverticulitis)\b", "Diverticulitis"),
         (r"\b(?:diverticulosis)\b", "Diverticulosis"),
         (r"\b(?:crohn(?:'?s)?(?:\s+disease)?)\b", "Crohn Disease"),
@@ -2710,6 +2712,10 @@ class ClinicalNLPEntityService:
         "Appendicitis": {
             "SNOMED-CT": ("74400008", "Appendicitis"),
             "ICD-10-CM": ("K37", "Unspecified appendicitis"),
+        },
+        "Perforated Appendicitis": {
+            "SNOMED-CT": ("82112000", "Perforated appendicitis"),
+            "ICD-10-CM": ("K35.32", "Acute appendicitis with perforation and localized peritonitis"),
         },
         "Cholecystitis": {
             "SNOMED-CT": ("76581006", "Cholecystitis"),
