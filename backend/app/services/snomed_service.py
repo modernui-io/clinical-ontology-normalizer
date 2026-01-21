@@ -418,20 +418,44 @@ class SNOMEDService:
                         seen_codes.add(code)
 
         # 2. Partial synonym match (query contained in synonym)
+        # Terms that indicate the concept is fundamentally different
+        misleading_prefixes = {
+            "delusion", "delusional", "hallucination", "fear", "phobia",
+            "absence", "lack", "no ", "without", "non-", "pseudo",
+            "history", "family history", "risk", "suspected", "possible",
+        }
         for synonym, codes in self._synonym_index.items():
             if query_lower in synonym and query_lower != synonym:
+                # Check if the synonym contains misleading prefixes
+                extra_text = synonym.replace(query_lower, "").strip()
+                is_misleading = any(
+                    prefix in extra_text.lower() for prefix in misleading_prefixes
+                )
+
+                # Skip clearly misleading matches
+                if is_misleading:
+                    continue
+
                 for code in codes:
                     if code in self._concepts and code not in seen_codes:
                         concept = self._concepts[code]
                         if self._matches_semantic_filter(concept, semantic_types):
                             # Score based on how much of the synonym is matched
-                            score = len(query_lower) / len(synonym)
+                            base_score = len(query_lower) / len(synonym)
+
+                            # Bonus for matches at start or end of synonym
+                            if synonym.startswith(query_lower) or synonym.endswith(query_lower):
+                                base_score *= 1.2
+                            else:
+                                # Penalize matches embedded in the middle
+                                base_score *= 0.7
+
                             matches.append(ConceptMatch(
                                 concept=concept,
-                                confidence=MatchConfidence.HIGH,
+                                confidence=MatchConfidence.HIGH if base_score > 0.5 else MatchConfidence.MEDIUM,
                                 match_type="partial_synonym",
                                 matched_term=synonym,
-                                score=score,
+                                score=min(base_score, 1.0),
                             ))
                             seen_codes.add(code)
 
@@ -463,12 +487,30 @@ class SNOMEDService:
                         if code not in seen_codes:
                             code_word_counts[code] = code_word_counts.get(code, 0) + 1
 
-            # Sort by word count
+            # Sort by word count - require higher threshold for relevance
+            min_word_threshold = max(2, len(query_words) // 2 + 1)  # At least 2 words or half+1
             for code, count in sorted(code_word_counts.items(), key=lambda x: -x[1]):
-                if count >= 2 or (count >= 1 and len(query_words) <= 2):
+                # Require at least half the query words to match
+                if count >= min_word_threshold or (count == len(query_words) and len(query_words) == 1):
                     if code in self._concepts:
                         concept = self._concepts[code]
                         if self._matches_semantic_filter(concept, semantic_types):
+                            # Extra validation: ensure concept name is semantically related
+                            concept_name_lower = concept.concept_name.lower()
+                            # Skip if concept contains misleading or unrelated terms
+                            misleading_terms = [
+                                # Psychiatric/psychological mismatches
+                                "delusion", "delusional", "hallucination", "fear", "phobia",
+                                # Negation/absence
+                                "absence", "lack", "no ", "without", "non-", "pseudo",
+                                # History/risk
+                                "history", "family history", "risk", "suspected", "possible",
+                                # Opposite meanings
+                                "sweet", "pleasant", "normal", "good",
+                            ]
+                            if any(term in concept_name_lower for term in misleading_terms):
+                                continue
+
                             score = count / len(query_words) if query_words else 0
                             matches.append(ConceptMatch(
                                 concept=concept,

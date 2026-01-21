@@ -388,7 +388,7 @@ class ClinicalNLPEntityService:
         (r"\bhyperthyroidism\b", "Hyperthyroidism"),
         (r"\b(?:gerd|gastroesophageal\s+reflux)\b", "GERD"),
         (r"\b(?:osteoarthritis|oa)\b", "Osteoarthritis"),
-        (r"\b(?:rheumatoid\s+arthritis|ra)\b", "Rheumatoid Arthritis"),
+        (r"\b(?:rheumatoid\s+arthritis)\b", "Rheumatoid Arthritis"),  # Note: removed "ra" abbreviation to avoid false positive with "room air"
         (r"\bobesity\b", "Obesity"),
         (r"\b(?:sleep\s+apnea|osa|obstructive\s+sleep\s+apnea)\b", "Sleep Apnea"),
         (r"\b(?:dvt|deep\s+vein\s+thrombosis)\b", "Deep Vein Thrombosis"),
@@ -397,12 +397,14 @@ class ClinicalNLPEntityService:
         (r"\bsepsis\b", "Sepsis"),
         (r"\b(?:cancer|malignancy|carcinoma|neoplasm)\b", "Cancer"),
         (r"\b(?:iron\s+deficiency\s+anemia|iron\s+deficiency\s+anaemia|ida)\b", "Iron Deficiency Anemia"),
+        (r"\b(?:hemorrhagic\s+anemia|blood\s+loss\s+anemia|acute\s+blood\s+loss\s+anemia)\b", "Hemorrhagic Anemia"),
         (r"\banemia\b", "Anemia"),
         (r"\b(?:viral\s+)?gastroenteritis\b", "Gastroenteritis"),
         (r"\b(?:syncope|fainting|fainted|passed\s+out|loss\s+of\s+consciousness)\b", "Syncope"),
         (r"\bdehydration\b", "Dehydration"),
         (r"\b(?:volume\s+depletion|hypovolemia)\b", "Volume Depletion"),
         (r"\b(?:orthostatic\s+hypotension|orthostatic\s+syncope|postural\s+hypotension)\b", "Orthostatic Hypotension"),
+        (r"\bhypotension\b", "Hypotension"),
         # Neurological conditions
         (r"\b(?:peripheral\s+neuropathy|diabetic\s+neuropathy|neuropathy)\b", "Peripheral Neuropathy"),
         (r"\b(?:autonomic\s+neuropathy)\b", "Autonomic Neuropathy"),
@@ -461,6 +463,7 @@ class ClinicalNLPEntityService:
         # Hepatic/GI conditions
         (r"\b(?:cirrhosis|liver\s+cirrhosis)\b", "Cirrhosis"),
         (r"\b(?:fatty\s+liver|nafld|nash|hepatic\s+steatosis)\b", "Fatty Liver Disease"),
+        (r"\b(?:liver\s+disease|hepatic\s+disease|chronic\s+liver\s+disease|cld)\b", "Liver Disease"),
         (r"\b(?:pancreatitis)\b", "Pancreatitis"),
         (r"\b(?:cholecystitis)\b", "Cholecystitis"),
         (r"\b(?:cholelithiasis|gallstone(?:s)?)\b", "Cholelithiasis"),
@@ -471,6 +474,8 @@ class ClinicalNLPEntityService:
         (r"\b(?:crohn(?:'?s)?(?:\s+disease)?)\b", "Crohn Disease"),
         (r"\b(?:ulcerative\s+colitis)\b", "Ulcerative Colitis"),
         (r"\b(?:irritable\s+bowel\s+syndrome|ibs)\b", "Irritable Bowel Syndrome"),
+        (r"\b(?:upper\s+gi\s+bleed(?:ing)?|ugib)\b", "Upper GI Bleeding"),
+        (r"\b(?:lower\s+gi\s+bleed(?:ing)?|lgib)\b", "Lower GI Bleeding"),
         (r"\b(?:gi\s+bleed(?:ing)?|gastrointestinal\s+(?:bleed(?:ing)?|hemorrhage))\b", "GI Bleeding"),
         (r"\b(?:peptic\s+ulcer(?:\s+disease)?|pud)\b", "Peptic Ulcer Disease"),
         (r"\b(?:gastric\s+ulcer)\b", "Gastric Ulcer"),
@@ -503,6 +508,8 @@ class ClinicalNLPEntityService:
         (r"\b(?:acute\s+coronary\s+syndrome|acs)\b", "Acute Coronary Syndrome"),
         (r"\b(?:unstable\s+angina|ua)\b", "Unstable Angina"),
         (r"\b(?:stable\s+angina|angina\s+pectoris)\b", "Stable Angina"),
+        (r"\b(?:ischemia|ischaemia|myocardial\s+ischemia)\b", "Ischemia"),
+        (r"\b(?:demand\s+ischemia)\b", "Demand Ischemia"),
         (r"\b(?:nstemi|non[\s-]?st[\s-]?elevation\s+mi)\b", "NSTEMI"),
         (r"\b(?:stemi|st[\s-]?elevation\s+mi)\b", "STEMI"),
         (r"\b(?:cardiomyopathy)\b", "Cardiomyopathy"),
@@ -557,6 +564,8 @@ class ClinicalNLPEntityService:
         (r"\b(?:hypovolemic\s+shock)\b", "Hypovolemic Shock"),
         (r"\b(?:anaphylaxis|anaphylactic\s+shock)\b", "Anaphylaxis"),
         (r"\b(?:allergic\s+reaction)\b", "Allergic Reaction"),
+        (r"\b(?:nkda|no\s+known\s+(?:drug\s+)?allergies?)\b", "No Known Drug Allergies"),
+        (r"\b(?:drug\s+allergy|medication\s+allergy)\b", "Drug Allergy"),
         (r"\b(?:hypothermia)\b", "Hypothermia"),
         (r"\b(?:hyperthermia|heat\s+stroke)\b", "Hyperthermia"),
         (r"\b(?:malnutrition)\b", "Malnutrition"),
@@ -586,7 +595,7 @@ class ClinicalNLPEntityService:
         (r"\b(?:vomiting|emesis)\b", "Vomiting"),
         (r"\b(?:diarrhea|diarrhoea)\b", "Diarrhea"),
         (r"\bconstipation\b", "Constipation"),
-        (r"\b(?:fatigue|tiredness)\b", "Fatigue"),
+        (r"\b(?:fatigue[d]?|tiredness|tired)\b", "Fatigue"),
         (r"\b(?:dizziness|vertigo|dizzy)\b", "Dizziness"),
         (r"\b(?:lightheaded(?:ness)?|light[\s-]?headed(?:ness)?)\b", "Lightheadedness"),
         (r"\btunnel\s+vision\b", "Tunnel Vision"),
@@ -623,8 +632,10 @@ class ClinicalNLPEntityService:
         (r"\bstridor\b", "Stridor"),
         (r"\b(?:chest\s+tightness)\b", "Chest Tightness"),
         (r"\b(?:hemoptysis|coughing\s+(?:up\s+)?blood)\b", "Hemoptysis"),
+        (r"\b(?:hematemesis|vomiting\s+blood|bloody\s+vomit|coffee[\s-]?ground\s+(?:emesis|vomit))\b", "Hematemesis"),
         (r"\b(?:melena|black\s+(?:tarry\s+)?stool(?:s)?)\b", "Melena"),
         (r"\b(?:hematochezia|blood(?:y)?\s+stool(?:s)?|rectal\s+bleed(?:ing)?)\b", "Hematochezia"),
+        (r"\b(?:brbpr|bright\s+red\s+blood\s+per\s+rectum)\b", "Bright Red Blood Per Rectum"),
         (r"\b(?:hematuria|blood(?:y)?\s+urine)\b", "Hematuria"),
         (r"\b(?:dysuria|painful\s+urination)\b", "Dysuria"),
         (r"\b(?:urinary\s+)?frequency\b", "Urinary Frequency"),
@@ -649,6 +660,7 @@ class ClinicalNLPEntityService:
         (r"\b(?:abdominal\s+)?distension\b", "Abdominal Distension"),
         (r"\b(?:flank\s+pain)\b", "Flank Pain"),
         (r"\b(?:tenderness)\b", "Tenderness"),
+        (r"\b(?:discomfort)\b", "Discomfort"),
         (r"\b(?:guarding)\b", "Guarding"),
         (r"\b(?:rebound\s+tenderness|rebound)\b", "Rebound Tenderness"),
         (r"\b(?:jaundice|icterus|yellow\s+skin)\b", "Jaundice"),
@@ -700,6 +712,8 @@ class ClinicalNLPEntityService:
         (r"\b(?:respiratory\s+distress)\b", "Respiratory Distress"),
         (r"\b(?:respiratory\s+depression)\b", "Respiratory Depression"),
         (r"\b(?:tachycardic)\b", "Tachycardia"),
+        (r"\b(?:irregularly\s+irregular)\b", "Irregularly Irregular Rhythm"),
+        (r"\b(?:regularly\s+irregular)\b", "Regularly Irregular Rhythm"),
         (r"\b(?:bradycardic)\b", "Bradycardia"),
         (r"\b(?:hypotensive)\b", "Hypotension"),
         (r"\b(?:hypertensive)\b", "Hypertension"),
@@ -790,6 +804,9 @@ class ClinicalNLPEntityService:
         r"\b(polyethylene\s+glycol|miralax|peg)\s*(?:(\d+(?:\.\d+)?\s*(?:g|ml)))?(?:\s+(daily))?",
         r"\b(lactulose)\s*(?:(\d+(?:\.\d+)?\s*(?:ml|g)))?(?:\s+(daily|bid|tid|qid))?",
         # Pain/Neurologic medications
+        r"\b(nsaid(?:s)?)\b",  # NSAID drug class
+        r"\b(ppi(?:s)?)\b",  # PPI drug class (proton pump inhibitor)
+        r"\b(anticoagula(?:tion|nt)(?:s)?)\b",  # Anticoagulation/anticoagulant drug class
         r"\b(acetaminophen|tylenol)\s*(?:(\d+(?:\.\d+)?\s*(?:mg)))?(?:\s+(q\d+h|prn))?",
         r"\b(ibuprofen|advil|motrin)\s*(?:(\d+(?:\.\d+)?\s*(?:mg)))?(?:\s+(q\d+h|prn|tid))?",
         r"\b(naproxen|aleve|naprosyn)\s*(?:(\d+(?:\.\d+)?\s*(?:mg)))?(?:\s+(bid|prn))?",
@@ -903,7 +920,7 @@ class ClinicalNLPEntityService:
         r"\b(cetirizine|zyrtec)\s*(?:(\d+(?:\.\d+)?\s*(?:mg)))?(?:\s+(daily))?",
         r"\b(loratadine|claritin)\s*(?:(\d+(?:\.\d+)?\s*(?:mg)))?(?:\s+(daily))?",
         r"\b(fexofenadine|allegra)\s*(?:(\d+(?:\.\d+)?\s*(?:mg)))?(?:\s+(daily|bid))?",
-        r"\b(epinephrine|epi|epipen|adrenaline)\s*(?:(\d+(?:\.\d+)?\s*(?:mg|ml)))?",
+        r"\b(epinephrine|epipen|adrenaline)\s*(?:(\d+(?:\.\d+)?\s*(?:mg|ml)))?",  # Note: removed "epi" abbreviation to avoid false positive with "epigastric"
         r"\b(norepinephrine|levophed|norepi)\s*(?:(\d+(?:\.\d+)?\s*(?:mcg)))?",
         r"\b(vasopressin|pitressin)\s*(?:(\d+(?:\.\d+)?\s*(?:units?|u)))?",
         r"\b(dopamine)\s*(?:(\d+(?:\.\d+)?\s*(?:mcg)))?",
@@ -991,6 +1008,7 @@ class ClinicalNLPEntityService:
         (r"\b(?:csf\s+(?:cultur(?:e|es)?|analysis))\b", "CSF Analysis"),
         (r"\b(?:stool\s+(?:cultur(?:e|es)?|(?:studies|sample)))\b", "Stool Culture"),
         (r"\b(?:blood\s+(?:draw|work)|labs|laboratory)\b", "Laboratory Testing"),
+        (r"\b(?:type\s+and\s+(?:screen|crossmatch)|t&s|t\s*&\s*s|crossmatch)\b", "Type and Screen"),
         (r"\b(?:urinalysis|ua)\b", "Urinalysis"),
         (r"\b(?:cbc|complete\s+blood\s+count)\b", "CBC"),
         (r"\b(?:bmp|basic\s+metabolic\s+panel)\b", "BMP"),
@@ -1026,6 +1044,12 @@ class ClinicalNLPEntityService:
         (r"\b(?:nutrition(?:\s+consult)?|dietitian(?:\s+consult)?|rd\s+consult)\b", "Nutrition Consult"),
         (r"\b(?:case\s+management|cm\s+consult)\b", "Case Management"),
         (r"\b(?:wound\s+care(?:\s+consult)?)\b", "Wound Care Consult"),
+        # Resuscitation and critical care
+        (r"\b(?:resuscitation|resuscitate(?:d)?|fluid\s+resuscitation|volume\s+resuscitation)\b", "Resuscitation"),
+        (r"\b(?:icu|intensive\s+care(?:\s+unit)?|micu|sicu|ccu|cvicu)\b", "ICU Admission"),
+        (r"\b(?:stepdown|step[\s-]?down(?:\s+unit)?|progressive\s+care(?:\s+unit)?|pcu)\b", "Stepdown Unit"),
+        (r"\b(?:large[\s-]?bore\s+(?:iv|peripheral|access)|(?:2|two)\s+large[\s-]?bore\s+(?:ivs?|access))\b", "Large Bore IV Access"),
+        (r"\b(?:peripheral\s+iv|piv)\b", "Peripheral IV"),
         # Discharge/disposition
         (r"\b(?:admit(?:ted)?|admission)\b", "Admission"),
         (r"\b(?:discharge(?:d)?)\b", "Discharge"),
@@ -1490,13 +1514,60 @@ class ClinicalNLPEntityService:
 
     # Anatomical location patterns
     ANATOMICAL_PATTERNS = [
-        (r"\b(left|right|bilateral)\s+(arm|leg|hand|foot|eye|ear|lung|kidney|breast)\b", None),
-        (r"\b(upper|lower)\s+(extremity|extremities|lobe|quadrant)\b", None),
-        (r"\b(anterior|posterior|lateral|medial)\s+\w+\b", None),
-        (r"\b(head|neck|chest|abdomen|pelvis|back|spine)\b", None),
-        (r"\b(heart|lungs?|liver|kidneys?|brain|stomach|intestines?|colon)\b", None),
-        (r"\b(lul|rul|lll|rll|rml)\b", None),  # Lung lobes
-        (r"\b(ruq|luq|rlq|llq)\b", None),  # Abdominal quadrants
+        # Lateralized body parts
+        (r"\b(left|right|bilateral)\s+(arm|leg|hand|foot|eye|ear|lung|kidney|breast|shoulder|hip|knee|ankle|wrist|elbow)\b", None),
+        # Body regions with modifiers
+        (r"\b(upper|lower|mid)\s+(extremity|extremities|lobe|quadrant|back|abdomen|chest|leg|arm)\b", None),
+        (r"\b(anterior|posterior|lateral|medial|proximal|distal|dorsal|ventral|cranial|caudal)\s+\w+\b", None),
+        # Major body regions
+        (r"\b(head|neck|chest|thorax|abdomen|pelvis|back|spine|trunk|groin|axilla|flank)\b", None),
+        # Major organs
+        (r"\b(heart|lungs?|liver|kidneys?|brain|stomach|spleen|pancreas|bladder|uterus|prostate|thyroid|adrenal(?:s)?)\b", None),
+        (r"\b(gallbladder|appendix|ovary|ovaries|testicle|testes|testis)\b", None),
+        # GI tract
+        (r"\b(esophagus|duodenum|jejunum|ileum|cecum|colon|rectum|anus|sigmoid)\b", None),
+        (r"\b(small\s+bowel|small\s+intestine|large\s+bowel|large\s+intestine)\b", None),
+        (r"\b(ascending|descending|transverse|sigmoid)\s+colon\b", None),
+        # Cardiovascular structures
+        (r"\b(aorta|vena\s+cava|pulmonary\s+artery|pulmonary\s+vein|coronary\s+artery|carotid(?:\s+artery)?)\b", None),
+        (r"\b(femoral|radial|brachial|subclavian|iliac|mesenteric|renal)\s+(artery|vein)\b", None),
+        (r"\b(left|right)\s+(atrium|ventricle)\b", None),
+        (r"\b(mitral|aortic|tricuspid|pulmonic)\s+valve\b", None),
+        (r"\b(lad|lcx|rca|lca|lmca)\b", None),  # Coronary arteries
+        # Musculoskeletal - joints
+        (r"\b(shoulder|elbow|wrist|hip|knee|ankle|mcp|pip|dip|mtp|si|tmj|ac)\s*(joint)?\b", None),
+        (r"\b(c\d|t\d|l\d|s\d)(?:-[ctls]\d)?\b", None),  # Spine levels C1-C7, T1-T12, L1-L5, S1-S5
+        (r"\b(cervical|thoracic|lumbar|sacral|coccygeal)\s*(spine|vertebra(?:e)?)\b", None),
+        # Musculoskeletal - bones
+        (r"\b(femur|tibia|fibula|humerus|radius|ulna|clavicle|scapula|pelvis|patella)\b", None),
+        (r"\b(rib(?:s)?|sternum|vertebra(?:e)?|skull|mandible|maxilla)\b", None),
+        (r"\b(metacarpal|metatarsal|phalanx|phalanges|tarsal|carpal)\b", None),
+        # Neurological
+        (r"\b(frontal|parietal|temporal|occipital)\s*(lobe)?\b", None),
+        (r"\b(cerebellum|brainstem|thalamus|hypothalamus|hippocampus|basal\s+ganglia)\b", None),
+        (r"\b(spinal\s+cord|sciatic\s+nerve|brachial\s+plexus|cauda\s+equina)\b", None),
+        (r"\b(median|ulnar|radial|peroneal|tibial|facial)\s+nerve\b", None),
+        # Respiratory
+        (r"\b(trachea|bronchus|bronchi|bronchioles?|alveoli|pleura)\b", None),
+        (r"\b(pharynx|larynx|nasopharynx|oropharynx)\b", None),
+        # Lung lobes
+        (r"\b(lul|rul|lll|rll|rml)\b", None),
+        (r"\b(left|right)\s+(upper|lower|middle)\s+lobe\b", None),
+        # Abdominal quadrants
+        (r"\b(ruq|luq|rlq|llq|epigastric|periumbilical|suprapubic)\b", None),
+        (r"\b(right|left)\s+(upper|lower)\s+quadrant\b", None),
+        # Skin and soft tissue
+        (r"\b(skin|dermis|epidermis|subcutaneous|fascia|muscle)\b", None),
+        # Eye structures
+        (r"\b(cornea|retina|lens|iris|pupil|conjunctiva|sclera|optic\s+nerve|macula)\b", None),
+        # Ear structures
+        (r"\b(tympanic\s+membrane|cochlea|vestibular|eustachian\s+tube|external\s+auditory\s+canal)\b", None),
+        # Urinary system
+        (r"\b(ureter|urethra|renal\s+pelvis|glomerulus|glomeruli)\b", None),
+        # Lymphatic
+        (r"\b(lymph\s+nodes?|lymphatic|axillary|inguinal|cervical|mediastinal)\s*(nodes?)?\b", None),
+        # Oral/dental
+        (r"\b(tongue|palate|gingiva|tonsils?|uvula|pharynx)\b", None),
     ]
 
     # Temporal expression patterns
@@ -1529,6 +1600,7 @@ class ClinicalNLPEntityService:
         self._snomed_service: Any = None
         self._icd10_service: Any = None
         self._cpt_service: Any = None
+        self._drug_interactions_service: Any = None
 
         # Clinical abbreviations and LOINC data (loaded from fixtures)
         self._clinical_abbreviations: dict[str, dict] = {}
@@ -1584,6 +1656,100 @@ class ClinicalNLPEntityService:
             except ImportError as e:
                 logger.warning(f"Could not load CPT service: {e}")
         return self._cpt_service
+
+    def _get_drug_interactions_service(self) -> Any:
+        """Lazy-load the drug interactions service."""
+        if self._drug_interactions_service is None:
+            try:
+                from app.services.drug_interactions import DrugInteractionService
+
+                self._drug_interactions_service = DrugInteractionService()
+                logger.debug("Drug interactions service loaded")
+            except ImportError as e:
+                logger.warning(f"Could not load drug interactions service: {e}")
+        return self._drug_interactions_service
+
+    def check_drug_interactions(
+        self, entities: list[ExtractedEntity]
+    ) -> dict[str, Any]:
+        """Check for drug-drug interactions among extracted medications.
+
+        Args:
+            entities: List of extracted entities from NLP extraction
+
+        Returns:
+            Dict with interaction checking results including:
+            - medications: List of medication names checked
+            - interactions_found: List of interaction details
+            - has_contraindicated: Whether any contraindicated combinations exist
+            - has_major: Whether any major interactions exist
+            - highest_severity: The highest severity level found
+        """
+        # Filter to medication entities only
+        medication_entities = [
+            e for e in entities if e.entity_type == EntityType.MEDICATION
+        ]
+
+        if len(medication_entities) < 2:
+            return {
+                "medications": [e.normalized_text for e in medication_entities],
+                "interactions_found": [],
+                "has_contraindicated": False,
+                "has_major": False,
+                "highest_severity": None,
+                "total_interactions": 0,
+            }
+
+        drug_names = [e.normalized_text.lower() for e in medication_entities]
+
+        interactions_service = self._get_drug_interactions_service()
+        if interactions_service is None:
+            return {
+                "medications": drug_names,
+                "interactions_found": [],
+                "has_contraindicated": False,
+                "has_major": False,
+                "highest_severity": None,
+                "total_interactions": 0,
+                "error": "Drug interactions service not available",
+            }
+
+        try:
+            result = interactions_service.check_interactions(drug_names)
+
+            # Convert to serializable format
+            interactions = []
+            for interaction in result.interactions_found:
+                interactions.append({
+                    "drug1": interaction.drug1,
+                    "drug2": interaction.drug2,
+                    "severity": interaction.severity.value,
+                    "interaction_type": interaction.interaction_type.value,
+                    "description": interaction.description,
+                    "clinical_effect": interaction.clinical_effect,
+                    "management": interaction.management,
+                })
+
+            return {
+                "medications": result.drugs_checked,
+                "interactions_found": interactions,
+                "has_contraindicated": result.has_contraindicated,
+                "has_major": result.has_major,
+                "highest_severity": result.highest_severity.value if result.highest_severity else None,
+                "total_interactions": result.total_interactions,
+                "by_severity": result.by_severity,
+            }
+        except Exception as e:
+            logger.error(f"Error checking drug interactions: {e}")
+            return {
+                "medications": drug_names,
+                "interactions_found": [],
+                "has_contraindicated": False,
+                "has_major": False,
+                "highest_severity": None,
+                "total_interactions": 0,
+                "error": str(e),
+            }
 
     def _load_clinical_abbreviations(self) -> None:
         """Load clinical abbreviations from fixture file."""
@@ -1705,6 +1871,13 @@ class ClinicalNLPEntityService:
 
         if EntityType.TEMPORAL in entity_types:
             entities.extend(self._extract_temporal_expressions(text, sections))
+
+        # Extract using clinical abbreviations dictionary (47K+ terms)
+        # This provides comprehensive coverage for clinical acronyms and short forms
+        abbrev_entities = self._extract_from_clinical_abbreviations(text, sections)
+        # Filter abbreviation entities to only include requested types
+        abbrev_entities = [e for e in abbrev_entities if e.entity_type in entity_types]
+        entities.extend(abbrev_entities)
 
         # Apply negation detection to all entities
         entities = self._apply_negation_detection(text, entities)
@@ -2057,6 +2230,131 @@ class ClinicalNLPEntityService:
                     assertion=AssertionStatus.PRESENT,
                     confidence=0.85,
                 )
+                entities.append(entity)
+
+        return entities
+
+    def _extract_from_clinical_abbreviations(
+        self, text: str, sections: list[SectionSpan]
+    ) -> list[ExtractedEntity]:
+        """Extract entities using the clinical abbreviations dictionary (47K+ terms).
+
+        This provides comprehensive extraction of clinical terms, abbreviations,
+        and their synonyms with OMOP concept ID linkage.
+        """
+        self._load_clinical_abbreviations()
+        entities: list[ExtractedEntity] = []
+        text_lower = text.lower()
+
+        # Build a set of already-matched spans to avoid duplicates
+        matched_spans: set[tuple[int, int]] = set()
+
+        # Domain to EntityType mapping
+        domain_to_entity_type = {
+            "Condition": EntityType.DIAGNOSIS,
+            "Observation": EntityType.SYMPTOM,
+            "Drug": EntityType.MEDICATION,
+            "Procedure": EntityType.PROCEDURE,
+            "Measurement": EntityType.LAB_RESULT,
+            "Device": EntityType.PROCEDURE,
+        }
+
+        # Sort abbreviations by length (longest first) to match most specific terms first
+        sorted_abbrevs = sorted(
+            self._clinical_abbreviations.items(),
+            key=lambda x: len(x[0]),
+            reverse=True
+        )
+
+        # Context-dependent abbreviations that need special handling
+        # Format: abbrev -> (excluded_context_pattern, alternative_meaning)
+        context_exclusions = {
+            "ra": (r"(?:spo2|o2\s*sat|saturation|sat).*?(?:on|%)\s*ra\b|\bra\s*(?:room\s*air)", "room air"),
+            "pe": (r"\brule\s+out\s+pe\b|\bpe\s+protocol\b|\bpe\s+study\b|\bno\s+pe\b|\bcta\s+pe\b", "pulmonary embolism"),  # PE in these contexts is pulmonary embolism, not physical exam
+            "pt": (r"\binr|coag|anticoag|warfarin|pt/inr\b", "prothrombin time"),  # PT near anticoagulation is lab, not physical therapy
+        }
+
+        for abbrev_key, term_data in sorted_abbrevs:
+            if len(abbrev_key) < 2:  # Skip single-character matches
+                continue
+
+            # Use word boundary matching
+            pattern = r'\b' + re.escape(abbrev_key) + r'\b'
+
+            for match in re.finditer(pattern, text_lower, re.IGNORECASE):
+                # Check context exclusions for ambiguous abbreviations
+                if abbrev_key in context_exclusions:
+                    exclusion_pattern, _ = context_exclusions[abbrev_key]
+                    # Get surrounding context (50 chars before and after)
+                    context_start = max(0, match.start() - 50)
+                    context_end = min(len(text_lower), match.end() + 50)
+                    context = text_lower[context_start:context_end]
+                    if re.search(exclusion_pattern, context, re.IGNORECASE):
+                        continue  # Skip this match due to context
+
+                span_key = (match.start(), match.end())
+
+                # Skip if this span overlaps with already-matched spans
+                overlaps = False
+                for existing_start, existing_end in matched_spans:
+                    if not (match.end() <= existing_start or match.start() >= existing_end):
+                        overlaps = True
+                        break
+
+                if overlaps:
+                    continue
+
+                matched_spans.add(span_key)
+
+                domain = term_data.get("domain", "Condition")
+                entity_type = domain_to_entity_type.get(domain, EntityType.DIAGNOSIS)
+
+                span = EntitySpan(
+                    start=match.start(),
+                    end=match.end(),
+                    text=text[match.start():match.end()],
+                )
+                section = self._get_section_at_offset(match.start(), sections)
+
+                # Higher confidence for abbreviation matches with OMOP IDs
+                omop_id = term_data.get("omop_concept_id")
+                base_confidence = 0.90 if omop_id else 0.80
+
+                # Boost confidence based on section appropriateness
+                section_boost = 0.0
+                if section in (ClinicalSection.ASSESSMENT, ClinicalSection.HPI, ClinicalSection.PAST_MEDICAL_HISTORY):
+                    if entity_type == EntityType.DIAGNOSIS:
+                        section_boost = 0.05
+                elif section == ClinicalSection.MEDICATIONS:
+                    if entity_type == EntityType.MEDICATION:
+                        section_boost = 0.05
+                elif section in (ClinicalSection.LABS, ClinicalSection.VITAL_SIGNS):
+                    if entity_type == EntityType.LAB_RESULT:
+                        section_boost = 0.05
+
+                entity = ExtractedEntity(
+                    id=str(uuid4()),
+                    entity_type=entity_type,
+                    text=span.text,
+                    normalized_text=term_data.get("name", abbrev_key),
+                    span=span,
+                    section=section,
+                    assertion=AssertionStatus.PRESENT,
+                    confidence=min(0.95, base_confidence + section_boost),
+                )
+
+                # Store OMOP concept ID for later normalization
+                if omop_id:
+                    entity.normalized_codes.append(
+                        NormalizedCode(
+                            code=str(omop_id),
+                            display=term_data.get("name", abbrev_key),
+                            system=NormalizationVocabulary.SNOMED_CT,  # OMOP uses SNOMED
+                            confidence=0.95,
+                            is_preferred=True,
+                        )
+                    )
+
                 entities.append(entity)
 
         return entities
@@ -4933,21 +5231,31 @@ class ClinicalNLPEntityService:
                         )
                     )
 
-        # Use terminology services based on entity type
-        if entity.entity_type == EntityType.MEDICATION:
-            codes.extend(self._normalize_medication(normalized_text, vocabularies))
-        elif entity.entity_type in (EntityType.DIAGNOSIS, EntityType.SYMPTOM):
-            codes.extend(self._normalize_diagnosis(normalized_text, vocabularies))
-        elif entity.entity_type == EntityType.PROCEDURE:
-            codes.extend(self._normalize_procedure(normalized_text, vocabularies))
-        elif entity.entity_type in (EntityType.LAB_RESULT, EntityType.VITAL_SIGN):
-            codes.extend(self._normalize_lab_or_vital(normalized_text, vocabularies))
+        # Try static CLINICAL_CODE_MAPPINGS first for exact matches (curated, high-quality)
+        static_codes = self._fallback_static_lookup(normalized_text, vocabularies)
+        if static_codes:
+            codes.extend(static_codes)
+        else:
+            # Use terminology services based on entity type
+            if entity.entity_type == EntityType.MEDICATION:
+                codes.extend(self._normalize_medication(normalized_text, vocabularies))
+            elif entity.entity_type in (EntityType.DIAGNOSIS, EntityType.SYMPTOM):
+                codes.extend(self._normalize_diagnosis(normalized_text, vocabularies))
+            elif entity.entity_type == EntityType.PROCEDURE:
+                codes.extend(self._normalize_procedure(normalized_text, vocabularies))
+            elif entity.entity_type in (EntityType.LAB_RESULT, EntityType.VITAL_SIGN):
+                codes.extend(self._normalize_lab_or_vital(normalized_text, vocabularies))
 
-        # Fall back to static mappings if no codes found
-        if not codes:
-            codes = self._fallback_static_lookup(normalized_text, vocabularies)
+        # Deduplicate codes by (code, system) to prevent duplicates from multiple sources
+        seen: set[tuple[str, str]] = set()
+        unique_codes: list[NormalizedCode] = []
+        for c in codes:
+            key = (c.code, c.system.value if hasattr(c.system, 'value') else str(c.system))
+            if key not in seen:
+                seen.add(key)
+                unique_codes.append(c)
 
-        return codes
+        return unique_codes
 
     def _normalize_medication(
         self, text: str, vocabularies: list[NormalizationVocabulary]
@@ -4986,8 +5294,9 @@ class ClinicalNLPEntityService:
     def _normalize_diagnosis(
         self, text: str, vocabularies: list[NormalizationVocabulary]
     ) -> list[NormalizedCode]:
-        """Normalize diagnosis using SNOMED and ICD-10 services."""
+        """Normalize diagnosis using SNOMED and ICD-10 services with cross-mapping."""
         codes: list[NormalizedCode] = []
+        snomed_codes_for_crossmap: list[str] = []
 
         # Try SNOMED-CT first
         if NormalizationVocabulary.SNOMED_CT in vocabularies:
@@ -4999,17 +5308,41 @@ class ClinicalNLPEntityService:
                         concept = match.concept
                         codes.append(
                             NormalizedCode(
-                                code=concept.concept_id,
+                                code=str(concept.concept_id),
                                 display=concept.concept_name,
                                 system=NormalizationVocabulary.SNOMED_CT,
                                 confidence=match.score * 0.95,
                                 is_preferred=(i == 0),
                             )
                         )
+                        # Store SNOMED codes for cross-mapping to ICD-10
+                        if concept.concept_code:
+                            snomed_codes_for_crossmap.append(concept.concept_code)
                 except Exception as e:
                     logger.debug(f"SNOMED lookup failed for '{text}': {e}")
 
-        # Also try ICD-10-CM
+        # Auto-add ICD-10 cross-mappings from SNOMED codes (comprehensive coverage)
+        if NormalizationVocabulary.ICD10_CM in vocabularies and snomed_codes_for_crossmap:
+            snomed = self._get_snomed_service()
+            if snomed:
+                for snomed_code in snomed_codes_for_crossmap[:2]:  # Limit to top 2
+                    try:
+                        crossmap = snomed.get_icd10_mappings(snomed_code)
+                        if crossmap and crossmap.icd10_codes:
+                            for icd10_code in crossmap.icd10_codes[:2]:
+                                codes.append(
+                                    NormalizedCode(
+                                        code=icd10_code,
+                                        display=f"Cross-mapped from SNOMED {snomed_code}",
+                                        system=NormalizationVocabulary.ICD10_CM,
+                                        confidence=0.85,
+                                        is_preferred=False,
+                                    )
+                                )
+                    except Exception as e:
+                        logger.debug(f"SNOMED-to-ICD-10 cross-mapping failed for '{snomed_code}': {e}")
+
+        # Also try direct ICD-10-CM lookup
         if NormalizationVocabulary.ICD10_CM in vocabularies:
             icd10 = self._get_icd10_service()
             if icd10:
@@ -5070,7 +5403,7 @@ class ClinicalNLPEntityService:
                         concept = match.concept
                         codes.append(
                             NormalizedCode(
-                                code=concept.concept_id,
+                                code=str(concept.concept_id),
                                 display=concept.concept_name,
                                 system=NormalizationVocabulary.SNOMED_CT,
                                 confidence=match.score * 0.90,
@@ -5108,11 +5441,17 @@ class ClinicalNLPEntityService:
             )
         else:
             # Try partial match on common lab names
+            seen_codes: set[str] = set()
             for key, concept in self._loinc_codes.items():
                 if isinstance(key, str) and search_text in key:
+                    code = concept.get("concept_code", "")
+                    # Skip if we've already added this code (deduplication)
+                    if code in seen_codes:
+                        continue
+                    seen_codes.add(code)
                     codes.append(
                         NormalizedCode(
-                            code=concept.get("concept_code", ""),
+                            code=code,
                             display=concept.get("concept_name", text),
                             system=NormalizationVocabulary.LOINC,
                             confidence=0.80,
