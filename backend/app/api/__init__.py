@@ -5,6 +5,7 @@ from app.api.ai_coding import router as ai_coding_router
 from app.api.assistant import router as assistant_router
 from app.api.audit import router as audit_router
 from app.api.auth import router as auth_router
+from app.api.batch import router as batch_router
 from app.api.calculators import router as calculators_router
 from app.api.calculators import clinical_router as clinical_calculators_router
 from app.api.cdisc import router as cdisc_router
@@ -110,6 +111,10 @@ from app.api.visualizations import router as visualizations_router
 from app.api.streaming import router as streaming_router
 from app.api.synthetic import router as synthetic_router
 from app.api.tefca import router as tefca_router
+from app.api.knowledge_graph_fhir import router as knowledge_graph_fhir_router
+from app.api.kg_benchmark import router as kg_benchmark_router
+from app.api.kg_health import router as kg_health_router
+from app.api.kg_orchestration import router as kg_orchestration_router
 
 __all__ = [
     # Routers
@@ -118,6 +123,7 @@ __all__ = [
     "assistant_router",
     "audit_router",
     "auth_router",
+    "batch_router",
     "calculators_router",
     "clinical_calculators_router",
     "cdisc_router",
@@ -160,6 +166,10 @@ __all__ = [
     "streaming_router",
     "synthetic_router",
     "tefca_router",
+    "knowledge_graph_fhir_router",
+    "kg_benchmark_router",
+    "kg_health_router",
+    "kg_orchestration_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",

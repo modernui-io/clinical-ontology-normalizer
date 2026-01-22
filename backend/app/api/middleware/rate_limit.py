@@ -79,6 +79,34 @@ DEFAULT_RATE_LIMITS: dict[str, RateLimitConfig] = {
     # Export operations - limited
     "/api/v1/export": RateLimitConfig(requests_per_window=30, window_seconds=60),
 
+    # Knowledge Graph endpoints
+    # KG Health monitoring - permissive (monitoring tools)
+    "/api/v1/kg/health": RateLimitConfig(requests_per_window=500, window_seconds=60),
+    "/api/v1/kg/health/liveness": RateLimitConfig(requests_per_window=1000, window_seconds=60),
+    "/api/v1/kg/health/readiness": RateLimitConfig(requests_per_window=1000, window_seconds=60),
+    "/api/v1/kg/health/metrics": RateLimitConfig(requests_per_window=300, window_seconds=60),
+
+    # KG Orchestration - moderate limits
+    "/api/v1/kg/orchestration/status": RateLimitConfig(requests_per_window=200, window_seconds=60),
+    "/api/v1/kg/orchestration/query": RateLimitConfig(requests_per_window=100, window_seconds=60),
+    "/api/v1/kg/orchestration/clinical-question": RateLimitConfig(requests_per_window=60, window_seconds=60),
+
+    # KG Reasoning - lower limits (expensive operations)
+    "/api/v1/kg/orchestration/reasoning-path": RateLimitConfig(requests_per_window=30, window_seconds=60),
+    "/api/v1/kg/orchestration/patient": RateLimitConfig(requests_per_window=50, window_seconds=60),
+
+    # KG MDT sessions - very limited (expensive multi-agent operations)
+    "/api/v1/kg/orchestration/mdt-session": RateLimitConfig(requests_per_window=10, window_seconds=60),
+
+    # KG Export - limited
+    "/api/v1/kg/orchestration/export": RateLimitConfig(requests_per_window=20, window_seconds=60),
+
+    # KG Benchmark endpoints - limited (resource-intensive)
+    "/api/v1/kg/benchmark/run": RateLimitConfig(requests_per_window=5, window_seconds=60),
+    "/api/v1/kg/benchmark/suite": RateLimitConfig(requests_per_window=3, window_seconds=60),
+    "/api/v1/kg/benchmark/drknows": RateLimitConfig(requests_per_window=5, window_seconds=60),
+    "/api/v1/kg/benchmark": RateLimitConfig(requests_per_window=30, window_seconds=60),
+
     # Default for all other endpoints
     "*": RateLimitConfig(requests_per_window=100, window_seconds=60),
 }

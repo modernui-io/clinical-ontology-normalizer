@@ -43,5 +43,17 @@ class Settings(BaseSettings):
     llm_model: str = "gpt-4o-mini"  # Default model
     llm_max_tokens: int = 4096  # Maximum tokens for completion
 
+    # Neo4j Configuration (for knowledge graph)
+    neo4j_uri: str = "bolt://localhost:7687"
+    neo4j_user: str = "neo4j"
+    neo4j_password: str = "clinical123"
+    neo4j_database: str = "neo4j"
+    neo4j_max_connection_pool_size: int = 50
+    neo4j_connection_timeout: int = 30
+
+    # UMLS Configuration
+    umls_api_key: str | None = None  # For UMLS API access
+    umls_data_path: str | None = None  # Path to UMLS META directory
+
 
 settings = Settings()

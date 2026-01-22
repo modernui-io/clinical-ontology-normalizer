@@ -16,7 +16,13 @@ from threading import Lock
 from typing import Any, ClassVar
 
 import numpy as np
-from sentence_transformers import SentenceTransformer
+
+try:
+    from sentence_transformers import SentenceTransformer
+    SENTENCE_TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    SentenceTransformer = None
+    SENTENCE_TRANSFORMERS_AVAILABLE = False
 
 from app.schemas.base import Domain
 from app.services.vocabulary import OMOPConcept, VocabularyService
@@ -311,6 +317,12 @@ class EnhancedVocabularyService(VocabularyService):
 
     def _build_embeddings(self) -> None:
         """Build concept embeddings for semantic search."""
+        if not SENTENCE_TRANSFORMERS_AVAILABLE:
+            logger.warning("sentence_transformers not installed, semantic search disabled")
+            self._embedder = None
+            self._concept_embeddings = None
+            return
+
         try:
             self._embedder = SentenceTransformer(self.EMBEDDING_MODEL)
 

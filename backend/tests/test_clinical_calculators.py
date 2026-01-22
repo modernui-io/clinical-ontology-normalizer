@@ -519,5 +519,5 @@ class TestIntegration:
         """Test service statistics."""
         stats = self.service.get_stats()
 
-        assert stats["total_calculators"] == 8
+        assert stats["total_calculators"] == 42
         assert "bmi" in stats["calculator_list"]
