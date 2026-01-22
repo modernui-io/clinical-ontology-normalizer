@@ -7,410 +7,265 @@
 
 ## Priority Levels
 
-| Priority | Definition | Timeline |
-|----------|------------|----------|
-| **P0** | Critical infrastructure - blocks everything else | Week 1 |
-| **P1** | Core data loading - enables reasoning | Weeks 2-3 |
-| **P2** | API integration - exposes capabilities | Weeks 3-4 |
-| **P3** | Optimization & validation - production readiness | Weeks 5-6 |
+| Priority | Definition | Timeline | Steps |
+|----------|------------|----------|-------|
+| **P0** | Critical infrastructure - blocks everything else | Week 1 | 7 steps |
+| **P1** | Core data loading - enables reasoning | Weeks 2-3 | 12 steps |
+| **P2** | API integration - exposes capabilities | Weeks 3-4 | 10 steps |
+| **P3** | Optimization & validation - production readiness | Weeks 5-6 | 18 steps |
+
+**Total: 47 steps with 12 test checkpoints**
 
 ---
 
 ## P0: Critical Infrastructure (Week 1)
 
-### Neo4j Deployment
+### Steps P0-1 to P0-7
 
-- [ ] **P0-1**: Install Docker and verify it's running
-  ```bash
-  docker --version
-  ```
+| Step | Task | Validation |
+|------|------|------------|
+| **P0-1** | Install Docker and verify it's running | `docker --version` returns version |
+| **P0-2** | Deploy Neo4j 5.15+ Enterprise container | Container running on ports 7474/7687 |
+| **P0-3** | Configure environment variables in `.env` | NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD set |
+| **P0-4** | Update `app/core/config.py` to load Neo4j settings | Config loads without errors |
+| **P0-5** | Verify Neo4j connection from Python | `driver.verify_connectivity()` passes |
+| **P0-6** | Execute schema creation queries (constraints, indexes) | 4+ constraints, 5+ indexes created |
+| **P0-7** | Disable mock mode in `graph_database_service.py` | Real queries execute against Neo4j |
 
-- [ ] **P0-2**: Deploy Neo4j 5.15+ Enterprise container
-  ```bash
-  docker run -d \
-    --name neo4j-clinical \
-    -p 7474:7474 -p 7687:7687 \
-    -e NEO4J_AUTH=neo4j/clinical123 \
-    -e NEO4J_PLUGINS='["apoc", "graph-data-science"]' \
-    -v neo4j_data:/data \
-    neo4j:5.15-enterprise
-  ```
+### Commands Reference
 
-- [ ] **P0-3**: Configure environment variables in `.env`
-  ```
-  NEO4J_URI=bolt://localhost:7687
-  NEO4J_USER=neo4j
-  NEO4J_PASSWORD=clinical123
-  ```
-
-- [ ] **P0-4**: Update `app/core/config.py` to load Neo4j settings
-
-- [ ] **P0-5**: Verify Neo4j connection from Python
-  ```python
-  from neo4j import GraphDatabase
-  driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "clinical123"))
-  driver.verify_connectivity()
-  ```
-
-### **TEST CHECKPOINT P0-T1**: Neo4j Health Check
 ```bash
-curl http://localhost:7474/db/neo4j/cluster/available
-# Expected: true
+# P0-1: Verify Docker
+docker --version
+
+# P0-2: Deploy Neo4j
+docker run -d \
+  --name neo4j-clinical \
+  -p 7474:7474 -p 7687:7687 \
+  -e NEO4J_AUTH=neo4j/clinical123 \
+  -e NEO4J_PLUGINS='["apoc", "graph-data-science"]' \
+  -v neo4j_data:/data \
+  neo4j:5.15-enterprise
+
+# P0-3: Environment variables
+NEO4J_URI=bolt://localhost:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=clinical123
 ```
 
-- [ ] **P0-6**: Execute schema creation queries from `graph_etl_service.py`
-  - Create constraints (patient_id, concept_cui)
-  - Create indexes (concept_name, vocabulary, fact_patient, fact_date)
-  - Create full-text search index
+### Test Checkpoints
 
-- [ ] **P0-7**: Disable mock mode in `graph_database_service.py`
-  - Set `_mock_mode = False` when Neo4j available
-
-### **TEST CHECKPOINT P0-T2**: Schema Verification
-```cypher
-SHOW CONSTRAINTS;
-SHOW INDEXES;
--- Expected: 4+ constraints, 5+ indexes
-```
+| Checkpoint | After Step | Test | Expected Result |
+|------------|------------|------|-----------------|
+| **P0-T1** | P0-5 | `curl http://localhost:7474/db/neo4j/cluster/available` | `true` |
+| **P0-T2** | P0-7 | `SHOW CONSTRAINTS; SHOW INDEXES;` | 4+ constraints, 5+ indexes |
 
 ---
 
 ## P1: UMLS Data Loading (Weeks 2-3)
 
-### UMLS License & Download
+### Steps P1-1 to P1-12
 
-- [ ] **P1-1**: Verify UMLS license at https://uts.nlm.nih.gov/uts/
-  - If not licensed, apply (takes 1-3 days)
+| Step | Task | Validation |
+|------|------|------------|
+| **P1-1** | Verify UMLS license at uts.nlm.nih.gov | License active or application submitted |
+| **P1-2** | Download UMLS Knowledge Sources (Full Release) | MRCONSO.RRF, MRREL.RRF, MRSTY.RRF, MRDEF.RRF downloaded |
+| **P1-3** | Create `fixtures/umls/` directory (gitignored) | Directory exists, added to .gitignore |
+| **P1-4** | Implement `load_umls_to_neo4j.py` - Concept loader | Script parses MRCONSO.RRF correctly |
+| **P1-5** | Add semantic type loading from MRSTY.RRF | 127 semantic types mapped to concepts |
+| **P1-6** | Add relation loading from MRREL.RRF | RO, RB, RN, PAR, CHD, SY relation types supported |
+| **P1-7** | Load first 100K UMLS concepts (test batch) | `MATCH (c:Concept) RETURN count(c)` >= 100,000 |
+| **P1-8** | Load full MRCONSO.RRF (4.5M concepts) | ~4,500,000 concepts in Neo4j |
+| **P1-9** | Load MRREL.RRF relations (15M) | >= 15,000,000 relationships created |
+| **P1-10** | Load clinical vocabularies subset with hierarchies | SNOMED, RxNorm, LOINC hierarchies traversable |
+| **P1-11** | Build CUI-to-vocabulary mappings | SNOMED→CUI, RxNorm→CUI, ICD-10→CUI lookups work |
+| **P1-12** | Update vocabulary services to use CUI lookups | `get_cui()` methods return valid CUIs |
 
-- [ ] **P1-2**: Download UMLS Knowledge Sources (Full Release)
-  - Files needed: MRCONSO.RRF, MRREL.RRF, MRSTY.RRF, MRDEF.RRF
+### Files to Create/Modify
 
-- [ ] **P1-3**: Create `fixtures/umls/` directory (gitignored)
-  ```bash
-  mkdir -p fixtures/umls
-  echo "fixtures/umls/*.RRF" >> .gitignore
-  ```
+| File | Action | Purpose |
+|------|--------|---------|
+| `fixtures/umls/` | Create | Store UMLS RRF files (gitignored) |
+| `scripts/load_umls_to_neo4j.py` | Implement | Batch load UMLS into Neo4j |
+| `app/services/snomed_service.py` | Add `get_cui()` | CUI lookup for SNOMED codes |
+| `app/services/rxnorm_service.py` | Add `get_cui()` | CUI lookup for RxNorm codes |
+| `app/services/icd10_suggester.py` | Add `get_cui()` | CUI lookup for ICD-10 codes |
 
-### UMLS Loader Implementation
+### Test Checkpoints
 
-- [ ] **P1-4**: Implement `scripts/load_umls_to_neo4j.py` - Concept loader
-  - Parse MRCONSO.RRF (4.5M rows)
-  - Batch insert in chunks of 10,000
-  - Track progress with logging
+| Checkpoint | After Step | Test | Expected Result |
+|------------|------------|------|-----------------|
+| **P1-T1** | P1-7 | `MATCH (c:Concept) RETURN count(c)` | >= 100,000 |
+| **P1-T2** | P1-8 | `MATCH (c:Concept) RETURN count(c)` | ~4,500,000 |
+| **P1-T3** | P1-9 | `MATCH ()-[r]->() RETURN count(r)` | >= 15,000,000 |
+| **P1-T4** | P1-12 | Cross-vocabulary query for "diabetes" | Results from SNOMED, ICD-10, RxNorm |
 
-- [ ] **P1-5**: Add semantic type loading from MRSTY.RRF
-  - Map 127 semantic types to concepts
-  - Assign semantic groups (15 groups)
+### Estimated Load Times
 
-- [ ] **P1-6**: Add relation loading from MRREL.RRF
-  - Key relations: RO, RB, RN, PAR, CHD, SY
-  - 15M relations in batches of 50,000
-
-### **TEST CHECKPOINT P1-T1**: Initial Load (100K concepts)
-```cypher
-MATCH (c:Concept) RETURN count(c);
--- Expected: >= 100,000
-```
-
-- [ ] **P1-7**: Load first 100K UMLS concepts (test batch)
-  - Verify schema integrity
-  - Measure load time (~10 min expected)
-
-- [ ] **P1-8**: Load full MRCONSO.RRF (4.5M concepts)
-  - Estimated time: 2-4 hours
-  - Memory requirement: 16GB+
-
-### **TEST CHECKPOINT P1-T2**: Full Concept Load
-```cypher
-MATCH (c:Concept) RETURN count(c);
--- Expected: ~4,500,000
-
-MATCH (c:Concept) WHERE c.semantic_type IS NOT NULL RETURN count(c);
--- Expected: ~4,500,000 (all should have types)
-```
-
-- [ ] **P1-9**: Load MRREL.RRF relations (15M)
-  - Estimated time: 4-6 hours
-  - Create indexes before load for performance
-
-- [ ] **P1-10**: Load clinical vocabularies subset
-  - SNOMED-CT concepts with full hierarchy
-  - RxNorm drugs with ingredients
-  - LOINC lab tests with panels
-  - ICD-10 with excludes/includes
-
-### **TEST CHECKPOINT P1-T3**: Relation Load
-```cypher
-MATCH ()-[r]->() RETURN count(r);
--- Expected: >= 15,000,000
-
-MATCH (c1:Concept)-[:IS_A]->(c2:Concept) RETURN count(*) LIMIT 1;
--- Expected: > 0 (hierarchy exists)
-```
-
-- [ ] **P1-11**: Build CUI-to-vocabulary mappings
-  - SNOMED code → CUI
-  - RxNorm RxCUI → CUI
-  - ICD-10 code → CUI
-  - Store in lookup tables
-
-- [ ] **P1-12**: Update vocabulary services to use CUI lookups
-  - `snomed_service.py`: Add `get_cui()` method
-  - `rxnorm_service.py`: Add `get_cui()` method
-  - `icd10_suggester.py`: Add `get_cui()` method
-
-### **TEST CHECKPOINT P1-T4**: Cross-Vocabulary Query
-```cypher
-// Find diabetes concepts across vocabularies
-MATCH (c:Concept)
-WHERE c.name CONTAINS 'diabetes' AND c.vocabulary IN ['SNOMEDCT_US', 'ICD10CM', 'RXNORM']
-RETURN c.vocabulary, count(c);
--- Expected: Results from all 3 vocabularies
-```
+| Data | Records | Batch Size | Estimated Time |
+|------|---------|------------|----------------|
+| MRCONSO (concepts) | 4.5M | 10,000 | 2-4 hours |
+| MRSTY (semantic types) | 4.5M | 50,000 | 30-60 min |
+| MRREL (relations) | 15M | 50,000 | 4-6 hours |
 
 ---
 
 ## P2: API Integration (Weeks 3-4)
 
-### Multi-Hop Reasoning API
+### Steps P2-1 to P2-10
 
-- [ ] **P2-1**: Create new endpoint in `app/api/graph.py`
-  ```python
-  @router.post("/graph/reasoning/multi-hop")
-  async def multi_hop_reasoning(query: MultiHopQuery):
-      # Calls neo4j_temporal_service.multi_hop_reasoning()
-  ```
+| Step | Task | Validation |
+|------|------|------------|
+| **P2-1** | Create `/graph/reasoning/multi-hop` endpoint | Endpoint returns paths up to 5 hops |
+| **P2-2** | Expose semantic type filtering in API | Filter by DISO, CHEM, PROC, ANAT groups |
+| **P2-3** | Add `/graph/reasoning/score-paths` endpoint | Returns scored paths with confidence decay |
+| **P2-4** | Integrate temporal service into graph API | `find_treatment_paths()`, `find_contraindications()` exposed |
+| **P2-5** | Update graph RAG endpoint to use UMLS | `/graph-rag/search` queries Neo4j backend |
+| **P2-6** | Add `/graph/reasoning/aggregate-evidence` endpoint | Combines multiple paths into conclusions |
+| **P2-7** | Create vocabulary bridge service | Cross-vocabulary routing via CUI works |
+| **P2-8** | Update Clinical Intelligence Agent with graph reasoning | `ACTION_GRAPH_REASONING` action type added |
+| **P2-9** | Add Graph RAG to Hybrid Analyzer | Reasoning paths included in LLM context |
+| **P2-10** | Update agent API to include reasoning capabilities | `/agent/analyze` uses graph reasoning |
 
-- [ ] **P2-2**: Expose semantic type filtering in API
-  - Filter by UMLS semantic groups (DISO, CHEM, PROC, etc.)
-  - Support inclusion/exclusion lists
+### New API Endpoints
 
-- [ ] **P2-3**: Add path scoring endpoint
-  ```python
-  @router.post("/graph/reasoning/score-paths")
-  async def score_reasoning_paths(paths: List[Path]):
-      # Returns scored paths with confidence decay
-  ```
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/graph/reasoning/multi-hop` | POST | Execute multi-hop reasoning queries |
+| `/graph/reasoning/score-paths` | POST | Score and rank reasoning paths |
+| `/graph/reasoning/aggregate-evidence` | POST | Combine paths into clinical conclusions |
 
-### **TEST CHECKPOINT P2-T1**: Multi-Hop Query
+### Files to Create/Modify
+
+| File | Action | Purpose |
+|------|--------|---------|
+| `app/api/graph.py` | Add endpoints | Multi-hop reasoning API |
+| `app/services/vocabulary_bridge.py` | Create | Cross-vocabulary routing |
+| `app/services/clinical_intelligence_agent.py` | Add action | Graph reasoning action type |
+| `app/services/hybrid_clinical_analyzer.py` | Integrate | Graph RAG in LLM context |
+
+### Test Checkpoints
+
+| Checkpoint | After Step | Test | Expected Result |
+|------------|------------|------|-----------------|
+| **P2-T1** | P2-3 | POST `/graph/reasoning/multi-hop` with diabetes CUI | Treatment paths returned |
+| **P2-T2** | P2-9 | `VocabularyBridge.find_treatments_for_condition()` | Cross-vocabulary drugs found |
+
+### Sample API Request
+
 ```bash
+# P2-T1: Multi-hop reasoning test
 curl -X POST http://localhost:8000/graph/reasoning/multi-hop \
   -H "Content-Type: application/json" \
-  -d '{"seed_cui": "C0011849", "max_hops": 5, "semantic_groups": ["DISO", "CHEM"]}'
-# Expected: Paths from diabetes to treatments
+  -d '{
+    "seed_cui": "C0011849",
+    "max_hops": 5,
+    "semantic_groups": ["DISO", "CHEM"],
+    "min_confidence": 0.5
+  }'
 ```
-
-- [ ] **P2-4**: Integrate temporal service into graph API
-  - Expose `find_treatment_paths()`
-  - Expose `find_contraindications()`
-  - Expose `aggregate_evidence()`
-
-- [ ] **P2-5**: Update graph RAG endpoint to use UMLS
-  - Connect `/graph-rag/search` to Neo4j backend
-  - Add CUI-based retrieval
-
-- [ ] **P2-6**: Add evidence aggregation endpoint
-  ```python
-  @router.post("/graph/reasoning/aggregate-evidence")
-  async def aggregate_evidence(paths: List[ReasoningPath]):
-      # Combines multiple paths into clinical conclusions
-  ```
-
-### Cross-Vocabulary Integration
-
-- [ ] **P2-7**: Create vocabulary bridge service
-  - `app/services/vocabulary_bridge.py`
-  - Route queries across SNOMED ↔ ICD-10 ↔ RxNorm via CUI
-
-- [ ] **P2-8**: Update Clinical Intelligence Agent
-  - Add `ACTION_GRAPH_REASONING` action type
-  - Connect to multi-hop reasoning
-
-- [ ] **P2-9**: Add Graph RAG to Hybrid Analyzer
-  - Retrieve relevant paths before LLM call
-  - Include in structured context
-
-### **TEST CHECKPOINT P2-T2**: Cross-Vocabulary Bridge
-```python
-# Test: Find RxNorm drugs that treat SNOMED condition
-from app.services.vocabulary_bridge import VocabularyBridge
-bridge = VocabularyBridge()
-drugs = bridge.find_treatments_for_condition(snomed_code="73211009")  # Diabetes
-assert len(drugs) > 0
-```
-
-- [ ] **P2-10**: Update agent API to include reasoning capabilities
-  - `/agent/analyze` endpoint uses graph reasoning
-  - Include evidence paths in response
 
 ---
 
 ## P3: Optimization & Validation (Weeks 5-6)
 
-### Performance Optimization
+### Steps P3-1 to P3-18
 
-- [ ] **P3-1**: Pre-compute embeddings for all UMLS concepts
-  - Estimated: ~8 hours for 4.5M concepts
-  - Storage: ~7GB for 384-dim vectors
+#### Performance Optimization (P3-1 to P3-4)
 
-- [ ] **P3-2**: Create Neo4j vector index
-  ```cypher
-  CALL db.index.vector.createNodeIndex(
-    'concept_embeddings', 'Concept', 'embedding', 384, 'cosine'
-  );
-  ```
+| Step | Task | Validation |
+|------|------|------------|
+| **P3-1** | Pre-compute embeddings for all UMLS concepts | 4.5M embeddings generated (~7GB storage) |
+| **P3-2** | Create Neo4j vector index | Vector similarity search returns results |
+| **P3-3** | Implement query caching layer | Cache hit rate > 50% on repeated queries |
+| **P3-4** | Add connection pooling optimization | Pool tuned based on load testing |
 
-- [ ] **P3-3**: Implement query caching layer
-  - Cache frequent multi-hop queries
-  - TTL: 1 hour for reasoning paths
+#### Benchmark Validation (P3-5 to P3-8)
 
-- [ ] **P3-4**: Add connection pooling optimization
-  - Tune Neo4j pool size based on load testing
-  - Add circuit breaker for Neo4j failures
+| Step | Task | Validation |
+|------|------|------------|
+| **P3-5** | Run DR.KNOWS benchmark suite | Full benchmark completes without errors |
+| **P3-6** | Compare against DR.KNOWS baselines | Accuracy >= 78%, Evidence >= 85%, Citation >= 92% |
+| **P3-7** | Run MedAgentBench (300 tasks) | All 7 categories evaluated |
+| **P3-8** | Document benchmark results | `docs/BENCHMARK_RESULTS.md` created |
 
-### **TEST CHECKPOINT P3-T1**: Query Performance
-```python
-import time
-start = time.time()
-result = await neo4j_service.multi_hop_reasoning(seed_cui="C0011849", max_hops=5)
-elapsed = time.time() - start
-assert elapsed < 2.0  # Target: <2s for 5-hop
-```
+#### Scale Testing (P3-9 to P3-11)
 
-### Benchmark Validation
+| Step | Task | Validation |
+|------|------|------------|
+| **P3-9** | Prepare 10K clinical note test corpus | Mix of progress, discharge, consult notes |
+| **P3-10** | Run NLP pipeline at 10K scale | Throughput and accuracy measured |
+| **P3-11** | Run full pipeline at 100K scale | Throughput >= 10K docs/hour |
 
-- [ ] **P3-5**: Run DR.KNOWS benchmark suite
-  ```python
-  from app.services.drknows_benchmark_service import DRKnowsBenchmarkService
-  service = DRKnowsBenchmarkService()
-  results = await service.run_full_benchmark()
-  ```
+#### Safety Validation (P3-12 to P3-14)
 
-- [ ] **P3-6**: Compare against DR.KNOWS baselines
-  | Metric | DR.KNOWS | Our Target |
-  |--------|----------|------------|
-  | Diagnostic accuracy | 78% | >= 78% |
-  | Evidence retrieval | 85% | >= 85% |
-  | Citation accuracy | 92% | >= 92% |
+| Step | Task | Validation |
+|------|------|------------|
+| **P3-12** | Test hallucination rate on medical claims | < 5% unsupported claims |
+| **P3-13** | Test negation handling accuracy | > 95% correct assertion detection |
+| **P3-14** | Test contraindication detection | > 90% recall on safety alerts |
 
-- [ ] **P3-7**: Run MedAgentBench (300 tasks)
-  ```python
-  from app.services.medagentbench_service import MedAgentBenchService
-  service = MedAgentBenchService()
-  results = await service.run_benchmark(categories=["all"])
-  ```
+#### Documentation (P3-15 to P3-18)
 
-### **TEST CHECKPOINT P3-T2**: Benchmark Results
-```python
-# Target metrics
-assert results["path_discovery"]["path_coverage"] >= 0.84
-assert results["reasoning"]["accuracy"] >= 0.84
-assert results["multi_hop"]["hop_5_plus_accuracy"] >= 0.76
-```
-
-- [ ] **P3-8**: Document benchmark results in `docs/BENCHMARK_RESULTS.md`
-
-### Scale Testing
-
-- [ ] **P3-9**: Prepare 10K clinical note test corpus
-  - Mix of note types (progress, discharge, consult)
-  - Realistic clinical content
-
-- [ ] **P3-10**: Run NLP pipeline at 10K scale
-  ```python
-  results = await ensemble_service.batch_extract(notes[:10000])
-  # Measure: throughput, accuracy, memory
-  ```
-
-- [ ] **P3-11**: Run full pipeline at 100K scale (if resources allow)
-  - Document throughput (target: 10K docs/hour)
-
-### **TEST CHECKPOINT P3-T3**: Scale Performance
-```python
-# Target: 10K docs/hour minimum
-docs_per_hour = 10000 / elapsed_hours
-assert docs_per_hour >= 10000
-```
-
-### Safety Validation
-
-- [ ] **P3-12**: Test hallucination rate on medical claims
-  - Extract claims from LLM responses
-  - Verify against knowledge graph
-  - Target: <5% unsupported claims
-
-- [ ] **P3-13**: Test negation handling accuracy
-  - Corpus of negated findings
-  - Target: >95% correct assertion detection
-
-- [ ] **P3-14**: Test contraindication detection
-  - Drug-condition pairs with known contraindications
-  - Target: >90% recall on safety alerts
-
-### **TEST CHECKPOINT P3-T4**: Safety Metrics
-```python
-assert hallucination_rate < 0.05
-assert negation_accuracy > 0.95
-assert contraindication_recall > 0.90
-```
-
----
-
-## Final Deliverables
-
-- [ ] **P3-15**: Update README.md with new capabilities
-
-- [ ] **P3-16**: Create API documentation for new endpoints
-
-- [ ] **P3-17**: Write deployment guide for Neo4j + UMLS
-
-- [ ] **P3-18**: Create monitoring dashboard (Grafana)
-  - Query latency metrics
-  - Concept/relation counts
-  - Error rates
-
----
-
-## Summary: 40 Steps
-
-| Priority | Steps | Focus |
-|----------|-------|-------|
-| P0 | 1-7 | Neo4j Infrastructure |
-| P1 | 8-22 | UMLS Data Loading |
-| P2 | 23-32 | API Integration |
-| P3 | 33-40 | Optimization & Validation |
+| Step | Task | Validation |
+|------|------|------------|
+| **P3-15** | Update README.md with new capabilities | Documentation reflects current state |
+| **P3-16** | Create API documentation for new endpoints | OpenAPI spec updated |
+| **P3-17** | Write deployment guide for Neo4j + UMLS | `docs/DEPLOYMENT.md` created |
+| **P3-18** | Create monitoring dashboard (Grafana) | Query latency, counts, errors visible |
 
 ### Test Checkpoints
 
-| Checkpoint | After Step | Validates |
-|------------|------------|-----------|
-| P0-T1 | P0-5 | Neo4j health |
-| P0-T2 | P0-7 | Schema creation |
-| P1-T1 | P1-7 | Initial 100K load |
-| P1-T2 | P1-8 | Full concept load |
-| P1-T3 | P1-9 | Relation load |
-| P1-T4 | P1-12 | Cross-vocabulary |
-| P2-T1 | P2-3 | Multi-hop API |
-| P2-T2 | P2-9 | Vocabulary bridge |
-| P3-T1 | P3-4 | Query performance |
-| P3-T2 | P3-7 | Benchmark results |
-| P3-T3 | P3-11 | Scale performance |
-| P3-T4 | P3-14 | Safety metrics |
+| Checkpoint | After Step | Test | Expected Result |
+|------------|------------|------|-----------------|
+| **P3-T1** | P3-4 | 5-hop query execution time | < 2 seconds |
+| **P3-T2** | P3-7 | DR.KNOWS benchmark metrics | Meet published baselines |
+| **P3-T3** | P3-11 | Document processing throughput | >= 10,000 docs/hour |
+| **P3-T4** | P3-14 | Safety metric validation | All thresholds pass |
+
+### DR.KNOWS Baseline Targets
+
+| Metric | DR.KNOWS Published | Our Target | Pass Criteria |
+|--------|-------------------|------------|---------------|
+| Diagnostic accuracy | 78% | >= 78% | Must meet |
+| Evidence retrieval | 85% | >= 85% | Must meet |
+| Citation accuracy | 92% | >= 92% | Must meet |
+| Path coverage | 84.7% | >= 84% | Must meet |
+| 5-hop accuracy | 76.8% | >= 75% | Must meet |
+| Latency (p95) | < 2s | < 2s | Must meet |
+
+### Safety Thresholds
+
+| Metric | Threshold | Consequence if Failed |
+|--------|-----------|----------------------|
+| Hallucination rate | < 5% | Block deployment |
+| Negation accuracy | > 95% | Block deployment |
+| Contraindication recall | > 90% | Block deployment |
 
 ---
 
-## Risk Mitigation
+## Summary
 
-| Risk | Mitigation |
-|------|------------|
-| UMLS license delay | Start with SNOMED-CT full release (400K concepts) |
-| Neo4j performance | Use Neo4j Enterprise with clustering if needed |
-| Memory constraints | Implement streaming for large UMLS files |
-| Migration complexity | Keep PostgreSQL as fallback, gradual migration |
+### Step Count by Priority
 
----
+| Priority | Steps | Key Deliverable |
+|----------|-------|-----------------|
+| **P0** | P0-1 → P0-7 (7 steps) | Neo4j running with schema |
+| **P1** | P1-1 → P1-12 (12 steps) | 4.5M concepts + 15M relations loaded |
+| **P2** | P2-1 → P2-10 (10 steps) | Multi-hop reasoning API live |
+| **P3** | P3-1 → P3-18 (18 steps) | Validated at DR.KNOWS parity |
+| **Total** | **47 steps** | Production-ready clinical KG |
 
-## Resource Requirements
+### Test Checkpoint Summary
+
+| Phase | Checkpoints | Purpose |
+|-------|-------------|---------|
+| P0 | P0-T1, P0-T2 | Infrastructure validation |
+| P1 | P1-T1, P1-T2, P1-T3, P1-T4 | Data loading validation |
+| P2 | P2-T1, P2-T2 | API functionality validation |
+| P3 | P3-T1, P3-T2, P3-T3, P3-T4 | Performance & safety validation |
+
+### Resource Requirements
 
 | Resource | Minimum | Recommended |
 |----------|---------|-------------|
@@ -418,6 +273,76 @@ assert contraindication_recall > 0.90
 | Storage | 50GB | 100GB |
 | CPU | 4 cores | 8 cores |
 | GPU | Optional | Recommended for embeddings |
+
+### Risk Mitigation
+
+| Risk | Mitigation Strategy |
+|------|---------------------|
+| UMLS license delay | Start with SNOMED-CT full release (400K concepts) |
+| Neo4j performance issues | Use Neo4j Enterprise with clustering if needed |
+| Memory constraints | Implement streaming for large UMLS files |
+| Migration complexity | Keep PostgreSQL as fallback, gradual migration |
+
+---
+
+## Quick Reference: All Steps
+
+```
+P0: Infrastructure (Week 1)
+├── P0-1: Install Docker
+├── P0-2: Deploy Neo4j container
+├── P0-3: Configure environment variables
+├── P0-4: Update config.py
+├── P0-5: Verify Neo4j connection
+├── P0-6: Execute schema creation
+└── P0-7: Disable mock mode
+
+P1: Data Loading (Weeks 2-3)
+├── P1-1: Verify UMLS license
+├── P1-2: Download UMLS files
+├── P1-3: Create fixtures/umls directory
+├── P1-4: Implement concept loader
+├── P1-5: Add semantic type loading
+├── P1-6: Add relation loading
+├── P1-7: Load 100K test batch
+├── P1-8: Load full 4.5M concepts
+├── P1-9: Load 15M relations
+├── P1-10: Load vocabulary hierarchies
+├── P1-11: Build CUI mappings
+└── P1-12: Update vocabulary services
+
+P2: API Integration (Weeks 3-4)
+├── P2-1: Create multi-hop endpoint
+├── P2-2: Add semantic type filtering
+├── P2-3: Add path scoring endpoint
+├── P2-4: Integrate temporal service
+├── P2-5: Update graph RAG endpoint
+├── P2-6: Add evidence aggregation
+├── P2-7: Create vocabulary bridge
+├── P2-8: Update Clinical Intelligence Agent
+├── P2-9: Add Graph RAG to Hybrid Analyzer
+└── P2-10: Update agent API
+
+P3: Optimization & Validation (Weeks 5-6)
+├── P3-1: Pre-compute embeddings
+├── P3-2: Create vector index
+├── P3-3: Implement query caching
+├── P3-4: Optimize connection pooling
+├── P3-5: Run DR.KNOWS benchmark
+├── P3-6: Compare against baselines
+├── P3-7: Run MedAgentBench
+├── P3-8: Document benchmark results
+├── P3-9: Prepare 10K test corpus
+├── P3-10: Run NLP at 10K scale
+├── P3-11: Run pipeline at 100K scale
+├── P3-12: Test hallucination rate
+├── P3-13: Test negation accuracy
+├── P3-14: Test contraindication detection
+├── P3-15: Update README
+├── P3-16: Create API documentation
+├── P3-17: Write deployment guide
+└── P3-18: Create Grafana dashboard
+```
 
 ---
 
