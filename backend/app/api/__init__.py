@@ -16,6 +16,7 @@ from app.api.dashboard import router as dashboard_router
 from app.api.documents import router as documents_router
 from app.api.etl import router as etl_router
 from app.api.graph import router as graph_router
+from app.api.graph import reasoning_router as graph_reasoning_router
 from app.api.graph_rag import router as graph_rag_router
 from app.api.health import router as health_router
 from app.api.errors import (
@@ -134,6 +135,7 @@ __all__ = [
     "documents_router",
     "etl_router",
     "graph_router",
+    "graph_reasoning_router",
     "graph_rag_router",
     "export_router",
     "federated_router",

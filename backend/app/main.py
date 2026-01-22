@@ -34,6 +34,7 @@ from app.api import (
     federated_router,
     fhir_router,
     graph_router,
+    graph_reasoning_router,
     graph_rag_router,
     health_router,
     jobs_router,
@@ -576,6 +577,7 @@ api_v1_router.include_router(export_router)
 api_v1_router.include_router(federated_router)
 api_v1_router.include_router(fhir_router)
 api_v1_router.include_router(graph_router)
+api_v1_router.include_router(graph_reasoning_router)
 api_v1_router.include_router(graph_rag_router)
 api_v1_router.include_router(jobs_router)
 api_v1_router.include_router(job_queue_router)

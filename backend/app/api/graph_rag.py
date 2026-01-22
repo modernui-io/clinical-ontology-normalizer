@@ -5,10 +5,15 @@ This module provides query interfaces that allow AI agents (LLMs) to:
 2. Retrieve relevant clinical entities with provenance
 3. Answer clinical questions with evidence from the graph
 4. Navigate relationships between clinical concepts
+5. Leverage UMLS/OMOP ontology for concept expansion and reasoning
 
 The Graph RAG pattern combines graph-based retrieval with augmented generation,
 enabling LLMs to provide deterministic answers with probabilistic reasoning
 and full citation/provenance tracking.
+
+Two knowledge sources are integrated:
+- PostgreSQL KGNode/KGEdge: Patient-specific clinical data from clinical notes
+- Neo4j OMOP Concepts: 5.6M medical concepts with 32M semantic relationships
 """
 
 from datetime import datetime
@@ -697,3 +702,430 @@ async def get_unique_concepts(
         "concepts_by_type": concepts_by_type,
         "total_unique_concepts": sum(len(v) for v in concepts_by_type.values()),
     }
+
+
+# ============================================================================
+# UMLS-Enhanced Graph RAG Endpoints (Neo4j Integration)
+# ============================================================================
+
+
+class OntologyConceptResult(BaseModel):
+    """A concept from the OMOP/UMLS ontology."""
+
+    concept_id: int
+    concept_name: str
+    vocabulary_id: str
+    domain_id: str
+    concept_class_id: str | None = None
+    standard_concept: str | None = None
+    synonyms: list[str] = []
+
+
+class ConceptExpansionResult(BaseModel):
+    """Result of expanding a concept via ontology relationships."""
+
+    source_concept: OntologyConceptResult
+    related_concepts: list[OntologyConceptResult]
+    relationship_types: list[str]
+    expansion_method: str  # is_a, treats, has_finding, etc.
+
+
+class OntologyEnrichedAnswer(BaseModel):
+    """A clinical answer enriched with ontology reasoning."""
+
+    question: str
+    answer: str
+    confidence: str
+    patient_evidence: list[GraphEntity]
+    ontology_evidence: list[OntologyConceptResult]
+    related_treatments: list[OntologyConceptResult]
+    related_conditions: list[OntologyConceptResult]
+    reasoning_chain: list[str]
+    citations: list[str]
+
+
+@router.get("/ontology/search", response_model=dict)
+async def search_ontology_concepts(
+    query: Annotated[str, Query(description="Search query for concepts")],
+    vocabulary: Annotated[str | None, Query(description="Filter by vocabulary (SNOMED, RxNorm, LOINC)")] = None,
+    domain: Annotated[str | None, Query(description="Filter by domain (Condition, Drug, Procedure)")] = None,
+    limit: Annotated[int, Query(ge=1, le=50)] = 20,
+) -> dict:
+    """
+    Search the OMOP/UMLS ontology for clinical concepts.
+
+    This endpoint searches Neo4j for matching concepts from vocabularies like:
+    - SNOMED CT: Clinical findings, procedures, body structures
+    - RxNorm: Drugs and ingredients
+    - LOINC: Lab tests and measurements
+    - ICD-10: Diagnosis codes
+    - CPT: Procedure codes
+
+    Use this for:
+    - Finding standard concept IDs for clinical terms
+    - Exploring the medical ontology
+    - Getting synonyms for a concept
+    """
+    try:
+        from app.services.graph_database_service import get_graph_database_service
+
+        service = get_graph_database_service()
+
+        if service.is_mock_mode:
+            return {
+                "query": query,
+                "total_results": 0,
+                "concepts": [],
+                "message": "Neo4j not available, using mock mode",
+            }
+
+        # Build query with filters
+        vocab_filter = ""
+        if vocabulary:
+            vocab_filter = f"AND c.vocabulary_id = '{vocabulary}'"
+
+        domain_filter = ""
+        if domain:
+            domain_filter = f"AND c.domain_id = '{domain}'"
+
+        cypher = f"""
+        MATCH (c:Concept)
+        WHERE toLower(c.name) CONTAINS toLower($query)
+          {vocab_filter}
+          {domain_filter}
+        RETURN c.concept_id AS concept_id,
+               c.name AS concept_name,
+               c.vocabulary_id AS vocabulary_id,
+               c.domain_id AS domain_id,
+               c.concept_class_id AS concept_class_id,
+               c.standard_concept AS standard_concept,
+               c.synonyms AS synonyms
+        ORDER BY
+            CASE WHEN toLower(c.name) = toLower($query) THEN 0 ELSE 1 END,
+            c.name
+        LIMIT $limit
+        """
+
+        result = service.execute_read(cypher, {"query": query, "limit": limit})
+
+        concepts = []
+        for record in result.records:
+            concepts.append({
+                "concept_id": record.get("concept_id"),
+                "concept_name": record.get("concept_name"),
+                "vocabulary_id": record.get("vocabulary_id"),
+                "domain_id": record.get("domain_id"),
+                "concept_class_id": record.get("concept_class_id"),
+                "standard_concept": record.get("standard_concept"),
+                "synonyms": record.get("synonyms") or [],
+            })
+
+        return {
+            "query": query,
+            "vocabulary_filter": vocabulary,
+            "domain_filter": domain,
+            "total_results": len(concepts),
+            "concepts": concepts,
+        }
+
+    except Exception as e:
+        return {
+            "query": query,
+            "total_results": 0,
+            "concepts": [],
+            "error": str(e),
+        }
+
+
+@router.get("/ontology/expand/{concept_id}", response_model=dict)
+async def expand_concept(
+    concept_id: int,
+    relationship_types: Annotated[list[str] | None, Query(description="Filter by relationship types")] = None,
+    max_depth: Annotated[int, Query(ge=1, le=3)] = 2,
+    limit: Annotated[int, Query(ge=1, le=100)] = 30,
+) -> dict:
+    """
+    Expand a concept by following ontology relationships.
+
+    Given a concept ID, this finds related concepts through relationships like:
+    - IS_A / SUBSUMES: Hierarchical relationships
+    - TREATS / MAY_TREAT: Drug-condition relationships
+    - HAS_FINDING / HAS_CAUSATIVE_AGENT: Clinical associations
+    - MAPPED_FROM / MAPPED_TO: Cross-vocabulary mappings
+
+    Use this for:
+    - Finding treatments for a condition
+    - Finding related conditions (parent/child)
+    - Expanding search to include synonymous concepts
+    """
+    try:
+        from app.services.graph_database_service import get_graph_database_service
+
+        service = get_graph_database_service()
+
+        if service.is_mock_mode:
+            return {
+                "concept_id": concept_id,
+                "source_concept": None,
+                "related_concepts": [],
+                "message": "Neo4j not available",
+            }
+
+        # Get source concept
+        source_query = """
+        MATCH (c:Concept {concept_id: $cid})
+        RETURN c.concept_id AS concept_id,
+               c.name AS concept_name,
+               c.vocabulary_id AS vocabulary_id,
+               c.domain_id AS domain_id,
+               c.concept_class_id AS concept_class_id
+        """
+        source_result = service.execute_read(source_query, {"cid": concept_id})
+
+        source_concept = None
+        if source_result.records:
+            r = source_result.records[0]
+            source_concept = {
+                "concept_id": r.get("concept_id"),
+                "concept_name": r.get("concept_name"),
+                "vocabulary_id": r.get("vocabulary_id"),
+                "domain_id": r.get("domain_id"),
+                "concept_class_id": r.get("concept_class_id"),
+            }
+
+        # Find related concepts
+        expand_query = f"""
+        MATCH (c:Concept {{concept_id: $cid}})
+        MATCH (c)-[r*1..{max_depth}]-(related:Concept)
+        WHERE related <> c
+        WITH DISTINCT related, type(r[0]) AS rel_type
+        RETURN related.concept_id AS concept_id,
+               related.name AS concept_name,
+               related.vocabulary_id AS vocabulary_id,
+               related.domain_id AS domain_id,
+               related.concept_class_id AS concept_class_id,
+               rel_type
+        LIMIT $limit
+        """
+
+        expand_result = service.execute_read(expand_query, {"cid": concept_id, "limit": limit})
+
+        related_concepts = []
+        rel_types_found = set()
+        for r in expand_result.records:
+            related_concepts.append({
+                "concept_id": r.get("concept_id"),
+                "concept_name": r.get("concept_name"),
+                "vocabulary_id": r.get("vocabulary_id"),
+                "domain_id": r.get("domain_id"),
+                "concept_class_id": r.get("concept_class_id"),
+                "relationship_type": r.get("rel_type"),
+            })
+            if r.get("rel_type"):
+                rel_types_found.add(r.get("rel_type"))
+
+        return {
+            "concept_id": concept_id,
+            "source_concept": source_concept,
+            "related_concepts": related_concepts,
+            "relationship_types_found": list(rel_types_found),
+            "total_related": len(related_concepts),
+        }
+
+    except Exception as e:
+        return {
+            "concept_id": concept_id,
+            "source_concept": None,
+            "related_concepts": [],
+            "error": str(e),
+        }
+
+
+@router.post("/ontology-enhanced-answer", response_model=OntologyEnrichedAnswer)
+async def answer_with_ontology(
+    patient_id: Annotated[str, Query(description="Patient identifier")],
+    question: Annotated[str, Query(description="Clinical question to answer")],
+    db: AsyncSession = Depends(get_db),
+) -> OntologyEnrichedAnswer:
+    """
+    Answer a clinical question using both patient data AND the UMLS ontology.
+
+    This enhanced endpoint:
+    1. Searches the patient's knowledge graph for relevant entities
+    2. Expands those concepts using the UMLS/OMOP ontology
+    3. Finds related treatments/conditions from the ontology
+    4. Provides reasoning chain showing how conclusions were reached
+
+    Example: "What treatments are available for this patient's heart failure?"
+    - Finds patient's heart failure diagnosis
+    - Expands via UMLS to find related HF subtypes
+    - Searches ontology for drugs that treat HF
+    - Returns ranked treatment options with evidence
+    """
+    import time
+    start_time = time.perf_counter()
+
+    # Step 1: Search patient data (same as regular answer endpoint)
+    question_lower = question.lower()
+    search_terms = []
+    node_type_filter = None
+
+    if any(word in question_lower for word in ['medication', 'drug', 'taking', 'treatment']):
+        node_type_filter = 'drug'
+        search_terms = ['drug', 'medication']
+    elif any(word in question_lower for word in ['condition', 'diagnosis', 'disease']):
+        node_type_filter = 'condition'
+        search_terms = ['condition', 'diagnosis']
+
+    # Get patient entities
+    stmt = select(KGNode).where(KGNode.patient_id == patient_id)
+    if node_type_filter:
+        stmt = stmt.where(KGNode.node_type == node_type_filter)
+
+    result = await db.execute(stmt)
+    patient_nodes = result.scalars().all()[:20]
+
+    # Build patient evidence
+    patient_evidence = []
+    for node in patient_nodes:
+        props = node.properties or {}
+        patient_evidence.append(GraphEntity(
+            id=str(node.id),
+            node_type=node.node_type,
+            label=node.label,
+            properties=props,
+            source_date=props.get('extracted_date', 'unknown'),
+            provenance=f"Patient record: {node.label}",
+        ))
+
+    # Step 2: Search ontology for matching concepts
+    ontology_evidence = []
+    related_treatments = []
+    related_conditions = []
+    reasoning_chain = []
+
+    try:
+        from app.services.graph_database_service import get_graph_database_service
+
+        service = get_graph_database_service()
+
+        if not service.is_mock_mode:
+            # Extract key clinical terms from question
+            stop_words = ['what', 'are', 'the', 'for', 'this', 'patient', 'available', 'treat', 'treating']
+            keywords = [w for w in question_lower.split() if len(w) > 3 and w not in stop_words]
+
+            if keywords:
+                # Search ontology for matching concepts
+                search_query = """
+                UNWIND $keywords AS kw
+                MATCH (c:Concept)
+                WHERE toLower(c.name) CONTAINS kw
+                RETURN DISTINCT c.concept_id AS concept_id,
+                       c.name AS concept_name,
+                       c.vocabulary_id AS vocabulary_id,
+                       c.domain_id AS domain_id
+                LIMIT 10
+                """
+                ont_result = service.execute_read(search_query, {"keywords": keywords})
+
+                for r in ont_result.records:
+                    ontology_evidence.append(OntologyConceptResult(
+                        concept_id=r.get("concept_id", 0),
+                        concept_name=r.get("concept_name", ""),
+                        vocabulary_id=r.get("vocabulary_id", ""),
+                        domain_id=r.get("domain_id", ""),
+                    ))
+
+                reasoning_chain.append(f"Found {len(ontology_evidence)} ontology concepts matching: {keywords}")
+
+                # If looking for treatments, find drugs via ontology
+                if 'treatment' in question_lower or 'drug' in question_lower or 'medication' in question_lower:
+                    for oe in ontology_evidence[:3]:
+                        if oe.domain_id == "Condition":
+                            # Find treatments for this condition
+                            treat_query = """
+                            MATCH (c:Concept {concept_id: $cid})-[*1..2]-(drug:Concept)
+                            WHERE drug.domain_id = 'Drug'
+                            RETURN DISTINCT drug.concept_id AS concept_id,
+                                   drug.name AS concept_name,
+                                   drug.vocabulary_id AS vocabulary_id,
+                                   drug.domain_id AS domain_id
+                            LIMIT 5
+                            """
+                            treat_result = service.execute_read(treat_query, {"cid": oe.concept_id})
+
+                            for tr in treat_result.records:
+                                related_treatments.append(OntologyConceptResult(
+                                    concept_id=tr.get("concept_id", 0),
+                                    concept_name=tr.get("concept_name", ""),
+                                    vocabulary_id=tr.get("vocabulary_id", ""),
+                                    domain_id=tr.get("domain_id", ""),
+                                ))
+
+                            reasoning_chain.append(f"Found {len(treat_result.records)} treatments via ontology for {oe.concept_name}")
+
+                # If looking for conditions, find related conditions
+                if 'condition' in question_lower or 'complication' in question_lower:
+                    for oe in ontology_evidence[:3]:
+                        if oe.domain_id == "Drug":
+                            # Find conditions this drug treats
+                            cond_query = """
+                            MATCH (d:Concept {concept_id: $cid})-[*1..2]-(cond:Concept)
+                            WHERE cond.domain_id = 'Condition'
+                            RETURN DISTINCT cond.concept_id AS concept_id,
+                                   cond.name AS concept_name,
+                                   cond.vocabulary_id AS vocabulary_id,
+                                   cond.domain_id AS domain_id
+                            LIMIT 5
+                            """
+                            cond_result = service.execute_read(cond_query, {"cid": oe.concept_id})
+
+                            for cr in cond_result.records:
+                                related_conditions.append(OntologyConceptResult(
+                                    concept_id=cr.get("concept_id", 0),
+                                    concept_name=cr.get("concept_name", ""),
+                                    vocabulary_id=cr.get("vocabulary_id", ""),
+                                    domain_id=cr.get("domain_id", ""),
+                                ))
+
+    except Exception as e:
+        reasoning_chain.append(f"Ontology search error: {str(e)}")
+
+    # Step 3: Build answer
+    if patient_evidence:
+        patient_labels = [e.label for e in patient_evidence[:5]]
+        answer = f"Based on patient data and ontology: {', '.join(patient_labels)}"
+        confidence = "high"
+    elif ontology_evidence:
+        ont_labels = [c.concept_name for c in ontology_evidence[:5]]
+        answer = f"From medical ontology: {', '.join(ont_labels)}"
+        confidence = "medium"
+    else:
+        answer = "No relevant information found."
+        confidence = "low"
+
+    if related_treatments:
+        treatment_names = [t.concept_name for t in related_treatments[:5]]
+        answer += f". Potential treatments from ontology: {', '.join(treatment_names)}"
+
+    # Build citations
+    citations = []
+    for pe in patient_evidence:
+        citations.append(pe.provenance)
+    for oe in ontology_evidence:
+        citations.append(f"OMOP/UMLS: {oe.concept_name} ({oe.vocabulary_id})")
+
+    processing_time = (time.perf_counter() - start_time) * 1000
+    reasoning_chain.append(f"Total processing time: {processing_time:.1f}ms")
+
+    return OntologyEnrichedAnswer(
+        question=question,
+        answer=answer,
+        confidence=confidence,
+        patient_evidence=patient_evidence,
+        ontology_evidence=ontology_evidence,
+        related_treatments=related_treatments,
+        related_conditions=related_conditions,
+        reasoning_chain=reasoning_chain,
+        citations=citations,
+    )
