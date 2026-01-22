@@ -82,7 +82,7 @@ interface ExportStats {
 // Constants
 // =============================================================================
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE = "/api";
 
 const RESOURCE_TYPES = [
   { value: "Patient", label: "Patient", description: "Patient demographics" },

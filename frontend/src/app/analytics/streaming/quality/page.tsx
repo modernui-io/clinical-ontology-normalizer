@@ -284,8 +284,8 @@ export default function StreamingQualityPage() {
     try {
       setIsLoading(true);
       const [metricsRes, errorsRes] = await Promise.all([
-        fetch("http://localhost:8000/api/v1/streaming/metrics?minutes=60"),
-        fetch("http://localhost:8000/api/v1/streaming/errors?limit=50"),
+        fetch("/api/streaming/metrics?minutes=60"),
+        fetch("/api/streaming/errors?limit=50"),
       ]);
 
       if (metricsRes.ok) {
@@ -336,7 +336,7 @@ export default function StreamingQualityPage() {
     setIsRetrying(entryId);
     try {
       const response = await fetch(
-        `http://localhost:8000/api/v1/streaming/errors/${entryId}/retry`,
+        `/api/streaming/errors/${entryId}/retry`,
         { method: "POST" }
       );
 

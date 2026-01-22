@@ -90,23 +90,21 @@ const HOOK_COLORS: Record<string, string> = {
 // API Functions
 // =============================================================================
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
 async function fetchServices(): Promise<CDSService[]> {
-  const response = await fetch(`${API_BASE}/cds-services`);
+  const response = await fetch("/api/cds-services");
   if (!response.ok) throw new Error("Failed to fetch CDS services");
   const data = await response.json();
   return data.services;
 }
 
 async function fetchStats(): Promise<CDSStats> {
-  const response = await fetch(`${API_BASE}/cds-services/admin/stats`);
+  const response = await fetch("/api/cds-services/admin/stats");
   if (!response.ok) throw new Error("Failed to fetch CDS stats");
   return response.json();
 }
 
 async function fetchLogs(limit: number = 10): Promise<CDSHookLog[]> {
-  const response = await fetch(`${API_BASE}/cds-services/admin/logs?limit=${limit}`);
+  const response = await fetch(`/api/cds-services/admin/logs?limit=${limit}`);
   if (!response.ok) throw new Error("Failed to fetch CDS logs");
   const data = await response.json();
   return data.logs;

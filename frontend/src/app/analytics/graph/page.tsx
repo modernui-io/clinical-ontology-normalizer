@@ -424,7 +424,7 @@ export default function GraphExplorerPage() {
   useEffect(() => {
     const checkHealth = async () => {
       try {
-        const response = await fetch("http://localhost:8000/api/graph/health");
+        const response = await fetch("/api/graph/health");
         if (response.ok) {
           const data = await response.json();
           setHealthStatus(data);
@@ -451,13 +451,13 @@ export default function GraphExplorerPage() {
     setIsLoading(true);
     try {
       // First try to load sample data
-      await fetch("http://localhost:8000/api/graph/etl/load-sample", {
+      await fetch("/api/graph/etl/load-sample", {
         method: "POST",
       });
 
       // Then search for diabetes to show an example
       const response = await fetch(
-        "http://localhost:8000/api/graph/concepts/search?q=diabetes&limit=5"
+        "/api/graph/concepts/search?q=diabetes&limit=5"
       );
       if (response.ok) {
         const data = await response.json();
@@ -510,7 +510,7 @@ export default function GraphExplorerPage() {
     try {
       const categories = activeFilters.map(f => `categories=${f}`).join("&");
       const response = await fetch(
-        `http://localhost:8000/api/graph/concepts/${conceptId}/neighbors?max_depth=${neighborDepth}&${categories}&limit=30`
+        `/api/graph/concepts/${conceptId}/neighbors?max_depth=${neighborDepth}&${categories}&limit=30`
       );
 
       if (response.ok) {
@@ -579,7 +579,7 @@ export default function GraphExplorerPage() {
     try {
       const categories = activeFilters.map(f => `categories=${f}`).join("&");
       const response = await fetch(
-        `http://localhost:8000/api/graph/concepts/search?q=${encodeURIComponent(searchQuery)}&${categories}&limit=20`
+        `/api/graph/concepts/search?q=${encodeURIComponent(searchQuery)}&${categories}&limit=20`
       );
 
       if (response.ok) {

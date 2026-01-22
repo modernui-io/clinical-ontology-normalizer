@@ -117,9 +117,6 @@ const domainIcons: Record<string, typeof Users> = {
   GENERAL: Database,
 };
 
-// API base URL
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
 function CDISCBrowserContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -152,11 +149,11 @@ function CDISCBrowserContent() {
         // Fetch stats, versions, domains, and codelists in parallel
         const [statsRes, versionsRes, domainsRes, codelistsRes] =
           await Promise.all([
-            fetch(`${API_BASE}/api/v1/cdisc/stats`),
-            fetch(`${API_BASE}/api/v1/cdisc/versions`),
-            fetch(`${API_BASE}/api/v1/cdisc/domains`),
+            fetch(`/api/cdisc/stats`),
+            fetch(`/api/cdisc/versions`),
+            fetch(`/api/cdisc/domains`),
             fetch(
-              `${API_BASE}/api/v1/cdisc/codelists?limit=100${
+              `/api/cdisc/codelists?limit=100${
                 selectedDomain !== "all" ? `&domain=${selectedDomain}` : ""
               }`
             ),
@@ -201,7 +198,7 @@ function CDISCBrowserContent() {
       const domainParam =
         selectedDomain !== "all" ? `&domain=${selectedDomain}` : "";
       const res = await fetch(
-        `${API_BASE}/api/v1/cdisc/search?q=${encodeURIComponent(
+        `/api/cdisc/search?q=${encodeURIComponent(
           searchQuery
         )}&search_type=all${domainParam}&limit=50`
       );

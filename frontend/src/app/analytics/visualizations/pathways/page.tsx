@@ -69,7 +69,7 @@ async function fetchSankeyData(params: {
   if (params.timePeriod) searchParams.set("time_period", params.timePeriod);
   if (params.pathwayType) searchParams.set("pathway_type", params.pathwayType);
 
-  const response = await fetch(`/api/v1/visualizations/sankey?${searchParams.toString()}`);
+  const response = await fetch(`/api/visualizations/sankey?${searchParams.toString()}`);
   if (!response.ok) {
     throw new Error("Failed to fetch Sankey data");
   }

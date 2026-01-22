@@ -209,7 +209,7 @@ export default function StreamingAlertsPage() {
     try {
       setIsLoading(true);
       const response = await fetch(
-        `http://localhost:8000/api/v1/streaming/alerts?include_acknowledged=${statusFilter !== "active"}&limit=100`
+        `/api/streaming/alerts?include_acknowledged=${statusFilter !== "active"}&limit=100`
       );
 
       if (response.ok) {
@@ -290,7 +290,7 @@ export default function StreamingAlertsPage() {
     setIsAcknowledging(alertId);
     try {
       const response = await fetch(
-        `http://localhost:8000/api/v1/streaming/alerts/${alertId}/acknowledge`,
+        `/api/streaming/alerts/${alertId}/acknowledge`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

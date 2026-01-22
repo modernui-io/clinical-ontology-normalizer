@@ -51,43 +51,27 @@ interface CalculatorsResponse {
   categories: CategoryInfo[];
 }
 
-// Mock data for client-side rendering (API calls would be used in production)
-const mockCalculators: CalculatorSummary[] = [
-  // Cardiovascular
+// Fallback data in case API is unavailable
+const fallbackCalculators: CalculatorSummary[] = [
   { id: "ascvd", name: "ASCVD 10-Year Risk", short_name: "ASCVD", category: "cardiovascular", description: "10-year atherosclerotic cardiovascular disease risk using Pooled Cohort Equations" },
   { id: "heart", name: "HEART Score", short_name: "HEART", category: "cardiovascular", description: "Major adverse cardiac event risk for chest pain patients" },
   { id: "cha2ds2_vasc", name: "CHA2DS2-VASc Score", short_name: "CHA2DS2-VASc", category: "cardiovascular", description: "Stroke risk in atrial fibrillation" },
-  { id: "has_bled", name: "HAS-BLED Score", short_name: "HAS-BLED", category: "cardiovascular", description: "Bleeding risk on anticoagulation" },
-  { id: "framingham", name: "Framingham Risk Score", short_name: "Framingham", category: "cardiovascular", description: "10-year cardiovascular disease risk" },
-  // Renal
-  { id: "egfr_ckdepi", name: "CKD-EPI eGFR (2021)", short_name: "eGFR", category: "renal", description: "Estimated glomerular filtration rate using race-free CKD-EPI 2021 equation" },
-  { id: "cockcroft_gault", name: "Creatinine Clearance (Cockcroft-Gault)", short_name: "CrCl", category: "renal", description: "Creatinine clearance for medication dosing" },
-  { id: "uacr", name: "UACR Interpretation", short_name: "UACR", category: "renal", description: "Urine albumin-to-creatinine ratio interpretation" },
-  // Hepatic
-  { id: "meld", name: "MELD/MELD-Na Score", short_name: "MELD", category: "hepatic", description: "Liver disease severity for transplant prioritization" },
-  { id: "child_pugh", name: "Child-Pugh Score", short_name: "Child-Pugh", category: "hepatic", description: "Cirrhosis severity classification" },
-  { id: "fib4", name: "FIB-4 Score", short_name: "FIB-4", category: "hepatic", description: "Liver fibrosis risk assessment" },
-  // Critical Care
-  { id: "sofa", name: "SOFA Score", short_name: "SOFA", category: "critical_care", description: "Sequential organ failure assessment" },
-  { id: "qsofa", name: "qSOFA Score", short_name: "qSOFA", category: "critical_care", description: "Quick sepsis screening" },
-  { id: "wells_pe", name: "Wells Score for PE", short_name: "Wells PE", category: "critical_care", description: "Pulmonary embolism probability" },
-  { id: "wells_dvt", name: "Wells Score for DVT", short_name: "Wells DVT", category: "critical_care", description: "Deep vein thrombosis probability" },
-  // General
   { id: "bmi", name: "Body Mass Index (BMI)", short_name: "BMI", category: "general", description: "Calculate body mass index for obesity classification" },
-  { id: "bsa", name: "Body Surface Area (BSA)", short_name: "BSA", category: "general", description: "Calculate body surface area using Du Bois formula" },
-  // Laboratory
-  { id: "corrected_calcium", name: "Corrected Calcium", short_name: "Corr Ca", category: "laboratory", description: "Albumin-corrected calcium level" },
-  { id: "anion_gap", name: "Anion Gap", short_name: "AG", category: "laboratory", description: "Serum anion gap calculation" },
 ];
 
-const mockCategories: CategoryInfo[] = [
-  { id: "cardiovascular", name: "Cardiovascular", count: 5 },
-  { id: "renal", name: "Renal", count: 3 },
-  { id: "hepatic", name: "Hepatic", count: 3 },
-  { id: "critical_care", name: "Critical Care", count: 4 },
-  { id: "general", name: "General", count: 2 },
-  { id: "laboratory", name: "Laboratory", count: 2 },
+const fallbackCategories: CategoryInfo[] = [
+  { id: "cardiovascular", name: "Cardiovascular", count: 3 },
+  { id: "general", name: "General", count: 1 },
 ];
+
+// Fetch calculators from API
+async function fetchCalculators(): Promise<CalculatorsResponse> {
+  const response = await fetch("/api/calculators/clinical");
+  if (!response.ok) {
+    throw new Error("Failed to fetch calculators");
+  }
+  return response.json();
+}
 
 const categoryIcons: Record<string, React.ReactNode> = {
   cardiovascular: <Heart className="h-5 w-5" />,
@@ -111,10 +95,33 @@ export default function CalculatorsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [favorites, setFavorites] = useState<Set<string>>(new Set(["egfr_ckdepi", "cha2ds2_vasc", "bmi"]));
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [calculators, setCalculators] = useState<CalculatorSummary[]>(fallbackCalculators);
+  const [categories, setCategories] = useState<CategoryInfo[]>(fallbackCategories);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch calculators from API on mount
+  useEffect(() => {
+    const loadCalculators = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const data = await fetchCalculators();
+        setCalculators(data.calculators);
+        setCategories(data.categories);
+      } catch (err) {
+        console.error("Failed to fetch calculators:", err);
+        setError("Failed to load calculators. Using cached data.");
+        // Keep fallback data
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadCalculators();
+  }, []);
 
   const filteredCalculators = useMemo(() => {
-    return mockCalculators.filter((calc) => {
+    return calculators.filter((calc) => {
       const matchesSearch =
         searchQuery === "" ||
         calc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -127,7 +134,7 @@ export default function CalculatorsPage() {
   }, [searchQuery, selectedCategory]);
 
   const favoriteCalculators = useMemo(() => {
-    return mockCalculators.filter((calc) => favorites.has(calc.id));
+    return calculators.filter((calc) => favorites.has(calc.id));
   }, [favorites]);
 
   const groupedCalculators = useMemo(() => {
@@ -154,9 +161,18 @@ export default function CalculatorsPage() {
   };
 
   const refreshData = async () => {
-    setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    setIsLoading(false);
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = await fetchCalculators();
+      setCalculators(data.calculators);
+      setCategories(data.categories);
+    } catch (err) {
+      console.error("Failed to refresh calculators:", err);
+      setError("Failed to refresh calculators.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -209,9 +225,9 @@ export default function CalculatorsPage() {
                 className="cursor-pointer"
                 onClick={() => setSelectedCategory(null)}
               >
-                All ({mockCalculators.length})
+                All ({calculators.length})
               </Badge>
-              {mockCategories.map((cat) => (
+              {categories.map((cat) => (
                 <Badge
                   key={cat.id}
                   variant={selectedCategory === cat.id ? "default" : "outline"}
@@ -225,6 +241,27 @@ export default function CalculatorsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Error Alert */}
+      {error && (
+        <Card className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950">
+          <CardContent className="py-3">
+            <p className="text-amber-700 dark:text-amber-300 text-sm">{error}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Loading State */}
+      {isLoading && calculators.length === 0 && (
+        <Card>
+          <CardContent className="py-12">
+            <div className="text-center space-y-4">
+              <RefreshCw className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
+              <p className="text-muted-foreground">Loading calculators...</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Favorites Section */}
       {favoriteCalculators.length > 0 && !searchQuery && !selectedCategory && (

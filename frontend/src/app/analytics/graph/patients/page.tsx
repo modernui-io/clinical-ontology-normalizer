@@ -432,7 +432,7 @@ export default function PatientSimilarityPage() {
     setIsLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:8000/api/graph/patients/${referencePatientId}/similar?metric=${similarityMetric}&min_similarity=${similarityThreshold}&limit=15`
+        `/api/graph/patients/${referencePatientId}/similar?metric=${similarityMetric}&min_similarity=${similarityThreshold}&limit=15`
       );
 
       if (response.ok) {

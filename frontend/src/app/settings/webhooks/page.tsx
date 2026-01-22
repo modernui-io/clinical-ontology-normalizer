@@ -142,7 +142,7 @@ export default function WebhooksSettingsPage() {
     const fetchWebhooks = async () => {
       try {
         const response = await fetch(
-          "http://localhost:8000/notifications/webhooks?user_id=demo-user"
+          "/api/notifications/webhooks?user_id=demo-user"
         );
         if (response.ok) {
           const data = await response.json();
@@ -162,7 +162,7 @@ export default function WebhooksSettingsPage() {
   const fetchDeliveryLogs = async () => {
     try {
       const response = await fetch(
-        "http://localhost:8000/notifications/delivery-logs?channel=webhook&limit=50"
+        "/api/notifications/delivery-logs?channel=webhook&limit=50"
       );
       if (response.ok) {
         const data = await response.json();
@@ -178,7 +178,7 @@ export default function WebhooksSettingsPage() {
 
     try {
       const response = await fetch(
-        "http://localhost:8000/notifications/webhooks?user_id=demo-user",
+        "/api/notifications/webhooks?user_id=demo-user",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -209,7 +209,7 @@ export default function WebhooksSettingsPage() {
   const onDeleteWebhook = async (webhookId: string) => {
     try {
       const response = await fetch(
-        `http://localhost:8000/notifications/webhooks/${webhookId}?user_id=demo-user`,
+        `/api/notifications/webhooks/${webhookId}?user_id=demo-user`,
         { method: "DELETE" }
       );
 
@@ -229,7 +229,7 @@ export default function WebhooksSettingsPage() {
 
     try {
       const response = await fetch(
-        `http://localhost:8000/notifications/webhooks/${webhookId}/test?user_id=demo-user`,
+        `/api/notifications/webhooks/${webhookId}/test?user_id=demo-user`,
         { method: "POST" }
       );
 

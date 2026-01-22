@@ -44,10 +44,15 @@ import {
 import { cn } from "@/lib/utils";
 import {
   nlpExtractEntities,
+  nlpOntologyMap,
+  nlpHybridAnalyze,
   type NLPExtractedEntity,
   type NLPExtractionResult,
   type NLPEntityType,
   type NLPAssertionStatus,
+  type OntologyMapResponse,
+  type HybridAnalyzeResponse,
+  type AnalysisType,
 } from "@/lib/api";
 
 // ============================================================================
@@ -383,16 +388,25 @@ function EntityCard({
               </p>
             )}
 
-            {bestCode?.code && (
-              <div className="flex items-center gap-2">
-                <code className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded">
-                  {bestCode.code}
-                </code>
-                {bestCode.system && (
-                  <Badge variant="outline" className="text-xs">
-                    {bestCode.system}
-                  </Badge>
-                )}
+            {entity.normalized_codes && entity.normalized_codes.length > 0 && (
+              <div className="flex flex-col gap-1">
+                {entity.normalized_codes.map((code: { code: string; system?: string; display?: string }, idx: number) => (
+                  <div key={idx} className="flex items-center gap-2 flex-wrap">
+                    <code className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded">
+                      {code.code}
+                    </code>
+                    {code.system && (
+                      <Badge variant="outline" className="text-xs">
+                        {code.system}
+                      </Badge>
+                    )}
+                    {code.display && (
+                      <span className="text-xs text-muted-foreground truncate max-w-[200px]" title={code.display}>
+                        {code.display}
+                      </span>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
 
@@ -551,6 +565,369 @@ function StatsPanel({ result }: { result: NLPExtractionResult }) {
   );
 }
 
+// ============================================================================
+// Hybrid Analyzer Components
+// ============================================================================
+
+const ANALYSIS_TYPE_CONFIG: Record<
+  AnalysisType,
+  { label: string; description: string }
+> = {
+  clinical_summary: {
+    label: "Clinical Summary",
+    description: "Overview of patient's clinical status",
+  },
+  risk_assessment: {
+    label: "Risk Assessment",
+    description: "Identify potential risks and concerns",
+  },
+  medication_review: {
+    label: "Medication Review",
+    description: "Analyze medications and interactions",
+  },
+  lab_interpretation: {
+    label: "Lab Interpretation",
+    description: "Interpret laboratory results",
+  },
+  question_answer: {
+    label: "Q&A",
+    description: "Answer specific questions about the note",
+  },
+};
+
+function OntologyStatsPanel({ result }: { result: OntologyMapResponse }) {
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <Card>
+        <CardContent className="pt-4">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-md bg-green-100">
+              <CheckCircle className="h-4 w-4 text-green-700" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{result.coverage_pct.toFixed(1)}%</p>
+              <p className="text-xs text-muted-foreground">Token Coverage</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="pt-4">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-md bg-blue-100">
+              <Brain className="h-4 w-4 text-blue-700" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{result.entity_count}</p>
+              <p className="text-xs text-muted-foreground">Entities Found</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="pt-4">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-md bg-purple-100">
+              <Activity className="h-4 w-4 text-purple-700" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{result.relationships.length}</p>
+              <p className="text-xs text-muted-foreground">Relationships</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="pt-4">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-md bg-amber-100">
+              <Clock className="h-4 w-4 text-amber-700" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{result.processing_time_ms.toFixed(1)}ms</p>
+              <p className="text-xs text-muted-foreground">Processing Time</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function HybridResultPanel({ result }: { result: HybridAnalyzeResponse }) {
+  const ctx = result.structured_context;
+
+  return (
+    <div className="space-y-4">
+      {/* Stats Row */}
+      <div className="grid gap-4 sm:grid-cols-4">
+        <Card>
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-md bg-green-100">
+                <CheckCircle className="h-4 w-4 text-green-700" />
+              </div>
+              <div>
+                <p className="text-lg font-bold">{ctx.coverage_pct.toFixed(1)}%</p>
+                <p className="text-xs text-muted-foreground">Coverage</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-md bg-blue-100">
+                <Brain className="h-4 w-4 text-blue-700" />
+              </div>
+              <div>
+                <p className="text-lg font-bold">{ctx.entity_count}</p>
+                <p className="text-xs text-muted-foreground">Entities</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-md bg-amber-100">
+                <Clock className="h-4 w-4 text-amber-700" />
+              </div>
+              <div>
+                <p className="text-lg font-bold">{result.extraction_time_ms.toFixed(1)}ms</p>
+                <p className="text-xs text-muted-foreground">Extraction</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-2">
+              <div className={cn("p-2 rounded-md", result.llm_available ? "bg-green-100" : "bg-gray-100")}>
+                <Sparkles className={cn("h-4 w-4", result.llm_available ? "text-green-700" : "text-gray-500")} />
+              </div>
+              <div>
+                <p className="text-lg font-bold">{result.llm_available ? "Yes" : "No"}</p>
+                <p className="text-xs text-muted-foreground">LLM Used</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* LLM Analysis */}
+      {result.analysis && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Sparkles className="h-4 w-4" />
+              {result.llm_available ? "LLM Analysis" : "Status"}
+              {result.llm_model && (
+                <Badge variant="outline" className="ml-2 text-xs">
+                  {result.llm_model}
+                </Badge>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-[200px]">
+              <div className="prose prose-sm max-w-none whitespace-pre-wrap">
+                {result.analysis}
+              </div>
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Structured Context */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Structured Extraction
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ScrollArea className="h-[300px]">
+            <div className="space-y-4">
+              {/* Diagnoses */}
+              {ctx.diagnoses.length > 0 && (
+                <div>
+                  <h4 className="font-medium text-sm text-blue-700 mb-2 flex items-center gap-2">
+                    <Stethoscope className="h-4 w-4" />
+                    Diagnoses ({ctx.diagnoses.length})
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {ctx.diagnoses.map((d, i) => (
+                      <Badge
+                        key={i}
+                        variant={d.negated ? "destructive" : "default"}
+                        className={cn("text-xs", d.negated && "line-through")}
+                      >
+                        {d.name}
+                        {d.code && <span className="ml-1 opacity-70">({d.code})</span>}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Medications */}
+              {ctx.medications.length > 0 && (
+                <div>
+                  <h4 className="font-medium text-sm text-green-700 mb-2 flex items-center gap-2">
+                    <Pill className="h-4 w-4" />
+                    Medications ({ctx.medications.length})
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {ctx.medications.map((m, i) => (
+                      <Badge key={i} variant="outline" className="text-xs bg-green-50">
+                        {m.name}
+                        {m.dose && <span className="ml-1 opacity-70">{m.dose}</span>}
+                        {m.frequency && <span className="ml-1 opacity-70">{m.frequency}</span>}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Labs */}
+              {ctx.labs.length > 0 && (
+                <div>
+                  <h4 className="font-medium text-sm text-amber-700 mb-2 flex items-center gap-2">
+                    <FlaskConical className="h-4 w-4" />
+                    Labs ({ctx.labs.length})
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {ctx.labs.map((l, i) => (
+                      <Badge
+                        key={i}
+                        variant="outline"
+                        className={cn(
+                          "text-xs",
+                          l.flag === "high" && "bg-red-50 border-red-300",
+                          l.flag === "low" && "bg-blue-50 border-blue-300",
+                          !l.flag && "bg-amber-50"
+                        )}
+                      >
+                        {l.name}: {l.value} {l.unit}
+                        {l.flag && <span className="ml-1">({l.flag})</span>}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Vitals */}
+              {ctx.vitals.length > 0 && (
+                <div>
+                  <h4 className="font-medium text-sm text-red-700 mb-2 flex items-center gap-2">
+                    <Activity className="h-4 w-4" />
+                    Vitals ({ctx.vitals.length})
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {ctx.vitals.map((v, i) => (
+                      <Badge key={i} variant="outline" className="text-xs bg-red-50">
+                        {v.name}: {v.value}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Symptoms */}
+              {ctx.symptoms.length > 0 && (
+                <div>
+                  <h4 className="font-medium text-sm text-orange-700 mb-2 flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4" />
+                    Symptoms ({ctx.symptoms.length})
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {ctx.symptoms.map((s, i) => (
+                      <Badge
+                        key={i}
+                        variant={s.negated ? "destructive" : "outline"}
+                        className={cn("text-xs", s.negated && "line-through", "bg-orange-50")}
+                      >
+                        {s.name}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Procedures */}
+              {ctx.procedures.length > 0 && (
+                <div>
+                  <h4 className="font-medium text-sm text-purple-700 mb-2 flex items-center gap-2">
+                    <Activity className="h-4 w-4" />
+                    Procedures ({ctx.procedures.length})
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {ctx.procedures.map((p, i) => (
+                      <Badge key={i} variant="outline" className="text-xs bg-purple-50">
+                        {p.name}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Negated Findings */}
+              {ctx.negated_findings.length > 0 && (
+                <div>
+                  <h4 className="font-medium text-sm text-gray-700 mb-2 flex items-center gap-2">
+                    <XCircle className="h-4 w-4" />
+                    Negated Findings ({ctx.negated_findings.length})
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {ctx.negated_findings.map((n, i) => (
+                      <Badge key={i} variant="destructive" className="text-xs line-through">
+                        {n}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Relationships */}
+              {ctx.relationships.length > 0 && (
+                <div>
+                  <h4 className="font-medium text-sm text-cyan-700 mb-2">
+                    Relationships ({ctx.relationships.length})
+                  </h4>
+                  <div className="space-y-1">
+                    {ctx.relationships.slice(0, 10).map((r, i) => (
+                      <div key={i} className="text-xs text-muted-foreground">
+                        <span className="font-medium">{r.subject}</span>
+                        <span className="mx-2">→</span>
+                        <span className="text-cyan-600">{r.relation}</span>
+                        <span className="mx-2">→</span>
+                        <span className="font-medium">{r.object}</span>
+                      </div>
+                    ))}
+                    {ctx.relationships.length > 10 && (
+                      <p className="text-xs text-muted-foreground">
+                        +{ctx.relationships.length - 10} more...
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 function ExportPanel({
   result,
   inputText,
@@ -690,6 +1067,8 @@ function ExportPanel({
 // Main Page
 // ============================================================================
 
+type WorkbenchMode = "extraction" | "hybrid";
+
 export default function NLPWorkbenchPage() {
   const [inputText, setInputText] = useState("");
   const [isExtracting, setIsExtracting] = useState(false);
@@ -699,6 +1078,14 @@ export default function NLPWorkbenchPage() {
   );
   const [selectedEntity, setSelectedEntity] = useState<NLPExtractedEntity | null>(null);
   const [activeTab, setActiveTab] = useState("all");
+
+  // Hybrid analyzer state
+  const [workbenchMode, setWorkbenchMode] = useState<WorkbenchMode>("extraction");
+  const [hybridResult, setHybridResult] = useState<HybridAnalyzeResponse | null>(null);
+  const [ontologyResult, setOntologyResult] = useState<OntologyMapResponse | null>(null);
+  const [analysisType, setAnalysisType] = useState<AnalysisType>("clinical_summary");
+  const [useLLM, setUseLLM] = useState(true);
+  const [question, setQuestion] = useState("");
 
   // Calculate entity counts
   const entityCounts = useMemo(() => {
@@ -761,6 +1148,47 @@ export default function NLPWorkbenchPage() {
     }
   };
 
+  const handleHybridAnalyze = async () => {
+    if (!inputText.trim()) {
+      toast.error("Please enter clinical text to analyze");
+      return;
+    }
+
+    if (analysisType === "question_answer" && !question.trim()) {
+      toast.error("Please enter a question for Q&A mode");
+      return;
+    }
+
+    setIsExtracting(true);
+    setHybridResult(null);
+    setOntologyResult(null);
+
+    try {
+      // First, get ontology mapping for detailed view
+      const ontologyRes = await nlpOntologyMap({ text: inputText });
+      setOntologyResult(ontologyRes);
+
+      // Then get hybrid analysis
+      const hybridRes = await nlpHybridAnalyze({
+        text: inputText,
+        analysis_type: analysisType,
+        question: analysisType === "question_answer" ? question : undefined,
+        use_llm: useLLM,
+      });
+      setHybridResult(hybridRes);
+
+      const llmStatus = hybridRes.llm_available ? "with LLM" : "extraction only";
+      toast.success(
+        `Analysis complete (${llmStatus}) in ${hybridRes.total_time_ms.toFixed(1)}ms`
+      );
+    } catch (error) {
+      console.error("Analysis failed:", error);
+      toast.error("Failed to analyze text. Please try again.");
+    } finally {
+      setIsExtracting(false);
+    }
+  };
+
   const handleLoadSample = (sampleText: string) => {
     setInputText(sampleText);
     setResult(null);
@@ -797,13 +1225,27 @@ export default function NLPWorkbenchPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">
-              NLP Entity Extraction Workbench
+              NLP Clinical Analysis Workbench
             </h1>
             <p className="text-muted-foreground">
-              Extract and normalize clinical entities from unstructured text
+              Extract entities and analyze clinical notes with AI
             </p>
           </div>
         </div>
+
+        {/* Mode Toggle */}
+        <Tabs value={workbenchMode} onValueChange={(v) => setWorkbenchMode(v as WorkbenchMode)}>
+          <TabsList>
+            <TabsTrigger value="extraction" className="gap-2">
+              <Search className="h-4 w-4" />
+              Entity Extraction
+            </TabsTrigger>
+            <TabsTrigger value="hybrid" className="gap-2">
+              <Sparkles className="h-4 w-4" />
+              Hybrid Analyzer
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -816,7 +1258,10 @@ export default function NLPWorkbenchPage() {
                 Clinical Text Input
               </CardTitle>
               <CardDescription>
-                Paste clinical notes, discharge summaries, or other medical text
+                {workbenchMode === "extraction"
+                  ? "Paste clinical notes, discharge summaries, or other medical text"
+                  : "Analyze clinical text with deterministic extraction + optional LLM reasoning"
+                }
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -824,7 +1269,7 @@ export default function NLPWorkbenchPage() {
                 placeholder="Enter clinical text here..."
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                className="min-h-[300px] font-mono text-sm"
+                className="min-h-[250px] font-mono text-sm"
               />
 
               <div className="flex items-center justify-between">
@@ -846,166 +1291,322 @@ export default function NLPWorkbenchPage() {
                   </Select>
                 </div>
 
-                <Button
-                  onClick={handleExtract}
-                  disabled={isExtracting || !inputText.trim()}
-                >
-                  {isExtracting ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Extracting...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="h-4 w-4 mr-2" />
-                      Extract Entities
-                    </>
+                {workbenchMode === "extraction" ? (
+                  <Button
+                    onClick={handleExtract}
+                    disabled={isExtracting || !inputText.trim()}
+                  >
+                    {isExtracting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        Extracting...
+                      </>
+                    ) : (
+                      <>
+                        <Search className="h-4 w-4 mr-2" />
+                        Extract Entities
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleHybridAnalyze}
+                    disabled={isExtracting || !inputText.trim()}
+                  >
+                    {isExtracting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        Analyzing...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        Analyze
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Mode-specific options */}
+          {workbenchMode === "extraction" ? (
+            <>
+              {/* Entity Type Filter */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm">Entity Type Filter</CardTitle>
+                    <div className="flex gap-2">
+                      <Button variant="ghost" size="sm" onClick={handleSelectAllTypes}>
+                        Select All
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={handleClearTypes}>
+                        Clear
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <EntityTypeFilter
+                    selectedTypes={selectedEntityTypes}
+                    onToggle={handleToggleEntityType}
+                    entityCounts={entityCounts}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Export Panel */}
+              {result && <ExportPanel result={result} inputText={inputText} />}
+            </>
+          ) : (
+            <>
+              {/* Analysis Options */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm">Analysis Options</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Analysis Type</label>
+                    <Select value={analysisType} onValueChange={(v) => setAnalysisType(v as AnalysisType)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(Object.keys(ANALYSIS_TYPE_CONFIG) as AnalysisType[]).map((type) => (
+                          <SelectItem key={type} value={type}>
+                            <div className="flex flex-col">
+                              <span>{ANALYSIS_TYPE_CONFIG[type].label}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {ANALYSIS_TYPE_CONFIG[type].description}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {analysisType === "question_answer" && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Question</label>
+                      <Textarea
+                        placeholder="What medications is the patient taking?"
+                        value={question}
+                        onChange={(e) => setQuestion(e.target.value)}
+                        className="h-20"
+                      />
+                    </div>
                   )}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* Entity Type Filter */}
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm">Entity Type Filter</CardTitle>
-                <div className="flex gap-2">
-                  <Button variant="ghost" size="sm" onClick={handleSelectAllTypes}>
-                    Select All
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={handleClearTypes}>
-                    Clear
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <EntityTypeFilter
-                selectedTypes={selectedEntityTypes}
-                onToggle={handleToggleEntityType}
-                entityCounts={entityCounts}
-              />
-            </CardContent>
-          </Card>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="useLLM"
+                      checked={useLLM}
+                      onChange={(e) => setUseLLM(e.target.checked)}
+                      className="rounded"
+                    />
+                    <label htmlFor="useLLM" className="text-sm">
+                      Use LLM for reasoning (if available)
+                    </label>
+                  </div>
 
-          {/* Export Panel */}
-          {result && <ExportPanel result={result} inputText={inputText} />}
+                  <div className="text-xs text-muted-foreground bg-muted p-3 rounded-md">
+                    <strong>How it works:</strong> The hybrid analyzer first performs fast deterministic
+                    extraction (~1ms), then optionally uses LLM reasoning grounded in the extracted data.
+                    The LLM can only cite entities from the extraction, reducing hallucination risk.
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </div>
 
         {/* Results Panel */}
         <div className="space-y-4">
-          {result ? (
-            <>
-              {/* Stats */}
-              <StatsPanel result={result} />
+          {workbenchMode === "extraction" ? (
+            // Entity Extraction Results
+            result ? (
+              <>
+                {/* Stats */}
+                <StatsPanel result={result} />
 
-              {/* Highlighted Text */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <Search className="h-4 w-4" />
-                    Annotated Text
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ScrollArea className="h-[250px] rounded-md border p-4">
-                    <HighlightedText
-                      text={inputText}
-                      entities={result.entities}
-                      selectedEntityTypes={selectedEntityTypes}
-                      onEntityClick={setSelectedEntity}
-                    />
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-
-              {/* Entity List with Tabs */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <Activity className="h-4 w-4" />
-                    Extracted Entities ({filteredEntities.length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Tabs value={activeTab} onValueChange={setActiveTab}>
-                    <TabsList className="flex flex-wrap h-auto gap-1 mb-4">
-                      <TabsTrigger value="all" className="text-xs">
-                        All ({result.entities.length})
-                      </TabsTrigger>
-                      {(Object.keys(ENTITY_TYPE_CONFIG) as NLPEntityType[]).map((type) => {
-                        const count = entityCounts[type];
-                        if (count === 0) return null;
-                        const config = ENTITY_TYPE_CONFIG[type];
-                        return (
-                          <TabsTrigger key={type} value={type} className="text-xs gap-1">
-                            {config.icon}
-                            {config.label} ({count})
-                          </TabsTrigger>
-                        );
-                      })}
-                    </TabsList>
-
-                    <ScrollArea className="h-[400px]">
-                      <div className="space-y-2 pr-4">
-                        {filteredEntities.length === 0 ? (
-                          <div className="text-center py-8 text-muted-foreground">
-                            <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                            <p>No entities found for selected filters</p>
-                          </div>
-                        ) : (
-                          filteredEntities.map((entity, idx) => (
-                            <EntityCard
-                              key={`${entity.text}-${entity.span.start}-${idx}`}
-                              entity={entity}
-                              isSelected={selectedEntity === entity}
-                              onClick={() => setSelectedEntity(entity)}
-                            />
-                          ))
-                        )}
-                      </div>
+                {/* Highlighted Text */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Search className="h-4 w-4" />
+                      Annotated Text
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ScrollArea className="h-[250px] rounded-md border p-4">
+                      <HighlightedText
+                        text={inputText}
+                        entities={result.entities}
+                        selectedEntityTypes={selectedEntityTypes}
+                        onEntityClick={setSelectedEntity}
+                      />
                     </ScrollArea>
-                  </Tabs>
+                  </CardContent>
+                </Card>
+
+                {/* Entity List with Tabs */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Activity className="h-4 w-4" />
+                      Extracted Entities ({filteredEntities.length})
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Tabs value={activeTab} onValueChange={setActiveTab}>
+                      <TabsList className="flex flex-wrap h-auto gap-1 mb-4">
+                        <TabsTrigger value="all" className="text-xs">
+                          All ({result.entities.length})
+                        </TabsTrigger>
+                        {(Object.keys(ENTITY_TYPE_CONFIG) as NLPEntityType[]).map((type) => {
+                          const count = entityCounts[type];
+                          if (count === 0) return null;
+                          const config = ENTITY_TYPE_CONFIG[type];
+                          return (
+                            <TabsTrigger key={type} value={type} className="text-xs gap-1">
+                              {config.icon}
+                              {config.label} ({count})
+                            </TabsTrigger>
+                          );
+                        })}
+                      </TabsList>
+
+                      <ScrollArea className="h-[400px]">
+                        <div className="space-y-2 pr-4">
+                          {filteredEntities.length === 0 ? (
+                            <div className="text-center py-8 text-muted-foreground">
+                              <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                              <p>No entities found for selected filters</p>
+                            </div>
+                          ) : (
+                            filteredEntities.map((entity, idx) => (
+                              <EntityCard
+                                key={`${entity.text}-${entity.span.start}-${idx}`}
+                                entity={entity}
+                                isSelected={selectedEntity === entity}
+                                onClick={() => setSelectedEntity(entity)}
+                              />
+                            ))
+                          )}
+                        </div>
+                      </ScrollArea>
+                    </Tabs>
+                  </CardContent>
+                </Card>
+              </>
+            ) : (
+              <Card>
+                <CardContent className="py-16">
+                  <div className="text-center space-y-4">
+                    <div className="flex justify-center">
+                      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted">
+                        <Brain className="h-10 w-10 text-muted-foreground" />
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-medium">Ready to Extract</h3>
+                      <p className="text-muted-foreground max-w-md mx-auto">
+                        Enter clinical text or load a sample note, then click
+                        &quot;Extract Entities&quot; to identify diagnoses, medications,
+                        procedures, and more.
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-center gap-2">
+                      <p className="text-sm text-muted-foreground">Try a sample:</p>
+                      <div className="flex gap-2">
+                        {SAMPLE_NOTES.map((sample) => (
+                          <Button
+                            key={sample.id}
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleLoadSample(sample.text)}
+                          >
+                            {sample.title}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
-            </>
+            )
           ) : (
-            <Card>
-              <CardContent className="py-16">
-                <div className="text-center space-y-4">
-                  <div className="flex justify-center">
-                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted">
-                      <Brain className="h-10 w-10 text-muted-foreground" />
+            // Hybrid Analyzer Results
+            hybridResult ? (
+              <>
+                {/* Ontology Stats if available */}
+                {ontologyResult && <OntologyStatsPanel result={ontologyResult} />}
+
+                {/* Hybrid Result Panel */}
+                <HybridResultPanel result={hybridResult} />
+              </>
+            ) : (
+              <Card>
+                <CardContent className="py-16">
+                  <div className="text-center space-y-4">
+                    <div className="flex justify-center">
+                      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted">
+                        <Sparkles className="h-10 w-10 text-muted-foreground" />
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-medium">Hybrid Clinical Analyzer</h3>
+                      <p className="text-muted-foreground max-w-md mx-auto">
+                        Combines fast deterministic extraction (~1ms) with optional LLM reasoning
+                        for grounded clinical analysis. The LLM can only cite entities from the
+                        extraction, reducing hallucination risk.
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-center gap-2">
+                      <p className="text-sm text-muted-foreground">Features:</p>
+                      <div className="grid grid-cols-2 gap-2 text-sm text-left max-w-sm">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                          <span>100% token coverage</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-amber-500" />
+                          <span>~1ms extraction</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Brain className="h-4 w-4 text-blue-500" />
+                          <span>Grounded LLM</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Activity className="h-4 w-4 text-purple-500" />
+                          <span>Multiple analysis types</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-center gap-2 pt-4">
+                      <p className="text-sm text-muted-foreground">Try a sample:</p>
+                      <div className="flex gap-2">
+                        {SAMPLE_NOTES.map((sample) => (
+                          <Button
+                            key={sample.id}
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleLoadSample(sample.text)}
+                          >
+                            {sample.title}
+                          </Button>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-medium">Ready to Extract</h3>
-                    <p className="text-muted-foreground max-w-md mx-auto">
-                      Enter clinical text or load a sample note, then click
-                      &quot;Extract Entities&quot; to identify diagnoses, medications,
-                      procedures, and more.
-                    </p>
-                  </div>
-                  <div className="flex flex-col items-center gap-2">
-                    <p className="text-sm text-muted-foreground">Try a sample:</p>
-                    <div className="flex gap-2">
-                      {SAMPLE_NOTES.map((sample) => (
-                        <Button
-                          key={sample.id}
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleLoadSample(sample.text)}
-                        >
-                          {sample.title}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )
           )}
         </div>
       </div>

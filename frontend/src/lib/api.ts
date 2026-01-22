@@ -2829,6 +2829,115 @@ export async function nlpGetStats(): Promise<NLPServiceStats> {
 }
 
 // ============================================================================
+// Ontology Mapper Types
+// ============================================================================
+
+export interface OntologyEntity {
+  text: string;
+  normalized: string;
+  category: string;
+  subcategory?: string | null;
+  vocabulary_code?: string | null;
+  vocabulary_system?: string | null;
+  confidence: number;
+  attributes: Record<string, unknown>;
+  negated: boolean;
+}
+
+export interface OntologyRelationship {
+  subject: string;
+  relation: string;
+  object: string;
+  confidence: number;
+}
+
+export interface OntologyMapRequest {
+  text: string;
+}
+
+export interface OntologyMapResponse {
+  request_id: string;
+  text_length: number;
+  total_tokens: number;
+  classified_tokens: number;
+  coverage_pct: number;
+  entity_count: number;
+  entities_by_category: Record<string, number>;
+  entities: OntologyEntity[];
+  relationships: OntologyRelationship[];
+  negated_findings: string[];
+  processing_time_ms: number;
+}
+
+// ============================================================================
+// Hybrid Clinical Analyzer Types
+// ============================================================================
+
+export type AnalysisType =
+  | "clinical_summary"
+  | "risk_assessment"
+  | "medication_review"
+  | "lab_interpretation"
+  | "question_answer";
+
+export interface HybridAnalyzeRequest {
+  text: string;
+  analysis_type?: AnalysisType;
+  question?: string | null;
+  use_llm?: boolean;
+}
+
+export interface StructuredContext {
+  diagnoses: Array<{ name: string; code?: string; negated?: boolean }>;
+  medications: Array<{ name: string; dose?: string; frequency?: string }>;
+  labs: Array<{ name: string; value?: string; unit?: string; flag?: string }>;
+  vitals: Array<{ name: string; value?: string }>;
+  symptoms: Array<{ name: string; negated?: boolean }>;
+  findings: Array<{ name: string; negated?: boolean }>;
+  procedures: Array<{ name: string }>;
+  negated_findings: string[];
+  relationships: Array<{ subject: string; relation: string; object: string }>;
+  entity_count: number;
+  coverage_pct: number;
+}
+
+export interface HybridAnalyzeResponse {
+  request_id: string;
+  analysis_type: string;
+  analysis: string | null;
+  structured_context: StructuredContext;
+  extraction_time_ms: number;
+  llm_time_ms: number | null;
+  total_time_ms: number;
+  llm_model: string | null;
+  llm_available: boolean;
+}
+
+// ============================================================================
+// Ontology Mapper & Hybrid Analyzer API Functions
+// ============================================================================
+
+// Map clinical text using deterministic ontology mapper
+export async function nlpOntologyMap(request: OntologyMapRequest): Promise<OntologyMapResponse> {
+  return fetchWithRetry<OntologyMapResponse>(`${API_BASE_URL}/nlp/ontology/map`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+    timeout: 30000,
+  });
+}
+
+// Perform hybrid clinical analysis (deterministic + optional LLM)
+export async function nlpHybridAnalyze(request: HybridAnalyzeRequest): Promise<HybridAnalyzeResponse> {
+  return fetchWithRetry<HybridAnalyzeResponse>(`${API_BASE_URL}/nlp/analyze`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+    timeout: 120000, // Longer timeout for LLM analysis
+  });
+}
+
+// ============================================================================
 // AI Coding Types
 // ============================================================================
 

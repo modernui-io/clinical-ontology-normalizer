@@ -79,9 +79,6 @@ interface ValidationResult {
   }>;
 }
 
-// API base URL
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
 export default function CodelistDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -111,7 +108,7 @@ export default function CodelistDetailPage() {
 
       try {
         const res = await fetch(
-          `${API_BASE}/api/v1/cdisc/codelists/${cCode}?include_terms=true`
+          `/api/cdisc/codelists/${cCode}?include_terms=true`
         );
 
         if (!res.ok) {
@@ -167,7 +164,7 @@ export default function CodelistDetailPage() {
     setValidationResult(null);
 
     try {
-      const res = await fetch(`${API_BASE}/api/v1/cdisc/validate`, {
+      const res = await fetch(`/api/cdisc/validate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

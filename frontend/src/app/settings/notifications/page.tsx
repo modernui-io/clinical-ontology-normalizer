@@ -180,7 +180,7 @@ export default function NotificationSettingsPage() {
     const fetchPreferences = async () => {
       try {
         const response = await fetch(
-          "http://localhost:8000/notifications/preferences?user_id=demo-user"
+          "/api/notifications/preferences?user_id=demo-user"
         );
         if (response.ok) {
           const data: NotificationPreferences = await response.json();
@@ -241,7 +241,7 @@ export default function NotificationSettingsPage() {
       };
 
       const response = await fetch(
-        "http://localhost:8000/notifications/preferences?user_id=demo-user",
+        "/api/notifications/preferences?user_id=demo-user",
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },

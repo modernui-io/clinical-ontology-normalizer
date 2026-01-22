@@ -353,9 +353,9 @@ export default function StreamingDashboardPage() {
   const fetchData = useCallback(async () => {
     try {
       const [healthRes, metricsRes, topicsRes] = await Promise.all([
-        fetch("http://localhost:8000/api/v1/streaming/health"),
-        fetch("http://localhost:8000/api/v1/streaming/metrics?minutes=5"),
-        fetch("http://localhost:8000/api/v1/streaming/topics"),
+        fetch("/api/streaming/health"),
+        fetch("/api/streaming/metrics?minutes=5"),
+        fetch("/api/streaming/topics"),
       ]);
 
       if (healthRes.ok) {
