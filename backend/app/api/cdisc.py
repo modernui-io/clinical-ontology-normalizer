@@ -37,7 +37,7 @@ from app.services.cdisc_terminology_service import (
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/v1/cdisc", tags=["cdisc"])
+router = APIRouter(prefix="/cdisc", tags=["cdisc"])
 
 
 # =============================================================================

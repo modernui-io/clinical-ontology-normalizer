@@ -20,7 +20,7 @@ from app.services.visualization_data_service import (
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/v1/visualizations", tags=["Visualizations"])
+router = APIRouter(prefix="/visualizations", tags=["Visualizations"])
 
 
 # ==============================================================================

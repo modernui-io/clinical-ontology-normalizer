@@ -29,7 +29,7 @@ from app.services.value_set_service import (
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/v1/valuesets", tags=["valuesets"])
+router = APIRouter(prefix="/valuesets", tags=["valuesets"])
 
 
 # =============================================================================

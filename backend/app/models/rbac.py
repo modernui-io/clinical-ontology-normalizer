@@ -193,6 +193,7 @@ class User(Base):
     user_roles: Mapped[list["UserRole"]] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
+        foreign_keys="[UserRole.user_id]",
     )
 
     @property

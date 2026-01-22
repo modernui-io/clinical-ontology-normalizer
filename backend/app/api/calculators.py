@@ -20,10 +20,13 @@ from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException, Query, status, Header
+from fastapi import APIRouter, HTTPException, Query, status, Header, Path
 from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/calculators", tags=["Clinical Calculators"])
+
+# Create a separate router for clinical calculators to avoid route conflicts
+clinical_router = APIRouter(prefix="/calculators/clinical", tags=["Clinical Calculators"])
 
 
 # ============================================================================
@@ -729,8 +732,8 @@ class FavoriteToggleResponse(BaseModel):
     message: str
 
 
-@router.get(
-    "/clinical",
+@clinical_router.get(
+    "",
     response_model=ListClinicalCalculatorsResponse,
     summary="List clinical calculators",
     description="Get all validated clinical calculators grouped by category.",
@@ -760,8 +763,8 @@ async def list_clinical_calculators(
     )
 
 
-@router.get(
-    "/clinical/{calculator_id}",
+@clinical_router.get(
+    "/{calculator_id}",
     response_model=ClinicalCalculatorDetail,
     summary="Get clinical calculator details",
     description="Get detailed information about a clinical calculator including input schema.",
@@ -788,8 +791,8 @@ async def get_clinical_calculator(calculator_id: str) -> ClinicalCalculatorDetai
     return ClinicalCalculatorDetail(**calc)
 
 
-@router.post(
-    "/clinical/{calculator_id}/calculate",
+@clinical_router.post(
+    "/{calculator_id}/calculate",
     response_model=ClinicalCalculationResult,
     summary="Execute clinical calculator",
     description="Run a clinical calculator with provided input values.",
@@ -857,8 +860,8 @@ async def execute_clinical_calculator(
         )
 
 
-@router.get(
-    "/clinical/favorites/list",
+@clinical_router.get(
+    "/favorites/list",
     response_model=list[ClinicalCalculatorSummary],
     summary="Get favorite calculators",
     description="Get user's favorite clinical calculators.",
@@ -879,8 +882,8 @@ async def get_favorite_calculators(
     return [ClinicalCalculatorSummary(**c) for c in favorites]
 
 
-@router.post(
-    "/clinical/{calculator_id}/favorite",
+@clinical_router.post(
+    "/{calculator_id}/favorite",
     response_model=FavoriteToggleResponse,
     summary="Toggle favorite status",
     description="Toggle a calculator's favorite status for the user.",
@@ -914,8 +917,8 @@ async def toggle_calculator_favorite(
         )
 
 
-@router.get(
-    "/clinical/categories/list",
+@clinical_router.get(
+    "/categories/list",
     response_model=list[CategoryInfo],
     summary="List calculator categories",
     description="Get all clinical calculator categories with counts.",

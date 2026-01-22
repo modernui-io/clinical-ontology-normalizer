@@ -44,7 +44,7 @@ from app.services.cohort_service import (
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/v1/cohorts", tags=["Cohorts"])
+router = APIRouter(prefix="/cohorts", tags=["Cohorts"])
 
 
 # ==============================================================================

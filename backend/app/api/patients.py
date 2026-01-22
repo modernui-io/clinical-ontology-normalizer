@@ -1,19 +1,21 @@
 """Patient API endpoints."""
 
 import logging
-from typing import Annotated
+from datetime import datetime, UTC
+from typing import Annotated, Any
+from uuid import UUID
 
 from fastapi import APIRouter, Query, status
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 
 from app.api.errors import ErrorCode, NotFoundError
 from app.core.database import get_sync_engine
 from app.models.clinical_fact import ClinicalFact as ClinicalFactModel
-from app.models.knowledge_graph import KGNode
+from app.models.knowledge_graph import KGNode, KGEdge
 from app.schemas import ClinicalFact
 from app.schemas.base import Assertion, Domain
-from app.schemas.knowledge_graph import PatientGraph
+from app.schemas.knowledge_graph import PatientGraph, KGNode as KGNodeSchema, KGEdge as KGEdgeSchema, NodeType, EdgeType
 from app.services.graph_builder_db import DatabaseGraphBuilderService
 
 logger = logging.getLogger(__name__)
@@ -48,17 +50,13 @@ def get_patient_graph(patient_id: str) -> PatientGraph:
     logger.info(f"Getting knowledge graph for patient_id={patient_id}")
 
     with Session(get_sync_engine()) as session:
-        graph_service = DatabaseGraphBuilderService(session)
+        # Direct query for nodes
+        node_stmt = select(KGNode).where(KGNode.patient_id == patient_id)
+        node_result = session.execute(node_stmt)
+        db_nodes = node_result.scalars().all()
 
-        # Check if patient has any data
-        existing_nodes = (
-            session.execute(select(KGNode).where(KGNode.patient_id == patient_id).limit(1))
-            .scalars()
-            .first()
-        )
-
-        # If no nodes exist, check if there are any facts and build the graph
-        if existing_nodes is None:
+        if not db_nodes:
+            # Check if there are any facts we could build from
             facts_exist = (
                 session.execute(
                     select(ClinicalFactModel).where(ClinicalFactModel.patient_id == patient_id).limit(1)
@@ -73,13 +71,54 @@ def get_patient_graph(patient_id: str) -> PatientGraph:
                     error_code=ErrorCode.NOT_FOUND_PATIENT,
                 )
 
-            # Build graph from facts
+            # Build graph from facts using service
             logger.info(f"Building knowledge graph for patient_id={patient_id}")
+            graph_service = DatabaseGraphBuilderService(session)
             graph_service.build_graph_for_patient(patient_id)
             session.commit()
 
-        # Get the complete graph
-        patient_graph = graph_service.get_patient_graph(patient_id)
+            # Re-query after building
+            node_result = session.execute(node_stmt)
+            db_nodes = node_result.scalars().all()
+
+        # Direct query for edges
+        edge_stmt = select(KGEdge).where(KGEdge.patient_id == patient_id)
+        edge_result = session.execute(edge_stmt)
+        db_edges = edge_result.scalars().all()
+
+        # Convert to schema objects
+        nodes = [
+            KGNodeSchema(
+                id=UUID(n.id) if isinstance(n.id, str) else n.id,
+                patient_id=n.patient_id,
+                node_type=NodeType(n.node_type) if isinstance(n.node_type, str) else n.node_type,
+                omop_concept_id=n.omop_concept_id,
+                label=n.label,
+                properties=n.properties or {},
+                created_at=n.created_at,
+            )
+            for n in db_nodes
+        ]
+
+        edges = [
+            KGEdgeSchema(
+                id=UUID(e.id) if isinstance(e.id, str) else e.id,
+                patient_id=e.patient_id,
+                source_node_id=UUID(e.source_node_id) if isinstance(e.source_node_id, str) else e.source_node_id,
+                target_node_id=UUID(e.target_node_id) if isinstance(e.target_node_id, str) else e.target_node_id,
+                edge_type=EdgeType(e.edge_type) if isinstance(e.edge_type, str) else e.edge_type,
+                fact_id=UUID(e.fact_id) if e.fact_id and isinstance(e.fact_id, str) else e.fact_id,
+                properties=e.properties or {},
+                created_at=e.created_at,
+            )
+            for e in db_edges
+        ]
+
+        patient_graph = PatientGraph(
+            patient_id=patient_id,
+            nodes=nodes,
+            edges=edges,
+        )
 
         logger.info(
             f"Retrieved graph for patient_id={patient_id}: "

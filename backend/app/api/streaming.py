@@ -40,7 +40,7 @@ from app.services.streaming_etl_service import (
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/v1/streaming", tags=["Streaming"])
+router = APIRouter(prefix="/streaming", tags=["Streaming"])
 
 
 # =============================================================================

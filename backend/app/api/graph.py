@@ -21,7 +21,7 @@ from pydantic import BaseModel, Field
 
 from app.api.errors import ErrorCode, InternalError, NotFoundError
 
-router = APIRouter(prefix="/api/graph", tags=["Knowledge Graph"])
+router = APIRouter(prefix="/graph", tags=["Knowledge Graph"])
 
 
 # ============================================================================

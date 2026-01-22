@@ -11,7 +11,7 @@ import time
 from enum import Enum
 from uuid import uuid4
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Body, Query
 from pydantic import BaseModel, Field
 
 from app.api.errors import ErrorCode, InternalError
@@ -833,6 +833,339 @@ Skin: No rash, no itching.""",
     }
 
 
+# ============================================================================
+# Ontology Mapper Endpoints
+# ============================================================================
+
+
+class OntologyMapRequest(BaseModel):
+    """Request for ontology mapping."""
+
+    text: str = Field(
+        ...,
+        min_length=1,
+        max_length=100000,
+        description="Clinical text to process",
+    )
+
+
+class OntologyEntityResponse(BaseModel):
+    """An entity extracted by the ontology mapper."""
+
+    text: str = Field(..., description="Original text span")
+    normalized: str = Field(..., description="Normalized text")
+    category: str = Field(..., description="Entity category (diagnosis, medication, etc.)")
+    subcategory: str | None = Field(None, description="Entity subcategory")
+    vocabulary_code: str | None = Field(None, description="Vocabulary code")
+    vocabulary_system: str | None = Field(None, description="Vocabulary system")
+    confidence: float = Field(..., ge=0, le=1, description="Confidence score")
+    attributes: dict = Field(default_factory=dict, description="Additional attributes")
+    negated: bool = Field(default=False, description="Whether the entity is negated")
+
+
+class OntologyRelationshipResponse(BaseModel):
+    """A relationship between entities."""
+
+    subject: str = Field(..., description="Subject entity text")
+    relation: str = Field(..., description="Relationship type")
+    object: str = Field(..., description="Object entity text")
+    confidence: float = Field(..., ge=0, le=1, description="Confidence score")
+
+
+class OntologyMapResponse(BaseModel):
+    """Response from ontology mapping."""
+
+    request_id: str = Field(..., description="Unique request identifier")
+    text_length: int = Field(..., description="Length of input text")
+    total_tokens: int = Field(..., description="Total tokens processed")
+    classified_tokens: int = Field(..., description="Tokens that were classified")
+    coverage_pct: float = Field(..., description="Percentage of tokens classified")
+    entity_count: int = Field(..., description="Total entities extracted")
+    entities_by_category: dict[str, int] = Field(..., description="Counts by category")
+    entities: list[OntologyEntityResponse] = Field(..., description="Extracted entities")
+    relationships: list[OntologyRelationshipResponse] = Field(
+        default_factory=list, description="Entity relationships"
+    )
+    negated_findings: list[str] = Field(
+        default_factory=list, description="Negated findings"
+    )
+    processing_time_ms: float = Field(..., description="Processing time in milliseconds")
+
+
+@router.post(
+    "/ontology/map",
+    response_model=OntologyMapResponse,
+    summary="Map clinical text using ontology mapper",
+    description="Fast deterministic extraction using clinical ontologies.",
+)
+async def ontology_map(request: OntologyMapRequest) -> OntologyMapResponse:
+    """Map clinical text using the deterministic ontology mapper.
+
+    This endpoint uses a rule-based approach with clinical ontologies for
+    fast, deterministic entity extraction. Features:
+    - 100% token coverage tracking
+    - ~1ms processing time for most notes
+    - No LLM required - fully deterministic
+    - Negation detection
+    - Relationship extraction
+
+    Args:
+        request: Clinical text to process.
+
+    Returns:
+        OntologyMapResponse with extracted entities and coverage stats.
+    """
+    try:
+        from app.services.clinical_ontology_mapper import get_ontology_mapper
+
+        mapper = get_ontology_mapper()
+        result = mapper.map_note(request.text)
+
+        # Convert to response format
+        entities = []
+        entities_by_category: dict[str, int] = {}
+
+        for entity in result.entities:
+            cat = entity.category.value
+            entities_by_category[cat] = entities_by_category.get(cat, 0) + 1
+
+            entities.append(OntologyEntityResponse(
+                text=entity.span.text,
+                normalized=entity.span.normalized,
+                category=cat,
+                subcategory=entity.subcategory,
+                vocabulary_code=entity.vocabulary_code,
+                vocabulary_system=entity.vocabulary_system,
+                confidence=entity.confidence,
+                attributes=entity.attributes,
+                negated=entity.attributes.get("negated", False),
+            ))
+
+        relationships = [
+            OntologyRelationshipResponse(
+                subject=rel.subject.span.text,
+                relation=rel.relation.value,
+                object=rel.object.span.text,
+                confidence=rel.confidence,
+            )
+            for rel in result.relationships
+        ]
+
+        # Get negated findings
+        negated_findings = [
+            e.span.text for e in result.entities
+            if e.attributes.get("negated", False)
+        ]
+
+        stats = result.coverage_stats
+
+        return OntologyMapResponse(
+            request_id=str(uuid4()),
+            text_length=len(request.text),
+            total_tokens=stats["total_tokens"],
+            classified_tokens=stats["classified_tokens"],
+            coverage_pct=stats["coverage_pct"],
+            entity_count=len(entities),
+            entities_by_category=entities_by_category,
+            entities=entities,
+            relationships=relationships,
+            negated_findings=negated_findings,
+            processing_time_ms=round(result.processing_time_ms, 2),
+        )
+
+    except Exception as e:
+        raise InternalError(
+            message=f"Ontology mapping failed: {str(e)}",
+            error_code=ErrorCode.INTERNAL_NLP_ERROR,
+        )
+
+
+# ============================================================================
+# Hybrid Clinical Analyzer Endpoints
+# ============================================================================
+
+
+class AnalysisTypeEnum(str, Enum):
+    """Types of clinical analysis available."""
+
+    CLINICAL_SUMMARY = "clinical_summary"
+    RISK_ASSESSMENT = "risk_assessment"
+    MEDICATION_REVIEW = "medication_review"
+    LAB_INTERPRETATION = "lab_interpretation"
+    QUESTION_ANSWER = "question_answer"
+
+
+class HybridAnalyzeRequest(BaseModel):
+    """Request for hybrid clinical analysis."""
+
+    text: str = Field(
+        ...,
+        min_length=1,
+        max_length=100000,
+        description="Clinical text to analyze",
+    )
+    analysis_type: AnalysisTypeEnum = Field(
+        default=AnalysisTypeEnum.CLINICAL_SUMMARY,
+        description="Type of analysis to perform",
+    )
+    question: str | None = Field(
+        None,
+        description="Question to answer (for QUESTION_ANSWER type)",
+    )
+    use_llm: bool = Field(
+        default=True,
+        description="Whether to use LLM for reasoning (if False, returns extraction only)",
+    )
+
+
+class StructuredContextResponse(BaseModel):
+    """The structured context extracted from clinical text."""
+
+    diagnoses: list[dict] = Field(default_factory=list)
+    medications: list[dict] = Field(default_factory=list)
+    labs: list[dict] = Field(default_factory=list)
+    vitals: list[dict] = Field(default_factory=list)
+    symptoms: list[dict] = Field(default_factory=list)
+    findings: list[dict] = Field(default_factory=list)
+    procedures: list[dict] = Field(default_factory=list)
+    negated_findings: list[str] = Field(default_factory=list)
+    relationships: list[dict] = Field(default_factory=list)
+    entity_count: int = Field(..., description="Total entities")
+    coverage_pct: float = Field(..., description="Token coverage percentage")
+
+
+class HybridAnalyzeResponse(BaseModel):
+    """Response from hybrid clinical analysis."""
+
+    request_id: str = Field(..., description="Unique request identifier")
+    analysis_type: str = Field(..., description="Type of analysis performed")
+    analysis: str | None = Field(None, description="LLM-generated analysis (if use_llm=True)")
+    structured_context: StructuredContextResponse = Field(
+        ..., description="Deterministic extraction results"
+    )
+    extraction_time_ms: float = Field(..., description="Time for deterministic extraction")
+    llm_time_ms: float | None = Field(None, description="Time for LLM analysis (if used)")
+    total_time_ms: float = Field(..., description="Total processing time")
+    llm_model: str | None = Field(None, description="LLM model used (if any)")
+    llm_available: bool = Field(..., description="Whether LLM was available")
+
+
+@router.post(
+    "/analyze",
+    response_model=HybridAnalyzeResponse,
+    summary="Hybrid clinical analysis",
+    description="Combines deterministic extraction with optional LLM reasoning.",
+)
+async def hybrid_analyze(request: HybridAnalyzeRequest) -> HybridAnalyzeResponse:
+    """Perform hybrid clinical analysis.
+
+    This endpoint combines:
+    1. Fast deterministic extraction using clinical ontologies (~1ms)
+    2. Optional LLM-powered reasoning grounded in the extracted data
+
+    The LLM can ONLY cite entities from the deterministic extraction,
+    reducing hallucination risk.
+
+    Analysis types:
+    - CLINICAL_SUMMARY: Overview of patient's clinical status
+    - RISK_ASSESSMENT: Identify potential risks and concerns
+    - MEDICATION_REVIEW: Analyze medications and interactions
+    - LAB_INTERPRETATION: Interpret laboratory results
+    - QUESTION_ANSWER: Answer specific questions about the note
+
+    Args:
+        request: Clinical text and analysis options.
+
+    Returns:
+        HybridAnalyzeResponse with structured data and optional LLM analysis.
+    """
+    import time as time_module
+    start_time = time_module.perf_counter()
+
+    try:
+        from app.services.hybrid_clinical_analyzer import (
+            HybridClinicalAnalyzer,
+            AnalysisType,
+        )
+
+        analyzer = HybridClinicalAnalyzer()
+
+        # Always do deterministic extraction first
+        extraction_start = time_module.perf_counter()
+        context, _ = analyzer.extract_structured_context(request.text)
+        extraction_time = (time_module.perf_counter() - extraction_start) * 1000
+
+        # Build structured context response
+        structured_context = StructuredContextResponse(
+            diagnoses=context.diagnoses,
+            medications=context.medications,
+            labs=context.labs,
+            vitals=context.vitals,
+            symptoms=context.symptoms,
+            findings=context.findings,
+            procedures=context.procedures,
+            negated_findings=context.negated_findings,
+            relationships=context.relationships,
+            entity_count=context.entity_count,
+            coverage_pct=context.coverage_pct,
+        )
+
+        analysis = None
+        llm_time = None
+        llm_model = None
+        llm_available = False
+
+        # Try LLM analysis if requested
+        if request.use_llm:
+            try:
+                analysis_type = AnalysisType(request.analysis_type.value)
+
+                if request.analysis_type == AnalysisTypeEnum.QUESTION_ANSWER:
+                    if not request.question:
+                        raise ValueError("Question is required for QUESTION_ANSWER analysis type")
+                    result = await analyzer.answer_question(request.text, request.question)
+                else:
+                    result = await analyzer.analyze(
+                        note_text=request.text,
+                        analysis_type=analysis_type,
+                    )
+
+                analysis = result.analysis
+                llm_time = result.llm_time_ms
+                llm_model = result.llm_model
+                llm_available = True
+
+            except Exception as llm_error:
+                # LLM not available - continue with extraction only
+                llm_available = False
+                analysis = f"LLM analysis unavailable: {str(llm_error)}. Structured extraction completed successfully."
+
+        total_time = (time_module.perf_counter() - start_time) * 1000
+
+        return HybridAnalyzeResponse(
+            request_id=str(uuid4()),
+            analysis_type=request.analysis_type.value,
+            analysis=analysis,
+            structured_context=structured_context,
+            extraction_time_ms=round(extraction_time, 2),
+            llm_time_ms=round(llm_time, 2) if llm_time else None,
+            total_time_ms=round(total_time, 2),
+            llm_model=llm_model,
+            llm_available=llm_available,
+        )
+
+    except Exception as e:
+        raise InternalError(
+            message=f"Hybrid analysis failed: {str(e)}",
+            error_code=ErrorCode.INTERNAL_NLP_ERROR,
+        )
+
+
+# ============================================================================
+# Stats Endpoint
+# ============================================================================
+
+
 @router.get(
     "/stats",
     summary="Get NLP service statistics",
@@ -859,4 +1192,227 @@ async def get_service_stats() -> dict:
         raise InternalError(
             message=f"Failed to get stats: {str(e)}",
             error_code=ErrorCode.INTERNAL_ERROR,
+        )
+
+
+# ============================================================================
+# Knowledge Graph Building Endpoint
+# ============================================================================
+
+
+class BuildGraphRequest(BaseModel):
+    """Request to build a knowledge graph from clinical text."""
+
+    clinical_text: str = Field(..., description="The clinical note text to process")
+    patient_id: str = Field(..., description="Patient identifier")
+    note_id: str | None = Field(None, description="Optional note identifier")
+    encounter_id: str | None = Field(None, description="Optional encounter identifier")
+
+
+class GraphNodeResponse(BaseModel):
+    """A node in the knowledge graph."""
+
+    id: str = Field(..., description="Node unique identifier")
+    node_type: str = Field(..., description="Node type (condition, drug, etc.)")
+    label: str = Field(..., description="Node display label")
+    omop_concept_id: int | None = Field(None, description="OMOP concept ID if mapped")
+    properties: dict = Field(default_factory=dict, description="Node properties")
+
+
+class GraphEdgeResponse(BaseModel):
+    """An edge in the knowledge graph."""
+
+    id: str = Field(..., description="Edge unique identifier")
+    source_node_id: str = Field(..., description="Source node ID")
+    target_node_id: str = Field(..., description="Target node ID")
+    edge_type: str = Field(..., description="Relationship type")
+    properties: dict = Field(default_factory=dict, description="Edge properties")
+
+
+class BuildGraphResponse(BaseModel):
+    """Response from building a knowledge graph."""
+
+    request_id: str = Field(..., description="Request identifier")
+    patient_id: str = Field(..., description="Patient identifier")
+    note_id: str = Field(..., description="Note identifier")
+    nodes: list[GraphNodeResponse] = Field(..., description="Graph nodes")
+    edges: list[GraphEdgeResponse] = Field(..., description="Graph edges")
+    node_count: int = Field(..., description="Total node count")
+    edge_count: int = Field(..., description="Total edge count")
+    entities_mapped: int = Field(..., description="Entities mapped to graph")
+    processing_time_ms: float = Field(..., description="Processing time in ms")
+    coverage_stats: dict = Field(default_factory=dict, description="Coverage statistics")
+
+
+@router.post(
+    "/build-graph",
+    response_model=BuildGraphResponse,
+    summary="Build knowledge graph from clinical text",
+    description="Process clinical text through NLP extraction and build a knowledge graph.",
+)
+async def build_knowledge_graph(request: BuildGraphRequest) -> BuildGraphResponse:
+    """Build a knowledge graph from clinical text.
+
+    This endpoint:
+    1. Extracts entities from the clinical text using NLP
+    2. Maps entities to standard vocabularies (SNOMED, ICD-10, RxNorm)
+    3. Creates graph nodes for each entity
+    4. Creates edges connecting patient to entities and entities to each other
+    5. Persists the graph to the database
+
+    The resulting graph can be visualized at /patients/{patient_id}/graph
+
+    Args:
+        request: Clinical text, patient ID, and optional identifiers.
+
+    Returns:
+        BuildGraphResponse with the created graph.
+    """
+    try:
+        from sqlalchemy.orm import Session
+        from app.core.database import get_sync_engine
+        from app.services.ontology_graph_integration import OntologyGraphIntegration
+        from app.services.graph_builder_db import DatabaseGraphBuilderService
+
+        request_id = str(uuid4())
+
+        with Session(get_sync_engine()) as session:
+            # Use the ontology graph integration service
+            integration = OntologyGraphIntegration(session)
+
+            # Ingest the note and build the graph
+            result = integration.ingest_note(
+                note_text=request.clinical_text,
+                patient_id=request.patient_id,
+                note_id=request.note_id,
+                encounter_id=request.encounter_id,
+            )
+
+            # Commit the changes
+            session.commit()
+
+            # Get the complete graph for the patient
+            graph_service = DatabaseGraphBuilderService(session)
+            patient_graph = graph_service.get_patient_graph(request.patient_id)
+
+            # Convert to response format
+            nodes_response = [
+                GraphNodeResponse(
+                    id=str(node.id),
+                    node_type=node.node_type.value if hasattr(node.node_type, 'value') else str(node.node_type),
+                    label=node.label,
+                    omop_concept_id=node.omop_concept_id,
+                    properties=node.properties or {},
+                )
+                for node in patient_graph.nodes
+            ]
+
+            edges_response = [
+                GraphEdgeResponse(
+                    id=str(edge.id),
+                    source_node_id=str(edge.source_node_id),
+                    target_node_id=str(edge.target_node_id),
+                    edge_type=edge.edge_type.value if hasattr(edge.edge_type, 'value') else str(edge.edge_type),
+                    properties=edge.properties or {},
+                )
+                for edge in patient_graph.edges
+            ]
+
+            return BuildGraphResponse(
+                request_id=request_id,
+                patient_id=request.patient_id,
+                note_id=result.note_id,
+                nodes=nodes_response,
+                edges=edges_response,
+                node_count=patient_graph.node_count,
+                edge_count=patient_graph.edge_count,
+                entities_mapped=result.entities_mapped,
+                processing_time_ms=result.processing_time_ms,
+                coverage_stats=result.coverage_stats,
+            )
+
+    except Exception as e:
+        raise InternalError(
+            message=f"Failed to build knowledge graph: {str(e)}",
+            error_code=ErrorCode.INTERNAL_NLP_ERROR,
+        )
+
+
+@router.post(
+    "/batch-build-graph",
+    summary="Build knowledge graph from multiple notes",
+    description="Process multiple clinical notes and build a combined knowledge graph for a patient.",
+)
+async def batch_build_knowledge_graph(
+    patient_id: str = Query(..., description="Patient identifier"),
+    notes: list[str] = Body(..., description="List of clinical note texts"),
+) -> dict:
+    """Build a knowledge graph from multiple clinical notes.
+
+    This endpoint processes multiple notes for a single patient and builds
+    a combined knowledge graph. Useful for processing longitudinal patient data.
+
+    Args:
+        patient_id: The patient identifier.
+        notes: List of clinical note texts.
+
+    Returns:
+        Dictionary with graph statistics and summary.
+    """
+    try:
+        from sqlalchemy.orm import Session
+        from app.core.database import get_sync_engine
+        from app.services.ontology_graph_integration import OntologyGraphIntegration
+        from app.services.graph_builder_db import DatabaseGraphBuilderService
+
+        request_id = str(uuid4())
+        total_nodes = 0
+        total_edges = 0
+        total_entities = 0
+        note_results = []
+
+        with Session(get_sync_engine()) as session:
+            integration = OntologyGraphIntegration(session)
+
+            for i, note_text in enumerate(notes):
+                result = integration.ingest_note(
+                    note_text=note_text,
+                    patient_id=patient_id,
+                    note_id=f"note_{i+1}",
+                )
+
+                note_results.append({
+                    "note_index": i,
+                    "note_id": result.note_id,
+                    "nodes_created": result.nodes_created,
+                    "edges_created": result.edges_created,
+                    "entities_mapped": result.entities_mapped,
+                })
+
+                total_nodes += result.nodes_created
+                total_edges += result.edges_created
+                total_entities += result.entities_mapped
+
+            # Commit all changes
+            session.commit()
+
+            # Get final graph stats
+            graph_service = DatabaseGraphBuilderService(session)
+            patient_graph = graph_service.get_patient_graph(patient_id)
+
+            return {
+                "request_id": request_id,
+                "patient_id": patient_id,
+                "notes_processed": len(notes),
+                "total_nodes": patient_graph.node_count,
+                "total_edges": patient_graph.edge_count,
+                "total_entities_mapped": total_entities,
+                "note_results": note_results,
+                "graph_url": f"/patients/{patient_id}/graph",
+            }
+
+    except Exception as e:
+        raise InternalError(
+            message=f"Failed to build batch knowledge graph: {str(e)}",
+            error_code=ErrorCode.INTERNAL_NLP_ERROR,
         )

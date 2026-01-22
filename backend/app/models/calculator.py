@@ -10,7 +10,7 @@ from datetime import datetime
 from enum import Enum
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, DateTime, Enum as SQLEnum, Float, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, Enum as SQLEnum, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -170,6 +170,7 @@ class CalculatorResult(Base):
     # Link to calculator
     calculator_id: Mapped[str] = mapped_column(
         PG_UUID(as_uuid=False),
+        ForeignKey("custom_calculators.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
