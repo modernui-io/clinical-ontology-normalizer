@@ -277,6 +277,21 @@ from app.services.snomed_service import (
     get_snomed_service,
     reset_snomed_service,
 )
+from app.services.trie_index import (
+    ClinicalTerminologyIndex,
+    MatchResult as TrieMatchResult,
+    TrieIndex,
+    TrieNode,
+    get_terminology_index,
+)
+from app.services.clinical_intelligence_agent import (
+    ActionType,
+    AgentRequest,
+    AgentResponse,
+    ClinicalIntelligenceAgent,
+    UseCaseType,
+    get_clinical_intelligence_agent,
+)
 from app.services.llm_service import (
     CostEstimate,
     LLMConfig,
@@ -690,6 +705,19 @@ __all__ = [
     "SNOMEDService",
     "get_snomed_service",
     "reset_snomed_service",
+    # Trie Index
+    "ClinicalTerminologyIndex",
+    "TrieMatchResult",
+    "TrieIndex",
+    "TrieNode",
+    "get_terminology_index",
+    # Clinical Intelligence Agent
+    "ActionType",
+    "AgentRequest",
+    "AgentResponse",
+    "ClinicalIntelligenceAgent",
+    "UseCaseType",
+    "get_clinical_intelligence_agent",
     # LLM Service
     "CostEstimate",
     "LLMConfig",

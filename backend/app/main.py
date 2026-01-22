@@ -16,11 +16,13 @@ from app.api import (
     ErrorHandlerMiddleware,
     MetricsMiddleware,
     RequestIdMiddleware,
+    agent_router,
     ai_coding_router,
     assistant_router,
     audit_router,
     auth_router,
     calculators_router,
+    clinical_calculators_router,
     cdisc_router,
     cds_hooks_router,
     coding_router,
@@ -32,6 +34,7 @@ from app.api import (
     federated_router,
     fhir_router,
     graph_router,
+    graph_rag_router,
     health_router,
     jobs_router,
     job_queue_router,
@@ -552,9 +555,11 @@ app.add_middleware(
 )
 
 # Include routers under versioned API router
+api_v1_router.include_router(agent_router)
 api_v1_router.include_router(ai_coding_router)
 api_v1_router.include_router(assistant_router)
 api_v1_router.include_router(audit_router)
+api_v1_router.include_router(clinical_calculators_router)
 api_v1_router.include_router(calculators_router)
 api_v1_router.include_router(cdisc_router)
 api_v1_router.include_router(cds_hooks_router)
@@ -567,6 +572,7 @@ api_v1_router.include_router(export_router)
 api_v1_router.include_router(federated_router)
 api_v1_router.include_router(fhir_router)
 api_v1_router.include_router(graph_router)
+api_v1_router.include_router(graph_rag_router)
 api_v1_router.include_router(jobs_router)
 api_v1_router.include_router(job_queue_router)
 api_v1_router.include_router(llm_router)

@@ -1,10 +1,12 @@
 """API routers for Clinical Ontology Normalizer."""
 
+from app.api.agent import router as agent_router
 from app.api.ai_coding import router as ai_coding_router
 from app.api.assistant import router as assistant_router
 from app.api.audit import router as audit_router
 from app.api.auth import router as auth_router
 from app.api.calculators import router as calculators_router
+from app.api.calculators import clinical_router as clinical_calculators_router
 from app.api.cdisc import router as cdisc_router
 from app.api.cds_hooks import router as cds_hooks_router
 from app.api.coding import router as coding_router
@@ -13,6 +15,7 @@ from app.api.dashboard import router as dashboard_router
 from app.api.documents import router as documents_router
 from app.api.etl import router as etl_router
 from app.api.graph import router as graph_router
+from app.api.graph_rag import router as graph_rag_router
 from app.api.health import router as health_router
 from app.api.errors import (
     APIError,
@@ -110,11 +113,13 @@ from app.api.tefca import router as tefca_router
 
 __all__ = [
     # Routers
+    "agent_router",
     "ai_coding_router",
     "assistant_router",
     "audit_router",
     "auth_router",
     "calculators_router",
+    "clinical_calculators_router",
     "cdisc_router",
     "cds_hooks_router",
     "coding_router",
@@ -123,6 +128,7 @@ __all__ = [
     "documents_router",
     "etl_router",
     "graph_router",
+    "graph_rag_router",
     "export_router",
     "federated_router",
     "fhir_router",
