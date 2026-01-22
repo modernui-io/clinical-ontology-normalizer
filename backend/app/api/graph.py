@@ -12,6 +12,8 @@ Provides endpoints for:
 - Admin Cypher query execution
 """
 
+import hashlib
+import json
 import time
 from datetime import datetime, UTC
 from enum import Enum
@@ -22,6 +24,7 @@ from fastapi import APIRouter, Query, Body, HTTPException
 from pydantic import BaseModel, Field
 
 from app.api.errors import ErrorCode, InternalError, NotFoundError
+from app.services.kg_cache_service import get_kg_cache_service, CacheType
 
 router = APIRouter(prefix="/graph", tags=["Knowledge Graph"])
 reasoning_router = APIRouter(prefix="/graph/reasoning", tags=["Knowledge Graph Reasoning"])
@@ -350,6 +353,7 @@ class MultiHopResponse(BaseModel):
     )
     processing_time_ms: float = Field(..., description="Processing time in milliseconds")
     truncated: bool = Field(False, description="Whether results were truncated to top_k")
+    cached: bool = Field(False, description="Whether result was served from cache")
 
 
 class ScorePathsRequest(BaseModel):
@@ -556,6 +560,36 @@ async def health_check() -> HealthResponse:
             error_message=str(e),
             checked_at=datetime.now(UTC).isoformat(),
         )
+
+
+@router.get(
+    "/cache/stats",
+    summary="Get cache statistics",
+    description="Returns statistics about the query cache including hit rate and memory usage.",
+)
+async def get_cache_stats() -> dict[str, Any]:
+    """Get cache statistics.
+
+    Returns hit rate, memory usage, and cache size information.
+    """
+    cache_service = get_kg_cache_service()
+    stats = cache_service.get_stats()
+    return stats.to_dict()
+
+
+@router.delete(
+    "/cache/clear",
+    summary="Clear the query cache",
+    description="Clears all cached query results. Use sparingly.",
+)
+async def clear_cache() -> dict[str, Any]:
+    """Clear the query cache.
+
+    Returns the number of entries cleared.
+    """
+    cache_service = get_kg_cache_service()
+    cleared = cache_service.clear()
+    return {"cleared": cleared, "message": f"Cleared {cleared} cache entries"}
 
 
 @router.get(
@@ -1188,6 +1222,28 @@ async def multi_hop_reasoning(
     start_time = time.perf_counter()
     request_id = str(uuid4())
 
+    # Generate cache key from request parameters
+    cache_params = {
+        "seeds": sorted(request.seed_concepts),
+        "hops": request.max_hops,
+        "min_conf": request.min_confidence,
+        "top_k": request.top_k,
+        "domains": sorted(request.target_domains) if request.target_domains else None,
+        "groups": sorted(g.value for g in request.semantic_groups) if request.semantic_groups else None,
+        "evidence": request.include_evidence,
+    }
+    cache_key = hashlib.md5(json.dumps(cache_params, sort_keys=True).encode()).hexdigest()
+
+    # Check cache first
+    cache_service = get_kg_cache_service()
+    cached_result = cache_service.get(CacheType.QUERY_RESULT, f"multi_hop:{cache_key}")
+    if cached_result:
+        processing_time = (time.perf_counter() - start_time) * 1000
+        cached_result["request_id"] = request_id
+        cached_result["processing_time_ms"] = round(processing_time, 2)
+        cached_result["cached"] = True
+        return MultiHopResponse(**cached_result)
+
     try:
         from app.services.graph_database_service import get_graph_database_service
 
@@ -1328,7 +1384,7 @@ async def multi_hop_reasoning(
 
         processing_time = (time.perf_counter() - start_time) * 1000
 
-        return MultiHopResponse(
+        response = MultiHopResponse(
             request_id=request_id,
             seed_concepts=request.seed_concepts,
             total_paths=len(paths),
@@ -1337,6 +1393,14 @@ async def multi_hop_reasoning(
             processing_time_ms=round(processing_time, 2),
             truncated=len(result.records) >= request.top_k,
         )
+
+        # Cache the result (excluding request_id and processing_time which change)
+        cache_data = response.model_dump()
+        del cache_data["request_id"]
+        del cache_data["processing_time_ms"]
+        cache_service.put(CacheType.QUERY_RESULT, f"multi_hop:{cache_key}", cache_data)
+
+        return response
 
     except Exception as e:
         import logging
