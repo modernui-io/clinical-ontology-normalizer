@@ -26,6 +26,8 @@ import re
 import threading
 from typing import Any
 
+from app.services.trie_index import TrieIndex, MatchResult as TrieMatchResult
+
 logger = logging.getLogger(__name__)
 
 
@@ -161,10 +163,15 @@ class SNOMEDService:
         self._child_index: dict[str, list[str]] = {}  # code -> child codes
         self._icd10_to_snomed: dict[str, list[str]] = {}  # ICD-10 -> SNOMED codes
 
+        # Trie index for fast O(m) prefix/partial matching
+        self._trie_index: TrieIndex = TrieIndex(index_words=True, index_ngrams=False)
+
         self._load_concepts()
+        trie_stats = self._trie_index.get_stats()
         logger.info(
             f"SNOMED service initialized with {len(self._concepts)} concepts, "
-            f"{len(self._synonym_index)} synonyms"
+            f"{len(self._synonym_index)} synonyms, "
+            f"trie: {trie_stats['node_count']} nodes"
         )
 
     def _load_concepts(self) -> None:
@@ -303,6 +310,14 @@ class SNOMEDService:
             if code not in self._synonym_index[syn_lower]:
                 self._synonym_index[syn_lower].append(code)
 
+        # Add to trie index for fast prefix/partial matching
+        self._trie_index.add_term(
+            code=code,
+            display=concept.concept_name,
+            weight=1.0,
+            synonyms=concept.synonyms,
+        )
+
         # Index words for partial matching
         words = self._extract_words(concept.concept_name)
         for word in words:
@@ -417,66 +432,38 @@ class SNOMEDService:
                         ))
                         seen_codes.add(code)
 
-        # 2. Partial synonym match (query contained in synonym)
-        # Terms that indicate the concept is fundamentally different
-        misleading_prefixes = {
-            "delusion", "delusional", "hallucination", "fear", "phobia",
-            "absence", "lack", "no ", "without", "non-", "pseudo",
-            "history", "family history", "risk", "suspected", "possible",
-        }
-        for synonym, codes in self._synonym_index.items():
-            if query_lower in synonym and query_lower != synonym:
-                # Check if the synonym contains misleading prefixes
-                extra_text = synonym.replace(query_lower, "").strip()
-                is_misleading = any(
-                    prefix in extra_text.lower() for prefix in misleading_prefixes
-                )
+        # 2. Trie-based prefix/partial matching - O(m) instead of O(n)
+        # Uses trie index for fast prefix and word-boundary matching
+        if len(matches) < max_results and len(query_lower) >= 3:
+            trie_results = self._trie_index.search(
+                query_lower,
+                limit=max_results * 2,
+                match_types=["prefix", "word"],
+            )
 
-                # Skip clearly misleading matches
-                if is_misleading:
-                    continue
+            for trie_match in trie_results:
+                code = trie_match.code
+                if code not in seen_codes and code in self._concepts:
+                    concept = self._concepts[code]
+                    if self._matches_semantic_filter(concept, semantic_types):
+                        # Determine confidence based on match type
+                        if trie_match.match_type == "exact":
+                            confidence = MatchConfidence.EXACT
+                        elif trie_match.match_type == "prefix":
+                            confidence = MatchConfidence.HIGH
+                        else:
+                            confidence = MatchConfidence.MEDIUM
 
-                for code in codes:
-                    if code in self._concepts and code not in seen_codes:
-                        concept = self._concepts[code]
-                        if self._matches_semantic_filter(concept, semantic_types):
-                            # Score based on how much of the synonym is matched
-                            base_score = len(query_lower) / len(synonym)
+                        matches.append(ConceptMatch(
+                            concept=concept,
+                            confidence=confidence,
+                            match_type=f"trie_{trie_match.match_type}",
+                            matched_term=trie_match.matched_text,
+                            score=trie_match.score,
+                        ))
+                        seen_codes.add(code)
 
-                            # Bonus for matches at start or end of synonym
-                            if synonym.startswith(query_lower) or synonym.endswith(query_lower):
-                                base_score *= 1.2
-                            else:
-                                # Penalize matches embedded in the middle
-                                base_score *= 0.7
-
-                            matches.append(ConceptMatch(
-                                concept=concept,
-                                confidence=MatchConfidence.HIGH if base_score > 0.5 else MatchConfidence.MEDIUM,
-                                match_type="partial_synonym",
-                                matched_term=synonym,
-                                score=min(base_score, 1.0),
-                            ))
-                            seen_codes.add(code)
-
-        # 3. Synonym contains query
-        for synonym, codes in self._synonym_index.items():
-            if synonym in query_lower and synonym != query_lower:
-                for code in codes:
-                    if code in self._concepts and code not in seen_codes:
-                        concept = self._concepts[code]
-                        if self._matches_semantic_filter(concept, semantic_types):
-                            score = len(synonym) / len(query_lower)
-                            matches.append(ConceptMatch(
-                                concept=concept,
-                                confidence=MatchConfidence.MEDIUM,
-                                match_type="synonym_in_query",
-                                matched_term=synonym,
-                                score=score,
-                            ))
-                            seen_codes.add(code)
-
-        # 4. Word-based matching
+        # 3. Word-based matching (fallback using word index)
         query_words = self._extract_words(query)
         if query_words and len(matches) < max_results:
             # Find codes that have multiple matching words

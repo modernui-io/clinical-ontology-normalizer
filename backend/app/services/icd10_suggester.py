@@ -20,6 +20,8 @@ from pathlib import Path
 import re
 import threading
 
+from app.services.trie_index import TrieIndex, MatchResult as TrieMatchResult
+
 logger = logging.getLogger(__name__)
 
 
@@ -818,14 +820,30 @@ class ICD10SuggesterService:
         self._codes: dict[str, ICD10Code] = {}
         self._synonym_index: dict[str, list[str]] = {}
 
+        # Trie index for fast O(m) prefix/partial matching
+        self._trie_index: TrieIndex = TrieIndex(index_words=True, index_ngrams=False)
+
         # Load extended codes from fixture
         codes, self._synonym_index = load_extended_icd10_codes()
 
-        # Index codes by code
+        # Index codes by code and build trie
         for code in codes:
             self._codes[code.code] = code
 
-        logger.info(f"ICD-10 suggester initialized with {len(self._codes)} codes, {len(self._synonym_index)} synonyms")
+            # Add to trie index for fast prefix/partial matching
+            self._trie_index.add_term(
+                code=code.code,
+                display=code.description,
+                weight=1.0,
+                synonyms=code.synonyms,
+            )
+
+        trie_stats = self._trie_index.get_stats()
+        logger.info(
+            f"ICD-10 suggester initialized with {len(self._codes)} codes, "
+            f"{len(self._synonym_index)} synonyms, "
+            f"trie: {trie_stats['node_count']} nodes"
+        )
 
     def suggest_codes(
         self,
@@ -855,37 +873,35 @@ class ICD10SuggesterService:
                     ))
                     seen_codes.add(code_str)
 
-        # 2. Partial synonym match (medium confidence)
-        for synonym, code_list in self._synonym_index.items():
-            if query_lower in synonym or synonym in query_lower:
-                for code_str in code_list:
-                    if code_str in self._codes and code_str not in seen_codes:
-                        code = self._codes[code_str]
-                        suggestions.append(self._create_suggestion(
-                            code, CodeConfidence.MEDIUM, f"Partial match: '{synonym}'", query
-                        ))
-                        seen_codes.add(code_str)
+        # 2. Trie-based prefix/partial matching - O(m) instead of O(n)
+        # Uses trie index for fast prefix and word-boundary matching
+        if len(suggestions) < max_suggestions and len(query_lower) >= 3:
+            trie_results = self._trie_index.search(
+                query_lower,
+                limit=max_suggestions * 2,
+                match_types=["prefix", "word"],
+            )
 
-        # 3. Description search (lower confidence)
-        query_words = set(query_lower.split())
-        for code in self._codes.values():
-            if code.code in seen_codes:
-                continue
+            for trie_match in trie_results:
+                code_str = trie_match.code
+                if code_str not in seen_codes and code_str in self._codes:
+                    code = self._codes[code_str]
 
-            desc_lower = code.description.lower()
-            desc_words = set(desc_lower.split())
+                    # Determine confidence based on match type
+                    if trie_match.match_type == "exact":
+                        confidence = CodeConfidence.HIGH
+                        match_reason = f"Exact match for '{trie_match.matched_text}'"
+                    elif trie_match.match_type == "prefix":
+                        confidence = CodeConfidence.MEDIUM
+                        match_reason = f"Prefix match: '{query}' -> '{trie_match.matched_text}'"
+                    else:
+                        confidence = CodeConfidence.LOW
+                        match_reason = f"Word match: '{query}' in '{trie_match.matched_text}'"
 
-            # Check for word overlap
-            common_words = query_words & desc_words
-            # Filter out common stopwords
-            stopwords = {"of", "the", "and", "or", "a", "an", "with", "without", "unspecified", "other"}
-            meaningful_common = common_words - stopwords
-
-            if len(meaningful_common) >= 2 or (len(meaningful_common) == 1 and len(query_words) <= 2):
-                suggestions.append(self._create_suggestion(
-                    code, CodeConfidence.LOW, f"Description match: {', '.join(meaningful_common)}", query
-                ))
-                seen_codes.add(code.code)
+                    suggestions.append(self._create_suggestion(
+                        code, confidence, match_reason, query
+                    ))
+                    seen_codes.add(code_str)
 
         # Sort by confidence and limit
         confidence_order = {CodeConfidence.HIGH: 0, CodeConfidence.MEDIUM: 1, CodeConfidence.LOW: 2}

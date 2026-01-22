@@ -308,7 +308,7 @@ class RxNormService:
             # Load concepts
             for concept in data.get("concepts", []):
                 drug = DrugInfo(
-                    rxcui=concept.get("rxcui", concept.get("concept_id", "")),
+                    rxcui=str(concept.get("rxcui", concept.get("concept_code", ""))),
                     concept_name=concept.get("concept_name", ""),
                     tty=concept.get("tty", concept.get("concept_class_id", "")),
                     generic_name=concept.get("generic_name", ""),

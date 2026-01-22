@@ -661,6 +661,11 @@ class LLMService:
 
                 return response
 
+            except (ImportError, ValueError) as e:
+                # Non-transient errors - fail immediately without retrying
+                self._errors += 1
+                raise Exception(f"LLM configuration error: {e}")
+
             except Exception as e:
                 last_error = e
                 self._errors += 1
@@ -730,6 +735,11 @@ class LLMService:
                 self._total_cost += response.cost_estimate.total_cost
 
                 return response
+
+            except (ImportError, ValueError) as e:
+                # Non-transient errors - fail immediately without retrying
+                self._errors += 1
+                raise Exception(f"LLM configuration error: {e}")
 
             except Exception as e:
                 last_error = e

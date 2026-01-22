@@ -283,6 +283,118 @@ class AnionGapInput(BaseModel):
     albumin: float | None = Field(None, ge=0.5, le=6, description="Albumin g/dL (for correction)")
 
 
+class GCSInput(BaseModel):
+    """Input for Glasgow Coma Scale."""
+    eye_response: int = Field(..., ge=1, le=4, description="Eye response (1-4)")
+    verbal_response: int = Field(..., ge=1, le=5, description="Verbal response (1-5)")
+    motor_response: int = Field(..., ge=1, le=6, description="Motor response (1-6)")
+
+
+class NEWS2Input(BaseModel):
+    """Input for NEWS2 (National Early Warning Score 2)."""
+    respiratory_rate: int = Field(..., ge=0, le=60, description="Respiratory rate /min")
+    spo2: float = Field(..., ge=50, le=100, description="Oxygen saturation %")
+    supplemental_o2: bool = Field(default=False, description="On supplemental oxygen")
+    temperature: float = Field(..., ge=30, le=42, description="Temperature °C")
+    systolic_bp: int = Field(..., ge=50, le=250, description="Systolic BP mmHg")
+    heart_rate: int = Field(..., ge=20, le=250, description="Heart rate bpm")
+    consciousness: str = Field(default="alert", description="AVPU: alert, verbal, pain, unresponsive, or confusion")
+    copd_scale_2: bool = Field(default=False, description="Use Scale 2 for COPD (target SpO2 88-92%)")
+
+
+class CURB65Input(BaseModel):
+    """Input for CURB-65 pneumonia severity score."""
+    confusion: bool = Field(default=False, description="New mental confusion")
+    bun_over_19: bool = Field(default=False, description="BUN >19 mg/dL (or urea >7 mmol/L)")
+    respiratory_rate_over_30: bool = Field(default=False, description="Respiratory rate ≥30/min")
+    low_bp: bool = Field(default=False, description="SBP <90 or DBP ≤60 mmHg")
+    age_65_or_older: bool = Field(default=False, description="Age ≥65 years")
+
+
+class PERCInput(BaseModel):
+    """Input for PERC Rule (PE rule-out criteria)."""
+    age_under_50: bool = Field(default=True, description="Age <50 years")
+    heart_rate_under_100: bool = Field(default=True, description="Heart rate <100 bpm")
+    spo2_over_94: bool = Field(default=True, description="SpO2 >94% on room air")
+    no_leg_swelling: bool = Field(default=True, description="No unilateral leg swelling")
+    no_hemoptysis: bool = Field(default=True, description="No hemoptysis")
+    no_recent_surgery: bool = Field(default=True, description="No surgery/trauma in past 4 weeks")
+    no_prior_pe_dvt: bool = Field(default=True, description="No prior PE or DVT")
+    no_hormone_use: bool = Field(default=True, description="No exogenous estrogen")
+
+
+class TIMIInput(BaseModel):
+    """Input for TIMI Risk Score (UA/NSTEMI)."""
+    age_65_or_older: bool = Field(default=False, description="Age ≥65 years")
+    cad_risk_factors_3_plus: bool = Field(default=False, description="≥3 CAD risk factors")
+    known_cad: bool = Field(default=False, description="Known CAD ≥50% stenosis")
+    aspirin_use_7_days: bool = Field(default=False, description="Aspirin use in past 7 days")
+    severe_angina_24h: bool = Field(default=False, description="≥2 anginal episodes in past 24h")
+    st_deviation: bool = Field(default=False, description="ST deviation ≥0.5mm")
+    elevated_troponin: bool = Field(default=False, description="Elevated cardiac markers")
+
+
+class SIRSInput(BaseModel):
+    """Input for SIRS Criteria."""
+    temperature: float = Field(..., ge=30, le=44, description="Temperature °C")
+    heart_rate: int = Field(..., ge=20, le=250, description="Heart rate bpm")
+    respiratory_rate: int = Field(..., ge=0, le=60, description="Respiratory rate /min")
+    paco2: float | None = Field(None, ge=10, le=100, description="PaCO2 mmHg (optional)")
+    wbc: float | None = Field(None, ge=0, le=100, description="WBC 10^3/µL (optional)")
+    bands: float | None = Field(None, ge=0, le=100, description="Band percentage (optional)")
+
+
+class ABCD2Input(BaseModel):
+    """Input for ABCD2 Score (TIA stroke risk)."""
+    age_60_or_older: bool = Field(default=False, description="Age ≥60 years")
+    bp_140_90_or_higher: bool = Field(default=False, description="SBP ≥140 or DBP ≥90 mmHg")
+    clinical_weakness: bool = Field(default=False, description="Unilateral weakness")
+    clinical_speech_only: bool = Field(default=False, description="Speech impairment without weakness")
+    duration_60_plus_min: bool = Field(default=False, description="Symptoms ≥60 minutes")
+    duration_10_59_min: bool = Field(default=False, description="Symptoms 10-59 minutes")
+    diabetes: bool = Field(default=False, description="History of diabetes")
+
+
+class CentorInput(BaseModel):
+    """Input for Modified Centor Score (strep pharyngitis)."""
+    tonsillar_exudates: bool = Field(default=False, description="Tonsillar exudates")
+    tender_nodes: bool = Field(default=False, description="Tender anterior cervical adenopathy")
+    fever: bool = Field(default=False, description="History of fever >38°C")
+    no_cough: bool = Field(default=False, description="Absence of cough")
+    age_3_14: bool = Field(default=False, description="Age 3-14 years")
+    age_15_44: bool = Field(default=False, description="Age 15-44 years")
+    age_45_plus: bool = Field(default=False, description="Age ≥45 years")
+
+
+class MAPInput(BaseModel):
+    """Input for Mean Arterial Pressure calculator."""
+    systolic_bp: float = Field(..., ge=40, le=300, description="Systolic BP mmHg")
+    diastolic_bp: float = Field(..., ge=20, le=200, description="Diastolic BP mmHg")
+
+
+class CorrectedSodiumInput(BaseModel):
+    """Input for Corrected Sodium calculator."""
+    measured_sodium: float = Field(..., ge=100, le=180, description="Measured sodium mEq/L")
+    glucose: float = Field(..., ge=50, le=2000, description="Glucose mg/dL")
+
+
+class OsmolalityInput(BaseModel):
+    """Input for Serum Osmolality calculator."""
+    sodium: float = Field(..., ge=100, le=180, description="Sodium mEq/L")
+    glucose: float = Field(..., ge=0, le=2000, description="Glucose mg/dL")
+    bun: float = Field(..., ge=0, le=200, description="BUN mg/dL")
+    measured_osmolality: float | None = Field(None, ge=200, le=500, description="Measured osmolality mOsm/kg")
+
+
+class BISAPInput(BaseModel):
+    """Input for BISAP Score (acute pancreatitis)."""
+    bun_over_25: bool = Field(default=False, description="BUN >25 mg/dL")
+    impaired_mental_status: bool = Field(default=False, description="Impaired mental status")
+    sirs_2_or_more: bool = Field(default=False, description="≥2 SIRS criteria")
+    age_over_60: bool = Field(default=False, description="Age >60 years")
+    pleural_effusion: bool = Field(default=False, description="Pleural effusion on imaging")
+
+
 # =============================================================================
 # Calculator Implementations
 # =============================================================================
@@ -1462,6 +1574,716 @@ def calculate_anion_gap(input_data: AnionGapInput) -> CalculatorResult:
     )
 
 
+def calculate_gcs(input_data: GCSInput) -> CalculatorResult:
+    """Calculate Glasgow Coma Scale.
+
+    Reference: Teasdale G, Jennett B. Lancet 1974
+    """
+    score = input_data.eye_response + input_data.verbal_response + input_data.motor_response
+
+    components = {
+        "eye_response": input_data.eye_response,
+        "verbal_response": input_data.verbal_response,
+        "motor_response": input_data.motor_response,
+    }
+
+    if score >= 13:
+        risk = RiskLevel.LOW
+        severity = "Mild"
+        interpretation = f"GCS {score}: Mild brain injury"
+        recommendations = ["Monitor neurological status", "Head CT if trauma with risk factors"]
+    elif score >= 9:
+        risk = RiskLevel.MODERATE
+        severity = "Moderate"
+        interpretation = f"GCS {score}: Moderate brain injury"
+        recommendations = ["Urgent head CT", "Close monitoring", "Consider neurosurgery consult", "Admission recommended"]
+    else:
+        risk = RiskLevel.VERY_HIGH
+        severity = "Severe"
+        interpretation = f"GCS {score}: Severe brain injury"
+        recommendations = ["Emergent head CT", "Airway protection - consider intubation", "ICU admission", "Neurosurgery consultation urgent"]
+
+    return CalculatorResult(
+        calculator_id="gcs",
+        calculator_name="Glasgow Coma Scale",
+        score=score,
+        score_unit="points",
+        risk_level=risk,
+        interpretation=interpretation,
+        recommendations=recommendations,
+        components=components,
+        references=["Teasdale G, Jennett B. Lancet 1974"],
+        formula_used="GCS = Eye + Verbal + Motor"
+    )
+
+
+def calculate_news2(input_data: NEWS2Input) -> CalculatorResult:
+    """Calculate NEWS2 (National Early Warning Score 2).
+
+    Reference: Royal College of Physicians 2017
+    """
+    score = 0
+    components = {}
+
+    # Respiratory rate
+    rr = input_data.respiratory_rate
+    if rr <= 8:
+        rr_pts = 3
+    elif rr <= 11:
+        rr_pts = 1
+    elif rr <= 20:
+        rr_pts = 0
+    elif rr <= 24:
+        rr_pts = 2
+    else:
+        rr_pts = 3
+    score += rr_pts
+    components["respiratory_rate"] = rr_pts
+
+    # SpO2 (Scale 1 or Scale 2 for COPD)
+    spo2 = input_data.spo2
+    if input_data.copd_scale_2:
+        if spo2 <= 83:
+            spo2_pts = 3
+        elif spo2 <= 85:
+            spo2_pts = 2
+        elif spo2 <= 87:
+            spo2_pts = 1
+        elif spo2 <= 92:
+            spo2_pts = 0
+        elif spo2 <= 94:
+            spo2_pts = 1
+        elif spo2 <= 96:
+            spo2_pts = 2
+        else:
+            spo2_pts = 3
+    else:
+        if spo2 <= 91:
+            spo2_pts = 3
+        elif spo2 <= 93:
+            spo2_pts = 2
+        elif spo2 <= 95:
+            spo2_pts = 1
+        else:
+            spo2_pts = 0
+    score += spo2_pts
+    components["spo2"] = spo2_pts
+
+    # Supplemental oxygen
+    o2_pts = 2 if input_data.supplemental_o2 else 0
+    score += o2_pts
+    components["supplemental_o2"] = o2_pts
+
+    # Temperature
+    temp = input_data.temperature
+    if temp <= 35.0:
+        temp_pts = 3
+    elif temp <= 36.0:
+        temp_pts = 1
+    elif temp <= 38.0:
+        temp_pts = 0
+    elif temp <= 39.0:
+        temp_pts = 1
+    else:
+        temp_pts = 2
+    score += temp_pts
+    components["temperature"] = temp_pts
+
+    # Systolic BP
+    sbp = input_data.systolic_bp
+    if sbp <= 90:
+        sbp_pts = 3
+    elif sbp <= 100:
+        sbp_pts = 2
+    elif sbp <= 110:
+        sbp_pts = 1
+    elif sbp <= 219:
+        sbp_pts = 0
+    else:
+        sbp_pts = 3
+    score += sbp_pts
+    components["systolic_bp"] = sbp_pts
+
+    # Heart rate
+    hr = input_data.heart_rate
+    if hr <= 40:
+        hr_pts = 3
+    elif hr <= 50:
+        hr_pts = 1
+    elif hr <= 90:
+        hr_pts = 0
+    elif hr <= 110:
+        hr_pts = 1
+    elif hr <= 130:
+        hr_pts = 2
+    else:
+        hr_pts = 3
+    score += hr_pts
+    components["heart_rate"] = hr_pts
+
+    # Consciousness
+    cons_lower = input_data.consciousness.lower()
+    cons_pts = 0 if cons_lower in ("alert", "a") else 3
+    score += cons_pts
+    components["consciousness"] = cons_pts
+
+    # Risk stratification
+    if score == 0:
+        risk = RiskLevel.LOW
+        interpretation = "NEWS2 = 0: Low clinical risk"
+        recommendations = ["Continue routine monitoring", "Minimum 12-hourly observations"]
+    elif score <= 4:
+        risk = RiskLevel.LOW_MODERATE
+        interpretation = f"NEWS2 = {score}: Low-medium clinical risk"
+        recommendations = ["Increase monitoring to 4-6 hourly", "RN to assess patient"]
+    elif score <= 6:
+        risk = RiskLevel.MODERATE
+        interpretation = f"NEWS2 = {score}: Medium clinical risk"
+        recommendations = ["Urgent response required", "Hourly observations", "Urgent assessment by clinician"]
+    else:
+        risk = RiskLevel.HIGH
+        interpretation = f"NEWS2 = {score}: High clinical risk"
+        recommendations = ["Emergency response required", "Continuous monitoring", "Critical care team assessment", "Consider ICU/HDU"]
+
+    return CalculatorResult(
+        calculator_id="news2",
+        calculator_name="NEWS2 (National Early Warning Score 2)",
+        score=score,
+        score_unit="points",
+        risk_level=risk,
+        interpretation=interpretation,
+        recommendations=recommendations,
+        components=components,
+        references=["Royal College of Physicians 2017"],
+        formula_used="Sum of parameter scores (RR, SpO2, O2, Temp, SBP, HR, AVPU)"
+    )
+
+
+def calculate_curb65(input_data: CURB65Input) -> CalculatorResult:
+    """Calculate CURB-65 pneumonia severity score.
+
+    Reference: Lim WS, et al. Thorax 2003
+    """
+    score = 0
+    components = {}
+
+    if input_data.confusion:
+        score += 1
+        components["confusion"] = 1
+    if input_data.bun_over_19:
+        score += 1
+        components["bun_over_19"] = 1
+    if input_data.respiratory_rate_over_30:
+        score += 1
+        components["respiratory_rate_over_30"] = 1
+    if input_data.low_bp:
+        score += 1
+        components["low_bp"] = 1
+    if input_data.age_65_or_older:
+        score += 1
+        components["age_65_or_older"] = 1
+
+    mortality_rates = {0: "0.7%", 1: "3.2%", 2: "13%", 3: "17%", 4: "41-57%", 5: "41-57%"}
+
+    if score <= 1:
+        risk = RiskLevel.LOW
+        interpretation = f"CURB-65 = {score}: Low risk (mortality ~{mortality_rates[score]})"
+        recommendations = ["Outpatient treatment likely appropriate", "Oral antibiotics", "Close follow-up"]
+    elif score == 2:
+        risk = RiskLevel.MODERATE
+        interpretation = f"CURB-65 = {score}: Moderate risk (mortality ~{mortality_rates[score]})"
+        recommendations = ["Hospital admission recommended", "IV antibiotics initially", "Oxygen as needed"]
+    else:
+        risk = RiskLevel.HIGH
+        interpretation = f"CURB-65 = {score}: High risk (mortality ~{mortality_rates[score]})"
+        recommendations = ["Inpatient treatment required", "Consider ICU admission", "Broad-spectrum IV antibiotics", "Monitor for sepsis"]
+
+    return CalculatorResult(
+        calculator_id="curb65",
+        calculator_name="CURB-65 Score",
+        score=score,
+        score_unit="points",
+        risk_level=risk,
+        interpretation=interpretation,
+        recommendations=recommendations,
+        components=components,
+        references=["Lim WS, et al. Thorax 2003;58:377-382"],
+        formula_used="Sum of: Confusion, BUN >19, RR ≥30, low BP, Age ≥65"
+    )
+
+
+def calculate_perc(input_data: PERCInput) -> CalculatorResult:
+    """Calculate PERC Rule for PE rule-out.
+
+    Reference: Kline JA, et al. J Thromb Haemost 2004
+    """
+    criteria_met = sum([
+        input_data.age_under_50,
+        input_data.heart_rate_under_100,
+        input_data.spo2_over_94,
+        input_data.no_leg_swelling,
+        input_data.no_hemoptysis,
+        input_data.no_recent_surgery,
+        input_data.no_prior_pe_dvt,
+        input_data.no_hormone_use,
+    ])
+
+    components = {
+        "age_under_50": input_data.age_under_50,
+        "heart_rate_under_100": input_data.heart_rate_under_100,
+        "spo2_over_94": input_data.spo2_over_94,
+        "no_leg_swelling": input_data.no_leg_swelling,
+        "no_hemoptysis": input_data.no_hemoptysis,
+        "no_recent_surgery": input_data.no_recent_surgery,
+        "no_prior_pe_dvt": input_data.no_prior_pe_dvt,
+        "no_hormone_use": input_data.no_hormone_use,
+        "criteria_met": criteria_met,
+    }
+
+    all_criteria_met = criteria_met == 8
+
+    if all_criteria_met:
+        risk = RiskLevel.LOW
+        score = 0
+        interpretation = "PERC negative - PE can be excluded without D-dimer"
+        recommendations = ["In low pretest probability patients, no further workup needed", "PE risk <2%", "Consider alternative diagnoses"]
+    else:
+        risk = RiskLevel.MODERATE
+        score = 8 - criteria_met
+        interpretation = f"PERC positive - {score} criteria not met"
+        recommendations = ["Cannot rule out PE by PERC alone", "Proceed with D-dimer testing", "If D-dimer positive, CT pulmonary angiography"]
+
+    return CalculatorResult(
+        calculator_id="perc",
+        calculator_name="PERC Rule",
+        score=score,
+        score_unit="criteria failed",
+        risk_level=risk,
+        interpretation=interpretation,
+        recommendations=recommendations,
+        components=components,
+        references=["Kline JA, et al. J Thromb Haemost 2004", "Ann Emerg Med 2008"],
+        formula_used="All 8 criteria must be met to rule out PE"
+    )
+
+
+def calculate_timi(input_data: TIMIInput) -> CalculatorResult:
+    """Calculate TIMI Risk Score for UA/NSTEMI.
+
+    Reference: Antman EM, et al. JAMA 2000
+    """
+    score = 0
+    components = {}
+
+    if input_data.age_65_or_older:
+        score += 1
+        components["age_65_or_older"] = 1
+    if input_data.cad_risk_factors_3_plus:
+        score += 1
+        components["cad_risk_factors_3_plus"] = 1
+    if input_data.known_cad:
+        score += 1
+        components["known_cad"] = 1
+    if input_data.aspirin_use_7_days:
+        score += 1
+        components["aspirin_use_7_days"] = 1
+    if input_data.severe_angina_24h:
+        score += 1
+        components["severe_angina_24h"] = 1
+    if input_data.st_deviation:
+        score += 1
+        components["st_deviation"] = 1
+    if input_data.elevated_troponin:
+        score += 1
+        components["elevated_troponin"] = 1
+
+    risk_rates = {0: "4.7%", 1: "4.7%", 2: "8.3%", 3: "13.2%", 4: "19.9%", 5: "26.2%", 6: "40.9%", 7: "40.9%"}
+
+    if score <= 2:
+        risk = RiskLevel.LOW
+        interpretation = f"TIMI {score}: Low risk (14-day event rate: {risk_rates.get(score, '40.9%')})"
+        recommendations = ["May be suitable for early non-invasive evaluation", "Medical management with close follow-up"]
+    elif score <= 4:
+        risk = RiskLevel.MODERATE
+        interpretation = f"TIMI {score}: Intermediate risk (14-day event rate: {risk_rates.get(score, '40.9%')})"
+        recommendations = ["Admission recommended", "Consider early invasive strategy", "Dual antiplatelet therapy", "Cardiology consultation"]
+    else:
+        risk = RiskLevel.HIGH
+        interpretation = f"TIMI {score}: High risk (14-day event rate: {risk_rates.get(score, '40.9%')})"
+        recommendations = ["Early invasive strategy recommended (<24h)", "Dual antiplatelet therapy", "Anticoagulation", "Urgent cardiology consultation"]
+
+    return CalculatorResult(
+        calculator_id="timi",
+        calculator_name="TIMI Risk Score (UA/NSTEMI)",
+        score=score,
+        score_unit="points",
+        risk_level=risk,
+        interpretation=interpretation,
+        recommendations=recommendations,
+        components=components,
+        references=["Antman EM, et al. JAMA 2000;284:835-842"],
+        formula_used="Sum of 7 risk factors"
+    )
+
+
+def calculate_sirs(input_data: SIRSInput) -> CalculatorResult:
+    """Calculate SIRS Criteria.
+
+    Reference: Bone RC, et al. Chest 1992
+    """
+    criteria_met = 0
+    components = {}
+
+    # Temperature: >38°C or <36°C
+    if input_data.temperature > 38 or input_data.temperature < 36:
+        criteria_met += 1
+        components["temperature_abnormal"] = 1
+    else:
+        components["temperature_normal"] = 0
+
+    # Heart rate: >90 bpm
+    if input_data.heart_rate > 90:
+        criteria_met += 1
+        components["heart_rate_over_90"] = 1
+    else:
+        components["heart_rate_normal"] = 0
+
+    # Respiratory: RR >20 or PaCO2 <32 mmHg
+    if input_data.respiratory_rate > 20 or (input_data.paco2 and input_data.paco2 < 32):
+        criteria_met += 1
+        components["respiratory_abnormal"] = 1
+    else:
+        components["respiratory_normal"] = 0
+
+    # WBC: >12,000 or <4,000 or >10% bands
+    if input_data.wbc is not None:
+        if input_data.wbc > 12 or input_data.wbc < 4 or (input_data.bands and input_data.bands > 10):
+            criteria_met += 1
+            components["wbc_abnormal"] = 1
+        else:
+            components["wbc_normal"] = 0
+
+    components["criteria_met"] = criteria_met
+
+    if criteria_met >= 2:
+        risk = RiskLevel.MODERATE
+        interpretation = f"SIRS positive ({criteria_met}/4 criteria met)"
+        recommendations = ["SIRS criteria met - evaluate for infection source", "Consider sepsis workup", "Early antibiotics if infection suspected"]
+    else:
+        risk = RiskLevel.LOW
+        interpretation = f"SIRS negative ({criteria_met}/4 criteria met)"
+        recommendations = ["SIRS criteria not met", "Continue monitoring vital signs"]
+
+    return CalculatorResult(
+        calculator_id="sirs",
+        calculator_name="SIRS Criteria",
+        score=criteria_met,
+        score_unit="criteria",
+        risk_level=risk,
+        interpretation=interpretation,
+        recommendations=recommendations,
+        components=components,
+        references=["Bone RC, et al. Chest 1992;101:1644-1655"],
+        formula_used="≥2 of: Temp, HR, RR/PaCO2, WBC"
+    )
+
+
+def calculate_abcd2(input_data: ABCD2Input) -> CalculatorResult:
+    """Calculate ABCD2 Score for stroke risk after TIA.
+
+    Reference: Johnston SC, et al. Lancet 2007
+    """
+    score = 0
+    components = {}
+
+    if input_data.age_60_or_older:
+        score += 1
+        components["age_60_or_older"] = 1
+    if input_data.bp_140_90_or_higher:
+        score += 1
+        components["bp_elevated"] = 1
+    if input_data.clinical_weakness:
+        score += 2
+        components["weakness"] = 2
+    elif input_data.clinical_speech_only:
+        score += 1
+        components["speech_impairment"] = 1
+    if input_data.duration_60_plus_min:
+        score += 2
+        components["duration_60_plus"] = 2
+    elif input_data.duration_10_59_min:
+        score += 1
+        components["duration_10_59"] = 1
+    if input_data.diabetes:
+        score += 1
+        components["diabetes"] = 1
+
+    if score <= 3:
+        risk = RiskLevel.LOW
+        interpretation = f"ABCD2 {score}: Low risk (2-day stroke risk ~1%)"
+        recommendations = ["May be appropriate for outpatient workup", "Complete workup within 48-72 hours", "Aspirin 325mg immediately"]
+    elif score <= 5:
+        risk = RiskLevel.MODERATE
+        interpretation = f"ABCD2 {score}: Moderate risk (2-day stroke risk ~4%)"
+        recommendations = ["Consider hospital admission", "Expedited workup recommended", "Brain MRI and carotid imaging", "DAPT for 21 days"]
+    else:
+        risk = RiskLevel.HIGH
+        interpretation = f"ABCD2 {score}: High risk (2-day stroke risk ~8%)"
+        recommendations = ["Hospital admission recommended", "Urgent neurology consultation", "Immediate brain and vascular imaging", "DAPT (aspirin + clopidogrel)"]
+
+    return CalculatorResult(
+        calculator_id="abcd2",
+        calculator_name="ABCD2 Score",
+        score=score,
+        score_unit="points",
+        risk_level=risk,
+        interpretation=interpretation,
+        recommendations=recommendations,
+        components=components,
+        references=["Johnston SC, et al. Lancet 2007;369:283-292"],
+        formula_used="Age + BP + Clinical + Duration + Diabetes"
+    )
+
+
+def calculate_centor(input_data: CentorInput) -> CalculatorResult:
+    """Calculate Modified Centor Score for strep pharyngitis.
+
+    Reference: McIsaac WJ, et al. CMAJ 1998
+    """
+    score = 0
+    components = {}
+
+    if input_data.tonsillar_exudates:
+        score += 1
+        components["tonsillar_exudates"] = 1
+    if input_data.tender_nodes:
+        score += 1
+        components["tender_nodes"] = 1
+    if input_data.fever:
+        score += 1
+        components["fever"] = 1
+    if input_data.no_cough:
+        score += 1
+        components["no_cough"] = 1
+
+    # Age adjustment
+    if input_data.age_3_14:
+        score += 1
+        components["age_3_14"] = 1
+    elif input_data.age_45_plus:
+        score -= 1
+        components["age_45_plus"] = -1
+
+    probabilities = {-1: "1-2.5%", 0: "1-2.5%", 1: "5-10%", 2: "11-17%", 3: "28-35%", 4: "51-53%", 5: "51-53%"}
+
+    if score <= 1:
+        risk = RiskLevel.LOW
+        interpretation = f"Modified Centor {score}: Low strep probability ({probabilities.get(score, '51-53%')})"
+        recommendations = ["No testing or antibiotics recommended", "Symptomatic treatment", "Likely viral pharyngitis"]
+    elif score <= 3:
+        risk = RiskLevel.MODERATE
+        interpretation = f"Modified Centor {score}: Intermediate probability ({probabilities.get(score, '51-53%')})"
+        recommendations = ["Rapid strep test recommended", "Throat culture if rapid test negative", "Treat only if test positive"]
+    else:
+        risk = RiskLevel.MODERATE_HIGH
+        interpretation = f"Modified Centor {score}: High strep probability ({probabilities.get(score, '51-53%')})"
+        recommendations = ["Consider empiric antibiotics or rapid strep test", "Penicillin V or amoxicillin first-line"]
+
+    return CalculatorResult(
+        calculator_id="centor",
+        calculator_name="Modified Centor Score",
+        score=score,
+        score_unit="points",
+        risk_level=risk,
+        interpretation=interpretation,
+        recommendations=recommendations,
+        components=components,
+        references=["McIsaac WJ, et al. CMAJ 1998;158:75-83"],
+        formula_used="Exudates + Adenopathy + Fever + No cough ± Age"
+    )
+
+
+def calculate_map(input_data: MAPInput) -> CalculatorResult:
+    """Calculate Mean Arterial Pressure.
+
+    Formula: MAP = (SBP + 2×DBP) / 3
+    """
+    map_value = (input_data.systolic_bp + 2 * input_data.diastolic_bp) / 3
+
+    components = {
+        "systolic_bp": input_data.systolic_bp,
+        "diastolic_bp": input_data.diastolic_bp,
+    }
+
+    if map_value < 60:
+        risk = RiskLevel.VERY_HIGH
+        interpretation = f"MAP {map_value:.0f}: Hypotension/Shock - inadequate organ perfusion"
+        recommendations = ["Immediate fluid resuscitation", "Consider vasopressors (target MAP ≥65)", "ICU admission likely needed"]
+    elif map_value < 70:
+        risk = RiskLevel.HIGH
+        interpretation = f"MAP {map_value:.0f}: Low (borderline perfusion)"
+        recommendations = ["MAP borderline for organ perfusion", "Monitor closely", "IV fluids if hypovolemic"]
+    elif map_value > 130:
+        risk = RiskLevel.HIGH
+        interpretation = f"MAP {map_value:.0f}: Severely elevated"
+        recommendations = ["Evaluate for hypertensive emergency", "Check for end-organ damage", "May need IV antihypertensives"]
+    else:
+        risk = RiskLevel.LOW
+        interpretation = f"MAP {map_value:.0f}: Normal range"
+        recommendations = ["MAP within normal limits (70-100 mmHg)"]
+
+    return CalculatorResult(
+        calculator_id="map",
+        calculator_name="Mean Arterial Pressure",
+        score=round(map_value, 0),
+        score_unit="mmHg",
+        risk_level=risk,
+        interpretation=interpretation,
+        recommendations=recommendations,
+        components=components,
+        references=["Standard hemodynamic calculation"],
+        formula_used="MAP = (SBP + 2×DBP) / 3"
+    )
+
+
+def calculate_corrected_sodium(input_data: CorrectedSodiumInput) -> CalculatorResult:
+    """Calculate Corrected Sodium for hyperglycemia.
+
+    Formula: Na + 2.4 × [(Glucose - 100) / 100]
+    Reference: Hillier TA, et al. Am J Med 1999
+    """
+    correction = 2.4 * ((input_data.glucose - 100) / 100)
+    corrected_na = input_data.measured_sodium + correction
+
+    components = {
+        "measured_sodium": input_data.measured_sodium,
+        "glucose": input_data.glucose,
+        "correction_factor": round(correction, 1),
+    }
+
+    if corrected_na < 135:
+        risk = RiskLevel.MODERATE
+        interpretation = f"Corrected Na {corrected_na:.1f}: True hyponatremia persists"
+        recommendations = ["True hyponatremia present", "Evaluate volume status", "Check serum osmolality"]
+    elif corrected_na > 145:
+        risk = RiskLevel.MODERATE
+        interpretation = f"Corrected Na {corrected_na:.1f}: True hypernatremia revealed"
+        recommendations = ["True hypernatremia present", "Free water replacement needed", "Monitor Na correction rate"]
+    else:
+        risk = RiskLevel.LOW
+        interpretation = f"Corrected Na {corrected_na:.1f}: Normal range"
+        recommendations = ["Sodium will normalize with glucose treatment", "Dilutional hyponatremia from hyperglycemia"]
+
+    return CalculatorResult(
+        calculator_id="corrected_sodium",
+        calculator_name="Corrected Sodium",
+        score=round(corrected_na, 1),
+        score_unit="mEq/L",
+        risk_level=risk,
+        interpretation=interpretation,
+        recommendations=recommendations,
+        components=components,
+        references=["Hillier TA, et al. Am J Med 1999"],
+        formula_used="Corrected Na = Measured Na + 2.4 × [(Glucose - 100) / 100]"
+    )
+
+
+def calculate_osmolality(input_data: OsmolalityInput) -> CalculatorResult:
+    """Calculate Serum Osmolality and Osmolar Gap.
+
+    Formula: Calculated Osm = 2×Na + Glucose/18 + BUN/2.8
+    """
+    calc_osm = 2 * input_data.sodium + input_data.glucose / 18 + input_data.bun / 2.8
+
+    components = {
+        "sodium_contribution": round(2 * input_data.sodium, 1),
+        "glucose_contribution": round(input_data.glucose / 18, 1),
+        "bun_contribution": round(input_data.bun / 2.8, 1),
+        "calculated_osmolality": round(calc_osm, 1),
+    }
+
+    osm_gap = None
+    if input_data.measured_osmolality:
+        osm_gap = input_data.measured_osmolality - calc_osm
+        components["measured_osmolality"] = input_data.measured_osmolality
+        components["osmolar_gap"] = round(osm_gap, 1)
+
+    if osm_gap and osm_gap > 10:
+        risk = RiskLevel.HIGH
+        interpretation = f"Calculated Osm {calc_osm:.0f}, Gap {osm_gap:.0f} (elevated)"
+        recommendations = ["Elevated osmolar gap - consider toxic alcohols", "Check for methanol, ethylene glycol", "Urgent toxicology workup"]
+    elif calc_osm > 320:
+        risk = RiskLevel.HIGH
+        interpretation = f"Calculated Osm {calc_osm:.0f}: Hyperosmolar"
+        recommendations = ["Hyperosmolar state", "Evaluate for HHS, DKA", "Careful fluid management"]
+    else:
+        risk = RiskLevel.LOW
+        interpretation = f"Calculated Osm {calc_osm:.0f}: Normal range"
+        recommendations = ["Serum osmolality within normal limits"]
+
+    return CalculatorResult(
+        calculator_id="osmolality",
+        calculator_name="Serum Osmolality",
+        score=round(calc_osm, 0),
+        score_unit="mOsm/kg",
+        risk_level=risk,
+        interpretation=interpretation,
+        recommendations=recommendations,
+        components=components,
+        references=["Purssell RA, et al. Ann Emerg Med 2001"],
+        formula_used="Osm = 2×Na + Glucose/18 + BUN/2.8"
+    )
+
+
+def calculate_bisap(input_data: BISAPInput) -> CalculatorResult:
+    """Calculate BISAP Score for acute pancreatitis.
+
+    Reference: Wu BU, et al. Gut 2008
+    """
+    score = 0
+    components = {}
+
+    if input_data.bun_over_25:
+        score += 1
+        components["bun_over_25"] = 1
+    if input_data.impaired_mental_status:
+        score += 1
+        components["impaired_mental_status"] = 1
+    if input_data.sirs_2_or_more:
+        score += 1
+        components["sirs_2_or_more"] = 1
+    if input_data.age_over_60:
+        score += 1
+        components["age_over_60"] = 1
+    if input_data.pleural_effusion:
+        score += 1
+        components["pleural_effusion"] = 1
+
+    mortality_rates = {0: "<1%", 1: "~1%", 2: "2%", 3: "5-8%", 4: "12-20%", 5: ">20%"}
+
+    if score <= 2:
+        risk = RiskLevel.LOW
+        interpretation = f"BISAP {score}: Low risk (mortality {mortality_rates.get(score, '>20%')})"
+        recommendations = ["Low risk for in-hospital mortality", "Conservative management", "Monitor for clinical deterioration"]
+    else:
+        risk = RiskLevel.HIGH
+        interpretation = f"BISAP {score}: High risk (mortality {mortality_rates.get(score, '>20%')})"
+        recommendations = ["Higher risk for severe pancreatitis", "Consider ICU admission", "Aggressive fluid resuscitation", "Early CT if necrotizing pancreatitis suspected"]
+
+    return CalculatorResult(
+        calculator_id="bisap",
+        calculator_name="BISAP Score",
+        score=score,
+        score_unit="points",
+        risk_level=risk,
+        interpretation=interpretation,
+        recommendations=recommendations,
+        components=components,
+        references=["Wu BU, et al. Gut 2008;57:1698-1703"],
+        formula_used="BUN + Impaired mental status + SIRS + Age + Pleural effusion"
+    )
+
+
 # =============================================================================
 # Calculator Service Class
 # =============================================================================
@@ -1629,6 +2451,107 @@ class ClinicalCalculatorService:
             "description": "Serum anion gap calculation",
             "function": calculate_anion_gap,
             "input_class": AnionGapInput,
+        },
+        # Additional Critical Care / Emergency
+        "gcs": {
+            "name": "Glasgow Coma Scale",
+            "short_name": "GCS",
+            "category": CalculatorCategory.CRITICAL_CARE,
+            "description": "Neurological assessment for consciousness level",
+            "function": calculate_gcs,
+            "input_class": GCSInput,
+        },
+        "news2": {
+            "name": "NEWS2 (National Early Warning Score 2)",
+            "short_name": "NEWS2",
+            "category": CalculatorCategory.CRITICAL_CARE,
+            "description": "Clinical deterioration risk assessment",
+            "function": calculate_news2,
+            "input_class": NEWS2Input,
+        },
+        "curb65": {
+            "name": "CURB-65 Score",
+            "short_name": "CURB-65",
+            "category": CalculatorCategory.CRITICAL_CARE,
+            "description": "Pneumonia severity and mortality prediction",
+            "function": calculate_curb65,
+            "input_class": CURB65Input,
+        },
+        "perc": {
+            "name": "PERC Rule",
+            "short_name": "PERC",
+            "category": CalculatorCategory.CRITICAL_CARE,
+            "description": "PE rule-out criteria for low-risk patients",
+            "function": calculate_perc,
+            "input_class": PERCInput,
+        },
+        "sirs": {
+            "name": "SIRS Criteria",
+            "short_name": "SIRS",
+            "category": CalculatorCategory.CRITICAL_CARE,
+            "description": "Systemic inflammatory response syndrome",
+            "function": calculate_sirs,
+            "input_class": SIRSInput,
+        },
+        # Cardiovascular
+        "timi": {
+            "name": "TIMI Risk Score (UA/NSTEMI)",
+            "short_name": "TIMI",
+            "category": CalculatorCategory.CARDIOVASCULAR,
+            "description": "14-day adverse outcome risk in ACS",
+            "function": calculate_timi,
+            "input_class": TIMIInput,
+        },
+        "abcd2": {
+            "name": "ABCD2 Score",
+            "short_name": "ABCD2",
+            "category": CalculatorCategory.CARDIOVASCULAR,
+            "description": "Stroke risk after TIA",
+            "function": calculate_abcd2,
+            "input_class": ABCD2Input,
+        },
+        "map": {
+            "name": "Mean Arterial Pressure",
+            "short_name": "MAP",
+            "category": CalculatorCategory.CARDIOVASCULAR,
+            "description": "Calculate MAP from blood pressure",
+            "function": calculate_map,
+            "input_class": MAPInput,
+        },
+        # Infectious Disease
+        "centor": {
+            "name": "Modified Centor Score",
+            "short_name": "Centor",
+            "category": CalculatorCategory.GENERAL,
+            "description": "Strep pharyngitis probability",
+            "function": calculate_centor,
+            "input_class": CentorInput,
+        },
+        # Laboratory
+        "corrected_sodium": {
+            "name": "Corrected Sodium",
+            "short_name": "Corr Na",
+            "category": CalculatorCategory.LABORATORY,
+            "description": "Sodium correction for hyperglycemia",
+            "function": calculate_corrected_sodium,
+            "input_class": CorrectedSodiumInput,
+        },
+        "osmolality": {
+            "name": "Serum Osmolality",
+            "short_name": "Osm",
+            "category": CalculatorCategory.LABORATORY,
+            "description": "Calculated osmolality and osmolar gap",
+            "function": calculate_osmolality,
+            "input_class": OsmolalityInput,
+        },
+        # GI/Hepatic
+        "bisap": {
+            "name": "BISAP Score",
+            "short_name": "BISAP",
+            "category": CalculatorCategory.HEPATIC,
+            "description": "Acute pancreatitis mortality prediction",
+            "function": calculate_bisap,
+            "input_class": BISAPInput,
         },
     }
 
