@@ -505,6 +505,30 @@ API requests are rate-limited. Check response headers for limits:
             "name": "Audit",
             "description": "HIPAA-compliant audit logging and compliance reporting.",
         },
+        {
+            "name": "Drug Safety",
+            "description": "Drug safety checking: contraindications, interactions, pregnancy/lactation safety, and dosing guidelines.",
+        },
+        {
+            "name": "ICD-10 Suggestions",
+            "description": "ICD-10-CM code suggestions from clinical text with CER citations and coding guidance.",
+        },
+        {
+            "name": "HCC Analysis",
+            "description": "Hierarchical Condition Category gap analysis with RAF score calculation and revenue impact.",
+        },
+        {
+            "name": "CPT Suggestions",
+            "description": "CPT code suggestions for procedures and E/M services with bundling analysis.",
+        },
+        {
+            "name": "Differential Diagnosis",
+            "description": "Clinical decision support for ranked differential diagnoses based on symptoms and findings.",
+        },
+        {
+            "name": "FHIR Terminology",
+            "description": "FHIR R4 Terminology Services: $lookup, $validate-code, $expand, $translate, $subsumes, $closure.",
+        },
     ],
     servers=[
         {"url": "http://localhost:8000", "description": "Development server"},

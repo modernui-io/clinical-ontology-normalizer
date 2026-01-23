@@ -41,6 +41,18 @@ class ICD10SuggestionRequest(BaseModel):
             )
         return v.lower()
 
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "text": "Patient presents with chest pain radiating to left arm, diaphoresis, and shortness of breath. ECG shows ST elevation in leads V1-V4.",
+                    "max_suggestions": 5,
+                    "min_confidence": "medium",
+                }
+            ]
+        }
+    }
+
 
 class CERCitationResponse(BaseModel):
     """Claim-Evidence-Reasoning for a code suggestion."""

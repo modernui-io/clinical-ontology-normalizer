@@ -48,6 +48,20 @@ class HCCAnalysisRequest(BaseModel):
             )
         return [c.upper() for c in v]
 
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "patient_id": "P-12345",
+                    "icd10_codes": ["E11.9", "I10", "E78.5"],
+                    "clinical_notes": "Patient with poorly controlled type 2 diabetes, hypertension, and hyperlipidemia. Recent HbA1c 9.2%. Diabetic nephropathy suspected.",
+                    "age": 68,
+                    "is_institutional": False,
+                }
+            ]
+        }
+    }
+
 
 class HCCEvidenceResponse(BaseModel):
     """Evidence supporting an HCC opportunity."""

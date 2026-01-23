@@ -36,6 +36,7 @@ import {
   Target,
   Stethoscope,
   Brain,
+  Network,
 } from "lucide-react";
 
 // Types for CDS data
@@ -379,6 +380,12 @@ export default function ClinicalDashboardPage() {
             <Button size="sm" variant="outline">
               <Stethoscope className="mr-2 h-4 w-4" />
               CPT
+            </Button>
+          </Link>
+          <Link href="/clinical/crossref">
+            <Button size="sm" variant="outline">
+              <Network className="mr-2 h-4 w-4" />
+              Cross-Ref
             </Button>
           </Link>
           <Link href="/clinical/tools">

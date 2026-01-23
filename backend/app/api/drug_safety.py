@@ -53,6 +53,23 @@ class SafetyCheckRequest(BaseModel):
     drug_name: str = Field(..., min_length=1, description="Drug name to check")
     patient: PatientContext = Field(default_factory=PatientContext, description="Patient context")
 
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "drug_name": "warfarin",
+                    "patient": {
+                        "age": 72,
+                        "conditions": ["atrial fibrillation", "hypertension"],
+                        "medications": ["lisinopril", "aspirin"],
+                        "pregnant": False,
+                        "renal_impairment": True,
+                    },
+                }
+            ]
+        }
+    }
+
 
 class ContraindicationResponse(BaseModel):
     """A contraindication entry."""

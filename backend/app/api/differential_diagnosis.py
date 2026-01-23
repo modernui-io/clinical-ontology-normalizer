@@ -55,6 +55,20 @@ class DifferentialRequest(BaseModel):
             raise ValueError("At least one non-empty finding is required")
         return cleaned
 
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "findings": ["chest pain", "shortness of breath", "diaphoresis", "ST elevation"],
+                    "age": 62,
+                    "gender": "male",
+                    "domain": "cardiology",
+                    "max_diagnoses": 10,
+                }
+            ]
+        }
+    }
+
 
 class CERCitationResponse(BaseModel):
     """Claim-Evidence-Reasoning citation."""
