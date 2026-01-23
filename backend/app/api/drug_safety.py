@@ -16,6 +16,7 @@ from app.services.drug_safety import (
     get_drug_safety_service,
     SafetyLevel,
 )
+from app.services.terminology_cache import get_drug_cache
 
 router = APIRouter(prefix="/drug-safety", tags=["Drug Safety"])
 
@@ -247,6 +248,12 @@ async def check_drug_safety(request: SafetyCheckRequest) -> SafetyCheckResponse:
     description="Get the full safety profile for a drug.",
 )
 async def get_drug_profile(drug_name: str) -> DrugProfileResponse:
+    cache = get_drug_cache()
+    cache_key = cache._make_key("drug_profile", drug_name.lower())
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     service = get_drug_safety_service()
     profile = service.get_profile(drug_name)
 
@@ -256,7 +263,7 @@ async def get_drug_profile(drug_name: str) -> DrugProfileResponse:
             error_code=ErrorCode.NOT_FOUND_RESOURCE,
         )
 
-    return DrugProfileResponse(
+    result = DrugProfileResponse(
         drug_name=profile.drug_name,
         generic_name=profile.generic_name,
         drug_class=profile.drug_class,
@@ -284,6 +291,8 @@ async def get_drug_profile(drug_name: str) -> DrugProfileResponse:
         serious_adverse_effects=profile.serious_adverse_effects,
         max_daily_dose=profile.max_daily_dose or None,
     )
+    cache.set(cache_key, result)
+    return result
 
 
 @router.get(
@@ -297,12 +306,18 @@ async def search_drug_profiles(
     offset: int = Query(0, ge=0, description="Pagination offset"),
     limit: int = Query(10, ge=1, le=50, description="Max results per page"),
 ) -> DrugSearchResponse:
+    cache = get_drug_cache()
+    cache_key = cache._make_key("drug_search", q.lower(), offset=offset, limit=limit)
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     service = get_drug_safety_service()
     profiles = service.search_profiles(q, limit=offset + limit + 1)
     total = len(profiles)
     page = profiles[offset:offset + limit]
 
-    return DrugSearchResponse(
+    result = DrugSearchResponse(
         query=q,
         total_results=total,
         offset=offset,
@@ -340,6 +355,8 @@ async def search_drug_profiles(
             for p in page
         ],
     )
+    cache.set(cache_key, result)
+    return result
 
 
 @router.get(

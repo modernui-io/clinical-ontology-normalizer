@@ -28,6 +28,7 @@ from fastapi import APIRouter, Response, status
 from pydantic import BaseModel, Field
 
 from app.core.config import settings
+from app.services.terminology_cache import get_all_cache_stats, clear_all_caches
 
 logger = logging.getLogger(__name__)
 
@@ -506,3 +507,22 @@ async def readiness_probe(response: Response) -> ReadinessResponse:
         services_ready=services_ready,
         services_total=services_total,
     )
+
+
+@router.get(
+    "/cache",
+    summary="Get terminology cache statistics",
+    description="Returns hit/miss rates and sizes for all terminology caches.",
+)
+async def get_cache_stats() -> dict[str, Any]:
+    return get_all_cache_stats()
+
+
+@router.post(
+    "/cache/clear",
+    summary="Clear all terminology caches",
+    description="Invalidates all cached terminology results.",
+)
+async def clear_caches() -> dict[str, str]:
+    clear_all_caches()
+    return {"status": "cleared"}

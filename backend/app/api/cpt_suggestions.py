@@ -16,6 +16,7 @@ from app.services.cpt_suggester import (
     check_bundling,
     CPTCategory,
 )
+from app.services.terminology_cache import get_cpt_cache
 
 router = APIRouter(prefix="/cpt-suggestions", tags=["CPT Suggestions"])
 
@@ -251,12 +252,18 @@ async def search_cpt_codes(
     offset: int = Query(0, ge=0, description="Pagination offset"),
     limit: int = Query(20, ge=1, le=100, description="Max results per page"),
 ) -> CPTSearchResponse:
+    cache = get_cpt_cache()
+    cache_key = cache._make_key("cpt_search", q.lower(), offset=offset, limit=limit)
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     service = get_cpt_suggester_service()
     codes = service.search_codes(q, limit=offset + limit + 1)
     total = len(codes)
     page = codes[offset:offset + limit]
 
-    return CPTSearchResponse(
+    result = CPTSearchResponse(
         query=q,
         total_results=total,
         offset=offset,
@@ -273,6 +280,8 @@ async def search_cpt_codes(
             for c in page
         ],
     )
+    cache.set(cache_key, result)
+    return result
 
 
 @router.get(

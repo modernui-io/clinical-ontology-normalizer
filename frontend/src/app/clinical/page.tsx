@@ -388,6 +388,18 @@ export default function ClinicalDashboardPage() {
               Cross-Ref
             </Button>
           </Link>
+          <Link href="/clinical/med-reconciliation">
+            <Button size="sm" variant="outline">
+              <Pill className="mr-2 h-4 w-4" />
+              Med Recon
+            </Button>
+          </Link>
+          <Link href="/clinical/cdi-queries">
+            <Button size="sm" variant="outline">
+              <ClipboardCheck className="mr-2 h-4 w-4" />
+              CDI Queries
+            </Button>
+          </Link>
           <Link href="/clinical/tools">
             <Button size="sm">
               <Calculator className="mr-2 h-4 w-4" />

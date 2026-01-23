@@ -15,6 +15,7 @@ from app.services.icd10_suggester import (
     get_icd10_suggester_service,
     CodeCategory,
 )
+from app.services.terminology_cache import get_icd10_cache
 
 router = APIRouter(prefix="/icd10-suggestions", tags=["ICD-10 Suggestions"])
 
@@ -183,6 +184,12 @@ async def suggest_icd10_codes(request: ICD10SuggestionRequest) -> SuggestionResu
     summary="Get ICD-10 code details",
 )
 async def get_icd10_code(code: str) -> ICD10CodeResponse:
+    cache = get_icd10_cache()
+    cache_key = cache._make_key("icd10_code", code.upper())
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     service = get_icd10_suggester_service()
     icd_code = service.get_code(code.upper())
 
@@ -192,7 +199,7 @@ async def get_icd10_code(code: str) -> ICD10CodeResponse:
             error_code=ErrorCode.NOT_FOUND_CONCEPT,
         )
 
-    return ICD10CodeResponse(
+    result = ICD10CodeResponse(
         code=icd_code.code,
         description=icd_code.description,
         category=icd_code.category.value if icd_code.category else "",
@@ -200,6 +207,8 @@ async def get_icd10_code(code: str) -> ICD10CodeResponse:
         parent_code=icd_code.parent_code,
         synonyms=icd_code.synonyms,
     )
+    cache.set(cache_key, result)
+    return result
 
 
 @router.get(
@@ -213,13 +222,19 @@ async def search_icd10_codes(
     offset: int = Query(0, ge=0, description="Pagination offset"),
     limit: int = Query(20, ge=1, le=100, description="Max results per page"),
 ) -> CodeSearchResponse:
+    cache = get_icd10_cache()
+    cache_key = cache._make_key("icd10_search", q.lower(), offset=offset, limit=limit)
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     service = get_icd10_suggester_service()
     # Fetch one extra to determine has_more
     codes = service.search_codes(q, limit=offset + limit + 1)
     total = len(codes)
     page = codes[offset:offset + limit]
 
-    return CodeSearchResponse(
+    result = CodeSearchResponse(
         query=q,
         total_results=total,
         offset=offset,
@@ -237,6 +252,8 @@ async def search_icd10_codes(
             for c in page
         ],
     )
+    cache.set(cache_key, result)
+    return result
 
 
 @router.get(

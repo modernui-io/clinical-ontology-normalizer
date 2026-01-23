@@ -17,6 +17,7 @@ from app.services.hcc_analyzer import (
     get_hcc_analyzer_service,
     HCCCategory,
 )
+from app.services.terminology_cache import get_hcc_cache
 
 router = APIRouter(prefix="/hcc-analysis", tags=["HCC Analysis"])
 
@@ -219,6 +220,12 @@ async def analyze_hcc_gaps(request: HCCAnalysisRequest) -> HCCAnalysisResponse:
     summary="Get HCC definition",
 )
 async def get_hcc_definition(hcc_code: str) -> HCCDefinitionResponse:
+    cache = get_hcc_cache()
+    cache_key = cache._make_key("hcc_def", hcc_code.upper())
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     service = get_hcc_analyzer_service()
     hcc_def = service.get_hcc_definition(hcc_code)
 
@@ -228,13 +235,15 @@ async def get_hcc_definition(hcc_code: str) -> HCCDefinitionResponse:
             error_code=ErrorCode.NOT_FOUND_CONCEPT,
         )
 
-    return HCCDefinitionResponse(
+    result = HCCDefinitionResponse(
         hcc_code=hcc_def.hcc_code,
         description=hcc_def.description,
         category=hcc_def.category.value if hcc_def.category else "",
         raf_weight=hcc_def.raf_community,
         icd10_codes=hcc_def.icd10_codes,
     )
+    cache.set(cache_key, result)
+    return result
 
 
 @router.get(
@@ -243,13 +252,21 @@ async def get_hcc_definition(hcc_code: str) -> HCCDefinitionResponse:
     summary="Get ICD-10 to HCC mapping",
 )
 async def get_icd10_hcc_mapping(icd10_code: str) -> HCCMappingResponse:
+    cache = get_hcc_cache()
+    cache_key = cache._make_key("icd10_hcc_map", icd10_code.upper())
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     service = get_hcc_analyzer_service()
     hcc_code = service.get_icd10_to_hcc_mapping(icd10_code.upper())
 
-    return HCCMappingResponse(
+    result = HCCMappingResponse(
         icd10_code=icd10_code.upper(),
         hcc_code=hcc_code,
     )
+    cache.set(cache_key, result)
+    return result
 
 
 @router.post(
