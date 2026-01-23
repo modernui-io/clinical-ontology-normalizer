@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import { SearchWithDebounce } from "@/components/SearchWithDebounce";
 import {
   ArrowLeft,
   Search,
@@ -40,22 +40,26 @@ interface SearchResult {
 }
 
 export default function ICD10BrowserPage() {
-  const [query, setQuery] = useState("");
   const [offset, setOffset] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<SearchResult | null>(null);
   const [selectedCode, setSelectedCode] = useState<ICD10Code | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const currentQuery = useRef("");
   const limit = 20;
 
   const search = useCallback(
-    async (searchOffset = 0) => {
-      if (!query.trim() || query.trim().length < 2) return;
+    async (q: string, searchOffset = 0) => {
+      if (!q.trim() || q.trim().length < 2) {
+        setResult(null);
+        return;
+      }
+      currentQuery.current = q;
       setIsLoading(true);
       setError(null);
       try {
         const res = await fetch(
-          `/api/v1/icd10-suggestions/search?q=${encodeURIComponent(query.trim())}&offset=${searchOffset}&limit=${limit}`
+          `/api/v1/icd10-suggestions/search?q=${encodeURIComponent(q.trim())}&offset=${searchOffset}&limit=${limit}`
         );
         if (!res.ok) {
           const err = await res.json();
@@ -70,14 +74,13 @@ export default function ICD10BrowserPage() {
         setIsLoading(false);
       }
     },
-    [query]
+    []
   );
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSearch = useCallback((value: string) => {
     setOffset(0);
-    search(0);
-  };
+    search(value, 0);
+  }, [search]);
 
   return (
     <div className="container mx-auto p-6 max-w-6xl">
@@ -98,19 +101,14 @@ export default function ICD10BrowserPage() {
       {/* Search */}
       <Card className="mb-6">
         <CardContent className="pt-6">
-          <form onSubmit={handleSubmit} className="flex gap-3">
-            <div className="flex-1">
-              <Input
-                placeholder="Search by code or description (e.g., 'diabetes', 'E11', 'hypertension')..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
-            </div>
-            <Button type="submit" disabled={isLoading || query.trim().length < 2}>
-              <Search className="h-4 w-4 mr-1" />
-              {isLoading ? "Searching..." : "Search"}
-            </Button>
-          </form>
+          <SearchWithDebounce
+            onSearch={handleSearch}
+            debounceMs={300}
+            isLoading={isLoading}
+            placeholder="Search by code or description (e.g., 'diabetes', 'E11', 'hypertension')..."
+            autoFocus
+            size="default"
+          />
         </CardContent>
       </Card>
 
@@ -137,7 +135,7 @@ export default function ICD10BrowserPage() {
                       variant="outline"
                       size="sm"
                       disabled={offset === 0}
-                      onClick={() => search(Math.max(0, offset - limit))}
+                      onClick={() => search(currentQuery.current, Math.max(0, offset - limit))}
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
@@ -148,7 +146,7 @@ export default function ICD10BrowserPage() {
                       variant="outline"
                       size="sm"
                       disabled={!result.has_more}
-                      onClick={() => search(offset + limit)}
+                      onClick={() => search(currentQuery.current, offset + limit)}
                     >
                       <ChevronRight className="h-4 w-4" />
                     </Button>
