@@ -8,11 +8,12 @@ import time
 from typing import Any
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException, Query, status
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, Query
+from pydantic import BaseModel, Field, field_validator
 
 from app.services.cpt_suggester import (
     get_cpt_suggester_service,
+    check_bundling,
     CPTCategory,
 )
 
@@ -35,10 +36,20 @@ class CPTSuggestionRequest(BaseModel):
 class EMLevelRequest(BaseModel):
     """Request for E/M level calculation."""
 
-    time_spent_minutes: int | None = Field(None, ge=1, description="Total time in minutes")
+    time_spent_minutes: int | None = Field(None, ge=1, le=480, description="Total time in minutes")
     is_new_patient: bool = Field(False, description="Whether this is a new patient")
     setting: str = Field("office", description="Setting: office, inpatient, emergency")
     mdm_elements: dict | None = Field(None, description="MDM element assessments")
+
+    @field_validator("setting")
+    @classmethod
+    def validate_setting(cls, v: str) -> str:
+        allowed = {"office", "inpatient", "emergency"}
+        if v.lower() not in allowed:
+            raise ValueError(
+                f"Invalid setting '{v}'. Must be one of: office, inpatient, emergency"
+            )
+        return v.lower()
 
 
 class CERCitationResponse(BaseModel):
@@ -119,6 +130,33 @@ class CPTStatsResponse(BaseModel):
 
     total_codes: int
     categories: dict[str, int]
+
+
+class BundlingCheckRequest(BaseModel):
+    """Request for CPT bundling check."""
+
+    cpt_codes: list[str] = Field(..., min_length=2, max_length=50, description="CPT codes to check")
+
+
+class BundlingRuleResponse(BaseModel):
+    """A bundling rule match."""
+
+    comprehensive_code: str
+    comprehensive_description: str
+    component_codes: list[str]
+    component_descriptions: list[str]
+    rationale: str
+
+
+class BundlingCheckResponse(BaseModel):
+    """Result of bundling analysis."""
+
+    request_id: str
+    codes_checked: list[str]
+    bundling_opportunities: list[BundlingRuleResponse]
+    unbundling_alerts: list[BundlingRuleResponse]
+    total_issues: int
+    processing_time_ms: float
 
 
 # ============================================================================
@@ -239,4 +277,45 @@ async def get_cpt_stats() -> CPTStatsResponse:
     return CPTStatsResponse(
         total_codes=stats.get("total_codes", 0),
         categories=stats.get("categories", {}),
+    )
+
+
+@router.post(
+    "/bundling-check",
+    response_model=BundlingCheckResponse,
+    summary="Check CPT code bundling",
+    description="Analyze CPT codes for bundling opportunities and unbundling alerts.",
+)
+async def check_cpt_bundling(request: BundlingCheckRequest) -> BundlingCheckResponse:
+    start = time.time()
+    result = check_bundling(request.cpt_codes)
+
+    opportunities = [
+        BundlingRuleResponse(
+            comprehensive_code=r.comprehensive_code,
+            comprehensive_description=r.comprehensive_desc,
+            component_codes=r.component_codes,
+            component_descriptions=r.component_descs,
+            rationale=r.rationale,
+        )
+        for r in result.bundling_opportunities
+    ]
+    alerts = [
+        BundlingRuleResponse(
+            comprehensive_code=r.comprehensive_code,
+            comprehensive_description=r.comprehensive_desc,
+            component_codes=r.component_codes,
+            component_descriptions=r.component_descs,
+            rationale=r.rationale,
+        )
+        for r in result.unbundling_alerts
+    ]
+
+    return BundlingCheckResponse(
+        request_id=str(uuid4()),
+        codes_checked=result.codes_checked,
+        bundling_opportunities=opportunities,
+        unbundling_alerts=alerts,
+        total_issues=len(opportunities) + len(alerts),
+        processing_time_ms=(time.time() - start) * 1000,
     )

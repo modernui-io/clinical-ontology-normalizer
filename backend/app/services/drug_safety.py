@@ -135,6 +135,153 @@ class SafetyCheckResult:
     profile: DrugSafetyProfile | None
 
 
+@dataclass
+class DrugInteraction:
+    """A drug-drug interaction."""
+
+    drug_a: str
+    drug_b: str
+    severity: str  # "major", "moderate", "minor"
+    description: str
+    mechanism: str
+    clinical_effect: str
+    management: str
+
+
+@dataclass
+class InteractionCheckResult:
+    """Result of a drug interaction check."""
+
+    drugs_checked: list[str]
+    interactions_found: list[DrugInteraction]
+    total_interactions: int
+
+
+# Known drug-drug interactions
+KNOWN_INTERACTIONS: list[dict] = [
+    {
+        "drugs": ("warfarin", "aspirin"),
+        "severity": "major",
+        "description": "Increased risk of bleeding",
+        "mechanism": "Additive anticoagulant/antiplatelet effects",
+        "clinical_effect": "Significantly increased risk of GI and intracranial hemorrhage",
+        "management": "Avoid combination unless clearly indicated. Monitor INR closely if used together.",
+    },
+    {
+        "drugs": ("warfarin", "ibuprofen"),
+        "severity": "major",
+        "description": "Increased anticoagulant effect and GI bleeding risk",
+        "mechanism": "NSAIDs inhibit platelet function and may displace warfarin from protein binding",
+        "clinical_effect": "Elevated INR and increased risk of hemorrhage",
+        "management": "Avoid NSAIDs in patients on warfarin. Use acetaminophen for pain if possible.",
+    },
+    {
+        "drugs": ("metformin", "contrast dye"),
+        "severity": "major",
+        "description": "Risk of lactic acidosis",
+        "mechanism": "Contrast-induced nephropathy reduces metformin clearance",
+        "clinical_effect": "Accumulation of metformin leading to lactic acidosis",
+        "management": "Hold metformin 48 hours before and after contrast administration.",
+    },
+    {
+        "drugs": ("lisinopril", "potassium"),
+        "severity": "major",
+        "description": "Risk of hyperkalemia",
+        "mechanism": "ACE inhibitors reduce aldosterone-mediated potassium excretion",
+        "clinical_effect": "Dangerous elevation of serum potassium levels",
+        "management": "Monitor potassium levels closely. Avoid potassium supplements unless hypokalemic.",
+    },
+    {
+        "drugs": ("metoprolol", "verapamil"),
+        "severity": "major",
+        "description": "Excessive cardiac depression",
+        "mechanism": "Additive negative chronotropic and inotropic effects",
+        "clinical_effect": "Severe bradycardia, heart block, or heart failure",
+        "management": "Avoid combination. If necessary, use with extreme caution and monitoring.",
+    },
+    {
+        "drugs": ("simvastatin", "amiodarone"),
+        "severity": "major",
+        "description": "Increased risk of rhabdomyolysis",
+        "mechanism": "Amiodarone inhibits CYP3A4-mediated statin metabolism",
+        "clinical_effect": "Elevated statin levels leading to myopathy and rhabdomyolysis",
+        "management": "Limit simvastatin dose to 20mg daily when combined with amiodarone.",
+    },
+    {
+        "drugs": ("fluoxetine", "tramadol"),
+        "severity": "major",
+        "description": "Serotonin syndrome risk",
+        "mechanism": "Additive serotonergic effects",
+        "clinical_effect": "Hyperthermia, rigidity, myoclonus, autonomic instability",
+        "management": "Avoid combination. Use alternative analgesic without serotonergic activity.",
+    },
+    {
+        "drugs": ("ciprofloxacin", "theophylline"),
+        "severity": "major",
+        "description": "Theophylline toxicity",
+        "mechanism": "Ciprofloxacin inhibits CYP1A2-mediated theophylline metabolism",
+        "clinical_effect": "Nausea, vomiting, seizures, cardiac arrhythmias",
+        "management": "Reduce theophylline dose by 30-50% or use alternative antibiotic.",
+    },
+    {
+        "drugs": ("methotrexate", "ibuprofen"),
+        "severity": "major",
+        "description": "Methotrexate toxicity",
+        "mechanism": "NSAIDs reduce renal clearance of methotrexate",
+        "clinical_effect": "Pancytopenia, mucositis, renal failure",
+        "management": "Avoid NSAIDs with high-dose methotrexate. Monitor CBC and renal function.",
+    },
+    {
+        "drugs": ("digoxin", "amiodarone"),
+        "severity": "major",
+        "description": "Digoxin toxicity",
+        "mechanism": "Amiodarone increases digoxin levels via P-glycoprotein inhibition",
+        "clinical_effect": "Nausea, visual changes, cardiac arrhythmias",
+        "management": "Reduce digoxin dose by 50% when initiating amiodarone. Monitor levels.",
+    },
+    {
+        "drugs": ("lisinopril", "spironolactone"),
+        "severity": "moderate",
+        "description": "Risk of hyperkalemia",
+        "mechanism": "Both agents increase serum potassium through different mechanisms",
+        "clinical_effect": "Hyperkalemia with potential cardiac effects",
+        "management": "Monitor potassium levels regularly. Avoid in patients with renal impairment.",
+    },
+    {
+        "drugs": ("metformin", "alcohol"),
+        "severity": "moderate",
+        "description": "Increased risk of lactic acidosis",
+        "mechanism": "Alcohol impairs gluconeogenesis and may worsen metformin-related lactate accumulation",
+        "clinical_effect": "Hypoglycemia and lactic acidosis",
+        "management": "Advise patients to limit alcohol intake while on metformin.",
+    },
+    {
+        "drugs": ("amlodipine", "simvastatin"),
+        "severity": "moderate",
+        "description": "Increased statin exposure",
+        "mechanism": "Amlodipine inhibits CYP3A4 metabolism of simvastatin",
+        "clinical_effect": "Increased risk of myopathy",
+        "management": "Limit simvastatin to 20mg daily when combined with amlodipine.",
+    },
+    {
+        "drugs": ("omeprazole", "clopidogrel"),
+        "severity": "moderate",
+        "description": "Reduced clopidogrel efficacy",
+        "mechanism": "Omeprazole inhibits CYP2C19 activation of clopidogrel",
+        "clinical_effect": "Reduced antiplatelet effect, increased cardiovascular risk",
+        "management": "Use pantoprazole or famotidine instead of omeprazole.",
+    },
+    {
+        "drugs": ("lisinopril", "ibuprofen"),
+        "severity": "moderate",
+        "description": "Reduced antihypertensive effect and renal risk",
+        "mechanism": "NSAIDs inhibit prostaglandin-mediated renal blood flow",
+        "clinical_effect": "Elevated blood pressure and risk of acute kidney injury",
+        "management": "Use lowest NSAID dose for shortest duration. Monitor BP and renal function.",
+    },
+]
+
+
 # ============================================================================
 # Drug Safety Database
 # ============================================================================
@@ -989,3 +1136,32 @@ class DrugSafetyService:
             "with_black_box_warnings": with_bbw,
             "pregnancy_category_d_or_x": category_d_x,
         }
+
+    def check_interactions(self, drugs: list[str]) -> InteractionCheckResult:
+        """Check for known drug-drug interactions among a list of medications."""
+        normalized = [self.normalize_drug_name(d) for d in drugs]
+        # Check against both original and normalized names for better matching
+        all_names = [d.lower() for d in drugs] + [n.lower() for n in normalized]
+        found: list[DrugInteraction] = []
+
+        for interaction_data in KNOWN_INTERACTIONS:
+            drug_a, drug_b = interaction_data["drugs"]
+            # Check if both drugs in the interaction are in the patient's list
+            a_match = any(drug_a in name for name in all_names)
+            b_match = any(drug_b in name for name in all_names)
+            if a_match and b_match:
+                found.append(DrugInteraction(
+                    drug_a=drug_a,
+                    drug_b=drug_b,
+                    severity=interaction_data["severity"],
+                    description=interaction_data["description"],
+                    mechanism=interaction_data["mechanism"],
+                    clinical_effect=interaction_data["clinical_effect"],
+                    management=interaction_data["management"],
+                ))
+
+        return InteractionCheckResult(
+            drugs_checked=normalized,
+            interactions_found=found,
+            total_interactions=len(found),
+        )

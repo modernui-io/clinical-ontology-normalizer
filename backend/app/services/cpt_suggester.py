@@ -2192,3 +2192,136 @@ def validate_worksheet(worksheet: CodingWorksheet) -> list[str]:
         warnings.append("INFO: Diagnosis sequence may need review")
 
     return warnings
+
+
+# ============================================================================
+# CPT Bundling / Unbundling
+# ============================================================================
+
+
+@dataclass
+class BundlingRule:
+    """A CPT code bundling rule."""
+
+    comprehensive_code: str
+    comprehensive_desc: str
+    component_codes: list[str]
+    component_descs: list[str]
+    rationale: str
+
+
+@dataclass
+class BundlingCheckResult:
+    """Result of bundling analysis."""
+
+    codes_checked: list[str]
+    bundling_opportunities: list[BundlingRule]
+    unbundling_alerts: list[BundlingRule]
+
+
+# Known bundling relationships (comprehensive → components)
+CPT_BUNDLING_RULES: list[dict] = [
+    {
+        "comprehensive": "58150",
+        "comprehensive_desc": "Total abdominal hysterectomy",
+        "components": ["58661", "49320"],
+        "component_descs": ["Laparoscopy with removal of adnexal structures", "Diagnostic laparoscopy"],
+        "rationale": "Diagnostic laparoscopy is included in surgical laparoscopy procedures",
+    },
+    {
+        "comprehensive": "43239",
+        "comprehensive_desc": "Upper GI endoscopy with biopsy",
+        "components": ["43235"],
+        "component_descs": ["Diagnostic upper GI endoscopy"],
+        "rationale": "Diagnostic endoscopy is included when biopsy is performed during same session",
+    },
+    {
+        "comprehensive": "29881",
+        "comprehensive_desc": "Arthroscopy, knee, with meniscectomy",
+        "components": ["29870"],
+        "component_descs": ["Diagnostic arthroscopy, knee"],
+        "rationale": "Diagnostic arthroscopy is bundled into surgical arthroscopy",
+    },
+    {
+        "comprehensive": "47562",
+        "comprehensive_desc": "Laparoscopic cholecystectomy",
+        "components": ["49320", "47563"],
+        "component_descs": ["Diagnostic laparoscopy", "Laparoscopic cholecystectomy with cholangiography"],
+        "rationale": "Diagnostic laparoscopy bundled into surgical laparoscopy",
+    },
+    {
+        "comprehensive": "36561",
+        "comprehensive_desc": "Insertion of central venous catheter",
+        "components": ["36000", "77001"],
+        "component_descs": ["Introduction of needle/catheter, vein", "Fluoroscopic guidance for central venous access"],
+        "rationale": "Venous access and fluoroscopic guidance bundled into catheter insertion",
+    },
+    {
+        "comprehensive": "99214",
+        "comprehensive_desc": "Office visit, established, moderate complexity",
+        "components": ["99000"],
+        "component_descs": ["Handling/conveying specimen for lab"],
+        "rationale": "Specimen handling bundled into E/M service",
+    },
+    {
+        "comprehensive": "10060",
+        "comprehensive_desc": "Incision and drainage of abscess, simple",
+        "components": ["12001"],
+        "component_descs": ["Simple repair of superficial wound"],
+        "rationale": "Simple closure is included in I&D procedure",
+    },
+    {
+        "comprehensive": "27447",
+        "comprehensive_desc": "Total knee arthroplasty",
+        "components": ["27331", "20680"],
+        "component_descs": ["Arthrotomy, knee, with synovial biopsy", "Removal of implant, deep"],
+        "rationale": "Arthrotomy and hardware removal bundled into total knee replacement",
+    },
+]
+
+
+def check_bundling(codes: list[str]) -> BundlingCheckResult:
+    """Check CPT codes for bundling opportunities and unbundling alerts."""
+    codes_upper = [c.strip() for c in codes]
+    bundling_opps: list[BundlingRule] = []
+    unbundling_alerts: list[BundlingRule] = []
+
+    for rule_data in CPT_BUNDLING_RULES:
+        comprehensive = rule_data["comprehensive"]
+        components = rule_data["components"]
+
+        # Check for unbundling: comprehensive + component both present
+        if comprehensive in codes_upper:
+            overlap = [c for c in components if c in codes_upper]
+            if overlap:
+                unbundling_alerts.append(BundlingRule(
+                    comprehensive_code=comprehensive,
+                    comprehensive_desc=rule_data["comprehensive_desc"],
+                    component_codes=overlap,
+                    component_descs=[
+                        rule_data["component_descs"][components.index(c)]
+                        for c in overlap if c in components
+                    ],
+                    rationale=rule_data["rationale"],
+                ))
+
+        # Check for bundling opportunity: multiple components present without comprehensive
+        if comprehensive not in codes_upper:
+            present_components = [c for c in components if c in codes_upper]
+            if len(present_components) >= 1:
+                bundling_opps.append(BundlingRule(
+                    comprehensive_code=comprehensive,
+                    comprehensive_desc=rule_data["comprehensive_desc"],
+                    component_codes=present_components,
+                    component_descs=[
+                        rule_data["component_descs"][components.index(c)]
+                        for c in present_components if c in components
+                    ],
+                    rationale=rule_data["rationale"],
+                ))
+
+    return BundlingCheckResult(
+        codes_checked=codes_upper,
+        bundling_opportunities=bundling_opps,
+        unbundling_alerts=unbundling_alerts,
+    )

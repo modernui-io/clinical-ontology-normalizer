@@ -9,9 +9,10 @@ import time
 from typing import Any
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException, Query, status
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, Query
+from pydantic import BaseModel, Field, field_validator
 
+from app.api.errors import ErrorCode, NotFoundError
 from app.services.hcc_analyzer import (
     get_hcc_analyzer_service,
     HCCCategory,
@@ -28,11 +29,24 @@ router = APIRouter(prefix="/hcc-analysis", tags=["HCC Analysis"])
 class HCCAnalysisRequest(BaseModel):
     """Request for HCC gap analysis."""
 
-    patient_id: str = Field(..., description="Patient identifier")
+    patient_id: str = Field(..., min_length=1, description="Patient identifier")
     icd10_codes: list[str] = Field(default_factory=list, description="Current ICD-10 codes")
     clinical_notes: str | None = Field(None, description="Clinical note text for NLP analysis")
     age: int | None = Field(None, ge=0, le=150, description="Patient age")
     is_institutional: bool = Field(False, description="Whether patient is in institutional setting")
+
+    @field_validator("icd10_codes")
+    @classmethod
+    def validate_icd10_codes(cls, v: list[str]) -> list[str]:
+        import re
+        pattern = re.compile(r"^[A-Z]\d{2}(\.\d{1,4})?$")
+        invalid = [c for c in v if not pattern.match(c.upper())]
+        if invalid:
+            raise ValueError(
+                f"Invalid ICD-10 code format: {', '.join(invalid)}. "
+                "Expected format: letter + 2 digits, optionally followed by . and 1-4 digits (e.g., E11, E11.65)"
+            )
+        return [c.upper() for c in v]
 
 
 class HCCEvidenceResponse(BaseModel):
@@ -88,6 +102,26 @@ class HCCMappingResponse(BaseModel):
 
     icd10_code: str
     hcc_code: str | None
+
+
+class BatchMappingRequest(BaseModel):
+    """Request for batch ICD-10 to HCC mapping."""
+
+    icd10_codes: list[str] = Field(..., min_length=1, max_length=500, description="ICD-10 codes to map")
+
+    @field_validator("icd10_codes")
+    @classmethod
+    def validate_codes(cls, v: list[str]) -> list[str]:
+        return [c.upper().strip() for c in v if c.strip()]
+
+
+class BatchMappingResponse(BaseModel):
+    """Batch ICD-10 to HCC mapping result."""
+
+    total_codes: int
+    mapped_count: int
+    unmapped_count: int
+    mappings: list[HCCMappingResponse]
 
 
 class HCCStatsResponse(BaseModel):
@@ -175,9 +209,9 @@ async def get_hcc_definition(hcc_code: str) -> HCCDefinitionResponse:
     hcc_def = service.get_hcc_definition(hcc_code)
 
     if not hcc_def:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"HCC code '{hcc_code}' not found",
+        raise NotFoundError(
+            message=f"HCC code '{hcc_code}' not found",
+            error_code=ErrorCode.NOT_FOUND_CONCEPT,
         )
 
     return HCCDefinitionResponse(
@@ -201,6 +235,28 @@ async def get_icd10_hcc_mapping(icd10_code: str) -> HCCMappingResponse:
     return HCCMappingResponse(
         icd10_code=icd10_code.upper(),
         hcc_code=hcc_code,
+    )
+
+
+@router.post(
+    "/mapping/batch",
+    response_model=BatchMappingResponse,
+    summary="Batch ICD-10 to HCC mapping",
+    description="Map multiple ICD-10 codes to their HCC categories in a single request.",
+)
+async def batch_icd10_hcc_mapping(request: BatchMappingRequest) -> BatchMappingResponse:
+    service = get_hcc_analyzer_service()
+    mappings = []
+    for code in request.icd10_codes:
+        hcc_code = service.get_icd10_to_hcc_mapping(code)
+        mappings.append(HCCMappingResponse(icd10_code=code, hcc_code=hcc_code))
+
+    mapped = [m for m in mappings if m.hcc_code is not None]
+    return BatchMappingResponse(
+        total_codes=len(mappings),
+        mapped_count=len(mapped),
+        unmapped_count=len(mappings) - len(mapped),
+        mappings=mappings,
     )
 
 

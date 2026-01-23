@@ -7,9 +7,10 @@ diagnoses, and extracted information with CER citations.
 import time
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException, Query, status
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, Query
+from pydantic import BaseModel, Field, field_validator
 
+from app.api.errors import ErrorCode, NotFoundError
 from app.services.icd10_suggester import (
     get_icd10_suggester_service,
     CodeCategory,
@@ -29,6 +30,16 @@ class ICD10SuggestionRequest(BaseModel):
     text: str = Field(..., min_length=3, description="Clinical text to analyze")
     max_suggestions: int = Field(10, ge=1, le=50, description="Maximum suggestions")
     min_confidence: str = Field("low", description="Minimum confidence: high, medium, low")
+
+    @field_validator("min_confidence")
+    @classmethod
+    def validate_confidence(cls, v: str) -> str:
+        allowed = {"high", "medium", "low"}
+        if v.lower() not in allowed:
+            raise ValueError(
+                f"Invalid confidence level '{v}'. Must be one of: high, medium, low"
+            )
+        return v.lower()
 
 
 class CERCitationResponse(BaseModel):
@@ -161,9 +172,9 @@ async def get_icd10_code(code: str) -> ICD10CodeResponse:
     icd_code = service.get_code(code.upper())
 
     if not icd_code:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"ICD-10 code '{code}' not found",
+        raise NotFoundError(
+            message=f"ICD-10 code '{code}' not found",
+            error_code=ErrorCode.NOT_FOUND_CONCEPT,
         )
 
     return ICD10CodeResponse(

@@ -8,9 +8,10 @@ import time
 from typing import Any
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException, Query, status
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, Query
+from pydantic import BaseModel, Field, field_validator, model_validator
 
+from app.api.errors import ErrorCode, InternalError, NotFoundError
 from app.services.drug_safety import (
     get_drug_safety_service,
     SafetyLevel,
@@ -28,7 +29,7 @@ class PatientContext(BaseModel):
     """Patient context for safety checking."""
 
     age: int | None = Field(None, ge=0, le=150, description="Patient age in years")
-    weight_kg: float | None = Field(None, ge=0, description="Patient weight in kg")
+    weight_kg: float | None = Field(None, ge=0, le=700, description="Patient weight in kg")
     conditions: list[str] = Field(default_factory=list, description="Active conditions")
     medications: list[str] = Field(default_factory=list, description="Current medications")
     allergies: list[str] = Field(default_factory=list, description="Known allergies")
@@ -36,6 +37,14 @@ class PatientContext(BaseModel):
     lactating: bool = Field(default=False, description="Whether patient is lactating")
     renal_impairment: bool = Field(default=False, description="Renal impairment present")
     hepatic_impairment: bool = Field(default=False, description="Hepatic impairment present")
+
+    @field_validator("conditions", "medications", "allergies")
+    @classmethod
+    def validate_string_lists(cls, v: list[str]) -> list[str]:
+        cleaned = [s.strip() for s in v if s.strip()]
+        if len(cleaned) != len(v):
+            raise ValueError("List items must be non-empty strings")
+        return cleaned
 
 
 class SafetyCheckRequest(BaseModel):
@@ -111,6 +120,45 @@ class DrugSafetyStatsResponse(BaseModel):
     categories: dict[str, int]
 
 
+class InteractionCheckRequest(BaseModel):
+    """Request for drug interaction check."""
+
+    medications: list[str] = Field(..., min_length=2, max_length=50, description="List of medications to check")
+
+    @field_validator("medications")
+    @classmethod
+    def validate_medications(cls, v: list[str]) -> list[str]:
+        cleaned = [s.strip() for s in v if s.strip()]
+        if len(cleaned) < 2:
+            raise ValueError("At least 2 medications are required for interaction checking")
+        return cleaned
+
+
+class InteractionResponse(BaseModel):
+    """A single drug interaction."""
+
+    drug_a: str
+    drug_b: str
+    severity: str
+    description: str
+    mechanism: str
+    clinical_effect: str
+    management: str
+
+
+class InteractionCheckResponse(BaseModel):
+    """Result of drug interaction check."""
+
+    request_id: str
+    drugs_checked: list[str]
+    total_interactions: int
+    major_count: int
+    moderate_count: int
+    minor_count: int
+    interactions: list[InteractionResponse]
+    processing_time_ms: float
+
+
 # ============================================================================
 # Endpoints
 # ============================================================================
@@ -183,9 +231,9 @@ async def get_drug_profile(drug_name: str) -> DrugProfileResponse:
     profile = service.get_profile(drug_name)
 
     if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"No safety profile found for '{drug_name}'",
+        raise NotFoundError(
+            message=f"No safety profile found for '{drug_name}'",
+            error_code=ErrorCode.NOT_FOUND_RESOURCE,
         )
 
     return DrugProfileResponse(
@@ -279,4 +327,41 @@ async def get_drug_safety_stats() -> DrugSafetyStatsResponse:
     return DrugSafetyStatsResponse(
         total_profiles=stats.get("total_profiles", 0),
         categories=stats.get("categories", {}),
+    )
+
+
+@router.post(
+    "/interactions",
+    response_model=InteractionCheckResponse,
+    summary="Check drug interactions",
+    description="Check for known drug-drug interactions among a list of medications.",
+)
+async def check_drug_interactions(request: InteractionCheckRequest) -> InteractionCheckResponse:
+    start = time.time()
+    service = get_drug_safety_service()
+
+    result = service.check_interactions(request.medications)
+
+    interactions = [
+        InteractionResponse(
+            drug_a=i.drug_a,
+            drug_b=i.drug_b,
+            severity=i.severity,
+            description=i.description,
+            mechanism=i.mechanism,
+            clinical_effect=i.clinical_effect,
+            management=i.management,
+        )
+        for i in result.interactions_found
+    ]
+
+    return InteractionCheckResponse(
+        request_id=str(uuid4()),
+        drugs_checked=result.drugs_checked,
+        total_interactions=result.total_interactions,
+        major_count=sum(1 for i in interactions if i.severity == "major"),
+        moderate_count=sum(1 for i in interactions if i.severity == "moderate"),
+        minor_count=sum(1 for i in interactions if i.severity == "minor"),
+        interactions=interactions,
+        processing_time_ms=(time.time() - start) * 1000,
     )

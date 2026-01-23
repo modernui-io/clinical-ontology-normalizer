@@ -8,8 +8,8 @@ import time
 from typing import Any
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException, Query, status
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, Query
+from pydantic import BaseModel, Field, field_validator
 
 from app.services.differential_diagnosis import (
     get_differential_diagnosis_service,
@@ -34,6 +34,26 @@ class DifferentialRequest(BaseModel):
     gender: str | None = Field(None, description="Patient gender (male/female)")
     domain: str | None = Field(None, description="Clinical domain to focus on")
     max_diagnoses: int = Field(10, ge=1, le=30, description="Maximum diagnoses to return")
+
+    @field_validator("gender")
+    @classmethod
+    def validate_gender(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        allowed = {"male", "female"}
+        if v.lower() not in allowed:
+            raise ValueError(
+                f"Invalid gender '{v}'. Must be one of: male, female"
+            )
+        return v.lower()
+
+    @field_validator("findings")
+    @classmethod
+    def validate_findings(cls, v: list[str]) -> list[str]:
+        cleaned = [s.strip() for s in v if s.strip()]
+        if not cleaned:
+            raise ValueError("At least one non-empty finding is required")
+        return cleaned
 
 
 class CERCitationResponse(BaseModel):
