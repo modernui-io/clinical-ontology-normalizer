@@ -8,6 +8,7 @@ Endpoints:
 - POST /fhir/ValueSet/$expand - Expands a ValueSet
 - POST /fhir/ConceptMap/$translate - Translates between code systems
 - POST /fhir/CodeSystem/$subsumes - Tests subsumption relationship
+- POST /fhir/ConceptMap/$closure - Computes transitive closure of relationships
 - GET /fhir/CodeSystem/{id} - Gets a CodeSystem resource
 - GET /fhir/ValueSet/{id} - Gets a ValueSet resource
 
@@ -22,6 +23,7 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from app.services.fhir_terminology import (
+    Coding,
     FHIRParametersBuilder,
     get_fhir_terminology_service,
 )
@@ -189,6 +191,37 @@ class TranslateRequest(BaseModel):
                 "system": "http://snomed.info/sct",
                 "code": "73211009",
                 "targetSystem": "http://hl7.org/fhir/sid/icd-10-cm"
+            }
+        }
+
+
+class ClosureRequest(BaseModel):
+    """Request for $closure operation."""
+
+    name: str = Field(
+        ...,
+        description="Identifier for the closure table"
+    )
+    concept: list[dict[str, Any]] = Field(
+        ...,
+        description="Concepts to include in the closure (list of Coding objects with system, code, display)"
+    )
+    version: str | None = Field(
+        None,
+        description="Code system version"
+    )
+
+    class Config:
+        """Pydantic config."""
+
+        json_schema_extra = {
+            "example": {
+                "name": "diabetes-closure",
+                "concept": [
+                    {"system": "http://snomed.info/sct", "code": "73211009", "display": "Diabetes mellitus"},
+                    {"system": "http://snomed.info/sct", "code": "46635009", "display": "Diabetes mellitus type 1"},
+                    {"system": "http://snomed.info/sct", "code": "44054006", "display": "Diabetes mellitus type 2"}
+                ]
             }
         }
 
@@ -645,6 +678,71 @@ async def test_subsumes_get(
     result = service.subsumes(system=system, codeA=codeA, codeB=codeB)
 
     return FHIRParametersBuilder.build_subsumes_parameters(result)
+
+
+# =============================================================================
+# $closure Operation
+# =============================================================================
+
+@router.post("/ConceptMap/$closure", response_model=None)
+async def closure_operation(request: ClosureRequest) -> dict[str, Any]:
+    """Compute the transitive closure of subsumption relationships.
+
+    Given a set of concepts, returns a ConceptMap containing all subsumption
+    relationships between them (direct and transitive).
+
+    This is a FHIR R4 compliant $closure operation. It is primarily useful
+    for hierarchical code systems like SNOMED CT and ICD-10-CM.
+
+    Args:
+        request: Closure request with name and list of concepts
+
+    Returns:
+        FHIR ConceptMap resource with closure relationships
+
+    Raises:
+        HTTPException: 400 if request is invalid
+    """
+    service = get_fhir_terminology_service()
+
+    if not request.concept:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "resourceType": "OperationOutcome",
+                "issue": [{
+                    "severity": "error",
+                    "code": "required",
+                    "diagnostics": "At least one concept is required"
+                }]
+            }
+        )
+
+    # Convert request concepts to Coding objects
+    concepts: list[Coding] = []
+    for c in request.concept:
+        system = c.get("system", "")
+        code = c.get("code", "")
+        display = c.get("display", "")
+
+        if not system or not code:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "resourceType": "OperationOutcome",
+                    "issue": [{
+                        "severity": "error",
+                        "code": "required",
+                        "diagnostics": "Each concept must have 'system' and 'code'"
+                    }]
+                }
+            )
+
+        concepts.append(Coding(system=system, code=code, display=display))
+
+    result = service.closure(name=request.name, concepts=concepts)
+
+    return FHIRParametersBuilder.build_closure_concept_map(result)
 
 
 # =============================================================================

@@ -8,6 +8,7 @@ Implements the following FHIR Terminology Service operations:
 - $expand: Expands a ValueSet to list its contained codes
 - $translate: Translates a code from one code system to another
 - $subsumes: Tests the subsumption relationship between two codes
+- $closure: Computes the transitive closure of subsumption relationships
 
 Supported code systems:
 - SNOMED CT (http://snomed.info/sct)
@@ -195,6 +196,24 @@ class SubsumesResult:
     """Result of a $subsumes operation."""
 
     outcome: str  # equivalent, subsumes, subsumed-by, not-subsumed
+
+
+@dataclass
+class ClosureEntry:
+    """An entry in a closure table representing a subsumption relationship."""
+
+    source: Coding
+    target: Coding
+    equivalence: str = "subsumes"  # source subsumes target
+
+
+@dataclass
+class ClosureResult:
+    """Result of a $closure operation."""
+
+    name: str
+    concepts: list[Coding]
+    entries: list[ClosureEntry] = field(default_factory=list)
 
 
 # =============================================================================
@@ -417,6 +436,55 @@ class FHIRParametersBuilder:
                     "valueCode": result.outcome
                 }
             ]
+        }
+
+    @staticmethod
+    def build_closure_concept_map(result: ClosureResult) -> dict[str, Any]:
+        """Build ConceptMap resource for $closure response."""
+        groups: dict[str, list[dict[str, Any]]] = {}
+
+        for entry in result.entries:
+            key = entry.source.system
+            if key not in groups:
+                groups[key] = []
+            groups[key].append({
+                "source": entry.source.code,
+                "sourceDisplay": entry.source.display,
+                "target": entry.target.code,
+                "targetDisplay": entry.target.display,
+                "equivalence": entry.equivalence,
+            })
+
+        group_list = []
+        for system_uri, elements in groups.items():
+            element_map: dict[str, dict[str, Any]] = {}
+            for elem in elements:
+                src_code = elem["source"]
+                if src_code not in element_map:
+                    element_map[src_code] = {
+                        "code": src_code,
+                        "display": elem["sourceDisplay"],
+                        "target": []
+                    }
+                element_map[src_code]["target"].append({
+                    "code": elem["target"],
+                    "display": elem["targetDisplay"],
+                    "equivalence": elem["equivalence"]
+                })
+
+            group_list.append({
+                "source": system_uri,
+                "target": system_uri,
+                "element": list(element_map.values())
+            })
+
+        return {
+            "resourceType": "ConceptMap",
+            "name": result.name,
+            "status": "active",
+            "experimental": True,
+            "description": f"Transitive closure table '{result.name}' with {len(result.entries)} relationships",
+            "group": group_list
         }
 
 
@@ -1350,6 +1418,109 @@ class FHIRTerminologyService:
             return SubsumesResult(outcome="subsumed-by")
 
         return SubsumesResult(outcome="not-subsumed")
+
+    # =========================================================================
+    # $closure Operation
+    # =========================================================================
+
+    def closure(
+        self,
+        name: str,
+        concepts: list[Coding],
+    ) -> ClosureResult:
+        """Compute the transitive closure of subsumption relationships.
+
+        Given a set of concepts, returns all subsumption relationships between
+        them (direct and transitive). This is primarily useful for hierarchical
+        code systems like SNOMED CT.
+
+        Args:
+            name: Identifier for the closure table
+            concepts: List of concepts to include in the closure
+
+        Returns:
+            ClosureResult with all subsumption relationships between the concepts
+        """
+        entries: list[ClosureEntry] = []
+
+        # Group concepts by code system
+        system_concepts: dict[str, list[Coding]] = {}
+        for concept in concepts:
+            system = concept.system
+            if system not in system_concepts:
+                system_concepts[system] = []
+            system_concepts[system].append(concept)
+
+        # Process SNOMED CT concepts (primary hierarchy source)
+        snomed_uri = CodeSystemURI.SNOMED.value
+        if snomed_uri in system_concepts:
+            snomed_entries = self._closure_snomed(system_concepts[snomed_uri])
+            entries.extend(snomed_entries)
+
+        # Process ICD-10 concepts (parent-child hierarchy)
+        icd10_uri = CodeSystemURI.ICD10CM.value
+        if icd10_uri in system_concepts:
+            icd10_entries = self._closure_icd10(system_concepts[icd10_uri])
+            entries.extend(icd10_entries)
+
+        return ClosureResult(
+            name=name,
+            concepts=concepts,
+            entries=entries
+        )
+
+    def _closure_snomed(self, concepts: list[Coding]) -> list[ClosureEntry]:
+        """Compute closure for SNOMED CT concepts."""
+        service = self._get_snomed_service()
+        if not service:
+            return []
+
+        entries: list[ClosureEntry] = []
+        concept_codes = {c.code for c in concepts}
+        code_to_coding = {c.code: c for c in concepts}
+
+        # For each concept, find all ancestors that are also in the set
+        for concept in concepts:
+            ancestors = service.get_ancestors(concept.code, max_depth=10)
+            for ancestor in ancestors:
+                ancestor_code = ancestor.concept_code
+                if ancestor_code in concept_codes and ancestor_code != concept.code:
+                    entries.append(ClosureEntry(
+                        source=code_to_coding[ancestor_code],
+                        target=concept,
+                        equivalence="subsumes"
+                    ))
+
+        return entries
+
+    def _closure_icd10(self, concepts: list[Coding]) -> list[ClosureEntry]:
+        """Compute closure for ICD-10-CM concepts using code hierarchy.
+
+        ICD-10 codes are hierarchical by structure: E11 subsumes E11.6, E11.65, etc.
+        This method uses code prefix matching and does not require loading the
+        full ICD-10 service.
+        """
+        entries: list[ClosureEntry] = []
+
+        # ICD-10 uses hierarchical codes: E11 subsumes E11.6, E11.65, etc.
+        for concept in concepts:
+            code = concept.code
+            for other in concepts:
+                other_code = other.code
+                if other_code == code:
+                    continue
+                # A shorter code is an ancestor if the longer code starts with it
+                # (after normalizing dots)
+                code_nodot = code.replace(".", "")
+                other_nodot = other_code.replace(".", "")
+                if code_nodot.startswith(other_nodot) and len(other_nodot) < len(code_nodot):
+                    entries.append(ClosureEntry(
+                        source=other,
+                        target=concept,
+                        equivalence="subsumes"
+                    ))
+
+        return entries
 
     # =========================================================================
     # CodeSystem and ValueSet Resources

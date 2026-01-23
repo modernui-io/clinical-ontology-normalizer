@@ -244,7 +244,7 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
 - [x] **P1-005** Implement FHIR `$subsumes` operation
   - Acceptance: Tests subsumption relationship between codes
 
-- [ ] **P1-006** Implement FHIR `$closure` operation
+- [x] **P1-006** Implement FHIR `$closure` operation
   - Acceptance: Returns transitive closure of relationships
 
 #### P1.1.2 Resource Endpoints
