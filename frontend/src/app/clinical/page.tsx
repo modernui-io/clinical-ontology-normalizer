@@ -400,6 +400,12 @@ export default function ClinicalDashboardPage() {
               CDI Queries
             </Button>
           </Link>
+          <Link href="/clinical/value-sets">
+            <Button size="sm" variant="outline">
+              <Activity className="mr-2 h-4 w-4" />
+              Value Sets
+            </Button>
+          </Link>
           <Link href="/clinical/tools">
             <Button size="sm">
               <Calculator className="mr-2 h-4 w-4" />
