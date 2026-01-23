@@ -211,7 +211,7 @@ class GraphAnalyticsService:
             neighbors.append({
                 "concept": {
                     "concept_id": neighbor.get("concept_id"),
-                    "concept_name": neighbor.get("concept_name"),
+                    "concept_name": neighbor.get("name"),
                     "vocabulary_id": neighbor.get("vocabulary_id"),
                     "domain_id": neighbor.get("domain_id"),
                 },
@@ -253,7 +253,7 @@ class GraphAnalyticsService:
             ancestors.append({
                 "ancestor": {
                     "concept_id": anc.get("concept_id"),
-                    "concept_name": anc.get("concept_name"),
+                    "concept_name": anc.get("name"),
                     "vocabulary_id": anc.get("vocabulary_id"),
                     "domain_id": anc.get("domain_id"),
                 },
@@ -298,7 +298,7 @@ class GraphAnalyticsService:
             descendants.append({
                 "descendant": {
                     "concept_id": desc.get("concept_id"),
-                    "concept_name": desc.get("concept_name"),
+                    "concept_name": desc.get("name"),
                     "vocabulary_id": desc.get("vocabulary_id"),
                     "domain_id": desc.get("domain_id"),
                 },
@@ -352,7 +352,7 @@ class GraphAnalyticsService:
         for node in path_nodes:
             concepts.append(ConceptNode(
                 concept_id=node.get("concept_id", 0),
-                concept_name=node.get("concept_name", ""),
+                concept_name=node.get("name", ""),
                 vocabulary_id=node.get("vocabulary_id", ""),
                 domain_id=node.get("domain_id", ""),
             ))
@@ -391,26 +391,26 @@ class GraphAnalyticsService:
         """
         query = """
         MATCH (p1:Patient {patient_id: $patient_id})-[:HAS_CONDITION]->(c:Concept)
-        WITH p1, collect(c.concept_name) AS p1_conditions
+        WITH p1, collect(c.name) AS p1_conditions
 
         MATCH (p1)-[:HAS_DRUG]->(d:Concept)
-        WITH p1, p1_conditions, collect(d.concept_name) AS p1_drugs
+        WITH p1, p1_conditions, collect(d.name) AS p1_drugs
 
         MATCH (p1)-[:HAS_PROCEDURE]->(proc:Concept)
-        WITH p1, p1_conditions, p1_drugs, collect(proc.concept_name) AS p1_procedures
+        WITH p1, p1_conditions, p1_drugs, collect(proc.name) AS p1_procedures
 
         MATCH (p2:Patient)-[:HAS_CONDITION]->(c2:Concept)
         WHERE p2 <> p1
         WITH p1, p1_conditions, p1_drugs, p1_procedures,
-             p2, collect(c2.concept_name) AS p2_conditions
+             p2, collect(c2.name) AS p2_conditions
 
         MATCH (p2)-[:HAS_DRUG]->(d2:Concept)
         WITH p1, p1_conditions, p1_drugs, p1_procedures,
-             p2, p2_conditions, collect(d2.concept_name) AS p2_drugs
+             p2, p2_conditions, collect(d2.name) AS p2_drugs
 
         MATCH (p2)-[:HAS_PROCEDURE]->(proc2:Concept)
         WITH p1, p1_conditions, p1_drugs, p1_procedures,
-             p2, p2_conditions, p2_drugs, collect(proc2.concept_name) AS p2_procedures
+             p2, p2_conditions, p2_drugs, collect(proc2.name) AS p2_procedures
 
         WITH p2,
              [x IN p1_conditions WHERE x IN p2_conditions] AS shared_conditions,
@@ -523,7 +523,7 @@ class GraphAnalyticsService:
                     domain = concept.get("domain_id", "")
                     nodes[concept_id] = ConceptNode(
                         concept_id=concept_id,
-                        concept_name=concept.get("concept_name", ""),
+                        concept_name=concept.get("name", ""),
                         vocabulary_id=concept.get("vocabulary_id", ""),
                         domain_id=domain,
                     )
@@ -603,13 +603,13 @@ class GraphAnalyticsService:
             relationships.append(DrugDiseaseRelationship(
                 drug=ConceptNode(
                     concept_id=drug_node.get("concept_id", 0),
-                    concept_name=drug_node.get("concept_name", ""),
+                    concept_name=drug_node.get("name", ""),
                     vocabulary_id=drug_node.get("vocabulary_id", ""),
                     domain_id="Drug",
                 ),
                 disease=ConceptNode(
                     concept_id=disease_node.get("concept_id", 0),
-                    concept_name=disease_node.get("concept_name", ""),
+                    concept_name=disease_node.get("name", ""),
                     vocabulary_id=disease_node.get("vocabulary_id", ""),
                     domain_id="Condition",
                 ),
@@ -642,7 +642,7 @@ class GraphAnalyticsService:
         WITH c, collect(p.patient_id) AS patients, count(p) AS patient_count
         WHERE patient_count >= $min_size
         RETURN c.concept_id AS centroid_id,
-               c.concept_name AS cluster_name,
+               c.name AS cluster_name,
                patients,
                patient_count
         ORDER BY patient_count DESC
@@ -704,11 +704,11 @@ class GraphAnalyticsService:
 
         cypher = f"""
         MATCH (c:Concept)
-        WHERE toLower(c.concept_name) CONTAINS toLower($query) {category_filter}
+        WHERE toLower(c.name) CONTAINS toLower($query) {category_filter}
         RETURN c
         ORDER BY
-            CASE WHEN toLower(c.concept_name) = toLower($query) THEN 0 ELSE 1 END,
-            c.concept_name
+            CASE WHEN toLower(c.name) = toLower($query) THEN 0 ELSE 1 END,
+            c.name
         LIMIT $limit
         """
 
@@ -722,7 +722,7 @@ class GraphAnalyticsService:
             c = record.get("c", {})
             concepts.append(ConceptNode(
                 concept_id=c.get("concept_id", 0),
-                concept_name=c.get("concept_name", ""),
+                concept_name=c.get("name", ""),
                 vocabulary_id=c.get("vocabulary_id", ""),
                 domain_id=c.get("domain_id", ""),
                 concept_class_id=c.get("concept_class_id"),

@@ -349,13 +349,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         f"{vocab_stats['term_count']} terms in {vocab_stats['load_time_ms']}ms"
     )
 
-    # Pre-warm ALL singleton services so no customer hits cold services
-    logger.info("Pre-warming singleton services...")
-    prewarm_stats = prewarm_all_services()
-    logger.info(
-        f"Services pre-warmed: {prewarm_stats['services_loaded']} services "
-        f"in {prewarm_stats['total_prewarm_time_ms']}ms"
-    )
+    # Skip pre-warming at startup - services initialize lazily on first request
+    # This avoids startup hangs when dependent services are unavailable
+    prewarm_stats = {"services_loaded": 0, "total_prewarm_time_ms": 0, "services": {}}
+    logger.info("Skipping service pre-warming (lazy initialization enabled)")
 
     total_startup_ms = (time.perf_counter() - startup_start) * 1000
 
