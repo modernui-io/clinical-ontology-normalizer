@@ -624,6 +624,15 @@ async def get_concept_neighbors(
             NodeCategory,
         )
 
+        # Check cache
+        cache_service = get_kg_cache_service()
+        cat_str = ",".join(sorted(c.value for c in categories)) if categories else ""
+        cache_key = f"neighbors:{concept_id}:{max_depth}:{cat_str}:{limit}"
+        cached = cache_service.get(CacheType.RELATIONSHIP, cache_key)
+        if cached:
+            cached["request_id"] = request_id
+            return NeighborsListResponse(**cached)
+
         service = get_graph_analytics_service()
 
         # Convert API categories to service categories
@@ -654,13 +663,18 @@ async def get_concept_neighbors(
                 direction=n.get("direction", "outgoing"),
             ))
 
-        return NeighborsListResponse(
+        result = NeighborsListResponse(
             request_id=request_id,
             concept_id=concept_id,
             total_neighbors=len(neighbor_responses),
             neighbors=neighbor_responses,
             processing_time_ms=round(processing_time, 2),
         )
+
+        # Cache the result (serialize to dict for storage)
+        cache_service.put(CacheType.RELATIONSHIP, cache_key, result.model_dump())
+
+        return result
 
     except Exception as e:
         raise InternalError(
@@ -1147,6 +1161,17 @@ async def search_concepts(
             NodeCategory,
         )
 
+        # Check cache first
+        cache_service = get_kg_cache_service()
+        cat_str = ",".join(sorted(c.value for c in categories)) if categories else ""
+        cache_key = f"search:{q}:{cat_str}:{limit}"
+        cached = cache_service.get(CacheType.CONCEPT, cache_key)
+        if cached:
+            cached["request_id"] = request_id
+            cached["cached"] = True
+            cached["processing_time_ms"] = round((time.perf_counter() - start_time) * 1000, 2)
+            return cached
+
         service = get_graph_analytics_service()
 
         cat_filter = None
@@ -1161,7 +1186,7 @@ async def search_concepts(
 
         processing_time = (time.perf_counter() - start_time) * 1000
 
-        return {
+        result = {
             "request_id": request_id,
             "query": q,
             "total_results": len(concepts),
@@ -1176,8 +1201,14 @@ async def search_concepts(
                 }
                 for c in concepts
             ],
+            "cached": False,
             "processing_time_ms": round(processing_time, 2),
         }
+
+        # Cache the result
+        cache_service.put(CacheType.CONCEPT, cache_key, result)
+
+        return result
 
     except Exception as e:
         raise InternalError(
