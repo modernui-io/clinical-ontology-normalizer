@@ -35,6 +35,7 @@ import {
   DollarSign,
   Target,
   Stethoscope,
+  Brain,
 } from "lucide-react";
 
 // Types for CDS data
@@ -350,6 +351,18 @@ export default function ClinicalDashboardPage() {
             />
             Refresh
           </Button>
+          <Link href="/clinical/differential">
+            <Button size="sm" variant="outline">
+              <Brain className="mr-2 h-4 w-4" />
+              Differential Dx
+            </Button>
+          </Link>
+          <Link href="/clinical/safety">
+            <Button size="sm" variant="outline">
+              <Pill className="mr-2 h-4 w-4" />
+              Drug Safety
+            </Button>
+          </Link>
           <Link href="/clinical/tools">
             <Button size="sm">
               <Calculator className="mr-2 h-4 w-4" />
