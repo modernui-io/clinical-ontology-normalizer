@@ -47,6 +47,7 @@ export default function PatientFactsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [domainFilter, setDomainFilter] = useState<string | undefined>();
   const [assertionFilter, setAssertionFilter] = useState<string | undefined>();
+  const [viewMode, setViewMode] = useState<"table" | "grouped">("grouped");
 
   const fetchFacts = useCallback(async () => {
     setIsLoading(true);
@@ -201,7 +202,7 @@ export default function PatientFactsPage() {
                       ))}
                     </select>
                   </div>
-                  <div className="flex items-end">
+                  <div className="flex items-end gap-2">
                     <Button
                       variant="outline"
                       onClick={() => {
@@ -211,12 +212,106 @@ export default function PatientFactsPage() {
                     >
                       Clear Filters
                     </Button>
+                    <div className="border-l pl-2 flex gap-1">
+                      <Button
+                        variant={viewMode === "grouped" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setViewMode("grouped")}
+                      >
+                        Grouped
+                      </Button>
+                      <Button
+                        variant={viewMode === "table" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setViewMode("table")}
+                      >
+                        Table
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
+            {/* Grouped View */}
+            {viewMode === "grouped" && (
+              <div className="space-y-4">
+                {Object.entries(factsByDomain)
+                  .sort(([a], [b]) => a.localeCompare(b))
+                  .map(([domain, domainFacts]) => (
+                    <Card key={domain}>
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-lg flex items-center gap-2">
+                            <Badge className={DOMAIN_COLORS[domain] || "bg-gray-100"}>
+                              {domain.charAt(0).toUpperCase() + domain.slice(1)}
+                            </Badge>
+                            <span className="text-sm font-normal text-zinc-500">
+                              {domainFacts.length} fact{domainFacts.length !== 1 ? "s" : ""}
+                            </span>
+                          </CardTitle>
+                          <div className="flex gap-1">
+                            {domainFacts.filter((f) => f.assertion === "present").length > 0 && (
+                              <Badge className={ASSERTION_COLORS["present"]}>
+                                {domainFacts.filter((f) => f.assertion === "present").length} present
+                              </Badge>
+                            )}
+                            {domainFacts.filter((f) => f.assertion === "absent").length > 0 && (
+                              <Badge className={ASSERTION_COLORS["absent"]}>
+                                {domainFacts.filter((f) => f.assertion === "absent").length} absent
+                              </Badge>
+                            )}
+                            {domainFacts.filter((f) => f.assertion === "possible").length > 0 && (
+                              <Badge className={ASSERTION_COLORS["possible"]}>
+                                {domainFacts.filter((f) => f.assertion === "possible").length} possible
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          {domainFacts.map((fact) => (
+                            <div
+                              key={fact.id}
+                              className="flex items-center justify-between p-2 rounded border"
+                            >
+                              <div className="flex items-center gap-3">
+                                <Badge className={ASSERTION_COLORS[fact.assertion] || "bg-gray-100"} variant="outline">
+                                  {fact.assertion}
+                                </Badge>
+                                <span className="font-medium text-sm">{fact.concept_name}</span>
+                                {fact.value && (
+                                  <span className="text-sm text-zinc-500">
+                                    {fact.value}{fact.unit ? ` ${fact.unit}` : ""}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 text-xs text-zinc-500">
+                                <span className="capitalize">{fact.temporality}</span>
+                                <span className={fact.confidence >= 0.8 ? "text-green-600" : fact.confidence >= 0.5 ? "text-yellow-600" : "text-red-600"}>
+                                  {(fact.confidence * 100).toFixed(0)}%
+                                </span>
+                                <code className="bg-zinc-100 dark:bg-zinc-800 px-1 rounded">
+                                  {fact.omop_concept_id}
+                                </code>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                {facts.length === 0 && (
+                  <div className="text-center py-8 text-zinc-500">
+                    No facts match the current filters.
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Facts Table */}
+            {viewMode === "table" && (
             <Card>
               <CardHeader>
                 <CardTitle>Clinical Facts</CardTitle>
@@ -278,6 +373,7 @@ export default function PatientFactsPage() {
                 )}
               </CardContent>
             </Card>
+            )}
           </div>
         )}
       </main>
