@@ -110,6 +110,9 @@ class DrugSearchResponse(BaseModel):
 
     query: str
     total_results: int
+    offset: int = 0
+    limit: int = 10
+    has_more: bool = False
     profiles: list[DrugProfileResponse]
 
 
@@ -274,14 +277,20 @@ async def get_drug_profile(drug_name: str) -> DrugProfileResponse:
 )
 async def search_drug_profiles(
     q: str = Query(..., min_length=2, description="Search query"),
-    limit: int = Query(10, ge=1, le=50, description="Max results"),
+    offset: int = Query(0, ge=0, description="Pagination offset"),
+    limit: int = Query(10, ge=1, le=50, description="Max results per page"),
 ) -> DrugSearchResponse:
     service = get_drug_safety_service()
-    profiles = service.search_profiles(q, limit=limit)
+    profiles = service.search_profiles(q, limit=offset + limit + 1)
+    total = len(profiles)
+    page = profiles[offset:offset + limit]
 
     return DrugSearchResponse(
         query=q,
-        total_results=len(profiles),
+        total_results=total,
+        offset=offset,
+        limit=limit,
+        has_more=total > offset + limit,
         profiles=[
             DrugProfileResponse(
                 drug_name=p.drug_name,
@@ -311,7 +320,7 @@ async def search_drug_profiles(
                 serious_adverse_effects=p.serious_adverse_effects,
                 max_daily_dose=p.max_daily_dose or None,
             )
-            for p in profiles
+            for p in page
         ],
     )
 

@@ -91,6 +91,9 @@ class CodeSearchResponse(BaseModel):
 
     query: str
     total_results: int
+    offset: int = 0
+    limit: int = 20
+    has_more: bool = False
     codes: list[ICD10CodeResponse]
 
 
@@ -195,14 +198,21 @@ async def get_icd10_code(code: str) -> ICD10CodeResponse:
 )
 async def search_icd10_codes(
     q: str = Query(..., min_length=2, description="Search query"),
-    limit: int = Query(20, ge=1, le=100, description="Max results"),
+    offset: int = Query(0, ge=0, description="Pagination offset"),
+    limit: int = Query(20, ge=1, le=100, description="Max results per page"),
 ) -> CodeSearchResponse:
     service = get_icd10_suggester_service()
-    codes = service.search_codes(q, limit=limit)
+    # Fetch one extra to determine has_more
+    codes = service.search_codes(q, limit=offset + limit + 1)
+    total = len(codes)
+    page = codes[offset:offset + limit]
 
     return CodeSearchResponse(
         query=q,
-        total_results=len(codes),
+        total_results=total,
+        offset=offset,
+        limit=limit,
+        has_more=total > offset + limit,
         codes=[
             ICD10CodeResponse(
                 code=c.code,
@@ -212,7 +222,7 @@ async def search_icd10_codes(
                 parent_code=c.parent_code,
                 synonyms=c.synonyms,
             )
-            for c in codes
+            for c in page
         ],
     )
 

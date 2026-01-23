@@ -363,6 +363,24 @@ export default function ClinicalDashboardPage() {
               Drug Safety
             </Button>
           </Link>
+          <Link href="/clinical/hcc">
+            <Button size="sm" variant="outline">
+              <TrendingUp className="mr-2 h-4 w-4" />
+              HCC Analysis
+            </Button>
+          </Link>
+          <Link href="/clinical/icd10">
+            <Button size="sm" variant="outline">
+              <Activity className="mr-2 h-4 w-4" />
+              ICD-10
+            </Button>
+          </Link>
+          <Link href="/clinical/cpt">
+            <Button size="sm" variant="outline">
+              <Stethoscope className="mr-2 h-4 w-4" />
+              CPT
+            </Button>
+          </Link>
           <Link href="/clinical/tools">
             <Button size="sm">
               <Calculator className="mr-2 h-4 w-4" />

@@ -122,6 +122,9 @@ class CPTSearchResponse(BaseModel):
 
     query: str
     total_results: int
+    offset: int = 0
+    limit: int = 20
+    has_more: bool = False
     codes: list[CPTCodeResponse]
 
 
@@ -245,14 +248,20 @@ async def calculate_em_level(request: EMLevelRequest) -> EMLevelResponse:
 )
 async def search_cpt_codes(
     q: str = Query(..., min_length=2, description="Search query"),
-    limit: int = Query(20, ge=1, le=100, description="Max results"),
+    offset: int = Query(0, ge=0, description="Pagination offset"),
+    limit: int = Query(20, ge=1, le=100, description="Max results per page"),
 ) -> CPTSearchResponse:
     service = get_cpt_suggester_service()
-    codes = service.search_codes(q, limit=limit)
+    codes = service.search_codes(q, limit=offset + limit + 1)
+    total = len(codes)
+    page = codes[offset:offset + limit]
 
     return CPTSearchResponse(
         query=q,
-        total_results=len(codes),
+        total_results=total,
+        offset=offset,
+        limit=limit,
+        has_more=total > offset + limit,
         codes=[
             CPTCodeResponse(
                 code=c.code,
@@ -261,7 +270,7 @@ async def search_cpt_codes(
                 rvu_work=c.work_rvu,
                 rvu_total=None,
             )
-            for c in codes
+            for c in page
         ],
     )
 
