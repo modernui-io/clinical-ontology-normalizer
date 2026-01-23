@@ -68,6 +68,11 @@ from app.api import (
     kg_benchmark_router,
     kg_health_router,
     kg_orchestration_router,
+    drug_safety_router,
+    differential_diagnosis_router,
+    icd10_suggestions_router,
+    cpt_suggestions_router,
+    hcc_analysis_router,
 )
 from app.api.middleware.error_handler import register_exception_handlers
 from app.api.middleware.rate_limit import RateLimitMiddleware
@@ -605,6 +610,11 @@ api_v1_router.include_router(knowledge_graph_fhir_router)
 api_v1_router.include_router(kg_benchmark_router)
 api_v1_router.include_router(kg_health_router)
 api_v1_router.include_router(kg_orchestration_router)
+api_v1_router.include_router(drug_safety_router)
+api_v1_router.include_router(differential_diagnosis_router)
+api_v1_router.include_router(icd10_suggestions_router)
+api_v1_router.include_router(cpt_suggestions_router)
+api_v1_router.include_router(hcc_analysis_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)

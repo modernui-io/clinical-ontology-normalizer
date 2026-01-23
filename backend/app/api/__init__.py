@@ -116,6 +116,11 @@ from app.api.knowledge_graph_fhir import router as knowledge_graph_fhir_router
 from app.api.kg_benchmark import router as kg_benchmark_router
 from app.api.kg_health import router as kg_health_router
 from app.api.kg_orchestration import router as kg_orchestration_router
+from app.api.drug_safety import router as drug_safety_router
+from app.api.differential_diagnosis import router as differential_diagnosis_router
+from app.api.icd10_suggestions import router as icd10_suggestions_router
+from app.api.cpt_suggestions import router as cpt_suggestions_router
+from app.api.hcc_analysis import router as hcc_analysis_router
 
 __all__ = [
     # Routers
@@ -172,6 +177,11 @@ __all__ = [
     "kg_benchmark_router",
     "kg_health_router",
     "kg_orchestration_router",
+    "drug_safety_router",
+    "differential_diagnosis_router",
+    "icd10_suggestions_router",
+    "cpt_suggestions_router",
+    "hcc_analysis_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",
