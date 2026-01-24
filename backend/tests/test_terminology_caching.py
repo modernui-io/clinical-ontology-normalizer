@@ -33,9 +33,14 @@ class TestCacheEntry:
         entry = CacheEntry(value="test", created_at=time.time() - 100, ttl_seconds=60)
         assert entry.is_expired
 
-    def test_entry_at_boundary(self):
-        entry = CacheEntry(value="test", created_at=time.time() - 60, ttl_seconds=60)
-        # At exactly TTL boundary, should be expired (>)
+    def test_entry_just_before_expiry(self):
+        # 59 seconds ago with 60 second TTL - should NOT be expired
+        entry = CacheEntry(value="test", created_at=time.time() - 59, ttl_seconds=60)
+        assert not entry.is_expired
+
+    def test_entry_past_boundary(self):
+        # 61 seconds ago with 60 second TTL - should be expired
+        entry = CacheEntry(value="test", created_at=time.time() - 61, ttl_seconds=60)
         assert entry.is_expired
 
 

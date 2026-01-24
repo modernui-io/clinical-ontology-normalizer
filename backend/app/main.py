@@ -17,6 +17,7 @@ from app.api import (
     MetricsMiddleware,
     RequestIdMiddleware,
     agent_router,
+    ai_audit_router,
     ai_coding_router,
     assistant_router,
     audit_router,
@@ -51,6 +52,7 @@ from app.api import (
     quality_router,
     quality_measures_router,
     reconciliation_router,
+    risk_router,
     search_router,
     semantic_search_router,
     smart_router,
@@ -589,6 +591,7 @@ app.add_middleware(
 
 # Include routers under versioned API router
 api_v1_router.include_router(agent_router)
+api_v1_router.include_router(ai_audit_router)
 api_v1_router.include_router(ai_coding_router)
 api_v1_router.include_router(assistant_router)
 api_v1_router.include_router(auth_sessions_router)
@@ -620,6 +623,7 @@ api_v1_router.include_router(predictions_router)
 api_v1_router.include_router(quality_router)
 api_v1_router.include_router(quality_measures_router)
 api_v1_router.include_router(reconciliation_router)
+api_v1_router.include_router(risk_router)
 api_v1_router.include_router(search_router)
 api_v1_router.include_router(semantic_search_router)
 api_v1_router.include_router(smart_router)

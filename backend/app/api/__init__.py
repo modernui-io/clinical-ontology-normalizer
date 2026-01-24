@@ -1,6 +1,7 @@
 """API routers for Clinical Ontology Normalizer."""
 
 from app.api.agent import router as agent_router
+from app.api.ai_audit import router as ai_audit_router
 from app.api.ai_coding import router as ai_coding_router
 from app.api.assistant import router as assistant_router
 from app.api.audit import router as audit_router
@@ -102,6 +103,7 @@ from app.api.validators import (
 from app.api.vocabulary_mapping import router as vocabulary_mapping_router
 from app.api.websocket import router as websocket_router
 from app.api.reconciliation import router as reconciliation_router
+from app.api.risk import router as risk_router
 from app.api.notes import router as notes_router
 from app.api.predictions import router as predictions_router
 from app.api.quality import router as quality_router
@@ -126,6 +128,7 @@ from app.api.hcc_analysis import router as hcc_analysis_router
 __all__ = [
     # Routers
     "agent_router",
+    "ai_audit_router",
     "ai_coding_router",
     "assistant_router",
     "audit_router",
@@ -161,6 +164,7 @@ __all__ = [
     "quality_router",
     "quality_measures_router",
     "reconciliation_router",
+    "risk_router",
     "search_router",
     "semantic_search_router",
     "smart_router",
