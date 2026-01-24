@@ -14,6 +14,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Query
 
 from app.services.data_completeness_service import get_data_completeness_service
+from app.services.data_consistency_service import get_data_consistency_service
 
 logger = logging.getLogger(__name__)
 
@@ -110,5 +111,70 @@ async def get_table_completeness(table_name: str) -> dict[str, Any]:
                 "is_required": f.is_required,
             }
             for f in result.fields
+        ],
+    }
+
+
+@router.get("/consistency")
+async def get_consistency() -> dict[str, Any]:
+    """Get the last consistency validation results."""
+    service = get_data_consistency_service()
+    report = service.get_results()
+
+    if report is None:
+        return {
+            "message": "No consistency checks have been run yet",
+            "results": [],
+        }
+
+    return _format_consistency_report(report)
+
+
+@router.post("/consistency/run")
+async def run_consistency_checks() -> dict[str, Any]:
+    """Trigger consistency validation checks."""
+    service = get_data_consistency_service()
+    report = service.run_checks()
+    return _format_consistency_report(report)
+
+
+def _format_consistency_report(report) -> dict[str, Any]:
+    """Format a ConsistencyReport for API response."""
+    return {
+        "id": report.id,
+        "timestamp": report.timestamp,
+        "total_checks": report.total_checks,
+        "checks_passed": report.checks_passed,
+        "checks_failed": report.checks_failed,
+        "checks_warning": report.checks_warning,
+        "total_issues": report.total_issues,
+        "critical_issues": report.critical_issues,
+        "high_issues": report.high_issues,
+        "medium_issues": report.medium_issues,
+        "low_issues": report.low_issues,
+        "results": [
+            {
+                "check_id": r.check_id,
+                "check_name": r.check_name,
+                "check_type": r.check_type.value,
+                "status": r.status.value,
+                "records_checked": r.records_checked,
+                "issues_found": r.issues_found,
+                "issues": [
+                    {
+                        "issue_id": i.issue_id,
+                        "check_type": i.check_type.value,
+                        "severity": i.severity.value,
+                        "table": i.table,
+                        "field": i.field,
+                        "record_id": i.record_id,
+                        "description": i.description,
+                        "current_value": i.current_value,
+                        "expected_value": i.expected_value,
+                    }
+                    for i in r.issues
+                ],
+            }
+            for r in report.results
         ],
     }
