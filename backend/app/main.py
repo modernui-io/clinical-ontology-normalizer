@@ -74,6 +74,7 @@ from app.api import (
     cpt_suggestions_router,
     hcc_analysis_router,
 )
+from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
 from app.api.middleware.rate_limit import RateLimitMiddleware
 from app.core.config import settings
@@ -552,7 +553,7 @@ API requests are rate-limited. Check response headers for limits:
 api_v1_router = APIRouter(prefix=settings.api_v1_prefix)
 
 # Register exception handlers for standardized error responses
-register_exception_handlers(app)
+register_all_exception_handlers(app)
 
 # Configure middleware (order matters - first added = last executed)
 # 1. Request ID middleware - adds X-Request-ID header for request tracing
