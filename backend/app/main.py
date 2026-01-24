@@ -21,6 +21,7 @@ from app.api import (
     assistant_router,
     audit_router,
     auth_router,
+    auth_sessions_router,
     calculators_router,
     clinical_calculators_router,
     cdisc_router,
@@ -590,6 +591,7 @@ app.add_middleware(
 api_v1_router.include_router(agent_router)
 api_v1_router.include_router(ai_coding_router)
 api_v1_router.include_router(assistant_router)
+api_v1_router.include_router(auth_sessions_router)
 api_v1_router.include_router(audit_router)
 api_v1_router.include_router(clinical_calculators_router)
 api_v1_router.include_router(calculators_router)

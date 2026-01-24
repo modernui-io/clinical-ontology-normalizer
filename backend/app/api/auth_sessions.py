@@ -60,6 +60,41 @@ async def list_sessions(user_id: str | None = None) -> list[dict[str, Any]]:
     return service.list_active_sessions(user_id=user_id)
 
 
+@router.get("/sessions/current")
+async def get_current_session(session_id: str | None = None, user_id: str | None = None) -> dict[str, Any]:
+    """Get information about the current active session.
+
+    Returns session details including expiration and timeout warning.
+
+    Args:
+        session_id: Optional session ID to query.
+        user_id: Optional user ID to find active session.
+
+    Returns:
+        Session info with expires_in field for timeout warning.
+    """
+    service = get_session_service()
+
+    if session_id:
+        session = service.get_session(session_id)
+    elif user_id:
+        sessions = service.list_active_sessions(user_id=user_id)
+        session = sessions[0] if sessions else None
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail="Either session_id or user_id is required"
+        )
+
+    if session is None:
+        raise HTTPException(
+            status_code=404,
+            detail="No active session found"
+        )
+
+    return session
+
+
 @router.delete("/sessions/{session_id}")
 async def revoke_session(session_id: str) -> dict[str, str]:
     """Revoke a session, invalidating all its tokens."""
@@ -73,3 +108,30 @@ async def revoke_session(session_id: str) -> dict[str, str]:
         )
 
     return {"status": "revoked", "session_id": session_id}
+
+
+@router.delete("/sessions")
+async def revoke_all_sessions(user_id: str | None = None) -> dict[str, Any]:
+    """Revoke all sessions for a user (bulk revoke).
+
+    Args:
+        user_id: Optional user_id to revoke all sessions for.
+            If not provided, revokes all sessions.
+
+    Returns:
+        Count of revoked sessions.
+    """
+    service = get_session_service()
+    sessions = service.list_active_sessions(user_id=user_id)
+    revoked_count = 0
+
+    for session in sessions:
+        sid = session.get("session_id") or session.get("id")
+        if sid and service.revoke_session(sid):
+            revoked_count += 1
+
+    return {
+        "status": "revoked",
+        "revoked_count": revoked_count,
+        "user_id": user_id,
+    }

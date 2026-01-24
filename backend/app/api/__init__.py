@@ -5,6 +5,7 @@ from app.api.ai_coding import router as ai_coding_router
 from app.api.assistant import router as assistant_router
 from app.api.audit import router as audit_router
 from app.api.auth import router as auth_router
+from app.api.auth_sessions import router as auth_sessions_router
 from app.api.batch import router as batch_router
 from app.api.calculators import router as calculators_router
 from app.api.calculators import clinical_router as clinical_calculators_router
@@ -129,6 +130,7 @@ __all__ = [
     "assistant_router",
     "audit_router",
     "auth_router",
+    "auth_sessions_router",
     "batch_router",
     "calculators_router",
     "clinical_calculators_router",

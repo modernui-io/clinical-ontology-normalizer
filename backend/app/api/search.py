@@ -21,6 +21,174 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/search", tags=["Search"])
 
 
+# ============================================================================
+# Typeahead Search Models
+# ============================================================================
+
+
+class TypeaheadResult(BaseModel):
+    """Single typeahead search result."""
+
+    id: str = Field(..., description="Result identifier")
+    text: str = Field(..., description="Display text")
+    type: str = Field(..., description="Result type (patient, concept, document)")
+    score: float = Field(..., description="Relevance score")
+    highlight: str | None = Field(None, description="Text with match highlighted")
+    metadata: dict | None = Field(None, description="Additional metadata")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "id": "P12345",
+                "text": "Diabetes mellitus type 2",
+                "type": "concept",
+                "score": 0.95,
+                "highlight": "<em>Diabetes</em> mellitus type 2",
+            }
+        }
+
+
+class TypeaheadResponse(BaseModel):
+    """Response from typeahead search."""
+
+    query: str = Field(..., description="Original search query")
+    results: list[TypeaheadResult] = Field(default_factory=list)
+    total: int = Field(0, description="Total results found")
+    groups: dict[str, int] = Field(
+        default_factory=dict,
+        description="Result count by type (patient, concept, document)",
+    )
+
+
+@router.get(
+    "/typeahead",
+    response_model=TypeaheadResponse,
+    summary="Live search-as-you-type",
+    description="Fast prefix-based search across patients, concepts, and documents.",
+)
+async def typeahead_search(
+    q: str = Query(..., min_length=1, max_length=200, description="Search query"),
+    limit: int = Query(10, ge=1, le=50, description="Maximum results to return"),
+    types: str | None = Query(
+        None,
+        description="Comma-separated types to search: patient,concept,document",
+    ),
+) -> TypeaheadResponse:
+    """Search-as-you-type endpoint for live search.
+
+    Performs fast prefix-based matching across patients, concepts, and documents.
+    Results are grouped by type with relevance scores and highlights.
+
+    Args:
+        q: The search query (prefix match).
+        limit: Maximum results to return.
+        types: Optional filter for result types.
+
+    Returns:
+        TypeaheadResponse with grouped results.
+    """
+    query_lower = q.strip().lower()
+    allowed_types = {"patient", "concept", "document"}
+
+    if types:
+        search_types = {t.strip() for t in types.split(",") if t.strip() in allowed_types}
+    else:
+        search_types = allowed_types
+
+    results: list[TypeaheadResult] = []
+    groups: dict[str, int] = {}
+
+    # Search concepts from vocabulary service
+    if "concept" in search_types:
+        try:
+            from app.services.vocabulary import get_vocabulary_service
+            vocab = get_vocabulary_service()
+            concept_results = vocab.search_concepts(query_lower, limit=limit)
+            for c in concept_results:
+                name = c.get("concept_name", "")
+                highlight = name.replace(
+                    q, f"<em>{q}</em>"
+                ) if q.lower() in name.lower() else name
+                results.append(TypeaheadResult(
+                    id=str(c.get("concept_id", "")),
+                    text=name,
+                    type="concept",
+                    score=c.get("score", 0.8),
+                    highlight=highlight,
+                    metadata={"domain": c.get("domain_id"), "vocabulary": c.get("vocabulary_id")},
+                ))
+            groups["concept"] = len(concept_results)
+        except Exception as e:
+            logger.warning(f"Concept typeahead search failed: {e}")
+            groups["concept"] = 0
+
+    # Search patients (in-memory prefix match on known patients)
+    if "patient" in search_types:
+        try:
+            from sqlalchemy import text as sa_text
+            with Session(get_sync_engine()) as session:
+                stmt = sa_text(
+                    "SELECT DISTINCT patient_id FROM clinical_facts "
+                    "WHERE LOWER(patient_id) LIKE :pattern LIMIT :lim"
+                )
+                result = session.execute(stmt, {"pattern": f"%{query_lower}%", "lim": limit})
+                patient_rows = result.fetchall()
+                for row in patient_rows:
+                    pid = row[0]
+                    results.append(TypeaheadResult(
+                        id=pid,
+                        text=pid,
+                        type="patient",
+                        score=1.0 if pid.lower().startswith(query_lower) else 0.7,
+                        highlight=pid.replace(q, f"<em>{q}</em>") if q in pid else pid,
+                    ))
+                groups["patient"] = len(patient_rows)
+        except Exception as e:
+            logger.debug(f"Patient typeahead search failed: {e}")
+            groups["patient"] = 0
+
+    # Search documents
+    if "document" in search_types:
+        try:
+            from app.models.document import Document
+            with Session(get_sync_engine()) as session:
+                from sqlalchemy import select as sa_select
+                stmt = sa_select(Document).where(
+                    Document.text.ilike(f"%{query_lower}%")
+                ).limit(limit)
+                docs = session.execute(stmt).scalars().all()
+                for doc in docs:
+                    snippet = doc.text[:100] if doc.text else ""
+                    results.append(TypeaheadResult(
+                        id=str(doc.id),
+                        text=snippet,
+                        type="document",
+                        score=0.6,
+                        highlight=snippet,
+                        metadata={"patient_id": doc.patient_id, "note_type": doc.note_type},
+                    ))
+                groups["document"] = len(docs)
+        except Exception as e:
+            logger.debug(f"Document typeahead search failed: {e}")
+            groups["document"] = 0
+
+    # Sort by score descending and limit
+    results.sort(key=lambda r: r.score, reverse=True)
+    results = results[:limit]
+
+    return TypeaheadResponse(
+        query=q,
+        results=results,
+        total=len(results),
+        groups=groups,
+    )
+
+
+# ============================================================================
+# Semantic Search Models
+# ============================================================================
+
+
 class SemanticSearchRequest(BaseModel):
     """Request body for semantic search."""
 
