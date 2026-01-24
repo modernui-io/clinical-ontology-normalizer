@@ -23,7 +23,7 @@ def nlp_service() -> RuleBasedNLPService:
 @pytest.fixture
 def synthetic_notes() -> list[dict]:
     """Load synthetic notes from fixture."""
-    fixtures_path = Path(__file__).parent.parent.parent / "fixtures" / "synthetic_notes.json"
+    fixtures_path = Path(__file__).parent.parent / "fixtures" / "synthetic_notes.json"
     with open(fixtures_path) as f:
         data = json.load(f)
     return data["notes"]

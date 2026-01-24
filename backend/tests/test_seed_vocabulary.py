@@ -12,7 +12,7 @@ class TestVocabularyFixture:
     @pytest.fixture
     def fixture_path(self) -> Path:
         """Path to the vocabulary fixture file."""
-        return Path(__file__).parent.parent.parent / "fixtures" / "omop_vocabulary.json"
+        return Path(__file__).parent.parent / "fixtures" / "omop_vocabulary.json"
 
     @pytest.fixture
     def vocabulary_data(self, fixture_path: Path) -> dict:
@@ -97,14 +97,14 @@ class TestSyntheticNoteCoverage:
     @pytest.fixture
     def vocabulary_data(self) -> dict:
         """Load vocabulary fixture data."""
-        fixture_path = Path(__file__).parent.parent.parent / "fixtures" / "omop_vocabulary.json"
+        fixture_path = Path(__file__).parent.parent / "fixtures" / "omop_vocabulary.json"
         with open(fixture_path) as f:
             return json.load(f)
 
     @pytest.fixture
     def synthetic_notes(self) -> dict:
         """Load synthetic notes fixture data."""
-        fixture_path = Path(__file__).parent.parent.parent / "fixtures" / "synthetic_notes.json"
+        fixture_path = Path(__file__).parent.parent / "fixtures" / "synthetic_notes.json"
         with open(fixture_path) as f:
             return json.load(f)
 

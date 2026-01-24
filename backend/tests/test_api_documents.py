@@ -304,7 +304,7 @@ class TestDocumentUploadJobEnqueue:
         with patch("app.api.documents.enqueue_job", mock_enqueue_job):
             async with AsyncClient(
                 transport=ASGITransport(app=app),
-                base_url="http://test",
+                base_url="http://test/api/v1",
             ) as ac:
                 await ac.post("/documents", json=valid_document_payload)
 
@@ -329,7 +329,7 @@ class TestDocumentUploadJobEnqueue:
         with patch("app.api.documents.enqueue_job", mock_enqueue_job):
             async with AsyncClient(
                 transport=ASGITransport(app=app),
-                base_url="http://test",
+                base_url="http://test/api/v1",
             ) as ac:
                 await ac.post("/documents", json=valid_document_payload)
 
@@ -356,7 +356,7 @@ class TestDocumentUploadJobEnqueue:
         with patch("app.api.documents.enqueue_job", mock_enqueue_job):
             async with AsyncClient(
                 transport=ASGITransport(app=app),
-                base_url="http://test",
+                base_url="http://test/api/v1",
             ) as ac:
                 response = await ac.post("/documents", json=valid_document_payload)
 
@@ -386,7 +386,7 @@ class TestDocumentUploadJobEnqueue:
         with patch("app.api.documents.enqueue_job", mock_enqueue):
             async with AsyncClient(
                 transport=ASGITransport(app=app),
-                base_url="http://test",
+                base_url="http://test/api/v1",
             ) as ac:
                 response = await ac.post("/documents", json=valid_document_payload)
 
@@ -417,7 +417,7 @@ class TestDocumentUploadJobEnqueue:
         with patch("app.api.documents.enqueue_job", mock_enqueue):
             async with AsyncClient(
                 transport=ASGITransport(app=app),
-                base_url="http://test",
+                base_url="http://test/api/v1",
             ) as ac:
                 response = await ac.post("/documents", json=valid_document_payload)
 
@@ -466,7 +466,7 @@ class TestDocumentRetrieval:
         with patch("app.api.documents.enqueue_job", mock_enqueue_job):
             async with AsyncClient(
                 transport=ASGITransport(app=app),
-                base_url="http://test",
+                base_url="http://test/api/v1",
             ) as ac:
                 response = await ac.get(f"/documents/{doc_id}")
 
@@ -508,7 +508,7 @@ class TestDocumentRetrieval:
         with patch("app.api.documents.enqueue_job", mock_enqueue_job):
             async with AsyncClient(
                 transport=ASGITransport(app=app),
-                base_url="http://test",
+                base_url="http://test/api/v1",
             ) as ac:
                 response = await ac.get(f"/documents/{doc_id}")
 
@@ -544,14 +544,14 @@ class TestDocumentRetrieval:
         with patch("app.api.documents.enqueue_job", mock_enqueue_job):
             async with AsyncClient(
                 transport=ASGITransport(app=app),
-                base_url="http://test",
+                base_url="http://test/api/v1",
             ) as ac:
                 response = await ac.get(f"/documents/{doc_id}")
 
         app.dependency_overrides.clear()
         assert response.status_code == 404
         data = response.json()
-        assert "not found" in data["detail"].lower()
+        assert "not found" in data["message"].lower()
 
     @pytest.mark.asyncio
     async def test_get_document_invalid_uuid_returns_422(
@@ -569,7 +569,7 @@ class TestDocumentRetrieval:
         with patch("app.api.documents.enqueue_job", mock_enqueue_job):
             async with AsyncClient(
                 transport=ASGITransport(app=app),
-                base_url="http://test",
+                base_url="http://test/api/v1",
             ) as ac:
                 response = await ac.get("/documents/not-a-valid-uuid")
 

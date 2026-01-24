@@ -112,7 +112,7 @@ class TestDrugNameNormalization:
     def setup_method(self):
         """Create service for testing."""
         reset_drug_interaction_service()
-        self.service = DrugInteractionService()
+        self.service = DrugInteractionService(use_rxnorm=False)
 
     def test_normalize_lowercase(self):
         """Test normalization to lowercase."""
@@ -151,7 +151,7 @@ class TestPairChecking:
     def setup_method(self):
         """Create service for testing."""
         reset_drug_interaction_service()
-        self.service = DrugInteractionService()
+        self.service = DrugInteractionService(use_rxnorm=False)
 
     def test_known_contraindicated_pair(self):
         """Test finding a known contraindicated interaction."""
@@ -199,7 +199,7 @@ class TestMultipleDrugChecking:
     def setup_method(self):
         """Create service for testing."""
         reset_drug_interaction_service()
-        self.service = DrugInteractionService()
+        self.service = DrugInteractionService(use_rxnorm=False)
 
     def test_check_two_drugs_with_interaction(self):
         """Test checking two drugs with an interaction."""
@@ -276,7 +276,7 @@ class TestDrugSpecificLookup:
     def setup_method(self):
         """Create service for testing."""
         reset_drug_interaction_service()
-        self.service = DrugInteractionService()
+        self.service = DrugInteractionService(use_rxnorm=False)
 
     def test_get_interactions_for_warfarin(self):
         """Test getting all interactions for warfarin."""
@@ -314,7 +314,7 @@ class TestStatistics:
     def setup_method(self):
         """Create service for testing."""
         reset_drug_interaction_service()
-        self.service = DrugInteractionService()
+        self.service = DrugInteractionService(use_rxnorm=False)
 
     def test_get_stats(self):
         """Test getting database statistics."""
@@ -385,7 +385,7 @@ class TestIntegration:
     def setup_method(self):
         """Create service for testing."""
         reset_drug_interaction_service()
-        self.service = DrugInteractionService()
+        self.service = DrugInteractionService(use_rxnorm=False)
 
     def test_typical_medication_list(self):
         """Test a typical patient medication list."""

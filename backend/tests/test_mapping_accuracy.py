@@ -31,13 +31,13 @@ _TestSession = sessionmaker(
 @pytest.fixture(scope="module")
 def fixture_path() -> Path:
     """Get path to vocabulary fixture."""
-    return Path(__file__).parent.parent.parent / "fixtures" / "omop_vocabulary.json"
+    return Path(__file__).parent.parent / "fixtures" / "omop_vocabulary.json"
 
 
 @pytest.fixture(scope="module")
 def notes_path() -> Path:
     """Get path to synthetic notes fixture."""
-    return Path(__file__).parent.parent.parent / "fixtures" / "synthetic_notes.json"
+    return Path(__file__).parent.parent / "fixtures" / "synthetic_notes.json"
 
 
 @pytest.fixture(scope="module")

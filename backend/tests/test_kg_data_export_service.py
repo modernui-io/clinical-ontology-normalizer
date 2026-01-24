@@ -384,7 +384,7 @@ class TestNTriplesExporter:
         result = exporter.export_concepts(iter(sample_concepts), config)
 
         assert "<http://example.org/kg/concept_C0001234>" in result
-        assert "skos#Concept" in result
+        assert "skos/core#Concept" in result
 
     def test_export_relationships(self, exporter, sample_relationships):
         """Export relationships to N-Triples."""

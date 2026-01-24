@@ -47,7 +47,7 @@ class TestVocabularyFixtureLoading:
 
     @pytest.fixture
     def fixture_path(self) -> Path:
-        return Path(__file__).parent.parent.parent / "fixtures" / "omop_vocabulary.json"
+        return Path(__file__).parent.parent / "fixtures" / "omop_vocabulary.json"
 
     @pytest.fixture
     def fixture_data(self, fixture_path: Path) -> dict:
@@ -116,7 +116,7 @@ class TestDatabaseMappingServiceWithDB:
 
     @pytest.fixture(autouse=True)
     def setup_vocabulary(self, vocab_session) -> None:
-        fixture_path = Path(__file__).parent.parent.parent / "fixtures" / "omop_vocabulary.json"
+        fixture_path = Path(__file__).parent.parent / "fixtures" / "omop_vocabulary.json"
         with open(fixture_path) as f:
             data = json.load(f)
 
@@ -264,7 +264,7 @@ class TestConceptsInDatabase:
 
     @pytest.fixture(autouse=True)
     def setup_vocabulary(self, vocab_session) -> None:
-        fixture_path = Path(__file__).parent.parent.parent / "fixtures" / "omop_vocabulary.json"
+        fixture_path = Path(__file__).parent.parent / "fixtures" / "omop_vocabulary.json"
         with open(fixture_path) as f:
             data = json.load(f)
 

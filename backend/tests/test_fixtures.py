@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-FIXTURES_PATH = Path(__file__).parent.parent.parent / "fixtures" / "synthetic_notes.json"
+FIXTURES_PATH = Path(__file__).parent.parent / "fixtures" / "synthetic_notes.json"
 
 
 @pytest.fixture

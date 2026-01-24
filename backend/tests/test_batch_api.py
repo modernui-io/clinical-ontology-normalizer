@@ -451,7 +451,7 @@ class TestJobManagement:
             await batch_concept_lookup(request, bg_tasks)
 
         # List jobs
-        result = await list_batch_jobs()
+        result = await list_batch_jobs(status=None, operation_type=None, offset=0, limit=50)
 
         assert result.total_jobs == 3
         assert len(result.jobs) == 3
@@ -478,8 +478,8 @@ class TestJobManagement:
         await batch_concept_lookup(request2, bg_tasks)
 
         # Filter by status
-        cancelled_jobs = await list_batch_jobs(status=BatchJobStatus.CANCELLED)
-        pending_jobs = await list_batch_jobs(status=BatchJobStatus.PENDING)
+        cancelled_jobs = await list_batch_jobs(status=BatchJobStatus.CANCELLED, operation_type=None, offset=0, limit=50)
+        pending_jobs = await list_batch_jobs(status=BatchJobStatus.PENDING, operation_type=None, offset=0, limit=50)
 
         assert cancelled_jobs.total_jobs == 1
         assert pending_jobs.total_jobs == 1
@@ -671,7 +671,7 @@ class TestJobResults:
         await _process_concept_lookup_batch(response.job_id)
 
         # Get results
-        results = await get_batch_job_results(response.job_id)
+        results = await get_batch_job_results(response.job_id, offset=0, limit=100)
 
         assert results.job_id == response.job_id
         assert results.status == BatchJobStatus.COMPLETED
@@ -690,7 +690,7 @@ class TestJobResults:
         response = await batch_concept_lookup(request, bg_tasks)
 
         with pytest.raises(HTTPException) as exc_info:
-            await get_batch_job_results(response.job_id)
+            await get_batch_job_results(response.job_id, offset=0, limit=100)
 
         assert exc_info.value.status_code == 400
 
