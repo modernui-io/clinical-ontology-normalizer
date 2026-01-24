@@ -172,3 +172,187 @@ def clear_all_caches() -> None:
     _drug_cache.clear()
     _hcc_cache.clear()
     _differential_cache.clear()
+
+
+# =============================================================================
+# Redis-based Terminology Cache for FHIR Operations
+# =============================================================================
+
+# Default TTL per operation type (seconds)
+OPERATION_TTL = {
+    "lookup": 3600,        # 1 hour
+    "validate-code": 3600, # 1 hour
+    "expand": 1800,        # 30 minutes
+    "translate": 3600,     # 1 hour
+}
+
+
+class RedisTerminologyCache:
+    """Redis-backed cache for FHIR terminology operations.
+
+    Features:
+    - Configurable TTL per operation type
+    - Cache key generation from operation + parameters
+    - Cache invalidation API
+    - Fallback to in-memory cache when Redis is unavailable
+    """
+
+    def __init__(self, redis_url: str = "redis://localhost:6379/0", prefix: str = "term"):
+        self._redis_url = redis_url
+        self._prefix = prefix
+        self._redis = None
+        self._fallback = TerminologyCache(max_size=2000, default_ttl=1800.0)
+        self._connected = False
+
+    def _get_redis(self):
+        """Lazily connect to Redis."""
+        if self._redis is None:
+            try:
+                import redis
+                self._redis = redis.from_url(self._redis_url, decode_responses=True)
+                self._redis.ping()
+                self._connected = True
+            except Exception as e:
+                logger.warning(f"Redis unavailable, using in-memory fallback: {e}")
+                self._connected = False
+                self._redis = None
+        return self._redis
+
+    def make_key(self, operation: str, **params) -> str:
+        """Generate a deterministic cache key from operation and parameters."""
+        key_data = json.dumps(
+            {"op": operation, "params": sorted(params.items())},
+            sort_keys=True,
+            default=str,
+        )
+        key_hash = hashlib.md5(key_data.encode()).hexdigest()
+        return f"{self._prefix}:{operation}:{key_hash}"
+
+    def get(self, operation: str, **params) -> Any | None:
+        """Get a cached result for an operation."""
+        key = self.make_key(operation, **params)
+        redis_client = self._get_redis()
+
+        if redis_client and self._connected:
+            try:
+                cached = redis_client.get(key)
+                if cached:
+                    return json.loads(cached)
+                return None
+            except Exception as e:
+                logger.warning(f"Redis get error: {e}")
+
+        # Fallback to in-memory
+        return self._fallback.get(key)
+
+    def set(self, operation: str, value: Any, **params) -> None:
+        """Cache a result for an operation with appropriate TTL."""
+        key = self.make_key(operation, **params)
+        ttl = OPERATION_TTL.get(operation, 1800)
+        redis_client = self._get_redis()
+
+        if redis_client and self._connected:
+            try:
+                redis_client.setex(key, ttl, json.dumps(value, default=str))
+                return
+            except Exception as e:
+                logger.warning(f"Redis set error: {e}")
+
+        # Fallback to in-memory
+        self._fallback.set(key, value, ttl=float(ttl))
+
+    def invalidate(self, operation: str, **params) -> None:
+        """Invalidate a specific cached operation result."""
+        key = self.make_key(operation, **params)
+        redis_client = self._get_redis()
+
+        if redis_client and self._connected:
+            try:
+                redis_client.delete(key)
+            except Exception as e:
+                logger.warning(f"Redis invalidate error: {e}")
+
+        self._fallback.invalidate(key)
+
+    def invalidate_operation(self, operation: str) -> int:
+        """Invalidate all cached results for a specific operation type.
+
+        Returns the number of keys invalidated.
+        """
+        pattern = f"{self._prefix}:{operation}:*"
+        redis_client = self._get_redis()
+        count = 0
+
+        if redis_client and self._connected:
+            try:
+                cursor = 0
+                while True:
+                    cursor, keys = redis_client.scan(cursor, match=pattern, count=100)
+                    if keys:
+                        count += redis_client.delete(*keys)
+                    if cursor == 0:
+                        break
+            except Exception as e:
+                logger.warning(f"Redis invalidate_operation error: {e}")
+
+        self._fallback.clear()
+        return count
+
+    def clear(self) -> None:
+        """Clear all terminology cache entries."""
+        pattern = f"{self._prefix}:*"
+        redis_client = self._get_redis()
+
+        if redis_client and self._connected:
+            try:
+                cursor = 0
+                while True:
+                    cursor, keys = redis_client.scan(cursor, match=pattern, count=100)
+                    if keys:
+                        redis_client.delete(*keys)
+                    if cursor == 0:
+                        break
+            except Exception as e:
+                logger.warning(f"Redis clear error: {e}")
+
+        self._fallback.clear()
+
+    def get_stats(self) -> dict[str, Any]:
+        """Get cache statistics."""
+        redis_client = self._get_redis()
+        stats = {
+            "connected": self._connected,
+            "backend": "redis" if self._connected else "in-memory",
+            "operation_ttls": OPERATION_TTL,
+        }
+
+        if redis_client and self._connected:
+            try:
+                info = redis_client.info("memory")
+                stats["redis_memory_used"] = info.get("used_memory_human", "unknown")
+            except Exception:
+                pass
+        else:
+            stats.update(self._fallback.get_stats())
+
+        return stats
+
+
+# Global Redis cache instance
+_redis_terminology_cache: RedisTerminologyCache | None = None
+
+
+def get_redis_terminology_cache() -> RedisTerminologyCache:
+    """Get the Redis terminology cache singleton."""
+    global _redis_terminology_cache
+    if _redis_terminology_cache is None:
+        import os
+        redis_url = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
+        _redis_terminology_cache = RedisTerminologyCache(redis_url=redis_url)
+    return _redis_terminology_cache
+
+
+def reset_redis_terminology_cache() -> None:
+    """Reset the Redis terminology cache singleton (for testing)."""
+    global _redis_terminology_cache
+    _redis_terminology_cache = None
