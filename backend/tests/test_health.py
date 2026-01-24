@@ -215,7 +215,7 @@ class TestHealthCheckFunctions:
     @pytest.mark.asyncio
     async def test_check_database_success(self) -> None:
         """Test database health check with mocked connection."""
-        with patch("app.api.health.async_session_maker") as mock_session:
+        with patch("app.core.database.async_session_maker") as mock_session:
             mock_session_instance = MagicMock()
             mock_session_instance.__aenter__ = AsyncMock(return_value=mock_session_instance)
             mock_session_instance.__aexit__ = AsyncMock(return_value=None)
@@ -236,7 +236,7 @@ class TestHealthCheckFunctions:
         """Test database health check handles timeout."""
         import asyncio
 
-        with patch("app.api.health.async_session_maker") as mock_session:
+        with patch("app.core.database.async_session_maker") as mock_session:
             mock_session_instance = MagicMock()
             mock_session_instance.__aenter__ = AsyncMock(return_value=mock_session_instance)
             mock_session_instance.__aexit__ = AsyncMock(return_value=None)
