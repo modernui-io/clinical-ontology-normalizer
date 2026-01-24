@@ -37,14 +37,16 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
   - Acceptance: `alembic upgrade head` creates all tables
   - Tables: Person, Visit_Occurrence, Condition_Occurrence, Drug_Exposure, Procedure_Occurrence, Measurement, Observation, Death, Note, Note_NLP, Specimen, Device_Exposure, Location, Care_Site, Provider, Payer_Plan_Period, Cost, Drug_Era, Dose_Era, Condition_Era, CDM_Source, Metadata, Visit_Detail
 
-- [ ] **P0-002** Add OMOP vocabulary reference tables migration
+- [x] **P0-002** Add OMOP vocabulary reference tables migration
   - Acceptance: Concept, Vocabulary, Domain, Concept_Class, Concept_Relationship, Relationship, Concept_Synonym, Concept_Ancestor tables created
+  - Implemented: `backend/alembic/versions/018_create_omop_vocabulary_tables.py`
 
 - [x] **P0-003** Create database indexes for OMOP query performance
   - Acceptance: Indexes on person_id, visit_occurrence_id, condition_concept_id, drug_concept_id, procedure_concept_id
 
-- [ ] **P0-004** Add foreign key constraints between OMOP tables
+- [x] **P0-004** Add foreign key constraints between OMOP tables
   - Acceptance: Referential integrity enforced
+  - Implemented: `backend/alembic/versions/019_add_omop_foreign_keys.py`
 
 #### P0.1.2 ETL Orchestration Service
 **Owner:** Backend
