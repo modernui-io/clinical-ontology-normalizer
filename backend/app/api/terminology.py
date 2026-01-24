@@ -337,10 +337,13 @@ async def lookup_code_get(
     system: str = Query(..., description="The code system URI"),
     code: str = Query(..., description="The code to look up"),
     version: str | None = Query(None, description="Code system version"),
+    _count: int = Query(100, ge=1, le=1000, alias="_count", description="Maximum properties to return"),
+    _offset: int = Query(0, ge=0, alias="_offset", description="Offset for paginating properties"),
 ) -> dict[str, Any]:
     """Look up a code in a code system (GET variant).
 
     GET variant of the $lookup operation for simpler queries.
+    Supports _count and _offset for paginating returned properties.
     """
     service = get_fhir_terminology_service()
 
@@ -359,7 +362,13 @@ async def lookup_code_get(
             }
         )
 
-    return FHIRParametersBuilder.build_lookup_parameters(result)
+    params = FHIRParametersBuilder.build_lookup_parameters(result)
+    # Apply pagination to parameter entries
+    if "parameter" in params:
+        total = len(params["parameter"])
+        params["parameter"] = params["parameter"][_offset:_offset + _count]
+        params["_pagination"] = {"total": total, "offset": _offset, "count": len(params["parameter"])}
+    return params
 
 
 # =============================================================================
@@ -426,8 +435,13 @@ async def validate_code_get(
     code: str = Query(..., description="The code to validate"),
     display: str | None = Query(None, description="Display text to validate"),
     version: str | None = Query(None, description="Code system version"),
+    _count: int = Query(100, ge=1, le=1000, alias="_count", description="Maximum result parameters to return"),
+    _offset: int = Query(0, ge=0, alias="_offset", description="Offset for paginating result parameters"),
 ) -> dict[str, Any]:
-    """Validate that a code is valid (GET variant)."""
+    """Validate that a code is valid (GET variant).
+
+    Supports _count and _offset for paginating returned parameters.
+    """
     service = get_fhir_terminology_service()
 
     result = service.validate_code(
@@ -437,7 +451,12 @@ async def validate_code_get(
         version=version
     )
 
-    return FHIRParametersBuilder.build_validate_code_parameters(result)
+    params = FHIRParametersBuilder.build_validate_code_parameters(result)
+    if "parameter" in params:
+        total = len(params["parameter"])
+        params["parameter"] = params["parameter"][_offset:_offset + _count]
+        params["_pagination"] = {"total": total, "offset": _offset, "count": len(params["parameter"])}
+    return params
 
 
 # =============================================================================
@@ -593,8 +612,13 @@ async def translate_code_get(
     code: str = Query(..., description="The code to translate"),
     targetSystem: str = Query(..., description="Target code system URI"),
     url: str | None = Query(None, description="ConceptMap URL to use"),
+    _count: int = Query(100, ge=1, le=1000, alias="_count", description="Maximum translation matches to return"),
+    _offset: int = Query(0, ge=0, alias="_offset", description="Offset for paginating translation matches"),
 ) -> dict[str, Any]:
-    """Translate a code (GET variant)."""
+    """Translate a code (GET variant).
+
+    Supports _count and _offset for paginating returned matches.
+    """
     service = get_fhir_terminology_service()
 
     result = service.translate(
@@ -604,7 +628,12 @@ async def translate_code_get(
         concept_map_url=url
     )
 
-    return FHIRParametersBuilder.build_translate_parameters(result)
+    params = FHIRParametersBuilder.build_translate_parameters(result)
+    if "parameter" in params:
+        total = len(params["parameter"])
+        params["parameter"] = params["parameter"][_offset:_offset + _count]
+        params["_pagination"] = {"total": total, "offset": _offset, "count": len(params["parameter"])}
+    return params
 
 
 # =============================================================================
@@ -671,13 +700,23 @@ async def test_subsumes_get(
     system: str = Query(..., description="The code system URI"),
     codeA: str = Query(..., description="The first code (potential subsumer)"),
     codeB: str = Query(..., description="The second code (potentially subsumed)"),
+    _count: int = Query(100, ge=1, le=1000, alias="_count", description="Maximum parameters to return"),
+    _offset: int = Query(0, ge=0, alias="_offset", description="Offset for paginating parameters"),
 ) -> dict[str, Any]:
-    """Test subsumption relationship (GET variant)."""
+    """Test subsumption relationship (GET variant).
+
+    Supports _count and _offset for paginating returned parameters.
+    """
     service = get_fhir_terminology_service()
 
     result = service.subsumes(system=system, codeA=codeA, codeB=codeB)
 
-    return FHIRParametersBuilder.build_subsumes_parameters(result)
+    params = FHIRParametersBuilder.build_subsumes_parameters(result)
+    if "parameter" in params:
+        total = len(params["parameter"])
+        params["parameter"] = params["parameter"][_offset:_offset + _count]
+        params["_pagination"] = {"total": total, "offset": _offset, "count": len(params["parameter"])}
+    return params
 
 
 # =============================================================================

@@ -121,12 +121,55 @@ class TerminologyCache:
             }
 
 
+def cached_operation(
+    cache: "TerminologyCache",
+    operation: str,
+    ttl: float | None = None,
+) -> Callable:
+    """Decorator that caches the result of a terminology operation.
+
+    Usage:
+        @cached_operation(get_icd10_cache(), "lookup", ttl=3600)
+        def lookup_code(system: str, code: str) -> dict:
+            ...
+
+    Args:
+        cache: The TerminologyCache instance to use.
+        operation: Operation name for key generation.
+        ttl: Optional TTL override in seconds.
+
+    Returns:
+        Decorator function.
+    """
+    def decorator(func: Callable[..., T]) -> Callable[..., T]:
+        import functools
+
+        @functools.wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> T:
+            key = cache._make_key(operation, *args, **kwargs)
+            cached = cache.get(key)
+            if cached is not None:
+                return cached
+            result = func(*args, **kwargs)
+            if result is not None:
+                cache.set(key, result, ttl=ttl)
+            return result
+
+        # Expose cache invalidation
+        wrapper.invalidate_cache = lambda: cache.clear()  # type: ignore[attr-defined]
+        wrapper.cache = cache  # type: ignore[attr-defined]
+        return wrapper
+
+    return decorator
+
+
 # Global cache instances for each terminology service
 _icd10_cache = TerminologyCache(max_size=2000, default_ttl=600.0)  # 10 min TTL
 _cpt_cache = TerminologyCache(max_size=1000, default_ttl=600.0)
 _drug_cache = TerminologyCache(max_size=500, default_ttl=600.0)
 _hcc_cache = TerminologyCache(max_size=500, default_ttl=600.0)
 _differential_cache = TerminologyCache(max_size=200, default_ttl=300.0)  # 5 min TTL
+_fhir_operation_cache = TerminologyCache(max_size=2000, default_ttl=3600.0)  # 1 hour TTL
 
 
 def get_icd10_cache() -> TerminologyCache:
@@ -154,6 +197,11 @@ def get_differential_cache() -> TerminologyCache:
     return _differential_cache
 
 
+def get_fhir_operation_cache() -> TerminologyCache:
+    """Get the FHIR terminology operation cache."""
+    return _fhir_operation_cache
+
+
 def get_all_cache_stats() -> dict[str, Any]:
     """Get statistics for all terminology caches."""
     return {
@@ -162,16 +210,18 @@ def get_all_cache_stats() -> dict[str, Any]:
         "drug_safety": _drug_cache.get_stats(),
         "hcc": _hcc_cache.get_stats(),
         "differential": _differential_cache.get_stats(),
+        "fhir_operations": _fhir_operation_cache.get_stats(),
     }
 
 
 def clear_all_caches() -> None:
-    """Clear all terminology caches."""
+    """Clear all terminology caches (also used for vocabulary reload invalidation)."""
     _icd10_cache.clear()
     _cpt_cache.clear()
     _drug_cache.clear()
     _hcc_cache.clear()
     _differential_cache.clear()
+    _fhir_operation_cache.clear()
 
 
 # =============================================================================
