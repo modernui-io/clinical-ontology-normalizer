@@ -503,8 +503,8 @@ async def expand_valueset(request: ExpandRequest) -> dict[str, Any]:
 async def expand_valueset_get(
     url: str = Query(..., description="The ValueSet URL to expand"),
     filter: str | None = Query(None, description="Text filter to apply"),
-    offset: int = Query(0, ge=0, description="Offset for pagination"),
-    count: int = Query(100, ge=1, le=1000, description="Maximum codes to return"),
+    offset: int = Query(0, ge=0, alias="_offset", description="Offset for pagination"),
+    count: int = Query(20, ge=1, le=100, alias="_count", description="Maximum codes to return (max 100)"),
 ) -> dict[str, Any]:
     """Expand a ValueSet (GET variant)."""
     service = get_fhir_terminology_service()
@@ -791,29 +791,43 @@ async def get_code_system(system_id: str) -> dict[str, Any]:
 
 
 @router.get("/CodeSystem", response_model=None)
-async def list_code_systems() -> dict[str, Any]:
-    """List all available code systems.
+async def list_code_systems(
+    _count: int = Query(20, ge=1, le=100, alias="_count", description="Number of results per page"),
+    _offset: int = Query(0, ge=0, alias="_offset", description="Offset for pagination"),
+) -> dict[str, Any]:
+    """List all available code systems with pagination.
 
     Returns:
-        FHIR Bundle with available CodeSystem resources
+        FHIR Bundle with available CodeSystem resources and pagination links
     """
     service = get_fhir_terminology_service()
     stats = service.get_stats()
 
-    entries = []
+    all_entries = []
     for system_id, system_stats in stats.get("code_systems", {}).items():
         code_system = service.get_code_system(system_id)
         if code_system:
-            entries.append({
+            all_entries.append({
                 "fullUrl": f"CodeSystem/{system_id}",
                 "resource": code_system
             })
 
+    total = len(all_entries)
+    paginated_entries = all_entries[_offset:_offset + _count]
+
+    links = [{"relation": "self", "url": f"/fhir/CodeSystem?_count={_count}&_offset={_offset}"}]
+    if _offset + _count < total:
+        links.append({"relation": "next", "url": f"/fhir/CodeSystem?_count={_count}&_offset={_offset + _count}"})
+    if _offset > 0:
+        prev_offset = max(0, _offset - _count)
+        links.append({"relation": "previous", "url": f"/fhir/CodeSystem?_count={_count}&_offset={prev_offset}"})
+
     return {
         "resourceType": "Bundle",
         "type": "searchset",
-        "total": len(entries),
-        "entry": entries
+        "total": total,
+        "link": links,
+        "entry": paginated_entries
     }
 
 
@@ -863,11 +877,14 @@ async def get_value_set(value_set_id: str) -> dict[str, Any]:
 
 
 @router.get("/ValueSet", response_model=None)
-async def list_value_sets() -> dict[str, Any]:
-    """List all available value sets.
+async def list_value_sets(
+    _count: int = Query(20, ge=1, le=100, alias="_count", description="Number of results per page"),
+    _offset: int = Query(0, ge=0, alias="_offset", description="Offset for pagination"),
+) -> dict[str, Any]:
+    """List all available value sets with pagination.
 
     Returns:
-        FHIR Bundle with available ValueSet resources
+        FHIR Bundle with available ValueSet resources and pagination links
     """
     service = get_fhir_terminology_service()
 
@@ -878,20 +895,31 @@ async def list_value_sets() -> dict[str, Any]:
         "common-lab-tests"
     ]
 
-    entries = []
+    all_entries = []
     for vs_id in value_set_ids:
         value_set = service.get_value_set(vs_id)
         if value_set:
-            entries.append({
+            all_entries.append({
                 "fullUrl": f"ValueSet/{vs_id}",
                 "resource": value_set
             })
 
+    total = len(all_entries)
+    paginated_entries = all_entries[_offset:_offset + _count]
+
+    links = [{"relation": "self", "url": f"/fhir/ValueSet?_count={_count}&_offset={_offset}"}]
+    if _offset + _count < total:
+        links.append({"relation": "next", "url": f"/fhir/ValueSet?_count={_count}&_offset={_offset + _count}"})
+    if _offset > 0:
+        prev_offset = max(0, _offset - _count)
+        links.append({"relation": "previous", "url": f"/fhir/ValueSet?_count={_count}&_offset={prev_offset}"})
+
     return {
         "resourceType": "Bundle",
         "type": "searchset",
-        "total": len(entries),
-        "entry": entries
+        "total": total,
+        "link": links,
+        "entry": paginated_entries
     }
 
 
