@@ -213,9 +213,14 @@ export default function DocumentsPage() {
             View and manage clinical documents
           </p>
         </div>
-        <Link href="/documents/upload">
-          <Button>Upload Document</Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/documents/compare">
+            <Button variant="outline">Compare Documents</Button>
+          </Link>
+          <Link href="/documents/upload">
+            <Button>Upload Document</Button>
+          </Link>
+        </div>
       </div>
 
       <div className="space-y-6">
