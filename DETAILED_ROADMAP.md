@@ -10,7 +10,7 @@
 
 ## Executive Summary
 
-This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanning backend infrastructure, frontend development, integrations, and documentation. **119 tasks completed** (60%), **79 remaining**.
+This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanning backend infrastructure, frontend development, integrations, and documentation. **121 tasks completed** (61%), **77 remaining**.
 
 ### Priority Definitions
 
@@ -588,11 +588,13 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
   - Acceptance: Interactive timeline, zoom, filter by domain
   - Implemented: `frontend/src/app/patients/[patientId]/timeline/page.tsx` (zoom levels, event type filters)
 
-- [ ] **P2-021** Create treatment pathway visualization
+- [x] **P2-021** Create treatment pathway visualization
   - Acceptance: Sankey diagram of treatment sequences
+  - Implemented: `frontend/src/app/analytics/pathways/page.tsx` (Sankey flow, pathway details, transitions)
 
-- [ ] **P2-022** Build incidence/prevalence calculator
+- [x] **P2-022** Build incidence/prevalence calculator
   - Acceptance: Define cohort, time window, calculate rates
+  - Implemented: `frontend/src/app/analytics/epidemiology/page.tsx` (stratification, trends, multi-condition comparison)
 
 - [ ] **P2-023** Add drug utilization analytics
   - Acceptance: Prescribing patterns, adherence metrics
