@@ -10,7 +10,7 @@
 
 ## Executive Summary
 
-This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanning backend infrastructure, frontend development, integrations, and documentation. **142 tasks completed** (72%), **56 remaining**.
+This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanning backend infrastructure, frontend development, integrations, and documentation. **144 tasks completed** (73%), **54 remaining**.
 
 ### Priority Definitions
 
@@ -751,10 +751,12 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
 - [x] **P3-015** Implement CDS Hooks server
   - Acceptance: patient-view, order-select, order-sign hooks
 
-- [ ] **P3-016** Create Epic integration template
+- [x] **P3-016** Create Epic integration template
+  - Implemented: `frontend/src/app/integrations/epic/page.tsx`
   - Acceptance: MyChart integration guide, sample app
 
-- [ ] **P3-017** Create Cerner integration template
+- [x] **P3-017** Create Cerner integration template
+  - Implemented: `frontend/src/app/integrations/cerner/page.tsx`
   - Acceptance: PowerChart integration guide, sample app
 
 - [x] **P3-018** Implement bulk FHIR $export support
