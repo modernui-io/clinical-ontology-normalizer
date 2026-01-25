@@ -788,7 +788,7 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
 **Effort:** 4 days
 **Dependencies:** P0-001
 
-- [ ] **P4-009** Integrate Neo4j graph database for ontology relationships
+- [x] **P4-009** Integrate Neo4j graph database for ontology relationships
   - Acceptance: Docker compose, connection pooling, Cypher queries
 
 - [x] **P4-010** Create graph ETL for OMOP concept relationships
@@ -893,7 +893,7 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
 - [ ] **P4-029** Build synthetic data configuration UI
   - Acceptance: Select cohort characteristics, volume, time range
 
-- [ ] **P4-030** Add synthetic data validation and comparison
+- [x] **P4-030** Add synthetic data validation and comparison
   - Acceptance: Compare distributions, utility metrics, privacy scores
 
 ---
