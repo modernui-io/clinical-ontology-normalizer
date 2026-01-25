@@ -80,6 +80,8 @@ from app.api import (
     coding_assistant_router,
     lab_reference_router,
     alert_rules_router,
+    risk_thresholds_router,
+    prediction_audit_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -654,6 +656,8 @@ api_v1_router.include_router(voice_router)
 api_v1_router.include_router(coding_assistant_router)
 api_v1_router.include_router(lab_reference_router)
 api_v1_router.include_router(alert_rules_router)
+api_v1_router.include_router(risk_thresholds_router)
+api_v1_router.include_router(prediction_audit_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)

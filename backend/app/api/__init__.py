@@ -128,6 +128,8 @@ from app.api.voice import router as voice_router
 from app.api.coding_assistant import router as coding_assistant_router
 from app.api.lab_reference import router as lab_reference_router
 from app.api.alert_rules import router as alert_rules_router
+from app.api.risk_thresholds import router as risk_thresholds_router
+from app.api.prediction_audit import router as prediction_audit_router
 
 __all__ = [
     # Routers
@@ -196,6 +198,8 @@ __all__ = [
     "coding_assistant_router",
     "lab_reference_router",
     "alert_rules_router",
+    "risk_thresholds_router",
+    "prediction_audit_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",
