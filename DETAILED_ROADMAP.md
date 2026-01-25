@@ -10,7 +10,7 @@
 
 ## Executive Summary
 
-This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanning backend infrastructure, frontend development, integrations, and documentation. **140 tasks completed** (71%), **58 remaining**.
+This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanning backend infrastructure, frontend development, integrations, and documentation. **142 tasks completed** (72%), **56 remaining**.
 
 ### Priority Definitions
 
@@ -848,10 +848,12 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
   - Implemented: `frontend/src/app/analytics/knowledge-graph/page.tsx`
   - Acceptance: Force-directed layout, zoom/pan, node filtering, WebGL rendering
 
-- [ ] **P4-013** Create drug-disease-gene network visualization
+- [x] **P4-013** Create drug-disease-gene network visualization
+  - Implemented: `frontend/src/app/analytics/networks/drug-disease-gene/page.tsx`
   - Acceptance: Multi-layer graph, pathway highlighting, literature links
 
-- [ ] **P4-014** Add patient similarity network view
+- [x] **P4-014** Add patient similarity network view
+  - Implemented: `frontend/src/app/analytics/networks/patient-similarity/page.tsx`
   - Acceptance: Cluster patients by features, explore similar cases
 
 ---
