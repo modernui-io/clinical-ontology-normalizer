@@ -534,14 +534,17 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
 - [x] **P2-009** Create value set data model and API
   - Acceptance: CRUD operations, version control, validation
 
-- [ ] **P2-010** Build extensional value set builder UI
+- [x] **P2-010** Build extensional value set builder UI
   - Acceptance: Add codes manually, import from file, search to add
+  - Implemented: `frontend/src/app/valuesets/new/page.tsx` (wizard with code management)
 
-- [ ] **P2-011** Build intensional value set builder UI
+- [x] **P2-011** Build intensional value set builder UI
   - Acceptance: Rule-based inclusion (descendants, filters)
+  - Implemented: `frontend/src/app/valuesets/new/page.tsx` (rule-based builder tab)
 
-- [ ] **P2-012** Add value set comparison tool
+- [x] **P2-012** Add value set comparison tool
   - Acceptance: Side-by-side diff, highlight additions/removals
+  - Implemented: `frontend/src/app/valuesets/compare/page.tsx` (Jaccard similarity, diff view)
 
 #### P2.2.2 Value Set Library
 **Owner:** Backend + Frontend
@@ -596,8 +599,9 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
   - Acceptance: Define cohort, time window, calculate rates
   - Implemented: `frontend/src/app/analytics/epidemiology/page.tsx` (stratification, trends, multi-condition comparison)
 
-- [ ] **P2-023** Add drug utilization analytics
+- [x] **P2-023** Add drug utilization analytics
   - Acceptance: Prescribing patterns, adherence metrics
+  - Implemented: `frontend/src/app/analytics/drugs/page.tsx` (PDC, MPR, formulary analysis)
 
 #### P2.3.3 Reporting
 **Owner:** Frontend
