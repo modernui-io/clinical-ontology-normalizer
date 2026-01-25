@@ -85,6 +85,7 @@ from app.api import (
     pipeline_scheduling_router,
     data_completeness_router,
     data_consistency_router,
+    model_registry_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -664,6 +665,7 @@ api_v1_router.include_router(prediction_audit_router)
 api_v1_router.include_router(pipeline_scheduling_router)
 api_v1_router.include_router(data_completeness_router)
 api_v1_router.include_router(data_consistency_router)
+api_v1_router.include_router(model_registry_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)
