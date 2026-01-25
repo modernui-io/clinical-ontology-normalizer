@@ -646,7 +646,7 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
 - [ ] **P3-002** Implement note customization editor
   - Acceptance: Edit generated note, add sections, save preferences
 
-- [ ] **P3-003** Add voice-to-note integration
+- [x] **P3-003** Add voice-to-note integration
   - Acceptance: Audio upload, transcription, structured extraction
 
 #### P3.1.2 AI Summarization
@@ -663,7 +663,7 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
 - [x] **P3-006** Add LLM-powered Q&A interface
   - Acceptance: Natural language questions about patient data
 
-- [ ] **P3-007** Implement coding assistant chatbot
+- [x] **P3-007** Implement coding assistant chatbot
   - Acceptance: Ask coding questions, get suggestions with citations
 
 - [x] **P3-008** Add audit log for all AI interactions

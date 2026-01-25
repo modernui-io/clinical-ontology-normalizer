@@ -76,6 +76,8 @@ from app.api import (
     icd10_suggestions_router,
     cpt_suggestions_router,
     hcc_analysis_router,
+    voice_router,
+    coding_assistant_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -646,6 +648,8 @@ api_v1_router.include_router(differential_diagnosis_router)
 api_v1_router.include_router(icd10_suggestions_router)
 api_v1_router.include_router(cpt_suggestions_router)
 api_v1_router.include_router(hcc_analysis_router)
+api_v1_router.include_router(voice_router)
+api_v1_router.include_router(coding_assistant_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)
