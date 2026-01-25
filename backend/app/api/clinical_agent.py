@@ -213,7 +213,7 @@ def _node_type_to_edge_type(node_type: NodeType) -> EdgeType:
         NodeType.PROCEDURE: EdgeType.HAS_PROCEDURE,
         NodeType.OBSERVATION: EdgeType.HAS_OBSERVATION,
     }
-    return mapping.get(node_type, EdgeType.RELATED_TO)
+    return mapping.get(node_type, EdgeType.HAS_OBSERVATION)
 
 
 # =============================================================================
@@ -267,15 +267,19 @@ async def bulk_import_documents(
 
         # Extract entities using NLP
         try:
-            mentions = nlp_service.extract(note.text)
+            mentions = nlp_service.extract_mentions(note.text, doc_id)
 
             note_entities: list[ExtractedEntity] = []
             for mention in mentions:
+                # Map domain_hint to entity_type (Condition, Drug, etc.)
+                domain = getattr(mention, 'domain_hint', None) or 'OBSERVATION'
+                entity_type = domain.upper() if domain else 'OBSERVATION'
+
                 entity = ExtractedEntity(
                     text=mention.text,
-                    entity_type=mention.entity_type,
+                    entity_type=entity_type,
                     confidence=mention.confidence,
-                    assertion=getattr(mention, 'assertion', 'PRESENT'),
+                    assertion=str(getattr(mention, 'assertion', 'PRESENT')),
                     omop_concept_id=getattr(mention, 'omop_concept_id', None),
                     note_id=note.note_id,
                 )
@@ -283,17 +287,36 @@ async def bulk_import_documents(
                 all_entities.append(entity)
 
                 # Store mention in database
+                # Get enum values properly (strip "EnumName." prefix if present)
+                assertion_val = getattr(mention, 'assertion', 'PRESENT')
+                if hasattr(assertion_val, 'value'):
+                    assertion_val = assertion_val.value
+                else:
+                    assertion_val = str(assertion_val).split('.')[-1]  # "Assertion.PRESENT" -> "PRESENT"
+
+                temporality_val = getattr(mention, 'temporality', 'CURRENT')
+                if hasattr(temporality_val, 'value'):
+                    temporality_val = temporality_val.value
+                else:
+                    temporality_val = str(temporality_val).split('.')[-1]
+
+                experiencer_val = getattr(mention, 'experiencer', 'PATIENT')
+                if hasattr(experiencer_val, 'value'):
+                    experiencer_val = experiencer_val.value
+                else:
+                    experiencer_val = str(experiencer_val).split('.')[-1]
+
                 db_mention = MentionModel(
                     id=str(uuid4()),
                     document_id=doc_id,
                     text=mention.text,
-                    start_offset=mention.start,
-                    end_offset=mention.end,
+                    start_offset=mention.start_offset,
+                    end_offset=mention.end_offset,
                     lexical_variant=mention.text.lower(),
                     section=getattr(mention, 'section', None),
-                    assertion=getattr(mention, 'assertion', 'PRESENT'),
-                    temporality=getattr(mention, 'temporality', 'CURRENT'),
-                    experiencer=getattr(mention, 'experiencer', 'PATIENT'),
+                    assertion=assertion_val,
+                    temporality=temporality_val,
+                    experiencer=experiencer_val,
                     confidence=mention.confidence,
                 )
                 db.add(db_mention)
@@ -469,7 +492,7 @@ async def _build_patient_knowledge_graph(
                             patient_id=patient_id,
                             source_node_id=drug_node_id,
                             target_node_id=condition_node_id,
-                            edge_type=EdgeType.TREATS,
+                            edge_type=EdgeType.DRUG_TREATS,
                             properties={"inferred": True},
                         )
                         db.add(treats_edge)
