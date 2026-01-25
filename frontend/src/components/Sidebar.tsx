@@ -87,6 +87,7 @@ const navSections: NavSection[] = [
     items: [
       { title: "NLP Workbench", href: "/nlp", icon: Brain },
       { title: "AI Auto-Coding", href: "/ai-coding", icon: CreditCard },
+      { title: "Clinical Intelligence", href: "/clinical/intelligence", icon: Sparkles },
       { title: "Semantic Search", href: "/search/semantic", icon: Search },
       { title: "AI Assistant", href: "/assistant", icon: Bot },
       { title: "LLM Fine-tuning", href: "/llm/finetuning", icon: Sparkles },
