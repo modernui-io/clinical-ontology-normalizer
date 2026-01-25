@@ -94,13 +94,13 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
 - [x] **P0-013** Implement API versioning with `/api/v1/` prefix
   - Acceptance: All endpoints accessible via `/api/v1/`, legacy routes redirect
 
-- [ ] **P0-014** Generate complete OpenAPI 3.0 spec with all endpoints
+- [x] **P0-014** Generate complete OpenAPI 3.0 spec with all endpoints
   - Acceptance: `/openapi.json` returns full spec, Swagger UI at `/docs`
 
-- [ ] **P0-015** Add request/response examples to all API schemas
+- [x] **P0-015** Add request/response examples to all API schemas
   - Acceptance: Each endpoint has realistic examples in OpenAPI spec
 
-- [ ] **P0-016** Create API changelog documentation
+- [x] **P0-016** Create API changelog documentation
   - Acceptance: CHANGELOG.md documents all API changes
 
 #### P0.2.2 Error Handling & Validation
@@ -108,10 +108,10 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
 **Effort:** 2 days
 **Dependencies:** None
 
-- [ ] **P0-017** Standardize error response format across all endpoints
+- [x] **P0-017** Standardize error response format across all endpoints
   - Acceptance: All errors return `{error: string, code: string, details: object}`
 
-- [ ] **P0-018** Add input validation with detailed error messages
+- [x] **P0-018** Add input validation with detailed error messages
   - Acceptance: Invalid requests return specific field-level errors
 
 - [x] **P0-019** Implement request ID tracking for debugging
@@ -263,13 +263,13 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
 - [x] **P1-009** Create ConceptMap resource endpoints (GET, search, $translate)
   - Acceptance: FHIR R4 compliant ConceptMap resource
 
-- [ ] **P1-010** Add pagination support for terminology operations
+- [x] **P1-010** Add pagination support for terminology operations
   - Acceptance: Standard FHIR paging (_count, _offset)
 
-- [ ] **P1-011** Implement terminology operation caching
+- [x] **P1-011** Implement terminology operation caching
   - Acceptance: Redis cache with TTL, cache invalidation on update
 
-- [ ] **P1-012** Write FHIR Terminology Services conformance tests
+- [x] **P1-012** Write FHIR Terminology Services conformance tests
   - Acceptance: 100% coverage of FHIR TS operations
 
 ---
@@ -290,7 +290,7 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
 - [x] **P1-015** Create password reset flow
   - Acceptance: Request reset, email verification, set new password
 
-- [ ] **P1-016** Add session management with auto-refresh
+- [x] **P1-016** Add session management with auto-refresh
   - Acceptance: Token refresh, session timeout warning, logout
 
 #### P1.2.2 User Management
@@ -318,7 +318,7 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
 - [ ] **P1-021** Create audit log viewer with filtering
   - Acceptance: Filter by user, action, resource, date range
 
-- [ ] **P1-022** Add audit log export (CSV, JSON)
+- [x] **P1-022** Add audit log export (CSV, JSON)
   - Acceptance: Export filtered results, scheduled exports
 
 ---
@@ -339,7 +339,7 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
 - [x] **P1-025** Implement real-time notifications
   - Acceptance: Toast notifications for completed jobs, errors, alerts
 
-- [ ] **P1-026** Add live search-as-you-type with debouncing
+- [x] **P1-026** Add live search-as-you-type with debouncing
   - Acceptance: Results update as user types, 300ms debounce
 
 #### P1.3.2 Job Monitoring
@@ -505,7 +505,7 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
 **Effort:** 4 days
 **Dependencies:** P1-007
 
-- [ ] **P2-009** Create value set data model and API
+- [x] **P2-009** Create value set data model and API
   - Acceptance: CRUD operations, version control, validation
 
 - [ ] **P2-010** Build extensional value set builder UI
@@ -522,13 +522,13 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
 **Effort:** 3 days
 **Dependencies:** P2-009
 
-- [ ] **P2-013** Import standard value sets (HEDIS, CMS eCQM, CDC)
+- [x] **P2-013** Import standard value sets (HEDIS, CMS eCQM, CDC)
   - Acceptance: Load from VSAC format, versioned storage
 
-- [ ] **P2-014** Create value set browser with search
+- [x] **P2-014** Create value set browser with search
   - Acceptance: Search by name, OID, code content; filter by source
 
-- [ ] **P2-015** Add value set export (FHIR, CSV, VSAC)
+- [x] **P2-015** Add value set export (FHIR, CSV, VSAC)
   - Acceptance: Export in multiple formats, bulk export
 
 ---
@@ -540,13 +540,13 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
 **Effort:** 4 days
 **Dependencies:** P0-001
 
-- [ ] **P2-016** Implement OHDSI Data Quality Dashboard (DQD) checks
+- [x] **P2-016** Implement OHDSI Data Quality Dashboard (DQD) checks
   - Acceptance: Run Achilles characterization, display results
 
-- [ ] **P2-017** Create data completeness reports
+- [x] **P2-017** Create data completeness reports
   - Acceptance: % complete by field, by table, by source
 
-- [ ] **P2-018** Add data consistency validation
+- [x] **P2-018** Add data consistency validation
   - Acceptance: Cross-table consistency checks, temporal plausibility
 
 - [ ] **P2-019** Build data quality scorecard dashboard
@@ -603,10 +603,10 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
 **Effort:** 5 days
 **Dependencies:** P2-026
 
-- [ ] **P2-029** Design SDTM mapping specification format
+- [x] **P2-029** Design SDTM mapping specification format
   - Acceptance: JSON/YAML spec for source-to-SDTM mapping
 
-- [ ] **P2-030** Create SDTM domain templates (DM, AE, CM, MH, VS, LB)
+- [x] **P2-030** Create SDTM domain templates (DM, AE, CM, MH, VS, LB)
   - Acceptance: Pre-built templates for common domains
 
 - [ ] **P2-031** Build SDTM mapping engine
@@ -666,7 +666,7 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
 - [ ] **P3-007** Implement coding assistant chatbot
   - Acceptance: Ask coding questions, get suggestions with citations
 
-- [ ] **P3-008** Add audit log for all AI interactions
+- [x] **P3-008** Add audit log for all AI interactions
   - Acceptance: Track prompts, responses, user feedback
 
 ---
@@ -759,7 +759,7 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
 - [x] **P4-003** Build clinical deterioration early warning score (EWS)
   - Acceptance: NEWS2/MEWS calculation, real-time scoring
 
-- [ ] **P4-004** Create mortality risk stratification model
+- [x] **P4-004** Create mortality risk stratification model
   - Acceptance: Charlson/Elixhauser comorbidity features, risk tiers
 
 #### P4.1.2 Predictive Analytics UI
