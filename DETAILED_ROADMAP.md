@@ -10,7 +10,7 @@
 
 ## Executive Summary
 
-This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanning backend infrastructure, frontend development, integrations, and documentation. **127 tasks completed** (64%), **71 remaining**.
+This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanning backend infrastructure, frontend development, integrations, and documentation. **133 tasks completed** (67%), **65 remaining**.
 
 ### Priority Definitions
 
@@ -805,7 +805,8 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
 **Effort:** 3 days
 **Dependencies:** P4-001
 
-- [ ] **P4-005** Build risk dashboard with patient risk scores
+- [x] **P4-005** Build risk dashboard with patient risk scores
+  - Implemented: `frontend/src/app/analytics/risks/page.tsx`
   - Acceptance: Sortable risk list, trend sparklines, drill-down
 
 - [x] **P4-006** Create model explainability view (SHAP values)
@@ -873,13 +874,16 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
 **Effort:** 3 days
 **Dependencies:** P4-015
 
-- [ ] **P4-018** Build real-time streaming dashboard
+- [x] **P4-018** Build real-time streaming dashboard
+  - Implemented: `frontend/src/app/analytics/streaming/page.tsx`
   - Acceptance: Live event feed, throughput charts, lag monitoring
 
-- [ ] **P4-019** Create streaming alert console
+- [x] **P4-019** Create streaming alert console
+  - Implemented: `frontend/src/app/analytics/streaming/alerts/page.tsx`
   - Acceptance: Real-time clinical alerts, acknowledge workflow, escalation
 
-- [ ] **P4-020** Add streaming data quality monitor
+- [x] **P4-020** Add streaming data quality monitor
+  - Implemented: `frontend/src/app/analytics/streaming/quality/page.tsx`
   - Acceptance: Live validation errors, schema drift detection
 
 ---
@@ -894,10 +898,12 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
 - [ ] **P4-021** Create interactive Sankey diagram for treatment pathways
   - Acceptance: D3.js Sankey, filter by cohort, export as SVG
 
-- [ ] **P4-022** Build geospatial health mapping dashboard
+- [x] **P4-022** Build geospatial health mapping dashboard
+  - Implemented: `frontend/src/app/analytics/visualizations/geospatial/page.tsx`
   - Acceptance: Mapbox/Leaflet, choropleth by region, drill-down
 
-- [ ] **P4-023** Implement survival curve visualization (Kaplan-Meier)
+- [x] **P4-023** Implement survival curve visualization (Kaplan-Meier)
+  - Implemented: `frontend/src/app/analytics/visualizations/survival/page.tsx`
   - Acceptance: Survival analysis, confidence intervals, log-rank test
 
 #### P4.4.2 Research Visualizations
