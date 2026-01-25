@@ -10,7 +10,7 @@
 
 ## Executive Summary
 
-This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanning backend infrastructure, frontend development, integrations, and documentation. **124 tasks completed** (63%), **74 remaining**.
+This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanning backend infrastructure, frontend development, integrations, and documentation. **127 tasks completed** (64%), **71 remaining**.
 
 ### Priority Definitions
 
@@ -808,7 +808,8 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
 - [ ] **P4-005** Build risk dashboard with patient risk scores
   - Acceptance: Sortable risk list, trend sparklines, drill-down
 
-- [ ] **P4-006** Create model explainability view (SHAP values)
+- [x] **P4-006** Create model explainability view (SHAP values)
+  - Implemented: `frontend/src/app/analytics/models/explainability/page.tsx`
   - Acceptance: Feature importance, waterfall charts, what-if analysis
 
 - [ ] **P4-007** Add prediction audit trail and monitoring
@@ -904,10 +905,12 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
 **Effort:** 3 days
 **Dependencies:** P3-009
 
-- [ ] **P4-024** Create study timeline Gantt chart
+- [x] **P4-024** Create study timeline Gantt chart
+  - Implemented: `frontend/src/app/analytics/visualizations/timeline/page.tsx`
   - Acceptance: Protocol events, enrollment, milestones visualization
 
-- [ ] **P4-025** Build forest plot for meta-analysis results
+- [x] **P4-025** Build forest plot for meta-analysis results
+  - Implemented: `frontend/src/app/analytics/visualizations/forest/page.tsx`
   - Acceptance: Effect sizes, confidence intervals, heterogeneity stats
 
 - [ ] **P4-026** Add volcano plot for differential analysis
