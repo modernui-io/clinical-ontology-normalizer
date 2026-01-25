@@ -130,6 +130,7 @@ from app.api.lab_reference import router as lab_reference_router
 from app.api.alert_rules import router as alert_rules_router
 from app.api.risk_thresholds import router as risk_thresholds_router
 from app.api.prediction_audit import router as prediction_audit_router
+from app.api.pipeline_scheduling import router as pipeline_scheduling_router
 
 __all__ = [
     # Routers
@@ -200,6 +201,7 @@ __all__ = [
     "alert_rules_router",
     "risk_thresholds_router",
     "prediction_audit_router",
+    "pipeline_scheduling_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",
