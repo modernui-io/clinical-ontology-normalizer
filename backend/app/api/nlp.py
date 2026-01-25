@@ -369,7 +369,7 @@ async def extract_entities(request: ExtractRequest) -> ExtractResponse:
                         code=nc.code,
                         display=nc.display,
                         system=NormalizationVocabularyEnum(nc.system.value),
-                        confidence=nc.confidence,
+                        confidence=min(1.0, max(0.0, nc.confidence)),  # Clamp to [0, 1]
                         is_preferred=nc.is_preferred,
                     )
                     for nc in norm_result.normalized_codes
@@ -641,7 +641,7 @@ async def normalize_entities(request: NormalizeRequest) -> NormalizeResponse:
                     code=nc.code,
                     display=nc.display,
                     system=NormalizationVocabularyEnum(nc.system.value),
-                    confidence=nc.confidence,
+                    confidence=min(1.0, max(0.0, nc.confidence)),  # Clamp to [0, 1]
                     is_preferred=nc.is_preferred,
                 )
                 for nc in norm_result.normalized_codes
@@ -653,7 +653,7 @@ async def normalize_entities(request: NormalizeRequest) -> NormalizeResponse:
                     code=norm_result.best_match.code,
                     display=norm_result.best_match.display,
                     system=NormalizationVocabularyEnum(norm_result.best_match.system.value),
-                    confidence=norm_result.best_match.confidence,
+                    confidence=min(1.0, max(0.0, norm_result.best_match.confidence)),  # Clamp to [0, 1]
                     is_preferred=norm_result.best_match.is_preferred,
                 )
                 entities_with_codes += 1
