@@ -609,10 +609,10 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
 - [x] **P2-030** Create SDTM domain templates (DM, AE, CM, MH, VS, LB)
   - Acceptance: Pre-built templates for common domains
 
-- [ ] **P2-031** Build SDTM mapping engine
+- [x] **P2-031** Build SDTM mapping engine ✅
   - Acceptance: Transform source data to SDTM format
 
-- [ ] **P2-032** Implement SDTM dataset generation
+- [x] **P2-032** Implement SDTM dataset generation ✅
   - Acceptance: Generate SAS XPT files, define.xml
 
 - [ ] **P2-033** Create SDTM mapping UI
@@ -623,7 +623,7 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
 **Effort:** 2 days
 **Dependencies:** P2-031
 
-- [ ] **P2-034** Implement SDTM validation rules (Pinnacle 21 compatible)
+- [x] **P2-034** Implement SDTM validation rules (Pinnacle 21 compatible) ✅
   - Acceptance: Run validation, report errors/warnings
 
 - [ ] **P2-035** Create validation results viewer
