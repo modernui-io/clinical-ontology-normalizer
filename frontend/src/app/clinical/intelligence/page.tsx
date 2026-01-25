@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -445,10 +446,14 @@ function KnowledgeGraphCanvas({ nodes, edges, selectedNode, onNodeClick }: Graph
 // ============================================================================
 
 export default function ClinicalIntelligencePage() {
-  const [activeTab, setActiveTab] = useState("import");
+  const searchParams = useSearchParams();
+  const urlPatient = searchParams.get("patient");
+  const urlTab = searchParams.get("tab");
+
+  const [activeTab, setActiveTab] = useState(urlTab || "import");
 
   // Import state
-  const [patientId, setPatientId] = useState("TEST12345");
+  const [patientId, setPatientId] = useState(urlPatient || "TEST12345");
   const [notesInput, setNotesInput] = useState("");
   const [isImporting, setIsImporting] = useState(false);
   const [importProgress, setImportProgress] = useState(0);
@@ -730,6 +735,16 @@ export default function ClinicalIntelligencePage() {
       loadPatientGraph(patientId);
     }
   }, [activeTab, patientId]);
+
+  // Auto-load graph when navigating from NLP Workbench with URL params
+  // Only fires on initial mount when URL params are present
+  useEffect(() => {
+    if (urlPatient && urlTab === "graph") {
+      // Force reload graph for the patient from URL (coming from NLP Workbench)
+      loadPatientGraph(urlPatient);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlPatient, urlTab]);
 
   return (
     <div className="p-6 space-y-6">

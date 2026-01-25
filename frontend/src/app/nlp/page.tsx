@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import {
   Select,
   SelectContent,
@@ -41,7 +42,10 @@ import {
   Sparkles,
   BarChart3,
   ClipboardList,
+  Network,
+  ExternalLink,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   nlpExtractEntities,
@@ -957,9 +961,13 @@ function HybridResultPanel({ result }: { result: HybridAnalyzeResponse }) {
 function ExportPanel({
   result,
   inputText,
+  onBuildKnowledgeGraph,
+  isBuildingGraph,
 }: {
   result: NLPExtractionResult;
   inputText: string;
+  onBuildKnowledgeGraph: () => void;
+  isBuildingGraph: boolean;
 }) {
   const [exporting, setExporting] = useState(false);
 
@@ -1052,10 +1060,10 @@ function ExportPanel({
       <CardHeader className="pb-3">
         <CardTitle className="text-sm flex items-center gap-2">
           <Download className="h-4 w-4" />
-          Export Results
+          Export & Build
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-3">
         <div className="flex gap-2">
           <Button
             variant="outline"
@@ -1084,6 +1092,32 @@ function ExportPanel({
             Export FHIR
           </Button>
         </div>
+
+        <Separator />
+
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground">
+            Build a patient knowledge graph from the extracted entities
+          </p>
+          <Button
+            onClick={onBuildKnowledgeGraph}
+            disabled={isBuildingGraph || result.entities.length === 0}
+            className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600"
+          >
+            {isBuildingGraph ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Building Knowledge Graph...
+              </>
+            ) : (
+              <>
+                <Network className="h-4 w-4 mr-2" />
+                Build Knowledge Graph
+                <ExternalLink className="h-3 w-3 ml-2" />
+              </>
+            )}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
@@ -1096,6 +1130,7 @@ function ExportPanel({
 type WorkbenchMode = "extraction" | "hybrid";
 
 export default function NLPWorkbenchPage() {
+  const router = useRouter();
   const [inputText, setInputText] = useState("");
   const [isExtracting, setIsExtracting] = useState(false);
   const [result, setResult] = useState<NLPExtractionResult | null>(null);
@@ -1112,6 +1147,9 @@ export default function NLPWorkbenchPage() {
   const [analysisType, setAnalysisType] = useState<AnalysisType>("clinical_summary");
   const [useLLM, setUseLLM] = useState(true);
   const [question, setQuestion] = useState("");
+
+  // Knowledge graph building state
+  const [isBuildingGraph, setIsBuildingGraph] = useState(false);
 
   // Calculate entity counts
   const entityCounts = useMemo(() => {
@@ -1239,6 +1277,60 @@ export default function NLPWorkbenchPage() {
 
   const handleClearTypes = () => {
     setSelectedEntityTypes(new Set());
+  };
+
+  const handleBuildKnowledgeGraph = async () => {
+    if (!inputText.trim() || !result || result.entities.length === 0) {
+      toast.error("No entities to build knowledge graph from");
+      return;
+    }
+
+    setIsBuildingGraph(true);
+
+    try {
+      // Generate a patient ID based on timestamp if not extractable from text
+      const patientIdMatch = inputText.match(/(?:MRN|Patient ID|ID)[:\s]*([A-Z0-9]+)/i);
+      const patientId = patientIdMatch ? patientIdMatch[1] : `NLP_${Date.now()}`;
+
+      // Convert the text to a note format for the clinical-agent API
+      const notes = [
+        {
+          note_id: `nlp_note_${Date.now()}`,
+          note_type: "clinical_note",
+          date: new Date().toISOString().split("T")[0],
+          text: inputText,
+        },
+      ];
+
+      const response = await fetch("/api/v1/clinical-agent/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patient_id: patientId,
+          notes: notes,
+          build_knowledge_graph: true,
+        }),
+      });
+
+      if (response.ok) {
+        const importResult = await response.json();
+        toast.success(
+          `Knowledge graph built: ${importResult.total_entities} entities, ${importResult.knowledge_graph?.node_count || 0} nodes`
+        );
+
+        // Navigate to Clinical Intelligence to view the graph
+        router.push(`/clinical/intelligence?patient=${patientId}&tab=graph`);
+      } else {
+        const error = await response.text();
+        console.error("Import failed:", error);
+        toast.error("Failed to build knowledge graph. Check console for details.");
+      }
+    } catch (error) {
+      console.error("Knowledge graph build error:", error);
+      toast.error("Failed to build knowledge graph. Please try again.");
+    } finally {
+      setIsBuildingGraph(false);
+    }
   };
 
   return (
@@ -1384,7 +1476,14 @@ export default function NLPWorkbenchPage() {
               </Card>
 
               {/* Export Panel */}
-              {result && <ExportPanel result={result} inputText={inputText} />}
+              {result && (
+                <ExportPanel
+                  result={result}
+                  inputText={inputText}
+                  onBuildKnowledgeGraph={handleBuildKnowledgeGraph}
+                  isBuildingGraph={isBuildingGraph}
+                />
+              )}
             </>
           ) : (
             <>
