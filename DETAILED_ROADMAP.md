@@ -10,7 +10,7 @@
 
 ## Executive Summary
 
-This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanning backend infrastructure, frontend development, integrations, and documentation. **144 tasks completed** (73%), **54 remaining**.
+This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanning backend infrastructure, frontend development, integrations, and documentation. **146 tasks completed** (74%), **52 remaining**.
 
 ### Priority Definitions
 
@@ -612,7 +612,8 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
   - Acceptance: Drag-drop widgets, save templates, schedule delivery
   - Implemented: `frontend/src/app/reports/page.tsx` (6 report templates, scheduling, multiple formats)
 
-- [ ] **P2-025** Add PDF export for all reports
+- [x] **P2-025** Add PDF export for all reports
+  - Implemented: `frontend/src/app/reports/export/page.tsx`
   - Acceptance: Formatted PDF generation, branding options
 
 ---
@@ -776,7 +777,8 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
 - [x] **P3-021** Create SMTP email notification service
   - Acceptance: Email alerts, digest reports, customizable templates
 
-- [ ] **P3-022** Add Direct secure messaging support
+- [x] **P3-022** Add Direct secure messaging support
+  - Implemented: `frontend/src/app/messaging/direct/page.tsx`
   - Acceptance: Send/receive healthcare messages via Direct protocol
 
 ---
