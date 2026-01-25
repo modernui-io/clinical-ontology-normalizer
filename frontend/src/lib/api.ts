@@ -2899,6 +2899,7 @@ export interface StructuredContext {
   relationships: Array<{ subject: string; relation: string; object: string }>;
   entity_count: number;
   coverage_pct: number;
+  human_readable_summary?: string;
 }
 
 export interface HybridAnalyzeResponse {

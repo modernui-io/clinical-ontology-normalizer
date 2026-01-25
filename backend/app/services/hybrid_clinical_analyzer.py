@@ -170,6 +170,142 @@ class StructuredContext:
 
         return "\n".join(sections)
 
+    # Terms that are partial medical phrases (not meaningful standalone)
+    _PARTIAL_TERMS = frozenset({
+        "mellitus", "coronary", "myocardial", "infarction", "syndrome",
+        "artery", "arterial", "venous", "vascular", "pulmonary", "renal",
+        "hepatic", "cerebral", "peripheral", "systemic", "insufficiency",
+        "dysfunction", "disease", "disorder", "failure", "deficiency",
+        "hemoglobin", "cardiology", "troponins", "serial",
+    })
+
+    def _dedupe_entities(self, entities: list[dict], name_key: str = "name") -> list[dict]:
+        """Deduplicate entities by name (case-insensitive)."""
+        seen = set()
+        result = []
+        for entity in entities:
+            name = (entity.get("normalized") or entity.get(name_key, "")).lower()
+            # Skip partial medical terms that aren't meaningful standalone
+            if name in self._PARTIAL_TERMS:
+                continue
+            if name and name not in seen:
+                seen.add(name)
+                result.append(entity)
+        return result
+
+    def to_human_readable_summary(self) -> str:
+        """Generate a human-readable clinical summary.
+
+        Returns:
+            A formatted string summary that's easy to read.
+        """
+        lines = []
+
+        # Active Problems / Diagnoses (deduplicated)
+        if self.diagnoses:
+            present_dx = self._dedupe_entities(
+                [d for d in self.diagnoses if not d.get("negated")]
+            )
+            if present_dx:
+                lines.append("**Active Problems:**")
+                for dx in present_dx[:10]:  # Limit to top 10
+                    name = dx.get("normalized") or dx.get("name", "Unknown")
+                    code = dx.get("vocabulary_code", "")
+                    code_str = f" ({code})" if code else ""
+                    lines.append(f"  • {name}{code_str}")
+                if len(present_dx) > 10:
+                    lines.append(f"  ... and {len(present_dx) - 10} more")
+                lines.append("")
+
+        # Current Medications (deduplicated)
+        if self.medications:
+            deduped_meds = self._dedupe_entities(self.medications)
+            if deduped_meds:
+                lines.append("**Current Medications:**")
+                for med in deduped_meds[:10]:
+                    name = med.get("normalized") or med.get("name", "Unknown")
+                    dose = med.get("dose", "")
+                    freq = med.get("frequency", "")
+                    details = " ".join(filter(None, [dose, freq]))
+                    details_str = f" - {details}" if details else ""
+                    lines.append(f"  • {name}{details_str}")
+                if len(deduped_meds) > 10:
+                    lines.append(f"  ... and {len(deduped_meds) - 10} more")
+                lines.append("")
+
+        # Vital Signs (only show if we have values)
+        if self.vitals:
+            vital_strs = []
+            deduped_vitals = self._dedupe_entities(self.vitals)
+            for vital in deduped_vitals[:8]:
+                name = vital.get("name", "")
+                value = vital.get("value", "")
+                if name and value:
+                    vital_strs.append(f"{name}: {value}")
+            if vital_strs:
+                lines.append("**Vital Signs:**")
+                lines.append(f"  {', '.join(vital_strs)}")
+                lines.append("")
+
+        # Lab Results (only show if we have actual results)
+        if self.labs:
+            deduped_labs = self._dedupe_entities(self.labs)
+            lab_lines = []
+            for lab in deduped_labs[:10]:
+                name = lab.get("name", "Unknown")
+                value = lab.get("value")
+                if value:  # Only show labs with actual values
+                    unit = lab.get("unit", "")
+                    flag = lab.get("flag", "")
+                    value_str = f"{value} {unit}".strip()
+                    flag_str = f" [{flag.upper()}]" if flag else ""
+                    lab_lines.append(f"  • {name}: {value_str}{flag_str}")
+            if lab_lines:
+                lines.append("**Laboratory Results:**")
+                lines.extend(lab_lines)
+                lines.append("")
+
+        # Symptoms (present, deduplicated)
+        if self.symptoms:
+            present_symptoms = self._dedupe_entities(
+                [s for s in self.symptoms if not s.get("negated")]
+            )
+            if present_symptoms:
+                lines.append("**Presenting Symptoms:**")
+                symptom_names = list(set(
+                    s.get("normalized") or s.get("name", "")
+                    for s in present_symptoms[:8]
+                ))
+                lines.append(f"  {', '.join(filter(None, symptom_names))}")
+                lines.append("")
+
+        # Procedures (deduplicated)
+        if self.procedures:
+            deduped_procs = self._dedupe_entities(self.procedures)
+            if deduped_procs:
+                lines.append("**Procedures/Treatments:**")
+                for proc in deduped_procs[:5]:
+                    name = proc.get("normalized") or proc.get("name", "Unknown")
+                    lines.append(f"  • {name}")
+                if len(deduped_procs) > 5:
+                    lines.append(f"  ... and {len(deduped_procs) - 5} more")
+                lines.append("")
+
+        # Negated findings (what was ruled out, deduplicated)
+        if self.negated_findings:
+            negated_list = list(set(self.negated_findings))[:8]
+            if negated_list:
+                lines.append("**Ruled Out / Denied:**")
+                lines.append(f"  {', '.join(negated_list)}")
+                if len(set(self.negated_findings)) > 8:
+                    lines.append(f"  ... and more")
+                lines.append("")
+
+        if not lines:
+            return "No significant clinical findings extracted."
+
+        return "\n".join(lines)
+
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -185,6 +321,7 @@ class StructuredContext:
             "uncertain_findings": self.uncertain_findings,
             "coverage_pct": self.coverage_pct,
             "entity_count": self.entity_count,
+            "human_readable_summary": self.to_human_readable_summary(),
         }
 
 
@@ -349,6 +486,115 @@ class HybridClinicalAnalyzer:
         self._mapper = ontology_mapper or get_ontology_mapper()
         self._llm = llm_service or LLMService()
 
+    # Non-clinical terms to filter out (document metadata, common words)
+    NON_CLINICAL_TERMS = frozenset({
+        # Document metadata and section headers
+        "synthetic", "test", "patient", "testing", "data", "note", "notes",
+        "document", "example", "sample", "facility", "clinic", "hospital",
+        "author", "provider", "date", "time", "mrn", "dob", "age", "sex",
+        "male", "female", "m", "f", "office", "visit", "type", "internal",
+        "medicine", "primary", "care", "pcp", "comprehensive", "follow",
+        "longitudinal", "real", "not", "history", "present", "illness",
+        "chief", "complaint", "assessment", "plan", "exam", "physical",
+        "review", "systems", "social", "family", "past", "medical",
+        "surgical", "allergies", "impression", "recommendation", "course",
+        "subjective", "objective", "discharge", "summary", "progress",
+        # Time/age words
+        "old", "new", "year", "years", "month", "months", "day", "days",
+        "week", "weeks", "hour", "hours", "minute", "minutes", "second",
+        "today", "yesterday", "tomorrow", "ago", "since", "serial", "recent",
+        # Common non-clinical words that might get misclassified
+        "the", "a", "an", "is", "are", "was", "were", "be", "been", "being",
+        "have", "has", "had", "do", "does", "did", "will", "would", "could",
+        "should", "may", "might", "must", "shall", "can", "need", "to", "of",
+        "in", "for", "on", "with", "at", "by", "from", "as", "or", "and",
+        "but", "if", "then", "so", "than", "that", "this", "these", "those",
+        "it", "its", "he", "she", "they", "we", "you", "i", "me", "him",
+        "her", "us", "them", "my", "your", "his", "their", "our", "no", "yes",
+        "up", "down", "out", "off", "over", "under", "again", "further",
+        "once", "here", "there", "when", "where", "why", "how", "all", "each",
+        "every", "both", "few", "more", "most", "other", "some", "such",
+        "only", "own", "same", "very", "just", "also", "now",
+        # Anatomical modifiers (when standalone, not clinical)
+        "left", "right", "upper", "lower", "bilateral", "unilateral",
+        "anterior", "posterior", "lateral", "medial", "proximal", "distal",
+        # Qualifiers and descriptors
+        "mild", "moderate", "severe", "acute", "chronic", "stable",
+        "normal", "abnormal", "elevated", "decreased", "increased",
+        "positive", "negative", "present", "absent", "pending", "unknown",
+        "possible", "probable", "likely", "unlikely", "ruled", "rule", "out",
+        "pressure", "severity", "rated", "scale", "score", "substernal",
+        "radiating", "like", "describes", "arm",
+        # Environment/context words
+        "room", "air", "who", "describes", "presents", "denies", "reports",
+        "states", "noted", "found", "seen", "shows", "indicates", "suggests",
+        "continue", "continued", "current", "currently", "previous", "prior",
+        "well", "controlled", "uncontrolled", "improved", "worsening",
+        "exertion", "rest", "signs", "rhythm", "regimen", "secondary",
+        "clear", "rate", "regular", "consult", "monitor", "adjust",
+        "oriented", "alert", "distress", "bilaterally", "auscultation",
+        # Numbers and units in text form
+        "one", "two", "three", "four", "five", "six", "seven", "eight",
+        "nine", "ten", "first", "second", "third", "daily", "twice", "weekly",
+        # Procedure context words (not the procedure itself)
+        "lead", "ray", "scan", "image", "imaging", "study", "result", "results",
+        "test", "tests", "level", "levels", "panel", "screen", "screening",
+    })
+
+    # Minimum confidence threshold for clinical entities
+    MIN_CONFIDENCE_THRESHOLD = 0.3
+
+    # Known clinical abbreviations that are valid short entities
+    VALID_SHORT_ENTITIES = frozenset({
+        "dm", "dm2", "htn", "cad", "chf", "mi", "cvd", "ckd", "esrd",
+        "copd", "sob", "cp", "gi", "gu", "cns", "pna", "uti", "dvt",
+        "pe", "tia", "cva", "af", "afib", "vfib", "hiv", "aids", "tb",
+        "ra", "oa", "sle", "ibs", "ibd", "gerd", "bph", "osa", "rls",
+        "ms", "als", "pd", "ad", "ptsd", "ocd", "gad", "mdd", "bp",
+        "iv", "im", "po", "prn", "bid", "tid", "qid", "qd", "qod",
+        "asa", "nsaid", "ace", "arb", "bb", "ccb", "ssri", "snri",
+        "ecg", "ekg", "ct", "mri", "cxr", "bmp", "cmp", "cbc", "lfts",
+        "hba1c", "a1c", "inr", "ptt", "pt", "bnp", "tsh", "t3", "t4",
+        "hr", "bp", "rr", "o2", "spo2", "bmi", "wbc", "rbc", "hgb", "hct",
+        "na", "k", "cl", "co2", "bun", "cr", "glu", "ca", "mg", "phos",
+    })
+
+    def _is_clinical_entity(self, entity_name: str, confidence: float) -> bool:
+        """Check if an entity is a meaningful clinical entity."""
+        # Normalize the name for comparison
+        normalized = entity_name.lower().strip()
+
+        # Filter out non-clinical terms
+        if normalized in self.NON_CLINICAL_TERMS:
+            return False
+
+        # Filter out single-character entities
+        if len(normalized) <= 1:
+            return False
+
+        # Filter out pure numbers
+        if normalized.replace(".", "").replace(",", "").isdigit():
+            return False
+
+        # Filter out low confidence
+        if confidence < self.MIN_CONFIDENCE_THRESHOLD:
+            return False
+
+        # Allow known clinical abbreviations regardless of length
+        if normalized in self.VALID_SHORT_ENTITIES:
+            return True
+
+        # Filter out very short terms (2-4 chars) unless high confidence
+        if len(normalized) <= 4 and confidence < 0.7:
+            return False
+
+        # Filter out terms that are too short to be meaningful (5 chars minimum)
+        # unless they have reasonable confidence
+        if len(normalized) < 5 and confidence < 0.5:
+            return False
+
+        return True
+
     def extract_structured_context(
         self,
         note_text: str,
@@ -384,8 +630,13 @@ class HybridClinicalAnalyzer:
                     return True
             return False
 
-        # Categorize entities
+        # Categorize entities (with filtering for clinical relevance)
+        filtered_count = 0
         for entity in mapping.entities:
+            # Skip non-clinical entities
+            if not self._is_clinical_entity(entity.span.text, entity.confidence):
+                filtered_count += 1
+                continue
             entity_dict = {
                 "name": entity.span.text,
                 "normalized": entity.span.normalized,
@@ -420,14 +671,30 @@ class HybridClinicalAnalyzer:
             elif entity.category == OntologyCategory.PROCEDURE:
                 context.procedures.append(entity_dict)
 
-        # Extract relationships
+        # Extract relationships (filter to only include clinical entities)
         for rel in mapping.relationships:
-            context.relationships.append({
-                "subject": rel.subject.span.text,
-                "relation": rel.relation.value,
-                "object": rel.object.span.text,
-                "confidence": rel.confidence,
-            })
+            if (self._is_clinical_entity(rel.subject.span.text, rel.confidence) and
+                self._is_clinical_entity(rel.object.span.text, rel.confidence)):
+                context.relationships.append({
+                    "subject": rel.subject.span.text,
+                    "relation": rel.relation.value,
+                    "object": rel.object.span.text,
+                    "confidence": rel.confidence,
+                })
+
+        # Update entity count to reflect filtered clinical entities only
+        actual_entity_count = (
+            len(context.diagnoses) + len(context.medications) +
+            len(context.labs) + len(context.vitals) +
+            len(context.symptoms) + len(context.findings) +
+            len(context.procedures)
+        )
+        context.entity_count = actual_entity_count
+
+        logger.debug(
+            f"Extracted {actual_entity_count} clinical entities "
+            f"(filtered {filtered_count} non-clinical tokens)"
+        )
 
         return context, mapping
 

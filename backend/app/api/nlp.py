@@ -1032,6 +1032,9 @@ class StructuredContextResponse(BaseModel):
     relationships: list[dict] = Field(default_factory=list)
     entity_count: int = Field(..., description="Total entities")
     coverage_pct: float = Field(..., description="Token coverage percentage")
+    human_readable_summary: str = Field(
+        default="", description="Human-readable clinical summary"
+    )
 
 
 class HybridAnalyzeResponse(BaseModel):
@@ -1108,6 +1111,7 @@ async def hybrid_analyze(request: HybridAnalyzeRequest) -> HybridAnalyzeResponse
             relationships=context.relationships,
             entity_count=context.entity_count,
             coverage_pct=context.coverage_pct,
+            human_readable_summary=context.to_human_readable_summary(),
         )
 
         analysis = None

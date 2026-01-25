@@ -40,6 +40,7 @@ import {
   XCircle,
   Sparkles,
   BarChart3,
+  ClipboardList,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -741,6 +742,31 @@ function HybridResultPanel({ result }: { result: HybridAnalyzeResponse }) {
                 {result.analysis}
               </div>
             </ScrollArea>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Clinical Summary - Human Readable */}
+      {ctx.human_readable_summary && (
+        <Card className="border-green-200 bg-green-50/30">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <ClipboardList className="h-4 w-4 text-green-700" />
+              Clinical Summary
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="prose prose-sm max-w-none whitespace-pre-wrap text-gray-700">
+              {ctx.human_readable_summary.split('\n').map((line, i) => {
+                if (line.startsWith('**') && line.endsWith('**')) {
+                  return <p key={i} className="font-semibold text-gray-900 mt-3 first:mt-0">{line.replace(/\*\*/g, '')}</p>;
+                }
+                if (line.trim().startsWith('•')) {
+                  return <p key={i} className="ml-2 text-sm">{line}</p>;
+                }
+                return line ? <p key={i} className="text-sm">{line}</p> : null;
+              })}
+            </div>
           </CardContent>
         </Card>
       )}
