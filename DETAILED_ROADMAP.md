@@ -10,7 +10,7 @@
 
 ## Executive Summary
 
-This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanning backend infrastructure, frontend development, integrations, and documentation. **121 tasks completed** (61%), **77 remaining**.
+This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanning backend infrastructure, frontend development, integrations, and documentation. **124 tasks completed** (63%), **74 remaining**.
 
 ### Priority Definitions
 
@@ -650,7 +650,8 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
 - [x] **P2-032** Implement SDTM dataset generation ✅
   - Acceptance: Generate SAS XPT files, define.xml
 
-- [ ] **P2-033** Create SDTM mapping UI
+- [x] **P2-033** Create SDTM mapping UI
+  - Implemented: `frontend/src/app/cdisc/sdtm-mapping/page.tsx`
   - Acceptance: Visual mapper, preview output, validation
 
 #### P2.4.3 Validation
@@ -661,7 +662,8 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
 - [x] **P2-034** Implement SDTM validation rules (Pinnacle 21 compatible) ✅
   - Acceptance: Run validation, report errors/warnings
 
-- [ ] **P2-035** Create validation results viewer
+- [x] **P2-035** Create validation results viewer
+  - Implemented: `frontend/src/app/data-quality/validation/page.tsx`
   - Acceptance: Drill-down to issues, export report
 
 ---
@@ -678,7 +680,8 @@ This roadmap covers 5 priority levels (P0-P4) with **198 detailed tasks** spanni
 - [x] **P3-001** Create note generation UI with templates
   - Acceptance: Select template (SOAP, H&P, Progress), generate from facts
 
-- [ ] **P3-002** Implement note customization editor
+- [x] **P3-002** Implement note customization editor
+  - Implemented: `frontend/src/app/notes/templates/page.tsx`
   - Acceptance: Edit generated note, add sections, save preferences
 
 - [x] **P3-003** Add voice-to-note integration
