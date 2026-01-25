@@ -126,6 +126,8 @@ from app.api.cpt_suggestions import router as cpt_suggestions_router
 from app.api.hcc_analysis import router as hcc_analysis_router
 from app.api.voice import router as voice_router
 from app.api.coding_assistant import router as coding_assistant_router
+from app.api.lab_reference import router as lab_reference_router
+from app.api.alert_rules import router as alert_rules_router
 
 __all__ = [
     # Routers
@@ -192,6 +194,8 @@ __all__ = [
     "hcc_analysis_router",
     "voice_router",
     "coding_assistant_router",
+    "lab_reference_router",
+    "alert_rules_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",
