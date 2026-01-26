@@ -1117,7 +1117,6 @@ function ExportPanel({
               <>
                 <Network className="h-4 w-4 mr-2" />
                 Build Knowledge Graph
-                <ExternalLink className="h-3 w-3 ml-2" />
               </>
             )}
           </Button>
