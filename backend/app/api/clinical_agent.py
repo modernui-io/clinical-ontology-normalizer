@@ -82,7 +82,49 @@ class ExtractedEntity(BaseModel):
     confidence: float = Field(..., ge=0, le=1, description="Extraction confidence")
     assertion: str = Field("PRESENT", description="PRESENT, ABSENT, POSSIBLE")
     omop_concept_id: int | None = Field(None, description="Mapped OMOP concept ID")
-    note_id: str = Field(..., description="Source note ID")
+    note_id: str = Field("frontend", description="Source note ID")
+
+
+class BuildGraphFromEntitiesRequest(BaseModel):
+    """Request to build knowledge graph from pre-extracted entities."""
+
+    patient_id: str = Field(..., description="Patient identifier")
+    entities: list[ExtractedEntity] = Field(..., min_length=1, max_length=5000, description="Pre-extracted entities")
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "patient_id": "TEST67890",
+                "entities": [
+                    {
+                        "text": "sickle cell disease",
+                        "entity_type": "CONDITION",
+                        "confidence": 0.95,
+                        "assertion": "PRESENT",
+                        "omop_concept_id": 4322024,
+                        "note_id": "frontend"
+                    },
+                    {
+                        "text": "hydroxyurea",
+                        "entity_type": "DRUG",
+                        "confidence": 0.92,
+                        "assertion": "PRESENT",
+                        "omop_concept_id": 1305058,
+                        "note_id": "frontend"
+                    }
+                ]
+            }
+        }
+    }
+
+
+class BuildGraphResponse(BaseModel):
+    """Response from building graph from pre-extracted entities."""
+
+    patient_id: str
+    entities_processed: int
+    knowledge_graph: KnowledgeGraphSummary
+    processing_time_ms: float
 
 
 class ImportedNote(BaseModel):
@@ -356,6 +398,40 @@ async def bulk_import_documents(
         total_notes=len(request.notes),
         total_entities=len(all_entities),
         notes=imported_notes,
+        knowledge_graph=kg_summary,
+        processing_time_ms=round(processing_time_ms, 2),
+    )
+
+
+@router.post(
+    "/build-graph",
+    response_model=BuildGraphResponse,
+    summary="Build knowledge graph from pre-extracted entities",
+    description="Build a patient knowledge graph using entities already extracted by the frontend NLP.",
+)
+async def build_graph_from_entities(
+    request: BuildGraphFromEntitiesRequest,
+    db: AsyncSession = Depends(get_db),
+) -> BuildGraphResponse:
+    """Build knowledge graph from pre-extracted entities.
+
+    This endpoint accepts entities that have already been extracted by the frontend
+    NLP service, allowing the richer extraction results to be used for graph building.
+    """
+    start_time = datetime.now(timezone.utc)
+
+    # Build the knowledge graph directly from provided entities
+    kg_summary = await _build_patient_knowledge_graph(
+        db, request.patient_id, request.entities
+    )
+    await db.commit()
+
+    end_time = datetime.now(timezone.utc)
+    processing_time_ms = (end_time - start_time).total_seconds() * 1000
+
+    return BuildGraphResponse(
+        patient_id=request.patient_id,
+        entities_processed=len(request.entities),
         knowledge_graph=kg_summary,
         processing_time_ms=round(processing_time_ms, 2),
     )

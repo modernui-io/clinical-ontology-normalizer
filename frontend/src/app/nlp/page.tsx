@@ -1342,57 +1342,87 @@ export default function NLPWorkbenchPage() {
 
     setIsBuildingGraph(true);
 
+    // Clear old KG data before building new one
+    setKgNodes([]);
+    setKgEdges([]);
+    setKgSummary(null);
+    setKgPatientId("");
+    setSelectedNode(null);
+
     try {
       // Generate a patient ID based on timestamp if not extractable from text
       const patientIdMatch = inputText.match(/(?:MRN|Patient ID|ID)[:\s]*([A-Z0-9]+)/i);
       const patientId = patientIdMatch ? patientIdMatch[1] : `NLP_${Date.now()}`;
 
-      // Convert the text to a note format for the clinical-agent API
-      const notes = [
-        {
-          note_id: `nlp_note_${Date.now()}`,
-          note_type: "clinical_note",
-          date: new Date().toISOString().split("T")[0],
-          text: inputText,
-        },
-      ];
+      console.log("Building KG for patient:", patientId);
+      console.log("Sending", result.entities.length, "entities to backend");
 
-      const response = await fetch("/api/clinical-agent/import", {
+      // Map frontend entities to backend format
+      // Map entity types from frontend format to backend expected format
+      const entityTypeMap: Record<string, string> = {
+        diagnosis: "CONDITION",
+        medication: "DRUG",
+        procedure: "PROCEDURE",
+        lab_result: "MEASUREMENT",
+        vital_sign: "MEASUREMENT",
+        symptom: "CONDITION",
+        anatomy: "OBSERVATION",
+        temporal: "OBSERVATION",
+      };
+
+      const entities = result.entities.map((e) => ({
+        text: e.text,
+        entity_type: entityTypeMap[e.entity_type] || "OBSERVATION",
+        confidence: e.confidence,
+        assertion: e.assertion === "present" ? "PRESENT" : e.assertion === "absent" ? "ABSENT" : "POSSIBLE",
+        omop_concept_id: e.normalized_codes?.[0]?.code ? parseInt(e.normalized_codes[0].code) : null,
+        note_id: "frontend_extraction",
+      }));
+
+      // Use the new /build-graph endpoint that accepts pre-extracted entities
+      const response = await fetch("/api/clinical-agent/build-graph", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           patient_id: patientId,
-          notes: notes,
-          build_knowledge_graph: true,
+          entities: entities,
         }),
       });
 
       if (response.ok) {
-        const importResult = await response.json();
-        setKgPatientId(patientId);
+        const buildResult = await response.json();
+        console.log("Build graph result:", buildResult);
 
-        // Store the summary
-        if (importResult.knowledge_graph) {
-          setKgSummary(importResult.knowledge_graph);
+        // Store the summary from the build response
+        if (buildResult.knowledge_graph) {
+          setKgSummary(buildResult.knowledge_graph);
         }
 
-        // Fetch the full graph data
+        // Fetch the full graph data with nodes and edges
         const graphResponse = await fetch(`/api/clinical-agent/graph/${patientId}`);
+        console.log("Graph response status:", graphResponse.status);
+
         if (graphResponse.ok) {
           const graphData = await graphResponse.json();
+          console.log("Graph data:", graphData);
           setKgNodes(graphData.nodes || []);
           setKgEdges(graphData.edges || []);
+          setKgPatientId(patientId);
+
+          toast.success(
+            `Knowledge graph built: ${buildResult.entities_processed} entities processed, ${graphData.nodes?.length || 0} unique nodes`
+          );
+
+          // Only switch to Knowledge Graph tab if we have data
+          setWorkbenchMode("knowledge_graph");
+        } else {
+          const graphError = await graphResponse.text();
+          console.error("Graph fetch failed:", graphError);
+          toast.error(`Failed to load knowledge graph: ${graphResponse.status}`);
         }
-
-        toast.success(
-          `Knowledge graph built: ${importResult.total_entities} entities, ${importResult.knowledge_graph?.node_count || 0} nodes`
-        );
-
-        // Switch to Knowledge Graph tab instead of navigating away
-        setWorkbenchMode("knowledge_graph");
       } else {
         const error = await response.text();
-        console.error("Import failed:", error);
+        console.error("Build graph failed:", error);
         toast.error("Failed to build knowledge graph. Check console for details.");
       }
     } catch (error) {
