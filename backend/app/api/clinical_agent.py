@@ -227,6 +227,7 @@ class HybridQueryResponse(BaseModel):
     evidence: list[EvidenceSource] = []
     knowledge_graph_paths: list[dict] = []
     reasoning: str | None = None
+    guideline_citations: list[dict] = []
 
 
 # =============================================================================
@@ -787,6 +788,56 @@ Knowledge Graph Summary ({len(nodes)} nodes):
         for ev in evidence_sources[:3]:
             clinical_context += f"\n[{ev.note_type} - {ev.note_date}]: {ev.excerpt}"
 
+    # Retrieve relevant clinical guidelines via RAG
+    guideline_citations_data: list[dict] = []
+    guideline_context = ""
+    try:
+        from app.services.guideline_rag_service import get_guideline_rag_service
+
+        rag_service = get_guideline_rag_service()
+
+        # Build enriched search query from question + patient context
+        search_query = request.question
+        if conditions[:3]:
+            search_query += " " + " ".join(conditions[:3])
+        if medications[:3]:
+            search_query += " " + " ".join(medications[:3])
+
+        citations = rag_service.search(
+            query=search_query,
+            patient_conditions=conditions,
+            patient_medications=medications,
+            patient_measurements=measurements,
+            top_k=5,
+            min_score=0.3,
+        )
+
+        if citations:
+            guideline_context = "\n\nClinical Guideline References:"
+            for i, citation in enumerate(citations, 1):
+                sec = citation.section
+                guideline_context += (
+                    f"\n[Guideline {i}] {sec.guideline} — {sec.section_title} "
+                    f"(Evidence: {sec.evidence_grade}, {sec.recommendation_level}): "
+                    f"{sec.recommendation_text}"
+                )
+                guideline_citations_data.append({
+                    "guideline_number": i,
+                    "section_id": sec.section_id,
+                    "guideline": sec.guideline,
+                    "section_title": sec.section_title,
+                    "recommendation_text": sec.recommendation_text,
+                    "evidence_grade": sec.evidence_grade,
+                    "recommendation_level": sec.recommendation_level,
+                    "relevance_score": citation.score,
+                    "match_reasons": citation.match_reasons,
+                })
+
+            logger.info(f"Retrieved {len(citations)} guideline sections for query")
+
+    except Exception as e:
+        logger.warning(f"Guideline RAG retrieval failed, proceeding without: {e}")
+
     # Use LLM to generate answer
     try:
         from app.services.llm_service import get_llm_service, LLMProvider
@@ -797,18 +848,22 @@ Knowledge Graph Summary ({len(nodes)} nodes):
 You have access to a knowledge graph built from the patient's clinical notes.
 
 Guidelines:
-- Answer questions based ONLY on the provided clinical data
+- Answer questions based ONLY on the provided clinical data and guideline references
 - Be specific and cite relevant entities from the knowledge graph
+- When clinical guideline references are provided, incorporate them into your answer using [Guideline N] citation format
+- Distinguish between patient-specific data (from the knowledge graph) and general recommendations (from guidelines)
 - If the data is insufficient, say so clearly
 - Use clinical terminology appropriately
 - Keep answers concise but thorough (2-4 sentences for simple questions, more for complex ones)
-- Never fabricate information not present in the data"""
+- Never fabricate information not present in the data or guidelines"""
 
-        user_prompt = f"""{clinical_context}
+        user_prompt = f"""{clinical_context}{guideline_context}
 
 Question: {request.question}
 
-Provide a clear, evidence-based answer using only the clinical data above."""
+Provide a clear, evidence-based answer using the clinical data above."""
+        if guideline_citations_data:
+            user_prompt += " Reference relevant guidelines using [Guideline N] citations where applicable."
 
         response = await llm.generate(
             prompt=user_prompt,
@@ -822,9 +877,12 @@ Provide a clear, evidence-based answer using only the clinical data above."""
         answer = response.content
         model_used = response.model
         confidence = min(0.95, 0.6 + len(relevant_entities) * 0.03 + len(evidence_sources) * 0.08)
+        # Boost confidence for guideline matches
+        confidence = min(0.95, confidence + len(guideline_citations_data) * 0.05)
+        guideline_info = f", {len(guideline_citations_data)} guideline references" if guideline_citations_data else ""
         reasoning = (
-            f"Answered using {model_used} with {len(nodes)} KG nodes and "
-            f"{len(evidence_sources)} evidence sources. "
+            f"Answered using {model_used} with {len(nodes)} KG nodes, "
+            f"{len(evidence_sources)} evidence sources{guideline_info}. "
             f"Latency: {response.latency_ms:.0f}ms, "
             f"Tokens: {response.token_usage.total_tokens}"
         )
@@ -843,15 +901,21 @@ Provide a clear, evidence-based answer using only the clinical data above."""
         confidence = 0.5
         reasoning = f"Fallback template (LLM error: {e}). Query type: '{query_type}'."
 
+    # Build sources list including both documents and guidelines
+    sources = [f"Document: {e.note_id}" for e in evidence_sources]
+    for gc in guideline_citations_data:
+        sources.append(f"Guideline: {gc['guideline']} — {gc['section_title']}")
+
     return HybridQueryResponse(
         question=request.question,
         answer=answer,
         confidence=round(confidence, 2),
-        sources=[f"Document: {e.note_id}" for e in evidence_sources],
+        sources=sources,
         entities_found=relevant_entities[:request.max_results],
         evidence=evidence_sources if request.include_evidence else [],
         knowledge_graph_paths=[],
         reasoning=reasoning,
+        guideline_citations=guideline_citations_data,
     )
 
 
