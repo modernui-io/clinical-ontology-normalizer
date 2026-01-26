@@ -682,23 +682,23 @@ async def hybrid_query(
     """
     question = request.question.lower()
 
-    # Get patient's documents
+    # Get patient's documents (optional - may not exist for hybrid-built graphs)
     docs_result = await db.execute(
         select(DocumentModel).where(DocumentModel.patient_id == patient_id)
     )
-    documents = docs_result.scalars().all()
-
-    if not documents:
-        raise HTTPException(
-            status_code=404,
-            detail=f"No documents found for patient {patient_id}"
-        )
+    documents = list(docs_result.scalars().all())
 
     # Get knowledge graph nodes
     nodes_result = await db.execute(
         select(KGNode).where(KGNode.patient_id == patient_id)
     )
     nodes = list(nodes_result.scalars().all())
+
+    if not documents and not nodes:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No data found for patient {patient_id}"
+        )
 
     # Simple keyword-based relevance scoring
     relevant_entities: list[ExtractedEntity] = []
@@ -743,8 +743,8 @@ async def hybrid_query(
             note_id=node.properties.get("source_notes", ["unknown"])[0] if node.properties else "unknown",
         ))
 
-    # Find evidence in documents
-    if request.include_evidence:
+    # Find evidence in documents (only if documents exist)
+    if request.include_evidence and documents:
         search_terms = [n.label.lower() for n in matching_nodes[:5]]
 
         for doc in documents[:20]:
@@ -769,13 +769,13 @@ async def hybrid_query(
 
     # Generate answer based on query type
     if query_type == "medication":
-        meds = [e.text for e in relevant_entities if e.entity_type == "DRUG"]
+        meds = [e.text for e in relevant_entities if e.entity_type.upper() == "DRUG"]
         if meds:
             answer = f"The patient is taking the following medications: {', '.join(meds[:10])}."
         else:
             answer = "No medications found in the patient's records."
     elif query_type == "condition":
-        conditions = [e.text for e in relevant_entities if e.entity_type == "CONDITION"]
+        conditions = [e.text for e in relevant_entities if e.entity_type.upper() == "CONDITION"]
         if conditions:
             answer = f"The patient has the following conditions: {', '.join(conditions[:10])}."
         else:

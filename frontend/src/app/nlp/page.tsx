@@ -662,7 +662,15 @@ function OntologyStatsPanel({ result }: { result: OntologyMapResponse }) {
   );
 }
 
-function HybridResultPanel({ result }: { result: HybridAnalyzeResponse }) {
+function HybridResultPanel({
+  result,
+  onBuildKnowledgeGraph,
+  isBuildingGraph,
+}: {
+  result: HybridAnalyzeResponse;
+  onBuildKnowledgeGraph?: () => void;
+  isBuildingGraph?: boolean;
+}) {
   const ctx = result.structured_context;
 
   return (
@@ -954,6 +962,39 @@ function HybridResultPanel({ result }: { result: HybridAnalyzeResponse }) {
           </ScrollArea>
         </CardContent>
       </Card>
+
+      {/* Build Knowledge Graph Button */}
+      {onBuildKnowledgeGraph && (
+        <Card className="border-indigo-200 bg-indigo-50/30">
+          <CardContent className="pt-4">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium">Build Knowledge Graph</p>
+                <p className="text-xs text-muted-foreground">
+                  Create a patient knowledge graph from the extracted entities for Q&A
+                </p>
+              </div>
+              <Button
+                onClick={onBuildKnowledgeGraph}
+                disabled={isBuildingGraph || ctx.entity_count === 0}
+                className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600"
+              >
+                {isBuildingGraph ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Building...
+                  </>
+                ) : (
+                  <>
+                    <Network className="h-4 w-4 mr-2" />
+                    Build Graph
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
@@ -1341,7 +1382,7 @@ export default function NLPWorkbenchPage() {
 
     try {
       // Generate a patient ID based on timestamp if not extractable from text
-      const patientIdMatch = inputText.match(/(?:MRN|Patient ID|ID)[:\s]*([A-Z0-9]+)/i);
+      const patientIdMatch = inputText.match(/\b(?:MRN|Patient\s+ID)[:\s]+([A-Z0-9_]+)/i);
       const patientId = patientIdMatch ? patientIdMatch[1] : `NLP_${Date.now()}`;
 
       console.log("Building KG for patient:", patientId);
@@ -1404,6 +1445,188 @@ export default function NLPWorkbenchPage() {
           );
 
           // Only switch to Knowledge Graph tab if we have data
+          setWorkbenchMode("knowledge_graph");
+        } else {
+          const graphError = await graphResponse.text();
+          console.error("Graph fetch failed:", graphError);
+          toast.error(`Failed to load knowledge graph: ${graphResponse.status}`);
+        }
+      } else {
+        const error = await response.text();
+        console.error("Build graph failed:", error);
+        toast.error("Failed to build knowledge graph. Check console for details.");
+      }
+    } catch (error) {
+      console.error("Knowledge graph build error:", error);
+      toast.error("Failed to build knowledge graph. Please try again.");
+    } finally {
+      setIsBuildingGraph(false);
+    }
+  };
+
+  // Build knowledge graph from hybrid analyzer results
+  const handleBuildKnowledgeGraphFromHybrid = async () => {
+    if (!inputText.trim() || !hybridResult) {
+      toast.error("No hybrid analysis results to build knowledge graph from");
+      return;
+    }
+
+    const ctx = hybridResult.structured_context;
+
+    // Convert structured context to entity format
+    const entities: Array<{
+      text: string;
+      entity_type: string;
+      confidence: number;
+      assertion: string;
+      omop_concept_id: number | null;
+      note_id: string;
+    }> = [];
+
+    // Add diagnoses as CONDITIONS
+    ctx.diagnoses.forEach((d) => {
+      entities.push({
+        text: d.name,
+        entity_type: "CONDITION",
+        confidence: 0.9,
+        assertion: d.negated ? "ABSENT" : "PRESENT",
+        omop_concept_id: d.code ? parseInt(d.code) || null : null,
+        note_id: "hybrid_extraction",
+      });
+    });
+
+    // Add medications as DRUGs
+    ctx.medications.forEach((m) => {
+      const text = m.dose ? `${m.name} ${m.dose}` : m.name;
+      entities.push({
+        text,
+        entity_type: "DRUG",
+        confidence: 0.9,
+        assertion: "PRESENT",
+        omop_concept_id: null,
+        note_id: "hybrid_extraction",
+      });
+    });
+
+    // Add labs as MEASUREMENTs
+    ctx.labs.forEach((l) => {
+      const text = l.value ? `${l.name}: ${l.value}${l.unit || ""}` : l.name;
+      entities.push({
+        text,
+        entity_type: "MEASUREMENT",
+        confidence: 0.9,
+        assertion: "PRESENT",
+        omop_concept_id: null,
+        note_id: "hybrid_extraction",
+      });
+    });
+
+    // Add vitals as MEASUREMENTs
+    ctx.vitals.forEach((v) => {
+      const text = v.value ? `${v.name}: ${v.value}` : v.name;
+      entities.push({
+        text,
+        entity_type: "MEASUREMENT",
+        confidence: 0.9,
+        assertion: "PRESENT",
+        omop_concept_id: null,
+        note_id: "hybrid_extraction",
+      });
+    });
+
+    // Add symptoms as CONDITIONs
+    ctx.symptoms.forEach((s) => {
+      entities.push({
+        text: s.name,
+        entity_type: "CONDITION",
+        confidence: 0.85,
+        assertion: s.negated ? "ABSENT" : "PRESENT",
+        omop_concept_id: null,
+        note_id: "hybrid_extraction",
+      });
+    });
+
+    // Add procedures as PROCEDUREs
+    ctx.procedures.forEach((p) => {
+      entities.push({
+        text: p.name,
+        entity_type: "PROCEDURE",
+        confidence: 0.9,
+        assertion: "PRESENT",
+        omop_concept_id: null,
+        note_id: "hybrid_extraction",
+      });
+    });
+
+    // Add findings as OBSERVATIONs
+    ctx.findings.forEach((f) => {
+      entities.push({
+        text: f.name,
+        entity_type: "OBSERVATION",
+        confidence: 0.85,
+        assertion: f.negated ? "ABSENT" : "PRESENT",
+        omop_concept_id: null,
+        note_id: "hybrid_extraction",
+      });
+    });
+
+    if (entities.length === 0) {
+      toast.error("No entities found in hybrid analysis to build graph from");
+      return;
+    }
+
+    setIsBuildingGraph(true);
+
+    // Clear old KG data and Q&A history before building new one
+    setKgNodes([]);
+    setKgEdges([]);
+    setKgSummary(null);
+    setKgPatientId("");
+    setSelectedNode(null);
+    setQaMessages([]);
+
+    try {
+      // Generate a patient ID based on timestamp if not extractable from text
+      const patientIdMatch = inputText.match(/\b(?:MRN|Patient\s+ID)[:\s]+([A-Z0-9_]+)/i);
+      const patientId = patientIdMatch ? patientIdMatch[1] : `HYBRID_${Date.now()}`;
+
+      console.log("Building KG from hybrid for patient:", patientId);
+      console.log("Sending", entities.length, "entities to backend");
+
+      // Use the /build-graph endpoint
+      const response = await fetch("/api/clinical-agent/build-graph", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patient_id: patientId,
+          entities: entities,
+        }),
+      });
+
+      if (response.ok) {
+        const buildResult = await response.json();
+        console.log("Build graph result:", buildResult);
+
+        if (buildResult.knowledge_graph) {
+          setKgSummary(buildResult.knowledge_graph);
+        }
+
+        // Fetch the full graph data with nodes and edges
+        const graphResponse = await fetch(`/api/clinical-agent/graph/${patientId}`);
+        console.log("Graph response status:", graphResponse.status);
+
+        if (graphResponse.ok) {
+          const graphData = await graphResponse.json();
+          console.log("Graph data:", graphData);
+          setKgNodes(graphData.nodes || []);
+          setKgEdges(graphData.edges || []);
+          setKgPatientId(patientId);
+
+          toast.success(
+            `Knowledge graph built: ${buildResult.entities_processed} entities processed, ${graphData.nodes?.length || 0} unique nodes`
+          );
+
+          // Switch to Knowledge Graph tab
           setWorkbenchMode("knowledge_graph");
         } else {
           const graphError = await graphResponse.text();
@@ -2107,7 +2330,11 @@ export default function NLPWorkbenchPage() {
                 {ontologyResult && <OntologyStatsPanel result={ontologyResult} />}
 
                 {/* Hybrid Result Panel */}
-                <HybridResultPanel result={hybridResult} />
+                <HybridResultPanel
+                  result={hybridResult}
+                  onBuildKnowledgeGraph={handleBuildKnowledgeGraphFromHybrid}
+                  isBuildingGraph={isBuildingGraph}
+                />
               </>
             ) : (
               <Card>
