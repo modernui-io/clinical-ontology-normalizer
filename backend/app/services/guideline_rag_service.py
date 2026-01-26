@@ -218,37 +218,81 @@ class GuidelineRAGService:
             except Exception as e:
                 logger.warning(f"Semantic search failed, using keyword-only: {e}")
 
-        # Phase 2: Keyword boosting from patient context
+        # Phase 2: Query-keyword matching + patient context boosting
+        _stopwords = {
+            "the", "and", "for", "are", "was", "were", "been", "being", "have",
+            "has", "had", "does", "did", "will", "would", "could", "should",
+            "may", "can", "this", "that", "with", "from", "into", "than",
+            "what", "which", "who", "how", "not", "but", "all", "any", "our",
+            "their", "them", "they", "its", "his", "her", "she", "him",
+            "about", "also", "each", "most", "need", "well", "been",
+        }
+        raw_terms = set()
+        for w in query.split():
+            cleaned = w.lower().strip("?.,!:;\"'()")
+            if len(cleaned) > 2 and cleaned not in _stopwords:
+                raw_terms.add(cleaned)
+                # Also split hyphens so "step-up" produces "step" and "up"
+                if "-" in cleaned:
+                    raw_terms.update(
+                        p for p in cleaned.split("-") if len(p) > 2 and p not in _stopwords
+                    )
+        query_terms = raw_terms
+
         for idx, section in enumerate(self._sections):
             if idx not in scored:
-                # Start with a base score of 0 if not found semantically
                 scored[idx] = 0.0
                 reasons[idx] = []
 
             section_conditions = {c.lower() for c in section.applies_to_conditions}
             section_medications = {m.lower() for m in section.applies_to_medications}
             section_measurements = {m.lower() for m in section.applies_to_measurements}
+            section_keywords = {k.lower() for k in section.keywords}
+            # Expand matchable terms: keywords + applies_to fields + title words
+            title_words = {w.lower() for w in section.section_title.split() if len(w) > 2}
+            all_section_terms = (
+                section_keywords | section_conditions | section_medications
+                | section_measurements | title_words
+            )
 
-            # Condition match: +0.15
+            # Query-keyword match: up to +0.30 (scaled by match count)
+            keyword_matches = query_terms & all_section_terms
+            # Also check multi-word terms against query string
+            query_lower = query.lower()
+            for term_source in [section.keywords, section.applies_to_conditions]:
+                for term in term_source:
+                    if " " in term and term.lower() in query_lower:
+                        keyword_matches.add(term.lower())
+            if keyword_matches:
+                kw_score = min(0.30, len(keyword_matches) * 0.10)
+                scored[idx] += kw_score
+                reasons[idx].append(
+                    f"Query keyword match: {', '.join(sorted(keyword_matches))}"
+                )
+
+            # Condition match: up to +0.15 (scaled by overlap count)
             condition_overlap = conditions & section_conditions
             if condition_overlap:
-                scored[idx] += 0.15
+                cond_score = min(0.15, len(condition_overlap) * 0.05)
+                scored[idx] += cond_score
                 reasons[idx].append(
                     f"Condition match: {', '.join(sorted(condition_overlap))}"
                 )
 
-            # Medication match: +0.10
+            # Medication match: up to +0.10 (scaled by overlap count)
             medication_overlap = medications & section_medications
             if medication_overlap:
-                scored[idx] += 0.10
+                med_score = min(0.10, len(medication_overlap) * 0.03)
+                scored[idx] += med_score
                 reasons[idx].append(
                     f"Medication match: {', '.join(sorted(medication_overlap))}"
                 )
 
-            # Measurement match: +0.10
+            # Measurement match: up to +0.10 (scaled by overlap count)
             measurement_overlap = measurements & section_measurements
             if measurement_overlap:
-                scored[idx] += 0.10
+                meas_score = min(0.10, len(measurement_overlap) * 0.03)
+                scored[idx] += meas_score
                 reasons[idx].append(
                     f"Measurement match: {', '.join(sorted(measurement_overlap))}"
                 )
