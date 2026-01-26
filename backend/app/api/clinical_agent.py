@@ -767,29 +767,81 @@ async def hybrid_query(
         evidence_sources.sort(key=lambda x: x.relevance_score, reverse=True)
         evidence_sources = evidence_sources[:5]
 
-    # Generate answer based on query type
-    if query_type == "medication":
-        meds = [e.text for e in relevant_entities if e.entity_type.upper() == "DRUG"]
-        if meds:
-            answer = f"The patient is taking the following medications: {', '.join(meds[:10])}."
-        else:
-            answer = "No medications found in the patient's records."
-    elif query_type == "condition":
-        conditions = [e.text for e in relevant_entities if e.entity_type.upper() == "CONDITION"]
-        if conditions:
-            answer = f"The patient has the following conditions: {', '.join(conditions[:10])}."
-        else:
-            answer = "No conditions found in the patient's records."
-    else:
-        if relevant_entities:
-            answer = f"Found {len(relevant_entities)} relevant clinical findings for the patient."
-        else:
-            answer = "No relevant information found for this query."
+    # Build clinical context for LLM
+    conditions = [n.label for n in nodes if n.node_type == NodeType.CONDITION]
+    medications = [n.label for n in nodes if n.node_type == NodeType.DRUG]
+    measurements = [n.label for n in nodes if n.node_type == NodeType.MEASUREMENT]
+    procedures = [n.label for n in nodes if n.node_type == NodeType.PROCEDURE]
 
-    # Calculate confidence based on evidence
-    confidence = 0.5
-    if relevant_entities:
-        confidence = min(0.95, 0.5 + len(relevant_entities) * 0.05 + len(evidence_sources) * 0.1)
+    clinical_context = f"""Patient ID: {patient_id}
+
+Knowledge Graph Summary ({len(nodes)} nodes):
+- Conditions ({len(conditions)}): {', '.join(conditions[:30]) if conditions else 'None recorded'}
+- Medications ({len(medications)}): {', '.join(medications[:30]) if medications else 'None recorded'}
+- Measurements ({len(measurements)}): {', '.join(measurements[:30]) if measurements else 'None recorded'}
+- Procedures ({len(procedures)}): {', '.join(procedures[:30]) if procedures else 'None recorded'}"""
+
+    # Add document evidence if available
+    if evidence_sources:
+        clinical_context += "\n\nRelevant Clinical Notes:"
+        for ev in evidence_sources[:3]:
+            clinical_context += f"\n[{ev.note_type} - {ev.note_date}]: {ev.excerpt}"
+
+    # Use LLM to generate answer
+    try:
+        from app.services.llm_service import get_llm_service, LLMProvider
+
+        llm = get_llm_service()
+
+        system_prompt = """You are a clinical decision support assistant analyzing a patient's electronic health record data.
+You have access to a knowledge graph built from the patient's clinical notes.
+
+Guidelines:
+- Answer questions based ONLY on the provided clinical data
+- Be specific and cite relevant entities from the knowledge graph
+- If the data is insufficient, say so clearly
+- Use clinical terminology appropriately
+- Keep answers concise but thorough (2-4 sentences for simple questions, more for complex ones)
+- Never fabricate information not present in the data"""
+
+        user_prompt = f"""{clinical_context}
+
+Question: {request.question}
+
+Provide a clear, evidence-based answer using only the clinical data above."""
+
+        response = await llm.generate(
+            prompt=user_prompt,
+            system_prompt=system_prompt,
+            provider=LLMProvider.ANTHROPIC,
+            model="claude-sonnet-4-20250514",
+            max_tokens=1024,
+            temperature=0.2,
+        )
+
+        answer = response.content
+        model_used = response.model
+        confidence = min(0.95, 0.6 + len(relevant_entities) * 0.03 + len(evidence_sources) * 0.08)
+        reasoning = (
+            f"Answered using {model_used} with {len(nodes)} KG nodes and "
+            f"{len(evidence_sources)} evidence sources. "
+            f"Latency: {response.latency_ms:.0f}ms, "
+            f"Tokens: {response.token_usage.total_tokens}"
+        )
+
+    except Exception as e:
+        logger.warning(f"LLM query failed, falling back to template: {e}")
+        # Fallback to simple template if LLM fails
+        if query_type == "medication":
+            meds_list = [e.text for e in relevant_entities if e.entity_type.upper() == "DRUG"]
+            answer = f"The patient is taking: {', '.join(meds_list[:10])}." if meds_list else "No medications found."
+        elif query_type == "condition":
+            conds_list = [e.text for e in relevant_entities if e.entity_type.upper() == "CONDITION"]
+            answer = f"The patient has: {', '.join(conds_list[:10])}." if conds_list else "No conditions found."
+        else:
+            answer = f"Found {len(relevant_entities)} relevant findings." if relevant_entities else "No relevant information found."
+        confidence = 0.5
+        reasoning = f"Fallback template (LLM error: {e}). Query type: '{query_type}'."
 
     return HybridQueryResponse(
         question=request.question,
@@ -799,7 +851,7 @@ async def hybrid_query(
         entities_found=relevant_entities[:request.max_results],
         evidence=evidence_sources if request.include_evidence else [],
         knowledge_graph_paths=[],
-        reasoning=f"Query classified as '{query_type}'. Searched {len(documents)} documents and {len(nodes)} knowledge graph nodes.",
+        reasoning=reasoning,
     )
 
 
