@@ -1342,12 +1342,13 @@ export default function NLPWorkbenchPage() {
 
     setIsBuildingGraph(true);
 
-    // Clear old KG data before building new one
+    // Clear old KG data and Q&A history before building new one
     setKgNodes([]);
     setKgEdges([]);
     setKgSummary(null);
     setKgPatientId("");
     setSelectedNode(null);
+    setQaMessages([]); // Clear Q&A history for new patient
 
     try {
       // Generate a patient ID based on timestamp if not extractable from text
