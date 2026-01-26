@@ -598,10 +598,6 @@ const ANALYSIS_TYPE_CONFIG: Record<
     label: "Lab Interpretation",
     description: "Interpret laboratory results",
   },
-  question_answer: {
-    label: "Q&A",
-    description: "Answer specific questions about the note",
-  },
 };
 
 function OntologyStatsPanel({ result }: { result: OntologyMapResponse }) {
@@ -1272,11 +1268,6 @@ export default function NLPWorkbenchPage() {
       return;
     }
 
-    if (analysisType === "question_answer" && !question.trim()) {
-      toast.error("Please enter a question for Q&A mode");
-      return;
-    }
-
     setIsExtracting(true);
     setHybridResult(null);
     setOntologyResult(null);
@@ -1290,7 +1281,6 @@ export default function NLPWorkbenchPage() {
       const hybridRes = await nlpHybridAnalyze({
         text: inputText,
         analysis_type: analysisType,
-        question: analysisType === "question_answer" ? question : undefined,
         use_llm: useLLM,
       });
       setHybridResult(hybridRes);
@@ -1969,18 +1959,6 @@ export default function NLPWorkbenchPage() {
                       </SelectContent>
                     </Select>
                   </div>
-
-                  {analysisType === "question_answer" && (
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Question</label>
-                      <Textarea
-                        placeholder="What medications is the patient taking?"
-                        value={question}
-                        onChange={(e) => setQuestion(e.target.value)}
-                        className="h-20"
-                      />
-                    </div>
-                  )}
 
                   <div className="flex items-center gap-2">
                     <input

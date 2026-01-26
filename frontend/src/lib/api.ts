@@ -2877,13 +2877,11 @@ export type AnalysisType =
   | "clinical_summary"
   | "risk_assessment"
   | "medication_review"
-  | "lab_interpretation"
-  | "question_answer";
+  | "lab_interpretation";
 
 export interface HybridAnalyzeRequest {
   text: string;
   analysis_type?: AnalysisType;
-  question?: string | null;
   use_llm?: boolean;
 }
 
