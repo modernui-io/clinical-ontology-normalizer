@@ -227,6 +227,18 @@ class GuidelineRAGService:
             "their", "them", "they", "its", "his", "her", "she", "him",
             "about", "also", "each", "most", "need", "well", "been",
         }
+        # Medical synonym groups for query expansion
+        _synonyms: dict[str, set[str]] = {
+            "treatment": {"treatment", "management", "therapy", "medications"},
+            "management": {"treatment", "management", "therapy"},
+            "therapy": {"treatment", "management", "therapy"},
+            "medications": {"medications", "treatment", "drugs", "pharmacotherapy"},
+            "diagnosis": {"diagnosis", "evaluation", "assessment", "workup"},
+            "evaluation": {"diagnosis", "evaluation", "assessment", "workup"},
+            "screening": {"screening", "prevention", "detection"},
+            "prevention": {"screening", "prevention", "prophylaxis"},
+        }
+
         raw_terms = set()
         for w in query.split():
             cleaned = w.lower().strip("?.,!:;\"'()")
@@ -237,6 +249,15 @@ class GuidelineRAGService:
                     raw_terms.update(
                         p for p in cleaned.split("-") if len(p) > 2 and p not in _stopwords
                     )
+                # Add stemmed variant (strip trailing 's') for matching
+                if len(cleaned) > 3 and cleaned.endswith("s"):
+                    raw_terms.add(cleaned[:-1])
+                # Add plural variant for matching
+                if len(cleaned) > 3 and not cleaned.endswith("s"):
+                    raw_terms.add(cleaned + "s")
+                # Expand medical synonyms
+                if cleaned in _synonyms:
+                    raw_terms.update(_synonyms[cleaned])
         query_terms = raw_terms
 
         for idx, section in enumerate(self._sections):
@@ -248,26 +269,86 @@ class GuidelineRAGService:
             section_medications = {m.lower() for m in section.applies_to_medications}
             section_measurements = {m.lower() for m in section.applies_to_measurements}
             section_keywords = {k.lower() for k in section.keywords}
-            # Expand matchable terms: keywords + applies_to fields + title words
+            # Expand matchable terms: keywords + applies_to fields + title + guideline name
             title_words = {w.lower() for w in section.section_title.split() if len(w) > 2}
+            guideline_words = set()
+            for w in section.guideline.split():
+                cleaned_w = w.lower().strip("()'\"—-")
+                if len(cleaned_w) > 2 and cleaned_w not in _stopwords:
+                    guideline_words.add(cleaned_w)
             all_section_terms = (
                 section_keywords | section_conditions | section_medications
-                | section_measurements | title_words
+                | section_measurements | title_words | guideline_words
             )
+            # Decompose multi-word terms into individual words
+            for term_source in [
+                section.keywords, section.applies_to_conditions,
+                section.applies_to_medications, section.applies_to_measurements,
+            ]:
+                for term in term_source:
+                    if " " in term:
+                        for word in term.lower().split():
+                            if len(word) > 2 and word not in _stopwords:
+                                all_section_terms.add(word)
+            # Add stemmed variants (strip trailing 's' for simple plural/possessive)
+            stemmed_terms: set[str] = set()
+            for t in list(all_section_terms):
+                if len(t) > 3 and t.endswith("s"):
+                    stemmed_terms.add(t[:-1])
+            all_section_terms |= stemmed_terms
 
-            # Query-keyword match: up to +0.30 (scaled by match count)
+            # Query-keyword match: up to +0.40 (scaled by match count)
             keyword_matches = query_terms & all_section_terms
-            # Also check multi-word terms against query string
+            # Also check multi-word terms against query string (worth double)
             query_lower = query.lower()
+            multi_word_matches: set[str] = set()
             for term_source in [section.keywords, section.applies_to_conditions]:
                 for term in term_source:
                     if " " in term and term.lower() in query_lower:
-                        keyword_matches.add(term.lower())
+                        multi_word_matches.add(term.lower())
+            keyword_matches |= multi_word_matches
             if keyword_matches:
-                kw_score = min(0.30, len(keyword_matches) * 0.10)
+                # Multi-word matches count double for scoring
+                match_weight = (
+                    (len(keyword_matches) - len(multi_word_matches)) * 0.10
+                    + len(multi_word_matches) * 0.20
+                )
+                kw_score = min(0.40, match_weight)
                 scored[idx] += kw_score
                 reasons[idx].append(
                     f"Query keyword match: {', '.join(sorted(keyword_matches))}"
+                )
+
+            # Primary topic match: strong boost when query names a condition
+            # or core keyword this section covers. Excludes generic terms
+            # (treatment, management, therapy, etc.) to avoid false positives.
+            _generic_terms = {
+                "treatment", "management", "therapy", "medications", "medication",
+                "drugs", "pharmacotherapy", "diagnosis", "evaluation", "assessment",
+                "workup", "screening", "prevention", "prophylaxis", "detection",
+                "monitoring", "follow-up", "guidelines", "guideline",
+            }
+            core_terms = section_conditions | section_keywords
+            # Also include stemmed/decomposed core terms
+            expanded_core: set[str] = set(core_terms)
+            for t in core_terms:
+                if " " in t:
+                    for word in t.lower().split():
+                        if len(word) > 2 and word not in _stopwords:
+                            expanded_core.add(word)
+                if len(t) > 3 and t.endswith("s"):
+                    expanded_core.add(t[:-1])
+            topic_matches = (query_terms & expanded_core) - _generic_terms
+            # Also check multi-word conditions/keywords in query
+            for term in list(section.applies_to_conditions) + list(section.keywords):
+                t = term.lower()
+                if " " in t and t in query_lower:
+                    topic_matches.add(t)
+            if topic_matches:
+                topic_score = min(0.35, len(topic_matches) * 0.15)
+                scored[idx] += topic_score
+                reasons[idx].append(
+                    f"Topic match: {', '.join(sorted(topic_matches))}"
                 )
 
             # Condition match: up to +0.15 (scaled by overlap count)

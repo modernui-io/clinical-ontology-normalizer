@@ -582,6 +582,202 @@
       "applies_to_medications": ["penicillin", "pneumococcal vaccine", "influenza vaccine", "meningococcal vaccine"],
       "applies_to_measurements": ["echocardiogram", "trv", "egfr", "uacr", "ferritin", "liver function", "reticulocyte count"],
       "keywords": ["screening", "health maintenance", "vaccination", "retinopathy", "pulmonary hypertension", "nephropathy", "avascular necrosis", "preventive"]
+    },
+
+    {
+      "section_id": "idsa-cap-outpatient",
+      "guideline": "IDSA/ATS Community-Acquired Pneumonia Guidelines (2019)",
+      "section_title": "Outpatient Treatment of CAP",
+      "recommendation_text": "For outpatient adults with community-acquired pneumonia (CAP) and no comorbidities or risk factors for MRSA or Pseudomonas: amoxicillin 1g TID, or doxycycline 100mg BID, or a macrolide (azithromycin 500mg day 1 then 250mg days 2-5 or clarithromycin) ONLY in areas with pneumococcal resistance <25%. For patients with comorbidities (chronic heart, lung, liver, or renal disease; diabetes; alcoholism; malignancy; asplenia): combination therapy with amoxicillin/clavulanate or a cephalosporin PLUS a macrolide or doxycycline, OR monotherapy with a respiratory fluoroquinolone (levofloxacin, moxifloxacin).",
+      "evidence_grade": "A",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["pneumonia", "community-acquired pneumonia", "cap", "respiratory infection", "lung infection"],
+      "applies_to_medications": ["amoxicillin", "doxycycline", "azithromycin", "clarithromycin", "levofloxacin", "moxifloxacin", "amoxicillin-clavulanate", "cephalosporin"],
+      "applies_to_measurements": ["chest x-ray", "sputum culture", "blood culture", "procalcitonin", "oxygen saturation"],
+      "keywords": ["pneumonia", "cap", "outpatient", "antibiotics", "community-acquired", "empiric therapy", "macrolide", "fluoroquinolone"]
+    },
+    {
+      "section_id": "idsa-cap-inpatient",
+      "guideline": "IDSA/ATS Community-Acquired Pneumonia Guidelines (2019)",
+      "section_title": "Inpatient Treatment of Non-Severe CAP",
+      "recommendation_text": "For inpatient adults with non-severe CAP (no ICU admission needed), recommended regimens: combination therapy with a beta-lactam (ampicillin-sulbactam 1.5-3g IV q6h, ceftriaxone 1-2g IV daily, or cefotaxime 1-2g IV q8h) PLUS a macrolide (azithromycin 500mg IV daily) or doxycycline 100mg BID. Alternative: respiratory fluoroquinolone monotherapy (levofloxacin 750mg IV daily or moxifloxacin 400mg IV daily). A beta-lactam plus macrolide is preferred over fluoroquinolone monotherapy based on observational data suggesting lower mortality. Empiric treatment for MRSA or Pseudomonas is NOT recommended unless specific risk factors are present (prior respiratory isolation of these organisms, recent hospitalization with parenteral antibiotics in last 90 days).",
+      "evidence_grade": "A",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["pneumonia", "community-acquired pneumonia", "cap", "respiratory infection"],
+      "applies_to_medications": ["ceftriaxone", "ampicillin-sulbactam", "azithromycin", "levofloxacin", "moxifloxacin", "doxycycline"],
+      "applies_to_measurements": ["chest x-ray", "blood culture", "sputum culture", "procalcitonin", "lactate", "oxygen saturation"],
+      "keywords": ["pneumonia", "cap", "inpatient", "antibiotics", "beta-lactam", "macrolide", "hospital", "non-severe"]
+    },
+    {
+      "section_id": "idsa-cap-severe",
+      "guideline": "IDSA/ATS Community-Acquired Pneumonia Guidelines (2019)",
+      "section_title": "Severe CAP and ICU Management",
+      "recommendation_text": "Severe CAP criteria (1 major or 3+ minor): Major — septic shock requiring vasopressors, respiratory failure requiring mechanical ventilation. Minor — respiratory rate >=30, PaO2/FiO2 <=250, multilobar infiltrates, confusion, uremia (BUN >=20), leukopenia (WBC <4000), thrombocytopenia (platelets <100,000), hypothermia (<36C), hypotension requiring aggressive fluid resuscitation. For severe CAP: beta-lactam PLUS a macrolide (preferred) or a beta-lactam PLUS a respiratory fluoroquinolone. If risk factors for MRSA, add vancomycin or linezolid. If risk factors for Pseudomonas, use an anti-pseudomonal beta-lactam (piperacillin-tazobactam, cefepime, meropenem) plus a fluoroquinolone. De-escalate based on cultures and clinical improvement.",
+      "evidence_grade": "A",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["pneumonia", "severe pneumonia", "community-acquired pneumonia", "sepsis", "respiratory failure", "icu"],
+      "applies_to_medications": ["ceftriaxone", "azithromycin", "levofloxacin", "vancomycin", "linezolid", "piperacillin-tazobactam", "cefepime", "meropenem"],
+      "applies_to_measurements": ["pao2", "fio2", "blood culture", "lactate", "procalcitonin", "bun", "wbc", "platelets"],
+      "keywords": ["severe pneumonia", "icu", "sepsis", "vasopressors", "mechanical ventilation", "mrsa", "pseudomonas", "de-escalation"]
+    },
+    {
+      "section_id": "idsa-cap-duration",
+      "guideline": "IDSA/ATS Community-Acquired Pneumonia Guidelines (2019)",
+      "section_title": "Duration of Antibiotic Therapy for CAP",
+      "recommendation_text": "Antibiotic therapy for CAP should be continued for a minimum of 5 days. The patient should be afebrile for 48-72 hours and clinically stable before discontinuation (heart rate <=100, systolic BP >=90, respiratory rate <=24, oxygen saturation >=90% on room air, able to take oral intake, normal mental status). Longer duration may be needed for complications (empyema, lung abscess) or specific pathogens (Staphylococcus aureus, Pseudomonas). Procalcitonin can guide antibiotic discontinuation — consider stopping when procalcitonin <0.25 ng/mL or has decreased by >=80% from peak. Routine chest X-ray follow-up is not necessary at discharge for patients who improve clinically.",
+      "evidence_grade": "A",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["pneumonia", "community-acquired pneumonia", "cap"],
+      "applies_to_medications": ["antibiotics"],
+      "applies_to_measurements": ["procalcitonin", "temperature", "heart rate", "blood pressure", "respiratory rate", "oxygen saturation", "chest x-ray"],
+      "keywords": ["antibiotic duration", "clinical stability", "procalcitonin", "de-escalation", "stewardship", "discharge"]
+    },
+
+    {
+      "section_id": "idsa-uti-empiric",
+      "guideline": "IDSA Complicated UTI Guidelines (2025)",
+      "section_title": "Empiric Antibiotic Selection for Complicated UTI",
+      "recommendation_text": "For patients with complicated UTI (cUTI) including acute pyelonephritis who do NOT have sepsis: empiric therapy should be guided by local resistance patterns. Suggested empiric agents: fluoroquinolones (ciprofloxacin, levofloxacin), third-generation cephalosporins (ceftriaxone), or trimethoprim-sulfamethoxazole (if local resistance <20%). Carbapenems are NOT first-line due to stewardship considerations — initial drug-bug mismatch in cUTI without sepsis is unlikely to substantially contribute to mortality. For patients with sepsis due to cUTI: select among third- or fourth-generation cephalosporins, carbapenems, piperacillin-tazobactam, or fluoroquinolones rather than newer agents as initial empiric therapy.",
+      "evidence_grade": "B",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["urinary tract infection", "uti", "complicated uti", "pyelonephritis", "urosepsis", "cuti"],
+      "applies_to_medications": ["ciprofloxacin", "levofloxacin", "ceftriaxone", "trimethoprim-sulfamethoxazole", "piperacillin-tazobactam", "meropenem", "cefepime"],
+      "applies_to_measurements": ["urine culture", "blood culture", "urinalysis", "creatinine", "wbc", "lactate"],
+      "keywords": ["uti", "urinary tract infection", "pyelonephritis", "empiric", "antibiotics", "resistance", "fluoroquinolone", "cephalosporin"]
+    },
+    {
+      "section_id": "idsa-uti-duration",
+      "guideline": "IDSA Complicated UTI Guidelines (2025)",
+      "section_title": "Duration of Therapy and Stewardship for cUTI",
+      "recommendation_text": "In patients with confirmed complicated UTI who are improving clinically on effective therapy: treat with a shorter course — 5-7 days of a fluoroquinolone or 7 days of a non-fluoroquinolone antibiotic, rather than a longer course (10-14 days). Select a definitive antibiotic with targeted spectrum based on urine culture results as soon as available, rather than continuing empiric broad-spectrum antibiotics for the full duration. Step-down from IV to oral therapy should occur when the patient is clinically improving, afebrile, and tolerating oral intake. Asymptomatic bacteriuria should NOT be treated (except in pregnancy or prior to urologic procedures).",
+      "evidence_grade": "B",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["urinary tract infection", "uti", "complicated uti", "pyelonephritis", "asymptomatic bacteriuria"],
+      "applies_to_medications": ["ciprofloxacin", "levofloxacin", "ceftriaxone", "trimethoprim-sulfamethoxazole", "nitrofurantoin"],
+      "applies_to_measurements": ["urine culture", "urinalysis", "temperature", "creatinine"],
+      "keywords": ["uti duration", "antibiotic stewardship", "de-escalation", "oral step-down", "asymptomatic bacteriuria", "culture-directed"]
+    },
+    {
+      "section_id": "idsa-uti-sepsis",
+      "guideline": "IDSA Complicated UTI Guidelines (2025)",
+      "section_title": "UTI with Sepsis Management",
+      "recommendation_text": "For patients with sepsis due to complicated UTI: initiate broad-spectrum empiric antibiotics within 1 hour. Suggested agents: third- or fourth-generation cephalosporins (ceftriaxone, cefepime), carbapenems (meropenem, ertapenem), piperacillin-tazobactam, or fluoroquinolones. Newer agents (ceftazidime-avibactam, ceftolozane-tazobactam, meropenem-vaborbactam) should be reserved for confirmed resistant organisms, not used empirically. Obtain blood cultures and urine culture BEFORE starting antibiotics. Source control: assess for obstructive uropathy requiring urgent decompression (nephrostomy tube or ureteral stent). Monitor lactate clearance as a marker of treatment response. De-escalate to narrowest-spectrum effective agent based on culture results.",
+      "evidence_grade": "B",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["urosepsis", "sepsis", "complicated uti", "pyelonephritis", "obstructive uropathy"],
+      "applies_to_medications": ["ceftriaxone", "cefepime", "meropenem", "ertapenem", "piperacillin-tazobactam", "levofloxacin", "ceftazidime-avibactam"],
+      "applies_to_measurements": ["blood culture", "urine culture", "lactate", "creatinine", "wbc", "procalcitonin"],
+      "keywords": ["urosepsis", "sepsis", "source control", "obstructive uropathy", "broad-spectrum", "de-escalation", "culture", "lactate"]
+    },
+    {
+      "section_id": "idsa-uti-resistance",
+      "guideline": "IDSA Complicated UTI Guidelines (2025)",
+      "section_title": "Antimicrobial Resistance Considerations in UTI",
+      "recommendation_text": "Risk factors for resistant organisms in cUTI: prior fluoroquinolone use in last 90 days, prior UTI with resistant organism, recent hospitalization, indwelling urinary catheter, travel to high-resistance regions. For suspected ESBL-producing Enterobacterales: carbapenems are the treatment of choice for serious infections. Nitrofurantoin and fosfomycin may be considered for uncomplicated lower UTI due to ESBL producers. Avoid empiric fluoroquinolones if local E. coli resistance >10% for uncomplicated UTI or if patient has prior fluoroquinolone exposure. For carbapenem-resistant organisms: consult infectious diseases; options include ceftazidime-avibactam, meropenem-vaborbactam, or cefiderocol based on susceptibility testing.",
+      "evidence_grade": "B",
+      "recommendation_level": "Moderate",
+      "applies_to_conditions": ["urinary tract infection", "uti", "complicated uti", "esbl", "antimicrobial resistance", "carbapenem-resistant"],
+      "applies_to_medications": ["meropenem", "ceftazidime-avibactam", "meropenem-vaborbactam", "cefiderocol", "nitrofurantoin", "fosfomycin"],
+      "applies_to_measurements": ["urine culture", "susceptibility testing", "creatinine"],
+      "keywords": ["antimicrobial resistance", "esbl", "carbapenem-resistant", "mdro", "stewardship", "susceptibility", "fluoroquinolone resistance"]
+    },
+
+    {
+      "section_id": "acg-gerd-diagnosis",
+      "guideline": "ACG GERD Guidelines (2022)",
+      "section_title": "Diagnosis and Initial Management of GERD",
+      "recommendation_text": "GERD should be suspected in patients with typical symptoms of heartburn and regurgitation. An empiric trial of PPI therapy (omeprazole 20mg, lansoprazole 30mg, or equivalent once daily for 8 weeks) is recommended as the initial diagnostic and therapeutic strategy for patients with typical symptoms without alarm features. Alarm features warranting upper endoscopy: dysphagia, odynophagia, GI bleeding, unintentional weight loss, anemia, or persistent vomiting. Ambulatory reflux monitoring (pH or impedance-pH) should be performed OFF PPI therapy to establish a GERD diagnosis in patients without prior endoscopic evidence of reflux esophagitis. Upper endoscopy is NOT required for all GERD patients but should be considered in those with >5-10 years of symptoms for Barrett esophagus screening.",
+      "evidence_grade": "B",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["gerd", "gastroesophageal reflux disease", "heartburn", "acid reflux", "esophagitis", "barretts esophagus"],
+      "applies_to_medications": ["omeprazole", "lansoprazole", "pantoprazole", "esomeprazole", "rabeprazole", "proton pump inhibitor", "ppi"],
+      "applies_to_measurements": ["upper endoscopy", "ph monitoring", "impedance-ph", "egd"],
+      "keywords": ["gerd", "heartburn", "acid reflux", "ppi", "endoscopy", "barrett", "esophagitis", "alarm features", "diagnosis"]
+    },
+    {
+      "section_id": "acg-gerd-therapy",
+      "guideline": "ACG GERD Guidelines (2022)",
+      "section_title": "Step-Up and Maintenance Therapy for GERD",
+      "recommendation_text": "For patients with incomplete PPI response: optimize PPI therapy by ensuring the medication is taken 30-60 minutes before a meal, consider switching to a different PPI, or increasing to twice-daily dosing. H2-receptor antagonists (famotidine 20-40mg) may be added at bedtime for nocturnal symptoms. Lifestyle modifications: weight loss if overweight/obese, avoid meals 2-3 hours before bedtime, elevate head of bed, avoid trigger foods (caffeine, alcohol, chocolate, fatty/spicy foods, citrus, tomato). For long-term maintenance: use the lowest effective PPI dose. Patients with erosive esophagitis (LA grade C or D) or Barrett esophagus should remain on continuous PPI therapy. On-demand PPI therapy may be appropriate for non-erosive reflux disease.",
+      "evidence_grade": "B",
+      "recommendation_level": "Moderate",
+      "applies_to_conditions": ["gerd", "gastroesophageal reflux disease", "esophagitis", "erosive esophagitis", "barretts esophagus", "non-erosive reflux"],
+      "applies_to_medications": ["omeprazole", "lansoprazole", "pantoprazole", "esomeprazole", "famotidine", "proton pump inhibitor", "ppi", "h2 blocker"],
+      "applies_to_measurements": ["upper endoscopy", "la grade"],
+      "keywords": ["gerd maintenance", "ppi optimization", "lifestyle", "step-up", "h2 blocker", "erosive esophagitis", "on-demand"]
+    },
+    {
+      "section_id": "acg-gerd-refractory",
+      "guideline": "ACG GERD Guidelines (2022)",
+      "section_title": "Refractory GERD Evaluation",
+      "recommendation_text": "Refractory GERD is defined as persistent symptoms despite 8 weeks of optimized twice-daily PPI therapy. Evaluation should include: 1) Confirm medication adherence and proper timing (30-60 min before meals). 2) Upper endoscopy ON PPI to evaluate for eosinophilic esophagitis, pill esophagitis, or other diagnoses. 3) Ambulatory reflux monitoring (impedance-pH preferred) on PPI to distinguish true refractory reflux from functional heartburn. 4) Esophageal manometry to exclude achalasia or major motility disorder before considering anti-reflux surgery. Functional heartburn (normal acid exposure, negative symptom-reflux correlation) should be treated with neuromodulators (tricyclic antidepressants, SSRIs) rather than escalating acid suppression. Anti-reflux surgery (fundoplication or magnetic sphincter augmentation) should only be considered in patients with objective evidence of pathologic reflux.",
+      "evidence_grade": "B",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["refractory gerd", "gerd", "functional heartburn", "eosinophilic esophagitis", "achalasia"],
+      "applies_to_medications": ["omeprazole", "pantoprazole", "tricyclic antidepressant", "ssri", "proton pump inhibitor"],
+      "applies_to_measurements": ["upper endoscopy", "impedance-ph", "esophageal manometry", "ph monitoring"],
+      "keywords": ["refractory gerd", "functional heartburn", "impedance-ph", "manometry", "eosinophilic esophagitis", "fundoplication", "anti-reflux surgery"]
+    },
+    {
+      "section_id": "acg-gerd-longterm",
+      "guideline": "ACG GERD Guidelines (2022)",
+      "section_title": "Long-Term PPI Safety and Management",
+      "recommendation_text": "Long-term PPI use is appropriate when clinically indicated (erosive esophagitis LA grade C/D, Barrett esophagus, severe symptom relapse off PPI). Clinicians should periodically reassess the need for continued PPI therapy and step down to the lowest effective dose. Potential risks of long-term PPI use (based on observational data with uncertain causality): C. difficile infection, bone fractures, chronic kidney disease, hypomagnesemia. These should NOT preclude PPI use when clearly indicated, but should prompt monitoring: check magnesium if on long-term PPI with concurrent diuretics, ensure adequate calcium/vitamin D intake, and assess bone density per standard osteoporosis screening guidelines. PPI discontinuation should be gradual (step-down over 2-4 weeks) to avoid rebound acid hypersecretion.",
+      "evidence_grade": "C",
+      "recommendation_level": "Moderate",
+      "applies_to_conditions": ["gerd", "barretts esophagus", "erosive esophagitis", "chronic ppi use"],
+      "applies_to_medications": ["omeprazole", "lansoprazole", "pantoprazole", "esomeprazole", "rabeprazole", "proton pump inhibitor", "ppi"],
+      "applies_to_measurements": ["magnesium", "calcium", "vitamin d", "bone density", "dexa", "creatinine", "egfr"],
+      "keywords": ["ppi safety", "long-term ppi", "bone fracture", "c. difficile", "magnesium", "kidney disease", "ppi deprescribing", "step-down"]
+    },
+
+    {
+      "section_id": "acg-ibd-crohns-induction",
+      "guideline": "ACG IBD Guidelines — Crohn's Disease (2018)",
+      "section_title": "Induction Therapy for Crohn's Disease",
+      "recommendation_text": "For mild-to-moderate Crohn's disease: budesonide 9mg daily for 8 weeks is preferred for ileal or right colonic disease. Sulfasalazine may be used for Crohn's colitis. 5-ASA agents (mesalamine) have limited efficacy in Crohn's disease and are NOT recommended. For moderate-to-severe disease: systemic corticosteroids (prednisone 40-60mg daily with taper) for short-term induction. For steroid-dependent or steroid-refractory disease: early introduction of biologic therapy (anti-TNF: infliximab, adalimumab; anti-integrin: vedolizumab; anti-IL-12/23: ustekinumab) with or without immunomodulator (azathioprine, 6-mercaptopurine, methotrexate). Top-down approach with early biologic therapy should be considered in patients with high-risk features (young age, perianal disease, extensive disease, deep ulcers, prior surgery).",
+      "evidence_grade": "A",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["crohns disease", "crohn's disease", "inflammatory bowel disease", "ibd", "ileitis", "crohns colitis"],
+      "applies_to_medications": ["budesonide", "prednisone", "infliximab", "adalimumab", "vedolizumab", "ustekinumab", "azathioprine", "6-mercaptopurine", "methotrexate", "sulfasalazine"],
+      "applies_to_measurements": ["crp", "esr", "fecal calprotectin", "colonoscopy", "ct enterography", "mri enterography", "albumin"],
+      "keywords": ["crohns disease", "induction", "biologic", "anti-tnf", "steroid", "top-down", "immunomodulator", "perianal"]
+    },
+    {
+      "section_id": "acg-ibd-crohns-maintenance",
+      "guideline": "ACG IBD Guidelines — Crohn's Disease (2018)",
+      "section_title": "Maintenance Therapy for Crohn's Disease",
+      "recommendation_text": "Corticosteroids should NOT be used for maintenance therapy in Crohn's disease. Maintenance options: immunomodulators (azathioprine 2-2.5 mg/kg, 6-MP 1-1.5 mg/kg, or methotrexate 15-25mg weekly) for patients with steroid-dependent disease. Biologic therapy is preferred for maintenance in moderate-to-severe disease: anti-TNF agents (infliximab 5mg/kg q8wk, adalimumab 40mg q2wk), vedolizumab 300mg q8wk, or ustekinumab 90mg q8wk. Combination therapy (biologic + immunomodulator) is superior to either alone for anti-TNF agents, particularly infliximab. Therapeutic drug monitoring (trough levels and anti-drug antibodies) should guide dose optimization before switching biologic class. Target: clinical remission (CDAI <150) plus endoscopic remission (mucosal healing).",
+      "evidence_grade": "A",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["crohns disease", "crohn's disease", "inflammatory bowel disease", "ibd"],
+      "applies_to_medications": ["infliximab", "adalimumab", "vedolizumab", "ustekinumab", "azathioprine", "6-mercaptopurine", "methotrexate"],
+      "applies_to_measurements": ["cdai", "crp", "fecal calprotectin", "colonoscopy", "drug levels", "anti-drug antibodies", "albumin"],
+      "keywords": ["crohns maintenance", "biologic", "combination therapy", "therapeutic drug monitoring", "mucosal healing", "immunomodulator", "remission"]
+    },
+    {
+      "section_id": "acg-ibd-uc-mild",
+      "guideline": "ACG IBD Guidelines — Ulcerative Colitis (2019)",
+      "section_title": "Mild-to-Moderate Ulcerative Colitis Treatment",
+      "recommendation_text": "For mild-to-moderate ulcerative colitis: oral 5-ASA (mesalamine >=2.4g/day) is first-line therapy. Combined oral and topical (rectal) mesalamine is more effective than either alone and is recommended for left-sided or extensive colitis. Topical mesalamine (enema or suppository) is preferred for proctitis or left-sided disease. Sulfasalazine 4-6g/day is an alternative, particularly cost-effective but with more side effects. If inadequate response to optimized 5-ASA: oral budesonide MMX 9mg daily (for mild-moderate UC with left-sided/extensive disease) or oral corticosteroids for moderate disease. Patients failing 5-ASA should be assessed for escalation to thiopurines or biologic therapy. 5-ASA therapy should be continued long-term for maintenance in patients who achieve remission.",
+      "evidence_grade": "A",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["ulcerative colitis", "uc", "inflammatory bowel disease", "ibd", "proctitis", "left-sided colitis"],
+      "applies_to_medications": ["mesalamine", "5-asa", "sulfasalazine", "budesonide mmx", "prednisone"],
+      "applies_to_measurements": ["fecal calprotectin", "crp", "colonoscopy", "hemoglobin", "albumin"],
+      "keywords": ["ulcerative colitis", "5-asa", "mesalamine", "topical", "proctitis", "mild", "moderate", "induction"]
+    },
+    {
+      "section_id": "acg-ibd-uc-severe",
+      "guideline": "ACG IBD Guidelines — Ulcerative Colitis (2019)",
+      "section_title": "Moderate-to-Severe Ulcerative Colitis and Biologic Therapy",
+      "recommendation_text": "For moderate-to-severe UC failing conventional therapy: biologic agents are recommended. Options include anti-TNF (infliximab 5mg/kg induction at weeks 0, 2, 6 then q8wk; adalimumab; golimumab), anti-integrin (vedolizumab 300mg at weeks 0, 2, 6 then q8wk), anti-IL-12/23 (ustekinumab), or JAK inhibitor (tofacitinib 10mg BID induction then 5mg BID maintenance). For acute severe UC (hospitalized): IV corticosteroids (methylprednisolone 60mg/day or hydrocortisone 100mg TID). If no response to IV steroids in 3-5 days: rescue therapy with infliximab or cyclosporine, or colectomy. Patients with acute severe UC should be co-managed by gastroenterologist and colorectal surgeon. VTE prophylaxis should be given to all hospitalized UC patients.",
+      "evidence_grade": "A",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["ulcerative colitis", "uc", "inflammatory bowel disease", "ibd", "acute severe colitis", "fulminant colitis"],
+      "applies_to_medications": ["infliximab", "adalimumab", "golimumab", "vedolizumab", "ustekinumab", "tofacitinib", "methylprednisolone", "hydrocortisone", "cyclosporine"],
+      "applies_to_measurements": ["crp", "esr", "fecal calprotectin", "colonoscopy", "hemoglobin", "albumin", "stool studies"],
+      "keywords": ["severe ulcerative colitis", "biologic", "anti-tnf", "jak inhibitor", "tofacitinib", "rescue therapy", "colectomy", "hospitalized"]
     }
   ]
 }

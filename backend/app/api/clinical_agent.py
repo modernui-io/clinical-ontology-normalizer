@@ -796,21 +796,31 @@ Knowledge Graph Summary ({len(nodes)} nodes):
 
         rag_service = get_guideline_rag_service()
 
-        # Build enriched search query from question + patient context
-        search_query = request.question
-        if conditions[:3]:
-            search_query += " " + " ".join(conditions[:3])
-        if medications[:3]:
-            search_query += " " + " ".join(medications[:3])
-
-        citations = rag_service.search(
-            query=search_query,
+        # Two-pool search: topic-relevant (raw question) + patient-relevant (with context)
+        # This ensures guidelines matching the question topic always surface,
+        # even when the patient's existing conditions dominate scoring.
+        topic_citations = rag_service.search(
+            query=request.question,
+            top_k=3,
+            min_score=0.25,
+        )
+        patient_citations = rag_service.search(
+            query=request.question,
             patient_conditions=conditions,
             patient_medications=medications,
             patient_measurements=measurements,
             top_k=5,
             min_score=0.3,
         )
+        # Merge: topic results first, then patient results (deduplicated)
+        seen_ids: set[str] = set()
+        citations = []
+        for c in topic_citations + patient_citations:
+            if c.section.section_id not in seen_ids:
+                seen_ids.add(c.section.section_id)
+                citations.append(c)
+            if len(citations) >= 5:
+                break
 
         if citations:
             guideline_context = "\n\nClinical Guideline References:"
