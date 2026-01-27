@@ -1135,6 +1135,191 @@
       "applies_to_medications": ["prednisone", "alendronate", "risedronate", "zoledronic acid", "teriparatide", "testosterone"],
       "applies_to_measurements": ["dxa", "t-score", "bone density", "testosterone", "vitamin d", "calcium"],
       "keywords": ["glucocorticoid osteoporosis", "giop", "male osteoporosis", "steroid bone loss", "secondary osteoporosis", "hypogonadism"]
+    },
+
+    {
+      "section_id": "aaos-oa-nonpharm",
+      "guideline": "AAOS Osteoarthritis of the Knee Guidelines (2021)",
+      "section_title": "Non-Pharmacologic Management of Knee Osteoarthritis",
+      "recommendation_text": "Strong recommendation for low-impact aerobic exercise, neuromuscular education, and strengthening programs. Self-management and weight loss programs recommended for BMI >=25. Physical therapy referral for individualized exercise prescription. Moderate recommendation for lateral wedge insoles (medial compartment OA), hinged knee braces (unicompartmental OA). Limited evidence supports acupuncture, TENS, or manual therapy as adjuncts. Strongly recommend against arthroscopic lavage/debridement for isolated OA without mechanical symptoms.",
+      "evidence_grade": "A",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["osteoarthritis", "knee osteoarthritis", "degenerative joint disease"],
+      "applies_to_medications": [],
+      "applies_to_measurements": ["bmi", "x-ray", "knee radiograph"],
+      "keywords": ["knee osteoarthritis", "exercise therapy", "weight loss", "physical therapy", "non-pharmacologic", "knee oa"]
+    },
+    {
+      "section_id": "aaos-oa-pharm",
+      "guideline": "AAOS Osteoarthritis of the Knee Guidelines (2021)",
+      "section_title": "Pharmacologic Treatment of Knee Osteoarthritis",
+      "recommendation_text": "Strong recommendation for oral NSAIDs and topical NSAIDs as first-line pharmacotherapy. Moderate recommendation for intra-articular corticosteroid injections for short-term relief. Inconclusive evidence for intra-articular hyaluronic acid (viscosupplementation). Strong recommendation against glucosamine and chondroitin supplementation. Tramadol may be considered when NSAIDs are contraindicated. Acetaminophen has limited efficacy but acceptable for patients who cannot take NSAIDs. Duloxetine may benefit patients with centralized pain features. Opioids are not recommended for chronic OA management.",
+      "evidence_grade": "A",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["osteoarthritis", "knee osteoarthritis", "degenerative joint disease"],
+      "applies_to_medications": ["ibuprofen", "naproxen", "diclofenac", "celecoxib", "meloxicam", "acetaminophen", "tramadol", "duloxetine"],
+      "applies_to_measurements": ["creatinine", "gfr"],
+      "keywords": ["knee oa medications", "nsaids osteoarthritis", "corticosteroid injection", "viscosupplementation", "pharmacotherapy oa"]
+    },
+    {
+      "section_id": "aaos-oa-surgical",
+      "guideline": "AAOS Osteoarthritis of the Knee Guidelines (2021)",
+      "section_title": "Surgical Management of Knee Osteoarthritis",
+      "recommendation_text": "Total knee arthroplasty (TKA) is recommended for patients with symptomatic OA who have failed adequate non-operative management. Moderate recommendation for unicompartmental knee arthroplasty (UKA) in appropriate candidates with isolated unicompartmental disease. High tibial osteotomy may be considered in younger active patients with varus malalignment and unicompartmental OA. Preoperative optimization includes BMI management (goal <40 for best outcomes), glycemic control (HbA1c <8%), smoking cessation, and nutritional assessment. Multimodal pain management perioperatively reduces opioid use.",
+      "evidence_grade": "B",
+      "recommendation_level": "Moderate",
+      "applies_to_conditions": ["osteoarthritis", "knee osteoarthritis", "end-stage arthritis"],
+      "applies_to_medications": [],
+      "applies_to_measurements": ["bmi", "hba1c", "x-ray", "mri"],
+      "keywords": ["knee replacement", "total knee arthroplasty", "tka", "surgical osteoarthritis", "unicompartmental", "joint replacement"]
+    },
+
+    {
+      "section_id": "aua-bph-eval",
+      "guideline": "AUA Benign Prostatic Hyperplasia Guidelines (2021)",
+      "section_title": "Evaluation of Lower Urinary Tract Symptoms Due to BPH",
+      "recommendation_text": "Initial evaluation includes medical history, IPSS/AUA Symptom Index (AUA-SI), physical exam including DRE, urinalysis, and PSA (if management would change). Uroflowmetry and post-void residual (PVR) measurement are recommended when invasive treatment is considered. Transrectal or transabdominal ultrasound for prostate size assessment guides treatment selection. Pressure-flow urodynamic studies recommended when diagnosis is uncertain or before invasive therapy. Cystoscopy is optional and recommended mainly when hematuria is present or prior to surgical intervention.",
+      "evidence_grade": "B",
+      "recommendation_level": "Moderate",
+      "applies_to_conditions": ["benign prostatic hyperplasia", "bph", "lower urinary tract symptoms", "luts"],
+      "applies_to_medications": [],
+      "applies_to_measurements": ["psa", "post-void residual", "uroflowmetry", "prostate volume", "ipss"],
+      "keywords": ["bph evaluation", "luts assessment", "aua symptom score", "prostate evaluation", "ipss", "post-void residual"]
+    },
+    {
+      "section_id": "aua-bph-medical",
+      "guideline": "AUA Benign Prostatic Hyperplasia Guidelines (2021)",
+      "section_title": "Medical Therapy for BPH",
+      "recommendation_text": "Alpha-blockers (tamsulosin, alfuzosin, silodosin, doxazosin, terazosin) are recommended as first-line monotherapy for moderate-severe LUTS. All alpha-blockers have similar efficacy; selection based on side-effect profile. 5-alpha reductase inhibitors (finasteride, dutasteride) recommended for prostate >30-40 mL, can reduce prostate volume 20-25% and risk of acute urinary retention/surgery. Combination alpha-blocker + 5-ARI superior to monotherapy for prostates >30 mL. Tadalafil 5 mg daily is an option particularly with concurrent erectile dysfunction. Anticholinergics or beta-3 agonists (mirabegron) may be added for persistent storage symptoms with PVR <250 mL.",
+      "evidence_grade": "A",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["benign prostatic hyperplasia", "bph", "lower urinary tract symptoms", "luts"],
+      "applies_to_medications": ["tamsulosin", "alfuzosin", "silodosin", "doxazosin", "terazosin", "finasteride", "dutasteride", "tadalafil", "mirabegron"],
+      "applies_to_measurements": ["psa", "prostate volume", "post-void residual", "ipss", "uroflowmetry"],
+      "keywords": ["bph medication", "alpha blocker", "5-alpha reductase inhibitor", "tamsulosin", "finasteride", "luts treatment", "combination therapy"]
+    },
+    {
+      "section_id": "aua-bph-surgical",
+      "guideline": "AUA Benign Prostatic Hyperplasia Guidelines (2021)",
+      "section_title": "Surgical and Minimally Invasive Therapy for BPH",
+      "recommendation_text": "Surgery is recommended for refractory urinary retention, recurrent UTI, bladder stones, renal insufficiency from BPH, or failure of medical therapy. Transurethral resection of the prostate (TURP) remains the gold standard for prostates 30-80 mL. Simple prostatectomy (open, robotic, or laparoscopic) for prostates >80-100 mL. Minimally invasive options: UroLift (prostatic urethral lift) for prostates 30-80 mL preserving ejaculatory function, Rezum (water vapor thermal therapy), and laser enucleation (HoLEP) for any prostate size. GreenLight laser vaporization is an alternative to TURP with lower bleeding risk, suitable for anticoagulated patients.",
+      "evidence_grade": "B",
+      "recommendation_level": "Moderate",
+      "applies_to_conditions": ["benign prostatic hyperplasia", "bph", "urinary retention", "bladder outlet obstruction"],
+      "applies_to_medications": [],
+      "applies_to_measurements": ["prostate volume", "post-void residual", "creatinine", "uroflowmetry"],
+      "keywords": ["bph surgery", "turp", "prostatectomy", "urolift", "rezum", "holep", "minimally invasive bph"]
+    },
+
+    {
+      "section_id": "aap-bronchiolitis-diagnosis",
+      "guideline": "AAP Bronchiolitis Guidelines (2014/2023)",
+      "section_title": "Diagnosis and Risk Stratification of Bronchiolitis",
+      "recommendation_text": "Bronchiolitis is a clinical diagnosis in children <2 years based on viral upper respiratory prodrome followed by increased respiratory effort (tachypnea, nasal flaring, retractions, wheezing, crackles). Routine laboratory studies, radiography, or viral testing are NOT recommended for diagnosis. Risk factors for severe disease: age <12 weeks, prematurity (<35 weeks), hemodynamically significant congenital heart disease, immunodeficiency, chronic lung disease, neuromuscular disorders. RSV is the most common cause. Assessment should focus on hydration status, work of breathing, and oxygen saturation.",
+      "evidence_grade": "B",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["bronchiolitis", "rsv", "respiratory syncytial virus", "viral lower respiratory infection"],
+      "applies_to_medications": [],
+      "applies_to_measurements": ["oxygen saturation", "respiratory rate", "chest x-ray"],
+      "keywords": ["bronchiolitis diagnosis", "rsv", "infant wheeze", "risk stratification", "clinical diagnosis", "pediatric respiratory"]
+    },
+    {
+      "section_id": "aap-bronchiolitis-management",
+      "guideline": "AAP Bronchiolitis Guidelines (2014/2023)",
+      "section_title": "Management and Supportive Care for Bronchiolitis",
+      "recommendation_text": "Management is primarily supportive: nasal suctioning, adequate hydration (oral or nasogastric), and supplemental oxygen for persistent SpO2 <90% (some centers use <92%). Clinicians should NOT administer albuterol, epinephrine, systemic corticosteroids, or hypertonic saline to infants with bronchiolitis in the emergency department. Antibiotics should not be used unless bacterial coinfection is documented. Chest physiotherapy is not recommended. Continuous pulse oximetry is not needed for stable patients. High-flow nasal cannula (HFNC) may be used for moderate-severe disease with escalating respiratory distress. Palivizumab (Synagis) prophylaxis for high-risk infants per AAP guidance.",
+      "evidence_grade": "A",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["bronchiolitis", "rsv", "respiratory syncytial virus"],
+      "applies_to_medications": ["palivizumab"],
+      "applies_to_measurements": ["oxygen saturation", "respiratory rate"],
+      "keywords": ["bronchiolitis treatment", "supportive care", "no albuterol", "no steroids", "hfnc", "palivizumab", "rsv management"]
+    },
+    {
+      "section_id": "aap-bronchiolitis-disposition",
+      "guideline": "AAP Bronchiolitis Guidelines (2014/2023)",
+      "section_title": "Admission Criteria and Discharge Planning for Bronchiolitis",
+      "recommendation_text": "Admit for: persistent SpO2 <90%, severe respiratory distress (marked retractions, grunting, RR >70), inability to maintain hydration, apnea, or high-risk comorbidities. ICU admission criteria: impending respiratory failure, apnea requiring stimulation/intervention, need for CPAP/HFNC >2 L/kg/min. Discharge criteria: SpO2 >=90% for >=4 hours including sleep, adequate oral intake (>=75% of baseline), improving respiratory status, caregivers educated on nasal suctioning and signs of worsening. Most infants recover in 7-10 days with days 3-5 typically the worst. Follow-up within 1-2 days of discharge.",
+      "evidence_grade": "C",
+      "recommendation_level": "Moderate",
+      "applies_to_conditions": ["bronchiolitis", "rsv", "respiratory syncytial virus"],
+      "applies_to_medications": [],
+      "applies_to_measurements": ["oxygen saturation", "respiratory rate"],
+      "keywords": ["bronchiolitis admission", "discharge criteria", "hospitalization", "icu criteria", "apnea", "pediatric disposition"]
+    },
+
+    {
+      "section_id": "acep-chest-pain-risk",
+      "guideline": "ACEP Chest Pain Guidelines (2018/2021)",
+      "section_title": "Risk Stratification for Acute Chest Pain in the ED",
+      "recommendation_text": "Use validated risk stratification tools: HEART score (History, ECG, Age, Risk factors, Troponin) is recommended for identifying low-risk chest pain patients. HEART score 0-3: low risk (<2% MACE at 30 days), consider discharge with outpatient follow-up. HEART score 4-6: moderate risk, observation and further testing. HEART score 7-10: high risk, admit for invasive strategy. Serial high-sensitivity troponin (hs-cTnI or hs-cTnT) at 0 and 1-3 hours can safely identify low-risk patients for early discharge. TIMI and GRACE scores are alternatives. ECG should be obtained within 10 minutes of ED arrival for all chest pain patients.",
+      "evidence_grade": "A",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["chest pain", "acute coronary syndrome", "myocardial infarction", "unstable angina"],
+      "applies_to_medications": ["aspirin", "nitroglycerin", "heparin"],
+      "applies_to_measurements": ["troponin", "ecg", "heart score", "hs-ctni", "hs-ctnt"],
+      "keywords": ["chest pain risk stratification", "heart score", "troponin", "acs evaluation", "emergency department", "mace risk"]
+    },
+    {
+      "section_id": "acep-chest-pain-testing",
+      "guideline": "ACEP Chest Pain Guidelines (2018/2021)",
+      "section_title": "Diagnostic Testing for Acute Chest Pain",
+      "recommendation_text": "For intermediate-risk patients, non-invasive functional testing or CCTA (coronary CT angiography) is recommended. CCTA has high sensitivity (95-99%) and negative predictive value for excluding obstructive CAD. Stress testing (exercise treadmill, stress echo, nuclear perfusion) is appropriate for patients who can exercise. Pharmacologic stress testing for patients unable to exercise. CT pulmonary angiography for suspected pulmonary embolism; use Wells score or PERC criteria first. D-dimer can rule out PE in low-probability patients. Chest X-ray for all chest pain presentations to evaluate for pneumothorax, pneumonia, aortic pathology, or other non-cardiac causes.",
+      "evidence_grade": "B",
+      "recommendation_level": "Moderate",
+      "applies_to_conditions": ["chest pain", "acute coronary syndrome", "pulmonary embolism", "aortic dissection"],
+      "applies_to_medications": [],
+      "applies_to_measurements": ["troponin", "ecg", "d-dimer", "ct angiography", "chest x-ray", "stress test"],
+      "keywords": ["chest pain workup", "ccta", "stress testing", "ct angiography", "d-dimer", "pe evaluation", "diagnostic testing"]
+    },
+    {
+      "section_id": "acep-chest-pain-disposition",
+      "guideline": "ACEP Chest Pain Guidelines (2018/2021)",
+      "section_title": "Disposition and Follow-Up for Chest Pain",
+      "recommendation_text": "Low-risk patients (HEART 0-3 with negative serial troponins and non-ischemic ECG) may be safely discharged with outpatient follow-up within 72 hours. Shared decision-making is recommended for borderline-risk patients. Moderate-risk patients should undergo observation with serial troponins and provocative testing or CCTA before discharge. All discharged patients should receive: aspirin prescription, nitroglycerin SL for acute symptoms, instructions to return for recurrent/worsening symptoms, and cardiology follow-up referral. Documentation of risk stratification tool used, clinical reasoning, and patient understanding is essential for medical-legal purposes.",
+      "evidence_grade": "B",
+      "recommendation_level": "Moderate",
+      "applies_to_conditions": ["chest pain", "acute coronary syndrome", "low-risk chest pain"],
+      "applies_to_medications": ["aspirin", "nitroglycerin"],
+      "applies_to_measurements": ["troponin", "ecg", "heart score"],
+      "keywords": ["chest pain discharge", "safe discharge", "observation unit", "follow-up", "shared decision-making", "heart score disposition"]
+    },
+
+    {
+      "section_id": "asa-airway-assessment",
+      "guideline": "ASA Difficult Airway Management Guidelines (2022)",
+      "section_title": "Airway Assessment and Planning",
+      "recommendation_text": "Conduct airway evaluation before all anesthetic or procedural sedation encounters. Assess: Mallampati classification (I-IV), thyromental distance (<6 cm concerning), mouth opening (<3 cm concerning), neck mobility, obesity/BMI, obstructive sleep apnea, prior difficult intubation history, and facial/cervical pathology. The Difficult Airway Algorithm should be reviewed and equipment prepared before induction. Awake intubation should be considered when difficulty is anticipated and patient cooperation is feasible. Always have a supraglottic airway device (SGA) available as rescue. Develop a primary plan (Plan A), alternative plan (Plan B), and emergency surgical airway plan (Plan C).",
+      "evidence_grade": "C",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["difficult airway", "airway management", "anesthesia", "procedural sedation"],
+      "applies_to_medications": ["propofol", "succinylcholine", "rocuronium", "sugammadex"],
+      "applies_to_measurements": ["mallampati score", "bmi", "thyromental distance"],
+      "keywords": ["airway assessment", "mallampati", "difficult airway", "awake intubation", "preoperative evaluation", "airway planning"]
+    },
+    {
+      "section_id": "asa-airway-cant-intubate",
+      "guideline": "ASA Difficult Airway Management Guidelines (2022)",
+      "section_title": "Cannot Intubate — Rescue Strategies",
+      "recommendation_text": "If initial intubation attempt fails after <=3 optimized attempts: insert SGA (laryngeal mask airway) as first rescue. If SGA ventilation succeeds, options include: intubation through SGA, wake patient, or proceed with SGA for surgery. If SGA fails and cannot ventilate: declare 'Cannot Intubate, Cannot Oxygenate' (CICO) emergency. Perform emergency front-of-neck access (cricothyroidotomy or tracheostomy). Call for help early — do not wait until CICO. Video laryngoscopy recommended as first approach (not as rescue only). Limit total intubation attempts to 3+1 (3 by primary operator, 1 by most experienced available). Maintain oxygenation between attempts.",
+      "evidence_grade": "C",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["difficult airway", "cannot intubate", "cico", "airway emergency"],
+      "applies_to_medications": ["rocuronium", "sugammadex", "succinylcholine"],
+      "applies_to_measurements": ["oxygen saturation", "end-tidal co2"],
+      "keywords": ["failed intubation", "cico", "cricothyroidotomy", "sga rescue", "cannot intubate", "airway emergency", "video laryngoscopy"]
+    },
+    {
+      "section_id": "asa-airway-extubation",
+      "guideline": "ASA Difficult Airway Management Guidelines (2022)",
+      "section_title": "Extubation of the Difficult Airway",
+      "recommendation_text": "Extubation of the difficult airway is a planned, high-risk event. Assess readiness: adequate consciousness, intact protective reflexes, adequate neuromuscular recovery (train-of-four ratio >=0.9), stable hemodynamics, acceptable oxygenation/ventilation. For known/suspected difficult reintubation: consider use of airway exchange catheter (AEC) placed through ETT before extubation, allowing emergency re-intubation over catheter. Perform in a controlled environment with full re-intubation equipment immediately available. Consider 'deep extubation' or 'awake extubation' based on individual risk assessment. Post-extubation monitoring in PACU/ICU for at-risk patients.",
+      "evidence_grade": "C",
+      "recommendation_level": "Moderate",
+      "applies_to_conditions": ["difficult airway", "extubation", "post-anesthesia care"],
+      "applies_to_medications": ["sugammadex", "neostigmine"],
+      "applies_to_measurements": ["train-of-four", "oxygen saturation", "end-tidal co2"],
+      "keywords": ["difficult extubation", "airway exchange catheter", "extubation planning", "neuromuscular recovery", "post-extubation monitoring"]
     }
   ]
 }
