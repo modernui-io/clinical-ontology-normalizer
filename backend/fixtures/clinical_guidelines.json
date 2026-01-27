@@ -987,6 +987,154 @@
       "applies_to_medications": ["sertraline", "escitalopram", "fluoxetine", "venlafaxine", "duloxetine", "bupropion", "paroxetine"],
       "applies_to_measurements": ["phq-9", "relapse monitoring"],
       "keywords": ["depression maintenance", "relapse prevention", "continuation therapy", "discontinuation", "taper", "recurrent depression", "mbct"]
+    },
+
+    {
+      "section_id": "acog-preeclampsia-diagnosis",
+      "guideline": "ACOG Hypertensive Disorders of Pregnancy Guidelines (2020)",
+      "section_title": "Diagnosis and Classification of Preeclampsia",
+      "recommendation_text": "Preeclampsia is diagnosed by new-onset hypertension (systolic >=140 or diastolic >=90 mmHg) after 20 weeks' gestation with proteinuria (>=300 mg/24h or protein/creatinine ratio >=0.3) or other end-organ dysfunction. Preeclampsia with severe features includes systolic >=160 or diastolic >=110, thrombocytopenia (<100,000), elevated liver enzymes (twice normal), renal insufficiency (creatinine >1.1 or doubling), pulmonary edema, or new-onset cerebral/visual disturbances. HELLP syndrome (hemolysis, elevated liver enzymes, low platelets) is a severe variant requiring urgent evaluation.",
+      "evidence_grade": "B",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["preeclampsia", "hypertension in pregnancy", "gestational hypertension", "hellp syndrome"],
+      "applies_to_medications": [],
+      "applies_to_measurements": ["blood pressure", "proteinuria", "protein/creatinine ratio", "platelets", "liver enzymes", "creatinine"],
+      "keywords": ["preeclampsia diagnosis", "severe features", "hellp", "gestational hypertension", "proteinuria", "end-organ dysfunction"]
+    },
+    {
+      "section_id": "acog-preeclampsia-management",
+      "guideline": "ACOG Hypertensive Disorders of Pregnancy Guidelines (2020)",
+      "section_title": "Management and Delivery Timing in Preeclampsia",
+      "recommendation_text": "For preeclampsia without severe features, expectant management is reasonable up to 37 weeks with close monitoring including twice-weekly BP checks, weekly labs (CBC, CMP, LDH), and fetal surveillance. Delivery is recommended at 37 weeks. For preeclampsia with severe features at >=34 weeks, delivery is recommended after maternal stabilization. At <34 weeks with severe features, expectant management may be considered in a facility with maternal-fetal medicine expertise, with corticosteroids for fetal lung maturity. Magnesium sulfate is recommended for seizure prophylaxis in severe preeclampsia. Antihypertensive therapy (IV labetalol, IV hydralazine, or oral nifedipine) for acute severe hypertension (>=160/110).",
+      "evidence_grade": "A",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["preeclampsia", "severe preeclampsia", "gestational hypertension", "pregnancy"],
+      "applies_to_medications": ["magnesium sulfate", "labetalol", "hydralazine", "nifedipine", "betamethasone"],
+      "applies_to_measurements": ["blood pressure", "platelets", "liver enzymes", "creatinine", "ldh", "fetal heart rate"],
+      "keywords": ["preeclampsia management", "delivery timing", "magnesium sulfate", "seizure prophylaxis", "severe hypertension", "expectant management", "corticosteroids"]
+    },
+    {
+      "section_id": "acog-preeclampsia-postpartum",
+      "guideline": "ACOG Hypertensive Disorders of Pregnancy Guidelines (2020)",
+      "section_title": "Postpartum Monitoring and Long-Term Cardiovascular Risk",
+      "recommendation_text": "Postpartum BP monitoring is recommended for 72 hours after delivery and at 7-10 days postpartum. Persistent postpartum hypertension should be treated with labetalol, nifedipine, or enalapril (safe with breastfeeding). Women with history of preeclampsia have 2-4x increased lifetime risk of chronic hypertension, ischemic heart disease, and stroke. Annual cardiovascular risk assessment is recommended including BP, lipids, and glucose monitoring. Low-dose aspirin (81 mg/day) starting at 12-28 weeks is recommended in subsequent pregnancies for women with prior preeclampsia.",
+      "evidence_grade": "B",
+      "recommendation_level": "Moderate",
+      "applies_to_conditions": ["preeclampsia", "postpartum hypertension", "pregnancy"],
+      "applies_to_medications": ["labetalol", "nifedipine", "enalapril", "aspirin"],
+      "applies_to_measurements": ["blood pressure", "lipid panel", "glucose"],
+      "keywords": ["postpartum preeclampsia", "cardiovascular risk", "aspirin prophylaxis", "breastfeeding", "postpartum hypertension", "long-term risk"]
+    },
+
+    {
+      "section_id": "acog-gdm-screening",
+      "guideline": "ACOG Gestational Diabetes Guidelines (2018)",
+      "section_title": "Screening and Diagnosis of Gestational Diabetes",
+      "recommendation_text": "Universal screening for gestational diabetes mellitus (GDM) is recommended at 24-28 weeks' gestation using either a one-step (75g OGTT with fasting, 1h, and 2h glucose) or two-step approach (50g glucose challenge test followed by 100g OGTT if abnormal). Two-step approach: 50g GCT threshold >=130-140 mg/dL; 100g OGTT diagnostic if 2+ values exceed thresholds (fasting >=95, 1h >=180, 2h >=155, 3h >=140 using Carpenter-Coustan criteria). Early screening in first trimester is recommended for women with BMI >=25 plus risk factors (prior GDM, family history of diabetes, high-risk ethnicity, prior macrosomia).",
+      "evidence_grade": "A",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["gestational diabetes", "gdm", "pregnancy", "diabetes in pregnancy"],
+      "applies_to_medications": [],
+      "applies_to_measurements": ["glucose", "ogtt", "hba1c", "glucose challenge test", "fasting glucose"],
+      "keywords": ["gestational diabetes screening", "ogtt", "glucose challenge", "gdm diagnosis", "carpenter-coustan", "first trimester screening"]
+    },
+    {
+      "section_id": "acog-gdm-management",
+      "guideline": "ACOG Gestational Diabetes Guidelines (2018)",
+      "section_title": "Management of Gestational Diabetes",
+      "recommendation_text": "Initial management includes nutritional counseling (carbohydrate-controlled diet), moderate exercise, and glucose self-monitoring (fasting and 1-2h postprandial). Glycemic targets: fasting <95 mg/dL, 1h postprandial <140 mg/dL, 2h postprandial <120 mg/dL. If dietary management fails to achieve targets after 1-2 weeks, pharmacologic therapy is indicated. Insulin is the preferred first-line pharmacotherapy. Metformin and glyburide are alternatives when insulin is refused or impractical, though both cross the placenta. Fetal surveillance (NST, BPP) beginning at 32-36 weeks depending on severity and glycemic control.",
+      "evidence_grade": "A",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["gestational diabetes", "gdm", "pregnancy", "diabetes in pregnancy"],
+      "applies_to_medications": ["insulin", "metformin", "glyburide"],
+      "applies_to_measurements": ["glucose", "fasting glucose", "postprandial glucose", "hba1c", "fetal heart rate"],
+      "keywords": ["gdm management", "glycemic targets pregnancy", "insulin in pregnancy", "metformin pregnancy", "diet therapy", "glucose monitoring"]
+    },
+    {
+      "section_id": "acog-gdm-delivery",
+      "guideline": "ACOG Gestational Diabetes Guidelines (2018)",
+      "section_title": "Delivery Timing and Postpartum Follow-Up for GDM",
+      "recommendation_text": "For well-controlled GDM on diet alone, delivery at 39-40+6 weeks is reasonable. For GDM on medications with good control, delivery at 39-39+6 weeks is recommended. For poorly controlled GDM, individualize timing from 37-39 weeks. Postpartum: screen for persistent diabetes at 4-12 weeks with 75g OGTT (not HbA1c alone). Women with GDM have 50% lifetime risk of developing type 2 diabetes. Screen every 1-3 years thereafter with fasting glucose, OGTT, or HbA1c. Counsel on lifestyle modifications, weight management, and benefits of breastfeeding for metabolic risk reduction.",
+      "evidence_grade": "B",
+      "recommendation_level": "Moderate",
+      "applies_to_conditions": ["gestational diabetes", "gdm", "type 2 diabetes risk", "pregnancy"],
+      "applies_to_medications": ["insulin", "metformin"],
+      "applies_to_measurements": ["glucose", "ogtt", "hba1c", "fasting glucose"],
+      "keywords": ["gdm delivery timing", "postpartum screening", "type 2 diabetes risk", "ogtt postpartum", "breastfeeding", "lifestyle modification"]
+    },
+
+    {
+      "section_id": "endo-thyroid-hypothyroid",
+      "guideline": "ATA/Endocrine Society Thyroid Guidelines (2012/2017)",
+      "section_title": "Diagnosis and Management of Hypothyroidism",
+      "recommendation_text": "Primary hypothyroidism is diagnosed by elevated TSH with low free T4. Subclinical hypothyroidism (elevated TSH, normal free T4) should be treated when TSH >10 mIU/L; treatment is individualized for TSH 4.5-10 based on symptoms, age, cardiovascular risk, and anti-TPO antibody status. Levothyroxine is the standard treatment, dosed at 1.6 mcg/kg/day for full replacement. Take on empty stomach 30-60 minutes before breakfast or at bedtime 3+ hours after last meal. Recheck TSH 4-6 weeks after dose changes. Target TSH 0.5-2.5 mIU/L for most adults; higher targets (4-6) acceptable in elderly. Avoid overtreatment — suppressed TSH increases atrial fibrillation and osteoporosis risk.",
+      "evidence_grade": "A",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["hypothyroidism", "subclinical hypothyroidism", "hashimoto's thyroiditis", "thyroid disease"],
+      "applies_to_medications": ["levothyroxine", "synthroid", "liothyronine"],
+      "applies_to_measurements": ["tsh", "free t4", "anti-tpo antibodies", "thyroid function"],
+      "keywords": ["hypothyroidism treatment", "levothyroxine dosing", "tsh target", "subclinical hypothyroidism", "thyroid replacement"]
+    },
+    {
+      "section_id": "endo-thyroid-hyperthyroid",
+      "guideline": "ATA/Endocrine Society Thyroid Guidelines (2016)",
+      "section_title": "Diagnosis and Management of Hyperthyroidism",
+      "recommendation_text": "Hyperthyroidism is diagnosed by suppressed TSH with elevated free T4 and/or free T3. Graves' disease is the most common cause; confirm with TSI (thyroid-stimulating immunoglobulin) or radioactive iodine uptake scan. Three treatment options: antithyroid drugs (methimazole preferred; propylthiouracil only in first trimester of pregnancy), radioactive iodine ablation, or thyroidectomy. Methimazole starting dose 10-30 mg/day depending on severity. Monitor CBC (agranulocytosis risk) and LFTs. Beta-blockers (propranolol, atenolol) for symptom control. For Graves' ophthalmopathy, avoid radioactive iodine if moderate-severe; refer to ophthalmology.",
+      "evidence_grade": "A",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["hyperthyroidism", "graves disease", "thyrotoxicosis", "thyroid disease"],
+      "applies_to_medications": ["methimazole", "propylthiouracil", "propranolol", "atenolol"],
+      "applies_to_measurements": ["tsh", "free t4", "free t3", "tsi", "cbc", "liver enzymes"],
+      "keywords": ["hyperthyroidism treatment", "graves disease", "methimazole", "radioactive iodine", "antithyroid drugs", "thyrotoxicosis"]
+    },
+    {
+      "section_id": "endo-thyroid-nodules",
+      "guideline": "ATA/Endocrine Society Thyroid Guidelines (2015)",
+      "section_title": "Evaluation of Thyroid Nodules",
+      "recommendation_text": "Thyroid nodules are common (50-67% prevalence on ultrasound) but only 5-15% are malignant. Initial evaluation: TSH, neck ultrasound. If TSH is low, obtain radioactive iodine uptake/scan — hyperfunctioning nodules are rarely malignant. FNA biopsy is recommended based on ultrasound pattern and size: highly suspicious (>1 cm), intermediate (>1 cm), low suspicion (>1.5 cm), very low (>2 cm or observe). Use Bethesda classification for cytology results. Molecular testing (Afirma, ThyroSeq) for indeterminate cytology (Bethesda III-IV) to guide surgical decision-making. Observation with serial ultrasound is appropriate for benign cytology nodules.",
+      "evidence_grade": "B",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["thyroid nodule", "thyroid cancer", "thyroid disease"],
+      "applies_to_medications": [],
+      "applies_to_measurements": ["tsh", "ultrasound", "fna biopsy", "thyroid ultrasound"],
+      "keywords": ["thyroid nodule evaluation", "fna biopsy", "bethesda classification", "molecular testing", "thyroid cancer screening", "ultrasound pattern"]
+    },
+
+    {
+      "section_id": "endo-osteoporosis-screening",
+      "guideline": "Endocrine Society Osteoporosis Guidelines (2019)",
+      "section_title": "Osteoporosis Screening and Diagnosis",
+      "recommendation_text": "Screen with DXA (dual-energy X-ray absorptiometry) in: all women >=65, men >=70, postmenopausal women <65 with risk factors (low body weight, prior fracture, high-risk medication use, family history), and adults with conditions causing bone loss (glucocorticoid use, hyperparathyroidism, malabsorption). Osteoporosis: T-score <=-2.5 at hip, femoral neck, or lumbar spine. Osteopenia: T-score -1.0 to -2.5. Use FRAX calculator (fracture risk assessment) incorporating clinical risk factors for treatment decisions. Vertebral fracture assessment by DXA or lateral spine imaging recommended for patients with height loss >1.5 inches or unexplained back pain.",
+      "evidence_grade": "A",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["osteoporosis", "osteopenia", "fracture risk", "postmenopausal bone loss"],
+      "applies_to_medications": ["glucocorticoids", "prednisone"],
+      "applies_to_measurements": ["dxa", "t-score", "bone density", "frax score", "calcium", "vitamin d"],
+      "keywords": ["osteoporosis screening", "dxa scan", "t-score", "frax", "bone density", "fracture risk assessment"]
+    },
+    {
+      "section_id": "endo-osteoporosis-treatment",
+      "guideline": "Endocrine Society Osteoporosis Guidelines (2019)",
+      "section_title": "Pharmacologic Treatment of Osteoporosis",
+      "recommendation_text": "Treat when: T-score <=-2.5, hip or vertebral fracture, or osteopenia with FRAX 10-year hip fracture probability >=3% or major osteoporotic fracture >=20%. First-line: bisphosphonates (alendronate 70 mg/week or risedronate 35 mg/week PO, or zoledronic acid 5 mg IV annually). For very high fracture risk, consider anabolic agents first (teriparatide, abaloparatide, or romosozumab) followed by antiresorptive. Denosumab (60 mg SQ every 6 months) for patients intolerant of bisphosphonates or with renal impairment. Ensure adequate calcium (1000-1200 mg/day) and vitamin D (800-1000 IU/day). Reassess treatment after 3-5 years of bisphosphonate therapy (drug holiday consideration).",
+      "evidence_grade": "A",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["osteoporosis", "osteopenia", "fracture", "postmenopausal osteoporosis"],
+      "applies_to_medications": ["alendronate", "risedronate", "zoledronic acid", "denosumab", "teriparatide", "abaloparatide", "romosozumab", "calcium", "vitamin d"],
+      "applies_to_measurements": ["t-score", "dxa", "bone density", "calcium", "vitamin d", "creatinine"],
+      "keywords": ["osteoporosis treatment", "bisphosphonates", "denosumab", "anabolic therapy", "fracture prevention", "drug holiday", "calcium supplementation"]
+    },
+    {
+      "section_id": "endo-osteoporosis-special",
+      "guideline": "Endocrine Society Osteoporosis Guidelines (2019)",
+      "section_title": "Glucocorticoid-Induced and Male Osteoporosis",
+      "recommendation_text": "Glucocorticoid-induced osteoporosis (GIOP): Initiate bone-protective therapy in adults starting prednisone >=2.5 mg/day for >=3 months with moderate-high fracture risk. Oral bisphosphonates are first-line; teriparatide is preferred for very high-risk GIOP. Obtain baseline DXA and FRAX at initiation of chronic glucocorticoids. Male osteoporosis: evaluate for secondary causes (hypogonadism, excessive alcohol, glucocorticoid use, malabsorption). Treat with bisphosphonates (same agents/doses as postmenopausal osteoporosis). Testosterone replacement alone is insufficient for men with osteoporosis and hypogonadism — add bisphosphonate. Monitor with DXA every 1-2 years on treatment.",
+      "evidence_grade": "B",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["glucocorticoid-induced osteoporosis", "male osteoporosis", "osteoporosis", "steroid-induced bone loss"],
+      "applies_to_medications": ["prednisone", "alendronate", "risedronate", "zoledronic acid", "teriparatide", "testosterone"],
+      "applies_to_measurements": ["dxa", "t-score", "bone density", "testosterone", "vitamin d", "calcium"],
+      "keywords": ["glucocorticoid osteoporosis", "giop", "male osteoporosis", "steroid bone loss", "secondary osteoporosis", "hypogonadism"]
     }
   ]
 }
