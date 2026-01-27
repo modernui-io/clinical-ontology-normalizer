@@ -778,6 +778,215 @@
       "applies_to_medications": ["infliximab", "adalimumab", "golimumab", "vedolizumab", "ustekinumab", "tofacitinib", "methylprednisolone", "hydrocortisone", "cyclosporine"],
       "applies_to_measurements": ["crp", "esr", "fecal calprotectin", "colonoscopy", "hemoglobin", "albumin", "stool studies"],
       "keywords": ["severe ulcerative colitis", "biologic", "anti-tnf", "jak inhibitor", "tofacitinib", "rescue therapy", "colectomy", "hospitalized"]
+    },
+
+    {
+      "section_id": "acr-ra-early",
+      "guideline": "ACR Rheumatoid Arthritis Guidelines (2021)",
+      "section_title": "Early RA: DMARD Initiation",
+      "recommendation_text": "For treatment-naive patients with moderate-to-high disease activity: methotrexate monotherapy is conditionally recommended as first-line therapy over other conventional DMARDs, targeted synthetic DMARDs, or biologics. Recommended starting dose: 15mg/week orally with folic acid 1mg daily. Escalate to 25mg/week by 4-8 weeks if tolerated. Short-term bridging with low-dose glucocorticoids (prednisone <=10mg/day for <3 months) is conditionally recommended during DMARD initiation. Treat-to-target approach: aim for low disease activity or remission within 6 months. Reassess at 3 months — if not at target, escalate therapy. For low disease activity: hydroxychloroquine or sulfasalazine may be used as initial DMARD.",
+      "evidence_grade": "B",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["rheumatoid arthritis", "ra", "inflammatory arthritis", "polyarthritis", "joint inflammation"],
+      "applies_to_medications": ["methotrexate", "hydroxychloroquine", "sulfasalazine", "prednisone", "folic acid", "leflunomide"],
+      "applies_to_measurements": ["esr", "crp", "rheumatoid factor", "anti-ccp", "das28", "cdai", "joint count"],
+      "keywords": ["rheumatoid arthritis", "dmard", "methotrexate", "early ra", "treat-to-target", "glucocorticoid bridging", "disease activity"]
+    },
+    {
+      "section_id": "acr-ra-biologic",
+      "guideline": "ACR Rheumatoid Arthritis Guidelines (2021)",
+      "section_title": "Biologic and Targeted Therapy for RA",
+      "recommendation_text": "For patients with moderate-to-high disease activity despite methotrexate optimization (>=15mg/week for >=3 months): adding a biologic DMARD or targeted synthetic DMARD (tsDMARD) is conditionally recommended over triple conventional therapy (MTX + sulfasalazine + hydroxychloroquine). Options: anti-TNF (adalimumab, etanercept, infliximab, certolizumab, golimumab), anti-IL-6 (tocilizumab, sarilumab), T-cell co-stimulation blocker (abatacept), anti-CD20 (rituximab — especially if anti-CCP positive), or JAK inhibitors (tofacitinib, baricitinib, upadacitinib). Continue methotrexate background when adding biologic (combination > monotherapy for anti-TNF agents). JAK inhibitors carry FDA boxed warnings for serious infections, cardiovascular events, and malignancy in patients >=50 years with cardiovascular risk factors.",
+      "evidence_grade": "B",
+      "recommendation_level": "Moderate",
+      "applies_to_conditions": ["rheumatoid arthritis", "ra", "inflammatory arthritis"],
+      "applies_to_medications": ["adalimumab", "etanercept", "infliximab", "certolizumab", "golimumab", "tocilizumab", "sarilumab", "abatacept", "rituximab", "tofacitinib", "baricitinib", "upadacitinib", "methotrexate"],
+      "applies_to_measurements": ["das28", "cdai", "crp", "esr", "anti-ccp", "rheumatoid factor"],
+      "keywords": ["rheumatoid arthritis biologic", "anti-tnf", "jak inhibitor", "targeted therapy", "biologic dmard", "treatment failure", "combination therapy"]
+    },
+    {
+      "section_id": "acr-ra-monitoring",
+      "guideline": "ACR Rheumatoid Arthritis Guidelines (2021)",
+      "section_title": "RA Monitoring and Tapering",
+      "recommendation_text": "Monitor disease activity every 1-3 months during active disease using validated measures (DAS28, CDAI, or SDAI). Labs: CBC, CMP, LFTs every 4-12 weeks on methotrexate; lipid panel on JAK inhibitors. Once sustained remission (>=6 months): consider tapering strategy. Taper glucocorticoids first, then reduce DMARD dose gradually. Biologic dose reduction or interval extension is conditionally recommended over abrupt discontinuation. Do NOT discontinue all DMARDs — maintain at least one conventional DMARD. Flare management: return to previously effective regimen. Screen for comorbidities: cardiovascular disease, infections (hepatitis B/C, tuberculosis before biologic therapy), osteoporosis, and malignancy.",
+      "evidence_grade": "C",
+      "recommendation_level": "Moderate",
+      "applies_to_conditions": ["rheumatoid arthritis", "ra"],
+      "applies_to_medications": ["methotrexate", "prednisone", "adalimumab", "etanercept", "tofacitinib"],
+      "applies_to_measurements": ["das28", "cdai", "crp", "esr", "cbc", "cmp", "lft", "lipid panel", "hepatitis b", "tuberculosis screen"],
+      "keywords": ["ra monitoring", "tapering", "remission", "disease activity", "flare", "comorbidity screening", "dmard monitoring"]
+    },
+    {
+      "section_id": "acr-ra-special",
+      "guideline": "ACR Rheumatoid Arthritis Guidelines (2021)",
+      "section_title": "RA Special Populations",
+      "recommendation_text": "Subcutaneous nodules: methotrexate may worsen nodulosis; consider switching to hydroxychloroquine or a biologic. Interstitial lung disease (ILD): avoid methotrexate if significant ILD; rituximab or abatacept preferred. Hepatitis B: entecavir or tenofovir prophylaxis required before rituximab or other B-cell depleting therapy. Hepatitis C: treat with direct-acting antivirals; methotrexate is relatively contraindicated with significant liver disease. Pregnancy planning: stop methotrexate and leflunomide (washout with cholestyramine) >=3 months before conception. Hydroxychloroquine and sulfasalazine are compatible with pregnancy. Certolizumab has lowest placental transfer among anti-TNF agents. Heart failure: avoid anti-TNF agents in NYHA class III-IV HF.",
+      "evidence_grade": "C",
+      "recommendation_level": "Moderate",
+      "applies_to_conditions": ["rheumatoid arthritis", "ra", "interstitial lung disease", "hepatitis b", "hepatitis c", "pregnancy", "heart failure"],
+      "applies_to_medications": ["methotrexate", "hydroxychloroquine", "sulfasalazine", "rituximab", "abatacept", "certolizumab", "leflunomide", "entecavir", "tenofovir"],
+      "applies_to_measurements": ["hepatitis b surface antigen", "hepatitis c antibody", "chest ct", "pulmonary function test", "liver function"],
+      "keywords": ["ra special populations", "pregnancy", "interstitial lung disease", "hepatitis", "heart failure", "nodulosis", "contraindication"]
+    },
+
+    {
+      "section_id": "acr-gout-ult",
+      "guideline": "ACR Gout Management Guidelines (2020)",
+      "section_title": "Urate-Lowering Therapy Initiation",
+      "recommendation_text": "Urate-lowering therapy (ULT) is conditionally recommended for patients with: >=2 flares/year, tophi, radiographic damage from gout, or uric acid nephrolithiasis. Allopurinol is strongly recommended as first-line ULT over febuxostat. Starting dose: allopurinol 100mg/day (50mg/day if CKD stage >=3). Titrate by 100mg every 2-4 weeks to target serum urate <6 mg/dL (or <5 mg/dL if tophi present). Maximum dose 800mg/day. HLA-B*5801 testing is conditionally recommended before starting allopurinol in Southeast Asian, African American, and Native Hawaiian/Pacific Islander patients (risk of severe hypersensitivity reaction). Alternative: febuxostat 40-80mg/day (avoid in patients with cardiovascular disease per FDA warning).",
+      "evidence_grade": "A",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["gout", "hyperuricemia", "uric acid nephrolithiasis", "tophaceous gout", "crystal arthropathy"],
+      "applies_to_medications": ["allopurinol", "febuxostat", "probenecid", "pegloticase"],
+      "applies_to_measurements": ["uric acid", "serum urate", "creatinine", "egfr", "hla-b*5801"],
+      "keywords": ["gout", "urate-lowering therapy", "allopurinol", "hyperuricemia", "tophi", "treat-to-target", "hla-b*5801"]
+    },
+    {
+      "section_id": "acr-gout-flare",
+      "guideline": "ACR Gout Management Guidelines (2020)",
+      "section_title": "Gout Flare Management and Prophylaxis",
+      "recommendation_text": "Acute flare treatment: colchicine (1.2mg then 0.6mg 1 hour later, then 0.6mg BID), NSAIDs (naproxen 500mg BID or indomethacin 50mg TID), or glucocorticoids (prednisone 30-40mg/day taper over 7-10 days) as first-line options. For patients who cannot take oral medications: intra-articular corticosteroid injection or IM/IV methylprednisolone. IL-1 inhibitors (anakinra) for refractory flares. Flare prophylaxis when starting ULT: colchicine 0.6mg once or twice daily for 3-6 months is strongly recommended over no prophylaxis. Continue ULT during acute flares — do NOT stop or start ULT during a flare (conditionally recommended). NSAIDs or low-dose prednisone may be used as alternative prophylaxis if colchicine is contraindicated.",
+      "evidence_grade": "A",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["gout", "acute gout flare", "gouty arthritis", "crystal arthropathy"],
+      "applies_to_medications": ["colchicine", "naproxen", "indomethacin", "prednisone", "methylprednisolone", "anakinra", "allopurinol"],
+      "applies_to_measurements": ["uric acid", "serum urate", "joint aspiration", "synovial fluid analysis"],
+      "keywords": ["gout flare", "colchicine", "nsaid", "glucocorticoid", "prophylaxis", "acute gout", "flare management", "il-1 inhibitor"]
+    },
+    {
+      "section_id": "acr-gout-comorbidity",
+      "guideline": "ACR Gout Management Guidelines (2020)",
+      "section_title": "Gout Comorbidity Considerations",
+      "recommendation_text": "CKD: Use allopurinol at reduced starting dose (50mg/day for CKD stage >=3) but can still titrate to target; do NOT limit maximum dose based on creatinine clearance alone (old practice). Febuxostat does not require renal dose adjustment. Cardiovascular disease: febuxostat has FDA boxed warning for increased cardiovascular mortality vs allopurinol in CARES trial — use allopurinol preferentially. For patients on thiazide or loop diuretics: continue diuretic if needed for other conditions; do NOT switch solely because of gout. Losartan and SGLT2 inhibitors have modest uricosuric effects and may be preferred for hypertension/diabetes in gout patients. Avoid aspirin and cyclosporine which raise urate levels.",
+      "evidence_grade": "B",
+      "recommendation_level": "Moderate",
+      "applies_to_conditions": ["gout", "chronic kidney disease", "cardiovascular disease", "hypertension", "diabetes"],
+      "applies_to_medications": ["allopurinol", "febuxostat", "losartan", "empagliflozin", "dapagliflozin", "hydrochlorothiazide", "furosemide", "cyclosporine"],
+      "applies_to_measurements": ["uric acid", "serum urate", "creatinine", "egfr", "blood pressure"],
+      "keywords": ["gout comorbidity", "ckd", "cardiovascular", "diuretics", "losartan", "sglt2", "febuxostat warning"]
+    },
+
+    {
+      "section_id": "aan-epilepsy-newonset",
+      "guideline": "AAN Epilepsy Management Guidelines (2018)",
+      "section_title": "New-Onset Epilepsy Treatment",
+      "recommendation_text": "For adults with new-onset focal epilepsy: lamotrigine should be considered (Level B recommendation) as first-line. Levetiracetam and zonisamide may be considered (Level C). For patients >=60 years with focal epilepsy: lamotrigine should be considered (Level B); gabapentin may be considered (Level C). For childhood absence epilepsy: ethosuximide or valproic acid should be considered before lamotrigine (Level B). Important considerations: valproic acid is teratogenic — avoid in women of childbearing age unless no alternative. Levetiracetam has fewest drug interactions and no hepatic metabolism. Carbamazepine and phenytoin are effective but have more drug interactions and side effects. Start at low dose and titrate gradually to minimize side effects. Seizure freedom (no seizures for 12 months) is the primary treatment goal.",
+      "evidence_grade": "B",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["epilepsy", "seizure", "seizure disorder", "focal epilepsy", "absence epilepsy", "new-onset seizure"],
+      "applies_to_medications": ["lamotrigine", "levetiracetam", "zonisamide", "gabapentin", "ethosuximide", "valproic acid", "carbamazepine", "phenytoin"],
+      "applies_to_measurements": ["eeg", "mri brain", "drug levels", "cbc", "cmp", "liver function"],
+      "keywords": ["epilepsy", "seizure", "antiepileptic", "lamotrigine", "levetiracetam", "new-onset", "first-line", "focal epilepsy"]
+    },
+    {
+      "section_id": "aan-epilepsy-refractory",
+      "guideline": "AAN Epilepsy Management Guidelines (2018)",
+      "section_title": "Treatment-Resistant Epilepsy",
+      "recommendation_text": "Drug-resistant epilepsy: defined as failure of two appropriate antiseizure medications at adequate doses. Evaluation: confirm diagnosis (video-EEG monitoring to rule out non-epileptic events), ensure medication adherence, optimize current medication. Consider combination therapy with drugs of different mechanisms. Surgical evaluation is recommended for all patients with drug-resistant focal epilepsy — resective surgery yields seizure freedom in 60-70% of temporal lobe epilepsy cases. Vagus nerve stimulation (VNS) is an option for patients who are not surgical candidates. Dietary therapy (ketogenic diet, modified Atkins) may be considered. Responsive neurostimulation (RNS) is FDA-approved for focal epilepsy with 1-2 seizure foci.",
+      "evidence_grade": "B",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["epilepsy", "drug-resistant epilepsy", "refractory epilepsy", "treatment-resistant epilepsy", "temporal lobe epilepsy"],
+      "applies_to_medications": ["lamotrigine", "levetiracetam", "lacosamide", "clobazam", "perampanel", "cenobamate", "brivaracetam"],
+      "applies_to_measurements": ["eeg", "video-eeg", "mri brain", "pet scan", "drug levels"],
+      "keywords": ["refractory epilepsy", "drug-resistant", "epilepsy surgery", "vns", "rns", "neuromodulation", "treatment failure"]
+    },
+    {
+      "section_id": "aan-epilepsy-women",
+      "guideline": "AAN Epilepsy Management Guidelines (2018)",
+      "section_title": "Epilepsy in Women of Childbearing Age",
+      "recommendation_text": "Valproic acid should be avoided in women of childbearing potential due to teratogenicity (neural tube defects, cognitive impairment in offspring). If valproate must be used, prescribe at lowest effective dose and supplement with high-dose folic acid (4-5mg/day). Lamotrigine and levetiracetam are preferred antiseizure medications in pregnancy (lowest risk of major congenital malformations). Drug levels decline during pregnancy (especially lamotrigine — may need 50-100% dose increase); monitor monthly levels throughout pregnancy. Contraception: enzyme-inducing ASMs (carbamazepine, phenytoin, phenobarbital) reduce efficacy of hormonal contraceptives — recommend IUD or depot medroxyprogesterone. Breastfeeding is generally safe with most ASMs. Preconception counseling should include discussion of seizure risks, medication optimization, and folic acid supplementation.",
+      "evidence_grade": "B",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["epilepsy", "seizure disorder", "pregnancy", "women of childbearing age"],
+      "applies_to_medications": ["lamotrigine", "levetiracetam", "valproic acid", "carbamazepine", "phenytoin", "folic acid"],
+      "applies_to_measurements": ["drug levels", "lamotrigine level", "ultrasound", "folic acid level"],
+      "keywords": ["epilepsy pregnancy", "teratogenicity", "valproic acid", "lamotrigine", "folic acid", "contraception", "breastfeeding"]
+    },
+
+    {
+      "section_id": "aha-stroke-secondary",
+      "guideline": "AHA/ASA Stroke Prevention Guidelines (2021)",
+      "section_title": "Secondary Stroke Prevention — Antithrombotic Therapy",
+      "recommendation_text": "For noncardioembolic ischemic stroke or TIA: antiplatelet therapy is recommended. Aspirin 81-325mg/day is first-line (Level A). Clopidogrel 75mg/day is a reasonable alternative (Level B). Dual antiplatelet therapy (DAPT — aspirin + clopidogrel) for 21-90 days after minor stroke (NIHSS <=3) or high-risk TIA (ABCD2 >=4), followed by single antiplatelet (Level A). For cardioembolic stroke (atrial fibrillation): anticoagulation with DOAC is recommended over antiplatelet therapy (Level A). Do NOT combine antiplatelet + anticoagulant for stroke prevention unless separate indication exists. For patients with intracranial atherosclerosis: DAPT (aspirin + clopidogrel) for 90 days followed by single antiplatelet. Ticagrelor + aspirin is an alternative for 30 days per THALES trial.",
+      "evidence_grade": "A",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["stroke", "ischemic stroke", "tia", "transient ischemic attack", "cerebrovascular disease", "intracranial atherosclerosis"],
+      "applies_to_medications": ["aspirin", "clopidogrel", "ticagrelor", "apixaban", "rivaroxaban", "dabigatran", "warfarin"],
+      "applies_to_measurements": ["ct head", "mri brain", "carotid ultrasound", "nihss", "abcd2", "inr"],
+      "keywords": ["stroke prevention", "antiplatelet", "dapt", "secondary prevention", "aspirin", "clopidogrel", "tia", "ischemic stroke"]
+    },
+    {
+      "section_id": "aha-stroke-riskfactors",
+      "guideline": "AHA/ASA Stroke Prevention Guidelines (2021)",
+      "section_title": "Stroke Risk Factor Management",
+      "recommendation_text": "Hypertension: target BP <130/80 mmHg for secondary stroke prevention (Level A). Restart antihypertensives after the acute phase (typically 24-48 hours after stroke onset). Diabetes: optimize glycemic control (A1C target per ADA guidelines). Lipids: high-intensity statin therapy is recommended for all patients with atherosclerotic ischemic stroke/TIA (Level A). Target LDL <70 mg/dL for patients with atherosclerotic cause; add ezetimibe or PCSK9 inhibitor if needed. Smoking cessation: strongly recommended with pharmacotherapy (varenicline, bupropion, NRT) and counseling. Obesity: weight management, Mediterranean or DASH diet. Physical activity: >=150 min/week of moderate aerobic exercise. Obstructive sleep apnea: CPAP may reduce recurrent stroke risk.",
+      "evidence_grade": "A",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["stroke", "ischemic stroke", "tia", "hypertension", "diabetes", "hyperlipidemia", "obesity", "sleep apnea"],
+      "applies_to_medications": ["atorvastatin", "rosuvastatin", "ezetimibe", "evolocumab", "alirocumab", "lisinopril", "amlodipine", "varenicline"],
+      "applies_to_measurements": ["blood pressure", "a1c", "ldl", "total cholesterol", "bmi", "sleep study"],
+      "keywords": ["stroke risk factors", "secondary prevention", "statin", "blood pressure", "lipid management", "smoking cessation", "lifestyle"]
+    },
+    {
+      "section_id": "aha-stroke-carotid",
+      "guideline": "AHA/ASA Stroke Prevention Guidelines (2021)",
+      "section_title": "Carotid Disease and Stroke Prevention",
+      "recommendation_text": "Symptomatic carotid stenosis >=70%: carotid endarterectomy (CEA) is recommended if perioperative morbidity/mortality risk is <6% (Level A). CEA should be performed within 2 weeks of the index event when possible. Carotid artery stenting (CAS) is an alternative when CEA carries high surgical risk or stenosis is not surgically accessible. Symptomatic stenosis 50-69%: CEA may be considered depending on patient-specific factors (age, sex, comorbidities). Asymptomatic stenosis >=70%: CEA may be considered in select patients with life expectancy >5 years and perioperative risk <3%. Medical management (statin, antiplatelet, BP control) is reasonable for all patients with carotid stenosis regardless of intervention.",
+      "evidence_grade": "A",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["carotid stenosis", "carotid artery disease", "stroke", "tia", "cerebrovascular disease"],
+      "applies_to_medications": ["aspirin", "clopidogrel", "atorvastatin", "rosuvastatin"],
+      "applies_to_measurements": ["carotid ultrasound", "ct angiography", "mra", "carotid doppler"],
+      "keywords": ["carotid stenosis", "endarterectomy", "carotid stenting", "cea", "cas", "symptomatic stenosis", "stroke surgery"]
+    },
+
+    {
+      "section_id": "apa-mdd-initial",
+      "guideline": "APA Major Depressive Disorder Guidelines (2023)",
+      "section_title": "Initial Antidepressant Selection for MDD",
+      "recommendation_text": "For initial treatment of moderate-to-severe major depressive disorder (MDD), second-generation antidepressants are recommended as first-line pharmacotherapy. SSRIs (sertraline, escitalopram, fluoxetine) or SNRIs (venlafaxine, duloxetine) are preferred based on efficacy, safety, and tolerability. Selection should consider: side effect profile (sexual dysfunction with SSRIs, nausea/hypertension with SNRIs, weight gain with mirtazapine), comorbidities (duloxetine for comorbid pain, bupropion for fatigue/smoking cessation, mirtazapine for insomnia/appetite loss), prior response, family member response, cost/access, and patient preference. Start at recommended initial dose and titrate as needed. Allow 4-6 weeks at adequate dose before concluding a medication trial has failed. Psychotherapy (CBT, interpersonal therapy) is recommended in combination with pharmacotherapy for moderate-severe MDD.",
+      "evidence_grade": "A",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["major depressive disorder", "mdd", "depression", "major depression", "depressive episode"],
+      "applies_to_medications": ["sertraline", "escitalopram", "fluoxetine", "venlafaxine", "duloxetine", "bupropion", "mirtazapine", "citalopram", "paroxetine"],
+      "applies_to_measurements": ["phq-9", "phq-2", "beck depression inventory", "hamilton depression rating"],
+      "keywords": ["depression", "antidepressant", "ssri", "snri", "major depressive disorder", "first-line", "psychotherapy", "cbt"]
+    },
+    {
+      "section_id": "apa-mdd-monitoring",
+      "guideline": "APA Major Depressive Disorder Guidelines (2023)",
+      "section_title": "MDD Treatment Monitoring and Response",
+      "recommendation_text": "Monitor for treatment response using validated scales (PHQ-9 recommended) at baseline and every 2-4 weeks during initial treatment. Response is defined as >=50% reduction in PHQ-9 score; remission as PHQ-9 <5. If no response after 4-6 weeks at adequate dose: reassess diagnosis, confirm adherence, and consider dose optimization or switching. Measure-based care (systematic tracking with PHQ-9) improves outcomes vs clinical judgment alone. Assess for suicidality at each visit, especially in first 1-2 months and after dose changes (FDA black box warning for patients <25 years). Monitor for activation symptoms (agitation, insomnia, anxiety) in early treatment. Side effects: if sexual dysfunction on SSRI, consider switching to bupropion or adding bupropion; if weight gain on mirtazapine/paroxetine, consider switching.",
+      "evidence_grade": "A",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["major depressive disorder", "mdd", "depression"],
+      "applies_to_medications": ["sertraline", "escitalopram", "fluoxetine", "venlafaxine", "duloxetine", "bupropion", "mirtazapine"],
+      "applies_to_measurements": ["phq-9", "phq-2", "suicidality assessment", "medication adherence"],
+      "keywords": ["depression monitoring", "phq-9", "treatment response", "remission", "measure-based care", "suicidality", "side effects"]
+    },
+    {
+      "section_id": "apa-mdd-resistant",
+      "guideline": "APA Major Depressive Disorder Guidelines (2023)",
+      "section_title": "Treatment-Resistant Depression",
+      "recommendation_text": "Treatment-resistant depression (TRD) is defined as failure to achieve remission after 2 adequate antidepressant trials. Strategies: 1) Switching to a different antidepressant class (SSRI → SNRI, or to bupropion, mirtazapine). 2) Augmentation: lithium augmentation (Level A evidence — target level 0.6-0.8 mEq/L), atypical antipsychotic augmentation (aripiprazole 2-15mg, quetiapine 50-300mg, brexpiprazole 1-3mg — all FDA-approved for adjunctive MDD). 3) Esketamine nasal spray (Spravato): FDA-approved for TRD, administered under medical supervision with REMS program. 4) rTMS (repetitive transcranial magnetic stimulation): FDA-cleared, non-invasive option. 5) ECT (electroconvulsive therapy): most effective treatment for severe/refractory depression, especially with psychotic features or acute suicidality. Consider MAOIs for TRD (requires dietary restrictions and washout period).",
+      "evidence_grade": "A",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["treatment-resistant depression", "refractory depression", "major depressive disorder", "mdd", "depression"],
+      "applies_to_medications": ["lithium", "aripiprazole", "quetiapine", "brexpiprazole", "esketamine", "tranylcypromine", "phenelzine", "bupropion", "venlafaxine"],
+      "applies_to_measurements": ["phq-9", "lithium level", "thyroid function", "ecg", "renal function"],
+      "keywords": ["treatment-resistant depression", "augmentation", "lithium", "esketamine", "ect", "rtms", "aripiprazole", "refractory"]
+    },
+    {
+      "section_id": "apa-mdd-maintenance",
+      "guideline": "APA Major Depressive Disorder Guidelines (2023)",
+      "section_title": "MDD Maintenance Therapy and Relapse Prevention",
+      "recommendation_text": "Continue antidepressant at the dose that achieved remission for maintenance therapy. Duration: minimum 4-9 months after first episode achieving remission. For patients with recurrent episodes (>=3), chronic depression, or high-risk features (severe episodes, comorbid anxiety, residual symptoms, family history): indefinite maintenance therapy is recommended. Maintain the same dose — do NOT reduce dose for maintenance. Discontinuation: taper gradually over 2-4 weeks minimum (longer for paroxetine and venlafaxine) to avoid discontinuation syndrome. Monitor for relapse during and after taper. Psychotherapy (particularly CBT and MBCT — mindfulness-based cognitive therapy) reduces relapse risk and may allow eventual medication discontinuation in some patients.",
+      "evidence_grade": "A",
+      "recommendation_level": "Strong",
+      "applies_to_conditions": ["major depressive disorder", "mdd", "depression", "recurrent depression"],
+      "applies_to_medications": ["sertraline", "escitalopram", "fluoxetine", "venlafaxine", "duloxetine", "bupropion", "paroxetine"],
+      "applies_to_measurements": ["phq-9", "relapse monitoring"],
+      "keywords": ["depression maintenance", "relapse prevention", "continuation therapy", "discontinuation", "taper", "recurrent depression", "mbct"]
     }
   ]
 }
