@@ -182,10 +182,15 @@ class PipelineService:
         )
 
         self.db.add(pipeline)
+
+        # Flush to ensure pipeline gets its ID before we capture it
+        await self.db.flush()
+        pipeline_id = pipeline.id
+
         await self.db.commit()
 
         # Reload with relationship to avoid lazy-load issues
-        pipeline = await self.get(pipeline.id)
+        pipeline = await self.get(pipeline_id)
 
         logger.info(f"Created pipeline: {pipeline.id} ({pipeline.name})")
         return pipeline
@@ -269,7 +274,9 @@ class PipelineService:
         pipeline.transformation_config = config
 
         await self.db.commit()
-        await self.db.refresh(pipeline)
+
+        # Reload with relationship (refresh doesn't load relationships)
+        pipeline = await self.get(pipeline_id)
 
         logger.info(f"Updated pipeline: {pipeline_id}")
         return pipeline
@@ -296,7 +303,9 @@ class PipelineService:
         pipeline.next_run_at = None
 
         await self.db.commit()
-        await self.db.refresh(pipeline)
+
+        # Reload with relationship (refresh doesn't load relationships)
+        pipeline = await self.get(pipeline_id)
 
         logger.info(f"Paused pipeline: {pipeline_id}")
         return pipeline
@@ -315,7 +324,9 @@ class PipelineService:
         )
 
         await self.db.commit()
-        await self.db.refresh(pipeline)
+
+        # Reload with relationship (refresh doesn't load relationships)
+        pipeline = await self.get(pipeline_id)
 
         logger.info(f"Resumed pipeline: {pipeline_id}")
         return pipeline
@@ -343,8 +354,14 @@ class PipelineService:
         # Update pipeline stats
         pipeline.total_runs += 1
 
+        # Flush to ensure run gets its ID before we capture it
+        await self.db.flush()
+        run_id = run.id
+
         await self.db.commit()
-        await self.db.refresh(run)
+
+        # Reload with relationship to avoid lazy-load issues
+        run = await self.get_run(run_id)
 
         logger.info(f"Created pipeline run: {run.id} for pipeline {pipeline_id}")
         return run
@@ -427,9 +444,9 @@ class PipelineService:
                 )
 
         await self.db.commit()
-        await self.db.refresh(run)
 
-        return run
+        # Reload with relationship (refresh doesn't load relationships)
+        return await self.get_run(run_id)
 
     async def update_run_statistics(
         self,
@@ -463,9 +480,9 @@ class PipelineService:
             run.warnings = warnings
 
         await self.db.commit()
-        await self.db.refresh(run)
 
-        return run
+        # Reload with relationship (refresh doesn't load relationships)
+        return await self.get_run(run_id)
 
     async def cancel_run(self, run_id: UUID) -> Optional[PipelineRun]:
         """Cancel a running pipeline."""

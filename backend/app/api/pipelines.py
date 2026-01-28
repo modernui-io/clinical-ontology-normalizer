@@ -161,7 +161,7 @@ async def trigger_run(
         # enqueue_job("execute_pipeline", run.id)
 
         # For now, just mark as running (executor will be implemented separately)
-        await service.update_run_status(run.id, PipelineRunStatus.PENDING)
+        run = await service.update_run_status(run.id, PipelineRunStatus.PENDING)
 
         return service.run_to_response(run)
     except ValueError as e:
