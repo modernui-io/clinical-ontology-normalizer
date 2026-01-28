@@ -33,6 +33,7 @@ import {
   Server,
   Sparkles,
   Bot,
+  BookOpen,
 } from "lucide-react";
 
 interface NavItem {
@@ -60,6 +61,7 @@ const navSections: NavSection[] = [
       { title: "Documents", href: "/documents", icon: FileText },
       { title: "Patients", href: "/patients", icon: Users },
       { title: "Search", href: "/search", icon: Search },
+      { title: "Vocabularies", href: "/vocabularies", icon: BookOpen },
     ],
   },
   {

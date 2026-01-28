@@ -52,6 +52,8 @@ import {
   getPatientFacts,
   generatePatientSummary,
 } from "@/lib/api";
+import { ConfidenceBadge } from "@/components/provenance/ConfidenceBadge";
+import { ConfidenceTrend } from "@/components/provenance/ConfidenceTrend";
 
 // Domain icons and colors
 const DOMAIN_CONFIG: Record<
@@ -121,6 +123,11 @@ export default function PatientSummaryPage() {
 
   // Highlighted citation
   const [highlightedCitation, setHighlightedCitation] = useState<string | null>(null);
+
+  // Confidence trend data (accumulated from summaries)
+  const [confidenceTrend, setConfidenceTrend] = useState<
+    Array<{ timestamp: string; confidence: number; queryText?: string }>
+  >([]);
 
   // Load patient data
   const loadData = useCallback(async () => {
@@ -202,6 +209,21 @@ export default function PatientSummaryPage() {
       });
 
       setSummary(result);
+
+      // Track confidence trend
+      setConfidenceTrend((prev) => [
+        ...prev,
+        {
+          timestamp: new Date().toISOString(),
+          confidence:
+            result.confidence === "high"
+              ? 0.9
+              : result.confidence === "medium"
+                ? 0.7
+                : 0.4,
+          queryText: selectedFocusAreas.join(", "),
+        },
+      ]);
     } catch (err) {
       console.error("Summary generation failed:", err);
       setError("Failed to generate summary. Please try again.");
@@ -486,6 +508,11 @@ export default function PatientSummaryPage() {
                   </CardContent>
                 </Card>
               )}
+
+              {/* Confidence Trend */}
+              {confidenceTrend.length > 1 && (
+                <ConfidenceTrend data={confidenceTrend} patientId={patientId} />
+              )}
             </div>
 
             {/* Main Panel - Generated Summary */}
@@ -533,16 +560,19 @@ export default function PatientSummaryPage() {
                   {summary ? (
                     <div className="space-y-4">
                       {/* Summary Metadata */}
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-2 items-center">
                         <Badge variant="outline">
                           {summary.fact_count} facts processed
                         </Badge>
-                        <Badge
-                          variant="outline"
-                          className={CONFIDENCE_STYLES[summary.confidence]}
-                        >
-                          {summary.confidence} confidence
-                        </Badge>
+                        <ConfidenceBadge
+                          confidence={
+                            summary.confidence === "high"
+                              ? 0.9
+                              : summary.confidence === "medium"
+                                ? 0.7
+                                : 0.4
+                          }
+                        />
                         <Badge variant="outline">
                           {summary.token_usage.toLocaleString()} tokens
                         </Badge>

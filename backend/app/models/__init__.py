@@ -44,7 +44,20 @@ from app.models.rbac import (
     User,
     UserRole,
 )
-from app.models.vocabulary import Concept, ConceptSynonym
+from app.models.policy import (
+    Policy,
+    PolicyAlertRule,
+    PolicySection,
+    PolicyStatus,
+)
+from app.models.provenance import (
+    ConfidenceLevelDB,
+    ExtractionMethodDB,
+    ProvenanceRecord,
+    ReasoningStepType,
+    ReasoningTrace,
+)
+from app.models.vocabulary import Concept, ConceptRelationship, ConceptStatus, ConceptSynonym
 
 __all__ = [
     "Base",
@@ -58,6 +71,8 @@ __all__ = [
     "KGEdge",
     "Concept",
     "ConceptSynonym",
+    "ConceptRelationship",
+    "ConceptStatus",
     "ClinicalValue",
     "ValueType",
     "AuditLog",
@@ -77,4 +92,15 @@ __all__ = [
     "UserRole",
     "RolePermission",
     "RefreshToken",
+    # Policy Models
+    "Policy",
+    "PolicySection",
+    "PolicyAlertRule",
+    "PolicyStatus",
+    # Provenance Models
+    "ProvenanceRecord",
+    "ReasoningTrace",
+    "ExtractionMethodDB",
+    "ConfidenceLevelDB",
+    "ReasoningStepType",
 ]

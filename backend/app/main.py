@@ -87,6 +87,8 @@ from app.api import (
     data_consistency_router,
     model_registry_router,
     clinical_agent_router,
+    policy_router,
+    vocabulary_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -668,6 +670,8 @@ api_v1_router.include_router(data_completeness_router)
 api_v1_router.include_router(data_consistency_router)
 api_v1_router.include_router(model_registry_router)
 api_v1_router.include_router(clinical_agent_router)
+api_v1_router.include_router(policy_router)
+api_v1_router.include_router(vocabulary_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)

@@ -1,11 +1,22 @@
 """SQLAlchemy models for OMOP vocabulary concepts."""
 
-from sqlalchemy import ForeignKey, Integer, String
+import enum
+
+from sqlalchemy import Date, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import Float
 
 from app.core.database import Base
+
+
+class ConceptStatus(str, enum.Enum):
+    """Status of a vocabulary concept."""
+
+    active = "active"
+    deprecated = "deprecated"
+    retired = "retired"
+    merged = "merged"
 
 
 class Concept(Base):
@@ -53,6 +64,31 @@ class Concept(Base):
     # Embedding vector for semantic search (384 dimensions for MiniLM)
     embedding: Mapped[list[float] | None] = mapped_column(
         ARRAY(Float),
+        nullable=True,
+    )
+
+    # Versioning columns
+    vocabulary_version: Mapped[str | None] = mapped_column(
+        String(50),
+        nullable=True,
+        index=True,
+    )
+    version_date: Mapped[str | None] = mapped_column(
+        Date,
+        nullable=True,
+    )
+    previous_concept_id: Mapped[int | None] = mapped_column(
+        Integer,
+        nullable=True,
+    )
+    status: Mapped[ConceptStatus] = mapped_column(
+        Enum(ConceptStatus, name="concept_status"),
+        nullable=False,
+        server_default="active",
+        index=True,
+    )
+    status_changed_at: Mapped[str | None] = mapped_column(
+        DateTime(timezone=True),
         nullable=True,
     )
 
@@ -146,6 +182,10 @@ class ConceptRelationship(Base):
     )
     invalid_reason: Mapped[str | None] = mapped_column(
         String(1),
+        nullable=True,
+    )
+    relationship_version: Mapped[str | None] = mapped_column(
+        String(50),
         nullable=True,
     )
 

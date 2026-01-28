@@ -9,6 +9,7 @@ Provides endpoints for:
 from __future__ import annotations
 
 import logging
+import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
@@ -24,9 +25,11 @@ from app.models import Document as DocumentModel
 from app.models.clinical_fact import ClinicalFact
 from app.models.knowledge_graph import KGEdge, KGNode
 from app.models.mention import Mention as MentionModel
+from app.models.provenance import ReasoningStepType
 from app.schemas.base import Domain, JobStatus
 from app.schemas.knowledge_graph import EdgeType, NodeType
 from app.services.nlp_rule_based import RuleBasedNLPService
+from app.services.provenance_db_service import get_provenance_db_service
 
 logger = logging.getLogger(__name__)
 
@@ -228,6 +231,11 @@ class HybridQueryResponse(BaseModel):
     knowledge_graph_paths: list[dict] = []
     reasoning: str | None = None
     guideline_citations: list[dict] = []
+    query_id: str | None = None
+    reasoning_chain: list[dict] = []
+    entity_provenance: list[dict] = []
+    policy_citations: list[dict] = []
+    provenance_url: str | None = None
 
 
 # =============================================================================
@@ -382,6 +390,38 @@ async def bulk_import_documents(
 
     # Commit documents and mentions
     await db.commit()
+
+    # Step 9: Create provenance records for extracted entities
+    try:
+        provenance_svc = get_provenance_db_service()
+        for entity in all_entities:
+            # Find the document ID for this entity's note
+            source_doc_id = None
+            for imp_note in imported_notes:
+                if imp_note.note_id == entity.note_id:
+                    source_doc_id = str(imp_note.document_id)
+                    break
+
+            await provenance_svc.create_provenance_record(
+                session=db,
+                entity_type="kg_node",
+                entity_id=f"{request.patient_id}:{entity.text.lower()}:{entity.entity_type}",
+                patient_id=request.patient_id,
+                extraction_method="nlp_rule_based",
+                confidence_level="high" if entity.confidence >= 0.8 else "medium" if entity.confidence >= 0.5 else "low",
+                confidence_score=entity.confidence,
+                source_document_id=source_doc_id,
+                extracted_text=entity.text,
+                metadata={
+                    "entity_type": entity.entity_type,
+                    "assertion": entity.assertion,
+                    "omop_concept_id": entity.omop_concept_id,
+                    "note_id": entity.note_id,
+                },
+            )
+        await db.flush()
+    except Exception as e:
+        logger.warning(f"Failed to create entity provenance records: {e}")
 
     # Build knowledge graph if requested
     kg_summary = None
@@ -672,6 +712,7 @@ async def get_patient_graph(
 async def hybrid_query(
     patient_id: str,
     request: HybridQueryRequest,
+    provenance_depth: str = Query("summary", regex="^(none|summary|full)$"),
     db: AsyncSession = Depends(get_db),
 ) -> HybridQueryResponse:
     """Hybrid query combining EHR and knowledge graph.
@@ -680,7 +721,15 @@ async def hybrid_query(
     1. Searches documents for relevant mentions
     2. Queries the knowledge graph for related entities
     3. Combines results with reasoning
+    4. Records provenance traces for each step
     """
+    # Generate query_id for provenance tracking
+    query_id = str(uuid4())
+    step_order = 0
+    provenance_svc = get_provenance_db_service()
+    reasoning_chain: list[dict] = []
+    entity_provenance_data: list[dict] = []
+
     question = request.question.lower()
 
     # Get patient's documents (optional - may not exist for hybrid-built graphs)
@@ -690,6 +739,7 @@ async def hybrid_query(
     documents = list(docs_result.scalars().all())
 
     # Get knowledge graph nodes
+    kg_start = time.perf_counter()
     nodes_result = await db.execute(
         select(KGNode).where(KGNode.patient_id == patient_id)
     )
@@ -744,6 +794,37 @@ async def hybrid_query(
             note_id=node.properties.get("source_notes", ["unknown"])[0] if node.properties else "unknown",
         ))
 
+    kg_duration = (time.perf_counter() - kg_start) * 1000
+
+    # Step 4: Record KG_RETRIEVAL reasoning trace
+    try:
+        step_order += 1
+        kg_trace = await provenance_svc.create_reasoning_trace(
+            session=db,
+            query_id=query_id,
+            step_order=step_order,
+            step_type=ReasoningStepType.KG_RETRIEVAL.value,
+            patient_id=patient_id,
+            input_summary=f"Query: '{request.question}', type: {query_type}",
+            output_summary=f"Found {len(matching_nodes)} matching nodes from {len(nodes)} total",
+            duration_ms=round(kg_duration, 2),
+            metadata={
+                "total_nodes": len(nodes),
+                "matching_nodes": len(matching_nodes),
+                "query_type": query_type,
+                "entity_labels": [n.label for n in matching_nodes[:10]],
+            },
+        )
+        reasoning_chain.append({
+            "step": step_order,
+            "type": "kg_retrieval",
+            "summary": f"Retrieved {len(matching_nodes)} entities from knowledge graph",
+            "duration_ms": round(kg_duration, 2),
+            "details": {"total_nodes": len(nodes), "matching": len(matching_nodes)},
+        })
+    except Exception as e:
+        logger.warning(f"Failed to record KG provenance: {e}")
+
     # Find evidence in documents (only if documents exist)
     if request.include_evidence and documents:
         search_terms = [n.label.lower() for n in matching_nodes[:5]]
@@ -789,16 +870,16 @@ Knowledge Graph Summary ({len(nodes)} nodes):
             clinical_context += f"\n[{ev.note_type} - {ev.note_date}]: {ev.excerpt}"
 
     # Retrieve relevant clinical guidelines via RAG
+    rag_start = time.perf_counter()
     guideline_citations_data: list[dict] = []
     guideline_context = ""
+    policy_citations_data: list[dict] = []
     try:
         from app.services.guideline_rag_service import get_guideline_rag_service
 
         rag_service = get_guideline_rag_service()
 
         # Two-pool search: topic-relevant (raw question) + patient-relevant (with context)
-        # This ensures guidelines matching the question topic always surface,
-        # even when the patient's existing conditions dominate scoring.
         topic_citations = rag_service.search(
             query=request.question,
             top_k=3,
@@ -848,7 +929,91 @@ Knowledge Graph Summary ({len(nodes)} nodes):
     except Exception as e:
         logger.warning(f"Guideline RAG retrieval failed, proceeding without: {e}")
 
+    # Policy RAG search (Step 25 integration point)
+    try:
+        from app.services.policy_service import get_policy_service
+
+        policy_svc = get_policy_service()
+        policy_results = await policy_svc.search_policy_sections(
+            session=db,
+            query=request.question,
+            patient_conditions=conditions,
+            top_k=3,
+        )
+        if policy_results:
+            guideline_context += "\n\nInstitutional Policy References:"
+            policy_offset = len(guideline_citations_data)
+            for i, pr in enumerate(policy_results, 1):
+                guideline_context += (
+                    f"\n[Policy {i}] {pr['policy_name']} — {pr['section_title']}: "
+                    f"{pr['content_text'][:300]}"
+                )
+                policy_citations_data.append({
+                    "policy_number": i,
+                    "policy_id": pr["policy_id"],
+                    "policy_name": pr["policy_name"],
+                    "section_id": pr["section_id"],
+                    "section_title": pr["section_title"],
+                    "relevance_score": pr["relevance_score"],
+                })
+    except Exception:
+        pass  # Policy service may not be initialized yet
+
+    rag_duration = (time.perf_counter() - rag_start) * 1000
+
+    # Step 5: Record RAG_SEARCH reasoning trace
+    try:
+        step_order += 1
+        rag_trace = await provenance_svc.create_reasoning_trace(
+            session=db,
+            query_id=query_id,
+            step_order=step_order,
+            step_type=ReasoningStepType.RAG_SEARCH.value,
+            patient_id=patient_id,
+            input_summary=f"Query: '{request.question}', conditions: {conditions[:5]}",
+            output_summary=(
+                f"Found {len(guideline_citations_data)} guideline citations, "
+                f"{len(policy_citations_data)} policy citations"
+            ),
+            duration_ms=round(rag_duration, 2),
+            metadata={
+                "guideline_count": len(guideline_citations_data),
+                "policy_count": len(policy_citations_data),
+                "top_guideline_scores": [
+                    gc.get("relevance_score", 0) for gc in guideline_citations_data[:3]
+                ],
+            },
+        )
+        reasoning_chain.append({
+            "step": step_order,
+            "type": "rag_search",
+            "summary": f"Found {len(guideline_citations_data)} guidelines, {len(policy_citations_data)} policies",
+            "duration_ms": round(rag_duration, 2),
+            "details": {
+                "guideline_count": len(guideline_citations_data),
+                "policy_count": len(policy_citations_data),
+            },
+        })
+
+        # Record guideline citation provenance
+        for gc in guideline_citations_data:
+            try:
+                await provenance_svc.create_guideline_citation_provenance(
+                    session=db,
+                    query_id=query_id,
+                    section_id=gc.get("section_id", ""),
+                    relevance_score=gc.get("relevance_score", 0),
+                    match_reasons=gc.get("match_reasons"),
+                    evidence_grade=gc.get("evidence_grade"),
+                    recommendation_level=gc.get("recommendation_level"),
+                )
+            except Exception:
+                pass
+    except Exception as e:
+        logger.warning(f"Failed to record RAG provenance: {e}")
+
     # Use LLM to generate answer
+    llm_start = time.perf_counter()
     try:
         from app.services.llm_service import get_llm_service, LLMProvider
 
@@ -861,6 +1026,7 @@ Guidelines:
 - Answer questions based ONLY on the provided clinical data and guideline references
 - Be specific and cite relevant entities from the knowledge graph
 - When clinical guideline references are provided, incorporate them into your answer using [Guideline N] citation format
+- When institutional policy references are provided, incorporate them using [Policy N] citation format
 - Distinguish between patient-specific data (from the knowledge graph) and general recommendations (from guidelines)
 - If the data is insufficient, say so clearly
 - Use clinical terminology appropriately
@@ -874,6 +1040,8 @@ Question: {request.question}
 Provide a clear, evidence-based answer using the clinical data above."""
         if guideline_citations_data:
             user_prompt += " Reference relevant guidelines using [Guideline N] citations where applicable."
+        if policy_citations_data:
+            user_prompt += " Reference relevant policies using [Policy N] citations where applicable."
 
         response = await llm.generate(
             prompt=user_prompt,
@@ -897,6 +1065,41 @@ Provide a clear, evidence-based answer using the clinical data above."""
             f"Tokens: {response.token_usage.total_tokens}"
         )
 
+        llm_duration = (time.perf_counter() - llm_start) * 1000
+
+        # Step 6: Record LLM_INFERENCE reasoning trace
+        try:
+            step_order += 1
+            llm_trace = await provenance_svc.create_reasoning_trace(
+                session=db,
+                query_id=query_id,
+                step_order=step_order,
+                step_type=ReasoningStepType.LLM_INFERENCE.value,
+                patient_id=patient_id,
+                input_summary=f"Model: {model_used}, prompt tokens ~{len(user_prompt.split())}",
+                output_summary=f"Generated answer, confidence: {confidence:.2f}",
+                duration_ms=round(llm_duration, 2),
+                metadata={
+                    "model": model_used,
+                    "latency_ms": response.latency_ms,
+                    "total_tokens": response.token_usage.total_tokens,
+                    "confidence": round(confidence, 4),
+                },
+            )
+            reasoning_chain.append({
+                "step": step_order,
+                "type": "llm_inference",
+                "summary": f"Generated answer using {model_used}",
+                "duration_ms": round(llm_duration, 2),
+                "details": {
+                    "model": model_used,
+                    "tokens": response.token_usage.total_tokens,
+                    "confidence": round(confidence, 4),
+                },
+            })
+        except Exception as e:
+            logger.warning(f"Failed to record LLM provenance: {e}")
+
     except Exception as e:
         logger.warning(f"LLM query failed, falling back to template: {e}")
         # Fallback to simple template if LLM fails
@@ -911,10 +1114,52 @@ Provide a clear, evidence-based answer using the clinical data above."""
         confidence = 0.5
         reasoning = f"Fallback template (LLM error: {e}). Query type: '{query_type}'."
 
+    # Step 7: Record confidence contributions per step
+    try:
+        kg_confidence = len(relevant_entities) * 0.03
+        rag_confidence = len(guideline_citations_data) * 0.05
+        evidence_confidence = len(evidence_sources) * 0.08
+        base_confidence = 0.6
+
+        traces = await provenance_svc.get_reasoning_for_query(db, query_id)
+        for trace in traces:
+            if trace.step_type == ReasoningStepType.KG_RETRIEVAL.value:
+                await provenance_svc.update_reasoning_trace_confidence(
+                    db, trace.id, round(kg_confidence, 4)
+                )
+            elif trace.step_type == ReasoningStepType.RAG_SEARCH.value:
+                await provenance_svc.update_reasoning_trace_confidence(
+                    db, trace.id, round(rag_confidence + evidence_confidence, 4)
+                )
+            elif trace.step_type == ReasoningStepType.LLM_INFERENCE.value:
+                await provenance_svc.update_reasoning_trace_confidence(
+                    db, trace.id, round(base_confidence, 4)
+                )
+    except Exception as e:
+        logger.warning(f"Failed to update confidence contributions: {e}")
+
+    # Build entity provenance (if depth != none)
+    if provenance_depth != "none":
+        for entity in relevant_entities[:10]:
+            entity_provenance_data.append({
+                "text": entity.text,
+                "entity_type": entity.entity_type,
+                "confidence": entity.confidence,
+                "note_id": entity.note_id,
+            })
+
     # Build sources list including both documents and guidelines
     sources = [f"Document: {e.note_id}" for e in evidence_sources]
     for gc in guideline_citations_data:
         sources.append(f"Guideline: {gc['guideline']} — {gc['section_title']}")
+    for pc in policy_citations_data:
+        sources.append(f"Policy: {pc['policy_name']} — {pc['section_title']}")
+
+    # Commit provenance records
+    try:
+        await db.flush()
+    except Exception as e:
+        logger.warning(f"Failed to flush provenance records: {e}")
 
     return HybridQueryResponse(
         question=request.question,
@@ -926,6 +1171,11 @@ Provide a clear, evidence-based answer using the clinical data above."""
         knowledge_graph_paths=[],
         reasoning=reasoning,
         guideline_citations=guideline_citations_data,
+        query_id=query_id,
+        reasoning_chain=reasoning_chain if provenance_depth != "none" else [],
+        entity_provenance=entity_provenance_data if provenance_depth == "full" else [],
+        policy_citations=policy_citations_data,
+        provenance_url=f"/api/v1/clinical-agent/provenance/{query_id}",
     )
 
 
@@ -993,4 +1243,163 @@ async def list_patients_with_graphs(
     return {
         "total": len(patients),
         "patients": patients,
+    }
+
+
+# =============================================================================
+# Provenance Endpoints (Steps 8, 17, 19)
+# =============================================================================
+
+
+@router.get(
+    "/provenance/{query_id}",
+    summary="Get provenance for a query",
+    description="Retrieve reasoning traces and provenance records for a specific query.",
+)
+async def get_query_provenance(
+    query_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Get reasoning traces for a hybrid query."""
+    provenance_svc = get_provenance_db_service()
+
+    traces = await provenance_svc.get_reasoning_for_query(db, query_id)
+    if not traces:
+        raise HTTPException(status_code=404, detail=f"No provenance found for query {query_id}")
+
+    return {
+        "query_id": query_id,
+        "reasoning_traces": [
+            {
+                "id": t.id,
+                "step_order": t.step_order,
+                "step_type": t.step_type,
+                "input_summary": t.input_summary,
+                "output_summary": t.output_summary,
+                "confidence_contribution": t.confidence_contribution,
+                "duration_ms": t.duration_ms,
+                "metadata": t.extra_metadata,
+                "created_at": t.created_at.isoformat() if t.created_at else None,
+            }
+            for t in traces
+        ],
+        "total_steps": len(traces),
+        "total_duration_ms": round(sum(t.duration_ms or 0 for t in traces), 2),
+    }
+
+
+@router.get(
+    "/lineage/{patient_id}/{node_id}",
+    summary="Get fact lineage for a KG node",
+    description="Trace a KG node back to its source document and original text.",
+)
+async def get_fact_lineage(
+    patient_id: str,
+    node_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Get the lineage chain: KG node → ProvenanceRecord → SourceDocument → text."""
+    HOP_DECAY = 0.9
+
+    # Get the KG node
+    node_result = await db.execute(
+        select(KGNode).where(KGNode.id == node_id, KGNode.patient_id == patient_id)
+    )
+    node = node_result.scalar_one_or_none()
+    if not node:
+        raise HTTPException(status_code=404, detail=f"Node {node_id} not found")
+
+    provenance_svc = get_provenance_db_service()
+    chain = await provenance_svc.get_provenance_chain(db, "kg_node", node_id)
+
+    # Enrich with source document info
+    for record in chain.get("provenance_records", []):
+        doc_id = record.get("source_document_id")
+        if doc_id:
+            doc_result = await db.execute(
+                select(DocumentModel).where(DocumentModel.id == doc_id)
+            )
+            doc = doc_result.scalar_one_or_none()
+            if doc:
+                record["source_document"] = {
+                    "id": str(doc.id),
+                    "note_type": doc.note_type,
+                    "note_date": doc.extra_metadata.get("note_date", "unknown") if doc.extra_metadata else "unknown",
+                    "text_length": len(doc.text) if doc.text else 0,
+                }
+
+    return {
+        "patient_id": patient_id,
+        "node": {
+            "id": str(node.id),
+            "label": node.label,
+            "node_type": node.node_type.value if hasattr(node.node_type, 'value') else str(node.node_type),
+            "omop_concept_id": node.omop_concept_id,
+        },
+        "provenance_chain": chain,
+        "hop_decay": HOP_DECAY,
+    }
+
+
+@router.get(
+    "/provenance-chain/{query_id}",
+    summary="Get full provenance chain for a query",
+    description="Returns nested traversal: Query → Steps → Entities/Guidelines → Source Docs.",
+)
+async def get_full_provenance_chain(
+    query_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Get the complete provenance chain with nested entity/guideline details."""
+    provenance_svc = get_provenance_db_service()
+
+    traces = await provenance_svc.get_reasoning_for_query(db, query_id)
+    if not traces:
+        raise HTTPException(status_code=404, detail=f"No provenance found for query {query_id}")
+
+    patient_id = traces[0].patient_id if traces else None
+
+    steps = []
+    for trace in traces:
+        step_data: dict[str, Any] = {
+            "step_order": trace.step_order,
+            "step_type": trace.step_type,
+            "input_summary": trace.input_summary,
+            "output_summary": trace.output_summary,
+            "confidence_contribution": trace.confidence_contribution,
+            "duration_ms": trace.duration_ms,
+            "metadata": trace.extra_metadata,
+        }
+
+        # For KG steps, include entity provenance
+        if trace.step_type == ReasoningStepType.KG_RETRIEVAL.value and trace.extra_metadata:
+            entity_labels = trace.extra_metadata.get("entity_labels", [])
+            step_data["entities"] = entity_labels
+
+        # For RAG steps, include guideline citation provenance
+        if trace.step_type == ReasoningStepType.RAG_SEARCH.value:
+            guideline_prov = await provenance_svc.get_provenance_for_entity(
+                db, "guideline_citation", ""
+            )
+            # Filter to this query
+            step_data["guideline_provenance"] = [
+                {
+                    "section_id": p.entity_id,
+                    "relevance_score": p.confidence_score,
+                    "evidence_grade": (p.extra_metadata or {}).get("evidence_grade"),
+                    "recommendation_level": (p.extra_metadata or {}).get("recommendation_level"),
+                }
+                for p in guideline_prov
+                if p.extra_metadata and p.extra_metadata.get("query_id") == query_id
+            ]
+
+        steps.append(step_data)
+
+    return {
+        "query_id": query_id,
+        "patient_id": patient_id,
+        "steps": steps,
+        "total_steps": len(steps),
+        "total_duration_ms": round(sum(t.duration_ms or 0 for t in traces), 2),
+        "total_confidence": round(sum(t.confidence_contribution or 0 for t in traces), 4),
     }

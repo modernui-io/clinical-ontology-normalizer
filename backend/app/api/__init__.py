@@ -135,6 +135,8 @@ from app.api.data_completeness import router as data_completeness_router
 from app.api.data_consistency import router as data_consistency_router
 from app.api.model_registry import router as model_registry_router
 from app.api.clinical_agent import router as clinical_agent_router
+from app.api.policy import router as policy_router
+from app.api.vocabulary import router as vocabulary_router
 
 __all__ = [
     # Routers
@@ -210,6 +212,8 @@ __all__ = [
     "data_consistency_router",
     "model_registry_router",
     "clinical_agent_router",
+    "policy_router",
+    "vocabulary_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",

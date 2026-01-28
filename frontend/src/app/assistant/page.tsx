@@ -33,6 +33,17 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { ConfidenceBadge } from "@/components/provenance/ConfidenceBadge";
+import { GuidelineCitationCard } from "@/components/provenance/CitationCard";
+import { ReasoningChain } from "@/components/provenance/ReasoningChain";
+import { ProvenanceDrillDown } from "@/components/provenance/ProvenanceDrillDown";
+import type {
+  ReasoningStep,
+  GuidelineCitation,
+  PolicyCitation,
+  EntityProvenance,
+  ConfidenceBreakdown,
+} from "@/types/provenance";
 
 // ============================================================================
 // Types
@@ -61,6 +72,14 @@ interface Message {
   timestamp: string;
   code_suggestions: CodeSuggestion[];
   citations: Citation[];
+  // Provenance fields (optional, populated for Q&A responses)
+  confidence?: number;
+  confidence_breakdown?: ConfidenceBreakdown;
+  reasoning_chain?: ReasoningStep[];
+  guideline_citations?: GuidelineCitation[];
+  policy_citations?: PolicyCitation[];
+  entity_provenance?: EntityProvenance[];
+  query_id?: string | null;
 }
 
 interface Session {
@@ -222,6 +241,37 @@ function MessageBubble({
                 {citation.code && `: ${citation.code}`}
               </Badge>
             ))}
+          </div>
+        )}
+
+        {/* Provenance: confidence badge + reasoning chain + drill-down */}
+        {!isUser && message.confidence != null && (
+          <div className="space-y-2 mt-2">
+            <div className="flex items-center gap-2">
+              <ConfidenceBadge
+                confidence={message.confidence}
+                breakdown={message.confidence_breakdown}
+              />
+              {message.reasoning_chain && message.reasoning_chain.length > 0 && (
+                <ProvenanceDrillDown
+                  queryId={message.query_id ?? null}
+                  reasoningSteps={message.reasoning_chain}
+                  guidelineCitations={message.guideline_citations ?? []}
+                  policyCitations={message.policy_citations ?? []}
+                  entityProvenance={message.entity_provenance ?? []}
+                />
+              )}
+            </div>
+            {message.reasoning_chain && message.reasoning_chain.length > 0 && (
+              <ReasoningChain steps={message.reasoning_chain} />
+            )}
+            {message.guideline_citations && message.guideline_citations.length > 0 && (
+              <div className="space-y-1.5">
+                {message.guideline_citations.slice(0, 3).map((gc, idx) => (
+                  <GuidelineCitationCard key={idx} citation={gc} />
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -525,6 +575,13 @@ export default function AssistantPage() {
               timestamp: data.message.timestamp,
               code_suggestions: data.suggestions,
               citations: data.citations,
+              confidence: data.confidence ?? undefined,
+              confidence_breakdown: data.confidence_breakdown ?? undefined,
+              reasoning_chain: data.reasoning_chain ?? undefined,
+              guideline_citations: data.guideline_citations ?? undefined,
+              policy_citations: data.policy_citations ?? undefined,
+              entity_provenance: data.entity_provenance ?? undefined,
+              query_id: data.query_id ?? undefined,
             },
           ];
         });

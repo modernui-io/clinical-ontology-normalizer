@@ -169,6 +169,8 @@ export default function KnowledgeGraph({ nodes, edges, patientId }: KnowledgeGra
   const [showLabels, setShowLabels] = useState(true);
   const [detailsPanelNode, setDetailsPanelNode] = useState<SimulationNode | null>(null);
   const [currentTransform, setCurrentTransform] = useState<d3.ZoomTransform>(d3.zoomIdentity);
+  const [nodeProvenance, setNodeProvenance] = useState<Record<string, unknown>[] | null>(null);
+  const [provenanceLoading, setProvenanceLoading] = useState(false);
 
   // Filter nodes based on search
   const searchFilteredNodes = useMemo(() => {
@@ -827,6 +829,35 @@ export default function KnowledgeGraph({ nodes, edges, patientId }: KnowledgeGra
 
   }, [nodes, dimensions, activeFilters, currentTransform]);
 
+  // Fetch provenance when a node is selected in the details panel
+  useEffect(() => {
+    if (!detailsPanelNode) {
+      setNodeProvenance(null);
+      return;
+    }
+
+    const fetchProvenance = async () => {
+      setProvenanceLoading(true);
+      try {
+        const response = await fetch(
+          `/api/clinical-agent/lineage/${patientId}/${detailsPanelNode.id}`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setNodeProvenance(data.provenance_chain?.provenance_records ?? []);
+        } else {
+          setNodeProvenance([]);
+        }
+      } catch {
+        setNodeProvenance([]);
+      } finally {
+        setProvenanceLoading(false);
+      }
+    };
+
+    fetchProvenance();
+  }, [detailsPanelNode, patientId]);
+
   // Get connected nodes for details panel
   const connectedNodes = useMemo(() => {
     if (!detailsPanelNode) return [];
@@ -1286,6 +1317,80 @@ export default function KnowledgeGraph({ nodes, edges, patientId }: KnowledgeGra
                     </div>
                   )}
                 </div>
+              </div>
+
+              {/* Provenance */}
+              <div>
+                <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                  Provenance
+                </h4>
+                {provenanceLoading ? (
+                  <div className="text-sm text-slate-500 text-center py-4">
+                    Loading provenance...
+                  </div>
+                ) : nodeProvenance && nodeProvenance.length > 0 ? (
+                  <div className="space-y-1.5">
+                    {nodeProvenance.map((record, idx) => (
+                      <div
+                        key={idx}
+                        className="bg-slate-800/30 rounded-lg p-2 text-xs space-y-1"
+                      >
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">Method</span>
+                          <span className="text-slate-200 capitalize">
+                            {String(record.extraction_method ?? "unknown").replace(/_/g, " ")}
+                          </span>
+                        </div>
+                        {record.confidence_score != null && (
+                          <div className="flex justify-between">
+                            <span className="text-slate-400">Confidence</span>
+                            <span
+                              className={`font-medium ${
+                                Number(record.confidence_score) >= 0.8
+                                  ? "text-emerald-400"
+                                  : Number(record.confidence_score) >= 0.6
+                                    ? "text-amber-400"
+                                    : "text-red-400"
+                              }`}
+                            >
+                              {Math.round(Number(record.confidence_score) * 100)}%
+                            </span>
+                          </div>
+                        )}
+                        {record.confidence_level != null && (
+                          <div className="flex justify-between">
+                            <span className="text-slate-400">Level</span>
+                            <span className="text-slate-200 capitalize">
+                              {String(record.confidence_level)}
+                            </span>
+                          </div>
+                        )}
+                        {record.extracted_text != null && (
+                          <div className="mt-1 pt-1 border-t border-slate-800">
+                            <span className="text-slate-400">Source text: </span>
+                            <span className="text-slate-300 italic">
+                              {String(record.extracted_text).length > 100
+                                ? String(record.extracted_text).slice(0, 100) + "..."
+                                : String(record.extracted_text)}
+                            </span>
+                          </div>
+                        )}
+                        {record.source_document_id != null && (
+                          <div className="flex justify-between">
+                            <span className="text-slate-400">Source Doc</span>
+                            <span className="font-mono text-xs text-indigo-400 truncate max-w-[140px]">
+                              {String(record.source_document_id)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : nodeProvenance !== null ? (
+                  <div className="text-sm text-slate-500 text-center py-4">
+                    No provenance data
+                  </div>
+                ) : null}
               </div>
             </div>
           </div>
