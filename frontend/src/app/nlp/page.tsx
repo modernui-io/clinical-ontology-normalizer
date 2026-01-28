@@ -51,6 +51,14 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { ConfidenceBadge } from "@/components/provenance/ConfidenceBadge";
+import { GuidelineCitationCard, PolicyCitationCard } from "@/components/provenance/CitationCard";
+import { ReasoningChain } from "@/components/provenance/ReasoningChain";
+import type {
+  GuidelineCitation,
+  PolicyCitation,
+  ReasoningStep,
+} from "@/types/provenance";
 import {
   nlpExtractEntities,
   nlpOntologyMap,
@@ -1205,6 +1213,11 @@ interface QAMessage {
   timestamp: Date;
   confidence?: number;
   entities_used?: string[];
+  guideline_citations?: GuidelineCitation[];
+  policy_citations?: PolicyCitation[];
+  reasoning_chain?: ReasoningStep[];
+  query_id?: string;
+  sources?: string[];
 }
 
 export default function NLPWorkbenchPage() {
@@ -1664,7 +1677,7 @@ export default function NLPWorkbenchPage() {
     setIsQuerying(true);
 
     try {
-      const response = await fetch(`/api/clinical-agent/query/${kgPatientId}`, {
+      const response = await fetch(`/api/clinical-agent/query/${kgPatientId}?provenance_depth=full`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: qaInput }),
@@ -1678,7 +1691,12 @@ export default function NLPWorkbenchPage() {
           content: result.answer,
           timestamp: new Date(),
           confidence: result.confidence,
-          entities_used: result.entities_referenced?.map((e: { text: string }) => e.text) || [],
+          entities_used: result.entities_found?.map((e: { text: string }) => e.text) || [],
+          guideline_citations: result.guideline_citations || [],
+          policy_citations: result.policy_citations || [],
+          reasoning_chain: result.reasoning_chain || [],
+          query_id: result.query_id,
+          sources: result.sources || [],
         };
         setQaMessages((prev) => [...prev, assistantMessage]);
       } else {
@@ -1899,21 +1917,60 @@ export default function NLPWorkbenchPage() {
                             msg.role === "user" ? "justify-end" : "justify-start"
                           )}
                         >
-                          <div
-                            className={cn(
-                              "max-w-[80%] rounded-lg px-4 py-2",
-                              msg.role === "user"
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-muted"
-                            )}
-                          >
-                            <p className="whitespace-pre-wrap">{msg.content}</p>
-                            {msg.confidence && (
-                              <p className="text-xs mt-2 opacity-70">
-                                Confidence: {Math.round(msg.confidence * 100)}%
-                              </p>
-                            )}
-                          </div>
+                          {msg.role === "user" ? (
+                            <div className="max-w-[80%] rounded-lg px-4 py-2 bg-primary text-primary-foreground">
+                              <p className="whitespace-pre-wrap">{msg.content}</p>
+                            </div>
+                          ) : (
+                            <div className="max-w-[90%] space-y-3">
+                              {/* Answer with confidence badge */}
+                              <div className="rounded-lg px-4 py-3 bg-muted">
+                                <div className="flex items-center gap-2 mb-2">
+                                  {msg.confidence != null && (
+                                    <ConfidenceBadge confidence={msg.confidence} />
+                                  )}
+                                  {msg.sources && msg.sources.length > 0 && (
+                                    <Badge variant="secondary" className="text-xs">
+                                      {msg.sources.length} sources
+                                    </Badge>
+                                  )}
+                                </div>
+                                <p className="whitespace-pre-wrap text-sm">{msg.content}</p>
+                              </div>
+
+                              {/* Guideline Citations */}
+                              {msg.guideline_citations && msg.guideline_citations.length > 0 && (
+                                <div className="space-y-2">
+                                  <p className="text-xs font-medium text-muted-foreground px-1">
+                                    Clinical Guidelines ({msg.guideline_citations.length})
+                                  </p>
+                                  {msg.guideline_citations.map((gc, idx) => (
+                                    <GuidelineCitationCard key={idx} citation={gc} />
+                                  ))}
+                                </div>
+                              )}
+
+                              {/* Policy Citations */}
+                              {msg.policy_citations && msg.policy_citations.length > 0 && (
+                                <div className="space-y-2">
+                                  <p className="text-xs font-medium text-muted-foreground px-1">
+                                    Institutional Policies ({msg.policy_citations.length})
+                                  </p>
+                                  {msg.policy_citations.map((pc, idx) => (
+                                    <PolicyCitationCard key={idx} citation={pc} />
+                                  ))}
+                                </div>
+                              )}
+
+                              {/* Reasoning Chain */}
+                              {msg.reasoning_chain && msg.reasoning_chain.length > 0 && (
+                                <ReasoningChain
+                                  steps={msg.reasoning_chain}
+                                  totalConfidence={msg.confidence}
+                                />
+                              )}
+                            </div>
+                          )}
                         </div>
                       ))}
                       {isQuerying && (
