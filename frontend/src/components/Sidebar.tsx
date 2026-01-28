@@ -34,6 +34,7 @@ import {
   Sparkles,
   Bot,
   BookOpen,
+  ScrollText,
 } from "lucide-react";
 
 interface NavItem {
@@ -69,6 +70,8 @@ const navSections: NavSection[] = [
     items: [
       { title: "Clinical Tools", href: "/clinical", icon: Stethoscope },
       { title: "Calculators", href: "/clinical/calculators", icon: Calculator },
+      { title: "Guidelines", href: "/guidelines", icon: BookOpen },
+      { title: "Policies", href: "/policies", icon: ScrollText },
       { title: "Quality Measures", href: "/quality", icon: Activity },
     ],
   },

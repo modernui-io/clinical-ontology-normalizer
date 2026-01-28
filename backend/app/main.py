@@ -87,6 +87,7 @@ from app.api import (
     data_consistency_router,
     model_registry_router,
     clinical_agent_router,
+    guidelines_router,
     policy_router,
     vocabulary_router,
 )
@@ -670,6 +671,7 @@ api_v1_router.include_router(data_completeness_router)
 api_v1_router.include_router(data_consistency_router)
 api_v1_router.include_router(model_registry_router)
 api_v1_router.include_router(clinical_agent_router)
+api_v1_router.include_router(guidelines_router)
 api_v1_router.include_router(policy_router)
 api_v1_router.include_router(vocabulary_router)
 
