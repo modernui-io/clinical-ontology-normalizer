@@ -48,6 +48,18 @@ from app.models.smart_app import (
     SMARTApp,
     SMARTAuthorizationCode,
 )
+from app.models.data_source import (
+    AuthMethod,
+    DataSource,
+    DataSourceType,
+    HealthStatus,
+    Pipeline,
+    PipelineRun,
+    PipelineRunStatus,
+    PipelineStage,
+    PipelineStatus,
+    ScheduleType,
+)
 from app.models.policy import (
     Policy,
     PolicyAlertRule,
@@ -99,6 +111,17 @@ __all__ = [
     # SMART on FHIR Models
     "SMARTApp",
     "SMARTAuthorizationCode",
+    # Data Pipeline Models
+    "DataSource",
+    "DataSourceType",
+    "HealthStatus",
+    "AuthMethod",
+    "Pipeline",
+    "PipelineStatus",
+    "ScheduleType",
+    "PipelineRun",
+    "PipelineRunStatus",
+    "PipelineStage",
     # Policy Models
     "Policy",
     "PolicySection",

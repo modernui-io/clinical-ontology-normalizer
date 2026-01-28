@@ -139,6 +139,8 @@ from app.api.guidelines import router as guidelines_router
 from app.api.policy import router as policy_router
 from app.api.vocabulary import router as vocabulary_router
 from app.api.smart_server import router as smart_server_router
+from app.api.data_sources import router as data_sources_router
+from app.api.pipelines import router as pipelines_router
 
 __all__ = [
     # Routers
@@ -218,6 +220,8 @@ __all__ = [
     "policy_router",
     "vocabulary_router",
     "smart_server_router",
+    "data_sources_router",
+    "pipelines_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",

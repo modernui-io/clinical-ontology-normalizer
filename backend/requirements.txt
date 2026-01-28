@@ -29,3 +29,4 @@ httpx>=0.26.0
 # Utilities
 greenlet>=3.3.0
 pyahocorasick>=2.3.0
+croniter>=2.0.0

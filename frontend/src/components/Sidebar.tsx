@@ -35,6 +35,9 @@ import {
   Bot,
   BookOpen,
   ScrollText,
+  Database,
+  Workflow,
+  Gauge,
 } from "lucide-react";
 
 interface NavItem {
@@ -95,6 +98,14 @@ const navSections: NavSection[] = [
       { title: "Clinical Intelligence", href: "/clinical/intelligence", icon: Sparkles },
       { title: "AI Assistant", href: "/assistant", icon: Bot },
       { title: "LLM Fine-tuning", href: "/llm/finetuning", icon: Sparkles },
+    ],
+  },
+  {
+    title: "Data Pipeline",
+    items: [
+      { title: "Pipelines", href: "/pipelines", icon: Workflow },
+      { title: "Data Sources", href: "/admin/data-sources", icon: Database },
+      { title: "Data Quality", href: "/pipelines/quality", icon: Gauge },
     ],
   },
   {

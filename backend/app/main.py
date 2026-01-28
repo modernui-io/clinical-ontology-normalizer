@@ -91,6 +91,8 @@ from app.api import (
     guidelines_router,
     policy_router,
     vocabulary_router,
+    data_sources_router,
+    pipelines_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -678,6 +680,8 @@ api_v1_router.include_router(policy_router)
 api_v1_router.include_router(vocabulary_router)
 api_v1_router.include_router(auth_router)
 api_v1_router.include_router(users_router)
+api_v1_router.include_router(data_sources_router)
+api_v1_router.include_router(pipelines_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)
