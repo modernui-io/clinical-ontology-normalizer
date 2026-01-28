@@ -162,7 +162,7 @@ async function fetchVolcanoData(params: {
 }
 
 async function fetchTimelineData(): Promise<TimelineData> {
-  const response = await fetch("/api/v1/visualizations/timeline");
+  const response = await fetch("/api/visualizations/timeline");
   if (!response.ok) throw new Error("Failed to fetch timeline data");
   return response.json();
 }

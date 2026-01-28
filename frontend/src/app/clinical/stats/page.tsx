@@ -33,11 +33,11 @@ interface ServiceStats {
 
 export default function TerminologyStatsPage() {
   const [services, setServices] = useState<ServiceStats[]>([
-    { name: "ICD-10-CM", icon: BookOpen, endpoint: "/api/v1/icd10-suggestions/stats", data: null, loading: false, error: null },
-    { name: "CPT Codes", icon: Stethoscope, endpoint: "/api/v1/cpt-suggestions/stats", data: null, loading: false, error: null },
-    { name: "Drug Safety", icon: Pill, endpoint: "/api/v1/drug-safety/stats", data: null, loading: false, error: null },
-    { name: "HCC Analysis", icon: Target, endpoint: "/api/v1/hcc-analysis/stats", data: null, loading: false, error: null },
-    { name: "Differential Dx", icon: Activity, endpoint: "/api/v1/differential-diagnosis/stats", data: null, loading: false, error: null },
+    { name: "ICD-10-CM", icon: BookOpen, endpoint: "/api/icd10-suggestions/stats", data: null, loading: false, error: null },
+    { name: "CPT Codes", icon: Stethoscope, endpoint: "/api/cpt-suggestions/stats", data: null, loading: false, error: null },
+    { name: "Drug Safety", icon: Pill, endpoint: "/api/drug-safety/stats", data: null, loading: false, error: null },
+    { name: "HCC Analysis", icon: Target, endpoint: "/api/hcc-analysis/stats", data: null, loading: false, error: null },
+    { name: "Differential Dx", icon: Activity, endpoint: "/api/differential-diagnosis/stats", data: null, loading: false, error: null },
   ]);
   const [isRefreshing, setIsRefreshing] = useState(false);
 

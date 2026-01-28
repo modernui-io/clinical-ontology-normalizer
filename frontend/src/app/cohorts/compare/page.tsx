@@ -92,7 +92,7 @@ interface CohortComparisonResult {
 }
 
 // API functions
-const API_BASE = "/api/v1/cohorts";
+const API_BASE = "/api/cohorts";
 
 async function fetchCohorts(): Promise<CohortListResponse> {
   const response = await fetch(`${API_BASE}?limit=100`);

@@ -125,7 +125,7 @@ interface ValidationResponse {
 }
 
 // API
-const API_BASE = "/api/v1/valuesets";
+const API_BASE = "/api/valuesets";
 
 async function fetchValueSet(id: string): Promise<ValueSet> {
   const response = await fetch(`${API_BASE}/${id}`);

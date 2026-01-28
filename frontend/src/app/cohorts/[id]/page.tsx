@@ -174,7 +174,7 @@ interface VersionListResponse {
 }
 
 // API functions
-const API_BASE = "/api/v1/cohorts";
+const API_BASE = "/api/cohorts";
 
 async function fetchCohort(id: string): Promise<CohortDefinition> {
   const response = await fetch(`${API_BASE}/${id}`);

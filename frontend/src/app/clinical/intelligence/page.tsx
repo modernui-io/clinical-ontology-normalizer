@@ -514,7 +514,7 @@ export default function ClinicalIntelligencePage() {
         setImportProgress(p => Math.min(p + 10, 90));
       }, 200);
 
-      const response = await fetch("/api/v1/clinical-agent/import", {
+      const response = await fetch("/api/clinical-agent/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

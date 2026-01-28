@@ -116,7 +116,8 @@ function setStoredUser(user: User | null): void {
 // ============================================================================
 
 async function apiLogin(credentials: LoginCredentials): Promise<{ user: User; tokens: AuthTokens }> {
-  const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+  // Step 1: Login to get tokens
+  const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(credentials),
@@ -127,11 +128,27 @@ async function apiLogin(credentials: LoginCredentials): Promise<{ user: User; to
     throw new Error(error.detail || "Invalid email or password");
   }
 
-  return response.json();
+  const tokens: AuthTokens = await response.json();
+
+  // Step 2: Fetch user info with the new access token
+  const userResponse = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
+    headers: { Authorization: `Bearer ${tokens.access_token}` },
+  });
+
+  if (!userResponse.ok) {
+    throw new Error("Failed to fetch user info after login");
+  }
+
+  const user: User = await userResponse.json();
+
+  // Set auth cookie for middleware
+  document.cookie = `has_auth=true; path=/; max-age=${tokens.expires_in}; SameSite=Lax`;
+
+  return { user, tokens };
 }
 
 async function apiRegister(data: RegisterData): Promise<{ user: User; tokens: AuthTokens }> {
-  const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+  const response = await fetch(`${API_BASE_URL}/api/v1/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -142,11 +159,30 @@ async function apiRegister(data: RegisterData): Promise<{ user: User; tokens: Au
     throw new Error(error.detail || "Registration failed");
   }
 
-  return response.json();
+  const tokens: AuthTokens = await response.json();
+
+  // Fetch user info
+  const userResponse = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
+    headers: { Authorization: `Bearer ${tokens.access_token}` },
+  });
+
+  if (!userResponse.ok) {
+    throw new Error("Failed to fetch user info after registration");
+  }
+
+  const user: User = await userResponse.json();
+
+  // Set auth cookie for middleware
+  document.cookie = `has_auth=true; path=/; max-age=${tokens.expires_in}; SameSite=Lax`;
+
+  return { user, tokens };
 }
 
 async function apiLogout(refreshToken: string): Promise<void> {
-  await fetch(`${API_BASE_URL}/api/auth/logout`, {
+  // Clear auth cookie
+  document.cookie = "has_auth=; path=/; max-age=0; SameSite=Lax";
+
+  await fetch(`${API_BASE_URL}/api/v1/auth/logout`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ refresh_token: refreshToken }),
@@ -156,7 +192,7 @@ async function apiLogout(refreshToken: string): Promise<void> {
 }
 
 async function apiRefreshToken(refreshToken: string): Promise<AuthTokens> {
-  const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+  const response = await fetch(`${API_BASE_URL}/api/v1/auth/refresh`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ refresh_token: refreshToken }),
@@ -166,11 +202,16 @@ async function apiRefreshToken(refreshToken: string): Promise<AuthTokens> {
     throw new Error("Token refresh failed");
   }
 
-  return response.json();
+  const tokens: AuthTokens = await response.json();
+
+  // Refresh auth cookie
+  document.cookie = `has_auth=true; path=/; max-age=${tokens.expires_in}; SameSite=Lax`;
+
+  return tokens;
 }
 
 async function apiGetCurrentUser(accessToken: string): Promise<User> {
-  const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+  const response = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
 
@@ -182,7 +223,7 @@ async function apiGetCurrentUser(accessToken: string): Promise<User> {
 }
 
 async function apiUpdateProfile(accessToken: string, data: Partial<User>): Promise<User> {
-  const response = await fetch(`${API_BASE_URL}/api/auth/profile`, {
+  const response = await fetch(`${API_BASE_URL}/api/v1/auth/profile`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -204,7 +245,7 @@ async function apiChangePassword(
   currentPassword: string,
   newPassword: string
 ): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/api/auth/change-password`, {
+  const response = await fetch(`${API_BASE_URL}/api/v1/auth/change-password`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -223,7 +264,7 @@ async function apiChangePassword(
 }
 
 async function apiForgotPassword(email: string): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
+  const response = await fetch(`${API_BASE_URL}/api/v1/auth/forgot-password`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email }),

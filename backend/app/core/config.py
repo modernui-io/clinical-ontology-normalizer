@@ -35,6 +35,8 @@ class Settings(BaseSettings):
     api_key: str = "dev-api-key-change-in-production"
     api_key_header: str = "X-API-Key"
     auth_enabled: bool = False  # Disabled by default for local dev
+    jwt_secret_key: str = "change-this-in-production-use-env-var"
+    auth_bypass_dev: bool = False  # Dev bypass for testing without auth
 
     # LLM Configuration
     openai_api_key: str | None = None

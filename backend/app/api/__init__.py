@@ -138,6 +138,7 @@ from app.api.clinical_agent import router as clinical_agent_router
 from app.api.guidelines import router as guidelines_router
 from app.api.policy import router as policy_router
 from app.api.vocabulary import router as vocabulary_router
+from app.api.smart_server import router as smart_server_router
 
 __all__ = [
     # Routers
@@ -216,6 +217,7 @@ __all__ = [
     "guidelines_router",
     "policy_router",
     "vocabulary_router",
+    "smart_server_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",

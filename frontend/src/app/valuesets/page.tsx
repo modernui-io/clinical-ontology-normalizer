@@ -76,7 +76,7 @@ interface ValueSetListResponse {
 }
 
 // API functions
-const API_BASE = "/api/v1/valuesets";
+const API_BASE = "/api/valuesets";
 
 async function fetchValueSets(params: {
   status?: string;

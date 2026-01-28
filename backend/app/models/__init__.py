@@ -44,6 +44,10 @@ from app.models.rbac import (
     User,
     UserRole,
 )
+from app.models.smart_app import (
+    SMARTApp,
+    SMARTAuthorizationCode,
+)
 from app.models.policy import (
     Policy,
     PolicyAlertRule,
@@ -92,6 +96,9 @@ __all__ = [
     "UserRole",
     "RolePermission",
     "RefreshToken",
+    # SMART on FHIR Models
+    "SMARTApp",
+    "SMARTAuthorizationCode",
     # Policy Models
     "Policy",
     "PolicySection",

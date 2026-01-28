@@ -18,170 +18,131 @@ import { useAuth, type User } from "./use-auth";
 
 /**
  * Application permission types organized by domain.
+ * These match the backend RBAC service permission names exactly.
  */
 export const PERMISSIONS = {
-  // Patient-related permissions
-  PATIENT_VIEW: "patient:view",
-  PATIENT_CREATE: "patient:create",
-  PATIENT_EDIT: "patient:edit",
-  PATIENT_DELETE: "patient:delete",
-  PATIENT_EXPORT: "patient:export",
-  PATIENT_PHI_VIEW: "patient:phi:view",
+  // Document permissions (matches backend documents:*)
+  DOCUMENTS_READ: "documents:read",
+  DOCUMENTS_WRITE: "documents:write",
+  DOCUMENTS_DELETE: "documents:delete",
+  DOCUMENTS_ADMIN: "documents:admin",
 
-  // Document permissions
-  DOCUMENT_VIEW: "document:view",
-  DOCUMENT_CREATE: "document:create",
-  DOCUMENT_EDIT: "document:edit",
-  DOCUMENT_DELETE: "document:delete",
-  DOCUMENT_ANNOTATE: "document:annotate",
-  DOCUMENT_UPLOAD: "document:upload",
+  // Patient permissions (matches backend patients:*)
+  PATIENTS_READ: "patients:read",
+  PATIENTS_WRITE: "patients:write",
+  PATIENTS_DELETE: "patients:delete",
+  PATIENTS_ADMIN: "patients:admin",
 
-  // Cohort permissions
-  COHORT_VIEW: "cohort:view",
-  COHORT_CREATE: "cohort:create",
-  COHORT_EDIT: "cohort:edit",
-  COHORT_DELETE: "cohort:delete",
-  COHORT_EXPORT: "cohort:export",
+  // Billing permissions (matches backend billing:*)
+  BILLING_READ: "billing:read",
+  BILLING_WRITE: "billing:write",
+  BILLING_DELETE: "billing:delete",
+  BILLING_ADMIN: "billing:admin",
 
-  // Value set permissions
-  VALUESET_VIEW: "valueset:view",
-  VALUESET_CREATE: "valueset:create",
-  VALUESET_EDIT: "valueset:edit",
-  VALUESET_DELETE: "valueset:delete",
-  VALUESET_PUBLISH: "valueset:publish",
+  // Coding permissions (matches backend coding:*)
+  CODING_READ: "coding:read",
+  CODING_WRITE: "coding:write",
+  CODING_DELETE: "coding:delete",
+  CODING_ADMIN: "coding:admin",
 
-  // ETL permissions
-  ETL_VIEW: "etl:view",
-  ETL_CREATE: "etl:create",
-  ETL_RUN: "etl:run",
-  ETL_CONFIGURE: "etl:configure",
+  // Audit permissions (matches backend audit:*)
+  AUDIT_READ: "audit:read",
+  AUDIT_WRITE: "audit:write",
+  AUDIT_EXPORT: "audit:export",
+  AUDIT_ADMIN: "audit:admin",
 
-  // Data quality permissions
-  QUALITY_VIEW: "quality:view",
-  QUALITY_RUN: "quality:run",
-  QUALITY_CONFIGURE: "quality:configure",
+  // Admin permissions (matches backend admin:*)
+  ADMIN_READ: "admin:read",
+  ADMIN_WRITE: "admin:write",
+  ADMIN_MANAGE_USERS: "admin:manage_users",
+  ADMIN_MANAGE_ROLES: "admin:manage_roles",
 
-  // Billing permissions
-  BILLING_VIEW: "billing:view",
-  BILLING_MANAGE: "billing:manage",
-  BILLING_EXPORT: "billing:export",
+  // Vocabulary permissions (matches backend vocabulary:*)
+  VOCABULARY_READ: "vocabulary:read",
+  VOCABULARY_WRITE: "vocabulary:write",
+  VOCABULARY_ADMIN: "vocabulary:admin",
 
-  // Report permissions
-  REPORT_VIEW: "report:view",
-  REPORT_CREATE: "report:create",
-  REPORT_EDIT: "report:edit",
-  REPORT_DELETE: "report:delete",
-  REPORT_EXPORT: "report:export",
-  REPORT_SCHEDULE: "report:schedule",
+  // Graphs permissions (matches backend graphs:*)
+  GRAPHS_READ: "graphs:read",
+  GRAPHS_WRITE: "graphs:write",
+  GRAPHS_ADMIN: "graphs:admin",
 
-  // Admin permissions
-  ADMIN_USERS: "admin:users",
-  ADMIN_ROLES: "admin:roles",
-  ADMIN_SETTINGS: "admin:settings",
-  ADMIN_AUDIT: "admin:audit",
-  ADMIN_API_KEYS: "admin:api-keys",
+  // Export permissions (matches backend export:*)
+  EXPORT_READ: "export:read",
+  EXPORT_WRITE: "export:write",
+  EXPORT_ADMIN: "export:admin",
 
-  // AI/ML permissions
-  AI_USE: "ai:use",
-  AI_TRAIN: "ai:train",
-  AI_CONFIGURE: "ai:configure",
-
-  // Analytics permissions
-  ANALYTICS_VIEW: "analytics:view",
-  ANALYTICS_EXPORT: "analytics:export",
-  ANALYTICS_ADVANCED: "analytics:advanced",
+  // LLM permissions (matches backend llm:*)
+  LLM_READ: "llm:read",
+  LLM_WRITE: "llm:write",
+  LLM_ADMIN: "llm:admin",
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
 
 /**
- * Role definitions with associated permissions.
+ * Role definitions matching backend RBAC service.
  */
 export const ROLES = {
   ADMIN: "admin",
-  ANALYST: "analyst",
-  CLINICIAN: "clinician",
-  DATA_STEWARD: "data_steward",
+  PROVIDER: "provider",
+  BILLER: "biller",
   VIEWER: "viewer",
-  RESEARCHER: "researcher",
 } as const;
 
 export type Role = (typeof ROLES)[keyof typeof ROLES];
 
 /**
- * Default permissions for each role.
+ * Default permissions for each role (matching backend rbac_service.py).
  */
 export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   [ROLES.ADMIN]: Object.values(PERMISSIONS),
-  [ROLES.ANALYST]: [
-    PERMISSIONS.PATIENT_VIEW,
-    PERMISSIONS.PATIENT_EXPORT,
-    PERMISSIONS.DOCUMENT_VIEW,
-    PERMISSIONS.COHORT_VIEW,
-    PERMISSIONS.COHORT_CREATE,
-    PERMISSIONS.COHORT_EDIT,
-    PERMISSIONS.COHORT_EXPORT,
-    PERMISSIONS.VALUESET_VIEW,
-    PERMISSIONS.QUALITY_VIEW,
-    PERMISSIONS.BILLING_VIEW,
-    PERMISSIONS.BILLING_EXPORT,
-    PERMISSIONS.REPORT_VIEW,
-    PERMISSIONS.REPORT_CREATE,
-    PERMISSIONS.REPORT_EXPORT,
-    PERMISSIONS.ANALYTICS_VIEW,
-    PERMISSIONS.ANALYTICS_EXPORT,
-    PERMISSIONS.AI_USE,
+  [ROLES.PROVIDER]: [
+    // Clinical document access
+    PERMISSIONS.DOCUMENTS_READ,
+    PERMISSIONS.DOCUMENTS_WRITE,
+    // Patient information access
+    PERMISSIONS.PATIENTS_READ,
+    PERMISSIONS.PATIENTS_WRITE,
+    // Read billing/coding info but not modify
+    PERMISSIONS.BILLING_READ,
+    PERMISSIONS.CODING_READ,
+    // Vocabulary lookup
+    PERMISSIONS.VOCABULARY_READ,
+    // Knowledge graph access
+    PERMISSIONS.GRAPHS_READ,
+    PERMISSIONS.GRAPHS_WRITE,
+    // Export patient data
+    PERMISSIONS.EXPORT_READ,
+    PERMISSIONS.EXPORT_WRITE,
+    // Use LLM features
+    PERMISSIONS.LLM_READ,
+    PERMISSIONS.LLM_WRITE,
   ],
-  [ROLES.CLINICIAN]: [
-    PERMISSIONS.PATIENT_VIEW,
-    PERMISSIONS.PATIENT_PHI_VIEW,
-    PERMISSIONS.DOCUMENT_VIEW,
-    PERMISSIONS.DOCUMENT_CREATE,
-    PERMISSIONS.DOCUMENT_ANNOTATE,
-    PERMISSIONS.COHORT_VIEW,
-    PERMISSIONS.VALUESET_VIEW,
-    PERMISSIONS.AI_USE,
-    PERMISSIONS.REPORT_VIEW,
-  ],
-  [ROLES.DATA_STEWARD]: [
-    PERMISSIONS.PATIENT_VIEW,
-    PERMISSIONS.DOCUMENT_VIEW,
-    PERMISSIONS.DOCUMENT_EDIT,
-    PERMISSIONS.VALUESET_VIEW,
-    PERMISSIONS.VALUESET_CREATE,
-    PERMISSIONS.VALUESET_EDIT,
-    PERMISSIONS.ETL_VIEW,
-    PERMISSIONS.ETL_CONFIGURE,
-    PERMISSIONS.QUALITY_VIEW,
-    PERMISSIONS.QUALITY_RUN,
-    PERMISSIONS.QUALITY_CONFIGURE,
-    PERMISSIONS.REPORT_VIEW,
+  [ROLES.BILLER]: [
+    // Read clinical documents for coding
+    PERMISSIONS.DOCUMENTS_READ,
+    // Read patient information for billing
+    PERMISSIONS.PATIENTS_READ,
+    // Full billing access
+    PERMISSIONS.BILLING_READ,
+    PERMISSIONS.BILLING_WRITE,
+    // Full coding access
+    PERMISSIONS.CODING_READ,
+    PERMISSIONS.CODING_WRITE,
+    // Vocabulary for code lookup
+    PERMISSIONS.VOCABULARY_READ,
+    // Export billing data
+    PERMISSIONS.EXPORT_READ,
+    PERMISSIONS.EXPORT_WRITE,
   ],
   [ROLES.VIEWER]: [
-    PERMISSIONS.PATIENT_VIEW,
-    PERMISSIONS.DOCUMENT_VIEW,
-    PERMISSIONS.COHORT_VIEW,
-    PERMISSIONS.VALUESET_VIEW,
-    PERMISSIONS.QUALITY_VIEW,
-    PERMISSIONS.REPORT_VIEW,
-    PERMISSIONS.ANALYTICS_VIEW,
-  ],
-  [ROLES.RESEARCHER]: [
-    PERMISSIONS.PATIENT_VIEW,
-    PERMISSIONS.PATIENT_EXPORT,
-    PERMISSIONS.DOCUMENT_VIEW,
-    PERMISSIONS.COHORT_VIEW,
-    PERMISSIONS.COHORT_CREATE,
-    PERMISSIONS.COHORT_EDIT,
-    PERMISSIONS.COHORT_EXPORT,
-    PERMISSIONS.VALUESET_VIEW,
-    PERMISSIONS.ANALYTICS_VIEW,
-    PERMISSIONS.ANALYTICS_EXPORT,
-    PERMISSIONS.ANALYTICS_ADVANCED,
-    PERMISSIONS.AI_USE,
-    PERMISSIONS.REPORT_VIEW,
-    PERMISSIONS.REPORT_CREATE,
-    PERMISSIONS.REPORT_EXPORT,
+    // Read-only access to documents (no PHI by default)
+    PERMISSIONS.DOCUMENTS_READ,
+    // Read vocabulary
+    PERMISSIONS.VOCABULARY_READ,
+    // Read graphs
+    PERMISSIONS.GRAPHS_READ,
   ],
 };
 

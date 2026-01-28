@@ -73,7 +73,7 @@ interface CreateValueSetRequest {
 }
 
 // API
-const API_BASE = "/api/v1/valuesets";
+const API_BASE = "/api/valuesets";
 
 async function createValueSet(request: CreateValueSetRequest): Promise<{ id: string }> {
   const response = await fetch(API_BASE, {

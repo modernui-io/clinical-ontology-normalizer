@@ -80,7 +80,7 @@ interface CohortListResponse {
 }
 
 // API functions
-const API_BASE = "/api/v1/cohorts";
+const API_BASE = "/api/cohorts";
 
 async function fetchCohorts(params: {
   status?: string;

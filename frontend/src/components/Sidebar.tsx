@@ -104,6 +104,7 @@ const navSections: NavSection[] = [
       { title: "Users", href: "/admin/users", icon: UserCog },
       { title: "Roles", href: "/admin/roles", icon: Key },
       { title: "Access Control", href: "/admin/access", icon: Shield },
+      { title: "SMART Apps", href: "/admin/smart-apps", icon: Key },
       { title: "Billing", href: "/billing", icon: CreditCard },
       { title: "Audit Log", href: "/audit", icon: ClipboardList },
       { title: "Settings", href: "/settings", icon: Settings },
@@ -114,6 +115,12 @@ const navSections: NavSection[] = [
 interface SidebarProps {
   className?: string;
 }
+
+// Pages that should not show the sidebar
+const AUTH_PAGES = ["/login", "/register", "/forgot-password"];
+const isAuthPage = (pathname: string) => {
+  return AUTH_PAGES.includes(pathname) || pathname.startsWith("/smart/");
+};
 
 export function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname();
@@ -135,6 +142,11 @@ export function Sidebar({ className }: SidebarProps) {
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
   }, []);
+
+  // Don't render sidebar on auth pages (must be after all hooks)
+  if (isAuthPage(pathname)) {
+    return null;
+  }
 
   const isActive = (href: string) => {
     if (href === "/dashboard") {

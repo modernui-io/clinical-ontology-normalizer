@@ -30,13 +30,14 @@ from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.core.config import settings
 from app.models.rbac import RefreshToken, Role, User, UserRole
 
 logger = logging.getLogger(__name__)
 
 
-# JWT Configuration
-JWT_SECRET_KEY = secrets.token_urlsafe(32)  # In production, use env variable
+# JWT Configuration - Use stable key from environment
+JWT_SECRET_KEY = settings.jwt_secret_key
 JWT_ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REFRESH_TOKEN_EXPIRE_DAYS = 7
@@ -338,12 +339,14 @@ class AuthService:
             AuthResult with success status, user, and tokens
         """
         # Find user by email with roles and permissions loaded
+        from app.models.rbac import RolePermission
         stmt = (
             select(User)
             .options(
                 selectinload(User.user_roles)
                 .selectinload(UserRole.role)
                 .selectinload(Role.role_permissions)
+                .selectinload(RolePermission.permission)
             )
             .where(User.email == email)
         )

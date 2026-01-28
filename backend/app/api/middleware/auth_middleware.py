@@ -103,6 +103,31 @@ async def get_current_user(
     Raises:
         HTTPException: 401 if not authenticated
     """
+    # Import settings here to avoid circular imports
+    from app.core.config import settings
+
+    # Dev auth bypass - return a mock admin user for development
+    if settings.auth_bypass_dev and settings.debug:
+        logger.warning("Auth bypass enabled - returning dev admin user")
+        return CurrentUser(
+            id="dev-admin-user",
+            email="dev@local.test",
+            name="Dev Admin",
+            roles=["admin"],
+            permissions=[
+                "documents:read", "documents:write", "documents:delete", "documents:admin",
+                "patients:read", "patients:write", "patients:delete", "patients:admin",
+                "billing:read", "billing:write", "billing:delete", "billing:admin",
+                "coding:read", "coding:write", "coding:delete", "coding:admin",
+                "audit:read", "audit:write", "audit:export", "audit:admin",
+                "admin:read", "admin:write", "admin:manage_users", "admin:manage_roles",
+                "vocabulary:read", "vocabulary:write", "vocabulary:admin",
+                "graphs:read", "graphs:write", "graphs:admin",
+                "export:read", "export:write", "export:admin",
+                "llm:read", "llm:write", "llm:admin",
+            ],
+        )
+
     if not credentials:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

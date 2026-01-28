@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -70,7 +71,14 @@ const getNotificationIcon = (type: Notification["type"]) => {
   }
 };
 
+// Pages that should not show the header
+const AUTH_PAGES = ["/login", "/register", "/forgot-password"];
+const isAuthPage = (pathname: string) => {
+  return AUTH_PAGES.includes(pathname) || pathname.startsWith("/smart/");
+};
+
 export function Header({ className }: HeaderProps) {
+  const pathname = usePathname();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -130,6 +138,11 @@ export function Header({ className }: HeaderProps) {
     const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
   }, [fetchNotifications]);
+
+  // Don't render header on auth pages (must be after all hooks)
+  if (isAuthPage(pathname)) {
+    return null;
+  }
 
   // Mark single notification as read
   const markAsRead = async (notificationId: string) => {

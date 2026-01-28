@@ -96,7 +96,7 @@ export default function HCCAnalysisPage() {
       if (clinicalNotes.trim()) body.clinical_notes = clinicalNotes.trim();
       if (age) body.age = parseInt(age);
 
-      const res = await fetch("/api/v1/hcc-analysis/analyze", {
+      const res = await fetch("/api/hcc-analysis/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),

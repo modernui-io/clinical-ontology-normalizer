@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from typing import Any
 
-from fastapi import APIRouter, FastAPI
+from fastapi import APIRouter, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
@@ -56,6 +56,7 @@ from app.api import (
     search_router,
     semantic_search_router,
     smart_router,
+    smart_server_router,
     sse_router,
     tefca_router,
     terminology_router,
@@ -641,6 +642,7 @@ api_v1_router.include_router(risk_router)
 api_v1_router.include_router(search_router)
 api_v1_router.include_router(semantic_search_router)
 api_v1_router.include_router(smart_router)
+api_v1_router.include_router(smart_server_router)
 api_v1_router.include_router(sse_router)
 api_v1_router.include_router(tefca_router)
 api_v1_router.include_router(terminology_router)
@@ -674,6 +676,8 @@ api_v1_router.include_router(clinical_agent_router)
 api_v1_router.include_router(guidelines_router)
 api_v1_router.include_router(policy_router)
 api_v1_router.include_router(vocabulary_router)
+api_v1_router.include_router(auth_router)
+api_v1_router.include_router(users_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)
@@ -760,3 +764,63 @@ async def root() -> dict[str, str]:
 async def openapi_redirect() -> RedirectResponse:
     """Redirect root /openapi.json to versioned endpoint."""
     return RedirectResponse(url="/api/v1/openapi.json", status_code=308)
+
+
+@app.get("/.well-known/smart-configuration", tags=["SMART on FHIR"])
+async def smart_configuration(request: Request) -> dict[str, Any]:
+    """SMART on FHIR well-known configuration endpoint.
+
+    Returns the SMART App Launch configuration for this FHIR server.
+    This endpoint is used by SMART apps to discover authorization endpoints.
+
+    See: https://hl7.org/fhir/smart-app-launch/conformance.html
+    """
+    # Build base URL from request
+    base_url = str(request.base_url).rstrip("/")
+
+    return {
+        "issuer": base_url,
+        "authorization_endpoint": f"{base_url}/api/v1/smart-server/authorize",
+        "token_endpoint": f"{base_url}/api/v1/smart-server/token",
+        "capabilities": [
+            "launch-ehr",
+            "launch-standalone",
+            "client-public",
+            "client-confidential-symmetric",
+            "context-ehr-patient",
+            "context-ehr-encounter",
+            "permission-v2",
+        ],
+        "scopes_supported": [
+            "openid",
+            "fhirUser",
+            "launch",
+            "launch/patient",
+            "launch/encounter",
+            "offline_access",
+            "patient/*.read",
+            "patient/*.write",
+            "patient/Patient.read",
+            "patient/Observation.read",
+            "patient/Condition.read",
+            "patient/MedicationRequest.read",
+            "patient/AllergyIntolerance.read",
+            "patient/Procedure.read",
+            "patient/Encounter.read",
+            "user/*.read",
+            "user/*.write",
+            "system/*.read",
+        ],
+        "response_types_supported": ["code"],
+        "grant_types_supported": [
+            "authorization_code",
+            "client_credentials",
+            "refresh_token",
+        ],
+        "code_challenge_methods_supported": ["S256"],
+        "token_endpoint_auth_methods_supported": [
+            "client_secret_post",
+            "client_secret_basic",
+            "private_key_jwt",
+        ],
+    }

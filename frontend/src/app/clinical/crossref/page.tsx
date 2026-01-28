@@ -72,7 +72,7 @@ export default function ConceptCrossReferencePage() {
       const results: MappingResult[] = [];
       for (const target of TARGET_VOCABULARIES) {
         try {
-          const res = await fetch("/api/v1/vocabulary-mapping/map", {
+          const res = await fetch("/api/vocabulary-mapping/map", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -92,7 +92,7 @@ export default function ConceptCrossReferencePage() {
 
       // Also try without target specified (auto-select)
       try {
-        const res = await fetch("/api/v1/vocabulary-mapping/map", {
+        const res = await fetch("/api/vocabulary-mapping/map", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
