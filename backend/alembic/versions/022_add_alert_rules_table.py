@@ -51,25 +51,15 @@ def upgrade() -> None:
         sa.text("""
         INSERT INTO alert_rules (id, name, description, severity, category, conditions, enabled, created_by)
         VALUES
-        (:id1, 'High Readmission Risk', 'Alert when 30-day readmission risk exceeds threshold', 'high', 'risk_score',
-         :cond1, true, 'system'),
-        (:id2, 'Critical Lab Value', 'Alert on critical laboratory values', 'critical', 'lab_value',
-         :cond2, true, 'system'),
-        (:id3, 'Mortality Risk Escalation', 'Alert when mortality risk tier changes to high', 'high', 'risk_score',
-         :cond3, true, 'system'),
-        (:id4, 'Quality Gap Identified', 'Alert when patient has open quality care gap', 'medium', 'quality_gap',
-         :cond4, true, 'system')
-        """),
-        {
-            "id1": str(uuid4()),
-            "id2": str(uuid4()),
-            "id3": str(uuid4()),
-            "id4": str(uuid4()),
-            "cond1": '{"rules": [{"field": "readmission_risk_score", "operator": "gte", "value": 0.7}]}',
-            "cond2": '{"rules": [{"field": "potassium", "operator": "gt", "value": 6.5}]}',
-            "cond3": '{"rules": [{"field": "mortality_risk_tier", "operator": "eq", "value": "high"}]}',
-            "cond4": '{"rules": [{"field": "open_quality_gaps", "operator": "gt", "value": 0}]}',
-        },
+        (gen_random_uuid(), 'High Readmission Risk', 'Alert when 30-day readmission risk exceeds threshold', 'high', 'risk_score',
+         '{"rules": [{"field": "readmission_risk_score", "operator": "gte", "value": 0.7}]}'::jsonb, true, 'system'),
+        (gen_random_uuid(), 'Critical Lab Value', 'Alert on critical laboratory values', 'critical', 'lab_value',
+         '{"rules": [{"field": "potassium", "operator": "gt", "value": 6.5}]}'::jsonb, true, 'system'),
+        (gen_random_uuid(), 'Mortality Risk Escalation', 'Alert when mortality risk tier changes to high', 'high', 'risk_score',
+         '{"rules": [{"field": "mortality_risk_tier", "operator": "eq", "value": "high"}]}'::jsonb, true, 'system'),
+        (gen_random_uuid(), 'Quality Gap Identified', 'Alert when patient has open quality care gap', 'medium', 'quality_gap',
+         '{"rules": [{"field": "open_quality_gaps", "operator": "gt", "value": 0}]}'::jsonb, true, 'system')
+        """)
     )
 
 
