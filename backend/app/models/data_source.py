@@ -69,7 +69,10 @@ class DataSource(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     name = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
-    source_type = Column(Enum(DataSourceType), nullable=False)
+    source_type = Column(
+        Enum(DataSourceType, values_callable=lambda x: [e.value for e in x]),
+        nullable=False
+    )
 
     # Connection configuration (stored as JSON, credentials encrypted)
     connection_config = Column(JSON, nullable=False, default=dict)
@@ -86,11 +89,17 @@ class DataSource(Base):
     # }
 
     # Authentication method (for UI rendering and validation)
-    auth_method = Column(Enum(AuthMethod), nullable=False, default=AuthMethod.NONE)
+    auth_method = Column(
+        Enum(AuthMethod, values_callable=lambda x: [e.value for e in x]),
+        nullable=False, default=AuthMethod.NONE
+    )
 
     # Status tracking
     is_active = Column(Boolean, default=True, nullable=False)
-    health_status = Column(Enum(HealthStatus), default=HealthStatus.UNKNOWN, nullable=False)
+    health_status = Column(
+        Enum(HealthStatus, values_callable=lambda x: [e.value for e in x]),
+        default=HealthStatus.UNKNOWN, nullable=False
+    )
     last_health_check_at = Column(DateTime(timezone=True), nullable=True)
     last_health_message = Column(Text, nullable=True)
 
@@ -152,11 +161,17 @@ class Pipeline(Base):
     source_id = Column(UUID(as_uuid=True), ForeignKey("data_sources.id", ondelete="CASCADE"), nullable=False)
 
     # Status
-    status = Column(Enum(PipelineStatus), default=PipelineStatus.ACTIVE, nullable=False)
+    status = Column(
+        Enum(PipelineStatus, values_callable=lambda x: [e.value for e in x]),
+        default=PipelineStatus.ACTIVE, nullable=False
+    )
     is_active = Column(Boolean, default=True, nullable=False)
 
     # Schedule configuration
-    schedule_type = Column(Enum(ScheduleType), default=ScheduleType.MANUAL, nullable=False)
+    schedule_type = Column(
+        Enum(ScheduleType, values_callable=lambda x: [e.value for e in x]),
+        default=ScheduleType.MANUAL, nullable=False
+    )
     schedule_cron = Column(String(100), nullable=True)  # Cron expression: "0 2 * * *" = 2 AM daily
     schedule_interval_minutes = Column(Integer, nullable=True)  # For interval schedules
 
@@ -249,8 +264,14 @@ class PipelineRun(Base):
     pipeline_id = Column(UUID(as_uuid=True), ForeignKey("pipelines.id", ondelete="CASCADE"), nullable=False)
 
     # Status tracking
-    status = Column(Enum(PipelineRunStatus), default=PipelineRunStatus.PENDING, nullable=False)
-    current_stage = Column(Enum(PipelineStage), default=PipelineStage.INITIALIZING, nullable=False)
+    status = Column(
+        Enum(PipelineRunStatus, values_callable=lambda x: [e.value for e in x]),
+        default=PipelineRunStatus.PENDING, nullable=False
+    )
+    current_stage = Column(
+        Enum(PipelineStage, values_callable=lambda x: [e.value for e in x]),
+        default=PipelineStage.INITIALIZING, nullable=False
+    )
     progress_percent = Column(Integer, default=0, nullable=False)
 
     # Timing

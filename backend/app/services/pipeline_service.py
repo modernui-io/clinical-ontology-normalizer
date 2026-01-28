@@ -5,6 +5,8 @@ Service for managing data ingestion pipelines.
 Handles CRUD operations, scheduling, and run management.
 """
 
+from __future__ import annotations
+
 import logging
 from datetime import datetime, timezone
 from typing import Optional

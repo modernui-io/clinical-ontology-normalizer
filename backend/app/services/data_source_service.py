@@ -5,6 +5,8 @@ Service for managing external data source connections.
 Handles CRUD operations, connection testing, and health monitoring.
 """
 
+from __future__ import annotations
+
 import asyncio
 import base64
 import hashlib
