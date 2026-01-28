@@ -183,7 +183,9 @@ class PipelineService:
 
         self.db.add(pipeline)
         await self.db.commit()
-        await self.db.refresh(pipeline)
+
+        # Reload with relationship to avoid lazy-load issues
+        pipeline = await self.get(pipeline.id)
 
         logger.info(f"Created pipeline: {pipeline.id} ({pipeline.name})")
         return pipeline
