@@ -93,7 +93,6 @@ const navSections: NavSection[] = [
       { title: "NLP Workbench", href: "/nlp", icon: Brain },
       { title: "AI Auto-Coding", href: "/ai-coding", icon: CreditCard },
       { title: "Clinical Intelligence", href: "/clinical/intelligence", icon: Sparkles },
-      { title: "Semantic Search", href: "/search/semantic", icon: Search },
       { title: "AI Assistant", href: "/assistant", icon: Bot },
       { title: "LLM Fine-tuning", href: "/llm/finetuning", icon: Sparkles },
     ],
@@ -101,20 +100,13 @@ const navSections: NavSection[] = [
   {
     title: "Administration",
     items: [
-      { title: "Billing", href: "/billing", icon: CreditCard },
-      { title: "Audit Log", href: "/audit", icon: ClipboardList },
-      { title: "Access Control", href: "/admin/access", icon: Shield },
-      { title: "Settings", href: "/settings", icon: Settings },
-    ],
-  },
-  {
-    title: "Admin",
-    items: [
-      { title: "Dashboard", href: "/admin/dashboard", icon: Server },
+      { title: "Admin Dashboard", href: "/admin/dashboard", icon: Server },
       { title: "Users", href: "/admin/users", icon: UserCog },
       { title: "Roles", href: "/admin/roles", icon: Key },
-      { title: "Audit Logs", href: "/admin/audit", icon: ClipboardList },
-      { title: "System Health", href: "/admin/dashboard", icon: Activity },
+      { title: "Access Control", href: "/admin/access", icon: Shield },
+      { title: "Billing", href: "/billing", icon: CreditCard },
+      { title: "Audit Log", href: "/audit", icon: ClipboardList },
+      { title: "Settings", href: "/settings", icon: Settings },
     ],
   },
 ];

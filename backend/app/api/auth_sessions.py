@@ -1,7 +1,7 @@
 """Session Management API endpoints.
 
 Provides endpoints for:
-- POST /auth/refresh - Token refresh with rotation
+- POST /auth/sessions/refresh - Token refresh with rotation
 - GET /auth/sessions - List active sessions
 - DELETE /auth/sessions/{session_id} - Revoke a session
 """
@@ -34,7 +34,7 @@ class RefreshResponse(BaseModel):
     expires_in: int
 
 
-@router.post("/refresh", response_model=RefreshResponse)
+@router.post("/sessions/refresh", response_model=RefreshResponse)
 async def refresh_token(request: RefreshRequest) -> dict[str, Any]:
     """Refresh an access token using a refresh token.
 

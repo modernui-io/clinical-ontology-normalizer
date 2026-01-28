@@ -23,7 +23,7 @@ from app.api.errors import ErrorCode, InternalError, NotFoundError
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/quality", tags=["Quality Measures"])
+router = APIRouter(prefix="/quality-measures", tags=["Quality Measures"])
 
 
 # ============================================================================

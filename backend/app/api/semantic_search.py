@@ -27,7 +27,7 @@ from app.services.semantic_search_service import (
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/search", tags=["Semantic Search"])
+router = APIRouter(prefix="/semantic-search", tags=["Semantic Search"])
 
 
 # ============================================================================
