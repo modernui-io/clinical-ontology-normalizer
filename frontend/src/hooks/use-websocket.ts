@@ -143,8 +143,8 @@ export interface UseWebSocketReturn {
 
 const DEFAULT_WS_URL =
   typeof window !== "undefined"
-    ? `ws://${window.location.hostname}:8000/ws`
-    : "ws://localhost:8000/ws";
+    ? `ws://${window.location.hostname}:8000/api/v1/ws`
+    : "ws://localhost:8000/api/v1/ws";
 
 /**
  * React hook for managing a WebSocket connection with auto-reconnect,
@@ -318,13 +318,14 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
         }
       };
 
-      ws.onerror = (error) => {
-        console.error("WebSocket error:", error);
+      ws.onerror = () => {
+        // Non-fatal: connection will auto-reconnect
+        console.warn("WebSocket connection error — will retry");
       };
 
       ws.onmessage = handleMessage;
     } catch (error) {
-      console.error("Failed to create WebSocket connection:", error);
+      console.warn("Failed to create WebSocket connection:", error);
       setStatus("disconnected");
     }
   }, [
