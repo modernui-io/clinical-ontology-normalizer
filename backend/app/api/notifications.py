@@ -11,13 +11,18 @@ Provides endpoints for notification management:
 - POST /webhooks/{id}/test - Test webhook
 """
 
+import logging
 from datetime import datetime
 from enum import Enum
 from typing import Any
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel, Field
+
+from app.api.errors import log_and_raise_internal_error
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/notifications", tags=["Notifications"])
 
@@ -259,7 +264,12 @@ async def list_notifications(
         )
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to list notifications: {str(e)}")
+        # VP-Security-1: Sanitize error messages
+        raise log_and_raise_internal_error(
+            exception=e,
+            endpoint="/api/v1/notifications",
+            user_message="Failed to list notifications",
+        )
 
 
 @router.post(
@@ -290,7 +300,11 @@ async def mark_notifications_read(
         return MarkReadResponse(marked_count=count)
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to mark notifications: {str(e)}")
+        raise log_and_raise_internal_error(
+            exception=e,
+            endpoint="/api/v1/notifications/mark-read",
+            user_message="Failed to mark notifications",
+        )
 
 
 @router.get(
@@ -344,7 +358,11 @@ async def get_notification_preferences(
         )
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get preferences: {str(e)}")
+        raise log_and_raise_internal_error(
+            exception=e,
+            endpoint="/api/v1/notifications/preferences",
+            user_message="Failed to get preferences",
+        )
 
 
 @router.put(
@@ -406,7 +424,11 @@ async def update_notification_preferences(
         return preferences
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to update preferences: {str(e)}")
+        raise log_and_raise_internal_error(
+            exception=e,
+            endpoint="/api/v1/notifications/preferences",
+            user_message="Failed to update preferences",
+        )
 
 
 @router.post(
@@ -460,7 +482,11 @@ async def send_notification(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to send notification: {str(e)}")
+        raise log_and_raise_internal_error(
+            exception=e,
+            endpoint="/api/v1/notifications/send",
+            user_message="Failed to send notification",
+        )
 
 
 # ============================================================================
@@ -514,7 +540,11 @@ async def create_webhook(
         )
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to create webhook: {str(e)}")
+        raise log_and_raise_internal_error(
+            exception=e,
+            endpoint="/api/v1/webhooks",
+            user_message="Failed to create webhook",
+        )
 
 
 @router.get(
@@ -560,7 +590,11 @@ async def list_webhooks(
         )
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to list webhooks: {str(e)}")
+        raise log_and_raise_internal_error(
+            exception=e,
+            endpoint="/api/v1/webhooks",
+            user_message="Failed to list webhooks",
+        )
 
 
 @router.delete(
@@ -590,7 +624,11 @@ async def delete_webhook(
         return {"message": f"Webhook {webhook_id} deleted successfully"}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to delete webhook: {str(e)}")
+        raise log_and_raise_internal_error(
+            exception=e,
+            endpoint="/api/v1/webhooks",
+            user_message="Failed to delete webhook",
+        )
 
 
 @router.post(
@@ -631,7 +669,11 @@ async def test_webhook(
         )
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to test webhook: {str(e)}")
+        raise log_and_raise_internal_error(
+            exception=e,
+            endpoint="/api/v1/webhooks/test",
+            user_message="Failed to test webhook",
+        )
 
 
 @router.get(
@@ -690,7 +732,11 @@ async def get_delivery_logs(
         )
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get delivery logs: {str(e)}")
+        raise log_and_raise_internal_error(
+            exception=e,
+            endpoint="/api/v1/webhooks/delivery-logs",
+            user_message="Failed to get delivery logs",
+        )
 
 
 @router.get(
@@ -711,4 +757,8 @@ async def get_notification_stats() -> dict:
         return service.get_stats()
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get stats: {str(e)}")
+        raise log_and_raise_internal_error(
+            exception=e,
+            endpoint="/api/v1/notifications/stats",
+            user_message="Failed to get stats",
+        )

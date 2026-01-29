@@ -17,11 +17,15 @@ Usage:
     )
 """
 
+import logging
+import traceback
 from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
 from pydantic import BaseModel, Field
+
+logger = logging.getLogger(__name__)
 
 
 # ============================================================================
@@ -774,3 +778,79 @@ def create_validation_errors_from_pydantic(
         ))
 
     return details
+
+
+# VP-Observability-1: Structured error logging helper
+def log_and_raise_internal_error(
+    exception: Exception,
+    endpoint: str,
+    request_id: str | None = None,
+    user_id: str | None = None,
+    additional_context: dict[str, Any] | None = None,
+    user_message: str = "An internal error occurred. Please try again later.",
+) -> InternalServerError:
+    """Log an internal error with full context and return a safe error response.
+
+    This helper:
+    1. Logs the full exception details with structured context
+    2. Returns a sanitized error that doesn't leak sensitive information
+    3. Includes request_id for correlation
+
+    Args:
+        exception: The caught exception
+        endpoint: API endpoint path (e.g., "/api/v1/notifications")
+        request_id: Request ID for correlation (from X-Request-ID header)
+        user_id: User ID if available
+        additional_context: Any additional context to log
+        user_message: Safe message to return to the user
+
+    Returns:
+        InternalServerError with sanitized message
+
+    Example:
+        try:
+            result = await some_operation()
+        except Exception as e:
+            raise log_and_raise_internal_error(
+                exception=e,
+                endpoint="/api/v1/notifications",
+                request_id=request.state.request_id,
+                user_id=current_user.id,
+                additional_context={"notification_id": notif_id},
+            )
+    """
+    # Build structured log context
+    log_context = {
+        "event": "internal_error",
+        "endpoint": endpoint,
+        "exception_type": type(exception).__name__,
+        "exception_message": str(exception),
+        "timestamp": datetime.now(UTC).isoformat(),
+    }
+
+    if request_id:
+        log_context["request_id"] = request_id
+    if user_id:
+        log_context["user_id"] = user_id
+    if additional_context:
+        log_context["context"] = additional_context
+
+    # Include stack trace for debugging
+    log_context["stack_trace"] = traceback.format_exc()
+
+    # Log with full context
+    logger.error(
+        f"Internal error in {endpoint}: {type(exception).__name__}",
+        extra=log_context,
+        exc_info=False,  # Already captured in stack_trace
+    )
+
+    # Return sanitized error with request_id for user reference
+    error_details = f"{user_message}"
+    if request_id:
+        error_details += f" (Reference: {request_id})"
+
+    return InternalServerError(
+        message=error_details,
+        error_code=ErrorCode.INTERNAL_ERROR,
+    )

@@ -15,6 +15,7 @@ from fastapi import APIRouter, Cookie, HTTPException, Query, Response
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field
 
+from app.api.errors import log_and_raise_internal_error
 from app.core.smart_config import (
     EHRVendor,
     SMARTScope,
@@ -450,8 +451,12 @@ async def get_patient_in_context(
         )
 
     except FHIRRequestError as e:
-        logger.error(f"Failed to fetch patient: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        # VP-Security-2: Sanitize error messages
+        raise log_and_raise_internal_error(
+            exception=e,
+            endpoint="/api/v1/smart/patient",
+            user_message="Failed to fetch patient data",
+        )
 
 
 @router.get("/encounter", response_model=EncounterResponse)
@@ -507,8 +512,11 @@ async def get_encounter_in_context(
         )
 
     except FHIRRequestError as e:
-        logger.error(f"Failed to fetch encounter: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise log_and_raise_internal_error(
+            exception=e,
+            endpoint="/api/v1/smart/encounter",
+            user_message="Failed to fetch encounter data",
+        )
 
 
 @router.post("/refresh", response_model=TokenResponse)
