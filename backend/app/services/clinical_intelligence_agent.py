@@ -28,6 +28,7 @@ This service orchestrates:
 """
 
 import logging
+import threading
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -683,11 +684,15 @@ class ClinicalIntelligenceAgent:
 
 # Singleton instance
 _agent_instance: Optional[ClinicalIntelligenceAgent] = None
+_agent_lock = threading.Lock()
 
 
 def get_clinical_intelligence_agent() -> ClinicalIntelligenceAgent:
     """Get singleton instance of the Clinical Intelligence Agent."""
     global _agent_instance
+    # VP-ThreadSafety-2: Double-checked locking for thread safety
     if _agent_instance is None:
-        _agent_instance = ClinicalIntelligenceAgent()
+        with _agent_lock:
+            if _agent_instance is None:
+                _agent_instance = ClinicalIntelligenceAgent()
     return _agent_instance

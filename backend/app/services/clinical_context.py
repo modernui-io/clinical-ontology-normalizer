@@ -11,6 +11,7 @@ out false positives from negated mentions, family history, etc.
 """
 
 import re
+import threading
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
@@ -851,11 +852,15 @@ class ClinicalContextAnalyzer:
 
 
 _analyzer_instance: ClinicalContextAnalyzer | None = None
+_analyzer_lock = threading.Lock()
 
 
 def get_clinical_context_analyzer() -> ClinicalContextAnalyzer:
     """Get or create the singleton analyzer instance."""
     global _analyzer_instance
+    # VP-ThreadSafety-1: Double-checked locking for thread safety
     if _analyzer_instance is None:
-        _analyzer_instance = ClinicalContextAnalyzer()
+        with _analyzer_lock:
+            if _analyzer_instance is None:
+                _analyzer_instance = ClinicalContextAnalyzer()
     return _analyzer_instance

@@ -5,6 +5,7 @@ enabling semantic similarity search across clinical facts and concepts.
 """
 
 import logging
+import threading
 from functools import lru_cache
 from typing import Sequence
 
@@ -33,12 +34,16 @@ class EmbeddingService:
     """
 
     _instance: "EmbeddingService | None" = None
+    _instance_lock = threading.Lock()
     _model = None
 
     def __new__(cls) -> "EmbeddingService":
         """Singleton pattern for efficient model reuse."""
+        # VP-ThreadSafety-4: Double-checked locking for thread safety
         if cls._instance is None:
-            cls._instance = super().__new__(cls)
+            with cls._instance_lock:
+                if cls._instance is None:
+                    cls._instance = super().__new__(cls)
         return cls._instance
 
     def __init__(self, model_name: str = DEFAULT_MODEL) -> None:

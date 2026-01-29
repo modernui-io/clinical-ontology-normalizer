@@ -22,6 +22,7 @@ Architecture:
 import json
 import logging
 import re
+import threading
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
@@ -1701,11 +1702,15 @@ class ClinicalOntologyMapper:
 
 
 _mapper_instance: ClinicalOntologyMapper | None = None
+_mapper_lock = threading.Lock()
 
 
 def get_ontology_mapper() -> ClinicalOntologyMapper:
     """Get or create the singleton ontology mapper instance."""
     global _mapper_instance
+    # VP-ThreadSafety-3: Double-checked locking for thread safety
     if _mapper_instance is None:
-        _mapper_instance = ClinicalOntologyMapper()
+        with _mapper_lock:
+            if _mapper_instance is None:
+                _mapper_instance = ClinicalOntologyMapper()
     return _mapper_instance
