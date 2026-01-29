@@ -57,6 +57,10 @@ from app.connectors.base import (
     SourceVisit,
     VisitType,
 )
+from app.connectors.concept_mappings import (
+    FHIR_ENCOUNTER_CLASS_MAP,
+    normalize_code_system,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -281,21 +285,7 @@ class FHIRConnector(SourceConnector):
 
     def _normalize_code_system(self, fhir_system: str | None) -> str | None:
         """Normalize FHIR code system URL to vocabulary name."""
-        if not fhir_system:
-            return None
-
-        system_map = {
-            "http://snomed.info/sct": "SNOMED",
-            "http://hl7.org/fhir/sid/icd-10": "ICD10",
-            "http://hl7.org/fhir/sid/icd-10-cm": "ICD10CM",
-            "http://hl7.org/fhir/sid/icd-9-cm": "ICD9CM",
-            "http://www.ama-assn.org/go/cpt": "CPT4",
-            "http://www.nlm.nih.gov/research/umls/rxnorm": "RxNorm",
-            "http://loinc.org": "LOINC",
-            "http://hl7.org/fhir/sid/ndc": "NDC",
-        }
-
-        return system_map.get(fhir_system, fhir_system)
+        return normalize_code_system(fhir_system)
 
     async def extract_patients(self) -> AsyncIterator[SourcePatient]:
         """Extract patients from FHIR server.
@@ -373,16 +363,9 @@ class FHIRConnector(SourceConnector):
                 encounter_class = resource.get("class", {})
                 class_code = encounter_class.get("code", "")
 
-                visit_type = VisitType.OUTPATIENT
-                type_map = {
-                    "IMP": VisitType.INPATIENT,
-                    "ACUTE": VisitType.INPATIENT,
-                    "EMER": VisitType.EMERGENCY,
-                    "AMB": VisitType.OUTPATIENT,
-                    "HH": VisitType.HOME,
-                    "VR": VisitType.TELEHEALTH,
-                }
-                visit_type = type_map.get(class_code.upper(), VisitType.OUTPATIENT)
+                visit_type = FHIR_ENCOUNTER_CLASS_MAP.get(
+                    class_code.upper(), VisitType.OUTPATIENT
+                )
 
                 # Get patient reference
                 subject = resource.get("subject", {})

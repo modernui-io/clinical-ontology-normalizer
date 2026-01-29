@@ -40,6 +40,12 @@ from app.connectors.base import (
     SourceVisit,
     VisitType,
 )
+from app.connectors.concept_mappings import (
+    DEFAULT_CODE_SYSTEMS,
+    parse_condition_status,
+    parse_drug_status,
+    parse_gender,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -356,42 +362,15 @@ class CSVConnector(SourceConnector):
 
     def _parse_gender(self, value: str | None) -> Gender:
         """Parse gender value."""
-        if not value:
-            return Gender.UNKNOWN
-        v = value.lower().strip()
-        if v in ("m", "male", "man"):
-            return Gender.MALE
-        if v in ("f", "female", "woman"):
-            return Gender.FEMALE
-        if v in ("o", "other"):
-            return Gender.OTHER
-        return Gender.UNKNOWN
+        return parse_gender(value)
 
     def _parse_condition_status(self, value: str | None) -> ConditionStatus:
         """Parse condition status."""
-        if not value:
-            return ConditionStatus.UNKNOWN
-        v = value.lower().strip()
-        if v in ("active", "current"):
-            return ConditionStatus.ACTIVE
-        if v in ("inactive", "remission"):
-            return ConditionStatus.INACTIVE
-        if v in ("resolved", "completed"):
-            return ConditionStatus.RESOLVED
-        return ConditionStatus.UNKNOWN
+        return parse_condition_status(value)
 
     def _parse_drug_status(self, value: str | None) -> DrugStatus:
         """Parse drug status."""
-        if not value:
-            return DrugStatus.UNKNOWN
-        v = value.lower().strip()
-        if v in ("active", "current"):
-            return DrugStatus.ACTIVE
-        if v in ("completed", "finished"):
-            return DrugStatus.COMPLETED
-        if v in ("stopped", "discontinued"):
-            return DrugStatus.STOPPED
-        return DrugStatus.UNKNOWN
+        return parse_drug_status(value)
 
     def _read_csv(self, file_path: Path) -> list[dict[str, str]]:
         """Read CSV file and return list of row dicts."""
@@ -532,7 +511,7 @@ class CSVConnector(SourceConnector):
                     patient_source_id=pid or "",
                     visit_source_id=self._get_value(row, col("visit_source_id")),
                     code=self._get_value(row, col("code")),
-                    code_system=self._get_value(row, col("code_system")) or "ICD10CM",
+                    code_system=self._get_value(row, col("code_system")) or DEFAULT_CODE_SYSTEMS["condition"],
                     display_text=self._get_value(row, col("display_text")),
                     status=self._parse_condition_status(
                         self._get_value(row, col("status"))
@@ -577,7 +556,7 @@ class CSVConnector(SourceConnector):
                     patient_source_id=pid or "",
                     visit_source_id=self._get_value(row, col("visit_source_id")),
                     code=self._get_value(row, col("code")),
-                    code_system=self._get_value(row, col("code_system")) or "RxNorm",
+                    code_system=self._get_value(row, col("code_system")) or DEFAULT_CODE_SYSTEMS["drug"],
                     display_text=self._get_value(row, col("display_text")),
                     status=self._parse_drug_status(self._get_value(row, col("status"))),
                     start_datetime=self._parse_datetime(
@@ -628,7 +607,7 @@ class CSVConnector(SourceConnector):
                     patient_source_id=pid or "",
                     visit_source_id=self._get_value(row, col("visit_source_id")),
                     code=self._get_value(row, col("code")),
-                    code_system=self._get_value(row, col("code_system")) or "CPT4",
+                    code_system=self._get_value(row, col("code_system")) or DEFAULT_CODE_SYSTEMS["procedure"],
                     display_text=self._get_value(row, col("display_text")),
                     performed_datetime=self._parse_datetime(
                         self._get_value(row, col("performed_datetime"))
@@ -669,7 +648,7 @@ class CSVConnector(SourceConnector):
                     patient_source_id=pid or "",
                     visit_source_id=self._get_value(row, col("visit_source_id")),
                     code=self._get_value(row, col("code")),
-                    code_system=self._get_value(row, col("code_system")) or "LOINC",
+                    code_system=self._get_value(row, col("code_system")) or DEFAULT_CODE_SYSTEMS["measurement"],
                     display_text=self._get_value(row, col("display_text")),
                     value_numeric=self._parse_float(
                         self._get_value(row, col("value_numeric"))

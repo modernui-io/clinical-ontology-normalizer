@@ -62,6 +62,13 @@ from app.connectors.base import (
     SourceVisit,
     VisitType,
 )
+from app.connectors.concept_mappings import (
+    CONDITION_STATUS_MAP,
+    DRUG_STATUS_MAP,
+    GENDER_MAP,
+    PROCEDURE_STATUS_MAP,
+    VISIT_TYPE_MAP,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -177,69 +184,9 @@ DEFAULT_OBSERVATION_MAPPING = {
 }
 
 
-# Gender mapping
-GENDER_MAP = {
-    "m": Gender.MALE,
-    "male": Gender.MALE,
-    "f": Gender.FEMALE,
-    "female": Gender.FEMALE,
-    "o": Gender.OTHER,
-    "other": Gender.OTHER,
-    "u": Gender.UNKNOWN,
-    "unknown": Gender.UNKNOWN,
-    "unk": Gender.UNKNOWN,
-}
-
-# Visit type mapping
-VISIT_TYPE_MAP = {
-    "inpatient": VisitType.INPATIENT,
-    "ip": VisitType.INPATIENT,
-    "i": VisitType.INPATIENT,
-    "outpatient": VisitType.OUTPATIENT,
-    "op": VisitType.OUTPATIENT,
-    "o": VisitType.OUTPATIENT,
-    "ambulatory": VisitType.OUTPATIENT,
-    "emergency": VisitType.EMERGENCY,
-    "er": VisitType.EMERGENCY,
-    "ed": VisitType.EMERGENCY,
-    "e": VisitType.EMERGENCY,
-    "observation": VisitType.OBSERVATION,
-    "obs": VisitType.OBSERVATION,
-    "home": VisitType.HOME,
-    "telehealth": VisitType.TELEHEALTH,
-    "tele": VisitType.TELEHEALTH,
-    "virtual": VisitType.TELEHEALTH,
-}
-
-# Condition status mapping
-CONDITION_STATUS_MAP = {
-    "active": ConditionStatus.ACTIVE,
-    "inactive": ConditionStatus.INACTIVE,
-    "resolved": ConditionStatus.RESOLVED,
-    "remission": ConditionStatus.RESOLVED,
-}
-
-# Drug status mapping
-DRUG_STATUS_MAP = {
-    "active": DrugStatus.ACTIVE,
-    "completed": DrugStatus.COMPLETED,
-    "stopped": DrugStatus.STOPPED,
-    "discontinued": DrugStatus.STOPPED,
-    "cancelled": DrugStatus.STOPPED,
-    "on-hold": DrugStatus.ON_HOLD,
-    "hold": DrugStatus.ON_HOLD,
-}
-
-# Procedure status mapping
-PROCEDURE_STATUS_MAP = {
-    "completed": ProcedureStatus.COMPLETED,
-    "done": ProcedureStatus.COMPLETED,
-    "in-progress": ProcedureStatus.IN_PROGRESS,
-    "pending": ProcedureStatus.IN_PROGRESS,
-    "scheduled": ProcedureStatus.IN_PROGRESS,
-    "not-done": ProcedureStatus.NOT_DONE,
-    "cancelled": ProcedureStatus.NOT_DONE,
-}
+# Status mappings are now imported from concept_mappings module
+# The following local variables are kept for backward compatibility within this module
+# but the actual mappings come from the consolidated concept_mappings.py
 
 
 @dataclass

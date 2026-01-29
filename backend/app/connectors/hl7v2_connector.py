@@ -48,6 +48,12 @@ from app.connectors.base import (
     SourceVisit,
     VisitType,
 )
+from app.connectors.concept_mappings import (
+    DEFAULT_CODE_SYSTEMS,
+    HL7_CODING_METHOD_MAP,
+    HL7_PATIENT_CLASS_MAP,
+    parse_gender,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -369,29 +375,13 @@ class HL7v2Connector(SourceConnector):
 
     def _parse_gender(self, gender_code: str | None) -> Gender:
         """Parse HL7 gender code."""
-        if not gender_code:
-            return Gender.UNKNOWN
-        code = gender_code.upper()
-        if code == "M":
-            return Gender.MALE
-        if code == "F":
-            return Gender.FEMALE
-        if code == "O":
-            return Gender.OTHER
-        return Gender.UNKNOWN
+        return parse_gender(gender_code)
 
     def _parse_visit_type(self, patient_class: str | None) -> VisitType:
         """Parse HL7 patient class to visit type."""
         if not patient_class:
             return VisitType.UNKNOWN
-        code = patient_class.upper()
-        if code in ("I", "INPATIENT"):
-            return VisitType.INPATIENT
-        if code in ("O", "OUTPATIENT"):
-            return VisitType.OUTPATIENT
-        if code in ("E", "EMERGENCY"):
-            return VisitType.EMERGENCY
-        return VisitType.UNKNOWN
+        return HL7_PATIENT_CLASS_MAP.get(patient_class.upper(), VisitType.UNKNOWN)
 
     def _get_patient_id(self, msg: HL7v2Message) -> str | None:
         """Extract patient ID from PID segment."""
@@ -548,10 +538,9 @@ class HL7v2Connector(SourceConnector):
                 code_system = code_components[2] if len(code_components) > 2 else None
 
                 if not code_system:
-                    if coding_method == "I9":
-                        code_system = "ICD9CM"
-                    else:
-                        code_system = "ICD10CM"
+                    code_system = HL7_CODING_METHOD_MAP.get(
+                        coding_method, DEFAULT_CODE_SYSTEMS["condition"]
+                    )
 
                 # DG1-5: Diagnosis Date/Time
                 diag_dt = self._parse_hl7_datetime(msg.get_field("DG1", 5, i))
@@ -620,7 +609,7 @@ class HL7v2Connector(SourceConnector):
                     patient_source_id=patient_id or "",
                     visit_source_id=visit_id,
                     code=code,
-                    code_system=code_system or "RxNorm",
+                    code_system=code_system or DEFAULT_CODE_SYSTEMS["drug"],
                     display_text=display,
                     status=DrugStatus.ACTIVE,
                     start_datetime=start_dt,
@@ -668,7 +657,7 @@ class HL7v2Connector(SourceConnector):
                     patient_source_id=patient_id or "",
                     visit_source_id=visit_id,
                     code=code,
-                    code_system=code_system or "CPT4",
+                    code_system=code_system or DEFAULT_CODE_SYSTEMS["procedure"],
                     display_text=display,
                     performed_datetime=proc_dt,
                     performer_id=surgeon_id,
@@ -746,7 +735,7 @@ class HL7v2Connector(SourceConnector):
                     patient_source_id=patient_id or "",
                     visit_source_id=visit_id,
                     code=code,
-                    code_system=code_system or "LOINC",
+                    code_system=code_system or DEFAULT_CODE_SYSTEMS["measurement"],
                     display_text=display,
                     value_numeric=value_numeric,
                     value_text=value_text,

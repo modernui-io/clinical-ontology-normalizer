@@ -1,6 +1,19 @@
-"""Security and authentication middleware."""
+"""Security and authentication middleware.
+
+This module provides:
+- API key authentication (single key from settings)
+- Tenant context for patient data isolation
+
+For JWT-based authentication, use app.api.middleware.auth_middleware instead.
+For multi-key API authentication, see get_api_keys() function.
+
+Note: This is the canonical API key auth module. The legacy app.core.auth
+module is deprecated and will be removed in a future version.
+"""
 
 import logging
+import os
+from functools import lru_cache
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, Security, status
@@ -17,10 +30,79 @@ api_key_header = APIKeyHeader(
 )
 
 
+# -------------------------------------------------------------------------
+# Multi-Key API Authentication (consolidated from core.auth)
+# -------------------------------------------------------------------------
+
+
+@lru_cache
+def get_api_keys() -> set[str]:
+    """Get configured API keys from environment.
+
+    API keys can be set via the CON_API_KEYS environment variable
+    as a comma-separated list for multi-key support.
+
+    Returns:
+        Set of valid API keys
+    """
+    api_keys_str = os.environ.get("CON_API_KEYS", "")
+    if not api_keys_str:
+        # Fall back to single key from settings
+        if settings.api_key:
+            return {settings.api_key}
+        logger.warning(
+            "No API keys configured (CON_API_KEYS not set). "
+            "Authentication is disabled for development."
+        )
+        return set()
+
+    keys = {k.strip() for k in api_keys_str.split(",") if k.strip()}
+    logger.info(f"Loaded {len(keys)} API key(s) for authentication")
+    return keys
+
+
+def is_auth_enabled() -> bool:
+    """Check if authentication is enabled.
+
+    Authentication is enabled when API keys are configured or
+    when settings.auth_enabled is True.
+
+    Returns:
+        True if authentication is enabled
+    """
+    return settings.auth_enabled or len(get_api_keys()) > 0
+
+
+# Public routes that don't require authentication
+PUBLIC_ROUTES = frozenset({
+    "/",
+    "/health",
+    "/ready",
+    "/docs",
+    "/redoc",
+    "/openapi.json",
+})
+
+
+def is_public_route(path: str) -> bool:
+    """Check if a route path is public (no auth required).
+
+    Args:
+        path: The request path
+
+    Returns:
+        True if the route is public
+    """
+    return path in PUBLIC_ROUTES
+
+
 def verify_api_key(
     api_key: Annotated[str | None, Security(api_key_header)],
 ) -> str | None:
     """Verify API key if authentication is enabled.
+
+    Supports both single key (from settings.api_key) and multi-key
+    (from CON_API_KEYS env var) authentication.
 
     When auth is enabled:
     - Missing API key returns 401
@@ -38,18 +120,20 @@ def verify_api_key(
     Raises:
         HTTPException: 401 if missing key, 403 if invalid key
     """
-    if not settings.auth_enabled:
+    if not is_auth_enabled():
         return None
 
     if api_key is None:
         logger.warning("Missing API key in request")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing API key",
+            detail="API key required",
             headers={"WWW-Authenticate": "ApiKey"},
         )
 
-    if api_key != settings.api_key:
+    # Check against all configured API keys
+    valid_keys = get_api_keys()
+    if api_key not in valid_keys:
         logger.warning("Invalid API key attempt")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -57,6 +141,46 @@ def verify_api_key(
         )
 
     return api_key
+
+
+async def verify_api_key_async(
+    api_key: str | None = Security(api_key_header),
+) -> str | None:
+    """Async version of verify_api_key for compatibility.
+
+    This provides the same functionality as verify_api_key but as an
+    async function for use in async dependency chains.
+
+    Args:
+        api_key: API key from request header
+
+    Returns:
+        The verified API key if valid, None if auth disabled
+
+    Raises:
+        HTTPException: 401 if API key is missing or invalid
+    """
+    return verify_api_key(api_key)
+
+
+async def optional_verify_api_key(
+    api_key: str | None = Security(api_key_header),
+) -> str | None:
+    """Optionally verify API key, returning None if auth is disabled.
+
+    Unlike verify_api_key, this does not raise an error when authentication
+    is disabled. Use this for routes that should work both with and without
+    authentication.
+
+    Args:
+        api_key: API key from request header
+
+    Returns:
+        The verified API key, or None if auth is disabled
+    """
+    if not is_auth_enabled():
+        return None
+    return verify_api_key(api_key)
 
 
 # Dependency for protected endpoints

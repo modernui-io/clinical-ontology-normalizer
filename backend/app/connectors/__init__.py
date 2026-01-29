@@ -50,6 +50,32 @@ from app.connectors.database_connector import (
 from app.connectors.fhir_connector import FHIRConnector, FHIRConnectorConfig
 from app.connectors.hl7v2_connector import HL7v2Connector, HL7v2ConnectorConfig
 
+# Concept mappings for shared healthcare data mappings
+from app.connectors.concept_mappings import (
+    CCDA_ENCOUNTER_CODE_MAP,
+    CCDA_SECTION_MAP,
+    CCDA_SECTION_TEMPLATE_IDS,
+    CODE_SYSTEM_MAP,
+    CONDITION_STATUS_MAP,
+    DEFAULT_CODE_SYSTEMS,
+    DRUG_STATUS_MAP,
+    FHIR_ENCOUNTER_CLASS_MAP,
+    FHIR_OBSERVATION_CATEGORY_MAP,
+    FHIR_RESOURCE_MAP,
+    GENDER_MAP,
+    HL7_CODING_METHOD_MAP,
+    HL7_PATIENT_CLASS_MAP,
+    HL7_SEGMENT_MAP,
+    PROCEDURE_STATUS_MAP,
+    VISIT_TYPE_MAP,
+    normalize_code_system,
+    parse_condition_status,
+    parse_drug_status,
+    parse_gender,
+    parse_procedure_status,
+    parse_visit_type,
+)
+
 __all__ = [
     # Base classes and enums
     "ConditionStatus",
@@ -85,4 +111,27 @@ __all__ = [
     "DatabaseConnector",
     "DatabaseConnectorConfig",
     "TableMapping",
+    # Concept Mappings
+    "CCDA_ENCOUNTER_CODE_MAP",
+    "CCDA_SECTION_MAP",
+    "CCDA_SECTION_TEMPLATE_IDS",
+    "CODE_SYSTEM_MAP",
+    "CONDITION_STATUS_MAP",
+    "DEFAULT_CODE_SYSTEMS",
+    "DRUG_STATUS_MAP",
+    "FHIR_ENCOUNTER_CLASS_MAP",
+    "FHIR_OBSERVATION_CATEGORY_MAP",
+    "FHIR_RESOURCE_MAP",
+    "GENDER_MAP",
+    "HL7_CODING_METHOD_MAP",
+    "HL7_PATIENT_CLASS_MAP",
+    "HL7_SEGMENT_MAP",
+    "PROCEDURE_STATUS_MAP",
+    "VISIT_TYPE_MAP",
+    "normalize_code_system",
+    "parse_condition_status",
+    "parse_drug_status",
+    "parse_gender",
+    "parse_procedure_status",
+    "parse_visit_type",
 ]

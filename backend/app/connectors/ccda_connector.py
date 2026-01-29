@@ -57,6 +57,10 @@ from app.connectors.base import (
     SourceVisit,
     VisitType,
 )
+from app.connectors.concept_mappings import (
+    CCDA_ENCOUNTER_CODE_MAP,
+    CCDA_SECTION_TEMPLATE_IDS,
+)
 
 # C-CDA XML Namespaces
 NAMESPACES = {
@@ -65,19 +69,9 @@ NAMESPACES = {
     "xsi": "http://www.w3.org/2001/XMLSchema-instance",
 }
 
-# C-CDA Section Template IDs
-SECTION_TEMPLATE_IDS = {
-    "problems": "2.16.840.1.113883.10.20.22.2.5.1",
-    "medications": "2.16.840.1.113883.10.20.22.2.1.1",
-    "allergies": "2.16.840.1.113883.10.20.22.2.6.1",
-    "vital_signs": "2.16.840.1.113883.10.20.22.2.4.1",
-    "results": "2.16.840.1.113883.10.20.22.2.3.1",
-    "procedures": "2.16.840.1.113883.10.20.22.2.7.1",
-    "encounters": "2.16.840.1.113883.10.20.22.2.22.1",
-    "immunizations": "2.16.840.1.113883.10.20.22.2.2.1",
-    "social_history": "2.16.840.1.113883.10.20.22.2.17",
-    "plan_of_care": "2.16.840.1.113883.10.20.22.2.10",
-}
+# Use consolidated section template IDs from concept_mappings
+# Local alias for backward compatibility
+SECTION_TEMPLATE_IDS = CCDA_SECTION_TEMPLATE_IDS
 
 
 @dataclass
@@ -449,12 +443,7 @@ class CCDADocument:
 
         # Map common encounter codes to visit types
         code_value = code.get("code", "")
-        if code_value in ("IMP", "ACUTE", "NONAC"):
-            visit_type = VisitType.INPATIENT
-        elif code_value in ("EMER", "ER"):
-            visit_type = VisitType.EMERGENCY
-        elif code_value in ("AMB", "VR"):
-            visit_type = VisitType.OUTPATIENT
+        visit_type = CCDA_ENCOUNTER_CODE_MAP.get(code_value, VisitType.OUTPATIENT)
 
         return SourceVisit(
             source_id=f"{self.get_patient_id()}_{visit_id}",
