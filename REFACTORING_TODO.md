@@ -164,15 +164,16 @@
 - ✅ 3.3 Consolidate duplicate Input classes (commit 545c7a3)
 
 ### In Progress
-- 🔄 3.1 Convert clinical_calculators.py to data-driven (commit 899c8bf - Phase 1)
-  - Phase 1 COMPLETE: Data-driven infrastructure created
-  - calculator_definitions.py: 534 lines with 5 example calculators
-  - Phase 2 PENDING: Requires more sophisticated data structures for:
-    - Multi-level scoring (HEART: 0/1/2 based on severity)
-    - Threshold-based criteria (SIRS: temp >38 or <36)
-    - Formula calculators stay as Python code for safety
-  - Estimated: 50% line reduction achievable (5,068→~2,500 lines)
-  - Medical risk requires careful incremental conversion with testing
+- 🔄 3.1 Convert clinical_calculators.py to data-driven
+  - **Phase 1-5 COMPLETE**: Data-driven infrastructure with 30 calculators
+  - calculator_definitions.py: 2,831 lines with comprehensive definitions
+  - **Calculators converted**: CHA2DS2-VASc, HAS-BLED, Wells DVT/PE, CURB-65,
+    qSOFA, HEART, SIRS, GCS, RCRI, PERC, Centor, APGAR, Charlson, TIMI (STEMI/NSTEMI),
+    MELD, MELD-Na, BMI, SOFA, Ottawa Ankle, CIWA-Ar, Framingham, Child-Pugh,
+    ABCD2, PHQ-9, GAD-7, Corrected Calcium, QTc, Anion Gap
+  - **Structure supports**: Boolean criteria, multi-level (0/1/2), thresholds, equations
+  - **Next phase**: Wire definitions into calculator service to remove duplication
+  - Commits: 899c8bf, a7c3eee, 7e66652, 5fac78f, 573323c
 
 ---
 
