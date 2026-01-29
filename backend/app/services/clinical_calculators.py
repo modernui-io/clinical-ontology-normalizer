@@ -1698,92 +1698,19 @@ def calculate_timi_ua_nstemi(
 ) -> CalculatorResult:
     """Calculate TIMI Risk Score for Unstable Angina/NSTEMI.
 
-    Args:
-        age_65_or_older: Age ≥65 years.
-        three_or_more_cad_risk_factors: ≥3 CAD risk factors (HTN, DM, smoking, family hx, hyperlipidemia).
-        known_cad_50_stenosis: Known CAD with ≥50% stenosis.
-        aspirin_use_past_7_days: Aspirin use in past 7 days.
-        severe_angina_two_or_more_episodes_24h: ≥2 anginal episodes in past 24h.
-        st_changes_05mm_or_more: ST-segment deviation ≥0.5mm.
-        elevated_cardiac_markers: Elevated cardiac markers (troponin).
-
-    Returns:
-        CalculatorResult with 14-day risk of adverse outcomes.
+    Uses data-driven definition from calculator_definitions.py.
     """
-    score = 0
-    components = {}
-
-    if age_65_or_older:
-        score += 1
-        components["Age ≥65"] = 1
-    if three_or_more_cad_risk_factors:
-        score += 1
-        components["≥3 CAD risk factors"] = 1
-    if known_cad_50_stenosis:
-        score += 1
-        components["Known CAD ≥50%"] = 1
-    if aspirin_use_past_7_days:
-        score += 1
-        components["Aspirin use (past 7 days)"] = 1
-    if severe_angina_two_or_more_episodes_24h:
-        score += 1
-        components["Severe angina ≥2 episodes/24h"] = 1
-    if st_changes_05mm_or_more:
-        score += 1
-        components["ST changes ≥0.5mm"] = 1
-    if elevated_cardiac_markers:
-        score += 1
-        components["Elevated cardiac markers"] = 1
-
-    # Risk stratification
-    risk_rates = {
-        0: ("4.7%", RiskLevel.LOW),
-        1: ("4.7%", RiskLevel.LOW),
-        2: ("8.3%", RiskLevel.LOW_MODERATE),
-        3: ("13.2%", RiskLevel.MODERATE),
-        4: ("19.9%", RiskLevel.MODERATE_HIGH),
-        5: ("26.2%", RiskLevel.HIGH),
-        6: ("40.9%", RiskLevel.VERY_HIGH),
-        7: ("40.9%", RiskLevel.VERY_HIGH),
-    }
-
-    event_rate, risk = risk_rates.get(score, ("40.9%", RiskLevel.VERY_HIGH))
-
-    if score <= 2:
-        interpretation = f"Low risk (14-day event rate: {event_rate})"
-        recommendations = [
-            "May be suitable for early non-invasive evaluation",
-            "Medical management with close follow-up",
-            "Risk factor modification",
-        ]
-    elif score <= 4:
-        interpretation = f"Intermediate risk (14-day event rate: {event_rate})"
-        recommendations = [
-            "Admission recommended",
-            "Consider early invasive strategy",
-            "Dual antiplatelet therapy",
-            "Anticoagulation",
-            "Cardiology consultation",
-        ]
-    else:
-        interpretation = f"High risk (14-day event rate: {event_rate})"
-        recommendations = [
-            "Early invasive strategy recommended (<24h)",
-            "Dual antiplatelet therapy",
-            "Anticoagulation",
-            "GP IIb/IIIa inhibitors may be considered",
-            "Urgent cardiology consultation",
-        ]
-
-    return CalculatorResult(
-        calculator_name="TIMI Risk Score (UA/NSTEMI)",
-        score=score,
-        score_unit="points",
-        risk_level=risk,
-        interpretation=interpretation,
-        recommendations=recommendations,
-        components=components,
-        references=["Antman EM, et al. JAMA 2000"],
+    return calculate_from_definition(
+        "timi_nstemi",
+        {
+            "age_65_or_older": age_65_or_older,
+            "three_or_more_cad_risk_factors": three_or_more_cad_risk_factors,
+            "known_cad_50_stenosis": known_cad_50_stenosis,
+            "aspirin_use_past_7_days": aspirin_use_past_7_days,
+            "severe_angina_two_or_more_episodes_24h": severe_angina_two_or_more_episodes_24h,
+            "st_changes_05mm_or_more": st_changes_05mm_or_more,
+            "elevated_cardiac_markers": elevated_cardiac_markers,
+        },
     )
 
 
