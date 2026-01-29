@@ -17,7 +17,7 @@ import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import Any, Callable
 
 
 class MigrationStatus(str, Enum):
@@ -393,9 +393,9 @@ class MockNeo4jDriver:
     """
 
     def __init__(self) -> None:
-        self._executed_queries: list[tuple[str, Dict]] = []
-        self._constraints: dict[str, Dict] = {}
-        self._indexes: dict[str, Dict] = {}
+        self._executed_queries: list[tuple[str]] = []
+        self._constraints: dict[str] = {}
+        self._indexes: dict[str] = {}
         self._migration_history: dict[str, MigrationHistory] = {}
         self._should_fail: bool = False
         self._fail_on_query: str | None = None

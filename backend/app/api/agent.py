@@ -7,7 +7,7 @@ Provides REST API access to the Clinical Intelligence Agent for:
 - Clinical reasoning and Q&A
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field

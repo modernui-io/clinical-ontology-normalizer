@@ -17,7 +17,7 @@ from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from enum import Enum
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional, TextIO, Union
+from typing import Any, Callable, TextIO, Union
 
 
 class LogLevel(str, Enum):

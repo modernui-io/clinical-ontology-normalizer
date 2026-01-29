@@ -12,7 +12,7 @@ This module provides comprehensive API versioning including:
 from dataclasses import dataclass, field
 from datetime import datetime, date
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Callable, Union
 
 from fastapi import HTTPException, Request, Response
 from fastapi.routing import APIRouter
