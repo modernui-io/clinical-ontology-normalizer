@@ -4,6 +4,8 @@ Provides functions to convert database models to OMOP format
 for export to NOTE and NOTE_NLP tables.
 """
 
+from __future__ import annotations
+
 from datetime import date
 from uuid import UUID
 

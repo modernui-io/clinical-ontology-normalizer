@@ -9,6 +9,8 @@ This service exports documents and mentions to OMOP format:
 Reference: https://ohdsi.github.io/CommonDataModel/cdm54.html
 """
 
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import date, datetime, timezone

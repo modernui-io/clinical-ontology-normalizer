@@ -7,6 +7,8 @@ This module contains:
 - Service statistics
 """
 
+from __future__ import annotations
+
 import logging
 import threading
 import time

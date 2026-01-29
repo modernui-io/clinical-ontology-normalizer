@@ -19,6 +19,8 @@ Usage:
     result = service.extract_entities(text)
 """
 
+from __future__ import annotations
+
 # Re-export everything from core for backwards compatibility
 from .nlp_entity_core import (
     ClinicalNLPEntityService,

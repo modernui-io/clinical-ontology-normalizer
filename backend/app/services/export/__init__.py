@@ -1,5 +1,7 @@
 """OMOP CDM export services."""
 
+from __future__ import annotations
+
 from app.services.export.omop_exporter import (
     BaseOMOPExporter,
     DatabaseOMOPExporter,

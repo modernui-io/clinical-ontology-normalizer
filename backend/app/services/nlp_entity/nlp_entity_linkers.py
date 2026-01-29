@@ -6,6 +6,8 @@ This module contains:
 - Integration with terminology services
 """
 
+from __future__ import annotations
+
 import logging
 import time
 from dataclasses import dataclass
