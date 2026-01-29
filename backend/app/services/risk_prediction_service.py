@@ -10,8 +10,9 @@ Provides clinical risk prediction models:
 import hashlib
 import logging
 import math
+import threading
 import time
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timezone, timedelta
 from enum import Enum
 from typing import Any
 from uuid import uuid4
@@ -185,7 +186,7 @@ class RiskScore(BaseModel):
     tier: RiskTier = Field(..., description="Risk tier classification")
     percentile: float | None = Field(None, ge=0, le=100, description="Population percentile")
     confidence: float = Field(..., ge=0, le=1, description="Prediction confidence")
-    calculated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    calculated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class RiskFactor(BaseModel):
@@ -203,7 +204,7 @@ class PatientRiskAssessment(BaseModel):
 
     patient_id: str = Field(..., description="Patient identifier")
     assessment_id: str = Field(default_factory=lambda: str(uuid4()))
-    assessed_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    assessed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     # Risk scores
     readmission_risk: RiskScore | None = Field(None)
@@ -245,7 +246,7 @@ class PopulationRiskSummary(BaseModel):
     median_score: float
     high_risk_count: int
     critical_count: int
-    calculated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    calculated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 # ============================================================================
@@ -831,9 +832,9 @@ class RiskPredictionService:
         patient_history = self._risk_history.get(patient_id, [])
 
         # Filter by date
-        cutoff = datetime.now(UTC) - timedelta(days=days)
+        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
         filtered = [
-            h for h in patient_history if h.get("timestamp", datetime.now(UTC)) >= cutoff
+            h for h in patient_history if h.get("timestamp", datetime.now(timezone.utc)) >= cutoff
         ]
 
         # Group by risk type
@@ -848,7 +849,7 @@ class RiskPredictionService:
 
         # Build history objects
         for rt, entries in by_type.items():
-            entries_sorted = sorted(entries, key=lambda x: x.get("timestamp", datetime.now(UTC)))
+            entries_sorted = sorted(entries, key=lambda x: x.get("timestamp", datetime.now(timezone.utc)))
 
             # Calculate trend
             if len(entries_sorted) >= 2:
@@ -993,7 +994,7 @@ class RiskPredictionService:
                 "risk_type": risk_type,
                 "score": score,
                 "tier": tier,
-                "timestamp": datetime.now(UTC),
+                "timestamp": datetime.now(timezone.utc),
             }
         )
 
@@ -1030,11 +1031,15 @@ class RiskPredictionService:
 # ============================================================================
 
 _risk_prediction_service: RiskPredictionService | None = None
+_risk_lock = threading.Lock()
 
 
 def get_risk_prediction_service() -> RiskPredictionService:
     """Get the singleton risk prediction service instance."""
     global _risk_prediction_service
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _risk_prediction_service is None:
-        _risk_prediction_service = RiskPredictionService()
+        with _risk_lock:
+            if _risk_prediction_service is None:
+                _risk_prediction_service = RiskPredictionService()
     return _risk_prediction_service

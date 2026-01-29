@@ -19,6 +19,7 @@ Key features:
 """
 
 import logging
+import threading
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
@@ -472,13 +473,17 @@ class VocabularyMappingService:
 # ============================================================================
 
 _vocabulary_mapping_service: VocabularyMappingService | None = None
+_vocabulary_lock = threading.Lock()
 
 
 def get_vocabulary_mapping_service() -> VocabularyMappingService:
     """Get or create the vocabulary mapping service singleton."""
     global _vocabulary_mapping_service
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _vocabulary_mapping_service is None:
-        _vocabulary_mapping_service = VocabularyMappingService()
+        with _vocabulary_lock:
+            if _vocabulary_mapping_service is None:
+                _vocabulary_mapping_service = VocabularyMappingService()
     return _vocabulary_mapping_service
 
 

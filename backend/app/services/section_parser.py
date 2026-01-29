@@ -5,6 +5,7 @@ section-domain affinity mapping for improved extraction accuracy.
 """
 
 import re
+import threading
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import ClassVar
@@ -364,11 +365,15 @@ class SectionParser:
 
 # Singleton instance for reuse
 _section_parser: SectionParser | None = None
+_parser_lock = threading.Lock()
 
 
 def get_section_parser() -> SectionParser:
     """Get the singleton SectionParser instance."""
     global _section_parser
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _section_parser is None:
-        _section_parser = SectionParser()
+        with _parser_lock:
+            if _section_parser is None:
+                _section_parser = SectionParser()
     return _section_parser

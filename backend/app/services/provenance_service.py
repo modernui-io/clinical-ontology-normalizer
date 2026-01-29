@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import threading
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
@@ -503,17 +504,21 @@ class ProvenanceService:
 
 # Singleton instance
 _provenance_service: ProvenanceService | None = None
+_provenance_lock = threading.Lock()
 
 
 def get_provenance_service() -> ProvenanceService:
     """Get the singleton provenance service."""
     global _provenance_service
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _provenance_service is None:
-        from app.core.config import settings
+        with _provenance_lock:
+            if _provenance_service is None:
+                from app.core.config import settings
 
-        _provenance_service = ProvenanceService(
-            neo4j_uri=getattr(settings, "neo4j_uri", "bolt://localhost:7687"),
-            neo4j_user=getattr(settings, "neo4j_user", "neo4j"),
-            neo4j_password=getattr(settings, "neo4j_password", "clinical123"),
-        )
+                _provenance_service = ProvenanceService(
+                    neo4j_uri=getattr(settings, "neo4j_uri", "bolt://localhost:7687"),
+                    neo4j_user=getattr(settings, "neo4j_user", "neo4j"),
+                    neo4j_password=getattr(settings, "neo4j_password", "clinical123"),
+                )
     return _provenance_service

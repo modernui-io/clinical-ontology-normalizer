@@ -12,8 +12,9 @@ import asyncio
 import json
 import logging
 import re
+import threading
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 from uuid import uuid4
@@ -82,7 +83,7 @@ class ProcessingResult:
     warnings: list[str] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
     omop_tables: list[str] = field(default_factory=list)
-    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
@@ -109,7 +110,7 @@ class DeadLetterEntry:
     error_type: str = ""
     retry_count: int = 0
     max_retries: int = 3
-    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     last_retry_at: datetime | None = None
     can_retry: bool = True
 
@@ -141,11 +142,11 @@ class StreamingETLStats:
     dead_letter_count: int = 0
     avg_processing_time_ms: float = 0.0
     last_message_time: datetime | None = None
-    start_time: datetime = field(default_factory=lambda: datetime.now(UTC))
+    start_time: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
-        uptime_seconds = (datetime.now(UTC) - self.start_time).total_seconds()
+        uptime_seconds = (datetime.now(timezone.utc) - self.start_time).total_seconds()
         return {
             "messages_processed": self.messages_processed,
             "messages_succeeded": self.messages_succeeded,
@@ -505,7 +506,7 @@ class StreamingETLService:
         Args:
             message: The streaming message containing HL7v2 data.
         """
-        start_time = datetime.now(UTC)
+        start_time = datetime.now(timezone.utc)
 
         try:
             # Parse the HL7v2 message
@@ -539,7 +540,7 @@ class StreamingETLService:
                 )
 
             # Update stats
-            processing_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
+            processing_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
             self._update_stats(
                 success=True,
                 processing_time_ms=processing_time,
@@ -554,7 +555,7 @@ class StreamingETLService:
             )
 
         except Exception as e:
-            processing_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
+            processing_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
             self._handle_processing_error(message, str(e), "hl7v2_parse_error")
             self._update_stats(
                 success=False,
@@ -569,7 +570,7 @@ class StreamingETLService:
         Args:
             message: The streaming message containing FHIR data.
         """
-        start_time = datetime.now(UTC)
+        start_time = datetime.now(timezone.utc)
 
         try:
             # Process the FHIR resource
@@ -593,7 +594,7 @@ class StreamingETLService:
                 )
 
             # Update stats
-            processing_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
+            processing_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
             self._update_stats(
                 success=True,
                 processing_time_ms=processing_time,
@@ -608,7 +609,7 @@ class StreamingETLService:
             )
 
         except Exception as e:
-            processing_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
+            processing_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
             self._handle_processing_error(message, str(e), "fhir_process_error")
             self._update_stats(
                 success=False,
@@ -633,7 +634,7 @@ class StreamingETLService:
             output_records: Number of output records created.
         """
         self._stats.messages_processed += 1
-        self._stats.last_message_time = datetime.now(UTC)
+        self._stats.last_message_time = datetime.now(timezone.utc)
 
         if success:
             self._stats.messages_succeeded += 1
@@ -694,7 +695,7 @@ class StreamingETLService:
                     return False
 
                 entry.retry_count += 1
-                entry.last_retry_at = datetime.now(UTC)
+                entry.last_retry_at = datetime.now(timezone.utc)
 
                 # Re-send to original topic
                 if entry.original_message:
@@ -758,7 +759,7 @@ class StreamingETLService:
                 "warnings": [] if success else ["Processing warning"],
                 "errors": [] if success else ["Processing failed"],
                 "omop_tables": ["person", "condition_occurrence"] if success else [],
-                "timestamp": datetime.now(UTC).isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             })
 
         return results
@@ -769,6 +770,7 @@ class StreamingETLService:
 # =============================================================================
 
 _streaming_etl_service: StreamingETLService | None = None
+_streaming_lock = threading.Lock()
 
 
 def get_streaming_etl_service() -> StreamingETLService:
@@ -779,8 +781,11 @@ def get_streaming_etl_service() -> StreamingETLService:
     """
     global _streaming_etl_service
 
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _streaming_etl_service is None:
-        _streaming_etl_service = StreamingETLService()
+        with _streaming_lock:
+            if _streaming_etl_service is None:
+                _streaming_etl_service = StreamingETLService()
 
     return _streaming_etl_service
 

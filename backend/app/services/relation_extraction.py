@@ -12,6 +12,7 @@ Uses pattern matching and dependency parsing for relation detection.
 
 import logging
 import re
+import threading
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
@@ -595,6 +596,7 @@ class RelationExtractionService:
 
 # Singleton instance
 _relation_service: RelationExtractionService | None = None
+_relation_lock = threading.Lock()
 
 
 def get_relation_extraction_service(
@@ -609,10 +611,13 @@ def get_relation_extraction_service(
         RelationExtractionService instance.
     """
     global _relation_service
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _relation_service is None:
-        _relation_service = RelationExtractionService(
-            config=config or RelationExtractionConfig()
-        )
+        with _relation_lock:
+            if _relation_service is None:
+                _relation_service = RelationExtractionService(
+                    config=config or RelationExtractionConfig()
+                )
     return _relation_service
 
 
