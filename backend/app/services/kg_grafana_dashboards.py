@@ -18,6 +18,7 @@ Features:
 from __future__ import annotations
 
 import json
+import threading
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -914,11 +915,15 @@ class GrafanaDashboardGenerator:
 
 # Singleton instance
 _dashboard_generator: GrafanaDashboardGenerator | None = None
+_dashboard_lock = threading.Lock()
 
 
 def get_dashboard_generator() -> GrafanaDashboardGenerator:
     """Get or create dashboard generator singleton."""
     global _dashboard_generator
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _dashboard_generator is None:
-        _dashboard_generator = GrafanaDashboardGenerator()
+        with _dashboard_lock:
+            if _dashboard_generator is None:
+                _dashboard_generator = GrafanaDashboardGenerator()
     return _dashboard_generator

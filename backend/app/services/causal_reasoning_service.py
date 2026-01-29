@@ -16,6 +16,7 @@ Based on:
 from __future__ import annotations
 
 import logging
+import threading
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
@@ -548,17 +549,21 @@ class CausalReasoningService:
 
 # Singleton instance
 _causal_service: CausalReasoningService | None = None
+_causal_lock = threading.Lock()
 
 
 def get_causal_reasoning_service() -> CausalReasoningService:
     """Get the singleton causal reasoning service."""
     global _causal_service
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _causal_service is None:
-        from app.core.config import settings
+        with _causal_lock:
+            if _causal_service is None:
+                from app.core.config import settings
 
-        _causal_service = CausalReasoningService(
-            neo4j_uri=getattr(settings, "neo4j_uri", "bolt://localhost:7687"),
-            neo4j_user=getattr(settings, "neo4j_user", "neo4j"),
-            neo4j_password=getattr(settings, "neo4j_password", "clinical123"),
-        )
+                _causal_service = CausalReasoningService(
+                    neo4j_uri=getattr(settings, "neo4j_uri", "bolt://localhost:7687"),
+                    neo4j_user=getattr(settings, "neo4j_user", "neo4j"),
+                    neo4j_password=getattr(settings, "neo4j_password", "clinical123"),
+                )
     return _causal_service

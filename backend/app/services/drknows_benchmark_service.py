@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import logging
 import statistics
+import threading
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
@@ -809,11 +810,15 @@ class DRKNOWSBenchmarkService:
 
 # Singleton instance
 _service: DRKNOWSBenchmarkService | None = None
+_service_lock = threading.Lock()
 
 
 def get_drknows_benchmark_service() -> DRKNOWSBenchmarkService:
     """Get the singleton DR.KNOWS benchmark service instance."""
     global _service
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _service is None:
-        _service = DRKNOWSBenchmarkService()
+        with _service_lock:
+            if _service is None:
+                _service = DRKNOWSBenchmarkService()
     return _service
