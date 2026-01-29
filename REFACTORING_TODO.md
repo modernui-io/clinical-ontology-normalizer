@@ -139,8 +139,8 @@
 |------|-------|-----------|---------|-------------|-------------|
 | 🟢 Tier 1 | 8 | 8 | 0 | 0 | ~11,000 |
 | 🟡 Tier 2 | 7 | 6 | 1 | 0 | ~1,600 |
-| 🔴 Tier 3 | 3 | 2 | 0 | 1 | ~700 |
-| **Total** | **18** | **16** | **1** | **1** | **~13,300** |
+| 🔴 Tier 3 | 3 | 2 | 0 | 1 | ~900 |
+| **Total** | **18** | **16** | **1** | **1** | **~13,500** |
 
 **Estimated Total Savings**: ~14,000+ lines
 
@@ -167,15 +167,21 @@
 - 🔄 3.1 Convert clinical_calculators.py to data-driven
   - **Phase 1-7 COMPLETE**: 47 data-driven calculator definitions
   - **Phase 8 COMPLETE**: Data-driven integration bridge wired into service
-  - **Phase 9-12 COMPLETE**: 9 CRITERIA-type functions converted to data-driven wrappers
-  - calculator_definitions.py: 3,684 lines with comprehensive definitions
-  - clinical_calculators.py: 5,068 → 4,589 lines (479 lines saved, ongoing)
-  - **Converted calculators**: CHA2DS2-VASc, HAS-BLED, Wells DVT, CURB-65, qSOFA, RCRI, BISAP, Wells PE, TIMI UA/NSTEMI
+  - **Phase 9-15 COMPLETE**: 12 calculator functions converted to data-driven wrappers
+  - calculator_definitions.py: 3,690 lines with comprehensive definitions
+  - clinical_calculators.py: 5,068 → 4,372 lines (696 lines saved)
+  - **Converted calculators**:
+    - Simple criteria: CHA2DS2-VASc, HAS-BLED, Wells DVT, CURB-65, qSOFA, RCRI, BISAP, Wells PE, TIMI UA/NSTEMI
+    - Multi-level criteria: HEART score, GCS, Child-Pugh
   - **Bridge functions**: calculate_from_definition(), get_data_driven_calculators()
   - **Tests**: 46 total calculator tests pass
-  - **Pattern established**: ~50-80 lines saved per CRITERIA-type calculator converted
-  - **Remaining**: ~10 more calculators have definitions but need parameter name alignment
-  - Commits: 899c8bf, a7c3eee, 7e66652, 5fac78f, 573323c, 5c59182, 3488d2c, 5337b76, ffc1790, 9b43ce7, 3e92786, 634ce77, f6f6c1d
+  - **Patterns demonstrated**:
+    - Boolean criteria → direct mapping
+    - Multi-level criteria → map int/string inputs to boolean level flags
+    - Threshold criteria → pass numeric values directly
+    - Age scoring → pass age parameter
+  - **Remaining**: SIRS, NEWS2, Charlson, SOFA, APACHE-II have complex logic difficult to convert
+  - Commits: 899c8bf, a7c3eee, 7e66652, 5fac78f, 573323c, 5c59182, 3488d2c, 5337b76, ffc1790, 9b43ce7, 3e92786, 634ce77, f6f6c1d, 35a664f, a1289c6, 0e4a5f2
 
 ---
 
