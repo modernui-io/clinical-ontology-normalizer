@@ -13,7 +13,7 @@ import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import Any, Callable
 
 logger = logging.getLogger(__name__)
 
@@ -119,7 +119,7 @@ class APIKeyRateLimit:
     last_day_reset: float = field(default_factory=time.time)
     last_burst_reset: float = field(default_factory=time.time)
 
-    def check_and_increment(self) -> Tuple[bool, Optional[str], Optional[int]]:
+    def check_and_increment(self) -> tuple[bool, str | None, int | None]:
         """Check rate limit and increment counters.
 
         Returns:
@@ -169,7 +169,7 @@ class APIKeyRateLimit:
 
         return True, None, None
 
-    def get_remaining(self) -> Dict[str, int]:
+    def get_remaining(self) -> dict[str, int]:
         """Get remaining requests for each limit window."""
         return {
             "burst": max(0, self.burst_limit - self.burst_count),
@@ -187,21 +187,21 @@ class APIKey:
     key_hash: str  # Store hash, not raw key
     name: str
     description: str = ""
-    scopes: Set[APIKeyScope] = field(default_factory=set)
+    scopes: set[APIKeyScope] = field(default_factory=set)
     status: APIKeyStatus = APIKeyStatus.ACTIVE
     rate_limit: APIKeyRateLimit = field(default_factory=APIKeyRateLimit)
     created_at: datetime = field(default_factory=datetime.utcnow)
-    expires_at: Optional[datetime] = None
-    last_used_at: Optional[datetime] = None
-    created_by: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    expires_at: datetime | None = None
+    last_used_at: datetime | None = None
+    created_by: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     # Usage tracking
     total_requests: int = 0
     successful_requests: int = 0
     failed_requests: int = 0
 
-    def is_valid(self) -> Tuple[bool, Optional[str]]:
+    def is_valid(self) -> tuple[bool, str | None]:
         """Check if the API key is valid for use."""
         if self.status == APIKeyStatus.REVOKED:
             return False, "API key has been revoked"
@@ -220,13 +220,13 @@ class APIKey:
             return True
         return required_scope in self.scopes
 
-    def has_any_scope(self, required_scopes: Set[APIKeyScope]) -> bool:
+    def has_any_scope(self, required_scopes: set[APIKeyScope]) -> bool:
         """Check if key has any of the required scopes."""
         if APIKeyScope.FULL_ACCESS in self.scopes:
             return True
         return bool(self.scopes & required_scopes)
 
-    def to_dict(self, include_sensitive: bool = False) -> Dict[str, Any]:
+    def to_dict(self, include_sensitive: bool = False) -> dict[str, Any]:
         """Convert to dictionary."""
         result = {
             "key_id": self.key_id,
@@ -259,11 +259,11 @@ class AuthenticationResult:
     """Result of API key authentication."""
 
     authenticated: bool
-    key: Optional[APIKey] = None
-    error: Optional[str] = None
-    retry_after: Optional[int] = None
+    key: APIKey | None = None
+    error: str | None = None
+    retry_after: int | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "authenticated": self.authenticated,
@@ -291,12 +291,12 @@ class KGAPIKeyService:
 
     def __init__(self):
         """Initialize the API key service."""
-        self._keys: Dict[str, APIKey] = {}  # key_id -> APIKey
-        self._key_hash_index: Dict[str, str] = {}  # key_hash -> key_id
+        self._keys: dict[str, APIKey] = {}  # key_id -> APIKey
+        self._key_hash_index: dict[str, str] = {}  # key_hash -> key_id
         self._lock = threading.RLock()
 
         # Listeners for key events
-        self._listeners: List[Callable[[str, str, APIKey], None]] = []
+        self._listeners: list[Callable[[str, str, APIKey], None]] = []
 
         # Statistics
         self._stats = {
@@ -311,13 +311,13 @@ class KGAPIKeyService:
         self,
         name: str,
         description: str = "",
-        scopes: Optional[Set[APIKeyScope]] = None,
-        preset: Optional[str] = None,
-        expires_in_days: Optional[int] = None,
-        rate_limit: Optional[APIKeyRateLimit] = None,
-        created_by: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-    ) -> Tuple[str, APIKey]:
+        scopes: set[APIKeyScope | None] = None,
+        preset: str | None = None,
+        expires_in_days: int | None = None,
+        rate_limit: APIKeyRateLimit | None = None,
+        created_by: str | None = None,
+        metadata: dict[str, Any | None] = None,
+    ) -> tuple[str, APIKey]:
         """Generate a new API key.
 
         Args:
@@ -480,17 +480,17 @@ class KGAPIKeyService:
 
         return auth_result
 
-    def get_key(self, key_id: str) -> Optional[APIKey]:
+    def get_key(self, key_id: str) -> APIKey | None:
         """Get an API key by ID."""
         with self._lock:
             return self._keys.get(key_id)
 
     def list_keys(
         self,
-        status: Optional[APIKeyStatus] = None,
-        created_by: Optional[str] = None,
+        status: APIKeyStatus | None = None,
+        created_by: str | None = None,
         include_expired: bool = False,
-    ) -> List[APIKey]:
+    ) -> list[APIKey]:
         """List API keys with optional filters."""
         with self._lock:
             keys = list(self._keys.values())
@@ -507,7 +507,7 @@ class KGAPIKeyService:
 
         return keys
 
-    def revoke_key(self, key_id: str, reason: Optional[str] = None) -> bool:
+    def revoke_key(self, key_id: str, reason: str | None = None) -> bool:
         """Revoke an API key.
 
         Args:
@@ -531,7 +531,7 @@ class KGAPIKeyService:
         self._notify_listeners("revoked", key_id, api_key)
         return True
 
-    def suspend_key(self, key_id: str, reason: Optional[str] = None) -> bool:
+    def suspend_key(self, key_id: str, reason: str | None = None) -> bool:
         """Suspend an API key temporarily.
 
         Args:
@@ -581,7 +581,7 @@ class KGAPIKeyService:
         self,
         key_id: str,
         grace_period_hours: int = 24,
-    ) -> Tuple[Optional[str], Optional[APIKey]]:
+    ) -> tuple[str | None, APIKey | None]:
         """Rotate an API key.
 
         Creates a new key with the same settings and schedules the old key
@@ -629,7 +629,7 @@ class KGAPIKeyService:
     def update_scopes(
         self,
         key_id: str,
-        scopes: Set[APIKeyScope],
+        scopes: set[APIKeyScope],
     ) -> bool:
         """Update the scopes for an API key.
 
@@ -678,7 +678,7 @@ class KGAPIKeyService:
         self._notify_listeners("rate_limit_updated", key_id, api_key)
         return True
 
-    def get_usage_stats(self, key_id: str) -> Optional[Dict[str, Any]]:
+    def get_usage_stats(self, key_id: str) -> dict[str, Any | None]:
         """Get usage statistics for an API key."""
         with self._lock:
             api_key = self._keys.get(key_id)
@@ -699,7 +699,7 @@ class KGAPIKeyService:
                 "rate_limit_remaining": api_key.rate_limit.get_remaining(),
             }
 
-    def get_service_stats(self) -> Dict[str, Any]:
+    def get_service_stats(self) -> dict[str, Any]:
         """Get overall service statistics."""
         with self._lock:
             active_keys = sum(1 for k in self._keys.values() if k.status == APIKeyStatus.ACTIVE)
@@ -792,7 +792,7 @@ class KGAPIKeyService:
 
 
 # Singleton instance
-_api_key_service: Optional[KGAPIKeyService] = None
+_api_key_service: KGAPIKeyService | None = None
 _service_lock = threading.Lock()
 
 

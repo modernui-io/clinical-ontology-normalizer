@@ -82,17 +82,17 @@ class AgentRequest:
     use_case: UseCaseType = UseCaseType.GENERAL_ANALYSIS
 
     # Optional context
-    patient_id: Optional[str] = None
-    encounter_id: Optional[str] = None
-    current_icd10_codes: List[str] = field(default_factory=list)
-    current_medications: List[str] = field(default_factory=list)
-    lab_values: List[Dict[str, Any]] = field(default_factory=list)
+    patient_id: str | None = None
+    encounter_id: str | None = None
+    current_icd10_codes: list[str] = field(default_factory=list)
+    current_medications: list[str] = field(default_factory=list)
+    lab_values: list[dict[str, Any]] = field(default_factory=list)
 
     # For clinical reasoning
-    question: Optional[str] = None
+    question: str | None = None
 
     # For eligibility checking
-    eligibility_criteria: List[Dict[str, Any]] = field(default_factory=list)
+    eligibility_criteria: list[dict[str, Any]] = field(default_factory=list)
 
     # Options
     include_normalized_codes: bool = True
@@ -109,41 +109,41 @@ class AgentResponse:
     use_case: UseCaseType
 
     # Results (populated based on action type)
-    entities: List[Dict[str, Any]] = field(default_factory=list)
-    measurements: List[Dict[str, Any]] = field(default_factory=list)
-    diagnoses: List[Dict[str, Any]] = field(default_factory=list)
-    medications: List[Dict[str, Any]] = field(default_factory=list)
-    procedures: List[Dict[str, Any]] = field(default_factory=list)
+    entities: list[dict[str, Any]] = field(default_factory=list)
+    measurements: list[dict[str, Any]] = field(default_factory=list)
+    diagnoses: list[dict[str, Any]] = field(default_factory=list)
+    medications: list[dict[str, Any]] = field(default_factory=list)
+    procedures: list[dict[str, Any]] = field(default_factory=list)
 
     # HCC Analysis
-    hcc_opportunities: List[Dict[str, Any]] = field(default_factory=list)
+    hcc_opportunities: list[dict[str, Any]] = field(default_factory=list)
     raf_score: float = 0.0
     revenue_opportunity: float = 0.0
 
     # Coding suggestions
-    suggested_icd10: List[Dict[str, Any]] = field(default_factory=list)
-    suggested_cpt: List[Dict[str, Any]] = field(default_factory=list)
-    documentation_gaps: List[str] = field(default_factory=list)
+    suggested_icd10: list[dict[str, Any]] = field(default_factory=list)
+    suggested_cpt: list[dict[str, Any]] = field(default_factory=list)
+    documentation_gaps: list[str] = field(default_factory=list)
 
     # Eligibility
-    eligibility_result: Optional[Dict[str, Any]] = None
+    eligibility_result: dict[str, Any | None] = None
 
     # Timeline/Phenotype
-    timeline_events: List[Dict[str, Any]] = field(default_factory=list)
-    phenotype: Optional[Dict[str, Any]] = None
+    timeline_events: list[dict[str, Any]] = field(default_factory=list)
+    phenotype: dict[str, Any | None] = None
 
     # Cohort query
-    cohort_query: Optional[Dict[str, Any]] = None
+    cohort_query: dict[str, Any | None] = None
 
     # LLM reasoning output
-    analysis: Optional[str] = None
-    summary: Optional[str] = None
-    answer: Optional[str] = None
+    analysis: str | None = None
+    summary: str | None = None
+    answer: str | None = None
 
     # Metadata
     processing_time_ms: float = 0.0
-    error_message: Optional[str] = None
-    warnings: List[str] = field(default_factory=list)
+    error_message: str | None = None
+    warnings: list[str] = field(default_factory=list)
 
 
 class ClinicalIntelligenceAgent:
@@ -606,7 +606,7 @@ class ClinicalIntelligenceAgent:
     # Convenience methods for common workflows
     # =========================================================================
 
-    def analyze_for_coding(self, clinical_text: str, current_codes: List[str] = None) -> AgentResponse:
+    def analyze_for_coding(self, clinical_text: str, current_codes: list[str] = None) -> AgentResponse:
         """
         Convenience method for medical coding workflow.
 
@@ -635,7 +635,7 @@ class ClinicalIntelligenceAgent:
 
         return response
 
-    def analyze_for_research(self, clinical_text: str, criteria: List[Dict] = None) -> AgentResponse:
+    def analyze_for_research(self, clinical_text: str, criteria: list[Dict] = None) -> AgentResponse:
         """
         Convenience method for drug discovery/clinical trial workflow.
 
@@ -662,7 +662,7 @@ class ClinicalIntelligenceAgent:
 
         return response
 
-    def get_capabilities(self) -> Dict[str, Any]:
+    def get_capabilities(self) -> dict[str, Any]:
         """Return the capabilities of this agent."""
         return {
             "name": "ClinicalIntelligenceAgent",
@@ -683,7 +683,7 @@ class ClinicalIntelligenceAgent:
 
 
 # Singleton instance
-_agent_instance: Optional[ClinicalIntelligenceAgent] = None
+_agent_instance: ClinicalIntelligenceAgent | None = None
 _agent_lock = threading.Lock()
 
 

@@ -86,7 +86,7 @@ def _get_encryption_key() -> bytes:
     return base64.urlsafe_b64encode(digest)
 
 
-_fernet: Optional[Fernet] = None
+_fernet: Fernet | None = None
 
 
 def get_fernet() -> Fernet:
@@ -111,18 +111,18 @@ def decrypt_value(encrypted: str) -> str:
 class DataSourceCreate(BaseModel):
     """Request model for creating a data source."""
     name: str = Field(..., min_length=1, max_length=255)
-    description: Optional[str] = None
+    description: str | None = None
     source_type: DataSourceType
     auth_method: AuthMethod = AuthMethod.NONE
 
     # Connection details
-    base_url: Optional[str] = None
-    client_id: Optional[str] = None
-    client_secret: Optional[str] = None  # Will be encrypted
-    api_key: Optional[str] = None  # Will be encrypted
-    username: Optional[str] = None
-    password: Optional[str] = None  # Will be encrypted
-    token_url: Optional[str] = None
+    base_url: str | None = None
+    client_id: str | None = None
+    client_secret: str | None = None  # Will be encrypted
+    api_key: str | None = None  # Will be encrypted
+    username: str | None = None
+    password: str | None = None  # Will be encrypted
+    token_url: str | None = None
     scopes: list[str] = Field(default_factory=list)
 
     # Settings
@@ -134,40 +134,40 @@ class DataSourceCreate(BaseModel):
 
 class DataSourceUpdate(BaseModel):
     """Request model for updating a data source."""
-    name: Optional[str] = Field(None, min_length=1, max_length=255)
-    description: Optional[str] = None
-    auth_method: Optional[AuthMethod] = None
-    is_active: Optional[bool] = None
+    name: str | None = Field(None, min_length=1, max_length=255)
+    description: str | None = None
+    auth_method: AuthMethod | None = None
+    is_active: bool | None = None
 
     # Connection details (only update if provided)
-    base_url: Optional[str] = None
-    client_id: Optional[str] = None
-    client_secret: Optional[str] = None
-    api_key: Optional[str] = None
-    username: Optional[str] = None
-    password: Optional[str] = None
-    token_url: Optional[str] = None
-    scopes: Optional[list[str]] = None
+    base_url: str | None = None
+    client_id: str | None = None
+    client_secret: str | None = None
+    api_key: str | None = None
+    username: str | None = None
+    password: str | None = None
+    token_url: str | None = None
+    scopes: list[str | None] = None
 
     # Settings
-    timeout_seconds: Optional[int] = None
-    verify_ssl: Optional[bool] = None
-    default_batch_size: Optional[int] = None
-    default_retry_count: Optional[int] = None
+    timeout_seconds: int | None = None
+    verify_ssl: bool | None = None
+    default_batch_size: int | None = None
+    default_retry_count: int | None = None
 
 
 class DataSourceResponse(BaseModel):
     """Response model for data source."""
     id: UUID
     name: str
-    description: Optional[str]
+    description: str | None
     source_type: DataSourceType
     auth_method: AuthMethod
     is_active: bool
     health_status: HealthStatus
-    last_health_check_at: Optional[datetime]
-    last_health_message: Optional[str]
-    last_connected_at: Optional[datetime]
+    last_health_check_at: datetime | None
+    last_health_message: str | None
+    last_connected_at: datetime | None
     total_records_imported: int
     default_batch_size: int
     default_timeout_seconds: int
@@ -176,11 +176,11 @@ class DataSourceResponse(BaseModel):
     updated_at: datetime
 
     # Connection details (secrets masked)
-    base_url: Optional[str] = None
-    client_id: Optional[str] = None
+    base_url: str | None = None
+    client_id: str | None = None
     has_client_secret: bool = False
     has_api_key: bool = False
-    token_url: Optional[str] = None
+    token_url: str | None = None
     scopes: list[str] = Field(default_factory=list)
     timeout_seconds: int = 30
     verify_ssl: bool = True
@@ -193,9 +193,9 @@ class ConnectionTestResult(BaseModel):
     """Result of testing a data source connection."""
     success: bool
     message: str
-    latency_ms: Optional[int] = None
-    server_info: Optional[dict] = None
-    error_details: Optional[str] = None
+    latency_ms: int | None = None
+    server_info: dict | None = None
+    error_details: str | None = None
 
 
 class DataSourceService:
@@ -207,7 +207,7 @@ class DataSourceService:
     async def create(
         self,
         data: DataSourceCreate,
-        created_by: Optional[UUID] = None,
+        created_by: UUID | None = None,
     ) -> DataSource:
         """Create a new data source."""
         # Build connection config with encrypted secrets
@@ -232,7 +232,7 @@ class DataSourceService:
         logger.info(f"Created data source: {source.id} ({source.name})")
         return source
 
-    async def get(self, source_id: UUID) -> Optional[DataSource]:
+    async def get(self, source_id: UUID) -> DataSource | None:
         """Get a data source by ID."""
         result = await self.db.execute(
             select(DataSource).where(DataSource.id == source_id)
@@ -241,8 +241,8 @@ class DataSourceService:
 
     async def list(
         self,
-        source_type: Optional[DataSourceType] = None,
-        is_active: Optional[bool] = None,
+        source_type: DataSourceType | None = None,
+        is_active: bool | None = None,
         limit: int = 100,
         offset: int = 0,
     ) -> list[DataSource]:
@@ -262,7 +262,7 @@ class DataSourceService:
         self,
         source_id: UUID,
         data: DataSourceUpdate,
-    ) -> Optional[DataSource]:
+    ) -> DataSource | None:
         """Update a data source."""
         source = await self.get(source_id)
         if not source:
@@ -499,7 +499,7 @@ class DataSourceService:
 
         return headers
 
-    async def _get_oauth2_token(self, source: DataSource) -> Optional[str]:
+    async def _get_oauth2_token(self, source: DataSource) -> str | None:
         """Get OAuth2 access token using client credentials.
 
         VP-Concurrency-1: Uses caching and locking to prevent race conditions
@@ -526,7 +526,7 @@ class DataSourceService:
             token = await self._fetch_oauth2_token(source)
             return token
 
-    async def _fetch_oauth2_token(self, source: DataSource) -> Optional[str]:
+    async def _fetch_oauth2_token(self, source: DataSource) -> str | None:
         """Actually fetch a new OAuth2 token from the token endpoint.
 
         VP-Concurrency-1: This is the underlying fetch, called only when

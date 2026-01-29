@@ -70,8 +70,8 @@ class MigrationOperation:
     operation_type: MigrationType
     description: str
     up_cypher: str
-    down_cypher: Optional[str] = None
-    params: Dict[str, Any] = field(default_factory=dict)
+    down_cypher: str | None = None
+    params: dict[str, Any] = field(default_factory=dict)
     idempotent: bool = True
     timeout_seconds: int = 300
 
@@ -82,10 +82,10 @@ class Migration:
     version: str
     name: str
     description: str
-    operations: List[MigrationOperation] = field(default_factory=list)
-    dependencies: List[str] = field(default_factory=list)
+    operations: list[MigrationOperation] = field(default_factory=list)
+    dependencies: list[str] = field(default_factory=list)
     created_at: datetime = field(default_factory=datetime.now)
-    checksum: Optional[str] = None
+    checksum: str | None = None
 
     def __post_init__(self):
         if not self.checksum:
@@ -111,11 +111,11 @@ class MigrationResult:
     name: str
     status: MigrationStatus
     started_at: datetime
-    completed_at: Optional[datetime] = None
-    duration_ms: Optional[float] = None
+    completed_at: datetime | None = None
+    duration_ms: float | None = None
     operations_executed: int = 0
-    error_message: Optional[str] = None
-    error_operation: Optional[int] = None
+    error_message: str | None = None
+    error_operation: int | None = None
 
 
 @dataclass
@@ -137,8 +137,8 @@ class MigrationBuilder:
         self.version = version
         self.name = name
         self.description = ""
-        self.operations: List[MigrationOperation] = []
-        self.dependencies: List[str] = []
+        self.operations: list[MigrationOperation] = []
+        self.dependencies: list[str] = []
 
     def with_description(self, description: str) -> "MigrationBuilder":
         """Set migration description."""
@@ -154,7 +154,7 @@ class MigrationBuilder:
         self,
         label: str,
         property: str,
-        name: Optional[str] = None
+        name: str | None = None
     ) -> "MigrationBuilder":
         """Add unique constraint creation."""
         constraint_name = name or f"{label.lower()}_{property.lower()}_unique"
@@ -171,7 +171,7 @@ class MigrationBuilder:
         self,
         label: str,
         property: str,
-        name: Optional[str] = None
+        name: str | None = None
     ) -> "MigrationBuilder":
         """Add exists constraint creation."""
         constraint_name = name or f"{label.lower()}_{property.lower()}_exists"
@@ -187,8 +187,8 @@ class MigrationBuilder:
     def create_node_key_constraint(
         self,
         label: str,
-        properties: List[str],
-        name: Optional[str] = None
+        properties: list[str],
+        name: str | None = None
     ) -> "MigrationBuilder":
         """Add node key constraint creation."""
         props_str = ", ".join([f"n.{p}" for p in properties])
@@ -205,9 +205,9 @@ class MigrationBuilder:
     def create_index(
         self,
         label: str,
-        properties: List[str],
+        properties: list[str],
         index_type: IndexType = IndexType.BTREE,
-        name: Optional[str] = None
+        name: str | None = None
     ) -> "MigrationBuilder":
         """Add index creation."""
         props_str = ", ".join([f"n.{p}" for p in properties])
@@ -233,8 +233,8 @@ class MigrationBuilder:
     def create_fulltext_index(
         self,
         name: str,
-        labels: List[str],
-        properties: List[str]
+        labels: list[str],
+        properties: list[str]
     ) -> "MigrationBuilder":
         """Add fulltext index creation."""
         labels_str = ", ".join(labels)
@@ -254,7 +254,7 @@ class MigrationBuilder:
         property: str,
         dimensions: int,
         similarity: str = "cosine",
-        name: Optional[str] = None
+        name: str | None = None
     ) -> "MigrationBuilder":
         """Add vector index creation."""
         index_name = name or f"{label.lower()}_{property.lower()}_vector"
@@ -342,7 +342,7 @@ class MigrationBuilder:
         self,
         description: str,
         up_cypher: str,
-        down_cypher: Optional[str] = None,
+        down_cypher: str | None = None,
         idempotent: bool = True,
         timeout_seconds: int = 300
     ) -> "MigrationBuilder":
@@ -361,7 +361,7 @@ class MigrationBuilder:
         self,
         description: str,
         up_cypher: str,
-        down_cypher: Optional[str] = None,
+        down_cypher: str | None = None,
         batch_size: int = 10000,
         timeout_seconds: int = 600
     ) -> "MigrationBuilder":
@@ -393,14 +393,14 @@ class MockNeo4jDriver:
     """
 
     def __init__(self) -> None:
-        self._executed_queries: List[Tuple[str, Dict]] = []
-        self._constraints: Dict[str, Dict] = {}
-        self._indexes: Dict[str, Dict] = {}
-        self._migration_history: Dict[str, MigrationHistory] = {}
+        self._executed_queries: list[tuple[str, Dict]] = []
+        self._constraints: dict[str, Dict] = {}
+        self._indexes: dict[str, Dict] = {}
+        self._migration_history: dict[str, MigrationHistory] = {}
         self._should_fail: bool = False
-        self._fail_on_query: Optional[str] = None
+        self._fail_on_query: str | None = None
 
-    def execute_query(self, cypher: str, params: Optional[Dict] = None) -> List[Dict]:
+    def execute_query(self, cypher: str, params: Dict | None = None) -> list[Dict]:
         """Execute a Cypher query (mock)."""
         self._executed_queries.append((cypher, params or {}))
 
@@ -447,7 +447,7 @@ class MockNeo4jDriver:
 
         return []
 
-    def get_migration_history(self) -> List[MigrationHistory]:
+    def get_migration_history(self) -> list[MigrationHistory]:
         """Get all migration history."""
         return list(self._migration_history.values())
 
@@ -463,7 +463,7 @@ class MockNeo4jDriver:
         """Set whether queries should fail."""
         self._should_fail = should_fail
 
-    def set_fail_on_query(self, query_substring: Optional[str]) -> None:
+    def set_fail_on_query(self, query_substring: str | None) -> None:
         """Set a query substring that should cause failure."""
         self._fail_on_query = query_substring
 
@@ -475,16 +475,16 @@ class KGSchemaMigrationService:
 
     HISTORY_LABEL = "_SchemaMigration"
 
-    def __init__(self, driver: Optional[MockNeo4jDriver] = None) -> None:
+    def __init__(self, driver: MockNeo4jDriver | None = None) -> None:
         self.driver = driver or MockNeo4jDriver()
-        self._migrations: Dict[str, Migration] = {}
-        self._listeners: List[Callable] = []
+        self._migrations: dict[str, Migration] = {}
+        self._listeners: list[Callable] = []
 
     def register_migration(self, migration: Migration) -> None:
         """Register a migration."""
         self._migrations[migration.version] = migration
 
-    def register_migrations(self, migrations: List[Migration]) -> None:
+    def register_migrations(self, migrations: list[Migration]) -> None:
         """Register multiple migrations."""
         for migration in migrations:
             self.register_migration(migration)
@@ -501,7 +501,7 @@ class KGSchemaMigrationService:
             except Exception:
                 pass  # Don't let listener errors break migration
 
-    def get_pending_migrations(self) -> List[Migration]:
+    def get_pending_migrations(self) -> list[Migration]:
         """Get list of pending migrations in order."""
         applied = {h.version for h in self.driver.get_migration_history()}
         pending = []
@@ -523,11 +523,11 @@ class KGSchemaMigrationService:
 
         return pending
 
-    def get_applied_migrations(self) -> List[MigrationHistory]:
+    def get_applied_migrations(self) -> list[MigrationHistory]:
         """Get list of applied migrations."""
         return self.driver.get_migration_history()
 
-    def get_migration_status(self) -> Dict[str, Any]:
+    def get_migration_status(self) -> dict[str, Any]:
         """Get current migration status."""
         applied = self.driver.get_migration_history()
         pending = self.get_pending_migrations()
@@ -633,7 +633,7 @@ class KGSchemaMigrationService:
                 except Exception:
                     pass  # Best effort rollback
 
-    def run_pending_migrations(self) -> List[MigrationResult]:
+    def run_pending_migrations(self) -> list[MigrationResult]:
         """Run all pending migrations in order."""
         results = []
         pending = self.get_pending_migrations()
@@ -691,7 +691,7 @@ class KGSchemaMigrationService:
 
         return result
 
-    def validate_migrations(self) -> List[Dict[str, Any]]:
+    def validate_migrations(self) -> list[dict[str, Any]]:
         """Validate all registered migrations."""
         issues = []
 
@@ -739,7 +739,7 @@ class KGSchemaMigrationService:
 
         return issues
 
-    def _topological_sort(self) -> List[str]:
+    def _topological_sort(self) -> list[str]:
         """Sort migrations by dependencies."""
         # Build dependency graph
         in_degree = {v: 0 for v in self._migrations}
@@ -769,7 +769,7 @@ class KGSchemaMigrationService:
 
         return result
 
-    def generate_schema_report(self) -> Dict[str, Any]:
+    def generate_schema_report(self) -> dict[str, Any]:
         """Generate a report of the current schema state."""
         constraints = list(self.driver._constraints.keys())
         indexes = list(self.driver._indexes.keys())
@@ -786,7 +786,7 @@ class KGSchemaMigrationService:
 
 # Pre-built KG schema migrations
 
-def create_kg_base_migrations() -> List[Migration]:
+def create_kg_base_migrations() -> list[Migration]:
     """Create base migrations for KG schema."""
     migrations = []
 
@@ -855,7 +855,7 @@ def create_kg_base_migrations() -> List[Migration]:
 
 
 # Singleton accessor
-_migration_service: Optional[KGSchemaMigrationService] = None
+_migration_service: KGSchemaMigrationService | None = None
 _migration_lock = threading.Lock()
 
 

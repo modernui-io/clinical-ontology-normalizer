@@ -28,10 +28,10 @@ logger = logging.getLogger(__name__)
 @dataclass
 class TrieNode:
     """A node in the trie structure."""
-    children: Dict[str, 'TrieNode'] = field(default_factory=dict)
+    children: dict[str, 'TrieNode'] = field(default_factory=dict)
     is_end: bool = False
     # Store references to matching items (code, display, etc.)
-    items: List[Tuple[str, str, float]] = field(default_factory=list)  # (code, display, weight)
+    items: list[tuple[str, str, float]] = field(default_factory=list)  # (code, display, weight)
 
 
 @dataclass
@@ -82,14 +82,14 @@ class TrieIndex:
         self._node_count = 1  # Root node
 
         # For reverse lookup
-        self._code_to_terms: Dict[str, List[str]] = defaultdict(list)
+        self._code_to_terms: dict[str, list[str]] = defaultdict(list)
 
     def add_term(
         self,
         code: str,
         display: str,
         weight: float = 1.0,
-        synonyms: Optional[List[str]] = None
+        synonyms: list[str | None] = None
     ):
         """
         Add a term to the index.
@@ -166,8 +166,8 @@ class TrieIndex:
         self,
         query: str,
         limit: int = 10,
-        match_types: Optional[List[str]] = None
-    ) -> List[MatchResult]:
+        match_types: list[str | None] = None
+    ) -> list[MatchResult]:
         """
         Search the index for matching terms.
 
@@ -184,7 +184,7 @@ class TrieIndex:
             return []
 
         normalized = self._normalize(query)
-        results: Dict[str, MatchResult] = {}  # code -> result (dedupe by code)
+        results: dict[str, MatchResult] = {}  # code -> result (dedupe by code)
 
         if match_types is None:
             match_types = ["exact", "prefix", "word", "substring"]
@@ -227,7 +227,7 @@ class TrieIndex:
         self,
         root: TrieNode,
         query: str,
-        results: Dict[str, MatchResult],
+        results: dict[str, MatchResult],
         match_type: str = "prefix",
         include_exact: bool = True,
         include_prefix: bool = True
@@ -261,7 +261,7 @@ class TrieIndex:
         self,
         node: TrieNode,
         prefix: str,
-        results: Dict[str, MatchResult],
+        results: dict[str, MatchResult],
         match_type: str,
         max_items: int = 100
     ):
@@ -290,11 +290,11 @@ class TrieIndex:
             for char, child in current.children.items():
                 stack.append((child, current_prefix + char))
 
-    def search_prefix(self, prefix: str, limit: int = 10) -> List[MatchResult]:
+    def search_prefix(self, prefix: str, limit: int = 10) -> list[MatchResult]:
         """Convenience method for prefix-only search."""
         return self.search(prefix, limit=limit, match_types=["exact", "prefix"])
 
-    def search_words(self, query: str, limit: int = 10) -> List[MatchResult]:
+    def search_words(self, query: str, limit: int = 10) -> list[MatchResult]:
         """Convenience method for word-boundary search."""
         return self.search(query, limit=limit, match_types=["word"])
 
@@ -310,11 +310,11 @@ class TrieIndex:
 
         return node.is_end
 
-    def get_terms_for_code(self, code: str) -> List[str]:
+    def get_terms_for_code(self, code: str) -> list[str]:
         """Get all indexed terms for a code."""
         return self._code_to_terms.get(code, [])
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get index statistics."""
         return {
             "term_count": self._term_count,
@@ -349,9 +349,9 @@ class ClinicalTerminologyIndex:
 
     def __init__(self):
         self.trie = TrieIndex(index_words=True, index_ngrams=False)
-        self._loaded_vocabularies: Set[str] = set()
+        self._loaded_vocabularies: set[str] = set()
 
-    def load_icd10_codes(self, codes: List[Dict[str, Any]]):
+    def load_icd10_codes(self, codes: list[dict[str, Any]]):
         """
         Load ICD-10-CM codes into the index.
 
@@ -370,7 +370,7 @@ class ClinicalTerminologyIndex:
         self._loaded_vocabularies.add("ICD10CM")
         logger.info(f"Loaded {len(codes)} ICD-10-CM codes into trie index")
 
-    def load_snomed_codes(self, concepts: List[Dict[str, Any]]):
+    def load_snomed_codes(self, concepts: list[dict[str, Any]]):
         """
         Load SNOMED-CT concepts into the index.
 
@@ -391,7 +391,7 @@ class ClinicalTerminologyIndex:
         self._loaded_vocabularies.add("SNOMED")
         logger.info(f"Loaded {len(concepts)} SNOMED concepts into trie index")
 
-    def load_rxnorm_codes(self, drugs: List[Dict[str, Any]]):
+    def load_rxnorm_codes(self, drugs: list[dict[str, Any]]):
         """Load RxNorm drug concepts."""
         for item in drugs:
             code = str(item.get("rxcui", item.get("code", "")))
@@ -406,9 +406,9 @@ class ClinicalTerminologyIndex:
     def search(
         self,
         query: str,
-        vocabulary: Optional[str] = None,
+        vocabulary: str | None = None,
         limit: int = 10
-    ) -> List[MatchResult]:
+    ) -> list[MatchResult]:
         """
         Search for clinical terms.
 
@@ -429,7 +429,7 @@ class ClinicalTerminologyIndex:
 
         return results[:limit]
 
-    def autocomplete(self, prefix: str, limit: int = 10) -> List[Dict[str, str]]:
+    def autocomplete(self, prefix: str, limit: int = 10) -> list[dict[str, str]]:
         """
         Get autocomplete suggestions for a prefix.
 
@@ -446,7 +446,7 @@ class ClinicalTerminologyIndex:
             for r in results
         ]
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get index statistics."""
         stats = self.trie.get_stats()
         stats["loaded_vocabularies"] = list(self._loaded_vocabularies)
@@ -454,7 +454,7 @@ class ClinicalTerminologyIndex:
 
 
 # Singleton instance
-_terminology_index: Optional[ClinicalTerminologyIndex] = None
+_terminology_index: ClinicalTerminologyIndex | None = None
 _terminology_lock = threading.Lock()
 
 

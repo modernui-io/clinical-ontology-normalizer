@@ -59,11 +59,11 @@ class LogCategory(str, Enum):
 
 
 # Context variable for correlation ID
-_correlation_id: ContextVar[Optional[str]] = ContextVar("correlation_id", default=None)
-_request_context: ContextVar[Dict[str, Any]] = ContextVar("request_context", default={})
+_correlation_id: ContextVar[str | None] = ContextVar("correlation_id", default=None)
+_request_context: ContextVar[dict[str, Any]] = ContextVar("request_context", default={})
 
 
-def get_correlation_id() -> Optional[str]:
+def get_correlation_id() -> str | None:
     """Get the current correlation ID."""
     return _correlation_id.get()
 
@@ -78,12 +78,12 @@ def generate_correlation_id() -> str:
     return f"corr_{uuid.uuid4().hex[:16]}"
 
 
-def get_request_context() -> Dict[str, Any]:
+def get_request_context() -> dict[str, Any]:
     """Get the current request context."""
     return _request_context.get()
 
 
-def set_request_context(context: Dict[str, Any]) -> None:
+def set_request_context(context: dict[str, Any]) -> None:
     """Set the request context."""
     _request_context.set(context)
 
@@ -102,32 +102,32 @@ class LogEntry:
     timestamp: str
     level: LogLevel
     message: str
-    correlation_id: Optional[str] = None
-    category: Optional[LogCategory] = None
+    correlation_id: str | None = None
+    category: LogCategory | None = None
     logger_name: str = "kg"
     service: str = "kg-api"
     environment: str = "development"
 
     # Request context
-    request_id: Optional[str] = None
-    user_id: Optional[str] = None
-    session_id: Optional[str] = None
-    endpoint: Optional[str] = None
-    method: Optional[str] = None
-    status_code: Optional[int] = None
+    request_id: str | None = None
+    user_id: str | None = None
+    session_id: str | None = None
+    endpoint: str | None = None
+    method: str | None = None
+    status_code: int | None = None
 
     # Performance
-    duration_ms: Optional[float] = None
+    duration_ms: float | None = None
 
     # Error information
-    error_type: Optional[str] = None
-    error_message: Optional[str] = None
-    stack_trace: Optional[str] = None
+    error_type: str | None = None
+    error_message: str | None = None
+    stack_trace: str | None = None
 
     # Additional context
-    extra: Dict[str, Any] = field(default_factory=dict)
+    extra: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary, excluding None values."""
         result = {}
         for key, value in asdict(self).items():
@@ -219,7 +219,7 @@ class LogHandler:
         self,
         formatter: LogFormatter,
         min_level: LogLevel = LogLevel.DEBUG,
-        categories: Optional[List[LogCategory]] = None,
+        categories: list[LogCategory | None] = None,
     ):
         """Initialize the handler.
 
@@ -255,9 +255,9 @@ class StreamHandler(LogHandler):
     def __init__(
         self,
         stream: TextIO = sys.stdout,
-        formatter: Optional[LogFormatter] = None,
+        formatter: LogFormatter | None = None,
         min_level: LogLevel = LogLevel.DEBUG,
-        categories: Optional[List[LogCategory]] = None,
+        categories: list[LogCategory | None] = None,
     ):
         """Initialize the stream handler."""
         super().__init__(
@@ -285,9 +285,9 @@ class FileHandler(LogHandler):
     def __init__(
         self,
         filepath: str,
-        formatter: Optional[LogFormatter] = None,
+        formatter: LogFormatter | None = None,
         min_level: LogLevel = LogLevel.DEBUG,
-        categories: Optional[List[LogCategory]] = None,
+        categories: list[LogCategory | None] = None,
         max_size_mb: int = 100,
         backup_count: int = 5,
     ):
@@ -363,9 +363,9 @@ class MemoryHandler(LogHandler):
     def __init__(
         self,
         max_entries: int = 1000,
-        formatter: Optional[LogFormatter] = None,
+        formatter: LogFormatter | None = None,
         min_level: LogLevel = LogLevel.DEBUG,
-        categories: Optional[List[LogCategory]] = None,
+        categories: list[LogCategory | None] = None,
     ):
         """Initialize the memory handler."""
         super().__init__(
@@ -374,7 +374,7 @@ class MemoryHandler(LogHandler):
             categories=categories,
         )
         self.max_entries = max_entries
-        self._entries: List[LogEntry] = []
+        self._entries: list[LogEntry] = []
         self._lock = threading.Lock()
 
     def emit(self, entry: LogEntry) -> None:
@@ -389,11 +389,11 @@ class MemoryHandler(LogHandler):
 
     def get_entries(
         self,
-        level: Optional[LogLevel] = None,
-        category: Optional[LogCategory] = None,
-        correlation_id: Optional[str] = None,
+        level: LogLevel | None = None,
+        category: LogCategory | None = None,
+        correlation_id: str | None = None,
         limit: int = 100,
-    ) -> List[LogEntry]:
+    ) -> list[LogEntry]:
         """Get logged entries with optional filters."""
         with self._lock:
             entries = list(self._entries)
@@ -422,7 +422,7 @@ class KGLogger:
         self,
         name: str = "kg",
         service: str = "kg-api",
-        environment: Optional[str] = None,
+        environment: str | None = None,
     ):
         """Initialize the logger.
 
@@ -434,7 +434,7 @@ class KGLogger:
         self.name = name
         self.service = service
         self.environment = environment or os.environ.get("KG_ENV", "development")
-        self._handlers: List[LogHandler] = []
+        self._handlers: list[LogHandler] = []
         self._lock = threading.Lock()
 
     def add_handler(self, handler: LogHandler) -> None:
@@ -452,9 +452,9 @@ class KGLogger:
         self,
         level: LogLevel,
         message: str,
-        category: Optional[LogCategory] = None,
-        error: Optional[Exception] = None,
-        duration_ms: Optional[float] = None,
+        category: LogCategory | None = None,
+        error: Exception | None = None,
+        duration_ms: float | None = None,
         **extra,
     ) -> LogEntry:
         """Create a log entry with context."""
@@ -505,9 +505,9 @@ class KGLogger:
         self,
         level: LogLevel,
         message: str,
-        category: Optional[LogCategory] = None,
-        error: Optional[Exception] = None,
-        duration_ms: Optional[float] = None,
+        category: LogCategory | None = None,
+        error: Exception | None = None,
+        duration_ms: float | None = None,
         **extra,
     ) -> LogEntry:
         """Log a message at the specified level."""
@@ -525,7 +525,7 @@ class KGLogger:
     def debug(
         self,
         message: str,
-        category: Optional[LogCategory] = None,
+        category: LogCategory | None = None,
         **extra,
     ) -> LogEntry:
         """Log a debug message."""
@@ -534,7 +534,7 @@ class KGLogger:
     def info(
         self,
         message: str,
-        category: Optional[LogCategory] = None,
+        category: LogCategory | None = None,
         **extra,
     ) -> LogEntry:
         """Log an info message."""
@@ -543,7 +543,7 @@ class KGLogger:
     def warning(
         self,
         message: str,
-        category: Optional[LogCategory] = None,
+        category: LogCategory | None = None,
         **extra,
     ) -> LogEntry:
         """Log a warning message."""
@@ -552,8 +552,8 @@ class KGLogger:
     def error(
         self,
         message: str,
-        category: Optional[LogCategory] = None,
-        error: Optional[Exception] = None,
+        category: LogCategory | None = None,
+        error: Exception | None = None,
         **extra,
     ) -> LogEntry:
         """Log an error message."""
@@ -568,8 +568,8 @@ class KGLogger:
     def critical(
         self,
         message: str,
-        category: Optional[LogCategory] = None,
-        error: Optional[Exception] = None,
+        category: LogCategory | None = None,
+        error: Exception | None = None,
         **extra,
     ) -> LogEntry:
         """Log a critical message."""
@@ -686,7 +686,7 @@ class LogContext:
 
     def __init__(
         self,
-        correlation_id: Optional[str] = None,
+        correlation_id: str | None = None,
         **context,
     ):
         """Initialize the context.
@@ -697,8 +697,8 @@ class LogContext:
         """
         self.correlation_id = correlation_id or generate_correlation_id()
         self.context = context
-        self._old_correlation_id: Optional[str] = None
-        self._old_context: Dict[str, Any] = {}
+        self._old_correlation_id: str | None = None
+        self._old_context: dict[str, Any] = {}
 
     def __enter__(self) -> "LogContext":
         """Enter the context."""
@@ -727,7 +727,7 @@ class TimedLogContext:
         logger: KGLogger,
         message: str,
         level: LogLevel = LogLevel.INFO,
-        category: Optional[LogCategory] = None,
+        category: LogCategory | None = None,
         **extra,
     ):
         """Initialize the timed context.
@@ -774,7 +774,7 @@ class TimedLogContext:
 
 
 # Singleton logger instance
-_logger: Optional[KGLogger] = None
+_logger: KGLogger | None = None
 _logger_lock = threading.Lock()
 
 
@@ -803,10 +803,10 @@ def reset_logger() -> None:
 def configure_logger(
     name: str = "kg",
     service: str = "kg-api",
-    environment: Optional[str] = None,
+    environment: str | None = None,
     console_level: LogLevel = LogLevel.INFO,
     console_format: str = "text",
-    file_path: Optional[str] = None,
+    file_path: str | None = None,
     file_level: LogLevel = LogLevel.DEBUG,
     file_format: str = "json",
 ) -> KGLogger:

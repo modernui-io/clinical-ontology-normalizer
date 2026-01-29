@@ -26,7 +26,7 @@ from enum import Enum
 from functools import wraps
 
 logger = logging.getLogger(__name__)
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple, TypeVar, Union
+from typing import Any, Callable, TypeVar
 import asyncio
 import re
 
@@ -120,15 +120,15 @@ class AuditContext:
     """Context information for an audit event."""
 
     user_id: str
-    session_id: Optional[str] = None
-    ip_address: Optional[str] = None
-    user_agent: Optional[str] = None
-    correlation_id: Optional[str] = None
-    tenant_id: Optional[str] = None
-    role: Optional[str] = None
-    department: Optional[str] = None
+    session_id: str | None = None
+    ip_address: str | None = None
+    user_agent: str | None = None
+    correlation_id: str | None = None
+    tenant_id: str | None = None
+    role: str | None = None
+    department: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {k: v for k, v in asdict(self).items() if v is not None}
 
 
@@ -137,14 +137,14 @@ class PHIAccess:
     """Information about PHI access for HIPAA compliance."""
 
     access_type: PHIAccessType
-    patient_ids: List[str] = field(default_factory=list)
-    data_types: List[str] = field(default_factory=list)
+    patient_ids: list[str] = field(default_factory=list)
+    data_types: list[str] = field(default_factory=list)
     record_count: int = 0
-    purpose: Optional[str] = None  # Treatment, Payment, Operations, Research, etc.
+    purpose: str | None = None  # Treatment, Payment, Operations, Research, etc.
     consent_verified: bool = False
     minimum_necessary: bool = True  # HIPAA minimum necessary principle
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         result = {
             "access_type": self.access_type.value,
             "patient_ids": self.patient_ids,
@@ -167,15 +167,15 @@ class AuditEvent:
     event_type: AuditEventType
     severity: AuditSeverity
     context: AuditContext
-    resource: Optional[str] = None
-    action: Optional[str] = None
+    resource: str | None = None
+    action: str | None = None
     outcome: str = "success"  # success, failure, partial
-    reason: Optional[str] = None
-    duration_ms: Optional[int] = None
-    phi_access: Optional[PHIAccess] = None
-    details: Dict[str, Any] = field(default_factory=dict)
-    previous_hash: Optional[str] = None
-    event_hash: Optional[str] = None
+    reason: str | None = None
+    duration_ms: int | None = None
+    phi_access: PHIAccess | None = None
+    details: dict[str, Any] = field(default_factory=dict)
+    previous_hash: str | None = None
+    event_hash: str | None = None
 
     def __post_init__(self):
         if self.event_hash is None:
@@ -203,7 +203,7 @@ class AuditEvent:
         json_str = json.dumps(data, sort_keys=True, default=str)
         return hashlib.sha256(json_str.encode()).hexdigest()
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
         result = {
             "id": self.id,
@@ -235,17 +235,17 @@ class AuditEvent:
 class AuditQueryFilters:
     """Filters for querying audit logs."""
 
-    start_time: Optional[datetime] = None
-    end_time: Optional[datetime] = None
-    event_types: Optional[List[AuditEventType]] = None
-    severity_min: Optional[AuditSeverity] = None
-    user_id: Optional[str] = None
-    session_id: Optional[str] = None
-    patient_id: Optional[str] = None
-    correlation_id: Optional[str] = None
-    outcome: Optional[str] = None
-    resource_pattern: Optional[str] = None
-    has_phi_access: Optional[bool] = None
+    start_time: datetime | None = None
+    end_time: datetime | None = None
+    event_types: list[AuditEventType | None] = None
+    severity_min: AuditSeverity | None = None
+    user_id: str | None = None
+    session_id: str | None = None
+    patient_id: str | None = None
+    correlation_id: str | None = None
+    outcome: str | None = None
+    resource_pattern: str | None = None
+    has_phi_access: bool | None = None
 
 
 @dataclass
@@ -253,14 +253,14 @@ class AuditStatistics:
     """Statistics about audit logs."""
 
     total_events: int
-    events_by_type: Dict[str, int]
-    events_by_severity: Dict[str, int]
-    events_by_outcome: Dict[str, int]
+    events_by_type: dict[str, int]
+    events_by_severity: dict[str, int]
+    events_by_outcome: dict[str, int]
     unique_users: int
     unique_sessions: int
     phi_access_count: int
-    time_range_start: Optional[datetime] = None
-    time_range_end: Optional[datetime] = None
+    time_range_start: datetime | None = None
+    time_range_end: datetime | None = None
 
 
 class KGAuditService:
@@ -309,28 +309,28 @@ class KGAuditService:
     ):
         self.retention_days = retention_days
         self.max_events_in_memory = max_events_in_memory
-        self._events: List[AuditEvent] = []
-        self._events_by_user: Dict[str, List[str]] = defaultdict(list)
-        self._events_by_session: Dict[str, List[str]] = defaultdict(list)
-        self._events_by_patient: Dict[str, List[str]] = defaultdict(list)
-        self._events_by_correlation: Dict[str, List[str]] = defaultdict(list)
-        self._event_index: Dict[str, AuditEvent] = {}
-        self._last_hash: Optional[str] = None
+        self._events: list[AuditEvent] = []
+        self._events_by_user: dict[str, list[str]] = defaultdict(list)
+        self._events_by_session: dict[str, list[str]] = defaultdict(list)
+        self._events_by_patient: dict[str, list[str]] = defaultdict(list)
+        self._events_by_correlation: dict[str, list[str]] = defaultdict(list)
+        self._event_index: dict[str, AuditEvent] = {}
+        self._last_hash: str | None = None
         self._lock = threading.RLock()
-        self._listeners: List[Callable[[AuditEvent], None]] = []
+        self._listeners: list[Callable[[AuditEvent], None]] = []
 
     def log(
         self,
         event_type: AuditEventType,
         context: AuditContext,
-        resource: Optional[str] = None,
-        action: Optional[str] = None,
+        resource: str | None = None,
+        action: str | None = None,
         outcome: str = "success",
-        reason: Optional[str] = None,
-        duration_ms: Optional[int] = None,
-        phi_access: Optional[PHIAccess] = None,
-        details: Optional[Dict[str, Any]] = None,
-        severity: Optional[AuditSeverity] = None,
+        reason: str | None = None,
+        duration_ms: int | None = None,
+        phi_access: PHIAccess | None = None,
+        details: dict[str, Any | None] = None,
+        severity: AuditSeverity | None = None,
     ) -> AuditEvent:
         """Log an audit event."""
         event_id = str(uuid.uuid4())
@@ -396,14 +396,14 @@ class KGAuditService:
         self,
         event_type: AuditEventType,
         context: AuditContext,
-        patient_ids: List[str],
-        data_types: List[str],
+        patient_ids: list[str],
+        data_types: list[str],
         purpose: str,
         record_count: int = 1,
         consent_verified: bool = False,
-        resource: Optional[str] = None,
-        duration_ms: Optional[int] = None,
-        details: Optional[Dict[str, Any]] = None,
+        resource: str | None = None,
+        duration_ms: int | None = None,
+        details: dict[str, Any | None] = None,
     ) -> AuditEvent:
         """Log PHI access with HIPAA-required information."""
         access_type = {
@@ -441,7 +441,7 @@ class KGAuditService:
         event_type: AuditEventType,
         context: AuditContext,
         reason: str,
-        details: Optional[Dict[str, Any]] = None,
+        details: dict[str, Any | None] = None,
     ) -> AuditEvent:
         """Log a security-related event."""
         return self.log(
@@ -464,10 +464,10 @@ class KGAuditService:
         context: AuditContext,
         resource: str,
         action: str,
-        query: Optional[str] = None,
-        result_count: Optional[int] = None,
-        duration_ms: Optional[int] = None,
-        details: Optional[Dict[str, Any]] = None,
+        query: str | None = None,
+        result_count: int | None = None,
+        duration_ms: int | None = None,
+        details: dict[str, Any | None] = None,
     ) -> AuditEvent:
         """Log a Knowledge Graph operation."""
         event_details = details or {}
@@ -495,7 +495,7 @@ class KGAuditService:
         text = re.sub(r'\b\d{10}\b', '[MRN]', text)  # MRN pattern
         return text
 
-    def get_event(self, event_id: str) -> Optional[AuditEvent]:
+    def get_event(self, event_id: str) -> AuditEvent | None:
         """Get a specific audit event by ID."""
         with self._lock:
             return self._event_index.get(event_id)
@@ -505,7 +505,7 @@ class KGAuditService:
         filters: AuditQueryFilters,
         limit: int = 100,
         offset: int = 0,
-    ) -> Tuple[List[AuditEvent], int]:
+    ) -> tuple[list[AuditEvent], int]:
         """Query audit events with filters."""
         with self._lock:
             results = []
@@ -550,25 +550,25 @@ class KGAuditService:
                 return False
         return True
 
-    def get_events_by_user(self, user_id: str, limit: int = 100) -> List[AuditEvent]:
+    def get_events_by_user(self, user_id: str, limit: int = 100) -> list[AuditEvent]:
         """Get events for a specific user."""
         with self._lock:
             event_ids = self._events_by_user.get(user_id, [])[-limit:]
             return [self._event_index[eid] for eid in reversed(event_ids) if eid in self._event_index]
 
-    def get_events_by_session(self, session_id: str) -> List[AuditEvent]:
+    def get_events_by_session(self, session_id: str) -> list[AuditEvent]:
         """Get events for a specific session."""
         with self._lock:
             event_ids = self._events_by_session.get(session_id, [])
             return [self._event_index[eid] for eid in event_ids if eid in self._event_index]
 
-    def get_events_by_patient(self, patient_id: str, limit: int = 100) -> List[AuditEvent]:
+    def get_events_by_patient(self, patient_id: str, limit: int = 100) -> list[AuditEvent]:
         """Get PHI access events for a specific patient."""
         with self._lock:
             event_ids = self._events_by_patient.get(patient_id, [])[-limit:]
             return [self._event_index[eid] for eid in reversed(event_ids) if eid in self._event_index]
 
-    def get_events_by_correlation(self, correlation_id: str) -> List[AuditEvent]:
+    def get_events_by_correlation(self, correlation_id: str) -> list[AuditEvent]:
         """Get events with the same correlation ID (related operations)."""
         with self._lock:
             event_ids = self._events_by_correlation.get(correlation_id, [])
@@ -576,16 +576,16 @@ class KGAuditService:
 
     def get_statistics(
         self,
-        start_time: Optional[datetime] = None,
-        end_time: Optional[datetime] = None,
+        start_time: datetime | None = None,
+        end_time: datetime | None = None,
     ) -> AuditStatistics:
         """Get statistics about audit events."""
         with self._lock:
-            events_by_type: Dict[str, int] = defaultdict(int)
-            events_by_severity: Dict[str, int] = defaultdict(int)
-            events_by_outcome: Dict[str, int] = defaultdict(int)
-            unique_users: Set[str] = set()
-            unique_sessions: Set[str] = set()
+            events_by_type: dict[str, int] = defaultdict(int)
+            events_by_severity: dict[str, int] = defaultdict(int)
+            events_by_outcome: dict[str, int] = defaultdict(int)
+            unique_users: set[str] = set()
+            unique_sessions: set[str] = set()
             phi_access_count = 0
             total_events = 0
 
@@ -617,7 +617,7 @@ class KGAuditService:
                 time_range_end=end_time,
             )
 
-    def verify_chain_integrity(self) -> Tuple[bool, Optional[str]]:
+    def verify_chain_integrity(self) -> tuple[bool, str | None]:
         """Verify the integrity of the audit log chain.
 
         Returns (is_valid, first_invalid_event_id).
@@ -692,7 +692,7 @@ class KGAuditService:
         self,
         hours: int = 24,
         limit: int = 100,
-    ) -> List[AuditEvent]:
+    ) -> list[AuditEvent]:
         """Get recent PHI access events for compliance monitoring."""
         cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
         filters = AuditQueryFilters(
@@ -706,7 +706,7 @@ class KGAuditService:
         self,
         hours: int = 24,
         limit: int = 100,
-    ) -> List[AuditEvent]:
+    ) -> list[AuditEvent]:
         """Get recent security events."""
         cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
         security_types = [
@@ -744,8 +744,8 @@ F = TypeVar('F', bound=Callable[..., Any])
 def audit_log(
     audit_service: KGAuditService,
     event_type: AuditEventType,
-    resource_arg: Optional[str] = None,
-    action: Optional[str] = None,
+    resource_arg: str | None = None,
+    action: str | None = None,
 ):
     """Decorator to automatically log function calls to audit."""
     def decorator(func: F) -> F:
@@ -815,7 +815,7 @@ def audit_log(
 
 
 # Singleton instance
-_audit_service: Optional[KGAuditService] = None
+_audit_service: KGAuditService | None = None
 
 
 def get_audit_service() -> KGAuditService:

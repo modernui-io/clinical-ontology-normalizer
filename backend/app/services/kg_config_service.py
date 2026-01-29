@@ -48,14 +48,14 @@ class ConfigSchema:
     default: Any = None
     description: str = ""
     required: bool = False
-    min_value: Optional[float] = None
-    max_value: Optional[float] = None
-    allowed_values: Optional[List[Any]] = None
-    env_var: Optional[str] = None  # Environment variable override
+    min_value: float | None = None
+    max_value: float | None = None
+    allowed_values: list[Any | None] = None
+    env_var: str | None = None  # Environment variable override
     sensitive: bool = False  # Don't log value changes
     hot_reloadable: bool = True  # Can be changed without restart
 
-    def validate(self, value: Any) -> tuple[bool, Optional[str]]:
+    def validate(self, value: Any) -> tuple[bool, str | None]:
         """Validate a value against this schema.
 
         Returns (is_valid, error_message).
@@ -101,9 +101,9 @@ class ConfigChange:
     new_value: Any
     timestamp: datetime
     source: str  # file, env, api, rollback
-    user: Optional[str] = None
+    user: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "key": self.key,
             "old_value": self.old_value if not isinstance(self.old_value, Exception) else str(self.old_value),
@@ -120,12 +120,12 @@ class ConfigVersion:
 
     version: int
     timestamp: datetime
-    config: Dict[str, Any]
+    config: dict[str, Any]
     hash: str
     source: str
 
     @staticmethod
-    def compute_hash(config: Dict[str, Any]) -> str:
+    def compute_hash(config: dict[str, Any]) -> str:
         """Compute hash of configuration."""
         json_str = json.dumps(config, sort_keys=True, default=str)
         return hashlib.sha256(json_str.encode()).hexdigest()[:16]
@@ -328,7 +328,7 @@ class KGConfigService:
 
     def __init__(
         self,
-        config_file: Optional[str] = None,
+        config_file: str | None = None,
         watch_interval: float = 5.0,
         max_versions: int = 100,
     ):
@@ -336,18 +336,18 @@ class KGConfigService:
         self.watch_interval = watch_interval
         self.max_versions = max_versions
 
-        self._config: Dict[str, Any] = {}
-        self._schemas: Dict[str, ConfigSchema] = {}
-        self._versions: List[ConfigVersion] = []
+        self._config: dict[str, Any] = {}
+        self._schemas: dict[str, ConfigSchema] = {}
+        self._versions: list[ConfigVersion] = []
         self._current_version = 0
-        self._changes: List[ConfigChange] = []
-        self._listeners: Dict[str, List[Callable[[str, Any, Any], None]]] = defaultdict(list)
-        self._global_listeners: List[Callable[[ConfigChange], None]] = []
+        self._changes: list[ConfigChange] = []
+        self._listeners: dict[str, list[Callable[[str, Any, Any], None]]] = defaultdict(list)
+        self._global_listeners: list[Callable[[ConfigChange], None]] = []
         self._lock = threading.RLock()
 
         self._watching = False
-        self._watch_thread: Optional[threading.Thread] = None
-        self._last_file_hash: Optional[str] = None
+        self._watch_thread: threading.Thread | None = None
+        self._last_file_hash: str | None = None
 
         # Register default schemas
         for schema in self.DEFAULT_SCHEMAS:
@@ -364,7 +364,7 @@ class KGConfigService:
         with self._lock:
             self._schemas[schema.key] = schema
 
-    def get_schema(self, key: str) -> Optional[ConfigSchema]:
+    def get_schema(self, key: str) -> ConfigSchema | None:
         """Get schema for a configuration key."""
         return self._schemas.get(key)
 
@@ -412,7 +412,7 @@ class KGConfigService:
         with self._lock:
             return self._config.get(key, default)
 
-    def get_all(self) -> Dict[str, Any]:
+    def get_all(self) -> dict[str, Any]:
         """Get all configuration values."""
         with self._lock:
             return self._config.copy()
@@ -422,8 +422,8 @@ class KGConfigService:
         key: str,
         value: Any,
         source: str = "api",
-        user: Optional[str] = None,
-    ) -> tuple[bool, Optional[str]]:
+        user: str | None = None,
+    ) -> tuple[bool, str | None]:
         """Set a configuration value.
 
         Returns (success, error_message).
@@ -453,15 +453,15 @@ class KGConfigService:
 
     def set_many(
         self,
-        values: Dict[str, Any],
+        values: dict[str, Any],
         source: str = "api",
-        user: Optional[str] = None,
-    ) -> tuple[bool, Dict[str, str]]:
+        user: str | None = None,
+    ) -> tuple[bool, dict[str, str]]:
         """Set multiple configuration values atomically.
 
         Returns (all_success, errors_dict).
         """
-        errors: Dict[str, str] = {}
+        errors: dict[str, str] = {}
 
         with self._lock:
             # Validate all first
@@ -494,7 +494,7 @@ class KGConfigService:
         old_value: Any,
         new_value: Any,
         source: str,
-        user: Optional[str] = None,
+        user: str | None = None,
     ) -> None:
         """Record a configuration change."""
         # Mask sensitive values
@@ -570,7 +570,7 @@ class KGConfigService:
         if listener in self._global_listeners:
             self._global_listeners.remove(listener)
 
-    def load_from_file(self, filepath: str) -> tuple[bool, Optional[str]]:
+    def load_from_file(self, filepath: str) -> tuple[bool, str | None]:
         """Load configuration from a JSON file.
 
         Returns (success, error_message).
@@ -601,7 +601,7 @@ class KGConfigService:
         except Exception as e:
             return False, str(e)
 
-    def _flatten_dict(self, d: Dict[str, Any], prefix: str = "") -> Dict[str, Any]:
+    def _flatten_dict(self, d: dict[str, Any], prefix: str = "") -> dict[str, Any]:
         """Flatten a nested dictionary."""
         result = {}
         for key, value in d.items():
@@ -634,7 +634,7 @@ class KGConfigService:
             if len(self._versions) > self.max_versions:
                 self._versions = self._versions[-self.max_versions:]
 
-    def get_version(self, version: int) -> Optional[ConfigVersion]:
+    def get_version(self, version: int) -> ConfigVersion | None:
         """Get a specific configuration version."""
         with self._lock:
             for v in self._versions:
@@ -642,12 +642,12 @@ class KGConfigService:
                     return v
             return None
 
-    def get_versions(self, limit: int = 10) -> List[ConfigVersion]:
+    def get_versions(self, limit: int = 10) -> list[ConfigVersion]:
         """Get recent configuration versions."""
         with self._lock:
             return list(reversed(self._versions[-limit:]))
 
-    def rollback(self, version: int, user: Optional[str] = None) -> tuple[bool, Optional[str]]:
+    def rollback(self, version: int, user: str | None = None) -> tuple[bool, str | None]:
         """Rollback to a previous configuration version.
 
         Returns (success, error_message).
@@ -676,7 +676,7 @@ class KGConfigService:
             self._save_version("rollback")
             return True, None
 
-    def get_changes(self, limit: int = 100) -> List[ConfigChange]:
+    def get_changes(self, limit: int = 100) -> list[ConfigChange]:
         """Get recent configuration changes."""
         with self._lock:
             return list(reversed(self._changes[-limit:]))
@@ -718,7 +718,7 @@ class KGConfigService:
 
             time.sleep(self.watch_interval)
 
-    def export_config(self, include_sensitive: bool = False) -> Dict[str, Any]:
+    def export_config(self, include_sensitive: bool = False) -> dict[str, Any]:
         """Export configuration as a dictionary."""
         with self._lock:
             result = {}
@@ -730,7 +730,7 @@ class KGConfigService:
                     result[key] = value
             return result
 
-    def export_to_file(self, filepath: str, include_sensitive: bool = False) -> tuple[bool, Optional[str]]:
+    def export_to_file(self, filepath: str, include_sensitive: bool = False) -> tuple[bool, str | None]:
         """Export configuration to a JSON file.
 
         Returns (success, error_message).
@@ -756,12 +756,12 @@ class KGConfigService:
         except Exception as e:
             return False, str(e)
 
-    def validate_all(self) -> Dict[str, str]:
+    def validate_all(self) -> dict[str, str]:
         """Validate all current configuration values.
 
         Returns dict of key -> error message for invalid values.
         """
-        errors: Dict[str, str] = {}
+        errors: dict[str, str] = {}
         with self._lock:
             for key, schema in self._schemas.items():
                 value = self._config.get(key)
@@ -770,7 +770,7 @@ class KGConfigService:
                     errors[key] = error
         return errors
 
-    def get_diff(self, version1: int, version2: int) -> Dict[str, tuple[Any, Any]]:
+    def get_diff(self, version1: int, version2: int) -> dict[str, tuple[Any, Any]]:
         """Get differences between two configuration versions.
 
         Returns dict of key -> (old_value, new_value).
@@ -781,7 +781,7 @@ class KGConfigService:
         if not v1 or not v2:
             return {}
 
-        diff: Dict[str, tuple[Any, Any]] = {}
+        diff: dict[str, tuple[Any, Any]] = {}
         all_keys = set(v1.config.keys()) | set(v2.config.keys())
 
         for key in all_keys:
@@ -798,7 +798,7 @@ class KGConfigService:
 
 
 # Singleton instance
-_config_service: Optional[KGConfigService] = None
+_config_service: KGConfigService | None = None
 
 
 def get_config_service() -> KGConfigService:

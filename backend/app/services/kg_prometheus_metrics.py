@@ -38,9 +38,9 @@ class MetricDefinition:
     name: str
     type: MetricType
     help: str
-    labels: List[str] = field(default_factory=list)
-    buckets: Optional[List[float]] = None  # For histograms
-    quantiles: Optional[List[float]] = None  # For summaries
+    labels: list[str] = field(default_factory=list)
+    buckets: list[float | None] = None  # For histograms
+    quantiles: list[float | None] = None  # For summaries
 
     def __post_init__(self) -> None:
         # Validate metric name
@@ -57,7 +57,7 @@ class MetricDefinition:
 class LabelSet:
     """A set of label values for a metric."""
 
-    labels: Dict[str, str]
+    labels: dict[str, str]
 
     def __hash__(self) -> int:
         return hash(tuple(sorted(self.labels.items())))
@@ -73,13 +73,13 @@ class MetricValue:
     """Current value(s) of a metric."""
 
     value: float = 0.0
-    timestamp: Optional[float] = None
+    timestamp: float | None = None
     # For histograms
-    bucket_counts: Dict[float, int] = field(default_factory=dict)
+    bucket_counts: dict[float, int] = field(default_factory=dict)
     sum: float = 0.0
     count: int = 0
     # For summaries
-    observations: List[float] = field(default_factory=list)
+    observations: list[float] = field(default_factory=list)
 
 
 class Counter:
@@ -91,10 +91,10 @@ class Counter:
 
     def __init__(self, definition: MetricDefinition) -> None:
         self.definition = definition
-        self._values: Dict[LabelSet, MetricValue] = defaultdict(MetricValue)
+        self._values: dict[LabelSet, MetricValue] = defaultdict(MetricValue)
         self._lock = threading.RLock()
 
-    def inc(self, value: float = 1.0, labels: Optional[Dict[str, str]] = None) -> None:
+    def inc(self, value: float = 1.0, labels: dict[str, str | None] = None) -> None:
         """Increment the counter."""
         if value < 0:
             raise ValueError("Counter can only increase")
@@ -112,13 +112,13 @@ class Counter:
         child._default_labels = kwargs
         return child
 
-    def get(self, labels: Optional[Dict[str, str]] = None) -> float:
+    def get(self, labels: dict[str, str | None] = None) -> float:
         """Get current counter value."""
         label_set = LabelSet(labels or {})
         with self._lock:
             return self._values[label_set].value
 
-    def get_all(self) -> Dict[LabelSet, float]:
+    def get_all(self) -> dict[LabelSet, float]:
         """Get all counter values with labels."""
         with self._lock:
             return {ls: mv.value for ls, mv in self._values.items()}
@@ -133,31 +133,31 @@ class Gauge:
 
     def __init__(self, definition: MetricDefinition) -> None:
         self.definition = definition
-        self._values: Dict[LabelSet, MetricValue] = defaultdict(MetricValue)
+        self._values: dict[LabelSet, MetricValue] = defaultdict(MetricValue)
         self._lock = threading.RLock()
 
-    def set(self, value: float, labels: Optional[Dict[str, str]] = None) -> None:
+    def set(self, value: float, labels: dict[str, str | None] = None) -> None:
         """Set the gauge to a value."""
         label_set = LabelSet(labels or {})
         with self._lock:
             self._values[label_set].value = value
             self._values[label_set].timestamp = time.time()
 
-    def inc(self, value: float = 1.0, labels: Optional[Dict[str, str]] = None) -> None:
+    def inc(self, value: float = 1.0, labels: dict[str, str | None] = None) -> None:
         """Increment the gauge."""
         label_set = LabelSet(labels or {})
         with self._lock:
             self._values[label_set].value += value
             self._values[label_set].timestamp = time.time()
 
-    def dec(self, value: float = 1.0, labels: Optional[Dict[str, str]] = None) -> None:
+    def dec(self, value: float = 1.0, labels: dict[str, str | None] = None) -> None:
         """Decrement the gauge."""
         label_set = LabelSet(labels or {})
         with self._lock:
             self._values[label_set].value -= value
             self._values[label_set].timestamp = time.time()
 
-    def set_to_current_time(self, labels: Optional[Dict[str, str]] = None) -> None:
+    def set_to_current_time(self, labels: dict[str, str | None] = None) -> None:
         """Set gauge to current Unix timestamp."""
         self.set(time.time(), labels)
 
@@ -169,13 +169,13 @@ class Gauge:
         child._default_labels = kwargs
         return child
 
-    def get(self, labels: Optional[Dict[str, str]] = None) -> float:
+    def get(self, labels: dict[str, str | None] = None) -> float:
         """Get current gauge value."""
         label_set = LabelSet(labels or {})
         with self._lock:
             return self._values[label_set].value
 
-    def get_all(self) -> Dict[LabelSet, float]:
+    def get_all(self) -> dict[LabelSet, float]:
         """Get all gauge values with labels."""
         with self._lock:
             return {ls: mv.value for ls, mv in self._values.items()}
@@ -193,7 +193,7 @@ class Histogram:
     def __init__(self, definition: MetricDefinition) -> None:
         self.definition = definition
         self.buckets = definition.buckets or self.DEFAULT_BUCKETS
-        self._values: Dict[LabelSet, MetricValue] = {}
+        self._values: dict[LabelSet, MetricValue] = {}
         self._lock = threading.RLock()
 
     def _init_label_set(self, label_set: LabelSet) -> None:
@@ -205,7 +205,7 @@ class Histogram:
                 count=0
             )
 
-    def observe(self, value: float, labels: Optional[Dict[str, str]] = None) -> None:
+    def observe(self, value: float, labels: dict[str, str | None] = None) -> None:
         """Observe a value."""
         label_set = LabelSet(labels or {})
         with self._lock:
@@ -232,7 +232,7 @@ class Histogram:
         child._default_labels = kwargs
         return child
 
-    def get(self, labels: Optional[Dict[str, str]] = None) -> Tuple[Dict[float, int], float, int]:
+    def get(self, labels: dict[str, str | None] = None) -> tuple[dict[float, int], float, int]:
         """Get current histogram value (buckets, sum, count)."""
         label_set = LabelSet(labels or {})
         with self._lock:
@@ -240,7 +240,7 @@ class Histogram:
             mv = self._values[label_set]
             return mv.bucket_counts.copy(), mv.sum, mv.count
 
-    def get_all(self) -> Dict[LabelSet, Tuple[Dict[float, int], float, int]]:
+    def get_all(self) -> dict[LabelSet, tuple[dict[float, int], float, int]]:
         """Get all histogram values with labels."""
         with self._lock:
             return {ls: (mv.bucket_counts.copy(), mv.sum, mv.count) for ls, mv in self._values.items()}
@@ -249,10 +249,10 @@ class Histogram:
 class HistogramTimer:
     """Timer context manager for Histogram."""
 
-    def __init__(self, histogram: Histogram, labels: Optional[Dict[str, str]] = None) -> None:
+    def __init__(self, histogram: Histogram, labels: dict[str, str | None] = None) -> None:
         self.histogram = histogram
         self.labels = labels
-        self.start_time: Optional[float] = None
+        self.start_time: float | None = None
 
     def __enter__(self) -> "HistogramTimer":
         self.start_time = time.time()
@@ -277,7 +277,7 @@ class Summary:
         self.definition = definition
         self.quantiles = definition.quantiles or self.DEFAULT_QUANTILES
         self.max_observations = max_observations
-        self._values: Dict[LabelSet, MetricValue] = {}
+        self._values: dict[LabelSet, MetricValue] = {}
         self._lock = threading.RLock()
 
     def _init_label_set(self, label_set: LabelSet) -> None:
@@ -289,7 +289,7 @@ class Summary:
                 count=0
             )
 
-    def observe(self, value: float, labels: Optional[Dict[str, str]] = None) -> None:
+    def observe(self, value: float, labels: dict[str, str | None] = None) -> None:
         """Observe a value."""
         label_set = LabelSet(labels or {})
         with self._lock:
@@ -308,7 +308,7 @@ class Summary:
         """Context manager to time a block of code."""
         return SummaryTimer(self)
 
-    def get_quantile(self, quantile: float, labels: Optional[Dict[str, str]] = None) -> float:
+    def get_quantile(self, quantile: float, labels: dict[str, str | None] = None) -> float:
         """Get a specific quantile value."""
         label_set = LabelSet(labels or {})
         with self._lock:
@@ -330,7 +330,7 @@ class Summary:
         child._default_labels = kwargs
         return child
 
-    def get(self, labels: Optional[Dict[str, str]] = None) -> Tuple[Dict[float, float], float, int]:
+    def get(self, labels: dict[str, str | None] = None) -> tuple[dict[float, float], float, int]:
         """Get current summary value (quantiles, sum, count)."""
         label_set = LabelSet(labels or {})
         with self._lock:
@@ -343,10 +343,10 @@ class Summary:
 class SummaryTimer:
     """Timer context manager for Summary."""
 
-    def __init__(self, summary: Summary, labels: Optional[Dict[str, str]] = None) -> None:
+    def __init__(self, summary: Summary, labels: dict[str, str | None] = None) -> None:
         self.summary = summary
         self.labels = labels
-        self.start_time: Optional[float] = None
+        self.start_time: float | None = None
 
     def __enter__(self) -> "SummaryTimer":
         self.start_time = time.time()
@@ -364,14 +364,14 @@ class KGPrometheusRegistry:
 
     def __init__(self, prefix: str = "kg") -> None:
         self.prefix = prefix
-        self._metrics: Dict[str, Union[Counter, Gauge, Histogram, Summary]] = {}
+        self._metrics: dict[str, Union[Counter, Gauge, Histogram, Summary]] = {}
         self._lock = threading.RLock()
 
     def _full_name(self, name: str) -> str:
         """Get full metric name with prefix."""
         return f"{self.prefix}_{name}"
 
-    def counter(self, name: str, help: str, labels: Optional[List[str]] = None) -> Counter:
+    def counter(self, name: str, help: str, labels: list[str | None] = None) -> Counter:
         """Create or get a counter metric."""
         full_name = self._full_name(name)
         with self._lock:
@@ -385,7 +385,7 @@ class KGPrometheusRegistry:
                 self._metrics[full_name] = Counter(definition)
             return self._metrics[full_name]
 
-    def gauge(self, name: str, help: str, labels: Optional[List[str]] = None) -> Gauge:
+    def gauge(self, name: str, help: str, labels: list[str | None] = None) -> Gauge:
         """Create or get a gauge metric."""
         full_name = self._full_name(name)
         with self._lock:
@@ -403,8 +403,8 @@ class KGPrometheusRegistry:
         self,
         name: str,
         help: str,
-        labels: Optional[List[str]] = None,
-        buckets: Optional[List[float]] = None
+        labels: list[str | None] = None,
+        buckets: list[float | None] = None
     ) -> Histogram:
         """Create or get a histogram metric."""
         full_name = self._full_name(name)
@@ -424,8 +424,8 @@ class KGPrometheusRegistry:
         self,
         name: str,
         help: str,
-        labels: Optional[List[str]] = None,
-        quantiles: Optional[List[float]] = None
+        labels: list[str | None] = None,
+        quantiles: list[float | None] = None
     ) -> Summary:
         """Create or get a summary metric."""
         full_name = self._full_name(name)
@@ -441,18 +441,18 @@ class KGPrometheusRegistry:
                 self._metrics[full_name] = Summary(definition)
             return self._metrics[full_name]
 
-    def get_metric(self, name: str) -> Optional[Union[Counter, Gauge, Histogram, Summary]]:
+    def get_metric(self, name: str) -> Union[Counter, Gauge, Histogram, Summary | None]:
         """Get a metric by name."""
         full_name = self._full_name(name)
         with self._lock:
             return self._metrics.get(full_name)
 
-    def get_all_metrics(self) -> Dict[str, Union[Counter, Gauge, Histogram, Summary]]:
+    def get_all_metrics(self) -> dict[str, Union[Counter, Gauge, Histogram, Summary]]:
         """Get all registered metrics."""
         with self._lock:
             return self._metrics.copy()
 
-    def _format_labels(self, labels: Dict[str, str]) -> str:
+    def _format_labels(self, labels: dict[str, str]) -> str:
         """Format labels for Prometheus output."""
         if not labels:
             return ""
@@ -991,9 +991,9 @@ class KGMetricsService:
 
     def update_system_metrics(
         self,
-        memory_bytes: Optional[int] = None,
-        cpu_percent: Optional[float] = None,
-        threads: Optional[int] = None
+        memory_bytes: int | None = None,
+        cpu_percent: float | None = None,
+        threads: int | None = None
     ) -> None:
         """Update system metrics."""
         if memory_bytes is not None:
@@ -1093,7 +1093,7 @@ def metrics_neo4j(metrics: KGMetricsService, query_type: str):
 
 
 # Singleton instance
-_metrics_service: Optional[KGMetricsService] = None
+_metrics_service: KGMetricsService | None = None
 
 
 def get_metrics_service() -> KGMetricsService:

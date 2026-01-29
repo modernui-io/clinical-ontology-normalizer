@@ -42,13 +42,13 @@ class RequestResult:
 
     success: bool
     latency_ms: float
-    status_code: Optional[int] = None
-    error: Optional[str] = None
-    response_size_bytes: Optional[int] = None
+    status_code: int | None = None
+    error: str | None = None
+    response_size_bytes: int | None = None
     timestamp: float = field(default_factory=time.time)
-    request_id: Optional[str] = None
+    request_id: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "success": self.success,
@@ -77,7 +77,7 @@ class LatencyStats:
     std_dev_ms: float
 
     @staticmethod
-    def calculate(latencies: List[float]) -> "LatencyStats":
+    def calculate(latencies: list[float]) -> "LatencyStats":
         """Calculate latency statistics from a list of latencies."""
         if not latencies:
             return LatencyStats(
@@ -106,7 +106,7 @@ class LatencyStats:
             std_dev_ms=statistics.stdev(latencies) if len(latencies) > 1 else 0,
         )
 
-    def to_dict(self) -> Dict[str, float]:
+    def to_dict(self) -> dict[str, float]:
         """Convert to dictionary."""
         return {
             "min_ms": round(self.min_ms, 2),
@@ -131,7 +131,7 @@ class ThroughputStats:
     failed_per_second: float
     bytes_per_second: float
 
-    def to_dict(self) -> Dict[str, float]:
+    def to_dict(self) -> dict[str, float]:
         """Convert to dictionary."""
         return {
             "requests_per_second": round(self.requests_per_second, 2),
@@ -149,15 +149,15 @@ class LoadTestConfig:
     description: str = ""
     total_requests: int = 100
     concurrency: int = 10
-    duration_seconds: Optional[float] = None  # If set, overrides total_requests
+    duration_seconds: float | None = None  # If set, overrides total_requests
     load_pattern: LoadPattern = LoadPattern.CONSTANT
     ramp_up_seconds: float = 0
     warm_up_requests: int = 0
     timeout_seconds: float = 30.0
     think_time_ms: float = 0  # Delay between requests per worker
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "name": self.name,
@@ -181,18 +181,18 @@ class LoadTestResult:
     config: LoadTestConfig
     status: LoadTestStatus
     start_time: datetime
-    end_time: Optional[datetime] = None
+    end_time: datetime | None = None
     total_requests: int = 0
     successful_requests: int = 0
     failed_requests: int = 0
     total_duration_seconds: float = 0
-    latency_stats: Optional[LatencyStats] = None
-    throughput_stats: Optional[ThroughputStats] = None
-    error_breakdown: Dict[str, int] = field(default_factory=dict)
-    results: List[RequestResult] = field(default_factory=list)
-    error_message: Optional[str] = None
+    latency_stats: LatencyStats | None = None
+    throughput_stats: ThroughputStats | None = None
+    error_breakdown: dict[str, int] = field(default_factory=dict)
+    results: list[RequestResult] = field(default_factory=list)
+    error_message: str | None = None
 
-    def to_dict(self, include_results: bool = False) -> Dict[str, Any]:
+    def to_dict(self, include_results: bool = False) -> dict[str, Any]:
         """Convert to dictionary."""
         result = {
             "config": self.config.to_dict(),
@@ -225,7 +225,7 @@ class LoadTestScenario:
         self,
         name: str,
         request_func: Callable[[], RequestResult],
-        config: Optional[LoadTestConfig] = None,
+        config: LoadTestConfig | None = None,
     ):
         """Initialize the scenario.
 
@@ -273,7 +273,7 @@ class KGLoadTestRunner:
             max_workers: Maximum number of concurrent workers
         """
         self.max_workers = max_workers
-        self._current_test: Optional[LoadTestResult] = None
+        self._current_test: LoadTestResult | None = None
         self._cancel_event = threading.Event()
         self._lock = threading.Lock()
 
@@ -392,9 +392,9 @@ class KGLoadTestRunner:
         think_time_ms: float,
         load_pattern: LoadPattern,
         ramp_up_seconds: float,
-    ) -> List[RequestResult]:
+    ) -> list[RequestResult]:
         """Run a request-count based load test."""
-        results: List[RequestResult] = []
+        results: list[RequestResult] = []
         workers = min(concurrency, self.max_workers, total_requests)
 
         if load_pattern == LoadPattern.RAMP_UP and ramp_up_seconds > 0:
@@ -443,9 +443,9 @@ class KGLoadTestRunner:
         max_workers: int,
         think_time_ms: float,
         ramp_up_seconds: float,
-    ) -> List[RequestResult]:
+    ) -> list[RequestResult]:
         """Run with gradual ramp-up of concurrency."""
-        results: List[RequestResult] = []
+        results: list[RequestResult] = []
         start_time = time.time()
         requests_sent = 0
 
@@ -509,9 +509,9 @@ class KGLoadTestRunner:
         duration_seconds: float,
         concurrency: int,
         think_time_ms: float,
-    ) -> List[RequestResult]:
+    ) -> list[RequestResult]:
         """Run a time-based load test."""
-        results: List[RequestResult] = []
+        results: list[RequestResult] = []
         workers = min(concurrency, self.max_workers)
         end_time = time.time() + duration_seconds
         results_lock = threading.Lock()
@@ -560,7 +560,7 @@ class KGLoadTestRunner:
         self._cancel_event.set()
         return True
 
-    def get_progress(self) -> Optional[Dict[str, Any]]:
+    def get_progress(self) -> dict[str, Any | None]:
         """Get progress of the current test."""
         with self._lock:
             if not self._current_test:
@@ -589,13 +589,13 @@ class KGLoadTestSuite:
         """
         self.name = name
         self.description = description
-        self.scenarios: List[LoadTestScenario] = []
+        self.scenarios: list[LoadTestScenario] = []
 
     def add_scenario(self, scenario: LoadTestScenario) -> None:
         """Add a scenario to the suite."""
         self.scenarios.append(scenario)
 
-    def run(self, runner: KGLoadTestRunner) -> List[LoadTestResult]:
+    def run(self, runner: KGLoadTestRunner) -> list[LoadTestResult]:
         """Run all scenarios in the suite.
 
         Args:
@@ -615,8 +615,8 @@ class KGLoadTestSuite:
 
 def create_concept_lookup_scenario(
     lookup_func: Callable[[str], Any],
-    cuis: List[str],
-    config: Optional[LoadTestConfig] = None,
+    cuis: list[str],
+    config: LoadTestConfig | None = None,
 ) -> LoadTestScenario:
     """Create a concept lookup load test scenario.
 
@@ -660,8 +660,8 @@ def create_concept_lookup_scenario(
 
 def create_path_finding_scenario(
     path_func: Callable[[str, str], Any],
-    cui_pairs: List[Tuple[str, str]],
-    config: Optional[LoadTestConfig] = None,
+    cui_pairs: list[tuple[str, str]],
+    config: LoadTestConfig | None = None,
 ) -> LoadTestScenario:
     """Create a path finding load test scenario.
 
@@ -705,8 +705,8 @@ def create_path_finding_scenario(
 
 def create_search_scenario(
     search_func: Callable[[str], Any],
-    queries: List[str],
-    config: Optional[LoadTestConfig] = None,
+    queries: list[str],
+    config: LoadTestConfig | None = None,
 ) -> LoadTestScenario:
     """Create a search load test scenario.
 
@@ -749,7 +749,7 @@ def create_search_scenario(
 
 
 # Singleton instance
-_load_test_runner: Optional[KGLoadTestRunner] = None
+_load_test_runner: KGLoadTestRunner | None = None
 _runner_lock = threading.Lock()
 
 

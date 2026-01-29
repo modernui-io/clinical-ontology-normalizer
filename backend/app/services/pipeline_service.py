@@ -35,13 +35,13 @@ logger = logging.getLogger(__name__)
 class PipelineCreate(BaseModel):
     """Request model for creating a pipeline."""
     name: str = Field(..., min_length=1, max_length=255)
-    description: Optional[str] = None
+    description: str | None = None
     source_id: UUID
 
     # Schedule
     schedule_type: ScheduleType = ScheduleType.MANUAL
-    schedule_cron: Optional[str] = None  # "0 2 * * *" = 2 AM daily
-    schedule_interval_minutes: Optional[int] = None
+    schedule_cron: str | None = None  # "0 2 * * *" = 2 AM daily
+    schedule_interval_minutes: int | None = None
 
     # Transformation config
     patient_matching_strategy: str = "deterministic"
@@ -53,53 +53,53 @@ class PipelineCreate(BaseModel):
     nlp_extract_values: bool = True
     quality_min_completeness: float = 0.8
     quality_max_error_rate: float = 0.1
-    resource_type_filter: Optional[list[str]] = None
-    date_range_start: Optional[str] = None
-    date_range_end: Optional[str] = None
+    resource_type_filter: list[str | None] = None
+    date_range_start: str | None = None
+    date_range_end: str | None = None
 
 
 class PipelineUpdate(BaseModel):
     """Request model for updating a pipeline."""
-    name: Optional[str] = Field(None, min_length=1, max_length=255)
-    description: Optional[str] = None
-    status: Optional[PipelineStatus] = None
-    is_active: Optional[bool] = None
+    name: str | None = Field(None, min_length=1, max_length=255)
+    description: str | None = None
+    status: PipelineStatus | None = None
+    is_active: bool | None = None
 
-    schedule_type: Optional[ScheduleType] = None
-    schedule_cron: Optional[str] = None
-    schedule_interval_minutes: Optional[int] = None
+    schedule_type: ScheduleType | None = None
+    schedule_cron: str | None = None
+    schedule_interval_minutes: int | None = None
 
     # Transformation config (only update if provided)
-    patient_matching_strategy: Optional[str] = None
-    patient_matching_fields: Optional[list[str]] = None
-    code_mapping_prefer_standard: Optional[bool] = None
-    code_mapping_fallback_to_source: Optional[bool] = None
-    nlp_enrichment_enabled: Optional[bool] = None
-    nlp_process_notes: Optional[bool] = None
-    nlp_extract_values: Optional[bool] = None
-    quality_min_completeness: Optional[float] = None
-    quality_max_error_rate: Optional[float] = None
-    resource_type_filter: Optional[list[str]] = None
-    date_range_start: Optional[str] = None
-    date_range_end: Optional[str] = None
+    patient_matching_strategy: str | None = None
+    patient_matching_fields: list[str | None] = None
+    code_mapping_prefer_standard: bool | None = None
+    code_mapping_fallback_to_source: bool | None = None
+    nlp_enrichment_enabled: bool | None = None
+    nlp_process_notes: bool | None = None
+    nlp_extract_values: bool | None = None
+    quality_min_completeness: float | None = None
+    quality_max_error_rate: float | None = None
+    resource_type_filter: list[str | None] = None
+    date_range_start: str | None = None
+    date_range_end: str | None = None
 
 
 class PipelineResponse(BaseModel):
     """Response model for pipeline."""
     id: UUID
     name: str
-    description: Optional[str]
+    description: str | None
     source_id: UUID
-    source_name: Optional[str] = None
+    source_name: str | None = None
     status: PipelineStatus
     is_active: bool
     schedule_type: ScheduleType
-    schedule_cron: Optional[str]
-    schedule_interval_minutes: Optional[int]
+    schedule_cron: str | None
+    schedule_interval_minutes: int | None
     transformation_config: dict
-    last_run_at: Optional[datetime]
-    last_run_status: Optional[str]
-    next_run_at: Optional[datetime]
+    last_run_at: datetime | None
+    last_run_status: str | None
+    next_run_at: datetime | None
     total_runs: int
     successful_runs: int
     failed_runs: int
@@ -114,24 +114,24 @@ class PipelineRunResponse(BaseModel):
     """Response model for pipeline run."""
     id: UUID
     pipeline_id: UUID
-    pipeline_name: Optional[str] = None
+    pipeline_name: str | None = None
     status: PipelineRunStatus
     current_stage: PipelineStage
     progress_percent: int
-    started_at: Optional[datetime]
-    completed_at: Optional[datetime]
+    started_at: datetime | None
+    completed_at: datetime | None
     records_total: int
     records_processed: int
     records_succeeded: int
     records_failed: int
     records_skipped: int
     stage_statistics: dict
-    error_message: Optional[str]
+    error_message: str | None
     warnings: list
     triggered_by: str
     created_at: datetime
-    duration_seconds: Optional[float] = None
-    success_rate: Optional[float] = None
+    duration_seconds: float | None = None
+    success_rate: float | None = None
 
     class Config:
         from_attributes = True
@@ -146,7 +146,7 @@ class PipelineService:
     async def create(
         self,
         data: PipelineCreate,
-        created_by: Optional[UUID] = None,
+        created_by: UUID | None = None,
     ) -> Pipeline:
         """Create a new pipeline."""
         # Verify source exists
@@ -195,7 +195,7 @@ class PipelineService:
         logger.info(f"Created pipeline: {pipeline.id} ({pipeline.name})")
         return pipeline
 
-    async def get(self, pipeline_id: UUID) -> Optional[Pipeline]:
+    async def get(self, pipeline_id: UUID) -> Pipeline | None:
         """Get a pipeline by ID."""
         result = await self.db.execute(
             select(Pipeline)
@@ -206,9 +206,9 @@ class PipelineService:
 
     async def list(
         self,
-        source_id: Optional[UUID] = None,
-        status: Optional[PipelineStatus] = None,
-        is_active: Optional[bool] = None,
+        source_id: UUID | None = None,
+        status: PipelineStatus | None = None,
+        is_active: bool | None = None,
         limit: int = 100,
         offset: int = 0,
     ) -> list[Pipeline]:
@@ -230,7 +230,7 @@ class PipelineService:
         self,
         pipeline_id: UUID,
         data: PipelineUpdate,
-    ) -> Optional[Pipeline]:
+    ) -> Pipeline | None:
         """Update a pipeline."""
         pipeline = await self.get(pipeline_id)
         if not pipeline:
@@ -293,7 +293,7 @@ class PipelineService:
         logger.info(f"Deleted pipeline: {pipeline_id}")
         return True
 
-    async def pause(self, pipeline_id: UUID) -> Optional[Pipeline]:
+    async def pause(self, pipeline_id: UUID) -> Pipeline | None:
         """Pause a pipeline's scheduled runs."""
         pipeline = await self.get(pipeline_id)
         if not pipeline:
@@ -310,7 +310,7 @@ class PipelineService:
         logger.info(f"Paused pipeline: {pipeline_id}")
         return pipeline
 
-    async def resume(self, pipeline_id: UUID) -> Optional[Pipeline]:
+    async def resume(self, pipeline_id: UUID) -> Pipeline | None:
         """Resume a paused pipeline."""
         pipeline = await self.get(pipeline_id)
         if not pipeline:
@@ -336,7 +336,7 @@ class PipelineService:
         self,
         pipeline_id: UUID,
         triggered_by: str = "manual",
-        triggered_by_user: Optional[UUID] = None,
+        triggered_by_user: UUID | None = None,
     ) -> PipelineRun:
         """Create a new pipeline run."""
         pipeline = await self.get(pipeline_id)
@@ -366,7 +366,7 @@ class PipelineService:
         logger.info(f"Created pipeline run: {run.id} for pipeline {pipeline_id}")
         return run
 
-    async def get_run(self, run_id: UUID) -> Optional[PipelineRun]:
+    async def get_run(self, run_id: UUID) -> PipelineRun | None:
         """Get a pipeline run by ID."""
         result = await self.db.execute(
             select(PipelineRun)
@@ -378,7 +378,7 @@ class PipelineService:
     async def list_runs(
         self,
         pipeline_id: UUID,
-        status: Optional[PipelineRunStatus] = None,
+        status: PipelineRunStatus | None = None,
         limit: int = 50,
         offset: int = 0,
     ) -> list[PipelineRun]:
@@ -396,10 +396,10 @@ class PipelineService:
         self,
         run_id: UUID,
         status: PipelineRunStatus,
-        stage: Optional[PipelineStage] = None,
-        progress: Optional[int] = None,
-        error_message: Optional[str] = None,
-    ) -> Optional[PipelineRun]:
+        stage: PipelineStage | None = None,
+        progress: int | None = None,
+        error_message: str | None = None,
+    ) -> PipelineRun | None:
         """Update run status and progress."""
         run = await self.get_run(run_id)
         if not run:
@@ -451,14 +451,14 @@ class PipelineService:
     async def update_run_statistics(
         self,
         run_id: UUID,
-        records_total: Optional[int] = None,
-        records_processed: Optional[int] = None,
-        records_succeeded: Optional[int] = None,
-        records_failed: Optional[int] = None,
-        records_skipped: Optional[int] = None,
-        stage_statistics: Optional[dict] = None,
-        warnings: Optional[list] = None,
-    ) -> Optional[PipelineRun]:
+        records_total: int | None = None,
+        records_processed: int | None = None,
+        records_succeeded: int | None = None,
+        records_failed: int | None = None,
+        records_skipped: int | None = None,
+        stage_statistics: dict | None = None,
+        warnings: list | None = None,
+    ) -> PipelineRun | None:
         """Update run statistics."""
         run = await self.get_run(run_id)
         if not run:
@@ -484,7 +484,7 @@ class PipelineService:
         # Reload with relationship (refresh doesn't load relationships)
         return await self.get_run(run_id)
 
-    async def cancel_run(self, run_id: UUID) -> Optional[PipelineRun]:
+    async def cancel_run(self, run_id: UUID) -> PipelineRun | None:
         """Cancel a running pipeline."""
         run = await self.get_run(run_id)
         if not run:
@@ -527,9 +527,9 @@ class PipelineService:
     def _calculate_next_run(
         self,
         schedule_type: ScheduleType,
-        cron_expr: Optional[str],
-        interval_minutes: Optional[int],
-    ) -> Optional[datetime]:
+        cron_expr: str | None,
+        interval_minutes: int | None,
+    ) -> datetime | None:
         """Calculate next scheduled run time."""
         if schedule_type == ScheduleType.MANUAL:
             return None
