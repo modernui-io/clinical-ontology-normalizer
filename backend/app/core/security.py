@@ -97,8 +97,8 @@ def is_public_route(path: str) -> bool:
 
 
 def verify_api_key(
-    api_key: Annotated[Optional[str], Security(api_key_header)],
-) -> Optional[str]:
+    api_key: Annotated[str | None, Security(api_key_header)],
+) -> str | None:
     """Verify API key if authentication is enabled.
 
     Supports both single key (from settings.api_key) and multi-key
@@ -144,8 +144,8 @@ def verify_api_key(
 
 
 async def verify_api_key_async(
-    api_key: Optional[str] = Security(api_key_header),
-) -> Optional[str]:
+    api_key: str | None = Security(api_key_header),
+) -> str | None:
     """Async version of verify_api_key for compatibility.
 
     This provides the same functionality as verify_api_key but as an
@@ -164,8 +164,8 @@ async def verify_api_key_async(
 
 
 async def optional_verify_api_key(
-    api_key: Optional[str] = Security(api_key_header),
-) -> Optional[str]:
+    api_key: str | None = Security(api_key_header),
+) -> str | None:
     """Optionally verify API key, returning None if auth is disabled.
 
     Unlike verify_api_key, this does not raise an error when authentication
@@ -184,7 +184,7 @@ async def optional_verify_api_key(
 
 
 # Dependency for protected endpoints
-RequireAuth = Annotated[Optional[str], Depends(verify_api_key)]
+RequireAuth = Annotated[str | None, Depends(verify_api_key)]
 
 
 class TenantContext:
@@ -194,7 +194,7 @@ class TenantContext:
     Used to enforce isolation between patient data.
     """
 
-    def __init__(self, tenant_id: Optional[str] = None):
+    def __init__(self, tenant_id: str | None = None):
         """Initialize tenant context.
 
         Args:

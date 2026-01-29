@@ -49,8 +49,8 @@ async def create_data_source(
 
 @router.get("", response_model=list[DataSourceResponse])
 async def list_data_sources(
-    source_type: Optional[DataSourceType] = None,
-    is_active: Optional[bool] = None,
+    source_type: DataSourceType | None = None,
+    is_active: bool | None = None,
     limit: int = 100,
     offset: int = 0,
     service: DataSourceService = Depends(get_service),

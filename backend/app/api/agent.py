@@ -36,17 +36,17 @@ class AgentRequestModel(BaseModel):
     use_case: str = Field(default="general_analysis", description="Use case context")
 
     # Optional context
-    patient_id: Optional[str] = None
-    encounter_id: Optional[str] = None
-    current_icd10_codes: List[str] = Field(default_factory=list)
-    current_medications: List[str] = Field(default_factory=list)
-    lab_values: List[Dict[str, Any]] = Field(default_factory=list)
+    patient_id: str | None = None
+    encounter_id: str | None = None
+    current_icd10_codes: list[str] = Field(default_factory=list)
+    current_medications: list[str] = Field(default_factory=list)
+    lab_values: list[dict[str, Any]] = Field(default_factory=list)
 
     # For reasoning/Q&A
-    question: Optional[str] = None
+    question: str | None = None
 
     # For eligibility checking
-    eligibility_criteria: List[Dict[str, Any]] = Field(default_factory=list)
+    eligibility_criteria: list[dict[str, Any]] = Field(default_factory=list)
 
     # Options
     include_normalized_codes: bool = True
@@ -81,7 +81,7 @@ class AgentRequestModel(BaseModel):
 class CodingAnalysisRequest(BaseModel):
     """Request for medical coding analysis."""
     clinical_text: str = Field(..., description="Clinical note to analyze")
-    current_icd10_codes: List[str] = Field(default_factory=list)
+    current_icd10_codes: list[str] = Field(default_factory=list)
 
     model_config = {
         "json_schema_extra": {
@@ -98,7 +98,7 @@ class CodingAnalysisRequest(BaseModel):
 class ResearchAnalysisRequest(BaseModel):
     """Request for research/clinical trial analysis."""
     clinical_text: str = Field(..., description="Clinical note to analyze")
-    eligibility_criteria: List[Dict[str, Any]] = Field(
+    eligibility_criteria: list[dict[str, Any]] = Field(
         default_factory=list,
         description="List of eligibility criteria to check against"
     )
@@ -129,8 +129,8 @@ class QuestionRequest(BaseModel):
 # =============================================================================
 
 
-@router.post("/process", response_model=Dict[str, Any])
-async def process_request(request: AgentRequestModel) -> Dict[str, Any]:
+@router.post("/process", response_model=dict[str, Any])
+async def process_request(request: AgentRequestModel) -> dict[str, Any]:
     """
     Process a generic agent request.
 
@@ -174,8 +174,8 @@ async def process_request(request: AgentRequestModel) -> Dict[str, Any]:
     return _response_to_dict(response)
 
 
-@router.post("/coding/analyze", response_model=Dict[str, Any])
-async def analyze_for_coding(request: CodingAnalysisRequest) -> Dict[str, Any]:
+@router.post("/coding/analyze", response_model=dict[str, Any])
+async def analyze_for_coding(request: CodingAnalysisRequest) -> dict[str, Any]:
     """
     Analyze clinical text for medical coding.
 
@@ -195,8 +195,8 @@ async def analyze_for_coding(request: CodingAnalysisRequest) -> Dict[str, Any]:
     return _response_to_dict(response)
 
 
-@router.post("/research/analyze", response_model=Dict[str, Any])
-async def analyze_for_research(request: ResearchAnalysisRequest) -> Dict[str, Any]:
+@router.post("/research/analyze", response_model=dict[str, Any])
+async def analyze_for_research(request: ResearchAnalysisRequest) -> dict[str, Any]:
     """
     Analyze clinical text for research purposes.
 
@@ -216,8 +216,8 @@ async def analyze_for_research(request: ResearchAnalysisRequest) -> Dict[str, An
     return _response_to_dict(response)
 
 
-@router.post("/qa", response_model=Dict[str, Any])
-async def answer_question(request: QuestionRequest) -> Dict[str, Any]:
+@router.post("/qa", response_model=dict[str, Any])
+async def answer_question(request: QuestionRequest) -> dict[str, Any]:
     """
     Answer a clinical question about a note.
 
@@ -236,8 +236,8 @@ async def answer_question(request: QuestionRequest) -> Dict[str, Any]:
     return _response_to_dict(response)
 
 
-@router.post("/summarize", response_model=Dict[str, Any])
-async def summarize_note(clinical_text: str) -> Dict[str, Any]:
+@router.post("/summarize", response_model=dict[str, Any])
+async def summarize_note(clinical_text: str) -> dict[str, Any]:
     """
     Generate a clinical summary of the note.
     """
@@ -253,8 +253,8 @@ async def summarize_note(clinical_text: str) -> Dict[str, Any]:
     return _response_to_dict(response)
 
 
-@router.get("/capabilities", response_model=Dict[str, Any])
-async def get_capabilities() -> Dict[str, Any]:
+@router.get("/capabilities", response_model=dict[str, Any])
+async def get_capabilities() -> dict[str, Any]:
     """
     Get the capabilities of the Clinical Intelligence Agent.
 
@@ -264,8 +264,8 @@ async def get_capabilities() -> Dict[str, Any]:
     return agent.get_capabilities()
 
 
-@router.get("/actions", response_model=List[Dict[str, str]])
-async def list_actions() -> List[Dict[str, str]]:
+@router.get("/actions", response_model=list[dict[str, str]])
+async def list_actions() -> list[dict[str, str]]:
     """
     List all available actions with descriptions.
     """
@@ -288,8 +288,8 @@ async def list_actions() -> List[Dict[str, str]]:
     ]
 
 
-@router.get("/use-cases", response_model=List[Dict[str, str]])
-async def list_use_cases() -> List[Dict[str, str]]:
+@router.get("/use-cases", response_model=list[dict[str, str]])
+async def list_use_cases() -> list[dict[str, str]]:
     """
     List all supported use cases with descriptions.
     """
@@ -308,7 +308,7 @@ async def list_use_cases() -> List[Dict[str, str]]:
 # =============================================================================
 
 
-def _response_to_dict(response: AgentResponse) -> Dict[str, Any]:
+def _response_to_dict(response: AgentResponse) -> dict[str, Any]:
     """Convert AgentResponse to dictionary for JSON serialization."""
     result = {
         "success": response.success,

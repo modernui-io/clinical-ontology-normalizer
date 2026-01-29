@@ -49,22 +49,22 @@ class AuditEvent(BaseModel):
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     action: AuditAction = Field(..., description="Type of action performed")
     resource_type: str = Field(..., description="Type of resource accessed")
-    resource_id: Optional[str] = Field(None, description="ID of specific resource")
-    patient_id: Optional[str] = Field(None, description="Patient ID if applicable")
-    user_id: Optional[str] = Field(None, description="User who performed action")
-    ip_address: Optional[str] = Field(None, description="Client IP address")
-    details: Optional[dict[str, Any]] = Field(None, description="Additional context")
+    resource_id: str | None = Field(None, description="ID of specific resource")
+    patient_id: str | None = Field(None, description="Patient ID if applicable")
+    user_id: str | None = Field(None, description="User who performed action")
+    ip_address: str | None = Field(None, description="Client IP address")
+    details: dict[str, Any | None] = Field(None, description="Additional context")
     success: bool = Field(True, description="Whether action succeeded")
 
 
 def log_audit(
     action: AuditAction,
     resource_type: str,
-    resource_id: Optional[str] = None,
-    patient_id: Optional[str] = None,
-    user_id: Optional[str] = None,
-    ip_address: Optional[str] = None,
-    details: Optional[dict[str, Any]] = None,
+    resource_id: str | None = None,
+    patient_id: str | None = None,
+    user_id: str | None = None,
+    ip_address: str | None = None,
+    details: dict[str, Any | None] = None,
     success: bool = True,
 ) -> AuditEvent:
     """Log an audit event.
@@ -111,9 +111,9 @@ def log_audit(
 
 def log_data_access(
     resource_type: str,
-    resource_id: Optional[str] = None,
-    patient_id: Optional[str] = None,
-    user_id: Optional[str] = None,
+    resource_id: str | None = None,
+    patient_id: str | None = None,
+    user_id: str | None = None,
     action: AuditAction = AuditAction.READ,
 ) -> AuditEvent:
     """Log a data access event.

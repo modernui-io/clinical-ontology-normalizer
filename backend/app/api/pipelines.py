@@ -55,9 +55,9 @@ async def create_pipeline(
 
 @router.get("", response_model=list[PipelineResponse])
 async def list_pipelines(
-    source_id: Optional[UUID] = None,
-    status: Optional[PipelineStatus] = None,
-    is_active: Optional[bool] = None,
+    source_id: UUID | None = None,
+    status: PipelineStatus | None = None,
+    is_active: bool | None = None,
     limit: int = 100,
     offset: int = 0,
     service: PipelineService = Depends(get_service),
@@ -247,7 +247,7 @@ async def resume_pipeline(
 @router.get("/{pipeline_id}/runs", response_model=list[PipelineRunResponse])
 async def list_runs(
     pipeline_id: UUID,
-    status: Optional[PipelineRunStatus] = None,
+    status: PipelineRunStatus | None = None,
     limit: int = 50,
     offset: int = 0,
     service: PipelineService = Depends(get_service),

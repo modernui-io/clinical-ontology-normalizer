@@ -95,17 +95,17 @@ class Settings(BaseSettings):
         return validated
 
     # Authentication - NO INSECURE DEFAULTS
-    api_key: Optional[str] = None  # Required when auth_enabled=True
+    api_key: str | None = None  # Required when auth_enabled=True
     api_key_header: str = "X-API-Key"
     auth_enabled: bool = False  # Disabled by default for local dev
-    jwt_secret_key: Optional[str] = None  # Required when auth_enabled=True
+    jwt_secret_key: str | None = None  # Required when auth_enabled=True
     jwt_algorithm: str = "HS256"
     jwt_access_token_expire_minutes: int = 30
     auth_bypass_dev: bool = False  # Dev bypass for testing without auth
 
     # LLM Configuration
-    openai_api_key: Optional[str] = None
-    anthropic_api_key: Optional[str] = None
+    openai_api_key: str | None = None
+    anthropic_api_key: str | None = None
     llm_provider: str = "openai"  # "openai" or "anthropic"
     llm_model: str = "gpt-4o-mini"  # Default model
     llm_max_tokens: int = 4096  # Maximum tokens for completion
@@ -113,18 +113,18 @@ class Settings(BaseSettings):
     # Neo4j Configuration (for knowledge graph)
     neo4j_uri: str = "bolt://localhost:7687"
     neo4j_user: str = "neo4j"
-    neo4j_password: Optional[str] = None  # Required for Neo4j connection
+    neo4j_password: str | None = None  # Required for Neo4j connection
     neo4j_database: str = "neo4j"
     neo4j_max_connection_pool_size: int = 50
     neo4j_connection_timeout: int = 30
 
     # UMLS Configuration
-    umls_api_key: Optional[str] = None  # For UMLS API access
-    umls_data_path: Optional[str] = None  # Path to UMLS META directory
+    umls_api_key: str | None = None  # For UMLS API access
+    umls_data_path: str | None = None  # Path to UMLS META directory
 
     @field_validator("jwt_secret_key", "api_key", "neo4j_password", mode="before")
     @classmethod
-    def check_not_insecure_default(cls, v: Optional[str]) -> Optional[str]:
+    def check_not_insecure_default(cls, v: str | None) -> str | None:
         """Reject known insecure default values."""
         if v is not None and v.lower() in _INSECURE_DEFAULTS:
             warnings.warn(

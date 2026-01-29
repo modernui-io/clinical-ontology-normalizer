@@ -330,14 +330,14 @@ class PipelineRun(Base):
         return f"<PipelineRun(id={self.id}, pipeline_id={self.pipeline_id}, status={self.status.value})>"
 
     @property
-    def duration_seconds(self) -> Optional[float]:
+    def duration_seconds(self) -> float | None:
         """Calculate run duration in seconds."""
         if self.started_at and self.completed_at:
             return (self.completed_at - self.started_at).total_seconds()
         return None
 
     @property
-    def success_rate(self) -> Optional[float]:
+    def success_rate(self) -> float | None:
         """Calculate success rate as percentage."""
         if self.records_processed > 0:
             return (self.records_succeeded / self.records_processed) * 100
