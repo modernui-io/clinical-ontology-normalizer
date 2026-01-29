@@ -705,7 +705,7 @@ MRN: {PATIENT['id']}
                     display_val = f"{varied_val:.1f}"
                 else:
                     display_val = str(int(varied_val))
-            except:
+            except (ValueError, TypeError):
                 display_val = value
 
             # Determine if high/low
@@ -725,8 +725,8 @@ MRN: {PATIENT['id']}
                     threshold = float(ref_range.replace('<', ''))
                     if float(display_val) > threshold:
                         flag = " [HIGH]"
-            except:
-                pass
+            except (ValueError, TypeError):
+                pass  # Non-numeric value, skip flag calculation
 
             note += f"  {test_name}: {display_val} {unit} (ref: {ref_range}){flag}\n"
 

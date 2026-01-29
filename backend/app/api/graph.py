@@ -20,10 +20,11 @@ from enum import Enum
 from typing import Any
 from uuid import uuid4
 
-from fastapi import APIRouter, Query, Body, HTTPException
+from fastapi import APIRouter, Query, Body, HTTPException, Depends
 from pydantic import BaseModel, Field
 
 from app.api.errors import ErrorCode, InternalError, NotFoundError
+from app.api.middleware.auth_middleware import CurrentUser, require_admin
 from app.services.kg_cache_service import get_kg_cache_service, CacheType
 
 router = APIRouter(prefix="/graph", tags=["Knowledge Graph"])
@@ -1002,25 +1003,31 @@ async def get_patient_subgraph(
 )
 async def execute_cypher_query(
     request: CypherQueryRequest,
+    current_user: CurrentUser = Depends(require_admin),
 ) -> CypherQueryResponse:
     """Execute a Cypher query (admin only).
 
     WARNING: This endpoint allows arbitrary Cypher execution
     and should only be accessible to administrators.
 
+    Requires admin role via require_admin dependency.
+
     Args:
         request: CypherQueryRequest with query and parameters.
+        current_user: Authenticated admin user (injected via dependency).
 
     Returns:
         CypherQueryResponse with query results.
     """
+    import logging
+
     start_time = time.perf_counter()
     request_id = str(uuid4())
 
-    # TODO: Add proper admin authentication check
-    # For now, we'll allow it but log a warning
-    import logging
-    logging.warning(f"Admin Cypher query executed: {request.query[:100]}...")
+    # Log admin action for audit trail
+    logging.info(
+        f"Admin Cypher query by user={current_user.user_id}: {request.query[:100]}..."
+    )
 
     try:
         from app.services.graph_database_service import get_graph_database_service

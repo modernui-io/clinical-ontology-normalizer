@@ -5,6 +5,7 @@ This module provides:
 - Context variables for request-scoped state
 - Integration with logging
 - Headers for request tracing (X-Request-ID)
+- VP-DevOps-3: Database request context integration
 
 Usage:
     from app.api.middleware.request_id import RequestIdMiddleware, get_request_id
@@ -25,6 +26,9 @@ from typing import Any
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response as StarletteResponse
+
+# Import database context for integration
+from app.core.database import DatabaseRequestContext, set_db_request_context
 
 logger = logging.getLogger(__name__)
 
@@ -181,6 +185,14 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
             "user_agent": request.headers.get("user-agent"),
         })
 
+        # VP-DevOps-3: Set database request context for exception logging
+        set_db_request_context(DatabaseRequestContext(
+            request_id=request_id,
+            user_id=None,  # Will be set by auth middleware if available
+            endpoint=str(request.url.path),
+            method=request.method,
+        ))
+
         # Store in request state for access in route handlers
         request.state.request_id = request_id
         request.state.correlation_id = correlation_id
@@ -229,6 +241,8 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
         finally:
             # Clear context
             clear_request_context()
+            # VP-DevOps-3: Clear database context
+            set_db_request_context(None)
 
     def _get_or_generate_request_id(self, request: Request) -> str:
         """Get request ID from header or generate a new one.

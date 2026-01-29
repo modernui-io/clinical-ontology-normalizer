@@ -1,7 +1,14 @@
-"""Database configuration and session management."""
+"""Database configuration and session management.
 
+VP-DevOps-3: Added request context logging for database exceptions.
+"""
+
+import logging
 from collections.abc import AsyncGenerator
+from contextvars import ContextVar
+from dataclasses import dataclass
 from datetime import UTC, datetime
+from typing import Any
 from uuid import uuid4
 
 from sqlalchemy import DateTime, Engine, create_engine, func
@@ -10,6 +17,54 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# Request Context for Database Logging
+# =============================================================================
+
+
+@dataclass
+class DatabaseRequestContext:
+    """Context for database operations, used for logging and debugging.
+
+    This context is propagated through the application using contextvars
+    to enable meaningful logging in database operations.
+    """
+
+    request_id: str | None = None
+    user_id: str | None = None
+    endpoint: str | None = None
+    method: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert to dictionary for logging extra fields."""
+        return {
+            k: v for k, v in {
+                "request_id": self.request_id,
+                "user_id": self.user_id,
+                "endpoint": self.endpoint,
+                "method": self.method,
+            }.items() if v is not None
+        }
+
+
+# Context variable for request context (thread-safe, async-safe)
+_db_request_context: ContextVar[DatabaseRequestContext | None] = ContextVar(
+    "db_request_context", default=None
+)
+
+
+def get_db_request_context() -> DatabaseRequestContext | None:
+    """Get current database request context."""
+    return _db_request_context.get()
+
+
+def set_db_request_context(ctx: DatabaseRequestContext | None) -> None:
+    """Set database request context for current async context."""
+    _db_request_context.set(ctx)
 
 # Create async engine (for FastAPI async endpoints)
 # VP-Platform: Added connection pool configuration for production scalability
@@ -134,6 +189,8 @@ class SoftDeleteMixin:
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """Dependency to get database session.
 
+    VP-DevOps-3: Added request context logging for exceptions.
+
     Usage in FastAPI:
         @app.get("/items")
         async def get_items(db: AsyncSession = Depends(get_db)):
@@ -143,8 +200,19 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
         try:
             yield session
             await session.commit()
-        except Exception:
+        except Exception as e:
             await session.rollback()
+
+            # Log exception with request context
+            ctx = get_db_request_context()
+            extra = ctx.to_dict() if ctx else {}
+            extra["error_type"] = type(e).__name__
+
+            logger.error(
+                f"Database transaction failed: {type(e).__name__}: {str(e)[:200]}",
+                extra=extra,
+                exc_info=True,
+            )
             raise
         finally:
             await session.close()

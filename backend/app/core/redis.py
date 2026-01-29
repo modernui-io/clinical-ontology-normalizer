@@ -116,12 +116,25 @@ async def close_async_redis() -> None:
 def ping_redis() -> bool:
     """Check if sync Redis connection is healthy.
 
+    VP-DevOps-4: Added logging for connection failures.
+
     Returns:
         True if Redis responds to ping, False otherwise.
     """
     try:
-        return bool(get_redis().ping())
-    except Exception:
+        result = get_redis().ping()
+        if result:
+            logger.debug("Sync Redis health check passed")
+        return bool(result)
+    except Exception as e:
+        logger.warning(
+            "Sync Redis health check failed",
+            extra={
+                "error_type": type(e).__name__,
+                "error_message": str(e),
+                "redis_url": _mask_redis_url(settings.redis_url),
+            },
+        )
         return False
 
 
@@ -129,15 +142,37 @@ async def ping_async_redis() -> bool:
     """Check if async Redis connection is healthy.
 
     VP-Platform: Async version of ping_redis.
+    VP-DevOps-4: Added logging for connection failures.
 
     Returns:
         True if Redis responds to ping, False otherwise.
     """
     try:
         redis = await get_async_redis()
-        return bool(await redis.ping())
-    except Exception:
+        result = await redis.ping()
+        if result:
+            logger.debug("Async Redis health check passed")
+        return bool(result)
+    except Exception as e:
+        logger.warning(
+            "Async Redis health check failed",
+            extra={
+                "error_type": type(e).__name__,
+                "error_message": str(e),
+                "redis_url": _mask_redis_url(settings.redis_url),
+            },
+        )
         return False
+
+
+def _mask_redis_url(url: str) -> str:
+    """Mask password in Redis URL for safe logging."""
+    # Parse and mask password if present
+    if "@" in url:
+        # redis://user:password@host:port/db -> redis://user:***@host:port/db
+        import re
+        return re.sub(r":([^:@]+)@", r":***@", url)
+    return url
 
 
 class AsyncRedisCache:

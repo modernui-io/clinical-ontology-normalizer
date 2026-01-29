@@ -24,7 +24,11 @@ from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_db
+from app.core.database import (
+    get_db,
+    get_db_request_context,
+    set_db_request_context,
+)
 from app.services.auth import AuthService, TokenPayload, get_auth_service
 from app.services.rbac_service import RBACService, get_rbac_service
 
@@ -147,6 +151,12 @@ async def get_current_user(
 
     # Store in context for middleware access
     set_current_user_context(payload)
+
+    # VP-DevOps-3: Update database context with user_id for exception logging
+    db_ctx = get_db_request_context()
+    if db_ctx:
+        db_ctx.user_id = payload.sub
+        set_db_request_context(db_ctx)
 
     return CurrentUser(
         id=payload.sub,

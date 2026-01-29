@@ -3,16 +3,22 @@
 Includes:
 - FHIR import from external servers
 - FHIR Bulk Data Export ($export) per HL7 specification
+
+VP-Security-5: Added URL validation to prevent SSRF attacks.
 """
 
+import ipaddress
 import logging
+import os
+import re
 from datetime import datetime
 from pathlib import Path
 from typing import Annotated, Any
+from urllib.parse import urlparse
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import FileResponse, Response
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -29,6 +35,115 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/fhir", tags=["fhir"])
 
+# =============================================================================
+# SSRF Prevention - URL Validation
+# =============================================================================
+
+# Allowed FHIR servers (from environment variable, comma-separated)
+# If not set, all public URLs are allowed (with private IP blocking)
+_ALLOWED_FHIR_SERVERS_RAW = os.getenv("ALLOWED_FHIR_SERVERS", "")
+ALLOWED_FHIR_SERVERS: set[str] = {
+    s.strip().lower().rstrip("/")
+    for s in _ALLOWED_FHIR_SERVERS_RAW.split(",")
+    if s.strip()
+}
+
+# Always allow localhost in development
+ALLOW_LOCALHOST = os.getenv("ALLOW_LOCALHOST_FHIR", "true").lower() == "true"
+
+
+def _is_private_ip(hostname: str) -> bool:
+    """Check if hostname resolves to a private/internal IP address."""
+    try:
+        # Try to parse as IP address directly
+        ip = ipaddress.ip_address(hostname)
+        return (
+            ip.is_private
+            or ip.is_loopback
+            or ip.is_link_local
+            or ip.is_reserved
+            or ip.is_multicast
+        )
+    except ValueError:
+        # Not a direct IP, it's a hostname
+        # Check for obvious internal hostnames
+        internal_patterns = [
+            r"^localhost$",
+            r"^127\.",
+            r"^10\.",
+            r"^192\.168\.",
+            r"^172\.(1[6-9]|2[0-9]|3[0-1])\.",
+            r"^169\.254\.",
+            r"\.local$",
+            r"\.internal$",
+            r"\.localhost$",
+            r"^kubernetes",
+            r"^k8s",
+            r"^metadata\.",
+        ]
+        hostname_lower = hostname.lower()
+        return any(re.match(p, hostname_lower) for p in internal_patterns)
+
+
+def validate_fhir_url(url: str) -> str:
+    """Validate FHIR server URL to prevent SSRF attacks.
+
+    Args:
+        url: The FHIR server URL to validate.
+
+    Returns:
+        The validated URL (normalized).
+
+    Raises:
+        ValueError: If the URL is invalid or not allowed.
+    """
+    if not url:
+        raise ValueError("FHIR URL is required")
+
+    # Parse URL
+    try:
+        parsed = urlparse(url)
+    except Exception:
+        raise ValueError(f"Invalid URL format: {url}")
+
+    # Validate scheme
+    if parsed.scheme not in ("http", "https"):
+        raise ValueError(f"Invalid URL scheme: {parsed.scheme}. Only http/https allowed.")
+
+    # Validate hostname exists
+    if not parsed.hostname:
+        raise ValueError(f"Invalid URL: missing hostname in {url}")
+
+    hostname = parsed.hostname.lower()
+
+    # Check for localhost (allowed in dev mode)
+    is_localhost = hostname in ("localhost", "127.0.0.1", "::1")
+    if is_localhost:
+        if ALLOW_LOCALHOST:
+            logger.debug(f"Allowing localhost FHIR server: {url}")
+            return url
+        else:
+            raise ValueError("Localhost FHIR servers are not allowed in this environment")
+
+    # Block private/internal IPs (SSRF protection)
+    if _is_private_ip(hostname):
+        logger.warning(f"Blocked SSRF attempt to private IP: {url}")
+        raise ValueError(
+            f"Cannot connect to internal/private addresses: {hostname}"
+        )
+
+    # Check allowlist if configured
+    if ALLOWED_FHIR_SERVERS:
+        normalized_url = f"{parsed.scheme}://{parsed.netloc}".lower().rstrip("/")
+        if normalized_url not in ALLOWED_FHIR_SERVERS:
+            allowed_list = ", ".join(sorted(ALLOWED_FHIR_SERVERS))
+            raise ValueError(
+                f"FHIR server not in allowlist. Allowed servers: {allowed_list}"
+            )
+
+    logger.debug(f"Validated FHIR URL: {url}")
+    return url
+
 
 class FHIRImportRequest(BaseModel):
     """Request to import a patient from FHIR."""
@@ -40,6 +155,12 @@ class FHIRImportRequest(BaseModel):
     fhir_base_url: str = Field(
         "http://localhost:8090/fhir", description="FHIR server base URL"
     )
+
+    @field_validator("fhir_base_url")
+    @classmethod
+    def validate_fhir_url_field(cls, v: str) -> str:
+        """Validate FHIR URL to prevent SSRF."""
+        return validate_fhir_url(v)
 
 
 class FHIRImportResponse(BaseModel):
@@ -96,7 +217,10 @@ async def import_fhir_patient(
 @router.get("/patients/{fhir_patient_id}")
 async def get_fhir_patient(
     fhir_patient_id: str,
-    fhir_base_url: str = "http://localhost:8090/fhir",
+    fhir_base_url: str = Query(
+        default="http://localhost:8090/fhir",
+        description="FHIR server base URL",
+    ),
 ) -> dict[str, Any]:
     """Fetch a patient directly from the FHIR server.
 
@@ -104,12 +228,18 @@ async def get_fhir_patient(
 
     Args:
         fhir_patient_id: FHIR Patient resource ID
-        fhir_base_url: FHIR server base URL
+        fhir_base_url: FHIR server base URL (validated for SSRF protection)
 
     Returns:
         FHIR Patient resource
     """
-    service = FHIRImportService(fhir_base_url=fhir_base_url)
+    # Validate URL to prevent SSRF
+    try:
+        validated_url = validate_fhir_url(fhir_base_url)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    service = FHIRImportService(fhir_base_url=validated_url)
     try:
         patient = await service.fetch_patient(fhir_patient_id)
         if not patient:
@@ -122,7 +252,10 @@ async def get_fhir_patient(
 @router.get("/patients/{fhir_patient_id}/summary")
 async def get_fhir_patient_summary(
     fhir_patient_id: str,
-    fhir_base_url: str = "http://localhost:8090/fhir",
+    fhir_base_url: str = Query(
+        default="http://localhost:8090/fhir",
+        description="FHIR server base URL",
+    ),
 ) -> dict[str, Any]:
     """Get a summary of patient data available in FHIR.
 
@@ -130,12 +263,18 @@ async def get_fhir_patient_summary(
 
     Args:
         fhir_patient_id: FHIR Patient resource ID
-        fhir_base_url: FHIR server base URL
+        fhir_base_url: FHIR server base URL (validated for SSRF protection)
 
     Returns:
         Summary with counts of each resource type
     """
-    service = FHIRImportService(fhir_base_url=fhir_base_url)
+    # Validate URL to prevent SSRF
+    try:
+        validated_url = validate_fhir_url(fhir_base_url)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    service = FHIRImportService(fhir_base_url=validated_url)
     try:
         patient = await service.fetch_patient(fhir_patient_id)
         if not patient:
