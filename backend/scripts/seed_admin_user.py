@@ -95,10 +95,12 @@ async def seed_admin_user() -> None:
         logger.info("=" * 60)
         logger.info("Admin User Credentials:")
         logger.info(f"  Email:    {ADMIN_EMAIL}")
-        logger.info(f"  Password: {ADMIN_PASSWORD}")
+        # VP-Security: Never log passwords - even in seed scripts
+        logger.info("  Password: (see ADMIN_PASSWORD in script or env var)")
         logger.info("=" * 60)
         logger.info("")
         logger.info("IMPORTANT: Change the admin password after first login!")
+        logger.warning("VP-Security: Default credentials should be changed immediately!")
 
 
 async def main() -> None:

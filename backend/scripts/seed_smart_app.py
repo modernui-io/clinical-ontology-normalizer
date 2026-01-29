@@ -102,7 +102,11 @@ async def seed_smart_app() -> None:
         logger.info(f"  App Name:      {TEST_APP_NAME}")
         logger.info(f"  Client ID:     {app_result.client_id}")
         if app_result.client_secret:
-            logger.info(f"  Client Secret: {app_result.client_secret}")
+            # VP-Security: Only show partial secret to avoid log exposure
+            secret_preview = app_result.client_secret[:8] + "..." if len(app_result.client_secret) > 8 else "****"
+            logger.info(f"  Client Secret: {secret_preview} (full secret shown once at creation)")
+            # Print to stdout (not logged) for immediate use
+            print(f"\n  *** CLIENT SECRET (save now): {app_result.client_secret} ***\n")
         else:
             logger.info("  Client Secret: (none - public client)")
         logger.info("")
