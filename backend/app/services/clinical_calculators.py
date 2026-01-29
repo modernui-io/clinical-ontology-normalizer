@@ -1170,127 +1170,46 @@ def calculate_child_pugh(
 ) -> CalculatorResult:
     """Calculate Child-Pugh score for cirrhosis severity.
 
+    Uses data-driven definition from calculator_definitions.py.
+
     Args:
         bilirubin: Total bilirubin in mg/dL.
         albumin: Serum albumin in g/dL.
         inr: International Normalized Ratio.
-        ascites: "none", "mild" (or controlled), or "moderate_severe" (or refractory).
-        encephalopathy: "none", "grade_1_2" (or controlled), or "grade_3_4" (or refractory).
-
-    Returns:
-        CalculatorResult with cirrhosis classification.
+        ascites: "none", "mild"/"slight", or "moderate_severe"/"moderate".
+        encephalopathy: "none", "grade_1_2", or "grade_3_4".
     """
-    score = 0
-    components = {}
-
-    # Bilirubin (1-3 points)
-    if bilirubin < 2:
-        score += 1
-        components["Bilirubin <2 mg/dL"] = 1
-    elif bilirubin <= 3:
-        score += 2
-        components["Bilirubin 2-3 mg/dL"] = 2
-    else:
-        score += 3
-        components["Bilirubin >3 mg/dL"] = 3
-
-    # Albumin (1-3 points)
-    if albumin > 3.5:
-        score += 1
-        components["Albumin >3.5 g/dL"] = 1
-    elif albumin >= 2.8:
-        score += 2
-        components["Albumin 2.8-3.5 g/dL"] = 2
-    else:
-        score += 3
-        components["Albumin <2.8 g/dL"] = 3
-
-    # INR (1-3 points)
-    if inr < 1.7:
-        score += 1
-        components["INR <1.7"] = 1
-    elif inr <= 2.2:
-        score += 2
-        components["INR 1.7-2.2"] = 2
-    else:
-        score += 3
-        components["INR >2.2"] = 3
-
-    # Ascites (1-3 points)
+    # Map string values to multi-level boolean flags
     ascites_lower = ascites.lower()
-    if ascites_lower == "none" or ascites_lower == "absent":
-        score += 1
-        components["Ascites: None"] = 1
-    elif ascites_lower in ("mild", "controlled", "slight"):
-        score += 2
-        components["Ascites: Mild/Controlled"] = 2
-    else:
-        score += 3
-        components["Ascites: Moderate-Severe"] = 3
-
-    # Encephalopathy (1-3 points)
     enceph_lower = encephalopathy.lower()
-    if enceph_lower == "none" or enceph_lower == "absent":
-        score += 1
-        components["Encephalopathy: None"] = 1
-    elif enceph_lower in ("grade_1_2", "grade 1-2", "controlled", "mild"):
-        score += 2
-        components["Encephalopathy: Grade 1-2"] = 2
-    else:
-        score += 3
-        components["Encephalopathy: Grade 3-4"] = 3
 
-    # Classification
-    if score <= 6:
-        child_class = "A"
-        risk = RiskLevel.LOW
-        one_year_survival = "100%"
-        two_year_survival = "85%"
-        interpretation = "Child-Pugh Class A (Well-compensated)"
-        recommendations = [
-            "Continue hepatology follow-up",
-            "Avoid hepatotoxins including alcohol",
-            "Surveillance for HCC every 6 months",
-            "Vaccination for Hep A/B if not immune",
-        ]
-    elif score <= 9:
-        child_class = "B"
-        risk = RiskLevel.MODERATE
-        one_year_survival = "81%"
-        two_year_survival = "57%"
-        interpretation = "Child-Pugh Class B (Significant functional compromise)"
-        recommendations = [
-            "Hepatology co-management essential",
-            "Consider liver transplant evaluation",
-            "Manage complications (ascites, encephalopathy)",
-            "Avoid nephrotoxins and hepatotoxins",
-            "HCC surveillance",
-        ]
-    else:
-        child_class = "C"
-        risk = RiskLevel.VERY_HIGH
-        one_year_survival = "45%"
-        two_year_survival = "35%"
-        interpretation = "Child-Pugh Class C (Decompensated)"
-        recommendations = [
-            "Urgent liver transplant evaluation",
-            "Intensive hepatology management",
-            "Aggressive complication management",
-            "Discuss prognosis and goals of care",
-            "MELD score for transplant prioritization",
-        ]
+    # Map ascites string to flag
+    ascites_map = {
+        "none": "none", "absent": "none",
+        "mild": "slight", "slight": "slight", "controlled": "slight",
+        "moderate": "moderate", "moderate_severe": "moderate", "severe": "moderate", "refractory": "moderate",
+    }
+    ascites_flag = ascites_map.get(ascites_lower, "moderate")
 
-    components["Child-Pugh Class"] = child_class
+    # Map encephalopathy string to flag
+    enceph_map = {
+        "none": "none", "absent": "none",
+        "grade_1_2": "grade_1_2", "grade 1-2": "grade_1_2", "mild": "grade_1_2", "controlled": "grade_1_2",
+        "grade_3_4": "grade_3_4", "grade 3-4": "grade_3_4", "severe": "grade_3_4", "refractory": "grade_3_4",
+    }
+    enceph_flag = enceph_map.get(enceph_lower, "grade_3_4")
 
-    return CalculatorResult(
-        calculator_name="Child-Pugh Score",
-        score=score,
-        score_unit="points",
-        risk_level=risk,
-        interpretation=f"{interpretation}. 1-year survival: ~{one_year_survival}, 2-year: ~{two_year_survival}",
-        recommendations=recommendations,
-        components=components,
-        references=["Pugh RN, et al. Br J Surg 1973"],
+    return calculate_from_definition(
+        "child_pugh",
+        {
+            # Numeric threshold criteria
+            "bilirubin": bilirubin,
+            "albumin": albumin,
+            "inr": inr,
+            # Multi-level criteria as booleans
+            f"ascites_{ascites_flag}": True,
+            f"encephalopathy_{enceph_flag}": True,
+        },
     )
 
 
