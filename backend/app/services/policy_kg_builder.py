@@ -408,7 +408,6 @@ class PolicyKGBuilder:
             source_text=rule.source_text,
             effective_from=now,
             created_at=now,
-            updated_at=now,
         )
         session.add(rule_node)
         nodes.append(rule_node)
@@ -431,7 +430,6 @@ class PolicyKGBuilder:
                 omop_concept_ids=condition.omop_concept_ids or None,
                 effective_from=now,
                 created_at=now,
-                updated_at=now,
             )
             session.add(cond_node)
             nodes.append(cond_node)
@@ -445,7 +443,6 @@ class PolicyKGBuilder:
                 confidence=rule.extraction_confidence,
                 effective_from=now,
                 created_at=now,
-                updated_at=now,
             )
             session.add(edge)
             edges.append(edge)
@@ -467,7 +464,6 @@ class PolicyKGBuilder:
                 omop_concept_ids=action.omop_concept_ids or None,
                 effective_from=now,
                 created_at=now,
-                updated_at=now,
             )
             session.add(action_node)
             nodes.append(action_node)
@@ -481,7 +477,6 @@ class PolicyKGBuilder:
                 confidence=rule.extraction_confidence,
                 effective_from=now,
                 created_at=now,
-                updated_at=now,
             )
             session.add(edge)
             edges.append(edge)
@@ -499,7 +494,6 @@ class PolicyKGBuilder:
                 },
                 effective_from=now,
                 created_at=now,
-                updated_at=now,
             )
             session.add(exc_node)
             nodes.append(exc_node)
@@ -513,7 +507,6 @@ class PolicyKGBuilder:
                 confidence=rule.extraction_confidence,
                 effective_from=now,
                 created_at=now,
-                updated_at=now,
             )
             session.add(edge)
             edges.append(edge)
@@ -620,7 +613,6 @@ class PolicyKGBuilder:
                 effective_from=now,
                 is_active=True,
                 created_at=now,
-                updated_at=now,
             )
 
             # Compute embedding
