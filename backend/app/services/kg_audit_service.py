@@ -635,13 +635,20 @@ class KGAuditService:
 
             return True, None
 
+    # VP-Validation-1: Maximum records for single export to prevent memory issues
+    MAX_EXPORT_RECORDS = 10000
+
     def export_events(
         self,
         filters: AuditQueryFilters,
         format: str = "json",
     ) -> str:
-        """Export audit events for compliance reporting or SIEM integration."""
-        events, _ = self.query(filters, limit=100000)
+        """Export audit events for compliance reporting or SIEM integration.
+
+        Note: Limited to MAX_EXPORT_RECORDS (10,000) per export.
+        For larger exports, use pagination or streaming APIs.
+        """
+        events, _ = self.query(filters, limit=self.MAX_EXPORT_RECORDS)
 
         if format == "json":
             return json.dumps([e.to_dict() for e in events], indent=2, default=str)

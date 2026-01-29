@@ -119,6 +119,9 @@ class AuditService:
     - Query interface for compliance audits
     """
 
+    # VP-Validation-1: Maximum records for single export to prevent memory issues
+    MAX_EXPORT_RECORDS = 10000
+
     def __init__(self) -> None:
         """Initialize the audit service."""
         self._initialized = True
@@ -718,7 +721,7 @@ class AuditService:
                 resource_type=filters.get("resource_type"),
                 patient_id=filters.get("patient_id"),
                 phi_only=filters.get("phi_only", False),
-                limit=100000,  # Large limit for export
+                limit=self.MAX_EXPORT_RECORDS,  # VP-Validation-1: Capped for memory safety
                 offset=0,
             )
 

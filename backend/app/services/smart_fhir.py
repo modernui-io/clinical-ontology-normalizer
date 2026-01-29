@@ -10,6 +10,7 @@ import logging
 import secrets
 import threading
 import time
+from collections import OrderedDict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
@@ -146,6 +147,72 @@ class FHIRRequestError(SMARTClientError):
     pass
 
 
+# VP-Caching-1: Bounded TTL cache for SMART configurations
+class SMARTConfigCache:
+    """Thread-safe bounded cache with TTL for SMART configurations.
+
+    Prevents unbounded memory growth when connecting to many FHIR servers.
+    Uses LRU eviction when capacity is reached.
+    """
+
+    def __init__(
+        self,
+        maxsize: int = 100,
+        ttl_seconds: float = 3600.0,  # 1 hour default
+    ) -> None:
+        """Initialize the cache.
+
+        Args:
+            maxsize: Maximum number of entries to store.
+            ttl_seconds: Time-to-live for each entry in seconds.
+        """
+        self._maxsize = maxsize
+        self._ttl = ttl_seconds
+        self._cache: OrderedDict[str, tuple[WellKnownConfig, float]] = OrderedDict()
+        self._lock = threading.Lock()
+
+    def get(self, key: str) -> WellKnownConfig | None:
+        """Get a value from the cache if it exists and hasn't expired."""
+        with self._lock:
+            if key not in self._cache:
+                return None
+
+            config, timestamp = self._cache[key]
+            if time.time() - timestamp > self._ttl:
+                # Expired, remove it
+                del self._cache[key]
+                return None
+
+            # Move to end for LRU
+            self._cache.move_to_end(key)
+            return config
+
+    def set(self, key: str, value: WellKnownConfig) -> None:
+        """Store a value in the cache."""
+        with self._lock:
+            # If key exists, update and move to end
+            if key in self._cache:
+                self._cache[key] = (value, time.time())
+                self._cache.move_to_end(key)
+                return
+
+            # Evict oldest if at capacity
+            while len(self._cache) >= self._maxsize:
+                self._cache.popitem(last=False)
+
+            self._cache[key] = (value, time.time())
+
+    def clear(self) -> None:
+        """Clear all entries from the cache."""
+        with self._lock:
+            self._cache.clear()
+
+    def __len__(self) -> int:
+        """Return the number of entries in the cache."""
+        with self._lock:
+            return len(self._cache)
+
+
 class SMARTClient:
     """SMART on FHIR client for OAuth2 authorization and FHIR access.
 
@@ -181,7 +248,8 @@ class SMARTClient:
         self._http_client: httpx.AsyncClient | None = None
         self._pending_states: dict[str, OAuthState] = {}
         self._active_tokens: dict[str, TokenSet] = {}  # Keyed by session_id
-        self._smart_configs: dict[str, WellKnownConfig] = {}  # Cache by fhir_base_url
+        # VP-Caching-1: Use bounded TTL cache for SMART configurations
+        self._smart_configs = SMARTConfigCache(maxsize=100, ttl_seconds=3600.0)
 
     @classmethod
     def get_instance(cls, settings: SMARTSettings | None = None) -> "SMARTClient":
@@ -255,8 +323,11 @@ class SMARTClient:
         Returns:
             WellKnownConfig if available
         """
-        if not force_refresh and fhir_base_url in self._smart_configs:
-            return self._smart_configs[fhir_base_url]
+        # VP-Caching-1: Use bounded cache methods
+        if not force_refresh:
+            cached = self._smart_configs.get(fhir_base_url)
+            if cached is not None:
+                return cached
 
         config = await discover_smart_configuration(
             fhir_base_url,
@@ -264,7 +335,7 @@ class SMARTClient:
         )
 
         if config:
-            self._smart_configs[fhir_base_url] = config
+            self._smart_configs.set(fhir_base_url, config)
 
         return config
 
@@ -749,3 +820,15 @@ def get_smart_client() -> SMARTClient:
 def reset_smart_client() -> None:
     """Reset the singleton SMART client instance (for testing)."""
     SMARTClient.reset_instance()
+
+
+# VP-Lifecycle-2: Cleanup function for application shutdown
+async def close_smart_client() -> None:
+    """Close the SMART client HTTP connection on shutdown.
+
+    Should be called during application shutdown to properly close
+    the httpx.AsyncClient and free resources.
+    """
+    if SMARTClient._instance is not None:
+        await SMARTClient._instance.close()
+        logger.debug("SMARTClient HTTP client closed")

@@ -102,6 +102,7 @@ from app.core.config import settings
 from app.core.database import close_db, init_db
 from app.core.queue import clear_queues
 from app.core.redis import close_redis
+from app.services.smart_fhir import close_smart_client
 from app.services.vocabulary import get_vocabulary_service, preload_vocabulary
 
 logger = logging.getLogger(__name__)
@@ -417,6 +418,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Clean up resources
     logger.info("Clearing job queues...")
     clear_queues()
+
+    # VP-Lifecycle-2: Close SMART client HTTP connection
+    logger.info("Closing SMART client...")
+    await close_smart_client()
 
     logger.info("Closing Redis connections...")
     close_redis()

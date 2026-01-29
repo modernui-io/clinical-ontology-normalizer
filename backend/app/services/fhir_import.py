@@ -1,8 +1,10 @@
 """FHIR Import Service - Import patient data from FHIR into knowledge graph."""
 
+from __future__ import annotations
+
 import logging
 from datetime import datetime
-from typing import Any
+from typing import Any, Self
 from uuid import UUID
 
 import httpx
@@ -43,6 +45,15 @@ class FHIRImportService:
     async def close(self) -> None:
         """Close the HTTP client."""
         await self.client.aclose()
+
+    # VP-Lifecycle-1: Async context manager support for proper resource cleanup
+    async def __aenter__(self) -> Self:
+        """Enter async context manager."""
+        return self
+
+    async def __aexit__(self, exc_type: type | None, exc_val: Exception | None, exc_tb: Any) -> None:
+        """Exit async context manager, ensuring client is closed."""
+        await self.close()
 
     async def fetch_patient(self, patient_id: str) -> dict[str, Any] | None:
         """Fetch a patient resource from FHIR.
