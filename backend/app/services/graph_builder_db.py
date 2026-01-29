@@ -4,6 +4,7 @@ Implements graph construction with database persistence.
 Supports bi-temporal model for temporal reasoning.
 """
 
+import logging
 from datetime import datetime
 from uuid import UUID
 
@@ -20,6 +21,8 @@ from app.services.graph_builder import (
     GraphResult,
     NodeInput,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class DatabaseGraphBuilderService(BaseGraphBuilderService):

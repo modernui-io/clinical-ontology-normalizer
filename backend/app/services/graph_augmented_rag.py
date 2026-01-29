@@ -11,6 +11,7 @@ Architecture:
 5. Combine with document retrieval for comprehensive context
 """
 
+import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
@@ -21,6 +22,8 @@ from sqlalchemy.orm import Session
 
 from app.models.knowledge_graph import KGEdge, KGNode
 from app.schemas.knowledge_graph import EdgeType, NodeType
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass

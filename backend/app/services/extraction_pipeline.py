@@ -13,12 +13,15 @@ Architecture designed to maximize both precision and recall by combining
 rule-based speed with contextual understanding.
 """
 
-from dataclasses import dataclass, field
-from typing import Any, Callable
-from enum import Enum
+import logging
 import re
 import threading
 import time
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any, Callable
+
+logger = logging.getLogger(__name__)
 
 
 # ============================================================================

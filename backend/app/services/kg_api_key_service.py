@@ -6,6 +6,7 @@ Supports key generation, validation, rotation, scopes, and rate limiting per key
 
 import hashlib
 import hmac
+import logging
 import secrets
 import threading
 import time
@@ -13,6 +14,8 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+
+logger = logging.getLogger(__name__)
 
 
 class APIKeyScope(str, Enum):

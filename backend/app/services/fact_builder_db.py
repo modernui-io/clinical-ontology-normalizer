@@ -7,6 +7,7 @@ IMPORTANT: Negated findings (assertion=ABSENT) MUST be preserved
 and correctly represented in the knowledge graph.
 """
 
+import logging
 from uuid import UUID
 
 from sqlalchemy import select
@@ -20,6 +21,8 @@ from app.services.fact_builder import (
     FactInput,
     FactResult,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class DatabaseFactBuilderService(BaseFactBuilderService):

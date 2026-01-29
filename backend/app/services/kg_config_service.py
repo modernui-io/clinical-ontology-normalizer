@@ -11,8 +11,10 @@ This module provides dynamic configuration management with support for:
 
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
+import logging
 import os
 import threading
 import time
@@ -22,7 +24,8 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Set, Type, TypeVar, Union
-import copy
+
+logger = logging.getLogger(__name__)
 
 
 class ConfigValueType(str, Enum):
