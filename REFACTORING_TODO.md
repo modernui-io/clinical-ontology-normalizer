@@ -103,9 +103,14 @@
   - Create single `X12Entity(role: Enum)` model
   - **Test**: Run `pytest tests/test_x12*.py`
 
-- [ ] **2.7** Remove PolicyRule redundancy (saves ~100 lines)
-  - Delete PolicyRule, compute views on demand
-  - **Test**: Run `pytest tests/test_policy*.py`
+- [x] **2.7** ~Remove PolicyRule redundancy~ **SKIPPED - NOT REDUNDANT**
+  - PolicyRule is a materialized view for read performance, not redundant data
+  - Enables O(1) rule access vs O(n) graph traversal per access
+  - Required for efficient semantic search over rules specifically
+  - `applies_to_*` arrays enable fast filtering without graph traversal
+  - `to_prompt_context()` method used for LLM integration
+  - Removing would trade ~100 lines for complex traversal queries and performance regression
+  - **Decision**: Keep as intentional denormalization for clinical decision support performance
 
 ---
 
@@ -130,14 +135,36 @@
 
 ## Progress Tracking
 
-| Tier | Tasks | Completed | Lines Saved |
-|------|-------|-----------|-------------|
-| 🟢 Tier 1 | 8 | 0 | 0 |
-| 🟡 Tier 2 | 7 | 0 | 0 |
-| 🔴 Tier 3 | 3 | 0 | 0 |
-| **Total** | **18** | **0** | **0** |
+| Tier | Tasks | Completed | Skipped | In Progress | Lines Saved |
+|------|-------|-----------|---------|-------------|-------------|
+| 🟢 Tier 1 | 8 | 8 | 0 | 0 | ~11,000 |
+| 🟡 Tier 2 | 7 | 6 | 1 | 0 | ~1,600 |
+| 🔴 Tier 3 | 3 | 2 | 0 | 0 | ~500 |
+| **Total** | **18** | **16** | **1** | **0** | **~13,100** |
 
-**Estimated Total Savings**: ~12,000+ lines
+**Estimated Total Savings**: ~14,000+ lines
+
+### Completed Tasks
+- ✅ 1.1 Split documents.py → 5 files (commit 3dc4ace)
+- ✅ 1.2 Split etl.py → 3 files (commit 3eb6b88)
+- ✅ 1.3 Split quality.py → 2 files (commit 97a328b)
+- ✅ 1.4 Split nlp_entity_service.py → 4 files (commit 2fbbaa6)
+- ✅ 1.5 Split auth_service.py → 3 files (commit 7612520)
+- ✅ 1.6 Split KnowledgeGraph.tsx → 5 files (commit 5d889f8)
+- ✅ 1.7 Split use-api.ts → 8 files (commit b56bd8f)
+- ✅ 1.8 Split use-auth.tsx → 5 files (commit 6dfd60f)
+- ✅ 2.1 Create RequestContext dependency (commit e3ed910)
+- ✅ 2.2 Extract ETL concept mappings (commit f073560)
+- ✅ 2.3 Extract connector concept mappings (commit 650bdc4)
+- ✅ 2.4 Merge auth overlaps (commit 650bdc4)
+- ✅ 2.5 Merge Create/Response schema duplicates (commit e62116f)
+- ✅ 2.6 Consolidate X12 provider types (commit b534e08)
+- ⏭️ 2.7 PolicyRule redundancy - SKIPPED (not redundant, materialized view for performance)
+- ✅ 3.2 Create generic OMOP ConceptReference (commit 18e2b50)
+- ✅ 3.3 Consolidate duplicate Input classes (commit 545c7a3)
+
+### Pending
+- ⏳ 3.1 Convert clinical_calculators.py to data-driven (highest risk)
 
 ---
 
