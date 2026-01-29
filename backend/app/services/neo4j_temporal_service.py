@@ -155,7 +155,7 @@ class Neo4jTemporalService:
         self,
         uri: str = "bolt://localhost:7687",
         user: str = "neo4j",
-        password: str = "clinical123",
+        password: str = "",  # VP-Security: Must be provided via settings/env
     ):
         self.uri = uri
         self.user = user
@@ -692,9 +692,10 @@ def get_neo4j_temporal_service() -> Neo4jTemporalService:
             if _neo4j_temporal_service is None:
                 from app.core.config import settings
 
+                # VP-Security: Use settings with proper attribute names (lowercase)
                 _neo4j_temporal_service = Neo4jTemporalService(
-                    uri=getattr(settings, "NEO4J_URI", "bolt://localhost:7687"),
-                    user=getattr(settings, "NEO4J_USER", "neo4j"),
-                    password=getattr(settings, "NEO4J_PASSWORD", "clinical123"),
+                    uri=settings.neo4j_uri,
+                    user=settings.neo4j_user,
+                    password=settings.neo4j_password or "",
                 )
     return _neo4j_temporal_service

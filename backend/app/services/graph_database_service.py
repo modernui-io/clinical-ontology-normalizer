@@ -19,6 +19,8 @@ from enum import Enum
 from threading import Lock
 from typing import Any
 
+from app.core.config import settings
+
 logger = logging.getLogger(__name__)
 
 
@@ -33,11 +35,15 @@ class ConnectionStatus(str, Enum):
 
 @dataclass
 class Neo4jConfig:
-    """Configuration for Neo4j connection."""
+    """Configuration for Neo4j connection.
+
+    VP-Security: Removed hardcoded password defaults. Use settings or
+    environment variables to provide credentials.
+    """
 
     uri: str = "bolt://localhost:7687"
     user: str = "neo4j"
-    password: str = "password"
+    password: str = ""  # VP-Security: Must be provided via settings/env
     database: str = "neo4j"
     max_connection_lifetime: int = 3600
     max_connection_pool_size: int = 50
@@ -103,14 +109,16 @@ class GraphDatabaseService:
         self._initialize_driver()
 
     def _load_config_from_env(self) -> Neo4jConfig:
-        """Load configuration from environment variables."""
-        import os
+        """Load configuration from app settings.
 
+        VP-Security: Uses centralized settings instead of direct os.getenv
+        to ensure consistent configuration and proper validation.
+        """
         return Neo4jConfig(
-            uri=os.getenv("NEO4J_URI", "bolt://localhost:7687"),
-            user=os.getenv("NEO4J_USER", "neo4j"),
-            password=os.getenv("NEO4J_PASSWORD", "password"),
-            database=os.getenv("NEO4J_DATABASE", "neo4j"),
+            uri=settings.neo4j_uri,
+            user=settings.neo4j_user,
+            password=settings.neo4j_password or "",
+            database=settings.neo4j_database,
         )
 
     def _initialize_driver(self) -> None:
