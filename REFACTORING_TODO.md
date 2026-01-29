@@ -167,14 +167,15 @@
 - 🔄 3.1 Convert clinical_calculators.py to data-driven
   - **Phase 1-7 COMPLETE**: 47 data-driven calculator definitions
   - **Phase 8 COMPLETE**: Data-driven integration bridge wired into service
+  - **Phase 9-10 COMPLETE**: 5 CRITERIA-type functions converted to data-driven wrappers
   - calculator_definitions.py: 3,679 lines with comprehensive definitions
-  - **All 42 original functions covered** plus variants (TIMI x2, Ranson, etc.)
-  - **Structure supports**: Boolean criteria, multi-level (0/1/2), thresholds, equations
-  - **Bridge functions added**: calculate_from_definition(), get_data_driven_calculators()
-  - **Service methods added**: calculate_data_driven(), list_data_driven_calculators()
-  - **Tests added**: 6 data-driven tests (46 total calculator tests pass)
-  - **Next phase**: Replace individual CRITERIA-type functions with data-driven calls
-  - Commits: 899c8bf, a7c3eee, 7e66652, 5fac78f, 573323c, 5c59182, 3488d2c, 5337b76
+  - clinical_calculators.py: 5,068 → 4,858 lines (210 lines saved, ongoing)
+  - **Converted calculators**: CHA2DS2-VASc, HAS-BLED, Wells DVT, CURB-65, qSOFA
+  - **Bridge functions**: calculate_from_definition(), get_data_driven_calculators()
+  - **Tests**: 46 total calculator tests pass
+  - **Pattern established**: ~40-70 lines saved per CRITERIA-type calculator converted
+  - **Remaining**: ~15 more CRITERIA-type calculators can be converted similarly
+  - Commits: 899c8bf, a7c3eee, 7e66652, 5fac78f, 573323c, 5c59182, 3488d2c, 5337b76, ffc1790, 9b43ce7, 3e92786
 
 ---
 
