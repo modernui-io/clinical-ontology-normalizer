@@ -6,10 +6,11 @@ nodes and edges.
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from datetime import datetime
 from uuid import UUID
 
 from app.schemas.base import Domain
-from app.schemas.knowledge_graph import EdgeType, NodeType
+from app.schemas.knowledge_graph import EdgeType, NodeType, TemporalOrder
 
 
 @dataclass
@@ -25,7 +26,13 @@ class NodeInput:
 
 @dataclass
 class EdgeInput:
-    """Input data for creating a KGEdge."""
+    """Input data for creating a KGEdge.
+
+    Supports bi-temporal model:
+    - Valid Time (event_date, valid_from, valid_to): When the clinical event happened
+    - Transaction Time (recorded_at, source_document_date): Provenance - when we learned about it
+    - Temporal Assertion (temporality): current, past, future from NLP extraction
+    """
 
     patient_id: str
     source_node_id: UUID
@@ -33,6 +40,20 @@ class EdgeInput:
     edge_type: EdgeType
     fact_id: UUID | None = None
     properties: dict = field(default_factory=dict)
+
+    # Valid Time: When the clinical event happened
+    event_date: datetime | None = None
+    valid_from: datetime | None = None
+    valid_to: datetime | None = None
+
+    # Transaction Time: Provenance - when we learned about it
+    recorded_at: datetime | None = None
+    source_document_date: datetime | None = None
+
+    # Temporal Assertion from NLP
+    temporality: str | None = None  # "current", "past", "future"
+    temporal_order: TemporalOrder | None = None
+    temporal_confidence: float | None = None
 
 
 @dataclass
@@ -118,6 +139,13 @@ class GraphBuilderServiceInterface(ABC):
         assertion: str,
         temporality: str,
         experiencer: str,
+        # Bi-temporal fields
+        event_date: datetime | None = None,
+        valid_from: datetime | None = None,
+        valid_to: datetime | None = None,
+        recorded_at: datetime | None = None,
+        source_document_date: datetime | None = None,
+        temporal_confidence: float | None = None,
     ) -> UUID:
         """Project a ClinicalFact to a node in the graph.
 
@@ -131,8 +159,14 @@ class GraphBuilderServiceInterface(ABC):
             omop_concept_id: OMOP concept ID.
             concept_name: Human-readable name.
             assertion: Assertion status.
-            temporality: Temporal context.
+            temporality: Temporal context (current, past, future).
             experiencer: Who it applies to.
+            event_date: When the clinical event occurred (point in time).
+            valid_from: Start of validity period.
+            valid_to: End of validity period (None = ongoing).
+            recorded_at: When recorded in source system.
+            source_document_date: Date of source document.
+            temporal_confidence: Confidence in temporal assertions (0-1).
 
         Returns:
             UUID of the created node.
@@ -285,6 +319,13 @@ class BaseGraphBuilderService(GraphBuilderServiceInterface):
         assertion: str,
         temporality: str,
         experiencer: str,
+        # Bi-temporal fields
+        event_date: datetime | None = None,
+        valid_from: datetime | None = None,
+        valid_to: datetime | None = None,
+        recorded_at: datetime | None = None,
+        source_document_date: datetime | None = None,
+        temporal_confidence: float | None = None,
     ) -> UUID:
         raise NotImplementedError("Subclass must implement")
 

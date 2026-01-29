@@ -1,8 +1,10 @@
 """Database-backed Knowledge Graph builder service.
 
 Implements graph construction with database persistence.
+Supports bi-temporal model for temporal reasoning.
 """
 
+from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import select
@@ -139,7 +141,13 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
         return node_id
 
     def create_edge(self, edge_input: EdgeInput) -> UUID:
-        """Create an edge in the knowledge graph."""
+        """Create an edge in the knowledge graph.
+
+        Populates bi-temporal fields from EdgeInput:
+        - Valid Time: event_date, valid_from, valid_to
+        - Transaction Time: recorded_at, source_document_date
+        - Temporal Assertion: temporality, temporal_order, temporal_confidence
+        """
         # Check for existing edge
         stmt = (
             select(KGEdge)
@@ -153,7 +161,7 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
         if existing:
             return UUID(existing.id)
 
-        # Create new edge
+        # Create new edge with bi-temporal fields
         edge = KGEdge(
             patient_id=edge_input.patient_id,
             source_node_id=str(edge_input.source_node_id),
@@ -161,6 +169,17 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
             edge_type=edge_input.edge_type,
             fact_id=str(edge_input.fact_id) if edge_input.fact_id else None,
             properties=edge_input.properties,
+            # Valid Time: When the clinical event happened
+            event_date=edge_input.event_date,
+            valid_from=edge_input.valid_from,
+            valid_to=edge_input.valid_to,
+            # Transaction Time: Provenance
+            recorded_at=edge_input.recorded_at,
+            source_document_date=edge_input.source_document_date,
+            # Temporal Assertion
+            temporality=edge_input.temporality,
+            temporal_order=edge_input.temporal_order.value if edge_input.temporal_order else None,
+            temporal_confidence=edge_input.temporal_confidence,
         )
         self._session.add(edge)
         self._session.flush()
@@ -177,8 +196,19 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
         assertion: str,
         temporality: str,
         experiencer: str,
+        # Bi-temporal fields
+        event_date: "datetime | None" = None,
+        valid_from: "datetime | None" = None,
+        valid_to: "datetime | None" = None,
+        recorded_at: "datetime | None" = None,
+        source_document_date: "datetime | None" = None,
+        temporal_confidence: float | None = None,
     ) -> UUID:
-        """Project a ClinicalFact to a node in the graph."""
+        """Project a ClinicalFact to a node in the graph.
+
+        Creates a node for the fact and an edge connecting it to the patient node.
+        Populates bi-temporal fields for temporal reasoning.
+        """
         # Create the fact node
         node_type = self.domain_to_node_type(domain)
         node_input = NodeInput(
@@ -210,6 +240,14 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
             edge_type=edge_type,
             fact_id=fact_id,
             properties={"assertion": assertion},
+            # Bi-temporal fields
+            event_date=event_date,
+            valid_from=valid_from,
+            valid_to=valid_to,
+            recorded_at=recorded_at,
+            source_document_date=source_document_date,
+            temporality=temporality,
+            temporal_confidence=temporal_confidence,
         )
         self.create_edge(edge_input)
 
@@ -282,7 +320,17 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
         ]
 
     def build_graph_for_patient(self, patient_id: str) -> GraphResult:
-        """Build the complete knowledge graph for a patient."""
+        """Build the complete knowledge graph for a patient.
+
+        Extracts temporal data from ClinicalFact and populates bi-temporal
+        fields on the resulting KGEdge:
+        - start_date → valid_from (start of validity period)
+        - end_date → valid_to (end of validity period)
+        - start_date → event_date (when event occurred, if no explicit event_date)
+        - created_at → source_document_date (when recorded)
+        - temporality → temporality (current/past/future from NLP)
+        - confidence → temporal_confidence
+        """
         nodes_created = 0
         edges_created = 0
 
@@ -304,6 +352,16 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
             dedup_key = self.calculate_node_dedup_key(patient_id, node_type, fact.omop_concept_id)
             node_exists = dedup_key in self._node_dedup_cache
 
+            # Extract temporal data from ClinicalFact
+            # - start_date is when the clinical event began (valid_from)
+            # - end_date is when the clinical event ended (valid_to)
+            # - For point-in-time events, start_date is the event_date
+            # - created_at is when the record was created (source_document_date)
+            event_date = fact.start_date  # Point in time event
+            valid_from = fact.start_date  # Start of validity
+            valid_to = fact.end_date  # End of validity (None = ongoing)
+            source_document_date = fact.created_at  # When record was created
+
             self.project_fact_to_graph(
                 fact_id=UUID(fact.id),
                 patient_id=patient_id,
@@ -313,6 +371,13 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
                 assertion=fact.assertion.value,
                 temporality=fact.temporality.value,
                 experiencer=fact.experiencer.value,
+                # Bi-temporal fields
+                event_date=event_date,
+                valid_from=valid_from,
+                valid_to=valid_to,
+                recorded_at=None,  # Could be populated from FactEvidence source
+                source_document_date=source_document_date,
+                temporal_confidence=fact.confidence,
             )
 
             if not node_exists:
@@ -334,7 +399,8 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
     def get_patient_graph(self, patient_id: str) -> PatientGraph:
         """Get the complete graph for a patient.
 
-        Returns a PatientGraph schema with all nodes and edges.
+        Returns a PatientGraph schema with all nodes and edges,
+        including bi-temporal fields on edges.
         """
         # Get all nodes
         node_stmt = select(KGNode).where(KGNode.patient_id == patient_id)
@@ -369,6 +435,17 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
                     "edge_type": e.edge_type,
                     "fact_id": UUID(e.fact_id) if e.fact_id else None,
                     "properties": e.properties,
+                    # Valid Time
+                    "event_date": e.event_date,
+                    "valid_from": e.valid_from,
+                    "valid_to": e.valid_to,
+                    # Transaction Time
+                    "recorded_at": e.recorded_at,
+                    "source_document_date": e.source_document_date,
+                    # Temporal Assertion
+                    "temporality": e.temporality,
+                    "temporal_order": e.temporal_order,
+                    "temporal_confidence": e.temporal_confidence,
                     "created_at": e.created_at,
                 }
                 for e in edges
