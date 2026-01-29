@@ -17,6 +17,7 @@ Security considerations:
 
 import hashlib
 import logging
+import threading
 from dataclasses import dataclass
 from datetime import datetime, timezone, timedelta
 from typing import Any
@@ -683,6 +684,7 @@ class AuthService:
 
 # Singleton instance
 _auth_service: AuthService | None = None
+_auth_service_lock = threading.Lock()
 
 
 def get_auth_service() -> AuthService:
@@ -692,12 +694,16 @@ def get_auth_service() -> AuthService:
         AuthService instance
     """
     global _auth_service
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _auth_service is None:
-        _auth_service = AuthService()
+        with _auth_service_lock:
+            if _auth_service is None:
+                _auth_service = AuthService()
     return _auth_service
 
 
 def reset_auth_service() -> None:
     """Reset the singleton for testing."""
     global _auth_service
-    _auth_service = None
+    with _auth_service_lock:
+        _auth_service = None

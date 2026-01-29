@@ -8,6 +8,7 @@ This module contains:
 """
 
 import logging
+import threading
 import time
 from dataclasses import dataclass, field
 from typing import Any, Protocol
@@ -376,17 +377,22 @@ class ClinicalNLPEntityService(NormalizerMixin, ExtractorMixin, LinkerMixin):
 # ============================================================================
 
 _nlp_entity_service: ClinicalNLPEntityService | None = None
+_nlp_entity_lock = threading.Lock()
 
 
 def get_nlp_entity_service() -> ClinicalNLPEntityService:
     """Get the singleton NLP entity service instance."""
     global _nlp_entity_service
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _nlp_entity_service is None:
-        _nlp_entity_service = ClinicalNLPEntityService()
+        with _nlp_entity_lock:
+            if _nlp_entity_service is None:
+                _nlp_entity_service = ClinicalNLPEntityService()
     return _nlp_entity_service
 
 
 def reset_nlp_entity_service() -> None:
     """Reset the singleton instance (for testing)."""
     global _nlp_entity_service
-    _nlp_entity_service = None
+    with _nlp_entity_lock:
+        _nlp_entity_service = None
