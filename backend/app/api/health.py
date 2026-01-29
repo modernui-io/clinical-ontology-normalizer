@@ -279,9 +279,9 @@ async def check_redis() -> ComponentHealth:
         redis_client = get_redis()
 
         # Execute ping with timeout
-        loop = asyncio.get_event_loop()
+        # VP-Deprecation-4: Use asyncio.to_thread() instead of deprecated get_event_loop()
         result = await asyncio.wait_for(
-            loop.run_in_executor(None, redis_client.ping),
+            asyncio.to_thread(redis_client.ping),
             timeout=HEALTH_CHECK_TIMEOUT,
         )
 
@@ -331,9 +331,9 @@ async def check_neo4j() -> ComponentHealth:
         graph_service = get_graph_database_service()
 
         # Execute health check with timeout
-        loop = asyncio.get_event_loop()
+        # VP-Deprecation-4: Use asyncio.to_thread() instead of deprecated get_event_loop()
         health_result = await asyncio.wait_for(
-            loop.run_in_executor(None, graph_service.health_check),
+            asyncio.to_thread(graph_service.health_check),
             timeout=HEALTH_CHECK_TIMEOUT,
         )
 

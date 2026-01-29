@@ -11,6 +11,7 @@ import asyncio
 import base64
 import hashlib
 import logging
+import time
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 from uuid import UUID
@@ -338,7 +339,7 @@ class DataSourceService:
             )
 
         try:
-            start_time = asyncio.get_event_loop().time()
+            start_time = time.perf_counter()
 
             if source.source_type == DataSourceType.FHIR_SERVER:
                 result = await self._test_fhir_connection(source)
@@ -350,7 +351,7 @@ class DataSourceService:
                     message=f"Connection test not implemented for {source.source_type.value}",
                 )
 
-            latency_ms = int((asyncio.get_event_loop().time() - start_time) * 1000)
+            latency_ms = int((time.perf_counter() - start_time) * 1000)
             result.latency_ms = latency_ms
 
             # Update health status

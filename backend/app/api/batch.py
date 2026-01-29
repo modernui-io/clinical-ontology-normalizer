@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
 import uuid
 from datetime import datetime, timezone
 from enum import Enum
@@ -864,7 +865,7 @@ async def _process_concept_lookup_batch(job_id: str) -> None:
                 break
 
             job["current_item"] = f"Concept {concept_id}"
-            start_time = asyncio.get_event_loop().time()
+            start_time = time.perf_counter()
 
             try:
                 # Simulate concept lookup (replace with actual service call)
@@ -883,7 +884,7 @@ async def _process_concept_lookup_batch(job_id: str) -> None:
                 if request_data.get("include_ancestors"):
                     result_data["ancestors"] = []
 
-                elapsed = (asyncio.get_event_loop().time() - start_time) * 1000
+                elapsed = (time.perf_counter() - start_time) * 1000
 
                 _batch_results[job_id].append(
                     BatchItemResult(
@@ -898,7 +899,7 @@ async def _process_concept_lookup_batch(job_id: str) -> None:
                 job["successful_items"] += 1
 
             except Exception as e:
-                elapsed = (asyncio.get_event_loop().time() - start_time) * 1000
+                elapsed = (time.perf_counter() - start_time) * 1000
                 error_msg = str(e)
 
                 _batch_results[job_id].append(
@@ -959,7 +960,7 @@ async def _process_relationship_batch(job_id: str) -> None:
                 break
 
             job["current_item"] = f"Relationships for {concept_id}"
-            start_time = asyncio.get_event_loop().time()
+            start_time = time.perf_counter()
 
             try:
                 await asyncio.sleep(0.03)  # Simulated query time
@@ -975,7 +976,7 @@ async def _process_relationship_batch(job_id: str) -> None:
                     ],
                 }
 
-                elapsed = (asyncio.get_event_loop().time() - start_time) * 1000
+                elapsed = (time.perf_counter() - start_time) * 1000
 
                 _batch_results[job_id].append(
                     BatchItemResult(
@@ -990,7 +991,7 @@ async def _process_relationship_batch(job_id: str) -> None:
                 job["successful_items"] += 1
 
             except Exception as e:
-                elapsed = (asyncio.get_event_loop().time() - start_time) * 1000
+                elapsed = (time.perf_counter() - start_time) * 1000
                 error_msg = str(e)
 
                 _batch_results[job_id].append(
@@ -1044,7 +1045,7 @@ async def _process_path_batch(job_id: str) -> None:
 
             start_id, end_id = pair
             job["current_item"] = f"Path {start_id} -> {end_id}"
-            start_time = asyncio.get_event_loop().time()
+            start_time = time.perf_counter()
 
             try:
                 await asyncio.sleep(0.1)  # Path finding takes longer
@@ -1057,7 +1058,7 @@ async def _process_path_batch(job_id: str) -> None:
                     "path": [start_id, start_id + 100, end_id],
                 }
 
-                elapsed = (asyncio.get_event_loop().time() - start_time) * 1000
+                elapsed = (time.perf_counter() - start_time) * 1000
 
                 _batch_results[job_id].append(
                     BatchItemResult(
@@ -1072,7 +1073,7 @@ async def _process_path_batch(job_id: str) -> None:
                 job["successful_items"] += 1
 
             except Exception as e:
-                elapsed = (asyncio.get_event_loop().time() - start_time) * 1000
+                elapsed = (time.perf_counter() - start_time) * 1000
                 error_msg = str(e)
 
                 _batch_results[job_id].append(
@@ -1125,7 +1126,7 @@ async def _process_search_batch(job_id: str) -> None:
                 break
 
             job["current_item"] = f"Search: {query[:30]}"
-            start_time = asyncio.get_event_loop().time()
+            start_time = time.perf_counter()
 
             try:
                 await asyncio.sleep(0.05)
@@ -1142,7 +1143,7 @@ async def _process_search_batch(job_id: str) -> None:
                     "total_results": 1,
                 }
 
-                elapsed = (asyncio.get_event_loop().time() - start_time) * 1000
+                elapsed = (time.perf_counter() - start_time) * 1000
 
                 _batch_results[job_id].append(
                     BatchItemResult(
@@ -1157,7 +1158,7 @@ async def _process_search_batch(job_id: str) -> None:
                 job["successful_items"] += 1
 
             except Exception as e:
-                elapsed = (asyncio.get_event_loop().time() - start_time) * 1000
+                elapsed = (time.perf_counter() - start_time) * 1000
                 error_msg = str(e)
 
                 _batch_results[job_id].append(
@@ -1210,7 +1211,7 @@ async def _process_similarity_batch(job_id: str) -> None:
                 break
 
             job["current_item"] = f"Similarity for {patient_id}"
-            start_time = asyncio.get_event_loop().time()
+            start_time = time.perf_counter()
 
             try:
                 await asyncio.sleep(0.2)  # Similarity is expensive
@@ -1226,7 +1227,7 @@ async def _process_similarity_batch(job_id: str) -> None:
                     ],
                 }
 
-                elapsed = (asyncio.get_event_loop().time() - start_time) * 1000
+                elapsed = (time.perf_counter() - start_time) * 1000
 
                 _batch_results[job_id].append(
                     BatchItemResult(
@@ -1241,7 +1242,7 @@ async def _process_similarity_batch(job_id: str) -> None:
                 job["successful_items"] += 1
 
             except Exception as e:
-                elapsed = (asyncio.get_event_loop().time() - start_time) * 1000
+                elapsed = (time.perf_counter() - start_time) * 1000
                 error_msg = str(e)
 
                 _batch_results[job_id].append(

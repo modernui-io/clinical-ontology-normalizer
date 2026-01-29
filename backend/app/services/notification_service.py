@@ -488,8 +488,8 @@ class EmailHandler(ChannelHandler):
             msg.attach(MIMEText(html_content, "html"))
 
             # Send email (run in thread pool to avoid blocking)
-            loop = asyncio.get_event_loop()
-            await loop.run_in_executor(None, self._send_smtp, msg, to_address)
+            # VP-Deprecation-3: Use asyncio.to_thread() instead of deprecated get_event_loop()
+            await asyncio.to_thread(self._send_smtp, msg, to_address)
 
             return DeliveryLog(
                 id=log_id,
