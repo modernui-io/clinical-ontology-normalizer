@@ -4,7 +4,7 @@ import logging
 import time
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from fastapi import APIRouter, FastAPI, Request
@@ -347,7 +347,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     Pre-warming ensures no customer ever hits a cold service.
     """
     startup_start = time.perf_counter()
-    startup_timestamp = datetime.now(UTC)
+    startup_timestamp = datetime.now(timezone.utc)
 
     # Log startup initiation with environment info
     logger.info(
@@ -413,7 +413,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         "Application shutdown initiated",
         extra={
             "event": "shutdown_begin",
-            "timestamp": datetime.now(UTC).isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
     )
 
@@ -437,7 +437,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         extra={
             "event": "shutdown_complete",
             "shutdown_time_ms": round(shutdown_time_ms, 2),
-            "timestamp": datetime.now(UTC).isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
     )
 
@@ -741,7 +741,7 @@ async def health_check() -> dict[str, Any]:
         "status": "healthy",
         "service": "clinical-ontology-normalizer",
         "version": "0.1.0",
-        "timestamp": datetime.now(UTC).isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -762,7 +762,7 @@ async def readiness_check() -> dict[str, Any]:
         "status": "ready",
         "service": "clinical-ontology-normalizer",
         "version": "0.1.0",
-        "timestamp": datetime.now(UTC).isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "startup_time_ms": startup_time,
         "vocabulary": vocab_stats,
         "prewarmed_services": prewarm_stats.get("services_loaded", 0),

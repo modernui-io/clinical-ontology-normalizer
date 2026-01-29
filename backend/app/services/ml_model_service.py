@@ -12,7 +12,7 @@ import hashlib
 import json
 import logging
 import time
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -85,8 +85,8 @@ class ModelMetadata(BaseModel):
     model_type: ModelType = Field(..., description="Type of ML model")
     prediction_type: PredictionType = Field(..., description="Type of prediction")
     status: ModelStatus = Field(default=ModelStatus.TRAINING)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     created_by: str = Field(default="system")
     description: str | None = Field(None)
     tags: list[str] = Field(default_factory=list)
@@ -103,7 +103,7 @@ class ModelPerformance(BaseModel):
 
     model_id: str = Field(..., description="Model identifier")
     version: str = Field(..., description="Model version")
-    evaluated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    evaluated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     dataset_type: str = Field(default="validation", description="train/validation/test")
     sample_count: int = Field(default=0)
 
@@ -147,7 +147,7 @@ class FeatureSet(BaseModel):
 
     patient_id: str = Field(..., description="Patient identifier")
     features: dict[str, float | int | str | None] = Field(..., description="Feature values")
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class PredictionResult(BaseModel):
@@ -160,7 +160,7 @@ class PredictionResult(BaseModel):
     prediction_label: str | None = Field(None, description="Predicted class label")
     confidence: float = Field(..., ge=0, le=1, description="Prediction confidence")
     risk_tier: str | None = Field(None, description="Risk tier classification")
-    predicted_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    predicted_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     feature_contributions: dict[str, float] = Field(
         default_factory=dict, description="SHAP-like feature contributions"
     )
@@ -177,7 +177,7 @@ class BatchPredictionResult(BaseModel):
     failed: int
     predictions: list[PredictionResult]
     processing_time_ms: float
-    predicted_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    predicted_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class TrainingConfig(BaseModel):
@@ -251,7 +251,7 @@ class FeatureEngineer:
     def calculate_age_from_dob(dob: datetime, reference_date: datetime | None = None) -> int:
         """Calculate age from date of birth."""
         if reference_date is None:
-            reference_date = datetime.now(UTC)
+            reference_date = datetime.now(timezone.utc)
         age = reference_date.year - dob.year
         if (reference_date.month, reference_date.day) < (dob.month, dob.day):
             age -= 1
@@ -266,7 +266,7 @@ class FeatureEngineer:
     def days_since_event(event_date: datetime, reference_date: datetime | None = None) -> int:
         """Calculate days since an event."""
         if reference_date is None:
-            reference_date = datetime.now(UTC)
+            reference_date = datetime.now(timezone.utc)
         return (reference_date - event_date).days
 
     @staticmethod
@@ -536,7 +536,7 @@ class MLModelService:
             "type": model_type.value,
             "coefficients": np.random.randn(10).tolist(),
             "intercept": np.random.randn(),
-            "created": datetime.now(UTC).isoformat(),
+            "created": datetime.now(timezone.utc).isoformat(),
         }
 
     def _create_mock_performance(self, model_id: str, version: str) -> ModelPerformance:

@@ -7,7 +7,7 @@ Supports Platt scaling and isotonic regression.
 import logging
 import threading
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 from uuid import uuid4
@@ -174,7 +174,7 @@ class PredictionCalibrationService:
         metrics = self._compute_metrics(y_true, calibrated, n_bins, slope, intercept)
         curve = self._compute_curve(y_true, calibrated, n_bins)
 
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         return CalibrationRecord(
             id=str(uuid4()),
             model_name=model_name,
@@ -205,7 +205,7 @@ class PredictionCalibrationService:
         metrics = self._compute_metrics(y_true, calibrated, n_bins)
         curve = self._compute_curve(y_true, calibrated, n_bins)
 
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         return CalibrationRecord(
             id=str(uuid4()),
             model_name=model_name,
