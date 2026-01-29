@@ -8,14 +8,17 @@ Provides high-quality entity extraction with:
 - Integration with vocabulary services for OMOP mapping
 """
 
-from dataclasses import dataclass, field
-from typing import Any, Callable
+import hashlib
+import logging
+import re
 import threading
 import time
-import re
-from functools import lru_cache
 from collections import defaultdict
-import hashlib
+from dataclasses import dataclass, field
+from functools import lru_cache
+from typing import Any, Callable
+
+logger = logging.getLogger(__name__)
 
 
 # ============================================================================

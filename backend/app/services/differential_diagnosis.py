@@ -15,9 +15,12 @@ clinical judgment. All diagnoses should be confirmed through appropriate
 diagnostic workup.
 """
 
+import logging
+import threading
 from dataclasses import dataclass, field
 from enum import Enum
-import threading
+
+logger = logging.getLogger(__name__)
 
 
 class DiagnosisUrgency(Enum):

@@ -14,10 +14,13 @@ Note: This is a clinical decision support tool. All recommendations should
 be reviewed by qualified medical coders and billing professionals.
 """
 
+import logging
+import threading
 from dataclasses import dataclass, field
 from enum import Enum
-import threading
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 class OptimizationCategory(Enum):

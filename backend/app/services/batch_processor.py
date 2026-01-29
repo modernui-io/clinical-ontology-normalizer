@@ -7,15 +7,18 @@ Handles batch document uploads and processing with:
 - Status reporting
 """
 
+import logging
+import threading
+import time
+import uuid
+from collections import defaultdict
+from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any, Callable
-import threading
-import uuid
-import time
-from concurrent.futures import ThreadPoolExecutor, Future
-from collections import defaultdict
+
+logger = logging.getLogger(__name__)
 
 
 # ============================================================================

@@ -7,11 +7,14 @@ Generates structured clinical summaries from extracted facts including:
 - Discharge summaries
 """
 
+import logging
+import threading
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any
-import threading
+
+logger = logging.getLogger(__name__)
 
 
 # ============================================================================
