@@ -1,6 +1,6 @@
 """Tests for audit logging (Phase 10.3)."""
 
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 from app.core.audit import (
     AuditAction,
@@ -46,9 +46,9 @@ class TestAuditEvent:
 
     def test_audit_event_timestamp_auto_set(self) -> None:
         """Test that timestamp is automatically set."""
-        before = datetime.now(UTC)
+        before = datetime.now(timezone.utc)
         event = AuditEvent(action=AuditAction.READ, resource_type="test")
-        after = datetime.now(UTC)
+        after = datetime.now(timezone.utc)
         assert before <= event.timestamp <= after
 
 

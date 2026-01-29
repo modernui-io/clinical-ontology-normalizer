@@ -10,7 +10,7 @@ import io
 import logging
 import threading
 from dataclasses import dataclass, field
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
@@ -71,7 +71,7 @@ class TranscriptionResult:
     duration_seconds: float = 0.0
     processing_time_ms: int = 0
     model: str = "whisper-1"
-    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     error: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
@@ -218,7 +218,7 @@ class VoiceTranscriptionService:
     def _generate_job_id(self, audio_content: bytes) -> str:
         """Generate a unique job ID based on audio content hash."""
         hash_obj = hashlib.sha256(audio_content[:1024])  # Hash first 1KB
-        timestamp = datetime.now(UTC).timestamp()
+        timestamp = datetime.now(timezone.utc).timestamp()
         return f"tr-{hash_obj.hexdigest()[:12]}-{int(timestamp)}"
 
     async def transcribe_audio(
@@ -238,7 +238,7 @@ class VoiceTranscriptionService:
             TranscriptionResult with status and text
         """
         job_id = self._generate_job_id(audio_content)
-        start_time = datetime.now(UTC)
+        start_time = datetime.now(timezone.utc)
 
         # Create initial result
         result = TranscriptionResult(
@@ -254,7 +254,7 @@ class VoiceTranscriptionService:
             # For now, simulate transcription
             transcript = await self._simulate_transcription(audio_content, language)
 
-            end_time = datetime.now(UTC)
+            end_time = datetime.now(timezone.utc)
             processing_time = int((end_time - start_time).total_seconds() * 1000)
 
             result.status = TranscriptionStatus.COMPLETED

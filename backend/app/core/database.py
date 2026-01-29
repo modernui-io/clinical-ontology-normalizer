@@ -3,11 +3,13 @@
 VP-DevOps-3: Added request context logging for database exceptions.
 """
 
+from __future__ import annotations
+
 import logging
 from collections.abc import AsyncGenerator
 from contextvars import ContextVar
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 from uuid import uuid4
 
@@ -177,7 +179,7 @@ class SoftDeleteMixin:
         Args:
             deleted_by_user_id: UUID of user performing the deletion
         """
-        self.deleted_at = datetime.now(UTC)
+        self.deleted_at = datetime.now(timezone.utc)
         self.deleted_by = deleted_by_user_id
 
     def restore(self) -> None:

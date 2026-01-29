@@ -906,12 +906,12 @@ class TestDataModels:
 
     def test_expansion_result_fields(self):
         """ValueSetExpansionResult has required fields."""
-        from datetime import datetime, UTC
+        from datetime import datetime, timezone
 
         expansion = ValueSetExpansionResult(
             value_set_id="test-vs",
             value_set_url="http://example.org/ValueSet/test",
-            timestamp=datetime.now(UTC),
+            timestamp=datetime.now(timezone.utc),
             total=5,
             offset=0,
             codes=[],

@@ -17,7 +17,7 @@ import time
 from collections import defaultdict
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from threading import Lock
 from typing import Any
 
@@ -285,7 +285,7 @@ class RateLimiterStore:
         with self._lock:
             return {
                 "total_buckets": len(self._buckets),
-                "last_cleanup": datetime.fromtimestamp(self._last_cleanup, tz=UTC).isoformat(),
+                "last_cleanup": datetime.fromtimestamp(self._last_cleanup, tz=timezone.utc).isoformat(),
             }
 
 

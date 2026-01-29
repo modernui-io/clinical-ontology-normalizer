@@ -9,8 +9,11 @@ This audit log should be persisted to a secure, append-only store
 in production for compliance and security purposes.
 """
 
+from __future__ import annotations
+
 import logging
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+from typing import Any, Optional
 from enum import Enum
 
 from pydantic import BaseModel, Field
@@ -43,25 +46,25 @@ class AuditEvent(BaseModel):
     Contains all relevant context for an auditable action.
     """
 
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     action: AuditAction = Field(..., description="Type of action performed")
     resource_type: str = Field(..., description="Type of resource accessed")
-    resource_id: str | None = Field(None, description="ID of specific resource")
-    patient_id: str | None = Field(None, description="Patient ID if applicable")
-    user_id: str | None = Field(None, description="User who performed action")
-    ip_address: str | None = Field(None, description="Client IP address")
-    details: dict | None = Field(None, description="Additional context")
+    resource_id: Optional[str] = Field(None, description="ID of specific resource")
+    patient_id: Optional[str] = Field(None, description="Patient ID if applicable")
+    user_id: Optional[str] = Field(None, description="User who performed action")
+    ip_address: Optional[str] = Field(None, description="Client IP address")
+    details: Optional[dict[str, Any]] = Field(None, description="Additional context")
     success: bool = Field(True, description="Whether action succeeded")
 
 
 def log_audit(
     action: AuditAction,
     resource_type: str,
-    resource_id: str | None = None,
-    patient_id: str | None = None,
-    user_id: str | None = None,
-    ip_address: str | None = None,
-    details: dict | None = None,
+    resource_id: Optional[str] = None,
+    patient_id: Optional[str] = None,
+    user_id: Optional[str] = None,
+    ip_address: Optional[str] = None,
+    details: Optional[dict[str, Any]] = None,
     success: bool = True,
 ) -> AuditEvent:
     """Log an audit event.
@@ -108,9 +111,9 @@ def log_audit(
 
 def log_data_access(
     resource_type: str,
-    resource_id: str | None = None,
-    patient_id: str | None = None,
-    user_id: str | None = None,
+    resource_id: Optional[str] = None,
+    patient_id: Optional[str] = None,
+    user_id: Optional[str] = None,
     action: AuditAction = AuditAction.READ,
 ) -> AuditEvent:
     """Log a data access event.

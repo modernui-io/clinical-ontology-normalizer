@@ -12,7 +12,7 @@ import json
 import logging
 import threading
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable
 from uuid import uuid4
@@ -99,7 +99,7 @@ class StreamingMessage:
     key: str | None = None
     value: dict[str, Any] = field(default_factory=dict)
     headers: dict[str, str] = field(default_factory=dict)
-    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     partition: int | None = None
     offset: int | None = None
 
@@ -127,7 +127,7 @@ class StreamingMessage:
             key=data.get("key"),
             value=data.get("value", {}),
             headers=data.get("headers", {}),
-            timestamp=datetime.fromisoformat(data["timestamp"]) if "timestamp" in data else datetime.now(UTC),
+            timestamp=datetime.fromisoformat(data["timestamp"]) if "timestamp" in data else datetime.now(timezone.utc),
             partition=data.get("partition"),
             offset=data.get("offset"),
         )
@@ -163,7 +163,7 @@ class ConnectionHealth:
     connected: bool = False
     broker_count: int = 0
     topic_count: int = 0
-    last_check: datetime = field(default_factory=lambda: datetime.now(UTC))
+    last_check: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     error_message: str | None = None
     latency_ms: float = 0.0
 
@@ -386,7 +386,7 @@ class KafkaService:
                 topic = template["topic"]
                 if topic in self._stats:
                     self._stats[topic].total_messages += 1
-                    self._stats[topic].last_message_time = datetime.now(UTC)
+                    self._stats[topic].last_message_time = datetime.now(timezone.utc)
                     self._stats[topic].messages_per_second = random.uniform(10, 100)
 
                 # Notify handlers
@@ -440,7 +440,7 @@ class KafkaService:
             # Update stats
             if topic in self._stats:
                 self._stats[topic].total_messages += 1
-                self._stats[topic].last_message_time = datetime.now(UTC)
+                self._stats[topic].last_message_time = datetime.now(timezone.utc)
 
             return message
 
@@ -555,7 +555,7 @@ class KafkaService:
             connected=self._is_connected or self._mock_mode,
             broker_count=1 if self._mock_mode else (3 if self._is_connected else 0),
             topic_count=len(self._stats),
-            last_check=datetime.now(UTC),
+            last_check=datetime.now(timezone.utc),
             error_message="Using mock mode - Kafka not available" if self._mock_mode else None,
             latency_ms=5.0 if self._mock_mode else 0.0,
         )

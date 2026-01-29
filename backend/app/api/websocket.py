@@ -12,7 +12,7 @@ Usage:
 import asyncio
 import json
 import logging
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
 
@@ -175,7 +175,7 @@ class ConnectionManager:
         try:
             await websocket.send_json({
                 "type": GeneralEventType.PING,
-                "timestamp": datetime.now(UTC).isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             })
             return True
         except Exception:
@@ -253,7 +253,7 @@ class ConnectionManager:
         """
         data = {
             "type": GeneralEventType.NOTIFICATION,
-            "timestamp": datetime.now(UTC).isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "data": {
                 "title": title,
                 "message": message,
@@ -327,7 +327,7 @@ async def websocket_general(websocket: WebSocket) -> None:
         # Send initial connection confirmation
         await websocket.send_json({
             "type": GeneralEventType.CONNECTED,
-            "timestamp": datetime.now(UTC).isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "message": "Connected to WebSocket server",
         })
 
@@ -341,7 +341,7 @@ async def websocket_general(websocket: WebSocket) -> None:
                     if msg_type == "ping":
                         await websocket.send_json({
                             "type": GeneralEventType.PONG,
-                            "timestamp": datetime.now(UTC).isoformat(),
+                            "timestamp": datetime.now(timezone.utc).isoformat(),
                         })
 
                     elif msg_type == "subscribe":
@@ -351,7 +351,7 @@ async def websocket_general(websocket: WebSocket) -> None:
                             await websocket.send_json({
                                 "type": GeneralEventType.SUBSCRIBED,
                                 "job_id": job_id,
-                                "timestamp": datetime.now(UTC).isoformat(),
+                                "timestamp": datetime.now(timezone.utc).isoformat(),
                             })
 
                     elif msg_type == "unsubscribe":
@@ -361,7 +361,7 @@ async def websocket_general(websocket: WebSocket) -> None:
                             await websocket.send_json({
                                 "type": GeneralEventType.UNSUBSCRIBED,
                                 "job_id": job_id,
-                                "timestamp": datetime.now(UTC).isoformat(),
+                                "timestamp": datetime.now(timezone.utc).isoformat(),
                             })
 
                     elif msg_type == "close":
@@ -665,7 +665,7 @@ async def broadcast_job_started(
     """
     data = {
         "type": GeneralEventType.JOB_STARTED,
-        "timestamp": datetime.now(UTC).isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "data": {
             "job_id": job_id,
             "total_items": total_items,
@@ -699,7 +699,7 @@ async def broadcast_job_progress(
 
     data = {
         "type": GeneralEventType.JOB_PROGRESS,
-        "timestamp": datetime.now(UTC).isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "data": {
             "job_id": job_id,
             "processed_count": processed_count,
@@ -732,7 +732,7 @@ async def broadcast_job_completed(
     """
     data = {
         "type": GeneralEventType.JOB_COMPLETED,
-        "timestamp": datetime.now(UTC).isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "data": {
             "job_id": job_id,
             "total_items": total_items,
@@ -763,7 +763,7 @@ async def broadcast_job_failed(
     """
     data = {
         "type": GeneralEventType.JOB_FAILED,
-        "timestamp": datetime.now(UTC).isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "data": {
             "job_id": job_id,
             "error_message": error_message,

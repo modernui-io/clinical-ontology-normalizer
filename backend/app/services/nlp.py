@@ -31,6 +31,9 @@ class ExtractedMention:
     domain_hint: str | None = None
     # Direct concept_id if known from curated vocabulary (bypasses mapping)
     omop_concept_id: int | None = None
+    # Probabilistic assertion fields (from assertion_classifier)
+    assertion_confidence: float | None = None  # Calibrated confidence in assertion (0-1)
+    assertion_trigger: str | None = None  # The trigger pattern that determined assertion
 
     @property
     def is_negated(self) -> bool:

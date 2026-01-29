@@ -21,7 +21,7 @@ Supports OMOP CDM tables:
 """
 
 from dataclasses import dataclass, field
-from datetime import UTC, date, datetime, timedelta
+from datetime import date, datetime, timezone, timedelta
 from enum import Enum
 from functools import lru_cache
 from typing import Any
@@ -222,7 +222,7 @@ class DQDCheckResult:
 
     # Timing
     execution_time_ms: float = 0.0
-    executed_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    executed_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
 @dataclass
@@ -242,7 +242,7 @@ class DQDIssue:
     expected_value: Any = None
     recommendation: str = ""
 
-    detected_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    detected_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     resolved: bool = False
     resolved_at: str | None = None
 
@@ -569,7 +569,7 @@ class DataQualityService:
         }
 
         for days_ago in range(30, 0, -1):
-            timestamp = (datetime.now(UTC) - timedelta(days=days_ago)).isoformat()
+            timestamp = (datetime.now(timezone.utc) - timedelta(days=days_ago)).isoformat()
             run_id = f"historical-{days_ago}"
 
             # Add some variance to scores
@@ -861,7 +861,7 @@ class DataQualityService:
     def _execute_all_checks(self) -> DQDRunResult:
         """Execute all quality checks."""
         start_time = time.perf_counter()
-        started_at = datetime.now(UTC).isoformat()
+        started_at = datetime.now(timezone.utc).isoformat()
         run_id = hashlib.md5(started_at.encode()).hexdigest()[:12]
 
         check_results: list[DQDCheckResult] = []
@@ -893,7 +893,7 @@ class DataQualityService:
         # Build summary
         summary = self._build_summary(check_results, all_issues, start_time)
 
-        completed_at = datetime.now(UTC).isoformat()
+        completed_at = datetime.now(timezone.utc).isoformat()
         duration_ms = (time.perf_counter() - start_time) * 1000
 
         return DQDRunResult(
@@ -987,7 +987,7 @@ class DataQualityService:
 
         # Create issues for failed records
         if failed_records > 0:
-            issue_id = f"issue_{check_def.check_id}_{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}"
+            issue_id = f"issue_{check_def.check_id}_{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
             issues.append(DQDIssue(
                 issue_id=issue_id,
                 check_id=check_def.check_id,
@@ -1127,7 +1127,7 @@ class DataQualityService:
         data: list[dict],
     ) -> tuple[int, list[dict]]:
         """Check birth year is plausible (1900 - current year)."""
-        current_year = datetime.now(UTC).year
+        current_year = datetime.now(timezone.utc).year
         passed = 0
         failed_examples = []
         for record in data:
@@ -1343,7 +1343,7 @@ class DataQualityService:
 
         return DQDSummary(
             overall_score=round(overall_score, 2),
-            executed_at=datetime.now(UTC).isoformat(),
+            executed_at=datetime.now(timezone.utc).isoformat(),
             execution_time_ms=round(execution_time, 2),
             completeness_score=round(completeness_score, 2),
             conformance_score=round(conformance_score, 2),

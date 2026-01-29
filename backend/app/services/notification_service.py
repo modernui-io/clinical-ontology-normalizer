@@ -23,7 +23,7 @@ import threading
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timezone, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from enum import Enum
@@ -350,7 +350,7 @@ class SlackHandler(ChannelHandler):
                 channel=NotificationChannel.SLACK,
                 status=DeliveryStatus.FAILED,
                 attempt=1,
-                timestamp=datetime.now(UTC),
+                timestamp=datetime.now(timezone.utc),
                 error_message="No Slack webhook URL configured",
             )
 
@@ -383,7 +383,7 @@ class SlackHandler(ChannelHandler):
                         channel=NotificationChannel.SLACK,
                         status=DeliveryStatus.DELIVERED,
                         attempt=1,
-                        timestamp=datetime.now(UTC),
+                        timestamp=datetime.now(timezone.utc),
                         response_code=response.status_code,
                     )
                 else:
@@ -393,7 +393,7 @@ class SlackHandler(ChannelHandler):
                         channel=NotificationChannel.SLACK,
                         status=DeliveryStatus.FAILED,
                         attempt=1,
-                        timestamp=datetime.now(UTC),
+                        timestamp=datetime.now(timezone.utc),
                         error_message=f"Slack API returned {response.status_code}",
                         response_code=response.status_code,
                         response_body=response.text[:500],
@@ -407,7 +407,7 @@ class SlackHandler(ChannelHandler):
                 channel=NotificationChannel.SLACK,
                 status=DeliveryStatus.FAILED,
                 attempt=1,
-                timestamp=datetime.now(UTC),
+                timestamp=datetime.now(timezone.utc),
                 error_message=str(e),
             )
 
@@ -467,7 +467,7 @@ class EmailHandler(ChannelHandler):
                 channel=NotificationChannel.EMAIL,
                 status=DeliveryStatus.FAILED,
                 attempt=1,
-                timestamp=datetime.now(UTC),
+                timestamp=datetime.now(timezone.utc),
                 error_message="No email address configured",
             )
 
@@ -497,7 +497,7 @@ class EmailHandler(ChannelHandler):
                 channel=NotificationChannel.EMAIL,
                 status=DeliveryStatus.DELIVERED,
                 attempt=1,
-                timestamp=datetime.now(UTC),
+                timestamp=datetime.now(timezone.utc),
             )
 
         except Exception as e:
@@ -508,7 +508,7 @@ class EmailHandler(ChannelHandler):
                 channel=NotificationChannel.EMAIL,
                 status=DeliveryStatus.FAILED,
                 attempt=1,
-                timestamp=datetime.now(UTC),
+                timestamp=datetime.now(timezone.utc),
                 error_message=str(e),
             )
 
@@ -609,7 +609,7 @@ class WebhookHandler(ChannelHandler):
                 channel=NotificationChannel.WEBHOOK,
                 status=DeliveryStatus.FAILED,
                 attempt=1,
-                timestamp=datetime.now(UTC),
+                timestamp=datetime.now(timezone.utc),
                 error_message="No matching webhooks configured",
             )
 
@@ -631,7 +631,7 @@ class WebhookHandler(ChannelHandler):
                 channel=NotificationChannel.WEBHOOK,
                 status=DeliveryStatus.DELIVERED,
                 attempt=1,
-                timestamp=datetime.now(UTC),
+                timestamp=datetime.now(timezone.utc),
             )
         elif success_count > 0:
             return DeliveryLog(
@@ -640,7 +640,7 @@ class WebhookHandler(ChannelHandler):
                 channel=NotificationChannel.WEBHOOK,
                 status=DeliveryStatus.DELIVERED,
                 attempt=1,
-                timestamp=datetime.now(UTC),
+                timestamp=datetime.now(timezone.utc),
                 error_message=f"Partial delivery: {success_count}/{len(webhooks)}. Errors: {'; '.join(errors)}",
             )
         else:
@@ -650,7 +650,7 @@ class WebhookHandler(ChannelHandler):
                 channel=NotificationChannel.WEBHOOK,
                 status=DeliveryStatus.FAILED,
                 attempt=1,
-                timestamp=datetime.now(UTC),
+                timestamp=datetime.now(timezone.utc),
                 error_message="; ".join(errors),
             )
 
@@ -716,7 +716,7 @@ class InAppHandler(ChannelHandler):
             channel=NotificationChannel.IN_APP,
             status=DeliveryStatus.DELIVERED,
             attempt=1,
-            timestamp=datetime.now(UTC),
+            timestamp=datetime.now(timezone.utc),
         )
 
     def get_notifications(
@@ -757,7 +757,7 @@ class InAppHandler(ChannelHandler):
             for notification in notifications:
                 if notification.id in notification_ids and not notification.read:
                     notification.read = True
-                    notification.read_at = datetime.now(UTC)
+                    notification.read_at = datetime.now(timezone.utc)
                     count += 1
         return count
 
@@ -851,7 +851,7 @@ class DeliveryQueue:
 
         delay = self.retry_delay_seconds * (self.retry_backoff_multiplier ** delivery.attempt)
         delivery.attempt += 1
-        delivery.next_retry_at = datetime.now(UTC) + timedelta(seconds=delay)
+        delivery.next_retry_at = datetime.now(timezone.utc) + timedelta(seconds=delay)
 
         with self._lock:
             self._queue.append(delivery)
@@ -867,7 +867,7 @@ class DeliveryQueue:
         Returns:
             List of ready deliveries
         """
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         ready = []
 
         with self._lock:
@@ -929,7 +929,7 @@ class DeadLetterQueue:
             channel=channel,
             final_error=error_message,
             attempts=attempts,
-            failed_at=datetime.now(UTC),
+            failed_at=datetime.now(timezone.utc),
         )
 
         # VP-Reliability-2: Structured logging with priority
@@ -995,7 +995,7 @@ class DeadLetterQueue:
             for entry in self._entries:
                 if entry.id == entry_id and not entry.acknowledged:
                     entry.acknowledged = True
-                    entry.acknowledged_at = datetime.now(UTC)
+                    entry.acknowledged_at = datetime.now(timezone.utc)
                     entry.acknowledged_by = acknowledged_by
                     logger.info(
                         f"DLQ entry {entry_id} acknowledged by {acknowledged_by}"
@@ -1162,7 +1162,7 @@ class NotificationService:
             secret=secret,
             event_types=event_types,
             is_active=True,
-            created_at=datetime.now(UTC),
+            created_at=datetime.now(timezone.utc),
         )
         self._webhook_handler.add_webhook(config)
         return config
@@ -1192,7 +1192,7 @@ class NotificationService:
                 channel=NotificationChannel.WEBHOOK,
                 status=DeliveryStatus.FAILED,
                 attempt=1,
-                timestamp=datetime.now(UTC),
+                timestamp=datetime.now(timezone.utc),
                 error_message="Webhook not found",
             )
 
@@ -1204,7 +1204,7 @@ class NotificationService:
             subject="Test Notification",
             body="This is a test notification to verify your webhook configuration.",
             priority=NotificationPriority.LOW,
-            created_at=datetime.now(UTC),
+            created_at=datetime.now(timezone.utc),
             metadata={"test": True},
         )
 
@@ -1216,7 +1216,7 @@ class NotificationService:
                 channel=NotificationChannel.WEBHOOK,
                 status=DeliveryStatus.DELIVERED,
                 attempt=1,
-                timestamp=datetime.now(UTC),
+                timestamp=datetime.now(timezone.utc),
             )
         except Exception as e:
             return DeliveryLog(
@@ -1225,7 +1225,7 @@ class NotificationService:
                 channel=NotificationChannel.WEBHOOK,
                 status=DeliveryStatus.FAILED,
                 attempt=1,
-                timestamp=datetime.now(UTC),
+                timestamp=datetime.now(timezone.utc),
                 error_message=str(e),
             )
 
@@ -1266,7 +1266,7 @@ class NotificationService:
             subject=subject,
             body=body,
             priority=template.priority,
-            created_at=datetime.now(UTC),
+            created_at=datetime.now(timezone.utc),
             metadata=template_vars,
         )
 
@@ -1305,7 +1305,7 @@ class NotificationService:
             subject=subject,
             body=body,
             priority=priority,
-            created_at=datetime.now(UTC),
+            created_at=datetime.now(timezone.utc),
             metadata=metadata or {},
         )
 
@@ -1362,7 +1362,7 @@ class NotificationService:
         if preferences.quiet_hours_start is None or preferences.quiet_hours_end is None:
             return False
 
-        current_hour = datetime.now(UTC).hour
+        current_hour = datetime.now(timezone.utc).hour
 
         start = preferences.quiet_hours_start
         end = preferences.quiet_hours_end

@@ -9,8 +9,9 @@ This module provides shared fixtures for all test modules:
 
 import json
 import os
+import sys
 from collections.abc import AsyncGenerator, Generator
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -25,6 +26,9 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
+
+if sys.version_info < (3, 10):
+    pytest.skip("Backend tests require Python 3.10+ for type syntax.", allow_module_level=True)
 
 from app.core.database import Base, get_db
 from app.main import app
@@ -394,7 +398,7 @@ class TestDataFactory:
             "unit": None,
             "start_date": None,
             "end_date": None,
-            "created_at": datetime.now(UTC).isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
     @staticmethod
@@ -415,7 +419,7 @@ class TestDataFactory:
             "temporality": "current",
             "experiencer": "patient",
             "confidence": 0.9,
-            "created_at": datetime.now(UTC).isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
     @staticmethod
@@ -432,7 +436,7 @@ class TestDataFactory:
             "omop_concept_id": 201826,
             "label": label,
             "properties": {},
-            "created_at": datetime.now(UTC).isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
 

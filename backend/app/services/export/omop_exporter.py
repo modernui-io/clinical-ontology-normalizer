@@ -11,14 +11,14 @@ Reference: https://ohdsi.github.io/CommonDataModel/cdm54.html
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import UTC, date, datetime
+from datetime import date, datetime, timezone
 
 from pydantic import BaseModel, Field
 
 
 def _utc_now() -> datetime:
     """Get current UTC time using timezone-aware datetime."""
-    return datetime.now(UTC)
+    return datetime.now(timezone.utc)
 
 
 class NoteExport(BaseModel):

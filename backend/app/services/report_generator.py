@@ -7,7 +7,7 @@ Generates formatted clinical reports in various formats including:
 """
 
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, BinaryIO
 from io import BytesIO
@@ -69,7 +69,7 @@ class ReportData:
 
     # Metadata
     metadata: dict[str, Any] = field(default_factory=dict)
-    generated_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    generated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
 @dataclass
@@ -283,7 +283,7 @@ class ReportGeneratorService:
         """Generate unique report ID."""
         with self._lock:
             self._report_counter += 1
-            return f"RPT-{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}-{self._report_counter:04d}"
+            return f"RPT-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}-{self._report_counter:04d}"
 
     def generate_report(
         self,
@@ -329,7 +329,7 @@ class ReportGeneratorService:
             content=content,
             content_type=content_type,
             size_bytes=size,
-            generated_at=datetime.now(UTC).isoformat(),
+            generated_at=datetime.now(timezone.utc).isoformat(),
             metadata={
                 "patient_id": data.patient_id,
                 "title": data.title,

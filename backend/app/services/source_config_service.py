@@ -25,7 +25,7 @@ import logging
 import os
 import secrets
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -257,8 +257,8 @@ class SourceConfig:
     last_tested_at: datetime | None = None
     last_sync_at: datetime | None = None
     test_result: str | None = None
-    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self, include_credentials: bool = False) -> dict[str, Any]:
@@ -422,8 +422,8 @@ class Pipeline:
     batch_size: int = 100
     max_records: int | None = None
     skip_on_error: bool = True
-    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     last_run_at: datetime | None = None
     last_run_status: str | None = None
     run_count: int = 0
@@ -467,7 +467,7 @@ class ConnectionTestResult:
     latency_ms: float | None = None
     server_info: dict[str, Any] = field(default_factory=dict)
     error_details: str | None = None
-    tested_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    tested_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
@@ -497,7 +497,7 @@ class SampleDataPreview:
     record_count: int
     records: list[dict[str, Any]]
     schema_info: dict[str, Any] = field(default_factory=dict)
-    fetched_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    fetched_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
@@ -670,7 +670,7 @@ class SourceConfigService:
             Created SourceConfig.
         """
         source_id = uuid4()
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
 
         source = SourceConfig(
             id=source_id,
@@ -798,7 +798,7 @@ class SourceConfigService:
             if metadata is not None:
                 source.metadata = metadata
 
-            source.updated_at = datetime.now(UTC)
+            source.updated_at = datetime.now(timezone.utc)
 
             # Update encrypted credentials
             if credentials is not None:
@@ -863,12 +863,12 @@ class SourceConfigService:
 
         # Update status to testing
         source.status = ConnectionStatus.TESTING
-        source.last_tested_at = datetime.now(UTC)
+        source.last_tested_at = datetime.now(timezone.utc)
 
         try:
-            start_time = datetime.now(UTC)
+            start_time = datetime.now(timezone.utc)
             result = await self._test_source_connection(source)
-            end_time = datetime.now(UTC)
+            end_time = datetime.now(timezone.utc)
 
             result.latency_ms = (end_time - start_time).total_seconds() * 1000
             result.tested_at = end_time
@@ -1324,7 +1324,7 @@ class SourceConfigService:
             return None
 
         pipeline_id = uuid4()
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
 
         # Default stages if not provided
         if stages is None:
@@ -1412,7 +1412,7 @@ class SourceConfigService:
             if skip_on_error is not None:
                 pipeline.skip_on_error = skip_on_error
 
-            pipeline.updated_at = datetime.now(UTC)
+            pipeline.updated_at = datetime.now(timezone.utc)
 
         logger.info(f"Updated pipeline {pipeline_id}")
         return pipeline
@@ -1451,7 +1451,7 @@ class SourceConfigService:
             id=uuid4(),
             pipeline_id=pipeline_id,
             status="running",
-            started_at=datetime.now(UTC),
+            started_at=datetime.now(timezone.utc),
         )
 
         async with self._lock:
@@ -1480,7 +1480,7 @@ class SourceConfigService:
                 for run in runs:
                     if run.id == run_id:
                         run.status = status
-                        run.completed_at = datetime.now(UTC)
+                        run.completed_at = datetime.now(timezone.utc)
                         run.records_processed = records_processed
                         run.records_failed = records_failed
                         run.error_message = error_message

@@ -26,7 +26,7 @@ import logging
 import os
 import platform
 import time
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
@@ -558,7 +558,7 @@ async def health_check(response: Response) -> HealthResponse:
 
     return HealthResponse(
         status=overall_status,
-        timestamp=datetime.now(UTC).isoformat(),
+        timestamp=datetime.now(timezone.utc).isoformat(),
         version="1.0.0",
         checks=checks,
         uptime_seconds=get_uptime_seconds(),
@@ -581,7 +581,7 @@ async def liveness_probe() -> LivenessResponse:
     """
     return LivenessResponse(
         status="ok",
-        timestamp=datetime.now(UTC).isoformat(),
+        timestamp=datetime.now(timezone.utc).isoformat(),
     )
 
 
@@ -616,7 +616,7 @@ async def readiness_probe(response: Response) -> ReadinessResponse:
 
     return ReadinessResponse(
         status="ready" if is_ready else "not_ready",
-        timestamp=datetime.now(UTC).isoformat(),
+        timestamp=datetime.now(timezone.utc).isoformat(),
         services_ready=services_ready,
         services_total=services_total,
     )
@@ -743,7 +743,7 @@ async def deep_health_check(response: Response) -> DeepHealthResponse:
 
     return DeepHealthResponse(
         status=overall_status,
-        timestamp=datetime.now(UTC).isoformat(),
+        timestamp=datetime.now(timezone.utc).isoformat(),
         version="1.0.0",
         environment="development" if settings.debug else "production",
         checks=checks,

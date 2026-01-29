@@ -11,7 +11,7 @@ Provides predictive analytics endpoints:
 """
 
 import time
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 from uuid import uuid4
 
@@ -605,7 +605,7 @@ async def get_patient_risks(
 
         # Build response from latest scores
         assessment_id = str(uuid4())
-        assessed_at = datetime.now(UTC)
+        assessed_at = datetime.now(timezone.utc)
         overall_tier = "low"
         overall_score = 0.0
 

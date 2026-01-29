@@ -8,7 +8,7 @@ Tests verify:
 """
 
 import pytest
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 
 from app.models.sdtm_mapping import (
     SDTMDataType,

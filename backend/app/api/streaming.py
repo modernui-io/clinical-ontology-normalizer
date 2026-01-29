@@ -12,7 +12,7 @@ Provides endpoints for:
 import asyncio
 import json
 import logging
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query, WebSocket, WebSocketDisconnect, status
@@ -158,7 +158,7 @@ async def get_streaming_health() -> HealthResponse:
             "current_latency_ms": agg_stats.current_latency_ms,
             "active_alerts": agg_stats.active_alerts,
         },
-        timestamp=datetime.now(UTC).isoformat(),
+        timestamp=datetime.now(timezone.utc).isoformat(),
     )
 
 
@@ -243,7 +243,7 @@ async def get_metrics(
             "messages_5min": agg_stats.total_messages_5min,
             "messages_1hr": agg_stats.total_messages_1hr,
         },
-        timestamp=datetime.now(UTC).isoformat(),
+        timestamp=datetime.now(timezone.utc).isoformat(),
     )
 
 
@@ -325,7 +325,7 @@ async def acknowledge_alert(
     return AcknowledgeResponse(
         success=True,
         alert_id=alert_id,
-        acknowledged_at=datetime.now(UTC).isoformat(),
+        acknowledged_at=datetime.now(timezone.utc).isoformat(),
     )
 
 
@@ -475,7 +475,7 @@ async def websocket_streaming(websocket: WebSocket) -> None:
         # Send initial connection message
         await websocket.send_json({
             "type": "connected",
-            "timestamp": datetime.now(UTC).isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "message": "Connected to streaming WebSocket",
             "mock_mode": kafka_service.is_mock_mode(),
         })
@@ -486,7 +486,7 @@ async def websocket_streaming(websocket: WebSocket) -> None:
 
             while True:
                 try:
-                    now = datetime.now(UTC)
+                    now = datetime.now(timezone.utc)
 
                     # Send metrics update
                     if "metrics" in subscribed_channels:
@@ -544,7 +544,7 @@ async def websocket_streaming(websocket: WebSocket) -> None:
                     if msg_type == "ping":
                         await websocket.send_json({
                             "type": "pong",
-                            "timestamp": datetime.now(UTC).isoformat(),
+                            "timestamp": datetime.now(timezone.utc).isoformat(),
                         })
 
                     elif msg_type == "subscribe":
@@ -615,7 +615,7 @@ async def get_streaming_stats() -> dict[str, Any]:
         "etl": etl_service.get_stats().to_dict(),
         "aggregation": aggregation_service.get_stats().to_dict(),
         "websocket_connections": streaming_ws_manager.connection_count,
-        "timestamp": datetime.now(UTC).isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
 

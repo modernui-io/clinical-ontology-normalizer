@@ -15,7 +15,7 @@ Provides endpoints for:
 import hashlib
 import json
 import time
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 from uuid import uuid4
@@ -559,7 +559,7 @@ async def health_check() -> HealthResponse:
         return HealthResponse(
             status=ConnectionStatusAPI.ERROR,
             error_message=str(e),
-            checked_at=datetime.now(UTC).isoformat(),
+            checked_at=datetime.now(timezone.utc).isoformat(),
         )
 
 

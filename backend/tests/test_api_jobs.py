@@ -35,13 +35,13 @@ class TestGetJobStatus:
         mock_db_session: MagicMock,
     ) -> None:
         """Test getting status of existing job."""
-        from datetime import UTC, datetime
+        from datetime import datetime, timezone
 
         # Create mock document
         mock_document = MagicMock()
         mock_document.id = str(uuid4())
         mock_document.status = JobStatus.QUEUED
-        mock_document.created_at = datetime.now(UTC)
+        mock_document.created_at = datetime.now(timezone.utc)
         mock_document.processed_at = None
         mock_document.job_id = uuid4()
 
@@ -64,12 +64,12 @@ class TestGetJobStatus:
         mock_db_session: MagicMock,
     ) -> None:
         """Test job status includes created_at timestamp."""
-        from datetime import UTC, datetime
+        from datetime import datetime, timezone
 
         mock_document = MagicMock()
         mock_document.id = str(uuid4())
         mock_document.status = JobStatus.PROCESSING
-        mock_document.created_at = datetime(2026, 1, 14, 10, 30, 0, tzinfo=UTC)
+        mock_document.created_at = datetime(2026, 1, 14, 10, 30, 0, tzinfo=timezone.utc)
         mock_document.processed_at = None
         mock_document.job_id = uuid4()
 
@@ -90,13 +90,13 @@ class TestGetJobStatus:
         mock_db_session: MagicMock,
     ) -> None:
         """Test completed job includes processed_at timestamp."""
-        from datetime import UTC, datetime
+        from datetime import datetime, timezone
 
         mock_document = MagicMock()
         mock_document.id = str(uuid4())
         mock_document.status = JobStatus.COMPLETED
-        mock_document.created_at = datetime(2026, 1, 14, 10, 30, 0, tzinfo=UTC)
-        mock_document.processed_at = datetime(2026, 1, 14, 10, 35, 0, tzinfo=UTC)
+        mock_document.created_at = datetime(2026, 1, 14, 10, 30, 0, tzinfo=timezone.utc)
+        mock_document.processed_at = datetime(2026, 1, 14, 10, 35, 0, tzinfo=timezone.utc)
         mock_document.job_id = uuid4()
 
         mock_result = MagicMock()
@@ -144,12 +144,12 @@ class TestGetJobResult:
         mock_db_session: MagicMock,
     ) -> None:
         """Test getting result of incomplete job returns 400."""
-        from datetime import UTC, datetime
+        from datetime import datetime, timezone
 
         mock_document = MagicMock()
         mock_document.id = str(uuid4())
         mock_document.status = JobStatus.PROCESSING
-        mock_document.created_at = datetime.now(UTC)
+        mock_document.created_at = datetime.now(timezone.utc)
         mock_document.processed_at = None
         mock_document.job_id = uuid4()
 
@@ -167,13 +167,13 @@ class TestGetJobResult:
         mock_db_session: MagicMock,
     ) -> None:
         """Test getting result of completed job."""
-        from datetime import UTC, datetime
+        from datetime import datetime, timezone
 
         mock_document = MagicMock()
         mock_document.id = str(uuid4())
         mock_document.status = JobStatus.COMPLETED
-        mock_document.created_at = datetime(2026, 1, 14, 10, 30, 0, tzinfo=UTC)
-        mock_document.processed_at = datetime(2026, 1, 14, 10, 35, 0, tzinfo=UTC)
+        mock_document.created_at = datetime(2026, 1, 14, 10, 30, 0, tzinfo=timezone.utc)
+        mock_document.processed_at = datetime(2026, 1, 14, 10, 35, 0, tzinfo=timezone.utc)
         mock_document.job_id = uuid4()
 
         mock_result = MagicMock()

@@ -14,7 +14,7 @@ Security considerations:
 import logging
 import secrets
 from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timezone, timedelta
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 
@@ -87,7 +87,7 @@ def create_access_token(
     if expires_delta is None:
         expires_delta = timedelta(minutes=access_token_expire_minutes)
 
-    now = datetime.now(UTC)
+    now = datetime.now(timezone.utc)
     expire = now + expires_delta
 
     # Get user's roles and permissions
@@ -131,7 +131,7 @@ def create_refresh_token(
         Encoded JWT refresh token
     """
     expires_delta = timedelta(days=refresh_token_expire_days)
-    now = datetime.now(UTC)
+    now = datetime.now(timezone.utc)
     expire = now + expires_delta
 
     # Generate a unique token ID for revocation tracking
@@ -245,8 +245,8 @@ def validate_access_token(
         sub=payload["sub"],
         email=payload["email"],
         type=TokenType.ACCESS,
-        exp=datetime.fromtimestamp(payload["exp"], tz=UTC),
-        iat=datetime.fromtimestamp(payload["iat"], tz=UTC),
+        exp=datetime.fromtimestamp(payload["exp"], tz=timezone.utc),
+        iat=datetime.fromtimestamp(payload["iat"], tz=timezone.utc),
         roles=payload.get("roles", []),
         permissions=payload.get("permissions", []),
     )

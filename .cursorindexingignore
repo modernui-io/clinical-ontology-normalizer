@@ -1,0 +1,25 @@
+# Large or generated artifacts not useful for indexing
+node_modules/
+frontend/.next/
+frontend/out/
+dist/
+build/
+coverage/
+backend/coverage_html/
+__pycache__/
+*.log
+*.sqlite
+*.db
+*.parquet
+*.arrow
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.pdf
+
+# Large fixtures / generated data
+fixtures/
+backend/fixtures/
+backend/generated_clinical_notes.json
+backend/tests/benchmark_report.json

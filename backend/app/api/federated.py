@@ -15,7 +15,7 @@ Provides endpoints for federated learning operations:
 """
 
 import time
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 from uuid import uuid4
 
@@ -1086,7 +1086,7 @@ async def download_model(federation_id: str) -> dict[str, Any]:
             "feature_names": global_model.feature_names,
             "weights": global_model.weights,
             "performance_metrics": global_model.performance_metrics,
-            "exported_at": datetime.now(UTC).isoformat(),
+            "exported_at": datetime.now(timezone.utc).isoformat(),
             "format": "json",
             "framework_compatible": ["sklearn", "pytorch", "tensorflow"],
         }

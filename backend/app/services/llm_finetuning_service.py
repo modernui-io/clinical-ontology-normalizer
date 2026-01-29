@@ -24,7 +24,7 @@ import random
 import threading
 import time
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timezone, timedelta
 from enum import Enum
 from typing import Any
 from uuid import uuid4
@@ -164,8 +164,8 @@ class Dataset(BaseModel):
     description: str | None = Field(None)
     task: FineTuningTask = Field(..., description="Target task")
     status: DatasetStatus = Field(default=DatasetStatus.CREATING)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     created_by: str = Field(default="system")
 
     # Data statistics
@@ -273,7 +273,7 @@ class TrainingMetrics(BaseModel):
     rougeL: float | None = Field(None)
     bleu: float | None = Field(None)
 
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class FineTuneJob(BaseModel):
@@ -282,7 +282,7 @@ class FineTuneJob(BaseModel):
     id: str = Field(..., description="Job ID")
     config: FineTuneConfig = Field(..., description="Job configuration")
     status: JobStatus = Field(default=JobStatus.PENDING)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     started_at: datetime | None = Field(None)
     completed_at: datetime | None = Field(None)
 
@@ -336,7 +336,7 @@ class EvaluationResult(BaseModel):
 
     model_id: str = Field(..., description="Model ID")
     dataset_id: str | None = Field(None)
-    evaluated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    evaluated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     # Overall metrics
     accuracy: float | None = Field(None)
@@ -376,7 +376,7 @@ class Deployment(BaseModel):
     model_id: str = Field(..., description="Deployed model ID")
     endpoint_url: str | None = Field(None, description="API endpoint URL")
     status: DeploymentStatus = Field(default=DeploymentStatus.PENDING)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     started_at: datetime | None = Field(None)
 
     # Configuration
@@ -421,7 +421,7 @@ class FineTunedModel(BaseModel):
     task: FineTuningTask = Field(..., description="Task type")
     method: FineTuningMethod = Field(..., description="Fine-tuning method")
 
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     created_by: str = Field(default="system")
 
     # Training info
@@ -650,9 +650,9 @@ class LLMFineTuningService:
                 learning_rate=2e-5,
             ),
             status=JobStatus.COMPLETED,
-            created_at=datetime.now(UTC) - timedelta(days=2),
-            started_at=datetime.now(UTC) - timedelta(days=2),
-            completed_at=datetime.now(UTC) - timedelta(days=2, hours=-1),
+            created_at=datetime.now(timezone.utc) - timedelta(days=2),
+            started_at=datetime.now(timezone.utc) - timedelta(days=2),
+            completed_at=datetime.now(timezone.utc) - timedelta(days=2, hours=-1),
             current_epoch=3,
             current_step=1875,
             total_steps=1875,
@@ -903,7 +903,7 @@ class LLMFineTuningService:
         with self._lock:
             self._running_simulations[job_id] = True
             job.status = JobStatus.PREPARING
-            job.started_at = datetime.now(UTC)
+            job.started_at = datetime.now(timezone.utc)
 
         # Simulate preparation
         await asyncio.sleep(1)
@@ -1005,7 +1005,7 @@ class LLMFineTuningService:
             self._models[model_id] = model
             job.output_model_id = model_id
             job.status = JobStatus.COMPLETED
-            job.completed_at = datetime.now(UTC)
+            job.completed_at = datetime.now(timezone.utc)
             job.training_time_seconds = (job.completed_at - job.started_at).total_seconds()
             job.gpu_memory_peak_mb = random.uniform(6000, 12000)
             del self._running_simulations[job_id]
@@ -1159,7 +1159,7 @@ class LLMFineTuningService:
             model_id=model_id,
             endpoint_url=f"https://api.example.com/inference/{deployment_id}",
             status=DeploymentStatus.RUNNING,
-            started_at=datetime.now(UTC),
+            started_at=datetime.now(timezone.utc),
             instance_type=config.get("instance_type", "gpu.small"),
             min_replicas=config.get("min_replicas", 1),
             max_replicas=config.get("max_replicas", 4),

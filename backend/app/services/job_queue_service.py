@@ -8,7 +8,7 @@ VP-Memory-2: History collections bounded with deque to prevent memory growth.
 
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timezone, timedelta
 from enum import Enum
 from typing import Any
 import logging
@@ -62,7 +62,7 @@ class Job:
     job_type: str
     status: JobStatus = JobStatus.PENDING
     priority: JobPriority = JobPriority.NORMAL
-    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     started_at: str | None = None
     completed_at: str | None = None
     worker_id: str | None = None
@@ -97,8 +97,8 @@ class WorkerStatus:
     current_job_type: str | None = None
     jobs_completed: int = 0
     jobs_failed: int = 0
-    started_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
-    last_heartbeat: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    started_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    last_heartbeat: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     avg_processing_time_seconds: float = 0.0
     memory_usage_mb: float = 0.0
     cpu_usage_percent: float = 0.0
@@ -208,7 +208,7 @@ class JobQueueService:
         # Add completed jobs
         for i in range(25):
             job_id = f"JOB-{uuid.uuid4().hex[:12]}"
-            completed_time = datetime.now(UTC) - timedelta(minutes=random.randint(5, 120))
+            completed_time = datetime.now(timezone.utc) - timedelta(minutes=random.randint(5, 120))
             started_time = completed_time - timedelta(seconds=random.randint(5, 60))
             created_time = started_time - timedelta(seconds=random.randint(1, 30))
 
@@ -228,7 +228,7 @@ class JobQueueService:
         # Add failed jobs
         for i in range(5):
             job_id = f"JOB-{uuid.uuid4().hex[:12]}"
-            failed_time = datetime.now(UTC) - timedelta(minutes=random.randint(10, 60))
+            failed_time = datetime.now(timezone.utc) - timedelta(minutes=random.randint(10, 60))
             started_time = failed_time - timedelta(seconds=random.randint(5, 30))
             created_time = started_time - timedelta(seconds=random.randint(1, 10))
 
@@ -261,7 +261,7 @@ class JobQueueService:
         worker_ids = list(self._workers.keys())
         for i in range(3):
             job_id = f"JOB-{uuid.uuid4().hex[:12]}"
-            started_time = datetime.now(UTC) - timedelta(seconds=random.randint(10, 120))
+            started_time = datetime.now(timezone.utc) - timedelta(seconds=random.randint(10, 120))
             created_time = started_time - timedelta(seconds=random.randint(1, 30))
 
             worker_id = worker_ids[i % len(worker_ids)]
@@ -284,7 +284,7 @@ class JobQueueService:
         # Add pending/queued jobs
         for i in range(12):
             job_id = f"JOB-{uuid.uuid4().hex[:12]}"
-            created_time = datetime.now(UTC) - timedelta(seconds=random.randint(30, 300))
+            created_time = datetime.now(timezone.utc) - timedelta(seconds=random.randint(30, 300))
 
             self._jobs[job_id] = Job(
                 id=job_id,
@@ -296,7 +296,7 @@ class JobQueueService:
             )
 
         # Generate queue depth history (last 24 hours)
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         for i in range(288):  # 5-minute intervals for 24 hours
             timestamp = now - timedelta(minutes=5 * (288 - i))
             base_pending = 10 + int(5 * abs((i % 48) - 24) / 24)
@@ -325,11 +325,11 @@ class JobQueueService:
 
                 if job.status in [JobStatus.PENDING, JobStatus.QUEUED]:
                     created = datetime.fromisoformat(job.created_at)
-                    age = (datetime.now(UTC) - created).total_seconds()
+                    age = (datetime.now(timezone.utc) - created).total_seconds()
                     oldest_pending_age = max(oldest_pending_age, age)
 
             # Calculate throughput (jobs completed in last hour)
-            one_hour_ago = datetime.now(UTC) - timedelta(hours=1)
+            one_hour_ago = datetime.now(timezone.utc) - timedelta(hours=1)
             recent_completions = [
                 t for t in self._completion_timestamps if t > one_hour_ago
             ]
@@ -356,7 +356,7 @@ class JobQueueService:
     def get_queue_depth_history(self, hours: int = 24) -> list[QueueDepthPoint]:
         """Get queue depth over time."""
         with self._lock:
-            cutoff = datetime.now(UTC) - timedelta(hours=hours)
+            cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
             return [
                 point
                 for point in self._queue_depth_history
@@ -367,7 +367,7 @@ class JobQueueService:
         """Get current processing rate."""
         with self._lock:
             # Calculate jobs completed in last hour
-            one_hour_ago = datetime.now(UTC) - timedelta(hours=1)
+            one_hour_ago = datetime.now(timezone.utc) - timedelta(hours=1)
             recent_completions = [
                 t for t in self._completion_timestamps if t > one_hour_ago
             ]
@@ -486,7 +486,7 @@ class JobQueueService:
             self._retry_history[job_id].append(
                 RetryAttempt(
                     attempt_number=job.retry_count + 1,
-                    timestamp=datetime.now(UTC).isoformat(),
+                    timestamp=datetime.now(timezone.utc).isoformat(),
                     error=job.error or "Manual retry",
                     worker_id=job.worker_id,
                 )
@@ -521,7 +521,7 @@ class JobQueueService:
                     worker.current_job_type = None
 
             job.status = JobStatus.CANCELLED
-            job.completed_at = datetime.now(UTC).isoformat()
+            job.completed_at = datetime.now(timezone.utc).isoformat()
 
             return job
 
@@ -551,8 +551,8 @@ class JobQueueService:
             if job.status == JobStatus.RUNNING:
                 # Estimate based on average processing time
                 avg_processing = sum(self._processing_times[-50:]) / max(len(self._processing_times[-50:]), 1)
-                started = datetime.fromisoformat(job.started_at) if job.started_at else datetime.now(UTC)
-                elapsed = (datetime.now(UTC) - started).total_seconds()
+                started = datetime.fromisoformat(job.started_at) if job.started_at else datetime.now(timezone.utc)
+                elapsed = (datetime.now(timezone.utc) - started).total_seconds()
                 remaining = max(0, avg_processing - elapsed)
 
                 return {
@@ -561,7 +561,7 @@ class JobQueueService:
                     "started_at": job.started_at,
                     "elapsed_seconds": round(elapsed, 2),
                     "estimated_remaining_seconds": round(remaining, 2),
-                    "estimated_completion": (datetime.now(UTC) + timedelta(seconds=remaining)).isoformat(),
+                    "estimated_completion": (datetime.now(timezone.utc) + timedelta(seconds=remaining)).isoformat(),
                     "position_in_queue": None,
                 }
 
@@ -574,7 +574,7 @@ class JobQueueService:
                 "status": job.status.value,
                 "position_in_queue": position,
                 "estimated_wait_seconds": round(wait_time.total_seconds(), 2),
-                "estimated_completion": (datetime.now(UTC) + wait_time).isoformat(),
+                "estimated_completion": (datetime.now(timezone.utc) + wait_time).isoformat(),
             }
 
     def _calculate_position(self, job_id: str) -> int:

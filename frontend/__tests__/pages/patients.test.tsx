@@ -12,7 +12,6 @@
 
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { jest } from '@jest/globals';
 import PatientsPage from '@/app/patients/page';
 
 // Mock next/link
@@ -38,11 +37,13 @@ jest.mock('@/lib/api', () => ({
   getPatientGraph: jest.fn(),
 }));
 
-import { getPatientGraph } from '@/lib/api';
-import type { MockedFunction } from 'jest-mock';
 import { toast } from 'sonner';
 
-const mockGetPatientGraph = getPatientGraph as MockedFunction<typeof getPatientGraph>;
+const { getPatientGraph } = require('@/lib/api') as {
+  getPatientGraph: (...args: unknown[]) => Promise<unknown>;
+};
+
+const mockGetPatientGraph = getPatientGraph as jest.Mock;
 
 describe('Patients Page', () => {
   beforeEach(() => {

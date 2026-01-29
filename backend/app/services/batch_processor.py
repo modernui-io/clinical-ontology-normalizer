@@ -14,7 +14,7 @@ import uuid
 from collections import defaultdict
 from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable
 
@@ -70,7 +70,7 @@ class BatchJob:
 
     job_id: str
     status: BatchStatus = BatchStatus.PENDING
-    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     started_at: str | None = None
     completed_at: str | None = None
 
@@ -154,7 +154,7 @@ class BatchProcessorService:
         Returns:
             Created batch job
         """
-        job_id = f"BATCH-{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:8]}"
+        job_id = f"BATCH-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:8]}"
 
         batch_docs = []
         for i, doc in enumerate(documents):
@@ -204,7 +204,7 @@ class BatchProcessorService:
                 raise ValueError(f"Batch job cannot be started: {job.status}")
 
             job.status = BatchStatus.PROCESSING
-            job.started_at = datetime.now(UTC).isoformat()
+            job.started_at = datetime.now(timezone.utc).isoformat()
 
         # Create executor for this job
         executor = ThreadPoolExecutor(max_workers=self._max_workers)
@@ -235,7 +235,7 @@ class BatchProcessorService:
     ) -> dict[str, Any]:
         """Process a single document."""
         doc.status = DocumentStatus.PROCESSING
-        doc.started_at = datetime.now(UTC).isoformat()
+        doc.started_at = datetime.now(timezone.utc).isoformat()
         start_time = time.time()
 
         try:
@@ -262,7 +262,7 @@ class BatchProcessorService:
             result = {"error": str(e)}
 
         finally:
-            doc.completed_at = datetime.now(UTC).isoformat()
+            doc.completed_at = datetime.now(timezone.utc).isoformat()
             doc.processing_time_ms = (time.time() - start_time) * 1000
 
         # Update progress
@@ -288,7 +288,7 @@ class BatchProcessorService:
         with self._lock:
             job = self._jobs.get(job_id)
             if job:
-                job.completed_at = datetime.now(UTC).isoformat()
+                job.completed_at = datetime.now(timezone.utc).isoformat()
 
                 if job.failed_documents == 0:
                     job.status = BatchStatus.COMPLETED
@@ -390,7 +390,7 @@ class BatchProcessorService:
                 return False
 
             job.status = BatchStatus.CANCELLED
-            job.completed_at = datetime.now(UTC).isoformat()
+            job.completed_at = datetime.now(timezone.utc).isoformat()
 
         # Shutdown executor
         if job_id in self._executors:
@@ -485,7 +485,7 @@ class BatchProcessorService:
         Returns:
             Number of jobs removed
         """
-        cutoff = datetime.now(UTC).isoformat()
+        cutoff = datetime.now(timezone.utc).isoformat()
         removed = 0
 
         with self._lock:
@@ -494,7 +494,7 @@ class BatchProcessorService:
                 if job.status in [BatchStatus.COMPLETED, BatchStatus.CANCELLED, BatchStatus.FAILED]:
                     if job.completed_at:
                         completed = datetime.fromisoformat(job.completed_at)
-                        if (datetime.now(UTC) - completed).total_seconds() > older_than_hours * 3600:
+                        if (datetime.now(timezone.utc) - completed).total_seconds() > older_than_hours * 3600:
                             to_remove.append(job_id)
 
             for job_id in to_remove:

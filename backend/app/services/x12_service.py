@@ -18,7 +18,7 @@ import logging
 import re
 import threading
 from dataclasses import dataclass, field
-from datetime import UTC, date, datetime
+from datetime import date, datetime, timezone
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
@@ -1237,8 +1237,8 @@ class X12Service:
 
         try:
             # Generate control numbers
-            control_number = datetime.now(UTC).strftime("%y%m%d%H%M")
-            group_control = datetime.now(UTC).strftime("%H%M%S%f")[:9]
+            control_number = datetime.now(timezone.utc).strftime("%y%m%d%H%M")
+            group_control = datetime.now(timezone.utc).strftime("%H%M%S%f")[:9]
 
             # Determine version based on transaction type
             if transaction_type == X12TransactionType.INSTITUTIONAL_CLAIM:
@@ -1248,7 +1248,7 @@ class X12Service:
 
             # ISA - Interchange Header
             isa_date = date.today().strftime("%y%m%d")
-            isa_time = datetime.now(UTC).strftime("%H%M")
+            isa_time = datetime.now(timezone.utc).strftime("%H%M")
             segments.append(
                 f"ISA*00*          *00*          *ZZ*"
                 f"{claim.billing_provider.npi:<15}*ZZ*{claim.payer.payer_id:<15}*"
@@ -1257,7 +1257,7 @@ class X12Service:
 
             # GS - Functional Group Header
             gs_date = date.today().strftime("%Y%m%d")
-            gs_time = datetime.now(UTC).strftime("%H%M%S")
+            gs_time = datetime.now(timezone.utc).strftime("%H%M%S")
             segments.append(
                 f"GS*HC*{claim.billing_provider.npi}*{claim.payer.payer_id}*"
                 f"{gs_date}*{gs_time}*{group_control}*X*{version}"
@@ -1268,7 +1268,7 @@ class X12Service:
             segments.append(f"ST*837*{st_number}*{version}")
 
             # BHT - Beginning of Hierarchical Transaction
-            bht_ref = datetime.now(UTC).strftime("%y%m%d%H%M%S")
+            bht_ref = datetime.now(timezone.utc).strftime("%y%m%d%H%M%S")
             segments.append(f"BHT*0019*00*{bht_ref}*{gs_date}*{gs_time}*CH")
 
             # 1000A - Submitter Name

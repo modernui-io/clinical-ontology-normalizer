@@ -17,7 +17,7 @@ import logging
 import sys
 import traceback
 from collections.abc import Awaitable, Callable
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from fastapi import FastAPI, Request, status

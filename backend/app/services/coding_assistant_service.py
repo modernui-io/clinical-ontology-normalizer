@@ -17,7 +17,7 @@ import logging
 import threading
 import time
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 from uuid import uuid4
@@ -741,7 +741,7 @@ class CodingAssistantService:
             New conversation session
         """
         session_id = str(uuid4())
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
 
         context = ConversationContext(
             session_id=session_id,
@@ -795,7 +795,7 @@ class CodingAssistantService:
             session = self._sessions.get(session_id)
             if session:
                 session.messages = []
-                session.updated_at = datetime.now(UTC)
+                session.updated_at = datetime.now(timezone.utc)
                 return True
             return False
 
@@ -831,13 +831,13 @@ class CodingAssistantService:
             id=str(uuid4()),
             role=MessageRole.USER,
             content=message,
-            timestamp=datetime.now(UTC),
+            timestamp=datetime.now(timezone.utc),
         )
 
         # Add to history
         with self._lock:
             session.messages.append(user_message)
-            session.updated_at = datetime.now(UTC)
+            session.updated_at = datetime.now(timezone.utc)
 
         # Process based on intent
         response_text = ""
@@ -887,7 +887,7 @@ class CodingAssistantService:
             id=str(uuid4()),
             role=MessageRole.ASSISTANT,
             content=response_text,
-            timestamp=datetime.now(UTC),
+            timestamp=datetime.now(timezone.utc),
             code_suggestions=suggestions,
             citations=citations,
         )
@@ -895,7 +895,7 @@ class CodingAssistantService:
         # Add to history
         with self._lock:
             session.messages.append(assistant_message)
-            session.updated_at = datetime.now(UTC)
+            session.updated_at = datetime.now(timezone.utc)
 
         processing_time_ms = (time.perf_counter() - start_time) * 1000
 
@@ -1090,7 +1090,7 @@ class CodingAssistantService:
         """Log an interaction for audit purposes."""
         entry = AuditLogEntry(
             id=str(uuid4()),
-            timestamp=datetime.now(UTC),
+            timestamp=datetime.now(timezone.utc),
             user_id=session.user_id,
             session_id=session.id,
             query=query,

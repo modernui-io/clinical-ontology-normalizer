@@ -68,7 +68,7 @@ import logging
 import threading
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
@@ -348,7 +348,7 @@ class HybridAnalysisResult:
     total_time_ms: float = 0.0
 
     # Metadata
-    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> dict[str, Any]:
         return {

@@ -6,7 +6,7 @@ Enables log aggregation with ELK, Datadog, CloudWatch, etc.
 
 import logging
 import sys
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from app.core.config import settings
@@ -23,7 +23,7 @@ class JSONFormatter(logging.Formatter):
         import json
 
         log_record: dict[str, Any] = {
-            "timestamp": datetime.now(UTC).isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "level": record.levelname,
             "logger": record.name,
             "message": record.getMessage(),

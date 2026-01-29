@@ -320,7 +320,7 @@ class RxNormService:
                     route=concept.get("route", ""),
                     synonyms=concept.get("synonyms", []),
                     ndc_codes=concept.get("ndc_codes", []),
-                    omop_concept_id=concept.get("omop_concept_id"),
+                    omop_concept_id=concept.get("omop_concept_id", concept.get("concept_id")),
                 )
                 self._drugs.append(drug)
 

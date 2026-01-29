@@ -1,4 +1,4 @@
-.PHONY: test lint typecheck dev dev-backend dev-worker clean help docker-up docker-down docker-build docker-logs docker-dev docker-migrate
+.PHONY: test lint typecheck dev dev-backend dev-worker clean help docker-up docker-down docker-build docker-logs docker-dev docker-migrate kg kg-export kg-check kg-lint skills-install
 
 # Default target
 help:
@@ -14,6 +14,11 @@ help:
 	@echo "  lint          Run all linters"
 	@echo "  typecheck     Run type checkers"
 	@echo "  clean         Clean build artifacts"
+	@echo "  kg            Regenerate codebase_kg.json"
+	@echo "  kg-export     Export KG to Neo4j CSV (kg_export/)"
+	@echo "  kg-check      Verify codebase_kg.json is up to date"
+	@echo "  kg-lint       Lint KG scripts with Ruff"
+	@echo "  skills-install Install repo skills into CODEX_HOME"
 	@echo ""
 	@echo "Docker targets:"
 	@echo "  docker-build  Build Docker images"
@@ -39,7 +44,7 @@ test-frontend:
 	fi
 
 # Run all linters
-lint: lint-backend lint-frontend
+lint: lint-backend lint-frontend kg-lint
 
 lint-backend:
 	@echo "Running backend linting..."
@@ -97,6 +102,28 @@ clean:
 	@find . -type d -name "node_modules" -exec rm -rf {} + 2>/dev/null || true
 	@find . -type d -name ".next" -exec rm -rf {} + 2>/dev/null || true
 	@echo "Done"
+
+# =============================================================================
+# Knowledge graph & skills targets
+# =============================================================================
+
+kg:
+	@python3 scripts/generate_codebase_kg.py
+
+kg-export: kg
+	@python3 scripts/export_codebase_kg_neo4j.py
+
+kg-check:
+	@python3 scripts/generate_codebase_kg.py
+	@git diff --exit-code codebase_kg.json
+
+kg-lint:
+	@echo "Running KG script linting..."
+	@python3 -m ruff check scripts/*.py || echo "KG linting not yet configured"
+	@python3 -m ruff format --check scripts/*.py || echo "KG format check not yet configured"
+
+skills-install:
+	@python3 scripts/install_repo_skills.py
 
 # =============================================================================
 # Docker targets

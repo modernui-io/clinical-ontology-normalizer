@@ -15,7 +15,7 @@ Features:
 import logging
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 from enum import Enum
 from threading import Lock
 from typing import Any
@@ -226,7 +226,7 @@ class GraphETLService:
         job = ETLJobResult(
             job_id=job_id,
             status=ETLStatus.RUNNING,
-            started_at=datetime.now(UTC).isoformat(),
+            started_at=datetime.now(timezone.utc).isoformat(),
         )
         self._current_job = job
 
@@ -283,7 +283,7 @@ class GraphETLService:
                     job.nodes_created += result.records[0].get("nodes_created", 0)
 
             job.status = ETLStatus.COMPLETED
-            job.completed_at = datetime.now(UTC).isoformat()
+            job.completed_at = datetime.now(timezone.utc).isoformat()
             job.duration_ms = (time.perf_counter() - start_time) * 1000
 
             with self._lock:
@@ -293,7 +293,7 @@ class GraphETLService:
         except Exception as e:
             job.status = ETLStatus.FAILED
             job.errors.append(str(e))
-            job.completed_at = datetime.now(UTC).isoformat()
+            job.completed_at = datetime.now(timezone.utc).isoformat()
             job.duration_ms = (time.perf_counter() - start_time) * 1000
             logger.error(f"Concept load failed: {e}")
 
@@ -327,7 +327,7 @@ class GraphETLService:
         job = ETLJobResult(
             job_id=job_id,
             status=ETLStatus.RUNNING,
-            started_at=datetime.now(UTC).isoformat(),
+            started_at=datetime.now(timezone.utc).isoformat(),
         )
 
         try:
@@ -354,7 +354,7 @@ class GraphETLService:
                     job.relationships_created += result.records[0].get("relationships_created", 0)
 
             job.status = ETLStatus.COMPLETED
-            job.completed_at = datetime.now(UTC).isoformat()
+            job.completed_at = datetime.now(timezone.utc).isoformat()
             job.duration_ms = (time.perf_counter() - start_time) * 1000
 
             with self._lock:
@@ -363,7 +363,7 @@ class GraphETLService:
         except Exception as e:
             job.status = ETLStatus.FAILED
             job.errors.append(str(e))
-            job.completed_at = datetime.now(UTC).isoformat()
+            job.completed_at = datetime.now(timezone.utc).isoformat()
             job.duration_ms = (time.perf_counter() - start_time) * 1000
             logger.error(f"Ancestor load failed: {e}")
 
@@ -391,7 +391,7 @@ class GraphETLService:
         job = ETLJobResult(
             job_id=job_id,
             status=ETLStatus.RUNNING,
-            started_at=datetime.now(UTC).isoformat(),
+            started_at=datetime.now(timezone.utc).isoformat(),
         )
 
         try:
@@ -443,7 +443,7 @@ class GraphETLService:
                         job.relationships_created += result.records[0].get("relationships_created", 0)
 
             job.status = ETLStatus.COMPLETED
-            job.completed_at = datetime.now(UTC).isoformat()
+            job.completed_at = datetime.now(timezone.utc).isoformat()
             job.duration_ms = (time.perf_counter() - start_time) * 1000
 
             with self._lock:
@@ -452,7 +452,7 @@ class GraphETLService:
         except Exception as e:
             job.status = ETLStatus.FAILED
             job.errors.append(str(e))
-            job.completed_at = datetime.now(UTC).isoformat()
+            job.completed_at = datetime.now(timezone.utc).isoformat()
             job.duration_ms = (time.perf_counter() - start_time) * 1000
             logger.error(f"Relationship load failed: {e}")
 

@@ -82,3 +82,19 @@ Before every commit:
 - Negated findings MUST be preserved (assertion=absent)
 - One task per iteration
 - Tests must pass before marking task complete
+
+### Agent Context (Read First)
+
+Core flow:
+- Document ingestion -> Mentions -> Mapping -> ClinicalFact -> Knowledge Graph
+
+Primary entry points:
+- `backend/app/main.py`: FastAPI app + router registration
+- `backend/app/api/__init__.py`: router index
+- `backend/app/services/`: business logic
+- `backend/app/models/` + `backend/app/schemas/`: data contracts
+
+Repo maps:
+- `CODEBASE_MAP.md`: human-readable map
+- `codebase_kg.json`: machine-readable KG
+- `scripts/generate_codebase_kg.py`: regenerate KG

@@ -8,7 +8,7 @@ Tracks and reports on NLP processing quality including:
 """
 
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timezone, timedelta
 from enum import Enum
 from typing import Any
 import threading
@@ -59,7 +59,7 @@ class ProcessingMetrics:
 
     document_id: str
     patient_id: str | None = None
-    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     # Timing metrics (milliseconds)
     total_time_ms: float = 0.0
@@ -258,7 +258,7 @@ class QualityMetricsService:
         """
         with self._lock:
             # Filter by time window
-            now = datetime.now(UTC)
+            now = datetime.now(timezone.utc)
             if time_window == TimeWindow.HOUR:
                 cutoff = now - timedelta(hours=1)
             elif time_window == TimeWindow.DAY:
@@ -409,7 +409,7 @@ class QualityMetricsService:
             if time_window == TimeWindow.DAY:
                 # Group by hour
                 hourly_data: dict[int, list[ProcessingMetrics]] = defaultdict(list)
-                now = datetime.now(UTC)
+                now = datetime.now(timezone.utc)
                 cutoff = now - timedelta(days=1)
 
                 for m in self._processing_history:
@@ -474,7 +474,7 @@ class QualityMetricsService:
                         }
 
             return DashboardData(
-                generated_at=datetime.now(UTC).isoformat(),
+                generated_at=datetime.now(timezone.utc).isoformat(),
                 time_window=time_window,
                 total_documents_processed=aggregated.document_count,
                 total_extractions=aggregated.total_mentions,

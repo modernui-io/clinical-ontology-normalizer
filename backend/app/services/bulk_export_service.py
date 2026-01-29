@@ -14,7 +14,7 @@ import os
 import shutil
 import uuid
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timezone, timedelta
 from enum import Enum
 from pathlib import Path
 from threading import Lock
@@ -102,7 +102,7 @@ class ExportError:
     record_id: str | None
     error_type: str
     error_message: str
-    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 @dataclass
@@ -244,7 +244,7 @@ def _generate_mock_patient(patient_id: str) -> dict[str, Any]:
         "id": patient_id,
         "meta": {
             "versionId": "1",
-            "lastUpdated": datetime.now(UTC).isoformat(),
+            "lastUpdated": datetime.now(timezone.utc).isoformat(),
         },
         "identifier": [
             {
@@ -283,7 +283,7 @@ def _generate_mock_condition(condition_id: str, patient_id: str) -> dict[str, An
         "id": condition_id,
         "meta": {
             "versionId": "1",
-            "lastUpdated": datetime.now(UTC).isoformat(),
+            "lastUpdated": datetime.now(timezone.utc).isoformat(),
         },
         "clinicalStatus": {
             "coding": [
@@ -314,7 +314,7 @@ def _generate_mock_condition(condition_id: str, patient_id: str) -> dict[str, An
         "subject": {
             "reference": f"Patient/{patient_id}",
         },
-        "recordedDate": (datetime.now(UTC) - timedelta(days=random.randint(1, 365))).isoformat(),
+        "recordedDate": (datetime.now(timezone.utc) - timedelta(days=random.randint(1, 365))).isoformat(),
     }
 
 
@@ -338,7 +338,7 @@ def _generate_mock_medication_request(
         "id": med_id,
         "meta": {
             "versionId": "1",
-            "lastUpdated": datetime.now(UTC).isoformat(),
+            "lastUpdated": datetime.now(timezone.utc).isoformat(),
         },
         "status": "active",
         "intent": "order",
@@ -355,7 +355,7 @@ def _generate_mock_medication_request(
         "subject": {
             "reference": f"Patient/{patient_id}",
         },
-        "authoredOn": (datetime.now(UTC) - timedelta(days=random.randint(1, 180))).isoformat(),
+        "authoredOn": (datetime.now(timezone.utc) - timedelta(days=random.randint(1, 180))).isoformat(),
     }
 
 
@@ -378,7 +378,7 @@ def _generate_mock_observation(obs_id: str, patient_id: str) -> dict[str, Any]:
         "id": obs_id,
         "meta": {
             "versionId": "1",
-            "lastUpdated": datetime.now(UTC).isoformat(),
+            "lastUpdated": datetime.now(timezone.utc).isoformat(),
         },
         "status": "final",
         "category": [
@@ -404,7 +404,7 @@ def _generate_mock_observation(obs_id: str, patient_id: str) -> dict[str, Any]:
         "subject": {
             "reference": f"Patient/{patient_id}",
         },
-        "effectiveDateTime": (datetime.now(UTC) - timedelta(days=random.randint(1, 30))).isoformat(),
+        "effectiveDateTime": (datetime.now(timezone.utc) - timedelta(days=random.randint(1, 30))).isoformat(),
         "valueQuantity": {
             "value": value,
             "unit": unit,
@@ -522,7 +522,7 @@ class BulkExportService:
             job_id=job_id,
             status=ExportStatus.PENDING,
             export_type=export_type,
-            created_at=datetime.now(UTC),
+            created_at=datetime.now(timezone.utc),
             resource_types=resource_types,
             since=since,
             type_filter=type_filter,
@@ -531,7 +531,7 @@ class BulkExportService:
             output_format=output_format,
             export_dir=str(export_dir),
             request_url=request_url,
-            transactionTime=datetime.now(UTC).isoformat(),
+            transactionTime=datetime.now(timezone.utc).isoformat(),
         )
 
         with self._lock:
@@ -554,7 +554,7 @@ class BulkExportService:
         """Run the export job (background task)."""
         try:
             job.status = ExportStatus.IN_PROGRESS
-            job.started_at = datetime.now(UTC)
+            job.started_at = datetime.now(timezone.utc)
 
             # Create export directory
             export_dir = Path(job.export_dir)
@@ -612,8 +612,8 @@ class BulkExportService:
 
             # Mark complete
             job.status = ExportStatus.COMPLETED
-            job.completed_at = datetime.now(UTC)
-            job.expires_at = datetime.now(UTC) + timedelta(
+            job.completed_at = datetime.now(timezone.utc)
+            job.expires_at = datetime.now(timezone.utc) + timedelta(
                 hours=self._file_retention_hours
             )
             job.progress.percent_complete = 100.0
@@ -748,7 +748,7 @@ class BulkExportService:
             return False
 
         job.status = ExportStatus.CANCELLED
-        job.completed_at = datetime.now(UTC)
+        job.completed_at = datetime.now(timezone.utc)
 
         with self._lock:
             self._running_exports.discard(job_id)
@@ -817,7 +817,7 @@ class BulkExportService:
             Number of exports cleaned up.
         """
         cleaned = 0
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
 
         for job_id, job in list(self._jobs.items()):
             if job.expires_at and job.expires_at < now:

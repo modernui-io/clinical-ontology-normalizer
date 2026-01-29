@@ -21,7 +21,7 @@ import json
 import logging
 import uuid
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from threading import Lock
@@ -153,8 +153,8 @@ class ValueSet:
     rules: list[InclusionRule] = field(default_factory=list)  # For intensional
 
     # Metadata
-    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     created_by: str | None = None
     updated_by: str | None = None
 
@@ -717,7 +717,7 @@ class ValueSetService:
             if hasattr(value_set, key):
                 setattr(value_set, key, value)
 
-        value_set.updated_at = datetime.now(UTC)
+        value_set.updated_at = datetime.now(timezone.utc)
         value_set.updated_by = updated_by
 
         logger.info(f"Updated value set {value_set_id}")
@@ -779,7 +779,7 @@ class ValueSetService:
                 )
 
         value_set.codes.append(code)
-        value_set.updated_at = datetime.now(UTC)
+        value_set.updated_at = datetime.now(timezone.utc)
         value_set.updated_by = updated_by
 
         return value_set
@@ -814,7 +814,7 @@ class ValueSetService:
         value_set.codes = [
             c for c in value_set.codes if not (c.system == system and c.code == code)
         ]
-        value_set.updated_at = datetime.now(UTC)
+        value_set.updated_at = datetime.now(timezone.utc)
         value_set.updated_by = updated_by
 
         return value_set
@@ -843,7 +843,7 @@ class ValueSetService:
             raise ValueError("Cannot add rules to an extensional value set")
 
         value_set.rules.append(rule)
-        value_set.updated_at = datetime.now(UTC)
+        value_set.updated_at = datetime.now(timezone.utc)
         value_set.updated_by = updated_by
 
         return value_set
@@ -873,7 +873,7 @@ class ValueSetService:
 
         if 0 <= rule_index < len(value_set.rules):
             del value_set.rules[rule_index]
-            value_set.updated_at = datetime.now(UTC)
+            value_set.updated_at = datetime.now(timezone.utc)
             value_set.updated_by = updated_by
 
         return value_set
@@ -912,7 +912,7 @@ class ValueSetService:
                 version_id=str(uuid.uuid4()),
                 version=new_version,
                 status=status,
-                created_at=datetime.now(UTC),
+                created_at=datetime.now(timezone.utc),
                 created_by=created_by,
                 notes=notes,
                 code_count=len(value_set.codes),
@@ -921,7 +921,7 @@ class ValueSetService:
 
         value_set.version = new_version
         value_set.status = status
-        value_set.updated_at = datetime.now(UTC)
+        value_set.updated_at = datetime.now(timezone.utc)
         value_set.updated_by = created_by
 
         return value_set
@@ -958,7 +958,7 @@ class ValueSetService:
             raise ValueError("Can only activate a draft value set")
 
         value_set.status = ValueSetStatus.ACTIVE
-        value_set.updated_at = datetime.now(UTC)
+        value_set.updated_at = datetime.now(timezone.utc)
         value_set.updated_by = updated_by
 
         # Add version history entry
@@ -967,7 +967,7 @@ class ValueSetService:
                 version_id=str(uuid.uuid4()),
                 version=value_set.version,
                 status=ValueSetStatus.ACTIVE,
-                created_at=datetime.now(UTC),
+                created_at=datetime.now(timezone.utc),
                 created_by=updated_by,
                 notes="Activated",
                 code_count=len(value_set.codes),
@@ -993,7 +993,7 @@ class ValueSetService:
             return None
 
         value_set.status = ValueSetStatus.RETIRED
-        value_set.updated_at = datetime.now(UTC)
+        value_set.updated_at = datetime.now(timezone.utc)
         value_set.updated_by = updated_by
 
         # Add version history entry
@@ -1002,7 +1002,7 @@ class ValueSetService:
                 version_id=str(uuid.uuid4()),
                 version=value_set.version,
                 status=ValueSetStatus.RETIRED,
-                created_at=datetime.now(UTC),
+                created_at=datetime.now(timezone.utc),
                 created_by=updated_by,
                 notes="Retired",
                 code_count=len(value_set.codes),
@@ -1057,7 +1057,7 @@ class ValueSetService:
         return ValueSetExpansionResult(
             value_set_id=value_set_id,
             value_set_url=value_set.url,
-            timestamp=datetime.now(UTC),
+            timestamp=datetime.now(timezone.utc),
             total=len(codes),
             offset=offset,
             codes=codes[offset : offset + count],

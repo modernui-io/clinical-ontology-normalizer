@@ -11,7 +11,7 @@ SDTM mappings consist of:
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 import uuid
@@ -148,8 +148,8 @@ class SDTMDomainSpec:
     variable_mappings: list[VariableMapping] = field(default_factory=list)
     source_table: str | None = None  # Primary source table
     source_filter: str | None = None  # SQL-like filter for source data
-    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     version: str = "1.0.0"
     notes: str | None = None
 
@@ -235,8 +235,8 @@ class SDTMMappingSpec:
     sdtmig_version: str = "3.3"  # SDTM Implementation Guide version
     domains: list[SDTMDomainSpec] = field(default_factory=list)
     global_variables: dict[str, str] = field(default_factory=dict)  # Study-level vars
-    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     created_by: str | None = None
     status: str = "draft"  # draft, active, archived
 
@@ -285,4 +285,4 @@ class SDTMMappingSpec:
         # Remove existing if present
         self.domains = [d for d in self.domains if d.domain != domain.domain]
         self.domains.append(domain)
-        self.updated_at = datetime.now(UTC)
+        self.updated_at = datetime.now(timezone.utc)

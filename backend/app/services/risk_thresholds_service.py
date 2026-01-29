@@ -7,7 +7,7 @@ for various predictive models (mortality, readmission, etc.).
 import logging
 import threading
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 from uuid import uuid4
@@ -81,7 +81,7 @@ DEFAULT_THRESHOLDS: dict[RiskModel, ModelThresholds] = {
         ],
         description="30-day in-hospital mortality risk thresholds",
         version="1.0.0",
-        updated_at=datetime.now(UTC),
+        updated_at=datetime.now(timezone.utc),
         updated_by="system",
     ),
     RiskModel.READMISSION_30DAY: ModelThresholds(
@@ -94,7 +94,7 @@ DEFAULT_THRESHOLDS: dict[RiskModel, ModelThresholds] = {
         ],
         description="30-day hospital readmission risk thresholds",
         version="1.0.0",
-        updated_at=datetime.now(UTC),
+        updated_at=datetime.now(timezone.utc),
         updated_by="system",
     ),
     RiskModel.READMISSION_90DAY: ModelThresholds(
@@ -107,7 +107,7 @@ DEFAULT_THRESHOLDS: dict[RiskModel, ModelThresholds] = {
         ],
         description="90-day hospital readmission risk thresholds",
         version="1.0.0",
-        updated_at=datetime.now(UTC),
+        updated_at=datetime.now(timezone.utc),
         updated_by="system",
     ),
     RiskModel.FALL_RISK: ModelThresholds(
@@ -120,7 +120,7 @@ DEFAULT_THRESHOLDS: dict[RiskModel, ModelThresholds] = {
         ],
         description="Patient fall risk thresholds",
         version="1.0.0",
-        updated_at=datetime.now(UTC),
+        updated_at=datetime.now(timezone.utc),
         updated_by="system",
     ),
     RiskModel.SEPSIS: ModelThresholds(
@@ -133,7 +133,7 @@ DEFAULT_THRESHOLDS: dict[RiskModel, ModelThresholds] = {
         ],
         description="Sepsis risk thresholds (qSOFA-based)",
         version="1.0.0",
-        updated_at=datetime.now(UTC),
+        updated_at=datetime.now(timezone.utc),
         updated_by="system",
     ),
     RiskModel.DETERIORATION: ModelThresholds(
@@ -146,7 +146,7 @@ DEFAULT_THRESHOLDS: dict[RiskModel, ModelThresholds] = {
         ],
         description="Patient deterioration risk (NEWS2-based)",
         version="1.0.0",
-        updated_at=datetime.now(UTC),
+        updated_at=datetime.now(timezone.utc),
         updated_by="system",
     ),
     RiskModel.LOS_EXTENDED: ModelThresholds(
@@ -159,7 +159,7 @@ DEFAULT_THRESHOLDS: dict[RiskModel, ModelThresholds] = {
         ],
         description="Extended length of stay risk thresholds",
         version="1.0.0",
-        updated_at=datetime.now(UTC),
+        updated_at=datetime.now(timezone.utc),
         updated_by="system",
     ),
 }
@@ -250,7 +250,7 @@ class RiskThresholdsService:
                 thresholds=new_thresholds,
                 description=description or existing.description,
                 version=new_version,
-                updated_at=datetime.now(UTC),
+                updated_at=datetime.now(timezone.utc),
                 updated_by=updated_by,
                 metadata=existing.metadata,
             )
@@ -316,9 +316,9 @@ class RiskThresholdsService:
                 thresholds=defaults.thresholds.copy(),
                 description=defaults.description,
                 version="1.0.0",
-                updated_at=datetime.now(UTC),
+                updated_at=datetime.now(timezone.utc),
                 updated_by=reset_by,
-                metadata={"reset": True, "reset_at": datetime.now(UTC).isoformat()},
+                metadata={"reset": True, "reset_at": datetime.now(timezone.utc).isoformat()},
             )
             self._thresholds[model] = reset_thresholds
             logger.info(f"Reset thresholds for {model.value} to defaults")

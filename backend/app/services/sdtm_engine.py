@@ -7,7 +7,7 @@ Handles variable transformations, codelist lookups, and data type conversions.
 import logging
 import re
 import threading
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 from dataclasses import dataclass, field
 from typing import Any
 

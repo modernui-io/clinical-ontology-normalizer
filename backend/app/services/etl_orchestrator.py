@@ -50,7 +50,7 @@ import asyncio
 import logging
 from collections import deque
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timezone, timedelta
 from enum import Enum
 from typing import Any, Callable
 from uuid import UUID, uuid4
@@ -394,7 +394,7 @@ class ETLJob:
     # VP-Memory-3: Use deque for bounded error/warning storage
     errors: deque[ETLJobError] = field(default_factory=lambda: deque(maxlen=ETLJob.MAX_ERRORS))
     warnings: deque[str] = field(default_factory=lambda: deque(maxlen=ETLJob.MAX_WARNINGS))
-    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     started_at: datetime | None = None
     completed_at: datetime | None = None
     duration_seconds: float | None = None
@@ -521,7 +521,7 @@ class ETLOrchestrator:
         self._running_tasks: dict[UUID, asyncio.Task] = {}
 
         # VP-Memory-3: Track last cleanup time
-        self._last_cleanup: datetime = datetime.now(UTC)
+        self._last_cleanup: datetime = datetime.now(timezone.utc)
 
         logger.info("ETLOrchestrator initialized")
 
@@ -564,7 +564,7 @@ class ETLOrchestrator:
         Called automatically when creating new jobs.
         Must be called while holding self._lock.
         """
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
 
         # Only run cleanup every hour to avoid overhead
         if (now - self._last_cleanup) < timedelta(hours=1):
@@ -633,7 +633,7 @@ class ETLOrchestrator:
                 raise ValueError(f"Job {job_id} is not in PENDING state (current: {job.state})")
 
             job.state = ETLJobState.RUNNING
-            job.started_at = datetime.now(UTC)
+            job.started_at = datetime.now(timezone.utc)
 
         # Create task for async execution
         task = asyncio.create_task(self._execute_job(job))
@@ -669,7 +669,7 @@ class ETLOrchestrator:
 
             if job.state == ETLJobState.PENDING:
                 job.state = ETLJobState.CANCELLED
-                job.completed_at = datetime.now(UTC)
+                job.completed_at = datetime.now(timezone.utc)
                 logger.info(f"Cancelled pending job {job_id}")
                 return True
 
@@ -794,7 +794,7 @@ class ETLOrchestrator:
         except Exception as e:
             job.state = ETLJobState.FAILED
             error = ETLJobError(
-                timestamp=datetime.now(UTC),
+                timestamp=datetime.now(timezone.utc),
                 phase=job.progress.current_phase,
                 error_type=type(e).__name__,
                 error_message=str(e),
@@ -811,7 +811,7 @@ class ETLOrchestrator:
                 except Exception as e:
                     logger.warning(f"Error disconnecting connector: {e}")
 
-            job.completed_at = datetime.now(UTC)
+            job.completed_at = datetime.now(timezone.utc)
             if job.started_at:
                 job.duration_seconds = (job.completed_at - job.started_at).total_seconds()
 
@@ -1674,7 +1674,7 @@ class ETLOrchestrator:
             error: The exception that occurred.
         """
         job_error = ETLJobError(
-            timestamp=datetime.now(UTC),
+            timestamp=datetime.now(timezone.utc),
             phase=phase,
             record_id=record_id,
             error_type=type(error).__name__,

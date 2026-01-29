@@ -48,9 +48,17 @@ jobs:
         working-directory: backend
         run: uv run ruff check app/ tests/
 
+      - name: Run Ruff linter (repo scripts)
+        working-directory: backend
+        run: uv run ruff check ../scripts/*.py
+
       - name: Run Ruff formatter check
         working-directory: backend
         run: uv run ruff format --check app/ tests/
+
+      - name: Run Ruff formatter check (repo scripts)
+        working-directory: backend
+        run: uv run ruff format --check ../scripts/*.py
 
       - name: Run mypy type checking
         working-directory: backend

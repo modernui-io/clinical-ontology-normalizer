@@ -9,7 +9,7 @@ Provides synthetic patient data generation with:
 """
 
 from dataclasses import dataclass, field
-from datetime import UTC, date, datetime, timedelta
+from datetime import date, datetime, timezone, timedelta
 from enum import Enum
 from typing import Any
 import threading
@@ -235,7 +235,7 @@ class GenerationJob:
     status: JobStatus = JobStatus.PENDING
     progress_percent: float = 0.0
     patients_generated: int = 0
-    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     started_at: str | None = None
     completed_at: str | None = None
     error: str | None = None
@@ -250,7 +250,7 @@ class FHIRBundle:
     bundle_type: str = "collection"
     total: int = 0
     entries: list[dict[str, Any]] = field(default_factory=list)
-    generated_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    generated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
 @dataclass
@@ -734,7 +734,7 @@ class SyntheticDataService:
             # Sample condition
             if self._rng.random() < effective_prevalence:
                 onset_years_ago = self._rng.randint(1, min(10, age))
-                onset_date = (datetime.now(UTC) - timedelta(days=365 * onset_years_ago)).strftime("%Y-%m-%d")
+                onset_date = (datetime.now(timezone.utc) - timedelta(days=365 * onset_years_ago)).strftime("%Y-%m-%d")
 
                 conditions.append({
                     "code": prev.condition_code,
@@ -762,7 +762,7 @@ class SyntheticDataService:
             )
 
             if has_condition and self._rng.random() < pattern.prescription_rate:
-                start_date = (datetime.now(UTC) - timedelta(days=self._rng.randint(30, 365))).strftime("%Y-%m-%d")
+                start_date = (datetime.now(timezone.utc) - timedelta(days=self._rng.randint(30, 365))).strftime("%Y-%m-%d")
 
                 medications.append({
                     "code": pattern.medication_code,
@@ -796,7 +796,7 @@ class SyntheticDataService:
             for _ in range(num_observations):
                 # Generate date within observation period
                 days_ago = self._rng.randint(1, 365 * observation_years)
-                obs_date = (datetime.now(UTC) - timedelta(days=days_ago)).strftime("%Y-%m-%d")
+                obs_date = (datetime.now(timezone.utc) - timedelta(days=days_ago)).strftime("%Y-%m-%d")
 
                 # Generate value
                 normal_min, normal_max = corr.normal_range
@@ -860,7 +860,7 @@ class SyntheticDataService:
 
             # Generate date
             days_ago = self._rng.randint(1, 365 * observation_years)
-            enc_date = (datetime.now(UTC) - timedelta(days=days_ago)).strftime("%Y-%m-%d")
+            enc_date = (datetime.now(timezone.utc) - timedelta(days=days_ago)).strftime("%Y-%m-%d")
 
             encounters.append({
                 "encounter_id": f"ENC-{uuid.uuid4().hex[:8].upper()}",
@@ -1205,7 +1205,7 @@ class SyntheticDataService:
 
         if not synthetic or not real:
             return ValidationReport(
-                generated_at=datetime.now(UTC).isoformat(),
+                generated_at=datetime.now(timezone.utc).isoformat(),
                 synthetic_row_count=len(synthetic),
                 real_row_count=len(real),
                 metrics=[],
@@ -1301,7 +1301,7 @@ class SyntheticDataService:
             overall_score = 0.0
 
         return ValidationReport(
-            generated_at=datetime.now(UTC).isoformat(),
+            generated_at=datetime.now(timezone.utc).isoformat(),
             synthetic_row_count=len(synthetic),
             real_row_count=len(real),
             metrics=metrics,
@@ -1515,7 +1515,7 @@ class SyntheticDataService:
             )
 
         return PrivacyReport(
-            generated_at=datetime.now(UTC).isoformat(),
+            generated_at=datetime.now(timezone.utc).isoformat(),
             epsilon=privacy_config.epsilon,
             delta=privacy_config.delta,
             k_anonymity_satisfied=k_satisfied,

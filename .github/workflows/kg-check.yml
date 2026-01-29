@@ -1,0 +1,52 @@
+name: KG Check
+
+on:
+  push:
+    paths:
+      - "backend/app/api/**"
+      - "backend/app/services/**"
+      - "backend/app/models/**"
+      - "scripts/generate_codebase_kg.py"
+      - "codebase_kg.json"
+      - "Makefile"
+      - ".github/workflows/kg-check.yml"
+  pull_request:
+    paths:
+      - "backend/app/api/**"
+      - "backend/app/services/**"
+      - "backend/app/models/**"
+      - "scripts/generate_codebase_kg.py"
+      - "codebase_kg.json"
+      - "Makefile"
+      - ".github/workflows/kg-check.yml"
+
+jobs:
+  kg-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: KG check
+        run: make kg-check
+
+  kg-export:
+    runs-on: ubuntu-latest
+    needs: kg-check
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: KG export
+        run: make kg-export
+      - name: Upload KG CSVs
+        uses: actions/upload-artifact@v4
+        with:
+          name: codebase-kg-csv
+          path: kg_export/

@@ -1,6 +1,6 @@
 """Tests for document API endpoints."""
 
-from datetime import UTC
+from datetime import timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
@@ -450,7 +450,7 @@ class TestDocumentRetrieval:
         mock_doc.extra_metadata = {"encounter_date": "2026-01-14"}
         mock_doc.status = JobStatus.QUEUED
         mock_doc.job_id = job_id
-        mock_doc.created_at = datetime.now(UTC)
+        mock_doc.created_at = datetime.now(timezone.utc)
         mock_doc.processed_at = None
 
         # Mock the execute method to return a result with our mock document
@@ -493,8 +493,8 @@ class TestDocumentRetrieval:
         mock_doc.extra_metadata = {"admission_date": "2026-01-10"}
         mock_doc.status = JobStatus.COMPLETED
         mock_doc.job_id = job_id
-        mock_doc.created_at = datetime.now(UTC)
-        mock_doc.processed_at = datetime.now(UTC)
+        mock_doc.created_at = datetime.now(timezone.utc)
+        mock_doc.processed_at = datetime.now(timezone.utc)
 
         mock_result = MagicMock()
         mock_result.scalar_one_or_none.return_value = mock_doc

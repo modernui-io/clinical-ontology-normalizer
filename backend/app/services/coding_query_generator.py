@@ -14,7 +14,7 @@ Features:
 """
 
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from enum import Enum
 import logging
 import threading
@@ -542,7 +542,7 @@ class CodingQueryGeneratorService:
         encounter_context: dict[str, Any]
     ) -> CodingQuery:
         """Build a CodingQuery from a gap and optional template."""
-        query_id = f"CDI-{datetime.now(UTC).strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
+        query_id = f"CDI-{datetime.now(timezone.utc).strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
 
         # Determine priority based on severity and encounter type
         priority = self._determine_priority(gap, encounter_context)
@@ -759,7 +759,7 @@ class CodingQueryGeneratorService:
         encounter_context: dict[str, Any]
     ) -> QueryBatch:
         """Build a QueryBatch from queries and gap analysis."""
-        batch_id = f"BATCH-{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:4].upper()}"
+        batch_id = f"BATCH-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:4].upper()}"
 
         # Count by priority
         by_priority = {}
@@ -813,9 +813,9 @@ class CodingQueryGeneratorService:
         query.status = new_status
 
         if new_status == QueryStatus.SENT:
-            query.sent_at = datetime.now(UTC)
+            query.sent_at = datetime.now(timezone.utc)
         elif new_status in [QueryStatus.RESPONDED, QueryStatus.RESOLVED]:
-            query.responded_at = datetime.now(UTC)
+            query.responded_at = datetime.now(timezone.utc)
             query.response_value = response_value
             query.response_notes = response_notes
 

@@ -25,7 +25,7 @@ import io
 import json
 import logging
 import re
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from threading import Lock
 from typing import Any
@@ -276,7 +276,7 @@ class AuditService:
         # Create audit log entry
         audit_log = AuditLog(
             id=str(uuid4()),
-            timestamp=datetime.now(UTC),
+            timestamp=datetime.now(timezone.utc),
             user_id=user_id,
             action=action,
             resource_type=resource_type,
@@ -662,7 +662,7 @@ class AuditService:
         """
         export_record = AuditExport(
             id=str(uuid4()),
-            export_date=datetime.now(UTC),
+            export_date=datetime.now(timezone.utc),
             start_date=start_date,
             end_date=end_date,
             status=AuditExportStatus.PENDING.value,
@@ -704,7 +704,7 @@ class AuditService:
 
         # Update status to processing
         export_record.status = AuditExportStatus.PROCESSING.value
-        export_record.started_at = datetime.now(UTC)
+        export_record.started_at = datetime.now(timezone.utc)
         await db.flush()
 
         try:
@@ -757,13 +757,13 @@ class AuditService:
             export_record.record_count = len(logs)
             export_record.checksum = checksum
             export_record.status = AuditExportStatus.COMPLETED.value
-            export_record.completed_at = datetime.now(UTC)
+            export_record.completed_at = datetime.now(timezone.utc)
 
         except Exception as e:
             logger.error(f"Export processing failed: {e}")
             export_record.status = AuditExportStatus.FAILED.value
             export_record.error_message = str(e)
-            export_record.completed_at = datetime.now(UTC)
+            export_record.completed_at = datetime.now(timezone.utc)
 
         await db.flush()
         return export_record
@@ -782,7 +782,7 @@ class AuditService:
         """
         data = {
             "export_id": export_id,
-            "export_timestamp": datetime.now(UTC).isoformat(),
+            "export_timestamp": datetime.now(timezone.utc).isoformat(),
             "record_count": len(logs),
             "records": [self._log_to_dict(log) for log in logs],
         }
@@ -893,7 +893,7 @@ class AuditService:
         data = {
             "hipaa_audit_report": {
                 "export_id": export_id,
-                "export_timestamp": datetime.now(UTC).isoformat(),
+                "export_timestamp": datetime.now(timezone.utc).isoformat(),
                 "report_type": "HIPAA Audit Trail",
                 "record_count": len(logs),
                 "covered_entity": "Clinical Ontology Normalizer",

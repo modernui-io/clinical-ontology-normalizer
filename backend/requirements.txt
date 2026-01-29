@@ -22,6 +22,7 @@ rq>=1.16.0
 # ML & NLP
 sentence-transformers>=2.2.0
 numpy>=1.24.0
+scikit-learn>=1.3.0
 
 # HTTP Client
 httpx>=0.26.0

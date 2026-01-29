@@ -10,7 +10,7 @@ All endpoints require admin authorization in production.
 """
 
 import logging
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Annotated, Any
 

@@ -14,7 +14,7 @@ Features:
 import logging
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 from enum import Enum
 from threading import Lock
 from typing import Any
@@ -66,7 +66,7 @@ class HealthCheckResult:
     server_version: str | None = None
     database: str | None = None
     error_message: str | None = None
-    checked_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    checked_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
 # Singleton instance

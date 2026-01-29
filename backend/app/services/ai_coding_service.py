@@ -20,7 +20,7 @@ Uses TF-IDF based text matching with:
 """
 
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from enum import Enum
 import json
 import logging
@@ -793,7 +793,7 @@ class AICodingService:
         return SuggestionResult(
             request_id=str(uuid4()),
             text_length=len(clinical_text),
-            analysis_timestamp=datetime.now(UTC).isoformat(),
+            analysis_timestamp=datetime.now(timezone.utc).isoformat(),
             processing_time_ms=round(processing_time, 2),
             diagnosis_codes=diagnosis_codes,
             procedure_codes=procedure_codes,

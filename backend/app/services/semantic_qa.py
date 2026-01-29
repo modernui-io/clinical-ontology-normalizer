@@ -8,7 +8,7 @@ Provides semantic search over clinical notes and knowledge graphs with:
 """
 
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 import threading
@@ -118,7 +118,7 @@ class IndexedDocument:
     sections: list[dict[str, str]]  # [{name, content}]
     facts: list[dict[str, Any]]  # Extracted facts
     embedding: list[float] | None = None
-    indexed_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    indexed_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
 # ============================================================================

@@ -217,6 +217,76 @@ class TestMultipleDrugChecking:
         assert not result.has_major
         assert not result.has_contraindicated
 
+
+# ============================================================================
+# Neo4j Concept Graph Integration Tests
+# ============================================================================
+
+
+class _FakeDrugInfo:
+    def __init__(self, omop_concept_id: int, name: str) -> None:
+        self.omop_concept_id = omop_concept_id
+        self.generic_name = name
+        self.concept_name = name
+
+
+class _FakeLookupResult:
+    def __init__(self, found: bool, drug_info: _FakeDrugInfo | None) -> None:
+        self.found = found
+        self.drug_info = drug_info
+
+
+class _FakeRxNormService:
+    def __init__(self, mapping: dict[str, tuple[int, str]]) -> None:
+        self._mapping = mapping
+
+    def lookup_drug(self, name: str) -> _FakeLookupResult:
+        key = name.lower().strip()
+        if key in self._mapping:
+            concept_id, display = self._mapping[key]
+            return _FakeLookupResult(True, _FakeDrugInfo(concept_id, display))
+        return _FakeLookupResult(False, None)
+
+
+class _FakeGraphService:
+    is_connected = True
+
+    def execute_read(self, query: str, parameters: dict | None = None):
+        if "Concept {concept_id" in query:
+            return type("Result", (), {
+                "records": [
+                    {
+                        "rel_type": "INTERACTS_WITH",
+                        "severity": "major",
+                        "interaction_type": "qt_prolongation",
+                        "description": "Graph-derived interaction",
+                        "clinical_effect": "Arrhythmia risk",
+                        "management": "Avoid combination",
+                        "references": ["Neo4j"],
+                    }
+                ]
+            })()
+        return type("Result", (), {"records": []})()
+
+
+class TestNeo4jConceptGraphIntegration:
+    """Test Neo4j concept graph interaction lookups."""
+
+    def test_check_pair_uses_concept_graph(self):
+        service = DrugInteractionService(use_rxnorm=False, use_graph=False)
+        service._rxnorm_service = _FakeRxNormService({
+            "alpha": (111, "Alpha"),
+            "beta": (222, "Beta"),
+        })
+        service._graph_service = _FakeGraphService()
+
+        interaction = service.check_pair("alpha", "beta")
+
+        assert interaction is not None
+        assert interaction.severity == InteractionSeverity.MAJOR
+        assert interaction.interaction_type == InteractionType.QT_PROLONGATION
+        assert interaction.description == "Graph-derived interaction"
+
     def test_check_multiple_drugs_multiple_interactions(self):
         """Test checking multiple drugs with multiple interactions."""
         # This combination may have multiple interactions

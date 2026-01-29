@@ -9,7 +9,7 @@ These tests verify the OMOP export functionality:
 - Mention to NOTE_NLP export conversion (task 9.3)
 """
 
-from datetime import UTC, date, datetime
+from datetime import date, datetime, timezone
 from unittest.mock import MagicMock
 from uuid import UUID
 
@@ -52,7 +52,7 @@ class TestNoteExportSchema:
 
     def test_note_export_all_fields(self) -> None:
         """Test NoteExport with all optional fields."""
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         note = NoteExport(
             note_id=100,
             person_id=999,
@@ -360,7 +360,7 @@ class TestDocumentToNoteExport:
         doc.patient_id = "P001"
         doc.note_type = "Progress Note"
         doc.text = "Patient presents with chest pain."
-        doc.created_at = datetime(2024, 1, 15, 10, 30, 0, tzinfo=UTC)
+        doc.created_at = datetime(2024, 1, 15, 10, 30, 0, tzinfo=timezone.utc)
         return doc
 
     def test_document_to_note_export_basic(self) -> None:
@@ -407,7 +407,7 @@ class TestMentionToNoteNLPExport:
         mention.temporality = Temporality.CURRENT
         mention.experiencer = Experiencer.PATIENT
         mention.confidence = 0.95
-        mention.created_at = datetime(2024, 1, 15, 10, 35, 0, tzinfo=UTC)
+        mention.created_at = datetime(2024, 1, 15, 10, 35, 0, tzinfo=timezone.utc)
         mention.concept_candidates = []
         return mention
 

@@ -18,7 +18,7 @@ Security considerations:
 import hashlib
 import logging
 from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timezone, timedelta
 from typing import Any
 
 from sqlalchemy import select, update
@@ -269,7 +269,7 @@ class AuthService:
             return AuthResult(success=False, error="Invalid email or password")
 
         # Check if account is locked
-        if user.locked_until and user.locked_until > datetime.now(UTC):
+        if user.locked_until and user.locked_until > datetime.now(timezone.utc):
             logger.warning(f"Login attempt for locked account: {email}")
             return AuthResult(
                 success=False,
@@ -286,7 +286,7 @@ class AuthService:
             # Increment failed login attempts
             user.failed_login_attempts += 1
             if user.failed_login_attempts >= MAX_LOGIN_ATTEMPTS:
-                user.locked_until = datetime.now(UTC) + timedelta(
+                user.locked_until = datetime.now(timezone.utc) + timedelta(
                     minutes=LOCKOUT_DURATION_MINUTES
                 )
                 logger.warning(f"Account locked due to failed attempts: {email}")
@@ -298,7 +298,7 @@ class AuthService:
         # Successful login - reset failed attempts
         user.failed_login_attempts = 0
         user.locked_until = None
-        user.last_login = datetime.now(UTC)
+        user.last_login = datetime.now(timezone.utc)
         await db.commit()
 
         # Create tokens
@@ -337,7 +337,7 @@ class AuthService:
 
         # Decode to get expiration
         payload = self.decode_token(refresh_token)
-        expires_at = datetime.fromtimestamp(payload["exp"], tz=UTC) if payload else datetime.now(UTC)
+        expires_at = datetime.fromtimestamp(payload["exp"], tz=timezone.utc) if payload else datetime.now(timezone.utc)
 
         token_record = RefreshToken(
             user_id=user.id,
@@ -510,7 +510,7 @@ class AuthService:
             email=email,
             name=name,
             hashed_password=self.hash_password(password),
-            password_changed_at=datetime.now(UTC),
+            password_changed_at=datetime.now(timezone.utc),
         )
         db.add(user)
         await db.flush()  # Get user ID
@@ -618,7 +618,7 @@ class AuthService:
             return False
 
         user.hashed_password = self.hash_password(new_password)
-        user.password_changed_at = datetime.now(UTC)
+        user.password_changed_at = datetime.now(timezone.utc)
 
         # Revoke all existing refresh tokens for security
         await self.logout_all_devices(db, user_id)

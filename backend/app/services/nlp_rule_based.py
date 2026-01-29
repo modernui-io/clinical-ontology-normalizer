@@ -18,6 +18,10 @@ except ImportError:
     HAS_AHOCORASICK = False
 
 from app.schemas.base import Assertion, Experiencer, Temporality
+from app.services.assertion_classifier import (
+    ProbabilisticAssertionClassifier,
+    classify_assertion,
+)
 from app.services.nlp import BaseNLPService, ExtractedMention
 from app.services.section_parser import ClinicalSection, SectionParser, get_section_parser
 from app.services.vocabulary import VocabularyService, get_vocabulary_service
@@ -337,13 +341,15 @@ class RuleBasedNLPService(BaseNLPService):
             seen_spans.add((start, end))
 
             # Get context for attribute detection
-            # Use preceding context for negation (NegEx-style)
-            preceding_context = self._get_preceding_context(text, start)
             # Use surrounding context for temporality and experiencer
             surrounding_context = self._get_context_window(text, start, end)
 
-            # Determine attributes from context
-            assertion = self._detect_assertion(preceding_context)
+            # Use probabilistic assertion classifier for calibrated confidence
+            assertion_result = classify_assertion(text, start, end)
+            assertion = assertion_result.assertion
+            assertion_confidence = assertion_result.confidence
+            assertion_trigger = assertion_result.trigger_text
+
             temporality = self._detect_temporality(surrounding_context)
             experiencer = self._detect_experiencer(surrounding_context)
 
@@ -373,6 +379,8 @@ class RuleBasedNLPService(BaseNLPService):
                 confidence=confidence,
                 domain_hint=domain_id,  # Pass domain from vocabulary
                 omop_concept_id=concept_id,  # Direct concept_id if available
+                assertion_confidence=assertion_confidence,  # Calibrated assertion confidence
+                assertion_trigger=assertion_trigger,  # Trigger that determined assertion
             )
             mentions.append(mention)
 

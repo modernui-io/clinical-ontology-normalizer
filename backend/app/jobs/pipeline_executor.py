@@ -23,7 +23,7 @@ Dependencies:
 """
 
 import logging
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from uuid import UUID
 
 logger = logging.getLogger(__name__)
@@ -51,7 +51,7 @@ def execute_pipeline_run(run_id: str) -> dict:
     from app.models.pipeline import PipelineRun, PipelineRunStatus, Pipeline
     from app.services.data_source_service import DataSourceService
 
-    start_time = datetime.now(UTC)
+    start_time = datetime.now(timezone.utc)
     run_uuid = UUID(run_id)
 
     logger.info(f"Starting pipeline run execution: {run_id}")
@@ -84,7 +84,7 @@ def execute_pipeline_run(run_id: str) -> dict:
             records_processed = _execute_pipeline_steps(session, pipeline, run)
 
             # Update status to COMPLETED
-            end_time = datetime.now(UTC)
+            end_time = datetime.now(timezone.utc)
             run.status = PipelineRunStatus.COMPLETED
             run.completed_at = end_time
             run.records_processed = records_processed
@@ -104,7 +104,7 @@ def execute_pipeline_run(run_id: str) -> dict:
 
         except Exception as e:
             # Update status to FAILED
-            end_time = datetime.now(UTC)
+            end_time = datetime.now(timezone.utc)
             run.status = PipelineRunStatus.FAILED
             run.completed_at = end_time
             run.error_message = str(e)[:1000]  # Truncate long errors

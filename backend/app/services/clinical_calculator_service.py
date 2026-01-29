@@ -17,7 +17,7 @@ Each calculator includes:
 import logging
 import math
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from enum import Enum
 from threading import Lock
 from typing import Any

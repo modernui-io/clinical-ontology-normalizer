@@ -23,7 +23,7 @@ For full terminology services, consider integrating with a terminology server.
 
 import logging
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from enum import Enum
 from threading import Lock
 from typing import Any
@@ -1001,8 +1001,8 @@ class FHIRTerminologyService:
         # - urn:uuid:[uuid]
         # - Custom URLs
 
-        timestamp = datetime.now(UTC).isoformat()
-        identifier = f"urn:uuid:expansion-{datetime.now(UTC).timestamp()}"
+        timestamp = datetime.now(timezone.utc).isoformat()
+        identifier = f"urn:uuid:expansion-{datetime.now(timezone.utc).timestamp()}"
 
         contains: list[ValueSetExpansionContains] = []
         parameters: list[dict[str, Any]] = []

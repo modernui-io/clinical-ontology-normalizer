@@ -17,7 +17,7 @@ Flow:
 
 import logging
 from dataclasses import dataclass
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -147,7 +147,7 @@ class OntologyGraphIntegration:
         start_time = time.perf_counter()
 
         note_id = note_id or f"note_{uuid4().hex[:12]}"
-        note_datetime = note_datetime or datetime.now(UTC)
+        note_datetime = note_datetime or datetime.now(timezone.utc)
 
         # Step 1: Process note through ontology mapper
         mapping_result = self._ontology_mapper.map_note(note_text)

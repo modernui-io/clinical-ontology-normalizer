@@ -7,7 +7,7 @@ based on risk thresholds, lab values, and clinical conditions.
 import logging
 import threading
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 from uuid import uuid4
@@ -110,7 +110,7 @@ class AlertEvaluation:
     message: str
     matched_conditions: list[str]
     patient_id: str | None = None
-    evaluated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    evaluated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     context: dict[str, Any] = field(default_factory=dict)
 
 
@@ -144,8 +144,8 @@ class AlertRulesService:
                 actions=[
                     AlertAction(type="notify", config={"channel": "care_team"}),
                 ],
-                created_at=datetime.now(UTC),
-                updated_at=datetime.now(UTC),
+                created_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(timezone.utc),
                 created_by="system",
             ),
             AlertRule(
@@ -166,8 +166,8 @@ class AlertRulesService:
                 actions=[
                     AlertAction(type="notify", config={"channel": "physician", "urgent": True}),
                 ],
-                created_at=datetime.now(UTC),
-                updated_at=datetime.now(UTC),
+                created_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(timezone.utc),
                 created_by="system",
             ),
             AlertRule(
@@ -188,8 +188,8 @@ class AlertRulesService:
                 actions=[
                     AlertAction(type="escalate", config={"to": "attending_physician"}),
                 ],
-                created_at=datetime.now(UTC),
-                updated_at=datetime.now(UTC),
+                created_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(timezone.utc),
                 created_by="system",
             ),
             AlertRule(
@@ -210,8 +210,8 @@ class AlertRulesService:
                 actions=[
                     AlertAction(type="create_task", config={"type": "quality_outreach"}),
                 ],
-                created_at=datetime.now(UTC),
-                updated_at=datetime.now(UTC),
+                created_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(timezone.utc),
                 created_by="system",
             ),
         ]
@@ -250,7 +250,7 @@ class AlertRulesService:
             Created AlertRule.
         """
         rule_id = str(uuid4())
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
 
         parsed_conditions = [
             RuleCondition(
@@ -376,7 +376,7 @@ class AlertRulesService:
             if "metadata" in updates:
                 rule.metadata = updates["metadata"]
 
-            rule.updated_at = datetime.now(UTC)
+            rule.updated_at = datetime.now(timezone.utc)
 
         logger.info(f"Updated alert rule: {rule_id}")
         return rule

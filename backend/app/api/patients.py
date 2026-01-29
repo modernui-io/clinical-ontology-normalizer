@@ -4,7 +4,7 @@ VP-Compliance-1: All PHI access is logged for HIPAA compliance.
 """
 
 import logging
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 from typing import Annotated, Any
 from uuid import UUID
 

@@ -19,7 +19,7 @@ import logging
 import os
 import threading
 from dataclasses import asdict, dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from uuid import UUID
@@ -43,7 +43,7 @@ class ETLCheckpoint:
     source_visit_mapping: dict[str, int] = field(default_factory=dict)
     phases_completed: list[str] = field(default_factory=list)
     errors_count: int = 0
-    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -62,7 +62,7 @@ class ETLCheckpoint:
             source_visit_mapping=data.get("source_visit_mapping", {}),
             phases_completed=data.get("phases_completed", []),
             errors_count=data.get("errors_count", 0),
-            timestamp=data.get("timestamp", datetime.now(UTC).isoformat()),
+            timestamp=data.get("timestamp", datetime.now(timezone.utc).isoformat()),
             metadata=data.get("metadata", {}),
         )
 
@@ -123,7 +123,7 @@ class CheckpointManager:
             path = self._get_checkpoint_path(checkpoint.job_id)
 
             # Update timestamp
-            checkpoint.timestamp = datetime.now(UTC).isoformat()
+            checkpoint.timestamp = datetime.now(timezone.utc).isoformat()
 
             # Write atomically using temp file
             temp_path = path.with_suffix(".tmp")
@@ -238,7 +238,7 @@ class CheckpointManager:
             Number of checkpoints removed.
         """
         removed = 0
-        cutoff = datetime.now(UTC).timestamp() - (max_age_days * 86400)
+        cutoff = datetime.now(timezone.utc).timestamp() - (max_age_days * 86400)
 
         for checkpoint in self.list_checkpoints():
             try:

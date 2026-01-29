@@ -19,7 +19,7 @@ Usage:
 
 import logging
 import traceback
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
@@ -151,7 +151,7 @@ class ErrorResponse(BaseModel):
     )
     request_id: str | None = Field(None, description="Request ID for tracing")
     timestamp: str = Field(
-        default_factory=lambda: datetime.now(UTC).isoformat(),
+        default_factory=lambda: datetime.now(timezone.utc).isoformat(),
         description="ISO 8601 timestamp of when the error occurred"
     )
     path: str | None = Field(None, description="Request path that caused the error")
@@ -825,7 +825,7 @@ def log_and_raise_internal_error(
         "endpoint": endpoint,
         "exception_type": type(exception).__name__,
         "exception_message": str(exception),
-        "timestamp": datetime.now(UTC).isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
     if request_id:

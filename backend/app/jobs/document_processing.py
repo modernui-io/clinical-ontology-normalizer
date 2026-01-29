@@ -1,7 +1,7 @@
 """Document processing job functions."""
 
 import logging
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
 from sqlalchemy import select, update
@@ -273,7 +273,7 @@ def process_document(document_id: str) -> dict:
                 .where(Document.id == document_id)
                 .values(
                     status=JobStatus.COMPLETED,
-                    processed_at=datetime.now(UTC),
+                    processed_at=datetime.now(timezone.utc),
                 )
             )
             session.commit()

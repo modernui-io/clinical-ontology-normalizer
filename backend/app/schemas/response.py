@@ -18,7 +18,7 @@ Usage:
         )
 """
 
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel, Field
@@ -31,7 +31,7 @@ class ResponseMeta(BaseModel):
 
     request_id: str | None = Field(default=None, description="Unique request identifier for tracing")
     timestamp: str = Field(
-        default_factory=lambda: datetime.now(UTC).isoformat(),
+        default_factory=lambda: datetime.now(timezone.utc).isoformat(),
         description="ISO8601 timestamp of the response",
     )
     duration_ms: float | None = Field(default=None, description="Request processing time in milliseconds")

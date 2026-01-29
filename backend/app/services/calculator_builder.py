@@ -19,7 +19,7 @@ import operator
 import re
 import time
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from enum import Enum
 from threading import Lock
 from typing import Any, Callable
@@ -1019,7 +1019,7 @@ class CalculatorBuilderService:
             "references": references or [],
             "category": category,
             "created_by": created_by,
-            "created_at": datetime.now(UTC).isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
             "is_builtin": False,
             "version": 1,
         }
@@ -1068,7 +1068,7 @@ class CalculatorBuilderService:
             if field in allowed_fields:
                 calc[field] = value
 
-        calc["updated_at"] = datetime.now(UTC).isoformat()
+        calc["updated_at"] = datetime.now(timezone.utc).isoformat()
         calc["version"] = calc.get("version", 1) + 1
 
         logger.info(f"Updated calculator {calculator_id}")
@@ -1221,7 +1221,7 @@ class CalculatorBuilderService:
             "user_id": user_id,
             "inputs": validated_inputs,
             "result": score,
-            "timestamp": datetime.now(UTC).isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         })
 
         return result

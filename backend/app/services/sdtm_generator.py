@@ -13,7 +13,7 @@ import logging
 import struct
 import threading
 from dataclasses import dataclass, field
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from xml.etree import ElementTree as ET
@@ -205,7 +205,7 @@ class SDTMGenerator:
         content.extend(pad80(sas_label + "                                "))
 
         # Modification date
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         date_str = now.strftime("%d%b%y:%H:%M:%S").upper()
         content.extend(pad80(f"{date_str}        {date_str}        "))
 
@@ -291,7 +291,7 @@ class SDTMGenerator:
             root.set("ODMVersion", "1.3.2")
             root.set("FileType", "Snapshot")
             root.set("FileOID", f"DEF.{spec.study_id}")
-            root.set("CreationDateTime", datetime.now(UTC).isoformat())
+            root.set("CreationDateTime", datetime.now(timezone.utc).isoformat())
 
             # Study element
             study = ET.SubElement(root, "Study")

@@ -12,7 +12,7 @@ Tests verify:
 
 import pytest
 from unittest.mock import patch, MagicMock
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -64,8 +64,8 @@ def _mock_value_set(
     vs.copyright = None
     vs.experimental = False
     vs.immutable = False
-    vs.created_at = datetime(2026, 1, 24, 10, 0, 0, tzinfo=UTC)
-    vs.updated_at = datetime(2026, 1, 24, 10, 0, 0, tzinfo=UTC)
+    vs.created_at = datetime(2026, 1, 24, 10, 0, 0, tzinfo=timezone.utc)
+    vs.updated_at = datetime(2026, 1, 24, 10, 0, 0, tzinfo=timezone.utc)
     return vs
 
 
@@ -296,7 +296,7 @@ class TestExpandValueSet:
         expansion = MagicMock()
         expansion.value_set_id = "vs-001"
         expansion.value_set_url = "http://example.org/vs/test"
-        expansion.timestamp = datetime(2026, 1, 24, 10, 0, 0, tzinfo=UTC)
+        expansion.timestamp = datetime(2026, 1, 24, 10, 0, 0, tzinfo=timezone.utc)
         expansion.total = 1
         expansion.offset = 0
         expansion.codes = [_mock_expansion_result()]
@@ -315,7 +315,7 @@ class TestExpandValueSet:
         expansion = MagicMock()
         expansion.value_set_id = "vs-001"
         expansion.value_set_url = "http://example.org/vs/test"
-        expansion.timestamp = datetime(2026, 1, 24, 10, 0, 0, tzinfo=UTC)
+        expansion.timestamp = datetime(2026, 1, 24, 10, 0, 0, tzinfo=timezone.utc)
         expansion.total = 1
         expansion.offset = 0
         expansion.codes = [_mock_expansion_result()]

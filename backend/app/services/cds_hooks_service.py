@@ -13,7 +13,7 @@ See: https://cds-hooks.org/specification/current/
 import logging
 import uuid
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from enum import Enum
 from threading import Lock
 from typing import Any
@@ -501,7 +501,7 @@ class CDSHooksService:
         log_entry = CDSHookLog(
             hook_id=hook_id,
             hook_type=hook_type,
-            timestamp=datetime.now(UTC),
+            timestamp=datetime.now(timezone.utc),
             patient_id=extract_patient_id(context),
             user_id=context.get("userId"),
             context=context,
@@ -1181,7 +1181,7 @@ class CDSHooksService:
             "recent_invocations_24h": sum(
                 1
                 for log in self._hook_logs
-                if (datetime.now(UTC) - log.timestamp).total_seconds() < 86400
+                if (datetime.now(timezone.utc) - log.timestamp).total_seconds() < 86400
             ),
             "invocations_by_hook": {
                 hook.value: sum(1 for log in self._hook_logs if log.hook_type == hook)
