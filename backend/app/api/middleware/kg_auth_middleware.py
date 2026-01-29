@@ -37,22 +37,22 @@ class AuthErrorCode(str, Enum):
 class AuthResult:
     """Result of authentication attempt."""
     success: bool
-    key_id: Optional[str] = None
-    key_name: Optional[str] = None
-    scopes: List[str] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    error_code: Optional[AuthErrorCode] = None
-    error_message: Optional[str] = None
-    rate_limit_remaining: Optional[int] = None
-    rate_limit_reset: Optional[datetime] = None
+    key_id: str | None = None
+    key_name: str | None = None
+    scopes: list[str] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
+    error_code: AuthErrorCode | None = None
+    error_message: str | None = None
+    rate_limit_remaining: int | None = None
+    rate_limit_reset: datetime | None = None
 
 
 @dataclass
 class EndpointAuthConfig:
     """Configuration for endpoint authentication."""
-    required_scopes: List[str] = field(default_factory=list)
+    required_scopes: list[str] = field(default_factory=list)
     require_any_scope: bool = False  # If True, any scope is sufficient
-    rate_limit_override: Optional[int] = None  # Override default rate limit
+    rate_limit_override: int | None = None  # Override default rate limit
     allow_unauthenticated: bool = False  # Allow without API key
     audit_access: bool = True  # Log access to audit trail
 
@@ -70,11 +70,11 @@ class AuthMiddlewareConfig:
     rate_limit_window_seconds: int = 3600
 
     # IP restrictions
-    ip_whitelist: List[str] = field(default_factory=list)
-    ip_blacklist: List[str] = field(default_factory=list)
+    ip_whitelist: list[str] = field(default_factory=list)
+    ip_blacklist: list[str] = field(default_factory=list)
 
     # Endpoint patterns to skip
-    skip_patterns: List[str] = field(default_factory=lambda: [
+    skip_patterns: list[str] = field(default_factory=lambda: [
         "/health",
         "/docs",
         "/openapi.json",
@@ -92,8 +92,8 @@ class ScopeRegistry:
     """Registry of scopes required for different endpoints."""
 
     def __init__(self):
-        self._endpoint_configs: Dict[str, EndpointAuthConfig] = {}
-        self._pattern_configs: List[Tuple[str, EndpointAuthConfig]] = []
+        self._endpoint_configs: dict[str, EndpointAuthConfig] = {}
+        self._pattern_configs: list[tuple[str, EndpointAuthConfig]] = []
         self._default_config = EndpointAuthConfig()
 
         # Initialize with default KG endpoint scopes
@@ -177,7 +177,7 @@ class ScopeRegistry:
         self,
         path: str,
         config: EndpointAuthConfig,
-        methods: Optional[List[str]] = None
+        methods: list[str | None] = None
     ):
         """Register exact endpoint path with auth config."""
         if methods:
@@ -191,7 +191,7 @@ class ScopeRegistry:
         self,
         pattern: str,
         config: EndpointAuthConfig,
-        methods: Optional[List[str]] = None
+        methods: list[str | None] = None
     ):
         """Register URL pattern with auth config."""
         if methods:
@@ -232,13 +232,13 @@ class RateLimitTracker:
     def __init__(self, default_limit: int = 1000, window_seconds: int = 3600):
         self.default_limit = default_limit
         self.window_seconds = window_seconds
-        self._counters: Dict[str, Dict[str, Any]] = {}
+        self._counters: dict[str, dict[str, Any]] = {}
 
     def check_and_increment(
         self,
         key_id: str,
-        limit_override: Optional[int] = None
-    ) -> Tuple[bool, int, datetime]:
+        limit_override: int | None = None
+    ) -> tuple[bool, int, datetime]:
         """
         Check if request is allowed and increment counter.
         Returns (allowed, remaining, reset_time).
@@ -275,7 +275,7 @@ class RateLimitTracker:
 
         return True, remaining, reset_time
 
-    def get_usage(self, key_id: str) -> Dict[str, Any]:
+    def get_usage(self, key_id: str) -> dict[str, Any]:
         """Get current usage for a key."""
         if key_id not in self._counters:
             return {"count": 0, "limit": self.default_limit}
@@ -311,16 +311,16 @@ class MockAPIKeyService:
     """
 
     def __init__(self):
-        self._keys: Dict[str, Dict[str, Any]] = {}
-        self._key_hashes: Dict[str, str] = {}  # hash -> key_id
+        self._keys: dict[str, dict[str, Any]] = {}
+        self._key_hashes: dict[str, str] = {}  # hash -> key_id
 
     def register_key(
         self,
         key_id: str,
         raw_key: str,
-        scopes: List[str],
+        scopes: list[str],
         name: str = "test",
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: dict[str, Any | None] = None
     ):
         """Register a key for testing."""
         import hashlib
@@ -380,7 +380,7 @@ class MockAPIKeyService:
             metadata=key_data["metadata"]
         )
 
-    def has_scope(self, scopes: List[str], required_scope: str) -> bool:
+    def has_scope(self, scopes: list[str], required_scope: str) -> bool:
         """Check if scopes include the required scope."""
         if "*" in scopes or "admin:*" in scopes:
             return True
@@ -404,10 +404,10 @@ class KGAuthMiddleware(BaseHTTPMiddleware):
     def __init__(
         self,
         app,
-        config: Optional[AuthMiddlewareConfig] = None,
-        api_key_service: Optional[Any] = None,
-        scope_registry: Optional[ScopeRegistry] = None,
-        rate_limiter: Optional[RateLimitTracker] = None
+        config: AuthMiddlewareConfig | None = None,
+        api_key_service: Any | None = None,
+        scope_registry: ScopeRegistry | None = None,
+        rate_limiter: RateLimitTracker | None = None
     ):
         super().__init__(app)
         self.config = config or AuthMiddlewareConfig()
@@ -419,7 +419,7 @@ class KGAuthMiddleware(BaseHTTPMiddleware):
         )
 
         # Audit logging callback
-        self._audit_callback: Optional[Callable] = None
+        self._audit_callback: Callable | None = None
 
     def set_audit_callback(self, callback: Callable):
         """Set callback for audit logging."""
@@ -556,7 +556,7 @@ class KGAuthMiddleware(BaseHTTPMiddleware):
 
         return response
 
-    def _extract_api_key(self, request: Request) -> Optional[str]:
+    def _extract_api_key(self, request: Request) -> str | None:
         """Extract API key from request."""
         # Try header first
         api_key = request.headers.get(self.config.api_key_header)
@@ -604,7 +604,7 @@ class KGAuthMiddleware(BaseHTTPMiddleware):
         error_code: AuthErrorCode,
         message: str,
         status_code: int = 401,
-        headers: Optional[Dict[str, str]] = None
+        headers: dict[str, str | None] = None
     ) -> JSONResponse:
         """Create error response."""
         content = {
@@ -751,10 +751,10 @@ def require_all_scopes(*scopes: str):
 def create_kg_auth_middleware(
     app,
     enabled: bool = True,
-    api_key_service: Optional[Any] = None,
-    audit_callback: Optional[Callable] = None,
-    ip_whitelist: Optional[List[str]] = None,
-    ip_blacklist: Optional[List[str]] = None,
+    api_key_service: Any | None = None,
+    audit_callback: Callable | None = None,
+    ip_whitelist: list[str | None] = None,
+    ip_blacklist: list[str | None] = None,
     rate_limit: int = 1000,
     include_debug: bool = False
 ) -> KGAuthMiddleware:

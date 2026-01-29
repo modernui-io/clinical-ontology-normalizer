@@ -79,12 +79,12 @@ class GraphQLField:
     """Definition of a GraphQL field."""
     name: str
     type_name: str
-    description: Optional[str] = None
-    args: Dict[str, "GraphQLArgument"] = field(default_factory=dict)
-    resolver: Optional[Callable] = None
+    description: str | None = None
+    args: dict[str, "GraphQLArgument"] = field(default_factory=dict)
+    resolver: Callable | None = None
     is_list: bool = False
     is_non_null: bool = False
-    deprecation_reason: Optional[str] = None
+    deprecation_reason: str | None = None
 
 
 @dataclass
@@ -92,8 +92,8 @@ class GraphQLArgument:
     """Definition of a GraphQL argument."""
     name: str
     type_name: str
-    description: Optional[str] = None
-    default_value: Optional[Any] = None
+    description: str | None = None
+    default_value: Any | None = None
     is_required: bool = False
 
 
@@ -102,20 +102,20 @@ class GraphQLType:
     """Definition of a GraphQL type."""
     name: str
     kind: GraphQLTypeKind
-    description: Optional[str] = None
-    fields: Dict[str, GraphQLField] = field(default_factory=dict)
-    interfaces: List[str] = field(default_factory=list)
-    enum_values: List[str] = field(default_factory=list)
-    input_fields: Dict[str, GraphQLArgument] = field(default_factory=dict)
+    description: str | None = None
+    fields: dict[str, GraphQLField] = field(default_factory=dict)
+    interfaces: list[str] = field(default_factory=list)
+    enum_values: list[str] = field(default_factory=list)
+    input_fields: dict[str, GraphQLArgument] = field(default_factory=dict)
 
 
 @dataclass
 class GraphQLDirective:
     """Definition of a GraphQL directive."""
     name: str
-    description: Optional[str] = None
-    locations: List[str] = field(default_factory=list)
-    args: Dict[str, GraphQLArgument] = field(default_factory=dict)
+    description: str | None = None
+    locations: list[str] = field(default_factory=list)
+    args: dict[str, GraphQLArgument] = field(default_factory=dict)
 
 
 # =============================================================================
@@ -127,11 +127,11 @@ class GraphQLSchemaBuilder:
     """Builder for GraphQL schema definitions."""
 
     def __init__(self):
-        self._types: Dict[str, GraphQLType] = {}
-        self._directives: Dict[str, GraphQLDirective] = {}
-        self._query_type: Optional[str] = None
-        self._mutation_type: Optional[str] = None
-        self._subscription_type: Optional[str] = None
+        self._types: dict[str, GraphQLType] = {}
+        self._directives: dict[str, GraphQLDirective] = {}
+        self._query_type: str | None = None
+        self._mutation_type: str | None = None
+        self._subscription_type: str | None = None
         self._register_builtin_scalars()
 
     def _register_builtin_scalars(self):
@@ -163,8 +163,8 @@ class GraphQLSchemaBuilder:
     def add_enum(
         self,
         name: str,
-        values: List[str],
-        description: Optional[str] = None
+        values: list[str],
+        description: str | None = None
     ) -> "GraphQLSchemaBuilder":
         """Add an enum type to the schema."""
         self._types[name] = GraphQLType(
@@ -178,8 +178,8 @@ class GraphQLSchemaBuilder:
     def add_interface(
         self,
         name: str,
-        fields: Dict[str, GraphQLField],
-        description: Optional[str] = None
+        fields: dict[str, GraphQLField],
+        description: str | None = None
     ) -> "GraphQLSchemaBuilder":
         """Add an interface type to the schema."""
         self._types[name] = GraphQLType(
@@ -193,9 +193,9 @@ class GraphQLSchemaBuilder:
     def add_object_type(
         self,
         name: str,
-        fields: Dict[str, GraphQLField],
-        description: Optional[str] = None,
-        interfaces: Optional[List[str]] = None
+        fields: dict[str, GraphQLField],
+        description: str | None = None,
+        interfaces: list[str | None] = None
     ) -> "GraphQLSchemaBuilder":
         """Add an object type to the schema."""
         self._types[name] = GraphQLType(
@@ -210,8 +210,8 @@ class GraphQLSchemaBuilder:
     def add_input_type(
         self,
         name: str,
-        fields: Dict[str, GraphQLArgument],
-        description: Optional[str] = None
+        fields: dict[str, GraphQLArgument],
+        description: str | None = None
     ) -> "GraphQLSchemaBuilder":
         """Add an input type to the schema."""
         self._types[name] = GraphQLType(
@@ -261,29 +261,29 @@ class GraphQLSchemaBuilder:
 @dataclass
 class GraphQLSchema:
     """GraphQL schema definition."""
-    types: Dict[str, GraphQLType]
-    directives: Dict[str, GraphQLDirective]
-    query_type: Optional[str]
-    mutation_type: Optional[str]
-    subscription_type: Optional[str]
+    types: dict[str, GraphQLType]
+    directives: dict[str, GraphQLDirective]
+    query_type: str | None
+    mutation_type: str | None
+    subscription_type: str | None
 
-    def get_type(self, name: str) -> Optional[GraphQLType]:
+    def get_type(self, name: str) -> GraphQLType | None:
         """Get a type by name."""
         return self.types.get(name)
 
-    def get_query_type(self) -> Optional[GraphQLType]:
+    def get_query_type(self) -> GraphQLType | None:
         """Get the query type."""
         if self.query_type:
             return self.types.get(self.query_type)
         return None
 
-    def get_mutation_type(self) -> Optional[GraphQLType]:
+    def get_mutation_type(self) -> GraphQLType | None:
         """Get the mutation type."""
         if self.mutation_type:
             return self.types.get(self.mutation_type)
         return None
 
-    def validate(self) -> List[str]:
+    def validate(self) -> list[str]:
         """Validate the schema and return any errors."""
         errors = []
         if not self.query_type:
@@ -411,27 +411,27 @@ class GraphQLSchema:
 class GraphQLSelection:
     """A selection in a GraphQL query."""
     field_name: str
-    alias: Optional[str] = None
-    arguments: Dict[str, Any] = field(default_factory=dict)
-    selections: List["GraphQLSelection"] = field(default_factory=list)
-    directives: List[Dict[str, Any]] = field(default_factory=list)
+    alias: str | None = None
+    arguments: dict[str, Any] = field(default_factory=dict)
+    selections: list["GraphQLSelection"] = field(default_factory=list)
+    directives: list[dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass
 class GraphQLOperation:
     """A GraphQL operation (query, mutation, subscription)."""
     operation_type: str  # query, mutation, subscription
-    name: Optional[str]
-    variables: Dict[str, Dict[str, Any]]  # name -> {type, default}
-    selections: List[GraphQLSelection]
-    directives: List[Dict[str, Any]] = field(default_factory=list)
+    name: str | None
+    variables: dict[str, dict[str, Any]]  # name -> {type, default}
+    selections: list[GraphQLSelection]
+    directives: list[dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass
 class GraphQLDocument:
     """A parsed GraphQL document."""
-    operations: List[GraphQLOperation]
-    fragments: Dict[str, List[GraphQLSelection]]
+    operations: list[GraphQLOperation]
+    fragments: dict[str, list[GraphQLSelection]]
 
 
 class GraphQLParser:
@@ -534,7 +534,7 @@ class GraphQLParser:
             selections=selections
         )
 
-    def _parse_variables(self) -> Dict[str, Dict[str, Any]]:
+    def _parse_variables(self) -> dict[str, dict[str, Any]]:
         """Parse variable definitions."""
         self._expect("(")
         variables = {}
@@ -571,7 +571,7 @@ class GraphQLParser:
         self._expect(")")
         return variables
 
-    def _parse_selection_set(self) -> List[GraphQLSelection]:
+    def _parse_selection_set(self) -> list[GraphQLSelection]:
         """Parse a selection set."""
         self._expect("{")
         selections = []
@@ -627,7 +627,7 @@ class GraphQLParser:
             selections=selections
         )
 
-    def _parse_arguments(self) -> Dict[str, Any]:
+    def _parse_arguments(self) -> dict[str, Any]:
         """Parse arguments."""
         self._expect("(")
         arguments = {}
@@ -708,7 +708,7 @@ class GraphQLParser:
             return float(self._text[start:self._pos])
         return int(self._text[start:self._pos])
 
-    def _parse_list(self) -> List[Any]:
+    def _parse_list(self) -> list[Any]:
         """Parse a list value."""
         self._expect("[")
         items = []
@@ -723,7 +723,7 @@ class GraphQLParser:
         self._expect("]")
         return items
 
-    def _parse_object(self) -> Dict[str, Any]:
+    def _parse_object(self) -> dict[str, Any]:
         """Parse an object value."""
         self._expect("{")
         obj = {}
@@ -741,7 +741,7 @@ class GraphQLParser:
         self._expect("}")
         return obj
 
-    def _parse_fragment(self) -> Tuple[str, List[GraphQLSelection]]:
+    def _parse_fragment(self) -> tuple[str, list[GraphQLSelection]]:
         """Parse a fragment definition."""
         self._read_word()  # "fragment"
         name = self._read_word()
@@ -759,11 +759,11 @@ class GraphQLParser:
 @dataclass
 class GraphQLResult:
     """Result of a GraphQL query execution."""
-    data: Optional[Dict[str, Any]] = None
-    errors: List[Dict[str, Any]] = field(default_factory=list)
-    extensions: Dict[str, Any] = field(default_factory=dict)
+    data: dict[str, Any | None] = None
+    errors: list[dict[str, Any]] = field(default_factory=list)
+    extensions: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         result = {}
         if self.data is not None:
@@ -780,12 +780,12 @@ class ExecutionContext:
     """Context for query execution."""
     schema: GraphQLSchema
     document: GraphQLDocument
-    variables: Dict[str, Any]
-    operation_name: Optional[str]
+    variables: dict[str, Any]
+    operation_name: str | None
     root_value: Any
-    context: Dict[str, Any]
-    fragments: Dict[str, List[GraphQLSelection]]
-    errors: List[Dict[str, Any]] = field(default_factory=list)
+    context: dict[str, Any]
+    fragments: dict[str, list[GraphQLSelection]]
+    errors: list[dict[str, Any]] = field(default_factory=list)
 
 
 class GraphQLExecutor:
@@ -793,7 +793,7 @@ class GraphQLExecutor:
 
     def __init__(self, schema: GraphQLSchema):
         self.schema = schema
-        self._resolvers: Dict[str, Dict[str, Callable]] = {}
+        self._resolvers: dict[str, dict[str, Callable]] = {}
 
     def register_resolver(
         self,
@@ -809,10 +809,10 @@ class GraphQLExecutor:
     def execute(
         self,
         query: str,
-        variables: Optional[Dict[str, Any]] = None,
-        operation_name: Optional[str] = None,
+        variables: dict[str, Any | None] = None,
+        operation_name: str | None = None,
         root_value: Any = None,
-        context: Optional[Dict[str, Any]] = None
+        context: dict[str, Any | None] = None
     ) -> GraphQLResult:
         """Execute a GraphQL query."""
         try:
@@ -866,7 +866,7 @@ class GraphQLExecutor:
         self,
         operation: GraphQLOperation,
         context: ExecutionContext
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Execute an operation."""
         # Get the root type
         if operation.operation_type == "query":
@@ -896,10 +896,10 @@ class GraphQLExecutor:
     def _execute_selection_set(
         self,
         type_name: str,
-        selections: List[GraphQLSelection],
+        selections: list[GraphQLSelection],
         parent_value: Any,
         context: ExecutionContext
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Execute a selection set."""
         result = {}
 
@@ -959,7 +959,7 @@ class GraphQLExecutor:
         self,
         type_name: str,
         field_name: str,
-        arguments: Dict[str, Any],
+        arguments: dict[str, Any],
         parent_value: Any,
         context: ExecutionContext
     ) -> Any:
@@ -1507,21 +1507,21 @@ class MockKGDataSource:
             }
         }
 
-    def get_concept(self, cui: str) -> Optional[Dict[str, Any]]:
+    def get_concept(self, cui: str) -> dict[str, Any | None]:
         """Get a concept by CUI."""
         return self._concepts.get(cui)
 
-    def get_concepts(self, cuis: List[str]) -> List[Dict[str, Any]]:
+    def get_concepts(self, cuis: list[str]) -> list[dict[str, Any]]:
         """Get multiple concepts by CUI."""
         return [self._concepts[cui] for cui in cuis if cui in self._concepts]
 
     def search_concepts(
         self,
         query: str,
-        semantic_groups: Optional[List[str]] = None,
+        semantic_groups: list[str | None] = None,
         limit: int = 20,
         offset: int = 0
-    ) -> Tuple[List[Dict[str, Any]], int]:
+    ) -> tuple[list[dict[str, Any]], int]:
         """Search for concepts."""
         results = []
         query_lower = query.lower()
@@ -1534,7 +1534,7 @@ class MockKGDataSource:
         total = len(results)
         return results[offset:offset + limit], total
 
-    def get_relationships(self, cui: str, types: Optional[List[str]] = None) -> List[Dict[str, Any]]:
+    def get_relationships(self, cui: str, types: list[str | None] = None) -> list[dict[str, Any]]:
         """Get relationships for a concept."""
         results = []
         for rel in self._relationships:
@@ -1551,8 +1551,8 @@ class MockKGDataSource:
         source_cui: str,
         target_cui: str,
         max_hops: int = 3,
-        relationship_types: Optional[List[str]] = None
-    ) -> List[Dict[str, Any]]:
+        relationship_types: list[str | None] = None
+    ) -> list[dict[str, Any]]:
         """Find paths between concepts."""
         # Simple mock implementation
         if source_cui not in self._concepts or target_cui not in self._concepts:
@@ -1576,7 +1576,7 @@ class MockKGDataSource:
                 })
         return paths
 
-    def get_patient(self, patient_id: str) -> Optional[Dict[str, Any]]:
+    def get_patient(self, patient_id: str) -> dict[str, Any | None]:
         """Get a patient by ID."""
         return self._patients.get(patient_id)
 
@@ -1584,7 +1584,7 @@ class MockKGDataSource:
 class KGGraphQLService:
     """Service for executing GraphQL queries against the Knowledge Graph."""
 
-    def __init__(self, data_source: Optional[MockKGDataSource] = None):
+    def __init__(self, data_source: MockKGDataSource | None = None):
         self.schema = create_kg_graphql_schema()
         self.executor = GraphQLExecutor(self.schema)
         self.data_source = data_source or MockKGDataSource()
@@ -1673,9 +1673,9 @@ class KGGraphQLService:
     def execute(
         self,
         query: str,
-        variables: Optional[Dict[str, Any]] = None,
-        operation_name: Optional[str] = None,
-        context: Optional[Dict[str, Any]] = None
+        variables: dict[str, Any | None] = None,
+        operation_name: str | None = None,
+        context: dict[str, Any | None] = None
     ) -> GraphQLResult:
         """Execute a GraphQL query."""
         return self.executor.execute(
@@ -1689,7 +1689,7 @@ class KGGraphQLService:
         """Get the schema as SDL."""
         return self.schema.to_sdl()
 
-    def introspect(self) -> Dict[str, Any]:
+    def introspect(self) -> dict[str, Any]:
         """Return introspection data for the schema."""
         types = []
         for type_def in self.schema.types.values():
@@ -1727,7 +1727,7 @@ class KGGraphQLService:
 # =============================================================================
 
 
-_kg_graphql_service: Optional[KGGraphQLService] = None
+_kg_graphql_service: KGGraphQLService | None = None
 _kg_graphql_lock = threading.Lock()
 
 

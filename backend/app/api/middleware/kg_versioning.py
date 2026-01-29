@@ -87,11 +87,11 @@ class VersionInfo:
     version: APIVersion
     status: VersionStatus
     released_at: date
-    deprecated_at: Optional[date] = None
-    sunset_at: Optional[date] = None
-    changelog: List[str] = field(default_factory=list)
-    breaking_changes: List[str] = field(default_factory=list)
-    deprecation_message: Optional[str] = None
+    deprecated_at: date | None = None
+    sunset_at: date | None = None
+    changelog: list[str] = field(default_factory=list)
+    breaking_changes: list[str] = field(default_factory=list)
+    deprecation_message: str | None = None
 
 
 @dataclass
@@ -99,12 +99,12 @@ class VersionedRoute:
     """A route with version-specific configuration."""
     path: str
     method: str
-    min_version: Optional[APIVersion] = None
-    max_version: Optional[APIVersion] = None
-    deprecated_in: Optional[APIVersion] = None
-    removed_in: Optional[APIVersion] = None
-    replacement_path: Optional[str] = None
-    transformer: Optional[Callable] = None
+    min_version: APIVersion | None = None
+    max_version: APIVersion | None = None
+    deprecated_in: APIVersion | None = None
+    removed_in: APIVersion | None = None
+    replacement_path: str | None = None
+    transformer: Callable | None = None
 
 
 @dataclass
@@ -112,42 +112,42 @@ class RequestTransform:
     """Transform request for a specific version."""
     source_path: str
     target_path: str
-    param_mappings: Dict[str, str] = field(default_factory=dict)
-    body_mappings: Dict[str, str] = field(default_factory=dict)
-    added_params: Dict[str, Any] = field(default_factory=dict)
-    removed_params: List[str] = field(default_factory=list)
+    param_mappings: dict[str, str] = field(default_factory=dict)
+    body_mappings: dict[str, str] = field(default_factory=dict)
+    added_params: dict[str, Any] = field(default_factory=dict)
+    removed_params: list[str] = field(default_factory=list)
 
 
 @dataclass
 class ResponseTransform:
     """Transform response for a specific version."""
-    field_mappings: Dict[str, str] = field(default_factory=dict)
-    added_fields: Dict[str, Any] = field(default_factory=dict)
-    removed_fields: List[str] = field(default_factory=list)
-    wrapper: Optional[str] = None
+    field_mappings: dict[str, str] = field(default_factory=dict)
+    added_fields: dict[str, Any] = field(default_factory=dict)
+    removed_fields: list[str] = field(default_factory=list)
+    wrapper: str | None = None
 
 
 class VersionRegistry:
     """Registry of API versions and their configurations."""
 
     def __init__(self):
-        self._versions: Dict[APIVersion, VersionInfo] = {}
-        self._routes: Dict[str, List[VersionedRoute]] = {}  # path -> routes
-        self._request_transforms: Dict[Tuple[APIVersion, str], RequestTransform] = {}
-        self._response_transforms: Dict[Tuple[APIVersion, str], ResponseTransform] = {}
-        self._current_version: Optional[APIVersion] = None
-        self._default_version: Optional[APIVersion] = None
+        self._versions: dict[APIVersion, VersionInfo] = {}
+        self._routes: dict[str, list[VersionedRoute]] = {}  # path -> routes
+        self._request_transforms: dict[tuple[APIVersion, str], RequestTransform] = {}
+        self._response_transforms: dict[tuple[APIVersion, str], ResponseTransform] = {}
+        self._current_version: APIVersion | None = None
+        self._default_version: APIVersion | None = None
 
     def register_version(
         self,
         version: APIVersion,
         status: VersionStatus = VersionStatus.SUPPORTED,
-        released_at: Optional[date] = None,
-        deprecated_at: Optional[date] = None,
-        sunset_at: Optional[date] = None,
-        changelog: Optional[List[str]] = None,
-        breaking_changes: Optional[List[str]] = None,
-        deprecation_message: Optional[str] = None
+        released_at: date | None = None,
+        deprecated_at: date | None = None,
+        sunset_at: date | None = None,
+        changelog: list[str | None] = None,
+        breaking_changes: list[str | None] = None,
+        deprecation_message: str | None = None
     ):
         """Register an API version."""
         info = VersionInfo(
@@ -182,26 +182,26 @@ class VersionRegistry:
         """Set the default version for unspecified requests."""
         self._default_version = version
 
-    def get_version_info(self, version: APIVersion) -> Optional[VersionInfo]:
+    def get_version_info(self, version: APIVersion) -> VersionInfo | None:
         """Get information about a version."""
         return self._versions.get(version)
 
-    def get_current_version(self) -> Optional[APIVersion]:
+    def get_current_version(self) -> APIVersion | None:
         """Get the current (latest) version."""
         return self._current_version
 
-    def get_default_version(self) -> Optional[APIVersion]:
+    def get_default_version(self) -> APIVersion | None:
         """Get the default version."""
         return self._default_version
 
-    def get_supported_versions(self) -> List[APIVersion]:
+    def get_supported_versions(self) -> list[APIVersion]:
         """Get list of all supported versions."""
         return [
             v for v, info in self._versions.items()
             if info.status in [VersionStatus.CURRENT, VersionStatus.SUPPORTED]
         ]
 
-    def get_all_versions(self) -> List[VersionInfo]:
+    def get_all_versions(self) -> list[VersionInfo]:
         """Get information about all versions."""
         return sorted(self._versions.values(), key=lambda x: x.version, reverse=True)
 
@@ -224,9 +224,9 @@ class VersionRegistry:
     def deprecate_version(
         self,
         version: APIVersion,
-        deprecated_at: Optional[date] = None,
-        sunset_at: Optional[date] = None,
-        message: Optional[str] = None
+        deprecated_at: date | None = None,
+        sunset_at: date | None = None,
+        message: str | None = None
     ):
         """Mark a version as deprecated."""
         if version in self._versions:
@@ -245,11 +245,11 @@ class VersionRegistry:
         self,
         path: str,
         method: str,
-        min_version: Optional[APIVersion] = None,
-        max_version: Optional[APIVersion] = None,
-        deprecated_in: Optional[APIVersion] = None,
-        removed_in: Optional[APIVersion] = None,
-        replacement_path: Optional[str] = None
+        min_version: APIVersion | None = None,
+        max_version: APIVersion | None = None,
+        deprecated_in: APIVersion | None = None,
+        removed_in: APIVersion | None = None,
+        replacement_path: str | None = None
     ):
         """Register a versioned route."""
         route = VersionedRoute(
@@ -271,7 +271,7 @@ class VersionRegistry:
         path: str,
         method: str,
         version: APIVersion
-    ) -> Tuple[bool, Optional[str]]:
+    ) -> tuple[bool, str | None]:
         """
         Check if a route is available for a version.
         Returns (available, deprecation_warning).
@@ -329,7 +329,7 @@ class VersionRegistry:
         self,
         version: APIVersion,
         path: str
-    ) -> Optional[RequestTransform]:
+    ) -> RequestTransform | None:
         """Get request transformation for a version and path."""
         return self._request_transforms.get((version, path))
 
@@ -337,7 +337,7 @@ class VersionRegistry:
         self,
         version: APIVersion,
         path: str
-    ) -> Optional[ResponseTransform]:
+    ) -> ResponseTransform | None:
         """Get response transformation for a version and path."""
         return self._response_transforms.get((version, path))
 
@@ -359,7 +359,7 @@ class VersionNegotiator:
         self.accept_header_prefix = accept_header_prefix
         self.query_param = query_param
 
-    def negotiate(self, request: Request) -> Tuple[APIVersion, str]:
+    def negotiate(self, request: Request) -> tuple[APIVersion, str]:
         """
         Negotiate version from request.
         Returns (version, source) where source is how version was determined.
@@ -394,7 +394,7 @@ class VersionNegotiator:
             detail="Unable to determine API version"
         )
 
-    def _from_url_path(self, request: Request) -> Tuple[Optional[APIVersion], str]:
+    def _from_url_path(self, request: Request) -> tuple[APIVersion | None, str]:
         """Extract version from URL path."""
         path = request.url.path
 
@@ -412,7 +412,7 @@ class VersionNegotiator:
 
         return None, ""
 
-    def _from_query_param(self, request: Request) -> Tuple[Optional[APIVersion], str]:
+    def _from_query_param(self, request: Request) -> tuple[APIVersion | None, str]:
         """Extract version from query parameter."""
         version_str = request.query_params.get(self.query_param)
         if version_str:
@@ -422,7 +422,7 @@ class VersionNegotiator:
                 pass
         return None, ""
 
-    def _from_header(self, request: Request) -> Tuple[Optional[APIVersion], str]:
+    def _from_header(self, request: Request) -> tuple[APIVersion | None, str]:
         """Extract version from X-API-Version header."""
         version_str = request.headers.get(self.header_name)
         if version_str:
@@ -432,7 +432,7 @@ class VersionNegotiator:
                 pass
         return None, ""
 
-    def _from_accept_header(self, request: Request) -> Tuple[Optional[APIVersion], str]:
+    def _from_accept_header(self, request: Request) -> tuple[APIVersion | None, str]:
         """Extract version from Accept header."""
         accept = request.headers.get("Accept", "")
 
@@ -461,7 +461,7 @@ class KGVersioningMiddleware(BaseHTTPMiddleware):
         self,
         app,
         registry: VersionRegistry,
-        negotiator: Optional[VersionNegotiator] = None,
+        negotiator: VersionNegotiator | None = None,
         enabled: bool = True,
         strict_mode: bool = False
     ):
@@ -721,7 +721,7 @@ def create_kg_versioning_middleware(
     app,
     enabled: bool = True,
     strict_mode: bool = False,
-    registry: Optional[VersionRegistry] = None
+    registry: VersionRegistry | None = None
 ) -> KGVersioningMiddleware:
     """Factory function to create versioning middleware."""
     if registry is None:
@@ -740,7 +740,7 @@ def create_kg_versioning_middleware(
 class VersionedAPIRouter(APIRouter):
     """APIRouter with version awareness."""
 
-    def __init__(self, *args, min_version: Optional[APIVersion] = None, **kwargs):
+    def __init__(self, *args, min_version: APIVersion | None = None, **kwargs):
         super().__init__(*args, **kwargs)
         self.min_version = min_version
 
@@ -749,9 +749,9 @@ class VersionedAPIRouter(APIRouter):
         path: str,
         endpoint: Callable,
         *args,
-        min_version: Optional[APIVersion] = None,
-        max_version: Optional[APIVersion] = None,
-        deprecated_in: Optional[APIVersion] = None,
+        min_version: APIVersion | None = None,
+        max_version: APIVersion | None = None,
+        deprecated_in: APIVersion | None = None,
         **kwargs
     ):
         """Add a route with version constraints."""
