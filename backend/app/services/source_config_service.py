@@ -24,7 +24,6 @@ import asyncio
 import base64
 import json
 import logging
-import os
 import secrets
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -34,6 +33,8 @@ from typing import Any
 from uuid import UUID, uuid4
 
 from cryptography.fernet import Fernet, InvalidToken
+
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -83,11 +84,10 @@ class ScheduleFrequency(str, Enum):
     CUSTOM = "custom"
 
 
-# Default encryption key - in production, this should come from environment/secrets
-DEFAULT_ENCRYPTION_KEY = os.environ.get(
-    "ETL_ENCRYPTION_KEY",
-    Fernet.generate_key().decode()
-)
+# Default encryption key - VP-Round60: Uses centralized settings
+# WARNING: In production, ETL_ENCRYPTION_KEY must be set - otherwise each
+# restart generates a new key and previously encrypted credentials become invalid
+DEFAULT_ENCRYPTION_KEY = settings.etl_encryption_key or Fernet.generate_key().decode()
 
 
 # ============================================================================

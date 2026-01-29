@@ -143,6 +143,11 @@ class Settings(BaseSettings):
     allowed_fhir_servers: str = ""
     allow_localhost_fhir: bool = True  # Allow localhost in development
 
+    # ETL Configuration (VP-Round60)
+    # Encryption key for storing data source credentials
+    # IMPORTANT: Set this in production - otherwise each restart generates new key
+    etl_encryption_key: str | None = None
+
     @cached_property
     def allowed_fhir_servers_set(self) -> set[str]:
         """Parse allowed FHIR servers from comma-separated string.
