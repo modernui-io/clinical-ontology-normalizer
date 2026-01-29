@@ -487,6 +487,20 @@ from app.services.tefca_service import (
     get_tefca_service,
     reset_tefca_service,
 )
+from app.services.graph_augmented_rag import (
+    GraphAugmentedContext,
+    GraphAugmentedRAGService,
+    GraphPath,
+    TemporalContext as GraphTemporalContext,
+    get_graph_augmented_rag_service,
+)
+from app.services.policy_kg_builder import (
+    ExtractedAction,
+    ExtractedCondition,
+    ExtractedRule,
+    PolicyKGBuilder,
+    get_policy_kg_builder,
+)
 
 __all__ = [
     "BaseFactBuilderService",
@@ -506,6 +520,16 @@ __all__ = [
     "FilteredNLPVocabularyService",
     "GraphBuilderServiceInterface",
     "GraphResult",
+    "GraphAugmentedContext",
+    "GraphAugmentedRAGService",
+    "GraphPath",
+    "GraphTemporalContext",
+    "get_graph_augmented_rag_service",
+    "ExtractedAction",
+    "ExtractedCondition",
+    "ExtractedRule",
+    "PolicyKGBuilder",
+    "get_policy_kg_builder",
     "MappingMethod",
     "MappingServiceInterface",
     "NodeInput",

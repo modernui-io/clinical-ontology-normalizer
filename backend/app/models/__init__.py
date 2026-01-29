@@ -66,6 +66,15 @@ from app.models.policy import (
     PolicySection,
     PolicyStatus,
 )
+from app.models.policy_kg import (
+    EvidenceGrade,
+    PolicyEdgeType,
+    PolicyKGEdge,
+    PolicyKGNode,
+    PolicyNodeType,
+    PolicyRule,
+    RecommendationStrength,
+)
 from app.models.provenance import (
     ConfidenceLevelDB,
     ExtractionMethodDB,
@@ -127,6 +136,14 @@ __all__ = [
     "PolicySection",
     "PolicyAlertRule",
     "PolicyStatus",
+    # Policy Knowledge Graph Models
+    "PolicyKGNode",
+    "PolicyKGEdge",
+    "PolicyRule",
+    "PolicyNodeType",
+    "PolicyEdgeType",
+    "EvidenceGrade",
+    "RecommendationStrength",
     # Provenance Models
     "ProvenanceRecord",
     "ReasoningTrace",

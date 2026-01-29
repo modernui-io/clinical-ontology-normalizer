@@ -706,6 +706,8 @@ class HybridClinicalAnalyzer:
         include_raw_mapping: bool = False,
         llm_model: str | None = None,
         llm_provider: LLMProvider | None = None,
+        patient_id: str | None = None,
+        db_session: Any | None = None,
     ) -> HybridAnalysisResult:
         """Perform hybrid analysis on a clinical note.
 
@@ -716,6 +718,8 @@ class HybridClinicalAnalyzer:
             include_raw_mapping: Whether to include raw mapping in result.
             llm_model: Override LLM model.
             llm_provider: Override LLM provider.
+            patient_id: Optional patient ID for graph-augmented context.
+            db_session: Optional database session for graph queries.
 
         Returns:
             HybridAnalysisResult with grounded analysis.
@@ -727,14 +731,45 @@ class HybridClinicalAnalyzer:
         context, mapping = self.extract_structured_context(note_text)
         extraction_time = (time.perf_counter() - extract_start) * 1000
 
+        # Step 1.5: Get graph-augmented context if patient_id provided
+        graph_context_str = ""
+        if patient_id and db_session:
+            try:
+                from app.services.graph_augmented_rag import get_graph_augmented_rag_service
+                graph_rag = get_graph_augmented_rag_service(db_session)
+                graph_context = graph_rag.retrieve_context(
+                    query=question or note_text[:500],
+                    patient_id=patient_id,
+                    max_hops=2,
+                    max_paths=5,
+                    include_temporal=True,
+                    include_policies=True,
+                )
+                graph_context_str = graph_context.to_llm_prompt()
+            except Exception as e:
+                logger.warning(f"Failed to retrieve graph context: {e}")
+
         # Step 2: Build LLM prompt with structured context
         system_prompt = SYSTEM_PROMPTS.get(analysis_type, SYSTEM_PROMPTS[AnalysisType.FREE_FORM])
+
+        # Add graph context to system prompt if available
+        if graph_context_str:
+            system_prompt += "\n\nYou also have access to knowledge graph evidence showing relationships and temporal context. Use this to provide more accurate and grounded responses."
 
         user_prompt = f"""STRUCTURED CLINICAL DATA (extracted deterministically):
 
 {context.to_prompt_context()}
 
----
+"""
+        # Add graph-augmented context if available
+        if graph_context_str:
+            user_prompt += f"""
+KNOWLEDGE GRAPH CONTEXT (from patient's clinical history):
+
+{graph_context_str}
+"""
+
+        user_prompt += """---
 
 """
         if analysis_type == AnalysisType.QUESTION_ANSWER and question:

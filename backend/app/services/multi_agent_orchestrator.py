@@ -41,6 +41,8 @@ class AgentRole(str, Enum):
     SAFETY = "safety"  # Drug safety, interactions
     EVIDENCE = "evidence"  # Literature/guideline review
     COORDINATOR = "coordinator"  # MDT coordination
+    POLICY = "policy"  # Policy/guideline compliance
+    TEMPORAL = "temporal"  # Temporal reasoning
 
 
 class ConsensusLevel(str, Enum):
@@ -67,9 +69,177 @@ class RecommendationType(str, Enum):
 
 
 @dataclass
-class AgentContext:
-    """Shared context for agent reasoning."""
+class KGTraversalPath:
+    """A path traversed through the knowledge graph during reasoning."""
 
+    path_id: str = field(default_factory=lambda: str(uuid4()))
+    description: str = ""
+    nodes: list[dict[str, Any]] = field(default_factory=list)
+    edges: list[dict[str, Any]] = field(default_factory=list)
+    confidence: float = 0.0
+    temporal_info: str | None = None
+
+    def to_prompt_text(self) -> str:
+        """Format this path for inclusion in LLM prompts."""
+        if not self.nodes:
+            return ""
+
+        lines = [f"Path: {self.description}"]
+
+        # Build path string from nodes and edges
+        path_parts = []
+        for i, node in enumerate(self.nodes):
+            node_label = node.get("label", "Unknown")
+            path_parts.append(node_label)
+
+            if i < len(self.edges):
+                edge = self.edges[i]
+                edge_type = edge.get("type", "relates_to")
+                edge_conf = edge.get("confidence", 0.0)
+                path_parts.append(f"--[{edge_type} ({edge_conf:.2f})]-->")
+
+        lines.append("  " + " ".join(path_parts))
+
+        if self.temporal_info:
+            lines.append(f"  Temporal: {self.temporal_info}")
+
+        lines.append(f"  Confidence: {self.confidence:.2f}")
+
+        return "\n".join(lines)
+
+
+@dataclass
+class CausalChain:
+    """A causal reasoning chain derived from the knowledge graph."""
+
+    chain_id: str = field(default_factory=lambda: str(uuid4()))
+    description: str = ""
+    links: list[dict[str, Any]] = field(default_factory=list)
+    pathway_type: str = ""  # treatment, adverse_event, progression
+    confidence: float = 0.0
+    temporal_valid: bool = True
+    validation_notes: str = ""
+
+    def to_prompt_text(self) -> str:
+        """Format this chain for inclusion in LLM prompts."""
+        lines = [f"Causal Chain ({self.pathway_type}): {self.description}"]
+
+        for link in self.links:
+            source = link.get("source", "Unknown")
+            relation = link.get("relation", "causes")
+            target = link.get("target", "Unknown")
+            lines.append(f"  {source} --{relation}--> {target}")
+
+        lines.append(f"  Confidence: {self.confidence:.2f}")
+        if not self.temporal_valid:
+            lines.append(f"  WARNING: Temporal inconsistency - {self.validation_notes}")
+
+        return "\n".join(lines)
+
+
+@dataclass
+class TemporalContext:
+    """Temporal context for reasoning."""
+
+    reference_time: datetime | None = None
+    active_conditions: list[dict[str, Any]] = field(default_factory=list)
+    active_medications: list[dict[str, Any]] = field(default_factory=list)
+    recent_events: list[dict[str, Any]] = field(default_factory=list)
+    temporal_constraints: list[str] = field(default_factory=list)
+
+    def to_prompt_text(self) -> str:
+        """Format temporal context for LLM prompts."""
+        lines = ["[Temporal Context]"]
+
+        if self.reference_time:
+            lines.append(f"Reference Time: {self.reference_time.isoformat()}")
+
+        if self.active_conditions:
+            lines.append("Currently Active Conditions:")
+            for cond in self.active_conditions[:5]:
+                start = cond.get("start_date", "unknown")
+                name = cond.get("name", "Unknown")
+                lines.append(f"  - {name} (since {start})")
+
+        if self.active_medications:
+            lines.append("Current Medications:")
+            for med in self.active_medications[:5]:
+                start = med.get("start_date", "unknown")
+                name = med.get("name", "Unknown")
+                dose = med.get("dose", "")
+                lines.append(f"  - {name} {dose} (since {start})")
+
+        if self.recent_events:
+            lines.append("Recent Events (last 30 days):")
+            for event in self.recent_events[:5]:
+                date = event.get("date", "unknown")
+                desc = event.get("description", "Unknown event")
+                lines.append(f"  - {date}: {desc}")
+
+        if self.temporal_constraints:
+            lines.append("Temporal Constraints:")
+            for constraint in self.temporal_constraints:
+                lines.append(f"  - {constraint}")
+
+        return "\n".join(lines)
+
+
+@dataclass
+class PolicyConstraint:
+    """A policy rule or guideline constraint for reasoning."""
+
+    rule_id: str = ""
+    rule_name: str = ""
+    description: str = ""
+    applies_to: list[str] = field(default_factory=list)
+    if_conditions: dict[str, Any] = field(default_factory=dict)
+    then_actions: dict[str, Any] = field(default_factory=dict)
+    evidence_grade: str = ""
+    recommendation_strength: str = ""
+    source: str = ""
+
+    def to_prompt_text(self) -> str:
+        """Format policy constraint for LLM prompts."""
+        lines = [f"Rule: {self.rule_id}"]
+        lines.append(f"  Name: {self.rule_name}")
+
+        if self.if_conditions:
+            lines.append("  IF:")
+            for key, value in self.if_conditions.items():
+                lines.append(f"    - {key}: {value}")
+
+        if self.then_actions:
+            lines.append("  THEN:")
+            for key, value in self.then_actions.items():
+                lines.append(f"    - {key}: {value}")
+
+        if self.evidence_grade:
+            lines.append(f"  Evidence Grade: {self.evidence_grade}")
+        if self.recommendation_strength:
+            lines.append(f"  Recommendation: {self.recommendation_strength}")
+        if self.source:
+            lines.append(f"  Source: {self.source}")
+
+        return "\n".join(lines)
+
+
+@dataclass
+class AgentContext:
+    """Shared context for agent reasoning.
+
+    This context is passed to all agents and includes:
+    1. Basic patient information (demographics, conditions, medications)
+    2. Knowledge graph traversal paths (from multi-hop reasoning)
+    3. Causal chains (validated causal relationships)
+    4. Temporal context (time-aware reasoning)
+    5. Policy constraints (applicable guidelines and rules)
+
+    The to_llm_prompt() method formats all this context for inclusion
+    in LLM prompts, enabling the hybrid reasoning approach where the
+    LLM can leverage structured graph evidence in its analysis.
+    """
+
+    # Basic patient context
     patient_id: str
     clinical_text: str = ""
     conditions: list[dict[str, Any]] = field(default_factory=list)
@@ -79,6 +249,187 @@ class AgentContext:
     vitals: dict[str, Any] = field(default_factory=dict)
     demographics: dict[str, Any] = field(default_factory=dict)
     previous_recommendations: list[dict[str, Any]] = field(default_factory=list)
+
+    # Knowledge graph traversal context (for hybrid reasoning)
+    kg_traversal_paths: list[KGTraversalPath] = field(default_factory=list)
+
+    # Causal reasoning chains
+    causal_chains: list[CausalChain] = field(default_factory=list)
+
+    # Temporal reasoning context
+    temporal_context: TemporalContext | None = None
+
+    # Policy/guideline constraints
+    policy_constraints: list[PolicyConstraint] = field(default_factory=list)
+
+    def to_llm_prompt(self, include_sections: list[str] | None = None) -> str:
+        """Format the context for inclusion in LLM prompts.
+
+        This method serializes the knowledge graph evidence and temporal
+        context into a structured text format that LLMs can reason over.
+
+        Args:
+            include_sections: Optional list of sections to include. If None,
+                includes all sections. Options: 'patient', 'graph', 'causal',
+                'temporal', 'policy'
+
+        Returns:
+            Formatted context string for LLM prompt
+        """
+        sections = include_sections or ["patient", "graph", "causal", "temporal", "policy"]
+        parts = []
+
+        # Patient context
+        if "patient" in sections:
+            parts.append(self._format_patient_context())
+
+        # Knowledge graph traversal paths
+        if "graph" in sections and self.kg_traversal_paths:
+            parts.append(self._format_graph_context())
+
+        # Causal reasoning chains
+        if "causal" in sections and self.causal_chains:
+            parts.append(self._format_causal_context())
+
+        # Temporal context
+        if "temporal" in sections and self.temporal_context:
+            parts.append(self.temporal_context.to_prompt_text())
+
+        # Policy constraints
+        if "policy" in sections and self.policy_constraints:
+            parts.append(self._format_policy_context())
+
+        return "\n\n".join(parts)
+
+    def _format_patient_context(self) -> str:
+        """Format basic patient context."""
+        lines = ["[Patient Context]"]
+
+        if self.demographics:
+            age = self.demographics.get("age", "Unknown")
+            gender = self.demographics.get("gender", "Unknown")
+            lines.append(f"Demographics: {age} year old {gender}")
+
+        if self.conditions:
+            lines.append("Conditions:")
+            for cond in self.conditions[:5]:
+                name = cond.get("name", "Unknown")
+                conf = cond.get("confidence", 0.0)
+                lines.append(f"  - {name} (confidence: {conf:.2f})")
+
+        if self.medications:
+            lines.append("Current Medications:")
+            for med in self.medications[:5]:
+                name = med.get("name", "Unknown")
+                dose = med.get("dose", "")
+                lines.append(f"  - {name} {dose}")
+
+        if self.allergies:
+            lines.append(f"Allergies: {', '.join(self.allergies)}")
+
+        if self.lab_values:
+            lines.append("Recent Lab Values:")
+            for lab in self.lab_values[:5]:
+                name = lab.get("name", "Unknown")
+                value = lab.get("value", "")
+                unit = lab.get("unit", "")
+                lines.append(f"  - {name}: {value} {unit}")
+
+        return "\n".join(lines)
+
+    def _format_graph_context(self) -> str:
+        """Format knowledge graph traversal paths."""
+        lines = ["[Graph Evidence]"]
+        lines.append("The following paths were traversed through the knowledge graph:")
+
+        for i, path in enumerate(self.kg_traversal_paths[:5], 1):
+            lines.append(f"\n{i}. {path.to_prompt_text()}")
+
+        return "\n".join(lines)
+
+    def _format_causal_context(self) -> str:
+        """Format causal reasoning chains."""
+        lines = ["[Causal Evidence]"]
+        lines.append("The following causal relationships were identified:")
+
+        for chain in self.causal_chains[:3]:
+            lines.append(f"\n{chain.to_prompt_text()}")
+
+        return "\n".join(lines)
+
+    def _format_policy_context(self) -> str:
+        """Format policy constraints."""
+        lines = ["[Policy Constraints]"]
+        lines.append("The following clinical guidelines apply:")
+
+        for constraint in self.policy_constraints[:5]:
+            lines.append(f"\n{constraint.to_prompt_text()}")
+
+        return "\n".join(lines)
+
+    def add_kg_path(
+        self,
+        description: str,
+        nodes: list[dict[str, Any]],
+        edges: list[dict[str, Any]],
+        confidence: float = 0.0,
+        temporal_info: str | None = None,
+    ) -> None:
+        """Add a knowledge graph traversal path to the context."""
+        path = KGTraversalPath(
+            description=description,
+            nodes=nodes,
+            edges=edges,
+            confidence=confidence,
+            temporal_info=temporal_info,
+        )
+        self.kg_traversal_paths.append(path)
+
+    def add_causal_chain(
+        self,
+        description: str,
+        links: list[dict[str, Any]],
+        pathway_type: str,
+        confidence: float = 0.0,
+        temporal_valid: bool = True,
+        validation_notes: str = "",
+    ) -> None:
+        """Add a causal reasoning chain to the context."""
+        chain = CausalChain(
+            description=description,
+            links=links,
+            pathway_type=pathway_type,
+            confidence=confidence,
+            temporal_valid=temporal_valid,
+            validation_notes=validation_notes,
+        )
+        self.causal_chains.append(chain)
+
+    def add_policy_constraint(
+        self,
+        rule_id: str,
+        rule_name: str,
+        description: str = "",
+        applies_to: list[str] | None = None,
+        if_conditions: dict[str, Any] | None = None,
+        then_actions: dict[str, Any] | None = None,
+        evidence_grade: str = "",
+        recommendation_strength: str = "",
+        source: str = "",
+    ) -> None:
+        """Add a policy constraint to the context."""
+        constraint = PolicyConstraint(
+            rule_id=rule_id,
+            rule_name=rule_name,
+            description=description,
+            applies_to=applies_to or [],
+            if_conditions=if_conditions or {},
+            then_actions=then_actions or {},
+            evidence_grade=evidence_grade,
+            recommendation_strength=recommendation_strength,
+            source=source,
+        )
+        self.policy_constraints.append(constraint)
 
 
 @dataclass
@@ -433,15 +784,42 @@ class MultiAgentOrchestrator:
     3. All agents vote on each recommendation
     4. Consensus is built with explainable disagreements
     5. Final recommendations include confidence from all perspectives
+
+    Enhanced with:
+    - PolicyComplianceAgent: Checks patient state against policies/guidelines
+    - TemporalReasoningAgent: Validates temporal consistency
+    - KG traversal paths included in agent context for hybrid reasoning
     """
 
-    def __init__(self):
+    def __init__(self, include_policy_agent: bool = True, include_temporal_agent: bool = True):
+        """Initialize the orchestrator with specified agents.
+
+        Args:
+            include_policy_agent: Include PolicyComplianceAgent
+            include_temporal_agent: Include TemporalReasoningAgent
+        """
         self.agents: dict[AgentRole, BaseAgent] = {
             AgentRole.DIAGNOSTIC: DiagnosticAgent(),
             AgentRole.TREATMENT: TreatmentAgent(),
             AgentRole.SAFETY: SafetyAgent(),
             AgentRole.EVIDENCE: EvidenceAgent(),
         }
+
+        # Add specialized agents if requested
+        if include_policy_agent:
+            try:
+                from app.services.agents.policy_compliance_agent import PolicyComplianceAgent
+                self.agents[AgentRole.POLICY] = PolicyComplianceAgent()
+            except ImportError:
+                logger.warning("PolicyComplianceAgent not available")
+
+        if include_temporal_agent:
+            try:
+                from app.services.agents.temporal_reasoning_agent import TemporalReasoningAgent
+                self.agents[AgentRole.TEMPORAL] = TemporalReasoningAgent()
+            except ImportError:
+                logger.warning("TemporalReasoningAgent not available")
+
         self._active_sessions: dict[str, MDTSession] = {}
 
     async def create_session(
