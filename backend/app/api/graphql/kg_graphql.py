@@ -8,7 +8,7 @@ including concepts, relationships, reasoning paths, and patient data.
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Union
+from typing import Any, Callable
 import json
 import re
 import threading
@@ -694,7 +694,7 @@ class GraphQLParser:
         self._expect('"')
         return value
 
-    def _parse_number(self) -> Union[int, float]:
+    def _parse_number(self) -> int | float:
         """Parse a number value."""
         start = self._pos
         if self._text[self._pos] == "-":

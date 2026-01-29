@@ -17,7 +17,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from functools import wraps
-from typing import Any, Callable, TypeVar, Union
+from typing import Any, Callable, TypeVar
 import asyncio
 import re
 
@@ -364,7 +364,7 @@ class KGPrometheusRegistry:
 
     def __init__(self, prefix: str = "kg") -> None:
         self.prefix = prefix
-        self._metrics: dict[str, Union[Counter, Gauge, Histogram, Summary]] = {}
+        self._metrics: dict[str, Counter | Gauge | Histogram | Summary] = {}
         self._lock = threading.RLock()
 
     def _full_name(self, name: str) -> str:
@@ -441,13 +441,13 @@ class KGPrometheusRegistry:
                 self._metrics[full_name] = Summary(definition)
             return self._metrics[full_name]
 
-    def get_metric(self, name: str) -> Union[Counter, Gauge, Histogram, Summary | None]:
+    def get_metric(self, name: str) -> Counter | Gauge | Histogram | Summary | None:
         """Get a metric by name."""
         full_name = self._full_name(name)
         with self._lock:
             return self._metrics.get(full_name)
 
-    def get_all_metrics(self) -> dict[str, Union[Counter, Gauge, Histogram, Summary]]:
+    def get_all_metrics(self) -> dict[str, Counter | Gauge | Histogram | Summary]:
         """Get all registered metrics."""
         with self._lock:
             return self._metrics.copy()

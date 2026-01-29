@@ -12,7 +12,7 @@ This module provides comprehensive API versioning including:
 from dataclasses import dataclass, field
 from datetime import datetime, date
 from enum import Enum
-from typing import Any, Callable, Union
+from typing import Any, Callable
 
 from fastapi import HTTPException, Request, Response
 from fastapi.routing import APIRouter
@@ -605,7 +605,7 @@ def get_api_version(request: Request) -> APIVersion:
     return request.state.api_version
 
 
-def require_min_version(min_version: Union[str, APIVersion]):
+def require_min_version(min_version: str | APIVersion):
     """FastAPI dependency factory to require minimum version."""
     if isinstance(min_version, str):
         min_version = APIVersion.parse(min_version)
@@ -622,7 +622,7 @@ def require_min_version(min_version: Union[str, APIVersion]):
     return dependency
 
 
-def require_max_version(max_version: Union[str, APIVersion]):
+def require_max_version(max_version: str | APIVersion):
     """FastAPI dependency factory to require maximum version."""
     if isinstance(max_version, str):
         max_version = APIVersion.parse(max_version)
