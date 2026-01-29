@@ -10,7 +10,7 @@ import secrets
 import threading
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
@@ -206,7 +206,7 @@ class APIKey:
             return False, "API key is suspended"
         if self.status == APIKeyStatus.EXPIRED:
             return False, "API key has expired"
-        if self.expires_at and datetime.utcnow() > self.expires_at:
+        if self.expires_at and datetime.now(UTC) > self.expires_at:
             self.status = APIKeyStatus.EXPIRED
             return False, "API key has expired"
         return True, None
@@ -352,7 +352,7 @@ class KGAPIKeyService:
         # Calculate expiry
         expires_at = None
         if expires_in_days:
-            expires_at = datetime.utcnow() + timedelta(days=expires_in_days)
+            expires_at = datetime.now(UTC) + timedelta(days=expires_in_days)
 
         # Create API key object
         api_key = APIKey(
@@ -438,7 +438,7 @@ class KGAPIKeyService:
                 )
 
             # Update usage
-            api_key.last_used_at = datetime.utcnow()
+            api_key.last_used_at = datetime.now(UTC)
             api_key.total_requests += 1
             api_key.successful_requests += 1
             self._stats["successful_authentications"] += 1
@@ -499,7 +499,7 @@ class KGAPIKeyService:
             keys = [k for k in keys if k.created_by == created_by]
 
         if not include_expired:
-            now = datetime.utcnow()
+            now = datetime.now(UTC)
             keys = [k for k in keys if not k.expires_at or k.expires_at > now]
 
         return keys
@@ -522,7 +522,7 @@ class KGAPIKeyService:
             api_key.status = APIKeyStatus.REVOKED
             if reason:
                 api_key.metadata["revocation_reason"] = reason
-            api_key.metadata["revoked_at"] = datetime.utcnow().isoformat()
+            api_key.metadata["revoked_at"] = datetime.now(UTC).isoformat()
             self._stats["keys_revoked"] += 1
 
         self._notify_listeners("revoked", key_id, api_key)
@@ -546,7 +546,7 @@ class KGAPIKeyService:
             api_key.status = APIKeyStatus.SUSPENDED
             if reason:
                 api_key.metadata["suspension_reason"] = reason
-            api_key.metadata["suspended_at"] = datetime.utcnow().isoformat()
+            api_key.metadata["suspended_at"] = datetime.now(UTC).isoformat()
 
         self._notify_listeners("suspended", key_id, api_key)
         return True
@@ -569,7 +569,7 @@ class KGAPIKeyService:
                 return False
 
             api_key.status = APIKeyStatus.ACTIVE
-            api_key.metadata["reactivated_at"] = datetime.utcnow().isoformat()
+            api_key.metadata["reactivated_at"] = datetime.now(UTC).isoformat()
 
         self._notify_listeners("reactivated", key_id, api_key)
         return True
@@ -611,12 +611,12 @@ class KGAPIKeyService:
                 metadata={
                     **old_key.metadata,
                     "rotated_from": key_id,
-                    "rotated_at": datetime.utcnow().isoformat(),
+                    "rotated_at": datetime.now(UTC).isoformat(),
                 },
             )
 
             # Schedule old key expiration
-            old_key.expires_at = datetime.utcnow() + timedelta(hours=grace_period_hours)
+            old_key.expires_at = datetime.now(UTC) + timedelta(hours=grace_period_hours)
             old_key.metadata["rotated_to"] = new_key.key_id
             old_key.metadata["rotation_grace_period_ends"] = old_key.expires_at.isoformat()
 
@@ -644,7 +644,7 @@ class KGAPIKeyService:
 
             old_scopes = api_key.scopes.copy()
             api_key.scopes = scopes
-            api_key.metadata["scopes_updated_at"] = datetime.utcnow().isoformat()
+            api_key.metadata["scopes_updated_at"] = datetime.now(UTC).isoformat()
             api_key.metadata["previous_scopes"] = [s.value for s in old_scopes]
 
         self._notify_listeners("scopes_updated", key_id, api_key)
@@ -670,7 +670,7 @@ class KGAPIKeyService:
                 return False
 
             api_key.rate_limit = rate_limit
-            api_key.metadata["rate_limit_updated_at"] = datetime.utcnow().isoformat()
+            api_key.metadata["rate_limit_updated_at"] = datetime.now(UTC).isoformat()
 
         self._notify_listeners("rate_limit_updated", key_id, api_key)
         return True
@@ -771,7 +771,7 @@ class KGAPIKeyService:
         Returns:
             Number of keys removed
         """
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         to_remove = []
 
         with self._lock:

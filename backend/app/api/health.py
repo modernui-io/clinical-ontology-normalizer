@@ -523,20 +523,31 @@ async def health_check(response: Response) -> HealthResponse:
 
     Returns 200 if healthy or degraded, 503 if unhealthy.
     """
-    # Run all health checks in parallel
-    database_check, redis_check, neo4j_check, kafka_check = await asyncio.gather(
+    # VP-Reliability-1: Run all health checks in parallel with exception handling
+    # return_exceptions=True ensures one failing check doesn't crash the entire endpoint
+    results = await asyncio.gather(
         check_database(),
         check_redis(),
         check_neo4j(),
         check_kafka(),
-        return_exceptions=False,
+        return_exceptions=True,
     )
 
+    def _safe_result(result: ComponentHealth | Exception, name: str) -> ComponentHealth:
+        """Convert exceptions to DOWN status instead of failing the endpoint."""
+        if isinstance(result, Exception):
+            logger.warning(f"Health check for {name} raised exception: {result}")
+            return ComponentHealth(
+                status=ComponentStatus.DOWN,
+                error=f"Health check failed: {type(result).__name__}",
+            )
+        return result
+
     checks = {
-        "database": database_check,
-        "redis": redis_check,
-        "neo4j": neo4j_check,
-        "kafka": kafka_check,
+        "database": _safe_result(results[0], "database"),
+        "redis": _safe_result(results[1], "redis"),
+        "neo4j": _safe_result(results[2], "neo4j"),
+        "kafka": _safe_result(results[3], "kafka"),
     }
 
     overall_status = _determine_overall_status(checks)
@@ -695,20 +706,30 @@ async def deep_health_check(response: Response) -> DeepHealthResponse:
 
     Use for detailed system monitoring and debugging.
     """
-    # Run all health checks in parallel
-    database_check, redis_check, neo4j_check, kafka_check = await asyncio.gather(
+    # VP-Reliability-1: Run all health checks in parallel with exception handling
+    results = await asyncio.gather(
         check_database(),
         check_redis(),
         check_neo4j(),
         check_kafka(),
-        return_exceptions=False,
+        return_exceptions=True,
     )
 
+    def _safe_result(result: ComponentHealth | Exception, name: str) -> ComponentHealth:
+        """Convert exceptions to DOWN status instead of failing the endpoint."""
+        if isinstance(result, Exception):
+            logger.warning(f"Health check for {name} raised exception: {result}")
+            return ComponentHealth(
+                status=ComponentStatus.DOWN,
+                error=f"Health check failed: {type(result).__name__}",
+            )
+        return result
+
     checks = {
-        "database": database_check,
-        "redis": redis_check,
-        "neo4j": neo4j_check,
-        "kafka": kafka_check,
+        "database": _safe_result(results[0], "database"),
+        "redis": _safe_result(results[1], "redis"),
+        "neo4j": _safe_result(results[2], "neo4j"),
+        "kafka": _safe_result(results[3], "kafka"),
     }
 
     overall_status = _determine_overall_status(checks)

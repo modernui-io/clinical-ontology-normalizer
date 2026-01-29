@@ -12,7 +12,7 @@ import threading
 import time
 from collections import OrderedDict
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
 
@@ -82,7 +82,7 @@ class TokenSet(BaseModel):
         """Check if the token is expired."""
         if not self.expires_at:
             return False
-        return datetime.utcnow() >= self.expires_at
+        return datetime.now(UTC) >= self.expires_at
 
     @property
     def should_refresh(self) -> bool:
@@ -92,7 +92,7 @@ class TokenSet(BaseModel):
         threshold = timedelta(
             seconds=smart_settings.token_refresh_threshold_seconds
         )
-        return datetime.utcnow() >= (self.expires_at - threshold)
+        return datetime.now(UTC) >= (self.expires_at - threshold)
 
     def get_launch_context(self) -> LaunchContext:
         """Get the launch context from this token set."""

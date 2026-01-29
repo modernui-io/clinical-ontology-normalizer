@@ -27,7 +27,7 @@ import logging
 import secrets
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any, Callable
 from urllib.parse import urlparse
@@ -414,7 +414,7 @@ class KGWebhookService:
             return False
 
         webhook.status = status
-        webhook.updated_at = datetime.utcnow()
+        webhook.updated_at = datetime.now(UTC)
 
         # Reset failure count if re-enabling
         if status == WebhookStatus.ACTIVE:
@@ -443,7 +443,7 @@ class KGWebhookService:
             id=str(uuid.uuid4()),
             event_type=event_type,
             payload=payload,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(UTC),
             correlation_id=correlation_id
         )
 
@@ -522,7 +522,7 @@ class KGWebhookService:
         if not webhook:
             return False
 
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         cutoff = now - timedelta(minutes=1)
 
         # Clean old entries
@@ -710,7 +710,7 @@ class KGWebhookService:
                 webhook_id=webhook_id,
                 event_id=event.id,
                 status=DeliveryStatus.DELIVERED if 200 <= status_code < 300 else DeliveryStatus.FAILED,
-                attempted_at=datetime.utcnow(),
+                attempted_at=datetime.now(UTC),
                 response_code=status_code,
                 response_body=response_body[:1000] if response_body else None,
                 duration_ms=duration_ms
@@ -718,7 +718,7 @@ class KGWebhookService:
             self._delivery_attempts[webhook_id].append(attempt)
 
             # Update webhook stats
-            webhook.last_delivery_at = datetime.utcnow()
+            webhook.last_delivery_at = datetime.now(UTC)
             webhook.total_deliveries += 1
 
             if 200 <= status_code < 300:
@@ -762,7 +762,7 @@ class KGWebhookService:
                 webhook_id=webhook_id,
                 event_id=event.id,
                 status=DeliveryStatus.FAILED,
-                attempted_at=datetime.utcnow(),
+                attempted_at=datetime.now(UTC),
                 error_message=str(e),
                 duration_ms=duration_ms
             )
@@ -855,7 +855,7 @@ class KGWebhookService:
             return None
 
         attempts = self._delivery_attempts.get(webhook_id, [])
-        recent_attempts = [a for a in attempts if a.attempted_at > datetime.utcnow() - timedelta(hours=24)]
+        recent_attempts = [a for a in attempts if a.attempted_at > datetime.now(UTC) - timedelta(hours=24)]
 
         success_count = sum(1 for a in recent_attempts if a.status == DeliveryStatus.DELIVERED)
         failure_count = sum(1 for a in recent_attempts if a.status == DeliveryStatus.FAILED)
