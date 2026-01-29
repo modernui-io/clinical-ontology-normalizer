@@ -957,6 +957,288 @@ GCS_DEFINITION = CalculatorDefinition(
 )
 
 
+RCRI_DEFINITION = CalculatorDefinition(
+    id="rcri",
+    name="Revised Cardiac Risk Index (RCRI)",
+    short_name="RCRI",
+    calc_type=CalculatorType.CRITERIA,
+    category=CalculatorCategory.CARDIOVASCULAR,
+    output_type=OutputType.INTEGER,
+    score_unit="points",
+    description="Perioperative cardiac risk assessment for non-cardiac surgery",
+    references=["Lee TH, et al. Circulation 1999"],
+    specialties=["Anesthesiology", "Cardiology", "Surgery", "Internal Medicine"],
+    criteria=[
+        ScoringCriterion("high_risk_surgery", "High-risk surgery", 1,
+                        "Intraperitoneal, intrathoracic, or suprainguinal vascular surgery"),
+        ScoringCriterion("history_of_ihd", "Ischemic heart disease", 1,
+                        "MI, positive exercise test, angina, nitrate use, Q waves on EKG"),
+        ScoringCriterion("history_of_chf", "CHF history", 1,
+                        "CHF history, pulmonary edema, PND, bilateral rales, S3, elevated BNP"),
+        ScoringCriterion("history_of_cvd", "Cerebrovascular disease", 1,
+                        "Stroke or TIA history"),
+        ScoringCriterion("insulin_therapy", "Insulin therapy", 1,
+                        "Preoperative insulin therapy for diabetes"),
+        ScoringCriterion("preop_creatinine_over_2", "Creatinine >2", 1,
+                        "Preoperative serum creatinine >2 mg/dL"),
+    ],
+    interpretations=[
+        ThresholdInterpretation(
+            min_score=0, max_score=1,
+            risk_level=RiskLevel.LOW,
+            interpretation="RCRI Class I-II - Low perioperative cardiac risk (0.4-0.9%)",
+            recommendations=[
+                "Low cardiac risk - proceed with surgery",
+                "No additional cardiac testing recommended",
+                "Standard perioperative monitoring",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=1, max_score=2,
+            risk_level=RiskLevel.LOW_MODERATE,
+            interpretation="RCRI Class II - Low risk (0.9% major cardiac event)",
+            recommendations=[
+                "Low cardiac risk - proceed with surgery",
+                "Consider beta-blocker if already on one",
+                "Standard perioperative monitoring",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=2, max_score=3,
+            risk_level=RiskLevel.MODERATE,
+            interpretation="RCRI Class III - Moderate risk (6.6% major cardiac event)",
+            recommendations=[
+                "Moderate cardiac risk",
+                "Consider non-invasive testing if poor functional capacity",
+                "Perioperative beta-blockade may be beneficial",
+                "Close hemodynamic monitoring",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=3, max_score=None,
+            risk_level=RiskLevel.HIGH,
+            interpretation="RCRI Class IV - High risk (≥11% major cardiac event)",
+            recommendations=[
+                "High cardiac risk",
+                "Non-invasive cardiac testing recommended",
+                "Cardiology consultation",
+                "Consider revascularization if severe CAD",
+                "Optimize medical therapy preoperatively",
+                "ICU monitoring postoperatively",
+            ],
+        ),
+    ],
+)
+
+
+PERC_DEFINITION = CalculatorDefinition(
+    id="perc",
+    name="PERC Rule for Pulmonary Embolism",
+    short_name="PERC",
+    calc_type=CalculatorType.CRITERIA,
+    category=CalculatorCategory.PULMONARY,
+    output_type=OutputType.INTEGER,
+    score_unit="criteria",
+    description="Rule out pulmonary embolism without testing in low-risk patients",
+    references=["Kline JA, et al. J Thromb Haemost 2004", "Kline JA, et al. J Thromb Haemost 2008"],
+    specialties=["Emergency Medicine", "Pulmonology"],
+    notes=["Only apply if pre-test probability is low (<15%)",
+           "If ANY criteria present, PERC cannot rule out PE"],
+    criteria=[
+        ScoringCriterion("age_50_or_older", "Age ≥50", 1, "Age 50 years or older"),
+        ScoringCriterion("heart_rate_100_or_more", "HR ≥100", 1, "Heart rate ≥100 bpm"),
+        ScoringCriterion("o2_sat_less_than_95", "SpO2 <95%", 1, "Oxygen saturation <95% on room air"),
+        ScoringCriterion("unilateral_leg_swelling", "Unilateral leg swelling", 1, "Unilateral leg swelling"),
+        ScoringCriterion("hemoptysis", "Hemoptysis", 1, "Hemoptysis present"),
+        ScoringCriterion("recent_surgery_trauma", "Recent surgery/trauma", 1, "Surgery or trauma within 4 weeks"),
+        ScoringCriterion("prior_pe_dvt", "Prior PE/DVT", 1, "Prior PE or DVT"),
+        ScoringCriterion("hormone_use", "Hormone use", 1, "Exogenous estrogen (OCP, HRT)"),
+    ],
+    interpretations=[
+        ThresholdInterpretation(
+            min_score=0, max_score=1,
+            risk_level=RiskLevel.LOW,
+            interpretation="PERC negative - PE effectively ruled out",
+            recommendations=[
+                "No further workup for PE needed",
+                "PERC criteria met - <2% chance of PE",
+                "Consider alternative diagnoses",
+                "No D-dimer or imaging required",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=1, max_score=None,
+            risk_level=RiskLevel.MODERATE,
+            interpretation="PERC positive - cannot rule out PE",
+            recommendations=[
+                "PERC criteria NOT met",
+                "D-dimer recommended",
+                "If D-dimer elevated, CT-PA indicated",
+                "Consider Wells PE score for risk stratification",
+            ],
+        ),
+    ],
+)
+
+
+CENTOR_DEFINITION = CalculatorDefinition(
+    id="centor",
+    name="Centor Score (Modified/McIsaac)",
+    short_name="Centor",
+    calc_type=CalculatorType.CRITERIA,
+    category=CalculatorCategory.INFECTIOUS,
+    output_type=OutputType.INTEGER,
+    score_unit="points",
+    description="Likelihood of streptococcal pharyngitis",
+    references=["Centor RM, et al. Med Decis Making 1981", "McIsaac WJ, et al. CMAJ 1998"],
+    specialties=["Emergency Medicine", "Family Medicine", "Pediatrics", "Internal Medicine"],
+    criteria=[
+        ScoringCriterion("tonsillar_exudates", "Tonsillar exudates", 1, "Tonsillar swelling or exudates"),
+        ScoringCriterion("tender_anterior_cervical_nodes", "Tender anterior cervical lymphadenopathy", 1,
+                        "Tender or swollen anterior cervical lymph nodes"),
+        ScoringCriterion("fever_history", "History of fever", 1, "Temperature >38°C (100.4°F) by history"),
+        ScoringCriterion("absence_of_cough", "Absence of cough", 1, "No cough present"),
+    ],
+    age_scoring=AgeScoringRule(
+        thresholds=[(45, -1), (15, 0), (3, 1)],  # >44: -1, 15-44: 0, 3-14: +1
+        display_format="Age adjustment",
+    ),
+    interpretations=[
+        ThresholdInterpretation(
+            min_score=-1, max_score=1,
+            risk_level=RiskLevel.LOW,
+            interpretation="Low likelihood of strep (~1-10%)",
+            recommendations=[
+                "No further testing recommended",
+                "Symptomatic treatment only",
+                "Antibiotics not indicated",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=1, max_score=3,
+            risk_level=RiskLevel.MODERATE,
+            interpretation="Moderate likelihood of strep (~11-35%)",
+            recommendations=[
+                "Rapid strep test recommended",
+                "Treat if positive",
+                "Consider throat culture if rapid test negative",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=3, max_score=None,
+            risk_level=RiskLevel.HIGH,
+            interpretation="High likelihood of strep (~25-50%)",
+            recommendations=[
+                "Rapid strep test or throat culture",
+                "Consider empiric antibiotics if testing unavailable",
+                "Penicillin V or amoxicillin first-line",
+            ],
+        ),
+    ],
+)
+
+
+APGAR_DEFINITION = CalculatorDefinition(
+    id="apgar",
+    name="APGAR Score",
+    short_name="APGAR",
+    calc_type=CalculatorType.CRITERIA,
+    category=CalculatorCategory.OBSTETRIC,
+    output_type=OutputType.INTEGER,
+    score_unit="points",
+    description="Newborn assessment at 1 and 5 minutes after birth",
+    references=["Apgar V. Curr Res Anesth Analg 1953"],
+    specialties=["Obstetrics", "Neonatology", "Pediatrics"],
+    multi_level_criteria=[
+        MultiLevelCriterion(
+            name="appearance",
+            display_name="Appearance (skin color)",
+            levels=[
+                ("pink", 2, "Appearance: Pink (2)"),
+                ("acrocyanosis", 1, "Appearance: Body pink, extremities blue (1)"),
+                ("blue_pale", 0, "Appearance: Blue/pale all over (0)"),
+            ],
+            description="Skin color: pink, blue extremities, or pale/blue",
+        ),
+        MultiLevelCriterion(
+            name="pulse",
+            display_name="Pulse (heart rate)",
+            levels=[
+                ("above_100", 2, "Pulse: >100 bpm (2)"),
+                ("below_100", 1, "Pulse: <100 bpm (1)"),
+                ("absent", 0, "Pulse: Absent (0)"),
+            ],
+            description="Heart rate: >100, <100, or absent",
+        ),
+        MultiLevelCriterion(
+            name="grimace",
+            display_name="Grimace (reflex irritability)",
+            levels=[
+                ("cry_sneeze", 2, "Grimace: Cry/sneeze/cough (2)"),
+                ("grimace", 1, "Grimace: Grimace only (1)"),
+                ("no_response", 0, "Grimace: No response (0)"),
+            ],
+            description="Response to stimulation",
+        ),
+        MultiLevelCriterion(
+            name="activity",
+            display_name="Activity (muscle tone)",
+            levels=[
+                ("active", 2, "Activity: Active movement (2)"),
+                ("some_flexion", 1, "Activity: Some flexion (1)"),
+                ("limp", 0, "Activity: Limp (0)"),
+            ],
+            description="Muscle tone: active, some flexion, or limp",
+        ),
+        MultiLevelCriterion(
+            name="respiration",
+            display_name="Respiration",
+            levels=[
+                ("crying", 2, "Respiration: Good cry (2)"),
+                ("weak_cry", 1, "Respiration: Weak/irregular (1)"),
+                ("absent", 0, "Respiration: Absent (0)"),
+            ],
+            description="Respiratory effort",
+        ),
+    ],
+    interpretations=[
+        ThresholdInterpretation(
+            min_score=0, max_score=4,
+            risk_level=RiskLevel.VERY_HIGH,
+            interpretation="Severely depressed - immediate resuscitation needed",
+            recommendations=[
+                "Initiate neonatal resuscitation",
+                "Suction, stimulate, provide warmth",
+                "Consider positive pressure ventilation",
+                "May need intubation and chest compressions",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=4, max_score=7,
+            risk_level=RiskLevel.MODERATE,
+            interpretation="Moderately depressed - assisted ventilation likely needed",
+            recommendations=[
+                "Stimulation and suction",
+                "Provide supplemental oxygen",
+                "Consider positive pressure ventilation",
+                "Continue monitoring and reassess at 5 minutes",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=7, max_score=None,
+            risk_level=RiskLevel.LOW,
+            interpretation="Normal - routine newborn care",
+            recommendations=[
+                "Standard newborn care",
+                "Skin-to-skin contact with mother",
+                "Continue monitoring",
+                "Reassess at 5 minutes",
+            ],
+        ),
+    ],
+)
+
+
 # Registry of all calculator definitions
 CALCULATOR_DEFINITIONS: dict[str, CalculatorDefinition] = {
     "chadsvasc": CHADSVASC_DEFINITION,
@@ -967,6 +1249,10 @@ CALCULATOR_DEFINITIONS: dict[str, CalculatorDefinition] = {
     "heart_score": HEART_SCORE_DEFINITION,
     "sirs": SIRS_DEFINITION,
     "gcs": GCS_DEFINITION,
+    "rcri": RCRI_DEFINITION,
+    "perc": PERC_DEFINITION,
+    "centor": CENTOR_DEFINITION,
+    "apgar": APGAR_DEFINITION,
 }
 
 
