@@ -3199,6 +3199,413 @@ CREATININE_CLEARANCE_DEFINITION = CalculatorDefinition(
 )
 
 
+# ============================================================================
+# CORRECTED SODIUM (for Hyperglycemia)
+# ============================================================================
+CORRECTED_SODIUM_DEFINITION = CalculatorDefinition(
+    id="corrected_sodium",
+    name="Corrected Sodium for Hyperglycemia",
+    short_name="Corrected Na",
+    calc_type=CalculatorType.EQUATION,
+    category=CalculatorCategory.METABOLIC,
+    output_type=OutputType.DECIMAL,
+    score_unit="mEq/L",
+    description="Adjusts sodium for hyperglycemia (Katz formula)",
+    references=["Katz MA. N Engl J Med 1973", "Hillier TA, et al. Am J Med 1999"],
+    specialties=["Emergency Medicine", "Endocrinology", "Critical Care"],
+    notes=["Formula: Na + 1.6 × (Glucose - 100) / 100", "Some use 2.4 mEq/L per 100 mg/dL glucose"],
+    formula=FormulaDefinition(
+        formula_text="Na + 1.6 × (Glucose - 100) / 100",
+        output_unit="mEq/L",
+        precision=1,
+        parameters=[
+            FormulaParameter(name="sodium", display_name="Measured Sodium", unit="mEq/L", min_value=100, max_value=180),
+            FormulaParameter(name="glucose", display_name="Glucose", unit="mg/dL", min_value=100, max_value=2000),
+        ],
+    ),
+    interpretations=[
+        ThresholdInterpretation(min_score=0, max_score=135, risk_level=RiskLevel.MODERATE,
+            interpretation="Hyponatremia (corrected)", recommendations=["True hyponatremia despite hyperglycemia"]),
+        ThresholdInterpretation(min_score=135, max_score=145, risk_level=RiskLevel.LOW,
+            interpretation="Normal corrected sodium", recommendations=["Dilutional effect from hyperglycemia"]),
+        ThresholdInterpretation(min_score=145, max_score=None, risk_level=RiskLevel.MODERATE,
+            interpretation="Hypernatremia (corrected)", recommendations=["Significant free water deficit"]),
+    ],
+)
+
+
+# ============================================================================
+# MAINTENANCE IV FLUIDS (Holliday-Segar)
+# ============================================================================
+MAINTENANCE_FLUIDS_DEFINITION = CalculatorDefinition(
+    id="maintenance_fluids",
+    name="Maintenance IV Fluids (Holliday-Segar)",
+    short_name="Maintenance IVF",
+    calc_type=CalculatorType.EQUATION,
+    category=CalculatorCategory.PEDIATRIC,
+    output_type=OutputType.INTEGER,
+    score_unit="mL/day",
+    description="Calculate maintenance fluid requirements by weight",
+    references=["Holliday MA, Segar WE. Pediatrics 1957"],
+    specialties=["Pediatrics", "Emergency Medicine", "Surgery"],
+    notes=["4-2-1 rule: 4 mL/kg/hr for first 10 kg, 2 mL/kg/hr for next 10 kg, 1 mL/kg/hr thereafter"],
+    formula=FormulaDefinition(
+        formula_text="100 mL/kg for first 10 kg + 50 mL/kg for next 10 kg + 20 mL/kg thereafter",
+        output_unit="mL/day",
+        precision=0,
+        parameters=[
+            FormulaParameter(name="weight", display_name="Weight", unit="kg", min_value=1, max_value=150),
+        ],
+    ),
+    interpretations=[
+        ThresholdInterpretation(min_score=0, max_score=None, risk_level=RiskLevel.LOW,
+            interpretation="Calculated maintenance fluid rate",
+            recommendations=["Adjust for ongoing losses", "Consider clinical status", "Hourly rate = daily/24"]),
+    ],
+)
+
+
+# ============================================================================
+# PARKLAND FORMULA (Burns)
+# ============================================================================
+PARKLAND_DEFINITION = CalculatorDefinition(
+    id="parkland",
+    name="Parkland Formula for Burns",
+    short_name="Parkland",
+    calc_type=CalculatorType.EQUATION,
+    category=CalculatorCategory.EMERGENCY,
+    output_type=OutputType.INTEGER,
+    score_unit="mL/24h",
+    description="Fluid resuscitation for burn patients",
+    references=["Baxter CR, Shires T. Surg Clin North Am 1968"],
+    specialties=["Emergency Medicine", "Surgery", "Critical Care", "Burn Surgery"],
+    notes=["4 mL × kg × %TBSA burned", "Give half in first 8 hours from burn time", "Use LR"],
+    formula=FormulaDefinition(
+        formula_text="4 × Weight(kg) × %TBSA",
+        output_unit="mL in 24h",
+        precision=0,
+        parameters=[
+            FormulaParameter(name="weight", display_name="Weight", unit="kg", min_value=1, max_value=200),
+            FormulaParameter(name="tbsa", display_name="TBSA Burned", unit="%", min_value=1, max_value=100),
+        ],
+    ),
+    interpretations=[
+        ThresholdInterpretation(min_score=0, max_score=None, risk_level=RiskLevel.LOW,
+            interpretation="24-hour fluid requirement",
+            recommendations=[
+                "Give 50% in first 8 hours from burn time",
+                "Give remaining 50% over next 16 hours",
+                "Use Lactated Ringer's",
+                "Titrate to urine output 0.5-1 mL/kg/hr",
+            ]),
+    ],
+)
+
+
+# ============================================================================
+# BISHOP SCORE (Cervical Ripening)
+# ============================================================================
+BISHOP_DEFINITION = CalculatorDefinition(
+    id="bishop",
+    name="Bishop Score",
+    short_name="Bishop",
+    calc_type=CalculatorType.CRITERIA,
+    category=CalculatorCategory.OBSTETRIC,
+    output_type=OutputType.INTEGER,
+    score_unit="points",
+    description="Predicts likelihood of successful labor induction",
+    references=["Bishop EH. Obstet Gynecol 1964"],
+    specialties=["Obstetrics", "Maternal-Fetal Medicine"],
+    multi_level_criteria=[
+        MultiLevelCriterion(
+            name="dilation",
+            display_name="Cervical Dilation",
+            levels=[
+                ("closed", 0, "Closed (0)"), ("1_2", 1, "1-2 cm (1)"),
+                ("3_4", 2, "3-4 cm (2)"), ("5_plus", 3, "≥5 cm (3)"),
+            ],
+            description="Cervical dilation in cm",
+        ),
+        MultiLevelCriterion(
+            name="effacement",
+            display_name="Effacement",
+            levels=[
+                ("0_30", 0, "0-30% (0)"), ("40_50", 1, "40-50% (1)"),
+                ("60_70", 2, "60-70% (2)"), ("80_plus", 3, "≥80% (3)"),
+            ],
+            description="Cervical effacement %",
+        ),
+        MultiLevelCriterion(
+            name="station",
+            display_name="Fetal Station",
+            levels=[
+                ("minus_3", 0, "-3 (0)"), ("minus_2", 1, "-2 (1)"),
+                ("minus_1_0", 2, "-1 to 0 (2)"), ("plus_1_2", 3, "+1 to +2 (3)"),
+            ],
+            description="Fetal station",
+        ),
+        MultiLevelCriterion(
+            name="consistency",
+            display_name="Cervical Consistency",
+            levels=[
+                ("firm", 0, "Firm (0)"), ("medium", 1, "Medium (1)"), ("soft", 2, "Soft (2)"),
+            ],
+            description="Cervical consistency",
+        ),
+        MultiLevelCriterion(
+            name="position",
+            display_name="Cervical Position",
+            levels=[
+                ("posterior", 0, "Posterior (0)"), ("mid", 1, "Mid (1)"), ("anterior", 2, "Anterior (2)"),
+            ],
+            description="Cervical position",
+        ),
+    ],
+    interpretations=[
+        ThresholdInterpretation(min_score=0, max_score=6, risk_level=RiskLevel.LOW_MODERATE,
+            interpretation="Unfavorable cervix - induction may be prolonged",
+            recommendations=["Consider cervical ripening agent", "Higher C-section risk if induced"]),
+        ThresholdInterpretation(min_score=6, max_score=9, risk_level=RiskLevel.LOW,
+            interpretation="Favorable cervix - good induction candidate",
+            recommendations=["Oxytocin induction likely successful", "Lower C-section risk"]),
+        ThresholdInterpretation(min_score=9, max_score=None, risk_level=RiskLevel.LOW,
+            interpretation="Very favorable - high success rate",
+            recommendations=["Excellent induction candidate", "May progress to spontaneous labor"]),
+    ],
+)
+
+
+# ============================================================================
+# PSI/PORT SCORE (Pneumonia Severity)
+# ============================================================================
+PSI_PORT_DEFINITION = CalculatorDefinition(
+    id="psi_port",
+    name="Pneumonia Severity Index (PSI/PORT)",
+    short_name="PSI",
+    calc_type=CalculatorType.CRITERIA,
+    category=CalculatorCategory.PULMONARY,
+    output_type=OutputType.INTEGER,
+    score_unit="points",
+    description="Risk stratification for community-acquired pneumonia",
+    references=["Fine MJ, et al. N Engl J Med 1997"],
+    specialties=["Pulmonology", "Emergency Medicine", "Internal Medicine", "Hospitalist"],
+    notes=["Class I-II: outpatient; Class III: observation; Class IV-V: inpatient"],
+    threshold_criteria=[
+        ThresholdCriterion(name="age", display_name="Age",
+            thresholds=[("gte", 0, 0, "Age in years (male=age, female=age-10)")],
+            description="Age points (male=age, female=age-10)"),
+        ThresholdCriterion(name="respiratory_rate", display_name="RR ≥30",
+            thresholds=[("gte", 30, 20, "RR ≥30")], unit="/min"),
+        ThresholdCriterion(name="systolic_bp", display_name="SBP <90",
+            thresholds=[("lt", 90, 20, "SBP <90")], unit="mmHg"),
+        ThresholdCriterion(name="temperature", display_name="Temp <35 or ≥40",
+            thresholds=[("lt", 35, 15, "<35°C"), ("gte", 40, 15, "≥40°C")], unit="°C"),
+        ThresholdCriterion(name="pulse", display_name="HR ≥125",
+            thresholds=[("gte", 125, 10, "HR ≥125")], unit="bpm"),
+        ThresholdCriterion(name="ph", display_name="pH <7.35",
+            thresholds=[("lt", 7.35, 30, "pH <7.35")]),
+        ThresholdCriterion(name="bun", display_name="BUN ≥30",
+            thresholds=[("gte", 30, 20, "BUN ≥30")], unit="mg/dL"),
+        ThresholdCriterion(name="sodium", display_name="Na <130",
+            thresholds=[("lt", 130, 20, "Na <130")], unit="mEq/L"),
+        ThresholdCriterion(name="glucose", display_name="Glucose ≥250",
+            thresholds=[("gte", 250, 10, "Glucose ≥250")], unit="mg/dL"),
+        ThresholdCriterion(name="hematocrit", display_name="Hct <30%",
+            thresholds=[("lt", 30, 10, "Hct <30%")], unit="%"),
+        ThresholdCriterion(name="pao2", display_name="PaO2 <60 or SpO2 <90",
+            thresholds=[("lt", 60, 10, "PaO2 <60")], unit="mmHg"),
+    ],
+    criteria=[
+        ScoringCriterion("nursing_home", "Nursing home resident", 10, ""),
+        ScoringCriterion("neoplastic", "Neoplastic disease", 30, ""),
+        ScoringCriterion("liver_disease", "Liver disease", 20, ""),
+        ScoringCriterion("chf", "CHF", 10, ""),
+        ScoringCriterion("cerebrovascular", "Cerebrovascular disease", 10, ""),
+        ScoringCriterion("renal_disease", "Renal disease", 10, ""),
+        ScoringCriterion("altered_mental_status", "Altered mental status", 20, ""),
+        ScoringCriterion("pleural_effusion", "Pleural effusion", 10, ""),
+    ],
+    interpretations=[
+        ThresholdInterpretation(min_score=0, max_score=51, risk_level=RiskLevel.LOW,
+            interpretation="Class I-II: Low risk (0.1-0.6% mortality)",
+            recommendations=["Outpatient treatment appropriate", "Oral antibiotics"]),
+        ThresholdInterpretation(min_score=51, max_score=71, risk_level=RiskLevel.LOW_MODERATE,
+            interpretation="Class II: Low risk (0.6% mortality)",
+            recommendations=["Outpatient treatment", "Consider brief observation"]),
+        ThresholdInterpretation(min_score=71, max_score=91, risk_level=RiskLevel.MODERATE,
+            interpretation="Class III: Moderate risk (0.9-2.8% mortality)",
+            recommendations=["Consider observation unit", "Short hospitalization if needed"]),
+        ThresholdInterpretation(min_score=91, max_score=131, risk_level=RiskLevel.MODERATE_HIGH,
+            interpretation="Class IV: Moderate-high risk (8.2% mortality)",
+            recommendations=["Inpatient admission", "IV antibiotics"]),
+        ThresholdInterpretation(min_score=131, max_score=None, risk_level=RiskLevel.HIGH,
+            interpretation="Class V: High risk (29.2% mortality)",
+            recommendations=["ICU consideration", "Aggressive treatment"]),
+    ],
+)
+
+
+# ============================================================================
+# RANSON'S CRITERIA (Pancreatitis - Admission)
+# ============================================================================
+RANSON_ADMISSION_DEFINITION = CalculatorDefinition(
+    id="ranson_admission",
+    name="Ranson's Criteria (Admission)",
+    short_name="Ranson",
+    calc_type=CalculatorType.CRITERIA,
+    category=CalculatorCategory.GENERAL,
+    output_type=OutputType.INTEGER,
+    score_unit="criteria",
+    description="Pancreatitis severity at admission (gallstone vs non-gallstone)",
+    references=["Ranson JH, et al. Surg Gynecol Obstet 1974"],
+    specialties=["Gastroenterology", "Surgery", "Critical Care"],
+    notes=["At admission criteria; 48-hour criteria scored separately", "≥3 = severe pancreatitis"],
+    threshold_criteria=[
+        ThresholdCriterion(name="age", display_name="Age",
+            thresholds=[("gt", 55, 1, "Age >55 (non-gallstone)"), ("gt", 70, 1, "Age >70 (gallstone)")]),
+        ThresholdCriterion(name="wbc", display_name="WBC",
+            thresholds=[("gt", 16, 1, "WBC >16,000 (non-gallstone)"), ("gt", 18, 1, "WBC >18,000 (gallstone)")],
+            unit="×10³/µL"),
+        ThresholdCriterion(name="glucose", display_name="Glucose",
+            thresholds=[("gt", 200, 1, "Glucose >200 (non-gallstone)"), ("gt", 220, 1, "Glucose >220 (gallstone)")],
+            unit="mg/dL"),
+        ThresholdCriterion(name="ldh", display_name="LDH",
+            thresholds=[("gt", 350, 1, "LDH >350 (non-gallstone)"), ("gt", 400, 1, "LDH >400 (gallstone)")],
+            unit="U/L"),
+        ThresholdCriterion(name="ast", display_name="AST",
+            thresholds=[("gt", 250, 1, "AST >250")], unit="U/L"),
+    ],
+    interpretations=[
+        ThresholdInterpretation(min_score=0, max_score=3, risk_level=RiskLevel.LOW,
+            interpretation="Mild pancreatitis (<1% mortality)",
+            recommendations=["Supportive care", "NPO, IV fluids, pain control"]),
+        ThresholdInterpretation(min_score=3, max_score=5, risk_level=RiskLevel.MODERATE,
+            interpretation="Moderate severity (10-20% mortality)",
+            recommendations=["Close monitoring", "Consider ICU"]),
+        ThresholdInterpretation(min_score=5, max_score=None, risk_level=RiskLevel.HIGH,
+            interpretation="Severe pancreatitis (>40% mortality)",
+            recommendations=["ICU admission", "Aggressive resuscitation"]),
+    ],
+)
+
+
+# ============================================================================
+# ASCVD RISK (Pooled Cohort Equations)
+# ============================================================================
+ASCVD_DEFINITION = CalculatorDefinition(
+    id="ascvd",
+    name="ASCVD Risk Estimator (PCE)",
+    short_name="ASCVD",
+    calc_type=CalculatorType.EQUATION,
+    category=CalculatorCategory.CARDIOVASCULAR,
+    output_type=OutputType.PERCENTAGE,
+    score_unit="%",
+    description="10-year atherosclerotic cardiovascular disease risk",
+    references=["Goff DC, et al. Circulation 2014", "2018 ACC/AHA Cholesterol Guidelines"],
+    specialties=["Cardiology", "Internal Medicine", "Primary Care"],
+    notes=["Pooled Cohort Equations", "Validated for ages 40-79", "Race-specific coefficients"],
+    formula=FormulaDefinition(
+        formula_text="Pooled Cohort Equations (sex/race-specific)",
+        output_unit="%",
+        precision=1,
+        parameters=[
+            FormulaParameter(name="age", display_name="Age", unit="years", min_value=40, max_value=79),
+            FormulaParameter(name="total_cholesterol", display_name="Total Cholesterol", unit="mg/dL", min_value=130, max_value=320),
+            FormulaParameter(name="hdl", display_name="HDL", unit="mg/dL", min_value=20, max_value=100),
+            FormulaParameter(name="systolic_bp", display_name="Systolic BP", unit="mmHg", min_value=90, max_value=200),
+            FormulaParameter(name="bp_treated", display_name="On BP meds", unit="", min_value=0, max_value=1),
+            FormulaParameter(name="diabetes", display_name="Diabetes", unit="", min_value=0, max_value=1),
+            FormulaParameter(name="smoker", display_name="Current smoker", unit="", min_value=0, max_value=1),
+            FormulaParameter(name="female", display_name="Female", unit="", min_value=0, max_value=1),
+        ],
+    ),
+    interpretations=[
+        ThresholdInterpretation(min_score=0, max_score=5, risk_level=RiskLevel.LOW,
+            interpretation="Low risk (<5%)",
+            recommendations=["Lifestyle modifications", "Statin generally not indicated"]),
+        ThresholdInterpretation(min_score=5, max_score=7.5, risk_level=RiskLevel.LOW_MODERATE,
+            interpretation="Borderline risk (5-7.5%)",
+            recommendations=["Risk discussion", "Consider risk enhancers", "Statin may be reasonable"]),
+        ThresholdInterpretation(min_score=7.5, max_score=20, risk_level=RiskLevel.MODERATE,
+            interpretation="Intermediate risk (7.5-20%)",
+            recommendations=["Moderate-intensity statin recommended", "CAC score may help decision"]),
+        ThresholdInterpretation(min_score=20, max_score=None, risk_level=RiskLevel.HIGH,
+            interpretation="High risk (≥20%)",
+            recommendations=["High-intensity statin indicated", "Aggressive risk factor modification"]),
+    ],
+)
+
+
+# ============================================================================
+# APACHE II SCORE (Simplified - key components)
+# ============================================================================
+APACHE_II_DEFINITION = CalculatorDefinition(
+    id="apache_ii",
+    name="APACHE II Score",
+    short_name="APACHE II",
+    calc_type=CalculatorType.CRITERIA,
+    category=CalculatorCategory.CRITICAL_CARE,
+    output_type=OutputType.INTEGER,
+    score_unit="points",
+    description="ICU mortality prediction (Acute Physiology and Chronic Health)",
+    references=["Knaus WA, et al. Crit Care Med 1985"],
+    specialties=["Critical Care", "Emergency Medicine", "Anesthesiology"],
+    notes=["Score 0-71", "Uses worst values in first 24h of ICU admission", "Chronic health points added"],
+    multi_level_criteria=[
+        MultiLevelCriterion(name="temperature", display_name="Temperature",
+            levels=[
+                ("41_plus", 4, "≥41°C (+4)"), ("39_40_9", 3, "39-40.9°C (+3)"), ("38_5_38_9", 1, "38.5-38.9°C (+1)"),
+                ("36_38_4", 0, "36-38.4°C (0)"), ("34_35_9", 1, "34-35.9°C (+1)"), ("32_33_9", 2, "32-33.9°C (+2)"),
+                ("30_31_9", 3, "30-31.9°C (+3)"), ("lt_30", 4, "<30°C (+4)"),
+            ], description="Core temperature"),
+        MultiLevelCriterion(name="map", display_name="Mean Arterial Pressure",
+            levels=[
+                ("gte_160", 4, "≥160 (+4)"), ("130_159", 3, "130-159 (+3)"), ("110_129", 2, "110-129 (+2)"),
+                ("70_109", 0, "70-109 (0)"), ("50_69", 2, "50-69 (+2)"), ("lt_50", 4, "<50 (+4)"),
+            ], description="MAP mmHg"),
+        MultiLevelCriterion(name="heart_rate", display_name="Heart Rate",
+            levels=[
+                ("gte_180", 4, "≥180 (+4)"), ("140_179", 3, "140-179 (+3)"), ("110_139", 2, "110-139 (+2)"),
+                ("70_109", 0, "70-109 (0)"), ("55_69", 2, "55-69 (+2)"), ("40_54", 3, "40-54 (+3)"), ("lt_40", 4, "<40 (+4)"),
+            ], description="Heart rate bpm"),
+        MultiLevelCriterion(name="respiratory_rate", display_name="Respiratory Rate",
+            levels=[
+                ("gte_50", 4, "≥50 (+4)"), ("35_49", 3, "35-49 (+3)"), ("25_34", 1, "25-34 (+1)"),
+                ("12_24", 0, "12-24 (0)"), ("10_11", 1, "10-11 (+1)"), ("6_9", 2, "6-9 (+2)"), ("lt_6", 4, "<6 (+4)"),
+            ], description="RR /min"),
+        MultiLevelCriterion(name="gcs", display_name="GCS (15-GCS)",
+            levels=[
+                ("gcs_15", 0, "GCS 15 (0)"), ("gcs_13_14", 1, "GCS 13-14 (+1-2)"), ("gcs_10_12", 3, "GCS 10-12 (+3-5)"),
+                ("gcs_7_9", 6, "GCS 7-9 (+6-8)"), ("gcs_4_6", 9, "GCS 4-6 (+9-11)"), ("gcs_3", 12, "GCS 3 (+12)"),
+            ], description="Glasgow Coma Scale"),
+    ],
+    threshold_criteria=[
+        ThresholdCriterion(name="age", display_name="Age points",
+            thresholds=[
+                ("lt", 45, 0, "<45 (0)"), ("range", (45, 54), 2, "45-54 (+2)"), ("range", (55, 64), 3, "55-64 (+3)"),
+                ("range", (65, 74), 5, "65-74 (+5)"), ("gte", 75, 6, "≥75 (+6)"),
+            ]),
+    ],
+    criteria=[
+        ScoringCriterion("chronic_liver", "Severe chronic liver disease", 5, "Cirrhosis with portal HTN or encephalopathy"),
+        ScoringCriterion("chronic_cvd", "Severe chronic CVD (NYHA IV)", 5, ""),
+        ScoringCriterion("chronic_respiratory", "Severe chronic respiratory", 5, "COPD on home O2 or CO2 retention"),
+        ScoringCriterion("chronic_renal", "Chronic renal failure on dialysis", 5, ""),
+        ScoringCriterion("immunocompromised", "Immunocompromised", 5, "Chemo, radiation, steroids, leukemia, AIDS"),
+    ],
+    interpretations=[
+        ThresholdInterpretation(min_score=0, max_score=10, risk_level=RiskLevel.LOW,
+            interpretation="Low mortality risk (~5-10%)", recommendations=["Standard ICU care"]),
+        ThresholdInterpretation(min_score=10, max_score=20, risk_level=RiskLevel.MODERATE,
+            interpretation="Moderate mortality risk (~15-25%)", recommendations=["Close monitoring", "Reassess daily"]),
+        ThresholdInterpretation(min_score=20, max_score=30, risk_level=RiskLevel.HIGH,
+            interpretation="High mortality risk (~40-55%)", recommendations=["Goals of care discussion", "Aggressive support"]),
+        ThresholdInterpretation(min_score=30, max_score=None, risk_level=RiskLevel.VERY_HIGH,
+            interpretation="Very high mortality risk (>70%)", recommendations=["Palliative care consultation", "Family meeting"]),
+    ],
+)
+
+
 # Registry of all calculator definitions
 CALCULATOR_DEFINITIONS: dict[str, CalculatorDefinition] = {
     "chadsvasc": CHADSVASC_DEFINITION,
@@ -3250,6 +3657,15 @@ CALCULATOR_DEFINITIONS: dict[str, CalculatorDefinition] = {
     # Psychiatry
     "phq9": PHQ9_DEFINITION,
     "gad7": GAD7_DEFINITION,
+    # Additional calculators
+    "corrected_sodium": CORRECTED_SODIUM_DEFINITION,
+    "maintenance_fluids": MAINTENANCE_FLUIDS_DEFINITION,
+    "parkland": PARKLAND_DEFINITION,
+    "bishop": BISHOP_DEFINITION,
+    "psi_port": PSI_PORT_DEFINITION,
+    "ranson_admission": RANSON_ADMISSION_DEFINITION,
+    "ascvd": ASCVD_DEFINITION,
+    "apache_ii": APACHE_II_DEFINITION,
 }
 
 
