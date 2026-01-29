@@ -167,12 +167,12 @@
 - 🔄 3.1 Convert clinical_calculators.py to data-driven
   - **Phase 1-7 COMPLETE**: 47 data-driven calculator definitions
   - **Phase 8 COMPLETE**: Data-driven integration bridge wired into service
-  - **Phase 9-15 COMPLETE**: 12 calculator functions converted to data-driven wrappers
+  - **Phase 9-17 COMPLETE**: 14 calculator functions converted to data-driven wrappers
   - calculator_definitions.py: 3,690 lines with comprehensive definitions
-  - clinical_calculators.py: 5,068 → 4,372 lines (696 lines saved)
+  - clinical_calculators.py: 5,068 → 4,302 lines (766 lines saved)
   - **Converted calculators**:
     - Simple criteria: CHA2DS2-VASc, HAS-BLED, Wells DVT, CURB-65, qSOFA, RCRI, BISAP, Wells PE, TIMI UA/NSTEMI
-    - Multi-level criteria: HEART score, GCS, Child-Pugh
+    - Multi-level criteria: HEART score, GCS, Child-Pugh, Apgar, Bishop
   - **Bridge functions**: calculate_from_definition(), get_data_driven_calculators()
   - **Tests**: 46 total calculator tests pass
   - **Patterns demonstrated**:
@@ -180,8 +180,12 @@
     - Multi-level criteria → map int/string inputs to boolean level flags
     - Threshold criteria → pass numeric values directly
     - Age scoring → pass age parameter
-  - **Remaining**: SIRS, NEWS2, Charlson, SOFA, APACHE-II have complex logic difficult to convert
-  - Commits: 899c8bf, a7c3eee, 7e66652, 5fac78f, 573323c, 5c59182, 3488d2c, 5337b76, ffc1790, 9b43ce7, 3e92786, 634ce77, f6f6c1d, 35a664f, a1289c6, 0e4a5f2
+  - **Remaining challenges**:
+    - SIRS, NEWS2, Charlson, SOFA, APACHE-II: Complex multi-domain logic
+    - Centor, ABCD2, Caprini, Ranson: Definition/function parameter mismatches (booleans vs numerics)
+    - Ottawa Ankle: DECISION_TREE type with branching logic
+    - Most EQUATION-type calculators: Not supported by CRITERIA bridge
+  - Commits: 899c8bf, a7c3eee, 7e66652, 5fac78f, 573323c, 5c59182, 3488d2c, 5337b76, ffc1790, 9b43ce7, 3e92786, 634ce77, f6f6c1d, 35a664f, a1289c6, 0e4a5f2, ddf5e73, bb5965c
 
 ---
 
