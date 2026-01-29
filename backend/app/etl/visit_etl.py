@@ -47,19 +47,20 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.connectors.base import SourceVisit, VisitType
+from app.etl.concept_mappings import VISIT_CONCEPT_MAP
 from app.models.omop import VisitOccurrence
 
 logger = logging.getLogger(__name__)
 
 
-# OMOP Visit Concept IDs
-VISIT_CONCEPT_MAP = {
+# Visit concept map using VisitType enum as keys (extends string-keyed VISIT_CONCEPT_MAP)
+VISIT_TYPE_ENUM_MAP = {
     VisitType.INPATIENT: 9201,
     VisitType.OUTPATIENT: 9202,
     VisitType.EMERGENCY: 9203,
     VisitType.OBSERVATION: 9201,  # Map to inpatient
     VisitType.HOME: 581476,  # Home Visit
-    VisitType.TELEHEALTH: 581478,  # Telehealth Visit
+    VisitType.TELEHEALTH: 581478,  # Telehealth Visit (note: different from VISIT_CONCEPT_MAP's 5083)
     VisitType.UNKNOWN: 9202,  # Default to outpatient
 }
 
@@ -195,7 +196,7 @@ class VisitETL:
         """
         # First try enum mapping
         if visit.visit_type:
-            concept_id = VISIT_CONCEPT_MAP.get(visit.visit_type)
+            concept_id = VISIT_TYPE_ENUM_MAP.get(visit.visit_type)
             if concept_id:
                 return concept_id
 

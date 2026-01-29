@@ -44,47 +44,30 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.connectors.base import ProcedureStatus, SourceProcedure
+from app.etl.concept_mappings import (
+    CODE_SYSTEM_VOCABULARY_MAP,
+    DEFAULT_PROCEDURE_TYPE_CONCEPT_ID,
+    PROCEDURE_TYPE_CONCEPT_MAP,
+)
 from app.models.omop import ProcedureOccurrence
 
 logger = logging.getLogger(__name__)
 
 
-# Procedure Type Concept IDs
-PROCEDURE_TYPE_CONCEPT_MAP = {
-    "ehr": 32817,
-    "claim": 32840,
-    "registry": 32879,
+# Extended procedure type mapping for additional categories
+PROCEDURE_TYPE_EXTENDED_MAP = {
+    **PROCEDURE_TYPE_CONCEPT_MAP,
     "primary": 44786631,
     "secondary": 44786632,
 }
 
-# Procedure Status to OMOP handling
+# Procedure Status to OMOP handling (module-specific, not in concept_mappings)
 PROCEDURE_STATUS_MAP = {
     ProcedureStatus.COMPLETED: True,  # Include in CDM
     ProcedureStatus.IN_PROGRESS: True,
     ProcedureStatus.NOT_DONE: False,  # May exclude
     ProcedureStatus.UNKNOWN: True,
 }
-
-# Code system vocabulary mapping
-CODE_SYSTEM_VOCABULARY_MAP = {
-    "cpt": "CPT4",
-    "cpt4": "CPT4",
-    "hcpcs": "HCPCS",
-    "icd10pcs": "ICD10PCS",
-    "icd-10-pcs": "ICD10PCS",
-    "icd10-pcs": "ICD10PCS",
-    "icd9cm": "ICD9Proc",
-    "icd-9-cm": "ICD9Proc",
-    "snomed": "SNOMED",
-    "snomedct": "SNOMED",
-    "2.16.840.1.113883.6.12": "CPT4",  # CPT OID
-    "2.16.840.1.113883.6.14": "HCPCS",  # HCPCS OID
-    "2.16.840.1.113883.6.4": "ICD10PCS",  # ICD-10-PCS OID
-    "2.16.840.1.113883.6.96": "SNOMED",  # SNOMED OID
-}
-
-DEFAULT_PROCEDURE_TYPE_CONCEPT_ID = 32817
 
 
 @dataclass

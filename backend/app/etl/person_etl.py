@@ -61,107 +61,18 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.connectors.base import Gender, SourcePatient
+from app.etl.concept_mappings import (
+    DEFAULT_ETHNICITY_CONCEPT_ID,
+    DEFAULT_GENDER_CONCEPT_ID,
+    DEFAULT_RACE_CONCEPT_ID,
+    ETHNICITY_CONCEPT_MAP,
+    GENDER_CONCEPT_MAP,
+    GENDER_SOURCE_MAP,
+    RACE_CONCEPT_MAP,
+)
 from app.models.omop import Location, Person
 
 logger = logging.getLogger(__name__)
-
-
-# Standard OMOP Gender Concept IDs
-GENDER_CONCEPT_MAP = {
-    Gender.MALE: 8507,
-    Gender.FEMALE: 8532,
-    Gender.OTHER: 8551,  # Unknown gender
-    Gender.UNKNOWN: 8551,
-}
-
-# Gender source value to concept ID
-GENDER_SOURCE_MAP = {
-    "m": 8507,
-    "male": 8507,
-    "f": 8532,
-    "female": 8532,
-    "o": 8551,
-    "other": 8551,
-    "u": 8551,
-    "unknown": 8551,
-    "un": 8551,
-    "undifferentiated": 8551,
-    "ambiguous": 8570,
-}
-
-# Standard OMOP Race Concept IDs (CDC/OMB categories)
-RACE_CONCEPT_MAP = {
-    # White
-    "white": 8527,
-    "caucasian": 8527,
-    "european": 8527,
-    "w": 8527,
-    "2106-3": 8527,  # CDC code
-    # Black or African American
-    "black": 8516,
-    "black or african american": 8516,
-    "african american": 8516,
-    "african-american": 8516,
-    "b": 8516,
-    "2054-5": 8516,  # CDC code
-    # Asian
-    "asian": 8515,
-    "a": 8515,
-    "2028-9": 8515,  # CDC code
-    # American Indian or Alaska Native
-    "american indian": 8657,
-    "american indian or alaska native": 8657,
-    "alaska native": 8657,
-    "native american": 8657,
-    "1002-5": 8657,  # CDC code
-    # Native Hawaiian or Other Pacific Islander
-    "native hawaiian": 8557,
-    "native hawaiian or other pacific islander": 8557,
-    "pacific islander": 8557,
-    "hawaiian": 8557,
-    "2076-8": 8557,  # CDC code
-    # Other
-    "other": 8522,
-    "other race": 8522,
-    "multiracial": 8522,
-    "mixed": 8522,
-    "2131-1": 8522,  # CDC code
-    # Unknown
-    "unknown": 8552,
-    "u": 8552,
-    "declined": 8552,
-    "refused": 8552,
-    "not reported": 8552,
-}
-
-# Standard OMOP Ethnicity Concept IDs
-ETHNICITY_CONCEPT_MAP = {
-    # Hispanic or Latino
-    "hispanic": 38003563,
-    "hispanic or latino": 38003563,
-    "latino": 38003563,
-    "latina": 38003563,
-    "latinx": 38003563,
-    "h": 38003563,
-    "y": 38003563,  # Yes (to Hispanic question)
-    "2135-2": 38003563,  # CDC code
-    # Not Hispanic or Latino
-    "not hispanic": 38003564,
-    "not hispanic or latino": 38003564,
-    "non-hispanic": 38003564,
-    "n": 38003564,
-    "2186-5": 38003564,  # CDC code
-    # Unknown
-    "unknown": 0,
-    "u": 0,
-    "declined": 0,
-    "refused": 0,
-}
-
-# Default concept IDs for unknown values
-DEFAULT_GENDER_CONCEPT_ID = 8551  # Unknown
-DEFAULT_RACE_CONCEPT_ID = 8552  # Unknown
-DEFAULT_ETHNICITY_CONCEPT_ID = 0  # Unknown
 
 
 @dataclass

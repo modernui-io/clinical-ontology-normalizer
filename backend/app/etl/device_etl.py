@@ -59,37 +59,23 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.etl.concept_mappings import (
+    CODE_SYSTEM_VOCABULARY_MAP,
+    DEFAULT_DEVICE_TYPE_CONCEPT_ID,
+    DEVICE_TYPE_CONCEPT_MAP,
+)
 from app.models.omop import DeviceExposure
 
 logger = logging.getLogger(__name__)
 
 
-# Device Type Concept IDs (OMOP vocabulary)
-DEVICE_TYPE_CONCEPT_MAP = {
-    "ehr": 32817,           # EHR encounter record
+# Extended device type mapping for additional categories
+DEVICE_TYPE_EXTENDED_MAP = {
+    **DEVICE_TYPE_CONCEPT_MAP,
     "ehr_admin": 32821,     # EHR administration record
-    "claim": 32840,         # Claim
     "self_report": 44818707, # Patient self-report
     "patient_reported": 44818705,  # Patient-reported device
-    "registry": 32879,      # Registry
-    "request": 32817,       # DeviceRequest maps to EHR
-    "use_statement": 32817, # DeviceUseStatement maps to EHR
 }
-
-# Code system vocabulary mapping for devices
-CODE_SYSTEM_VOCABULARY_MAP = {
-    "snomed": "SNOMED",
-    "snomedct": "SNOMED",
-    "snomed-ct": "SNOMED",
-    "http://snomed.info/sct": "SNOMED",
-    "udi": "UDI",
-    "gmdn": "GMDN",  # Global Medical Device Nomenclature
-    "hcpcs": "HCPCS",
-    "2.16.840.1.113883.6.96": "SNOMED",  # SNOMED OID
-    "2.16.840.1.113883.6.18": "HCPCS",   # HCPCS OID
-}
-
-DEFAULT_DEVICE_TYPE_CONCEPT_ID = 32817
 
 
 class DeviceStatus:
@@ -320,9 +306,9 @@ class DeviceETL:
         if device.fhir_resource_type:
             resource_type = device.fhir_resource_type.lower()
             if resource_type == "devicerequest":
-                return DEVICE_TYPE_CONCEPT_MAP.get("request", self.config.default_device_type)
+                return DEVICE_TYPE_EXTENDED_MAP.get("request", self.config.default_device_type)
             elif resource_type == "deviceusestatement":
-                return DEVICE_TYPE_CONCEPT_MAP.get("use_statement", self.config.default_device_type)
+                return DEVICE_TYPE_EXTENDED_MAP.get("use_statement", self.config.default_device_type)
 
         return self.config.default_device_type
 

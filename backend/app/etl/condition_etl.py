@@ -52,47 +52,24 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.connectors.base import ConditionStatus, SourceCondition
+from app.etl.concept_mappings import (
+    CODE_SYSTEM_VOCABULARY_MAP,
+    CONDITION_STATUS_CONCEPT_MAP,
+    CONDITION_TYPE_CONCEPT_MAP,
+    DEFAULT_CONDITION_TYPE_CONCEPT_ID,
+)
 from app.models.omop import ConditionOccurrence
 
 logger = logging.getLogger(__name__)
 
 
-# Condition Type Concept IDs (data provenance)
-CONDITION_TYPE_CONCEPT_MAP = {
-    "encounter_diagnosis": 32817,
-    "problem_list": 32818,
-    "claim_diagnosis": 32840,
-    "registry": 32879,
-    "ehr": 32817,
-}
-
-# Condition Status to OMOP Status Concept ID
-CONDITION_STATUS_CONCEPT_MAP = {
-    ConditionStatus.ACTIVE: 32904,  # Active
-    ConditionStatus.INACTIVE: 32895,  # Inactive
-    ConditionStatus.RESOLVED: 32893,  # Resolved
+# Local status map using ConditionStatus enum as keys
+# Maps to the string-keyed CONDITION_STATUS_CONCEPT_MAP from concept_mappings
+CONDITION_STATUS_ENUM_MAP = {
+    ConditionStatus.ACTIVE: 32902,  # Active
+    ConditionStatus.INACTIVE: 32904,  # Inactive
+    ConditionStatus.RESOLVED: 32906,  # Resolved
     ConditionStatus.UNKNOWN: None,
-}
-
-# Default condition type (EHR diagnosis)
-DEFAULT_CONDITION_TYPE_CONCEPT_ID = 32817
-
-# Code system to vocabulary map
-CODE_SYSTEM_VOCABULARY_MAP = {
-    "icd9": "ICD9CM",
-    "icd9cm": "ICD9CM",
-    "icd-9": "ICD9CM",
-    "icd-9-cm": "ICD9CM",
-    "icd10": "ICD10CM",
-    "icd10cm": "ICD10CM",
-    "icd-10": "ICD10CM",
-    "icd-10-cm": "ICD10CM",
-    "snomed": "SNOMED",
-    "snomedct": "SNOMED",
-    "snomed-ct": "SNOMED",
-    "2.16.840.1.113883.6.96": "SNOMED",  # SNOMED OID
-    "2.16.840.1.113883.6.90": "ICD10CM",  # ICD-10-CM OID
-    "2.16.840.1.113883.6.103": "ICD9CM",  # ICD-9-CM OID
 }
 
 
@@ -307,7 +284,7 @@ class ConditionETL:
             Status concept ID or None.
         """
         if condition.status:
-            return CONDITION_STATUS_CONCEPT_MAP.get(condition.status)
+            return CONDITION_STATUS_ENUM_MAP.get(condition.status)
         return None
 
     def _normalize_dates(

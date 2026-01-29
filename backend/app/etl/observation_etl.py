@@ -51,28 +51,32 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.connectors.base import SourceObservation
+from app.etl.concept_mappings import (
+    CODE_SYSTEM_VOCABULARY_MAP,
+    DEFAULT_OBSERVATION_TYPE_CONCEPT_ID,
+    OBSERVATION_TYPE_CONCEPT_MAP,
+    QUALIFIER_CONCEPT_MAP,
+    VALUE_CONCEPT_MAP,
+)
 from app.models.omop import Observation
 
 logger = logging.getLogger(__name__)
 
 
-# Observation Type Concept IDs
-OBSERVATION_TYPE_CONCEPT_MAP = {
-    "ehr": 32817,
+# Extended observation type mapping for additional categories
+OBSERVATION_TYPE_EXTENDED_MAP = {
+    **OBSERVATION_TYPE_CONCEPT_MAP,
     "problem_list": 32818,
-    "registry": 32879,
-    "patient_reported": 44814721,
     "clinician_reported": 44814722,
     "allergy": 32817,
     "social_history": 32817,
     "family_history": 32817,
 }
 
-# Common observation value concept mappings
-VALUE_CONCEPT_MAP = {
-    # Yes/No
-    "yes": 4188539,
-    "no": 4188540,
+# Extended value concept mapping for observation-specific values
+VALUE_CONCEPT_EXTENDED_MAP = {
+    **VALUE_CONCEPT_MAP,
+    # Yes/No - additional mappings
     "true": 4188539,
     "false": 4188540,
     # Smoking status
@@ -88,32 +92,16 @@ VALUE_CONCEPT_MAP = {
     "mild": 4116186,
     "moderate": 4116186,
     "severe": 4087703,
-    # Positive/Negative
-    "positive": 9191,
-    "negative": 9189,
-    "detected": 9191,
-    "not detected": 9189,
 }
 
-# Qualifier concept IDs
-QUALIFIER_CONCEPT_MAP = {
+# Extended qualifier concept mapping
+QUALIFIER_CONCEPT_EXTENDED_MAP = {
+    **QUALIFIER_CONCEPT_MAP,
     "primary": 4030450,
     "secondary": 4030451,
     "confirmed": 4188540,
     "suspected": 4266367,
 }
-
-# Code system vocabulary mapping
-CODE_SYSTEM_VOCABULARY_MAP = {
-    "snomed": "SNOMED",
-    "snomedct": "SNOMED",
-    "loinc": "LOINC",
-    "icd10": "ICD10CM",
-    "2.16.840.1.113883.6.96": "SNOMED",
-    "2.16.840.1.113883.6.1": "LOINC",
-}
-
-DEFAULT_OBSERVATION_TYPE_CONCEPT_ID = 32817
 
 
 @dataclass
@@ -226,7 +214,7 @@ class ObservationETL:
 
             # Try to map to concept
             normalized = observation.value_text.lower().strip()
-            value_as_concept_id = VALUE_CONCEPT_MAP.get(normalized)
+            value_as_concept_id = VALUE_CONCEPT_EXTENDED_MAP.get(normalized)
 
         return value_as_number, value_as_string, value_as_concept_id
 
@@ -251,7 +239,7 @@ class ObservationETL:
         """Determine observation type concept ID."""
         if observation.observation_type:
             obs_type = observation.observation_type.lower()
-            concept_id = OBSERVATION_TYPE_CONCEPT_MAP.get(obs_type)
+            concept_id = OBSERVATION_TYPE_EXTENDED_MAP.get(obs_type)
             if concept_id:
                 return concept_id
 

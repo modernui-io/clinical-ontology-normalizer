@@ -58,74 +58,15 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.connectors.base import DrugStatus, SourceDrug
+from app.etl.concept_mappings import (
+    CODE_SYSTEM_VOCABULARY_MAP,
+    DEFAULT_DRUG_TYPE_CONCEPT_ID,
+    DRUG_TYPE_CONCEPT_MAP,
+    ROUTE_CONCEPT_MAP,
+)
 from app.models.omop import DrugExposure
 
 logger = logging.getLogger(__name__)
-
-
-# Drug Type Concept IDs
-DRUG_TYPE_CONCEPT_MAP = {
-    "prescription": 32839,
-    "dispense": 32838,
-    "administration": 32817,
-    "claim": 32840,
-    "ehr": 32817,
-}
-
-# Route to OMOP Concept ID
-ROUTE_CONCEPT_MAP = {
-    # Oral
-    "oral": 4128794,
-    "po": 4128794,
-    "by mouth": 4128794,
-    "orally": 4128794,
-    # Intravenous
-    "intravenous": 4302612,
-    "iv": 4302612,
-    "ivpb": 4302612,  # IV piggyback
-    # Subcutaneous
-    "subcutaneous": 4132161,
-    "subq": 4132161,
-    "sc": 4132161,
-    "sq": 4132161,
-    # Intramuscular
-    "intramuscular": 4303155,
-    "im": 4303155,
-    # Inhalation
-    "inhalation": 45956874,
-    "inhaled": 45956874,
-    "nebulized": 45956874,
-    # Topical
-    "topical": 4186832,
-    "external": 4186832,
-    # Transdermal
-    "transdermal": 4302254,
-    "patch": 4302254,
-    # Ophthalmic
-    "ophthalmic": 4184451,
-    "eye": 4184451,
-    # Otic
-    "otic": 4023156,
-    "ear": 4023156,
-    # Nasal
-    "nasal": 4262914,
-    "intranasal": 4262914,
-    # Rectal
-    "rectal": 4290759,
-    "pr": 4290759,
-}
-
-# Code system vocabulary mapping
-CODE_SYSTEM_VOCABULARY_MAP = {
-    "ndc": "NDC",
-    "rxnorm": "RxNorm",
-    "atc": "ATC",
-    "2.16.840.1.113883.6.69": "NDC",  # NDC OID
-    "2.16.840.1.113883.6.88": "RxNorm",  # RxNorm OID
-}
-
-# Default drug type (EHR)
-DEFAULT_DRUG_TYPE_CONCEPT_ID = 32817
 
 
 @dataclass

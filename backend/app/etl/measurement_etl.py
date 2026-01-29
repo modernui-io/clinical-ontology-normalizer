@@ -59,102 +59,16 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.connectors.base import SourceMeasurement
+from app.etl.concept_mappings import (
+    CODE_SYSTEM_VOCABULARY_MAP,
+    DEFAULT_MEASUREMENT_TYPE_CONCEPT_ID,
+    MEASUREMENT_TYPE_CONCEPT_MAP,
+    OPERATOR_CONCEPT_MAP,
+    UNIT_CONCEPT_MAP,
+)
 from app.models.omop import Measurement
 
 logger = logging.getLogger(__name__)
-
-
-# Measurement Type Concept IDs
-MEASUREMENT_TYPE_CONCEPT_MAP = {
-    "lab": 32856,
-    "vital": 32836,
-    "vital_sign": 32836,
-    "vitals": 32836,
-    "ehr": 32817,
-    "registry": 32879,
-}
-
-# Common Unit to UCUM Concept ID mapping
-UNIT_CONCEPT_MAP = {
-    # Mass/volume
-    "mg/dl": 8840,
-    "mg/dL": 8840,
-    "g/dl": 8713,
-    "g/dL": 8713,
-    "mmol/l": 8753,
-    "mmol/L": 8753,
-    "meq/l": 9557,
-    "meq/L": 9557,
-    "ng/ml": 8842,
-    "ng/mL": 8842,
-    "ug/dl": 8837,
-    "ug/dL": 8837,
-    "pg/ml": 8845,
-    "pg/mL": 8845,
-    # Count
-    "/uL": 8784,
-    "/ul": 8784,
-    "10*3/uL": 8848,
-    "10*6/uL": 8815,
-    "cells/uL": 8784,
-    # Percentage
-    "%": 8554,
-    "percent": 8554,
-    # Temperature
-    "degc": 586323,
-    "degf": 9289,
-    "celsius": 586323,
-    "fahrenheit": 9289,
-    "C": 586323,
-    "F": 9289,
-    # Pressure
-    "mmhg": 8876,
-    "mm[hg]": 8876,
-    "mmHg": 8876,
-    # Weight/Height
-    "kg": 9529,
-    "lb": 9529,
-    "lbs": 9529,
-    "cm": 8582,
-    "in": 9330,
-    "inch": 9330,
-    "inches": 9330,
-    "m": 8582,
-    # Rate
-    "/min": 8541,
-    "bpm": 8541,
-    "beats/min": 8541,
-    "breaths/min": 8541,
-    # Time
-    "sec": 8555,
-    "s": 8555,
-    "min": 8550,
-    "h": 8505,
-    "hr": 8505,
-    # Other
-    "kg/m2": 9531,
-    "kg/m^2": 9531,
-}
-
-# Operator concept IDs
-OPERATOR_CONCEPT_MAP = {
-    "=": 4172703,
-    "<": 4171756,
-    "<=": 4171754,
-    ">": 4172704,
-    ">=": 4171755,
-    "~": 4172703,  # approximately equal
-}
-
-# Code system to vocabulary
-CODE_SYSTEM_VOCABULARY_MAP = {
-    "loinc": "LOINC",
-    "2.16.840.1.113883.6.1": "LOINC",  # LOINC OID
-    "snomed": "SNOMED",
-    "2.16.840.1.113883.6.96": "SNOMED",  # SNOMED OID
-}
-
-DEFAULT_MEASUREMENT_TYPE_CONCEPT_ID = 32817
 
 
 @dataclass

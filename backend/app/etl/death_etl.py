@@ -40,34 +40,22 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.etl.concept_mappings import (
+    CODE_SYSTEM_VOCABULARY_MAP,
+    DEATH_TYPE_CONCEPT_MAP,
+    DEFAULT_DEATH_TYPE_CONCEPT_ID,
+)
 from app.models.omop import Death
 
 logger = logging.getLogger(__name__)
 
 
-# Death Type Concept IDs
-DEATH_TYPE_CONCEPT_MAP = {
-    "ehr": 32817,
-    "death_certificate": 32885,
-    "autopsy": 32886,
-    "registry": 32879,
+# Extended death type mapping for additional categories
+DEATH_TYPE_EXTENDED_MAP = {
+    **DEATH_TYPE_CONCEPT_MAP,
     "social_security": 32885,
     "ssdi": 32885,  # Social Security Death Index
 }
-
-# Code system vocabulary mapping for cause of death
-CODE_SYSTEM_VOCABULARY_MAP = {
-    "icd10": "ICD10CM",
-    "icd10cm": "ICD10CM",
-    "icd-10": "ICD10CM",
-    "icd-10-cm": "ICD10CM",
-    "snomed": "SNOMED",
-    "snomedct": "SNOMED",
-    "2.16.840.1.113883.6.90": "ICD10CM",  # ICD-10-CM OID
-    "2.16.840.1.113883.6.96": "SNOMED",  # SNOMED OID
-}
-
-DEFAULT_DEATH_TYPE_CONCEPT_ID = 32817
 
 
 @dataclass
@@ -185,7 +173,7 @@ class DeathETL:
         """Determine death type concept ID."""
         if death_type:
             dtype = death_type.lower().strip()
-            concept_id = DEATH_TYPE_CONCEPT_MAP.get(dtype)
+            concept_id = DEATH_TYPE_EXTENDED_MAP.get(dtype)
             if concept_id:
                 return concept_id
 

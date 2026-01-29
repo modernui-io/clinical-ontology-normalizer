@@ -61,13 +61,20 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.etl.concept_mappings import (
+    CODE_SYSTEM_VOCABULARY_MAP,
+    DEFAULT_SPECIMEN_TYPE_CONCEPT_ID,
+    SPECIMEN_TYPE_CONCEPT_MAP,
+    UCUM_UNIT_CONCEPT_MAP,
+)
 from app.models.omop import Specimen
 
 logger = logging.getLogger(__name__)
 
 
-# Specimen Type Concept IDs (OMOP vocabulary)
-SPECIMEN_TYPE_CONCEPT_MAP = {
+# Extended specimen type mapping for additional categories
+SPECIMEN_TYPE_EXTENDED_MAP = {
+    **SPECIMEN_TYPE_CONCEPT_MAP,
     "ehr": 32817,           # EHR encounter record
     "ehr_admin": 32821,     # EHR administration record
     "registry": 32879,      # Registry
@@ -75,40 +82,6 @@ SPECIMEN_TYPE_CONCEPT_MAP = {
     "pathology": 32817,     # Pathology
     "biobank": 32879,       # Biobank/registry
 }
-
-# Code system vocabulary mapping for specimens
-CODE_SYSTEM_VOCABULARY_MAP = {
-    "snomed": "SNOMED",
-    "snomedct": "SNOMED",
-    "snomed-ct": "SNOMED",
-    "http://snomed.info/sct": "SNOMED",
-    "loinc": "LOINC",
-    "http://loinc.org": "LOINC",
-    "2.16.840.1.113883.6.96": "SNOMED",  # SNOMED OID
-    "2.16.840.1.113883.6.1": "LOINC",    # LOINC OID
-}
-
-# UCUM unit code mapping to OMOP concept IDs
-UCUM_UNIT_CONCEPT_MAP = {
-    "ml": 8587,      # milliliter
-    "mL": 8587,
-    "milliliter": 8587,
-    "l": 8519,       # liter
-    "L": 8519,
-    "liter": 8519,
-    "g": 8504,       # gram
-    "gram": 8504,
-    "mg": 8576,      # milligram
-    "milligram": 8576,
-    "kg": 9529,      # kilogram
-    "kilogram": 9529,
-    "ul": 8576,      # microliter
-    "uL": 8576,
-    "microliter": 8576,
-    "cc": 8587,      # cubic centimeter (same as mL)
-}
-
-DEFAULT_SPECIMEN_TYPE_CONCEPT_ID = 32817
 
 
 class SpecimenStatus:
