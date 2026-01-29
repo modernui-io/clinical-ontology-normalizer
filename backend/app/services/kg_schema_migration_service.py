@@ -14,7 +14,7 @@ import json
 import re
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
@@ -543,7 +543,7 @@ class KGSchemaMigrationService:
 
     def run_migration(self, migration: Migration) -> MigrationResult:
         """Run a single migration."""
-        start_time = datetime.now()
+        start_time = datetime.now(UTC)
         self._emit_event("migration_started", version=migration.version, name=migration.name)
 
         result = MigrationResult(
@@ -592,7 +592,7 @@ class KGSchemaMigrationService:
 
             # Record success
             result.status = MigrationStatus.COMPLETED
-            result.completed_at = datetime.now()
+            result.completed_at = datetime.now(UTC)
             result.duration_ms = (result.completed_at - start_time).total_seconds() * 1000
 
             history = MigrationHistory(
@@ -611,7 +611,7 @@ class KGSchemaMigrationService:
             )
 
         except Exception as e:
-            result.completed_at = datetime.now()
+            result.completed_at = datetime.now(UTC)
             result.duration_ms = (result.completed_at - start_time).total_seconds() * 1000
 
             self._emit_event(
@@ -653,12 +653,12 @@ class KGSchemaMigrationService:
                 version=version,
                 name="unknown",
                 status=MigrationStatus.FAILED,
-                started_at=datetime.now(),
+                started_at=datetime.now(UTC),
                 error_message=f"Migration {version} not found"
             )
 
         migration = self._migrations[version]
-        start_time = datetime.now()
+        start_time = datetime.now(UTC)
 
         result = MigrationResult(
             version=version,
@@ -679,13 +679,13 @@ class KGSchemaMigrationService:
             self.driver.remove_migration_record(version)
 
             result.status = MigrationStatus.ROLLED_BACK
-            result.completed_at = datetime.now()
+            result.completed_at = datetime.now(UTC)
             result.duration_ms = (result.completed_at - start_time).total_seconds() * 1000
 
         except Exception as e:
             result.status = MigrationStatus.FAILED
             result.error_message = str(e)
-            result.completed_at = datetime.now()
+            result.completed_at = datetime.now(UTC)
             result.duration_ms = (result.completed_at - start_time).total_seconds() * 1000
 
         return result
