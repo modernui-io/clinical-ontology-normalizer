@@ -7,7 +7,7 @@ with support for cron expressions and various schedule patterns.
 import logging
 import threading
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
 from uuid import uuid4
@@ -98,7 +98,7 @@ class PipelineSchedulingService:
 
     def _init_sample_schedules(self) -> None:
         """Initialize sample schedules for demonstration."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         sample_schedules = [
             PipelineSchedule(
                 id=str(uuid4()),
@@ -186,7 +186,7 @@ class PipelineSchedulingService:
             Created PipelineSchedule.
         """
         schedule_id = str(uuid4())
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         # Calculate next run time based on frequency
         next_run = self._calculate_next_run(frequency, cron_expression)
@@ -224,7 +224,7 @@ class PipelineSchedulingService:
         cron_expression: str | None = None,
     ) -> datetime:
         """Calculate the next run time based on frequency."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         if frequency == ScheduleFrequency.HOURLY:
             return now + timedelta(hours=1)
@@ -298,7 +298,7 @@ class PipelineSchedulingService:
             if "timeout_minutes" in updates:
                 schedule.timeout_minutes = updates["timeout_minutes"]
 
-            schedule.updated_at = datetime.now(timezone.utc)
+            schedule.updated_at = datetime.now(UTC)
 
         logger.info(f"Updated schedule: {schedule_id}")
         return schedule
@@ -327,7 +327,7 @@ class PipelineSchedulingService:
     ) -> PipelineRun:
         """Manually trigger a pipeline run."""
         run_id = str(uuid4())
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         # Get schedule for the pipeline
         schedule = self.get_schedule_by_pipeline(pipeline_id)
