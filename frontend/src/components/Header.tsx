@@ -205,6 +205,7 @@ export function Header({ className }: HeaderProps) {
         "sticky top-0 z-20 flex h-16 items-center justify-between border-b bg-background px-4 lg:px-6",
         className
       )}
+      role="banner"
     >
       {/* Left side - Breadcrumb navigation */}
       <div className="flex items-center gap-4 lg:pl-0 pl-12">
@@ -212,10 +213,14 @@ export function Header({ className }: HeaderProps) {
       </div>
 
       {/* Right side - Actions */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2" role="toolbar" aria-label="Header actions">
         {/* WebSocket Connection Status */}
-        <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50">
-          <Wifi className="h-3.5 w-3.5 text-muted-foreground" />
+        <div
+          className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50"
+          role="status"
+          aria-label="Connection status"
+        >
+          <Wifi className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
           <Notifications showConnectionStatus showConnectionLabel={false} />
         </div>
 
@@ -224,12 +229,13 @@ export function Header({ className }: HeaderProps) {
           variant="ghost"
           size="icon"
           onClick={toggleDarkMode}
-          aria-label="Toggle dark mode"
+          aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+          aria-pressed={isDarkMode}
         >
           {isDarkMode ? (
-            <Sun className="h-5 w-5" />
+            <Sun className="h-5 w-5" aria-hidden="true" />
           ) : (
-            <Moon className="h-5 w-5" />
+            <Moon className="h-5 w-5" aria-hidden="true" />
           )}
         </Button>
 
@@ -242,12 +248,18 @@ export function Header({ className }: HeaderProps) {
               setIsNotificationsOpen(!isNotificationsOpen);
               setIsUserMenuOpen(false);
             }}
-            aria-label="Notifications"
+            aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ""}`}
+            aria-expanded={isNotificationsOpen}
+            aria-haspopup="dialog"
+            aria-controls="notifications-panel"
             className="relative"
           >
-            <Bell className="h-5 w-5" />
+            <Bell className="h-5 w-5" aria-hidden="true" />
             {unreadCount > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-medium text-white">
+              <span
+                className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-medium text-white"
+                aria-hidden="true"
+              >
                 {unreadCount}
               </span>
             )}
@@ -259,13 +271,23 @@ export function Header({ className }: HeaderProps) {
               <div
                 className="fixed inset-0 z-10"
                 onClick={() => setIsNotificationsOpen(false)}
+                aria-hidden="true"
+                role="presentation"
               />
-              <div className="absolute right-0 top-full z-20 mt-2 w-96 rounded-lg border bg-popover p-0 shadow-lg">
+              <div
+                id="notifications-panel"
+                className="absolute right-0 top-full z-20 mt-2 w-96 rounded-lg border bg-popover p-0 shadow-lg"
+                role="dialog"
+                aria-label="Notifications panel"
+                aria-modal="false"
+              >
                 <div className="flex items-center justify-between border-b p-4">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-semibold">Notifications</h3>
+                    <h3 id="notifications-heading" className="font-semibold">
+                      Notifications
+                    </h3>
                     {unreadCount > 0 && (
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="secondary" className="text-xs" aria-label={`${unreadCount} new notifications`}>
                         {unreadCount} new
                       </Badge>
                     )}
@@ -277,27 +299,33 @@ export function Header({ className }: HeaderProps) {
                       className="text-xs h-7"
                       onClick={markAllAsRead}
                       disabled={isMarkingRead}
+                      aria-label="Mark all notifications as read"
                     >
                       {isMarkingRead ? (
-                        <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                        <Loader2 className="h-3 w-3 animate-spin mr-1" aria-hidden="true" />
                       ) : (
-                        <CheckCheck className="h-3 w-3 mr-1" />
+                        <CheckCheck className="h-3 w-3 mr-1" aria-hidden="true" />
                       )}
                       Mark all read
                     </Button>
                   )}
                 </div>
-                <div className="max-h-96 overflow-y-auto">
+                <div
+                  className="max-h-96 overflow-y-auto"
+                  role="region"
+                  aria-labelledby="notifications-heading"
+                  tabIndex={0}
+                >
                   {isLoading ? (
-                    <div className="p-8 text-center">
-                      <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
+                    <div className="p-8 text-center" role="status" aria-live="polite">
+                      <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" aria-hidden="true" />
                       <p className="text-sm text-muted-foreground mt-2">
                         Loading notifications...
                       </p>
                     </div>
                   ) : notifications.length === 0 ? (
-                    <div className="p-8 text-center">
-                      <Bell className="h-8 w-8 mx-auto text-muted-foreground/50" />
+                    <div className="p-8 text-center" role="status">
+                      <Bell className="h-8 w-8 mx-auto text-muted-foreground/50" aria-hidden="true" />
                       <p className="text-sm text-muted-foreground mt-2">
                         No notifications yet
                       </p>
@@ -306,12 +334,12 @@ export function Header({ className }: HeaderProps) {
                       </p>
                     </div>
                   ) : (
-                    <ul>
+                    <ul role="list" aria-label="Notification list">
                       {notifications.map((notification) => (
                         <li
                           key={notification.id}
                           className={cn(
-                            "border-b p-4 last:border-0 cursor-pointer hover:bg-accent/50 transition-colors",
+                            "border-b p-4 last:border-0 cursor-pointer hover:bg-accent/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary",
                             !notification.read && "bg-muted/50"
                           )}
                           onClick={() => {
@@ -319,9 +347,20 @@ export function Header({ className }: HeaderProps) {
                               markAsRead(notification.id);
                             }
                           }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              if (!notification.read) {
+                                markAsRead(notification.id);
+                              }
+                            }
+                          }}
+                          tabIndex={0}
+                          role="button"
+                          aria-label={`${notification.type} notification: ${notification.title}. ${notification.message}. ${formatRelativeTime(notification.created_at)}${!notification.read ? ". Unread" : ""}`}
                         >
                           <div className="flex items-start gap-3">
-                            <div className="mt-0.5 shrink-0">
+                            <div className="mt-0.5 shrink-0" aria-hidden="true">
                               {getNotificationIcon(notification.type)}
                             </div>
                             <div className="flex-1 min-w-0 space-y-1">
@@ -330,7 +369,10 @@ export function Header({ className }: HeaderProps) {
                                   {notification.title}
                                 </p>
                                 {!notification.read && (
-                                  <div className="h-2 w-2 shrink-0 rounded-full bg-primary" />
+                                  <div
+                                    className="h-2 w-2 shrink-0 rounded-full bg-primary"
+                                    aria-hidden="true"
+                                  />
                                 )}
                               </div>
                               <p className="text-xs text-muted-foreground line-clamp-2">
@@ -360,7 +402,7 @@ export function Header({ className }: HeaderProps) {
                     onClick={() => setIsNotificationsOpen(false)}
                   >
                     <Button variant="ghost" size="sm" className="w-full text-xs">
-                      <Settings className="h-3 w-3 mr-1" />
+                      <Settings className="h-3 w-3 mr-1" aria-hidden="true" />
                       Settings
                     </Button>
                   </Link>
@@ -370,7 +412,7 @@ export function Header({ className }: HeaderProps) {
                     onClick={() => setIsNotificationsOpen(false)}
                   >
                     <Button variant="outline" size="sm" className="w-full text-xs">
-                      View all
+                      View all notifications
                     </Button>
                   </Link>
                 </div>
@@ -389,14 +431,21 @@ export function Header({ className }: HeaderProps) {
               setIsUserMenuOpen(!isUserMenuOpen);
               setIsNotificationsOpen(false);
             }}
+            aria-label="User menu for Demo User"
+            aria-expanded={isUserMenuOpen}
+            aria-haspopup="menu"
+            aria-controls="user-menu"
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
+            <div
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-muted"
+              aria-hidden="true"
+            >
               <User className="h-4 w-4" />
             </div>
             <span className="hidden text-sm font-medium md:inline-block">
               Demo User
             </span>
-            <ChevronDown className="h-4 w-4" />
+            <ChevronDown className="h-4 w-4" aria-hidden="true" />
           </Button>
 
           {/* User Dropdown */}
@@ -405,41 +454,52 @@ export function Header({ className }: HeaderProps) {
               <div
                 className="fixed inset-0 z-10"
                 onClick={() => setIsUserMenuOpen(false)}
+                aria-hidden="true"
+                role="presentation"
               />
-              <div className="absolute right-0 top-full z-20 mt-2 w-56 rounded-lg border bg-popover p-1 shadow-lg">
-                <div className="border-b p-3">
+              <div
+                id="user-menu"
+                className="absolute right-0 top-full z-20 mt-2 w-56 rounded-lg border bg-popover p-1 shadow-lg"
+                role="menu"
+                aria-label="User menu"
+              >
+                <div className="border-b p-3" role="presentation">
                   <p className="font-medium">Demo User</p>
                   <p className="text-xs text-muted-foreground">
                     demo@clinicalont.local
                   </p>
                 </div>
-                <div className="p-1">
+                <div className="p-1" role="group">
                   <Link
                     href="/settings/profile"
-                    className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-accent"
+                    className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     onClick={() => setIsUserMenuOpen(false)}
+                    role="menuitem"
                   >
-                    <User className="h-4 w-4" />
+                    <User className="h-4 w-4" aria-hidden="true" />
                     Profile
                   </Link>
                   <Link
                     href="/settings"
-                    className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-accent"
+                    className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     onClick={() => setIsUserMenuOpen(false)}
+                    role="menuitem"
                   >
-                    <Settings className="h-4 w-4" />
+                    <Settings className="h-4 w-4" aria-hidden="true" />
                     Settings
                   </Link>
                 </div>
-                <div className="border-t p-1">
+                <div className="border-t p-1" role="group">
                   <button
-                    className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-destructive hover:bg-accent"
+                    className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-destructive hover:bg-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     onClick={() => {
                       setIsUserMenuOpen(false);
                       // Handle logout
                     }}
+                    role="menuitem"
+                    aria-label="Sign out of your account"
                   >
-                    <LogOut className="h-4 w-4" />
+                    <LogOut className="h-4 w-4" aria-hidden="true" />
                     Sign out
                   </button>
                 </div>

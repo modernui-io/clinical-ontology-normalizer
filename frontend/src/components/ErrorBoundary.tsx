@@ -177,9 +177,9 @@ export function ErrorDisplay({
   const [isDetailsExpanded, setIsDetailsExpanded] = React.useState(false);
 
   const content = (
-    <Card className={cn("w-full max-w-lg", className)}>
+    <Card className={cn("w-full max-w-lg", className)} role="alert" aria-live="polite">
       <CardHeader className="text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10" aria-hidden="true">
           <AlertTriangle className="h-8 w-8 text-destructive" />
         </div>
         <CardTitle className="text-xl">{errorTitle}</CardTitle>
@@ -188,22 +188,22 @@ export function ErrorDisplay({
 
       <CardContent className="space-y-4">
         {/* Quick actions */}
-        <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
+        <div className="flex flex-col gap-2 sm:flex-row sm:justify-center" role="group" aria-label="Recovery options">
           {onRetry && (
             <Button onClick={onRetry} className="gap-2">
-              <RefreshCw className="h-4 w-4" />
+              <RefreshCw className="h-4 w-4" aria-hidden="true" />
               Try Again
             </Button>
           )}
           {onNavigateHome && (
             <Button variant="outline" onClick={onNavigateHome} className="gap-2">
-              <Home className="h-4 w-4" />
+              <Home className="h-4 w-4" aria-hidden="true" />
               Go Home
             </Button>
           )}
           {onReportError && (
             <Button variant="ghost" onClick={onReportError} className="gap-2">
-              <Bug className="h-4 w-4" />
+              <Bug className="h-4 w-4" aria-hidden="true" />
               Report Error
             </Button>
           )}
@@ -215,24 +215,30 @@ export function ErrorDisplay({
             <button
               type="button"
               onClick={() => setIsDetailsExpanded(!isDetailsExpanded)}
-              className="flex w-full items-center justify-between text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="flex w-full items-center justify-between text-sm text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-sm"
+              aria-expanded={isDetailsExpanded}
+              aria-controls="error-details-content"
             >
               <span className="font-medium">Error Details</span>
               {isDetailsExpanded ? (
-                <ChevronUp className="h-4 w-4" />
+                <ChevronUp className="h-4 w-4" aria-hidden="true" />
               ) : (
-                <ChevronDown className="h-4 w-4" />
+                <ChevronDown className="h-4 w-4" aria-hidden="true" />
               )}
             </button>
 
             {isDetailsExpanded && (
-              <div className="mt-4 space-y-4">
+              <div id="error-details-content" className="mt-4 space-y-4" role="region" aria-label="Error details">
                 {/* Error message */}
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-1">
+                  <p id="error-message-label" className="text-xs font-medium text-muted-foreground mb-1">
                     Error Message
                   </p>
-                  <pre className="rounded-md bg-muted p-3 text-xs overflow-auto max-h-24">
+                  <pre
+                    className="rounded-md bg-muted p-3 text-xs overflow-auto max-h-24"
+                    aria-labelledby="error-message-label"
+                    tabIndex={0}
+                  >
                     {error.message}
                   </pre>
                 </div>
@@ -240,10 +246,14 @@ export function ErrorDisplay({
                 {/* Stack trace */}
                 {error.stack && (
                   <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-1">
+                    <p id="stack-trace-label" className="text-xs font-medium text-muted-foreground mb-1">
                       Stack Trace
                     </p>
-                    <pre className="rounded-md bg-muted p-3 text-xs overflow-auto max-h-48 whitespace-pre-wrap break-words">
+                    <pre
+                      className="rounded-md bg-muted p-3 text-xs overflow-auto max-h-48 whitespace-pre-wrap break-words"
+                      aria-labelledby="stack-trace-label"
+                      tabIndex={0}
+                    >
                       {error.stack}
                     </pre>
                   </div>
@@ -252,10 +262,14 @@ export function ErrorDisplay({
                 {/* Component stack */}
                 {errorInfo?.componentStack && (
                   <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-1">
+                    <p id="component-stack-label" className="text-xs font-medium text-muted-foreground mb-1">
                       Component Stack
                     </p>
-                    <pre className="rounded-md bg-muted p-3 text-xs overflow-auto max-h-48 whitespace-pre-wrap break-words">
+                    <pre
+                      className="rounded-md bg-muted p-3 text-xs overflow-auto max-h-48 whitespace-pre-wrap break-words"
+                      aria-labelledby="component-stack-label"
+                      tabIndex={0}
+                    >
                       {errorInfo.componentStack}
                     </pre>
                   </div>

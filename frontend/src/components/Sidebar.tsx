@@ -170,8 +170,15 @@ export function Sidebar({ className }: SidebarProps) {
     <div className="flex h-full flex-col">
       {/* Logo/Brand */}
       <div className="flex h-16 items-center border-b px-4">
-        <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-2"
+          aria-label="Clinical ONT - Go to dashboard"
+        >
+          <div
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground"
+            aria-hidden="true"
+          >
             <Activity className="h-5 w-5" />
           </div>
           {!isCollapsed && (
@@ -181,41 +188,53 @@ export function Sidebar({ className }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto p-4">
+      <nav
+        className="flex-1 overflow-y-auto p-4"
+        role="navigation"
+        aria-label="Main navigation"
+      >
         <div className="space-y-6">
-          {navSections.map((section) => (
-            <div key={section.title}>
-              {!isCollapsed && (
-                <h3 className="mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  {section.title}
-                </h3>
-              )}
-              <ul className="space-y-1">
-                {section.items.map((item) => {
-                  const Icon = item.icon;
-                  const active = isActive(item.href);
-                  return (
-                    <li key={item.href}>
-                      <Link
-                        href={item.href}
-                        className={cn(
-                          "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                          active
-                            ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                            : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                          isCollapsed && "justify-center px-2"
-                        )}
-                        title={isCollapsed ? item.title : undefined}
-                      >
-                        <Icon className="h-5 w-5 shrink-0" />
-                        {!isCollapsed && <span>{item.title}</span>}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          ))}
+          {navSections.map((section) => {
+            const sectionId = `nav-section-${section.title.toLowerCase().replace(/\s+/g, "-")}`;
+            return (
+              <div key={section.title} role="group" aria-labelledby={sectionId}>
+                {!isCollapsed && (
+                  <h3
+                    id={sectionId}
+                    className="mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                  >
+                    {section.title}
+                  </h3>
+                )}
+                <ul className="space-y-1" role="list">
+                  {section.items.map((item) => {
+                    const Icon = item.icon;
+                    const active = isActive(item.href);
+                    return (
+                      <li key={item.href} role="listitem">
+                        <Link
+                          href={item.href}
+                          className={cn(
+                            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                            active
+                              ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                              : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                            isCollapsed && "justify-center px-2"
+                          )}
+                          title={isCollapsed ? item.title : undefined}
+                          aria-current={active ? "page" : undefined}
+                          aria-label={isCollapsed ? item.title : undefined}
+                        >
+                          <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+                          {!isCollapsed && <span>{item.title}</span>}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            );
+          })}
         </div>
       </nav>
 
@@ -226,12 +245,14 @@ export function Sidebar({ className }: SidebarProps) {
           size="sm"
           className="w-full justify-center"
           onClick={() => setIsCollapsed(!isCollapsed)}
+          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-expanded={!isCollapsed}
         >
           {isCollapsed ? (
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="h-4 w-4" aria-hidden="true" />
           ) : (
             <>
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-4 w-4" aria-hidden="true" />
               <span className="ml-2">Collapse</span>
             </>
           )}
@@ -248,12 +269,14 @@ export function Sidebar({ className }: SidebarProps) {
         size="icon"
         className="fixed left-4 top-4 z-50 lg:hidden"
         onClick={() => setIsMobileOpen(!isMobileOpen)}
-        aria-label={isMobileOpen ? "Close menu" : "Open menu"}
+        aria-label={isMobileOpen ? "Close navigation menu" : "Open navigation menu"}
+        aria-expanded={isMobileOpen}
+        aria-controls="mobile-sidebar"
       >
         {isMobileOpen ? (
-          <X className="h-5 w-5" />
+          <X className="h-5 w-5" aria-hidden="true" />
         ) : (
-          <Menu className="h-5 w-5" />
+          <Menu className="h-5 w-5" aria-hidden="true" />
         )}
       </Button>
 
@@ -262,15 +285,21 @@ export function Sidebar({ className }: SidebarProps) {
         <div
           className="fixed inset-0 z-40 bg-black/50 lg:hidden"
           onClick={() => setIsMobileOpen(false)}
+          aria-hidden="true"
+          role="presentation"
         />
       )}
 
       {/* Mobile Sidebar */}
       <aside
+        id="mobile-sidebar"
         className={cn(
           "fixed inset-y-0 left-0 z-40 w-64 transform bg-sidebar transition-transform duration-200 ease-in-out lg:hidden",
           isMobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
+        aria-label="Mobile navigation"
+        aria-hidden={!isMobileOpen}
+        {...(!isMobileOpen && { inert: true })}
       >
         <SidebarContent />
       </aside>
@@ -282,6 +311,7 @@ export function Sidebar({ className }: SidebarProps) {
           isCollapsed ? "lg:w-16" : "lg:w-64",
           className
         )}
+        aria-label="Desktop navigation"
       >
         <SidebarContent />
       </aside>
@@ -292,6 +322,7 @@ export function Sidebar({ className }: SidebarProps) {
           "hidden lg:block",
           isCollapsed ? "lg:w-16" : "lg:w-64"
         )}
+        aria-hidden="true"
       />
     </>
   );
