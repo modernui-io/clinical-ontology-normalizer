@@ -297,6 +297,7 @@ class ModelRegistry:
         self._performance: dict[str, dict[str, list[ModelPerformance]]] = {}
         self._active_versions: dict[str, str] = {}  # model_id -> active version
         self._storage_path = storage_path
+        self._lock = threading.Lock()
 
     def register_model(
         self,
@@ -315,18 +316,19 @@ class ModelRegistry:
         model_id = metadata.model_id
         version = metadata.version
 
-        if model_id not in self._models:
-            self._models[model_id] = {}
-            self._metadata[model_id] = {}
-            self._performance[model_id] = {}
+        with self._lock:
+            if model_id not in self._models:
+                self._models[model_id] = {}
+                self._metadata[model_id] = {}
+                self._performance[model_id] = {}
 
-        self._models[model_id][version] = model
-        self._metadata[model_id][version] = metadata
-        self._performance[model_id][version] = []
+            self._models[model_id][version] = model
+            self._metadata[model_id][version] = metadata
+            self._performance[model_id][version] = []
 
-        # If this is the first version or marked as active, set as active
-        if metadata.status == ModelStatus.ACTIVE or model_id not in self._active_versions:
-            self._active_versions[model_id] = version
+            # If this is the first version or marked as active, set as active
+            if metadata.status == ModelStatus.ACTIVE or model_id not in self._active_versions:
+                self._active_versions[model_id] = version
 
         logger.info(f"Registered model {model_id} version {version}")
         return model_id
@@ -374,24 +376,26 @@ class ModelRegistry:
 
     def set_active_version(self, model_id: str, version: str) -> None:
         """Set the active version for a model."""
-        if model_id not in self._models or version not in self._models[model_id]:
-            raise KeyError(f"Model {model_id} version {version} not found")
-        self._active_versions[model_id] = version
+        with self._lock:
+            if model_id not in self._models or version not in self._models[model_id]:
+                raise KeyError(f"Model {model_id} version {version} not found")
+            self._active_versions[model_id] = version
 
-        # Update metadata status
-        for v, meta in self._metadata[model_id].items():
-            if v == version:
-                meta.status = ModelStatus.ACTIVE
-            elif meta.status == ModelStatus.ACTIVE:
-                meta.status = ModelStatus.DEPRECATED
+            # Update metadata status
+            for v, meta in self._metadata[model_id].items():
+                if v == version:
+                    meta.status = ModelStatus.ACTIVE
+                elif meta.status == ModelStatus.ACTIVE:
+                    meta.status = ModelStatus.DEPRECATED
 
     def add_performance(self, model_id: str, version: str, performance: ModelPerformance) -> None:
         """Add performance metrics for a model version."""
-        if model_id not in self._performance:
-            self._performance[model_id] = {}
-        if version not in self._performance[model_id]:
-            self._performance[model_id][version] = []
-        self._performance[model_id][version].append(performance)
+        with self._lock:
+            if model_id not in self._performance:
+                self._performance[model_id] = {}
+            if version not in self._performance[model_id]:
+                self._performance[model_id][version] = []
+            self._performance[model_id][version].append(performance)
 
     def get_performance(self, model_id: str, version: str | None = None) -> list[ModelPerformance]:
         """Get performance metrics for a model."""
@@ -405,25 +409,26 @@ class ModelRegistry:
 
     def delete_model(self, model_id: str, version: str | None = None) -> None:
         """Delete a model or specific version."""
-        if model_id not in self._models:
-            return
+        with self._lock:
+            if model_id not in self._models:
+                return
 
-        if version:
-            self._models[model_id].pop(version, None)
-            self._metadata[model_id].pop(version, None)
-            self._performance[model_id].pop(version, None)
-            if self._active_versions.get(model_id) == version:
-                # Set a new active version if possible
-                remaining = list(self._models[model_id].keys())
-                if remaining:
-                    self._active_versions[model_id] = remaining[0]
-                else:
-                    del self._active_versions[model_id]
-        else:
-            del self._models[model_id]
-            del self._metadata[model_id]
-            del self._performance[model_id]
-            self._active_versions.pop(model_id, None)
+            if version:
+                self._models[model_id].pop(version, None)
+                self._metadata[model_id].pop(version, None)
+                self._performance[model_id].pop(version, None)
+                if self._active_versions.get(model_id) == version:
+                    # Set a new active version if possible
+                    remaining = list(self._models[model_id].keys())
+                    if remaining:
+                        self._active_versions[model_id] = remaining[0]
+                    else:
+                        del self._active_versions[model_id]
+            else:
+                del self._models[model_id]
+                del self._metadata[model_id]
+                del self._performance[model_id]
+                self._active_versions.pop(model_id, None)
 
 
 # ============================================================================
