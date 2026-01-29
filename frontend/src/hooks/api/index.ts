@@ -1,45 +1,51 @@
 /**
- * Custom React Query hooks for the Clinical Ontology Normalizer API.
+ * API Hooks barrel export.
  *
- * @deprecated Import from '@/hooks/api' instead for domain-specific hooks.
- * This file re-exports all hooks for backwards compatibility.
+ * Re-exports all domain-specific API hooks for convenient imports:
  *
  * @example
- * // New way (preferred):
- * import { useDocuments, usePatients } from '@/hooks/api';
- *
- * // Old way (still works):
- * import { useDocuments, usePatients } from '@/hooks/use-api';
+ * import { useDocuments, usePatients, useDashboardStats } from '@/hooks/api';
  */
 
-// Re-export everything from the new modular structure
+// Base utilities and shared exports
 export {
-  // Base utilities
   prefetchHelpers,
   queryKeys,
   queryConfigs,
   invalidationHelpers,
   useQueryClient,
-  // Document hooks
+} from "./base";
+
+// Document hooks
+export {
   useDocuments,
   useDocument,
   useDocumentMentions,
   useUploadDocument,
   usePreviewExtraction,
-  // Patient hooks
+} from "./useDocuments";
+
+// Patient hooks
+export {
   usePatients,
   usePatient,
   usePatientGraph,
   usePatientFacts,
   useBuildPatientGraph,
-  // Pipeline and ETL hooks
+} from "./usePatients";
+
+// Pipeline and ETL hooks
+export {
+  // ETL Connectors
   useETLConnectors,
+  // ETL Jobs
   useETLJobs,
   useETLJob,
   useETLJobPolling,
   useCreateETLJob,
   useCancelETLJob,
   useDeleteETLJob,
+  // ETL Sources
   useSources,
   useSource,
   useSourcePreview,
@@ -47,6 +53,7 @@ export {
   useUpdateSource,
   useDeleteSource,
   useTestSourceConnection,
+  // ETL Pipelines
   usePipelines,
   usePipeline,
   usePipelineRuns,
@@ -55,11 +62,23 @@ export {
   useDeletePipeline,
   useUpdatePipelineSchedule,
   useTriggerPipelineRun,
-  // Analytics and dashboard hooks
+} from "./usePipelines";
+
+// Analytics and dashboard hooks
+export {
   useJobs,
   useJob,
   useJobPolling,
   useDashboardStats,
-  // Admin hooks
+} from "./useAnalytics";
+
+// Admin and settings hooks
+export {
   useHealthCheck,
-} from "./api";
+} from "./useAdmin";
+
+// Search hooks (placeholder for future implementation)
+// export {} from "./useSearch";
+
+// NLP hooks (placeholder for future implementation)
+// export {} from "./useNLP";
