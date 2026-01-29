@@ -208,9 +208,10 @@ class ProvenanceService:
         self.neo4j_password = neo4j_password
         self._driver = None
 
-        # In-memory cache for recent provenance (for fast lookup)
+        # VP-MemoryLeak-1: In-memory cache for recent provenance (bounded)
         self._provenance_cache: dict[str, ProvenanceRecord] = {}
         self._reasoning_cache: dict[str, ReasoningProvenance] = {}
+        self._max_cache_size = 5000  # Limit cache size to prevent memory leaks
 
     def create_provenance(
         self,
@@ -264,8 +265,9 @@ class ProvenanceService:
             extraction=extraction,
         )
 
-        # Cache for fast lookup
+        # Cache for fast lookup (VP-MemoryLeak-1: bounded)
         self._provenance_cache[fact_id] = record
+        self._evict_cache_if_needed(self._provenance_cache)
 
         return record
 
@@ -319,6 +321,7 @@ class ProvenanceService:
         )
 
         self._provenance_cache[fact_id] = record
+        self._evict_cache_if_needed(self._provenance_cache)
         return record
 
     def create_reasoning_provenance(
@@ -363,7 +366,18 @@ class ProvenanceService:
         )
 
         self._reasoning_cache[provenance.reasoning_id] = provenance
+        self._evict_cache_if_needed(self._reasoning_cache)
         return provenance
+
+    def _evict_cache_if_needed(self, cache: dict) -> None:
+        """Evict oldest entries if cache exceeds max size.
+
+        VP-MemoryLeak-1: Prevents unbounded cache growth.
+        """
+        while len(cache) > self._max_cache_size:
+            # Remove oldest entry (first key, maintains insertion order in Python 3.7+)
+            oldest_key = next(iter(cache))
+            del cache[oldest_key]
 
     def get_provenance(self, fact_id: str) -> ProvenanceRecord | None:
         """Get provenance record for a fact.

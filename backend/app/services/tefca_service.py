@@ -538,6 +538,10 @@ class TEFCAService:
     _instance: "TEFCAService | None" = None
     _lock: threading.Lock = threading.Lock()
 
+    # VP-MemoryLeak-1: Maximum sizes for in-memory collections
+    _MAX_AUDIT_LOGS = 10000
+    _MAX_CACHED_DOCUMENTS = 1000
+
     def __init__(self) -> None:
         """Initialize the TEFCA service."""
         self._qhins: list[QHIN] = []
@@ -924,6 +928,12 @@ class TEFCAService:
             documents.append(doc)
             self._cached_documents[ref_id] = doc
 
+            # VP-MemoryLeak-1: Evict oldest cached documents if over limit
+            if len(self._cached_documents) > self._MAX_CACHED_DOCUMENTS:
+                # Remove oldest entry (first key in dict, maintains insertion order in Python 3.7+)
+                oldest_key = next(iter(self._cached_documents))
+                del self._cached_documents[oldest_key]
+
         # Create audit log
         self.audit_query(
             query=query,
@@ -1127,6 +1137,10 @@ class TEFCAService:
         )
 
         self._audit_logs.append(audit_log)
+
+        # VP-MemoryLeak-1: Evict oldest logs if over limit
+        if len(self._audit_logs) > self._MAX_AUDIT_LOGS:
+            self._audit_logs = self._audit_logs[-self._MAX_AUDIT_LOGS:]
 
         logger.debug(f"Created audit log {audit_id} for {event_type.value}")
 
