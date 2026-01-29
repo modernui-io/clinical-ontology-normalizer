@@ -108,6 +108,7 @@ class ExtractionResult:
     model_id: str
     processing_time_ms: float
     text_length: int
+    sections: list[SectionSpan] = field(default_factory=list)
 
     @property
     def entity_count(self) -> int:
@@ -318,6 +319,7 @@ class ClinicalNLPEntityService(NormalizerMixin, ExtractorMixin, LinkerMixin):
             model_id=model_id,
             processing_time_ms=round(processing_time, 2),
             text_length=len(text),
+            sections=sections,
         )
 
     def get_model_info(self) -> NLPModelInfo:

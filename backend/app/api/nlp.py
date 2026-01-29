@@ -353,12 +353,18 @@ async def extract_entities(request: ExtractRequest) -> ExtractResponse:
             entity_types = [EntityType(et.value) for et in request.entity_types]
 
         # Extract entities
+        # Note: use_ml_models is handled implicitly via model_id parameter
+        # If model_id is not "rule_based", ML model will be used if available
+        model_to_use = request.model_id if request.use_ml_models else "rule_based"
         result = service.extract_entities(
             text=request.text,
             entity_types=entity_types,
-            use_ml_models=request.use_ml_models,
-            model_id=request.model_id,
+            model_id=model_to_use,
         )
+
+        # Generate request ID for this request
+        import uuid
+        request_id = f"req-{uuid.uuid4().hex[:12]}"
 
         # Normalize entities if requested
         entities_response: list[ExtractedEntityResponse] = []
@@ -417,14 +423,14 @@ async def extract_entities(request: ExtractRequest) -> ExtractResponse:
         ]
 
         return ExtractResponse(
-            request_id=result.request_id,
+            request_id=request_id,
             text_length=result.text_length,
             entities=entities_response,
             sections=sections_response,
             entity_count=result.entity_count,
             entities_by_type=result.entities_by_type,
             processing_time_ms=result.processing_time_ms,
-            model_used=result.model_used,
+            model_used=result.model_id,  # Map model_id to model_used
         )
 
     except Exception as e:
