@@ -123,29 +123,27 @@ async def search_graph(
     # Build search terms from the query
     search_terms = query.lower().split()
 
-    # Search nodes by label or properties
+    # VP-Performance-2: Use database-level filtering instead of Python filtering
+    # Build query with ILIKE for text search
     stmt = select(KGNode).where(KGNode.patient_id == patient_id)
 
     # Add node type filter if specified
     if node_types:
         stmt = stmt.where(KGNode.node_type.in_(node_types))
 
+    # Add text search filter - match any search term in label
+    if search_terms:
+        search_conditions = [
+            func.lower(KGNode.label).contains(term) for term in search_terms
+        ]
+        stmt = stmt.where(or_(*search_conditions))
+
+    # Apply limit at database level
+    stmt = stmt.limit(limit)
+
     # Execute query
     result = await db.execute(stmt)
-    all_nodes = result.scalars().all()
-
-    # Filter nodes by search terms (simple text matching)
-    matching_nodes = []
-    for node in all_nodes:
-        label_lower = node.label.lower()
-        props_str = str(node.properties).lower() if node.properties else ""
-
-        # Check if any search term matches
-        if any(term in label_lower or term in props_str for term in search_terms):
-            matching_nodes.append(node)
-
-    # Limit results
-    matching_nodes = matching_nodes[:limit]
+    matching_nodes = result.scalars().all()
 
     # Convert to GraphEntity with provenance
     entities = []
@@ -170,40 +168,38 @@ async def search_graph(
     if include_relationships and matching_nodes:
         node_ids = [str(n.id) for n in matching_nodes]
 
-        edge_stmt = select(KGEdge).where(
-            and_(
-                KGEdge.patient_id == patient_id,
-                or_(
-                    KGEdge.source_node_id.in_(node_ids),
-                    KGEdge.target_node_id.in_(node_ids)
+        # VP-Performance-2: Use selectinload to eagerly load source_node and target_node
+        # This replaces the separate query for node labels (N+1 fix)
+        edge_stmt = (
+            select(KGEdge)
+            .options(
+                selectinload(KGEdge.source_node),
+                selectinload(KGEdge.target_node),
+            )
+            .where(
+                and_(
+                    KGEdge.patient_id == patient_id,
+                    or_(
+                        KGEdge.source_node_id.in_(node_ids),
+                        KGEdge.target_node_id.in_(node_ids)
+                    )
                 )
             )
         )
         edge_result = await db.execute(edge_stmt)
         edges = edge_result.scalars().all()
 
-        # Need to get labels for source/target nodes
-        all_node_ids = set()
+        # Build relationships using eagerly loaded node data
         for edge in edges:
-            all_node_ids.add(edge.source_node_id)
-            all_node_ids.add(edge.target_node_id)
+            source_label = edge.source_node.label if edge.source_node else "Unknown"
+            target_label = edge.target_node.label if edge.target_node else "Unknown"
 
-        node_labels = {}
-        if all_node_ids:
-            label_stmt = select(KGNode.id, KGNode.label).where(
-                KGNode.id.in_(list(all_node_ids))
-            )
-            label_result = await db.execute(label_stmt)
-            for row in label_result:
-                node_labels[str(row.id)] = row.label
-
-        for edge in edges:
             relationships.append(GraphRelationship(
                 source_id=str(edge.source_node_id),
-                source_label=node_labels.get(str(edge.source_node_id), "Unknown"),
+                source_label=source_label,
                 relationship_type=edge.edge_type,
                 target_id=str(edge.target_node_id),
-                target_label=node_labels.get(str(edge.target_node_id), "Unknown"),
+                target_label=target_label,
                 properties=edge.properties or {},
             ))
 

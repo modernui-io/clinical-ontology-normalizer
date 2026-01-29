@@ -124,6 +124,15 @@ class SMARTAppResponse(BaseModel):
     )
 
 
+class SMARTAppListResponse(BaseModel):
+    """VP-Platform-1: Paginated response for SMART apps list."""
+
+    apps: list[SMARTAppResponse] = Field(..., description="List of SMART apps")
+    total: int = Field(..., description="Total number of apps")
+    limit: int = Field(..., description="Number of items per page")
+    offset: int = Field(..., description="Number of items skipped")
+
+
 class SMARTAppUpdate(BaseModel):
     """Request to update a SMART app."""
 
@@ -1023,20 +1032,34 @@ async def register_app(
 @router.get(
     "/apps",
     summary="List registered SMART apps",
-    description="Get all registered SMART applications. Admin only.",
-    response_model=list[SMARTAppResponse],
+    description="Get all registered SMART applications with pagination. Admin only.",
+    response_model=SMARTAppListResponse,
 )
 async def list_apps(
+    limit: int = Query(default=100, ge=1, le=1000, description="Maximum number of apps to return"),
+    offset: int = Query(default=0, ge=0, description="Number of apps to skip"),
     current_user: CurrentUser = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
-) -> list[SMARTAppResponse]:
-    """List all registered SMART apps from the database."""
-    # Query database for apps
-    stmt = select(SMARTApp)
+) -> SMARTAppListResponse:
+    """VP-Platform-1: List registered SMART apps with pagination."""
+    from sqlalchemy import func
+
+    # Get total count
+    count_stmt = select(func.count(SMARTApp.client_id))
+    count_result = await db.execute(count_stmt)
+    total = count_result.scalar() or 0
+
+    # Query database for apps with pagination
+    stmt = (
+        select(SMARTApp)
+        .order_by(SMARTApp.created_at.desc())
+        .offset(offset)
+        .limit(limit)
+    )
     result = await db.execute(stmt)
     db_apps = result.scalars().all()
 
-    return [
+    apps = [
         SMARTAppResponse(
             client_id=app.client_id,
             client_name=app.app_name,  # Map DB field to API field
@@ -1054,6 +1077,13 @@ async def list_apps(
         )
         for app in db_apps
     ]
+
+    return SMARTAppListResponse(
+        apps=apps,
+        total=total,
+        limit=limit,
+        offset=offset,
+    )
 
 
 @router.get(

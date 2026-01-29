@@ -80,6 +80,13 @@ class KGNode(SoftDeleteMixin, Base):
     def __repr__(self) -> str:
         return f"<KGNode(id={self.id}, type={self.node_type}, label='{self.label}')>"
 
+    # VP-Performance-1: Composite indexes for common query patterns
+    __table_args__ = (
+        Index("ix_kg_nodes_patient_type", "patient_id", "node_type"),
+        Index("ix_kg_nodes_patient_concept", "patient_id", "omop_concept_id"),
+        Index("ix_kg_nodes_type_concept", "node_type", "omop_concept_id"),
+    )
+
     @property
     def is_patient_node(self) -> bool:
         """Check if this is a patient node."""
@@ -222,11 +229,15 @@ class KGEdge(SoftDeleteMixin, Base):
     )
     fact = relationship("ClinicalFact")
 
-    # Indexes for temporal queries
+    # Indexes for temporal queries and VP-Performance-1: Composite indexes for common query patterns
     __table_args__ = (
         Index("ix_kg_edges_valid_range", "valid_from", "valid_to"),
         Index("ix_kg_edges_patient_valid", "patient_id", "valid_from"),
         Index("ix_kg_edges_event_date", "event_date"),
+        # VP-Performance-1: Additional composite indexes for common query patterns
+        Index("ix_kg_edges_patient_type", "patient_id", "edge_type"),
+        Index("ix_kg_edges_source_type", "source_node_id", "edge_type"),
+        Index("ix_kg_edges_target_type", "target_node_id", "edge_type"),
     )
 
     def __repr__(self) -> str:

@@ -146,6 +146,7 @@ QUEUE_NAMES = {
     "mapping": "concept_mapping",
     "graph": "graph_building",
     "export": "data_export",
+    "pipeline": "pipeline_processing",  # VP-DevOps-5: Data pipeline execution
 }
 
 

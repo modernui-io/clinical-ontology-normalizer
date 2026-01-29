@@ -16,7 +16,7 @@ from typing import Any
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import func, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -49,6 +49,31 @@ class ClinicalNote(BaseModel):
     date: str = Field(..., description="Note date (YYYY-MM-DD)")
     text: str = Field(..., description="Clinical note text content")
     metadata: dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
+
+    # VP-Data-1: Input validation for bulk import content
+    @field_validator("text")
+    @classmethod
+    def validate_text_length(cls, v: str) -> str:
+        """Validate text length to prevent memory issues with very large notes."""
+        max_length = 100_000  # 100KB max per note
+        if len(v) > max_length:
+            raise ValueError(
+                f"Note text exceeds maximum length of {max_length} characters "
+                f"(got {len(v)} characters)"
+            )
+        if len(v.strip()) == 0:
+            raise ValueError("Note text cannot be empty or whitespace-only")
+        return v
+
+    @field_validator("note_id", "note_type")
+    @classmethod
+    def validate_identifiers(cls, v: str) -> str:
+        """Validate identifier fields."""
+        if len(v) > 255:
+            raise ValueError(f"Field exceeds maximum length of 255 characters")
+        if len(v.strip()) == 0:
+            raise ValueError("Field cannot be empty or whitespace-only")
+        return v.strip()
 
 
 class BulkImportRequest(BaseModel):
@@ -86,6 +111,44 @@ class ExtractedEntity(BaseModel):
     assertion: str = Field("PRESENT", description="PRESENT, ABSENT, POSSIBLE")
     omop_concept_id: int | None = Field(None, description="Mapped OMOP concept ID")
     note_id: str = Field("frontend", description="Source note ID")
+
+    # VP-Data-1: Input validation for entity content
+    @field_validator("text")
+    @classmethod
+    def validate_text_length(cls, v: str) -> str:
+        """Validate entity text length."""
+        max_length = 1000  # 1KB max per entity text
+        if len(v) > max_length:
+            raise ValueError(
+                f"Entity text exceeds maximum length of {max_length} characters"
+            )
+        if len(v.strip()) == 0:
+            raise ValueError("Entity text cannot be empty")
+        return v.strip()
+
+    @field_validator("entity_type")
+    @classmethod
+    def validate_entity_type(cls, v: str) -> str:
+        """Validate entity type is one of the allowed values."""
+        allowed_types = {"CONDITION", "DRUG", "MEASUREMENT", "PROCEDURE", "OBSERVATION"}
+        v_upper = v.upper()
+        if v_upper not in allowed_types:
+            raise ValueError(
+                f"Invalid entity_type '{v}'. Must be one of: {', '.join(sorted(allowed_types))}"
+            )
+        return v_upper
+
+    @field_validator("assertion")
+    @classmethod
+    def validate_assertion(cls, v: str) -> str:
+        """Validate assertion is one of the allowed values."""
+        allowed_assertions = {"PRESENT", "ABSENT", "POSSIBLE", "CONDITIONAL", "HYPOTHETICAL"}
+        v_upper = v.upper()
+        if v_upper not in allowed_assertions:
+            raise ValueError(
+                f"Invalid assertion '{v}'. Must be one of: {', '.join(sorted(allowed_assertions))}"
+            )
+        return v_upper
 
 
 class BuildGraphFromEntitiesRequest(BaseModel):

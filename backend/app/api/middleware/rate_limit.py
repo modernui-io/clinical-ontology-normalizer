@@ -107,6 +107,44 @@ DEFAULT_RATE_LIMITS: dict[str, RateLimitConfig] = {
     "/api/v1/kg/benchmark/drknows": RateLimitConfig(requests_per_window=5, window_seconds=60),
     "/api/v1/kg/benchmark": RateLimitConfig(requests_per_window=30, window_seconds=60),
 
+    # VP-Platform-2: Add rate limiting to expensive endpoints
+
+    # Clinical Agent endpoints - expensive NLP/AI operations
+    "/api/v1/clinical-agent/process": RateLimitConfig(requests_per_window=30, window_seconds=60),
+    "/api/v1/clinical-agent/batch": RateLimitConfig(requests_per_window=10, window_seconds=60),
+    "/api/v1/clinical-agent/analyze": RateLimitConfig(requests_per_window=30, window_seconds=60),
+    "/api/v1/clinical-agent/qa": RateLimitConfig(requests_per_window=60, window_seconds=60),
+    "/api/v1/clinical-agent": RateLimitConfig(requests_per_window=100, window_seconds=60),
+
+    # Graph RAG endpoints - expensive graph traversal and AI
+    "/api/v1/graph-rag/search": RateLimitConfig(requests_per_window=60, window_seconds=60),
+    "/api/v1/graph-rag/answer": RateLimitConfig(requests_per_window=30, window_seconds=60),
+    "/api/v1/graph-rag/traverse": RateLimitConfig(requests_per_window=60, window_seconds=60),
+    "/api/v1/graph-rag/summary": RateLimitConfig(requests_per_window=30, window_seconds=60),
+    "/api/v1/graph-rag": RateLimitConfig(requests_per_window=100, window_seconds=60),
+
+    # Data Sources - moderate limits (admin operations)
+    "/api/v1/data-sources/test": RateLimitConfig(requests_per_window=10, window_seconds=60),
+    "/api/v1/data-sources/sync": RateLimitConfig(requests_per_window=5, window_seconds=60),
+    "/api/v1/data-sources": RateLimitConfig(requests_per_window=100, window_seconds=60),
+
+    # Pipelines - moderate limits
+    "/api/v1/pipelines/execute": RateLimitConfig(requests_per_window=20, window_seconds=60),
+    "/api/v1/pipelines": RateLimitConfig(requests_per_window=100, window_seconds=60),
+
+    # FHIR import - limited (external API calls)
+    "/api/v1/fhir/import": RateLimitConfig(requests_per_window=10, window_seconds=60),
+    "/api/v1/fhir": RateLimitConfig(requests_per_window=60, window_seconds=60),
+
+    # SMART server - moderate limits
+    "/api/v1/smart-server/token": RateLimitConfig(requests_per_window=100, window_seconds=60),
+    "/api/v1/smart-server/authorize": RateLimitConfig(requests_per_window=100, window_seconds=60),
+    "/api/v1/smart-server": RateLimitConfig(requests_per_window=200, window_seconds=60),
+
+    # Graph endpoints - expensive operations
+    "/api/v1/graph/query": RateLimitConfig(requests_per_window=30, window_seconds=60),
+    "/api/v1/graph": RateLimitConfig(requests_per_window=100, window_seconds=60),
+
     # Default for all other endpoints
     "*": RateLimitConfig(requests_per_window=100, window_seconds=60),
 }

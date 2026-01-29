@@ -148,20 +148,54 @@ async def trigger_run(
     """
     Trigger a manual pipeline run.
 
-    Creates a new run in PENDING status and queues it for execution.
+    Creates a new run record in PENDING status. The run will be picked up
+    by the pipeline executor worker when it becomes available.
+
+    **Note**: Background job execution requires a running RQ worker:
+    ```
+    rq worker pipeline_processing
+    ```
+
+    The run will remain in PENDING status until picked up by a worker.
+    Use GET /pipelines/{pipeline_id}/runs/{run_id} to check status.
     """
+    import logging
+
+    logger = logging.getLogger(__name__)
+
     try:
         run = await service.create_run(
             pipeline_id,
             triggered_by="manual",
         )
 
-        # TODO: Enqueue to RQ for execution
-        # from app.core.queue import enqueue_job
-        # enqueue_job("execute_pipeline", run.id)
+        # VP-DevOps-5: Pipeline execution via RQ worker
+        # Attempt to enqueue the job if RQ and executor are available
+        try:
+            from app.core.queue import enqueue_job, RQ_AVAILABLE
 
-        # For now, just mark as running (executor will be implemented separately)
-        run = await service.update_run_status(run.id, PipelineRunStatus.PENDING)
+            if RQ_AVAILABLE:
+                from app.jobs.pipeline_executor import execute_pipeline_run
+
+                enqueue_job(
+                    execute_pipeline_run,
+                    str(run.id),
+                    queue_name="pipeline_processing",
+                    job_timeout=3600,  # 1 hour timeout for long-running pipelines
+                    job_id=f"pipeline-run-{run.id}",
+                )
+                logger.info(f"Pipeline run {run.id} enqueued to pipeline_processing queue")
+            else:
+                logger.warning(
+                    f"Pipeline run {run.id} created but RQ not available. "
+                    "Run will remain in PENDING status until manually processed."
+                )
+        except ImportError as e:
+            # Pipeline executor job not yet implemented - this is expected
+            logger.info(
+                f"Pipeline run {run.id} created. Executor not available: {e}. "
+                "Run will remain in PENDING status until executor is implemented."
+            )
 
         return service.run_to_response(run)
     except ValueError as e:
