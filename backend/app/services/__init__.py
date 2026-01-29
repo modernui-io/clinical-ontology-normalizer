@@ -9,6 +9,8 @@ Services implement business logic and data processing:
 - OMOPExporter: Export to OMOP CDM format (task 9.x)
 """
 
+from __future__ import annotations
+
 from app.services.export import (
     BaseOMOPExporter,
     DatabaseOMOPExporter,
@@ -61,8 +63,9 @@ from app.services.nlp_clinical_ner import (
     reset_clinical_ner_service,
 )
 from app.services.nlp_modernbert_ner import (
-    ModernBERTNERConfig,
+    ModernBERTConfig,
     ModernBERTNERService,
+    EntityWithContext,
     get_modernbert_ner_service,
     reset_modernbert_ner_service,
 )
@@ -89,6 +92,11 @@ from app.services.vocabulary_enhanced import (
     SYNONYM_PATTERNS,
 )
 from app.services.drug_interactions import (
+    CONCEPT_INTERACTION_QUERY,
+    DIRECT_INTERACTION_QUERY,
+    PATHWAY_INTERACTION_QUERY,
+    QT_DRUGS_IN_LIST_QUERY,
+    QT_PROLONGATION_QUERY,
     DrugInteraction,
     DrugInteractionService,
     InteractionCheckResult,
@@ -558,8 +566,9 @@ __all__ = [
     "TransformerNERConfig",
     "get_clinical_ner_service",
     "reset_clinical_ner_service",
-    "ModernBERTNERConfig",
+    "ModernBERTConfig",
     "ModernBERTNERService",
+    "EntityWithContext",
     "get_modernbert_ner_service",
     "reset_modernbert_ner_service",
     "ExtractedRelation",
@@ -578,6 +587,11 @@ __all__ = [
     "reset_enhanced_vocabulary_service",
     "ABBREVIATION_EXPANSIONS",
     "SYNONYM_PATTERNS",
+    "CONCEPT_INTERACTION_QUERY",
+    "DIRECT_INTERACTION_QUERY",
+    "PATHWAY_INTERACTION_QUERY",
+    "QT_DRUGS_IN_LIST_QUERY",
+    "QT_PROLONGATION_QUERY",
     "DrugInteraction",
     "DrugInteractionService",
     "InteractionCheckResult",

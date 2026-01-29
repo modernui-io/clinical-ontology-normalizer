@@ -7,6 +7,8 @@ This service integrates with RxNormService for enhanced drug name
 normalization and ingredient extraction.
 """
 
+from __future__ import annotations
+
 import json
 import logging
 from dataclasses import dataclass, field
@@ -49,6 +51,88 @@ class InteractionType(str, Enum):
     HYPOGLYCEMIA = "hypoglycemia"  # Risk of low blood sugar
     NEPHROTOXICITY = "nephrotoxicity"  # Kidney damage risk
     HEPATOTOXICITY = "hepatotoxicity"  # Liver damage risk
+
+
+# ============================================================================
+# Neo4j Cypher Query Constants
+# ============================================================================
+
+# Direct interaction lookup between two drugs
+DIRECT_INTERACTION_QUERY = """
+MATCH (d1:Drug {name: $drug1})-[r:INTERACTS_WITH|CONTRAINDICATED_WITH]-(d2:Drug {name: $drug2})
+RETURN type(r) AS rel_type,
+       r.severity AS severity,
+       r.interaction_type AS interaction_type,
+       r.description AS description,
+       r.clinical_effect AS clinical_effect,
+       r.management AS management,
+       r.references AS references
+LIMIT 1
+"""
+
+# Concept-based interaction lookup (using OMOP concept IDs)
+CONCEPT_INTERACTION_QUERY = """
+MATCH (c1:Concept {concept_id: $concept_id_1})-[r:INTERACTS_WITH|CONTRAINDICATED_WITH]-(c2:Concept {concept_id: $concept_id_2})
+RETURN type(r) AS rel_type,
+       r.severity AS severity,
+       r.interaction_type AS interaction_type,
+       r.description AS description,
+       r.clinical_effect AS clinical_effect,
+       r.management AS management,
+       r.references AS references
+LIMIT 1
+"""
+
+# Pathway-based interaction inference via shared metabolic enzymes (CYP450)
+# Finds drugs that interact via a common CYP enzyme pathway
+PATHWAY_INTERACTION_QUERY = """
+MATCH (d1:Drug {name: $drug1})-[:METABOLIZED_BY]->(enzyme:Enzyme)<-[:INHIBITS|INDUCES]-(d2:Drug {name: $drug2})
+WHERE enzyme.type = 'CYP450'
+RETURN d1.name AS drug1,
+       d2.name AS drug2,
+       enzyme.name AS enzyme,
+       CASE
+           WHEN (d2)-[:INHIBITS]->(enzyme) THEN 'inhibitor'
+           ELSE 'inducer'
+       END AS effect,
+       'pharmacokinetic' AS interaction_type,
+       'moderate' AS severity,
+       'CYP-mediated pathway interaction: ' + d2.name + ' affects metabolism of ' + d1.name + ' via ' + enzyme.name AS description
+LIMIT 5
+"""
+
+# QT prolongation risk query - finds drugs with additive QT-prolonging effects
+QT_PROLONGATION_QUERY = """
+MATCH (d1:Drug {name: $drug1})-[:HAS_EFFECT]->(qt1:Effect {type: 'qt_prolongation'})
+MATCH (d2:Drug {name: $drug2})-[:HAS_EFFECT]->(qt2:Effect {type: 'qt_prolongation'})
+WHERE d1 <> d2
+RETURN d1.name AS drug1,
+       d2.name AS drug2,
+       qt1.risk_level AS drug1_qt_risk,
+       qt2.risk_level AS drug2_qt_risk,
+       CASE
+           WHEN qt1.risk_level = 'known' AND qt2.risk_level = 'known' THEN 'major'
+           WHEN qt1.risk_level = 'known' OR qt2.risk_level = 'known' THEN 'moderate'
+           ELSE 'minor'
+       END AS combined_severity,
+       'Both drugs prolong QT interval; additive risk of torsades de pointes' AS clinical_effect
+"""
+
+# Find all QT-prolonging drugs in a medication list
+QT_DRUGS_IN_LIST_QUERY = """
+MATCH (d:Drug)-[:HAS_EFFECT]->(e:Effect {type: 'qt_prolongation'})
+WHERE d.name IN $drug_names
+RETURN d.name AS drug_name,
+       e.risk_level AS risk_level,
+       e.mechanism AS mechanism
+ORDER BY
+    CASE e.risk_level
+        WHEN 'known' THEN 1
+        WHEN 'possible' THEN 2
+        WHEN 'conditional' THEN 3
+        ELSE 4
+    END
+"""
 
 
 @dataclass
@@ -1157,6 +1241,230 @@ class DrugInteractionService:
         normalized = self.normalize_drug_name(drug)
         indices = self._drug_index.get(normalized, set())
         return [self._interactions[i] for i in indices]
+
+    def check_pathway_interactions(
+        self,
+        drug1: str,
+        drug2: str,
+    ) -> list[DrugInteraction]:
+        """Check for pathway-based (CYP450) interactions between two drugs.
+
+        Uses Neo4j graph traversal to find indirect interactions via
+        shared metabolic enzyme pathways.
+
+        Args:
+            drug1: First drug name.
+            drug2: Second drug name.
+
+        Returns:
+            List of inferred pathway-based interactions.
+        """
+        if not self._graph_service:
+            return []
+
+        d1 = self.normalize_drug_name(drug1)
+        d2 = self.normalize_drug_name(drug2)
+
+        try:
+            result = self._graph_service.execute_read(
+                PATHWAY_INTERACTION_QUERY,
+                {"drug1": d1, "drug2": d2},
+            )
+        except Exception as e:
+            logger.debug(f"Pathway interaction query failed: {e}")
+            return []
+
+        interactions: list[DrugInteraction] = []
+        for record in result.records:
+            enzyme = record.get("enzyme", "CYP enzyme")
+            effect = record.get("effect", "affects")
+            interaction = DrugInteraction(
+                drug1=d1,
+                drug2=d2,
+                severity=InteractionSeverity.MODERATE,
+                interaction_type=InteractionType.PHARMACOKINETIC,
+                description=record.get("description") or f"CYP-mediated interaction via {enzyme}",
+                clinical_effect=f"{d2.title()} {effect}s metabolism of {d1.title()} via {enzyme}",
+                management="Monitor drug levels; consider dose adjustment",
+                references=["CYP450 pathway inference"],
+            )
+            interactions.append(interaction)
+
+        return interactions
+
+    def check_qt_prolongation_risk(
+        self,
+        drugs: list[str],
+    ) -> list[dict[str, Any]]:
+        """Check for QT prolongation risk among a list of drugs.
+
+        Identifies drugs with known or possible QT-prolonging effects and
+        flags combinations that increase torsades de pointes risk.
+
+        Args:
+            drugs: List of drug names to check.
+
+        Returns:
+            List of QT risk assessments with drug names and risk levels.
+        """
+        if not self._graph_service:
+            return []
+
+        normalized = [self.normalize_drug_name(d) for d in drugs]
+
+        try:
+            result = self._graph_service.execute_read(
+                QT_DRUGS_IN_LIST_QUERY,
+                {"drug_names": normalized},
+            )
+        except Exception as e:
+            logger.debug(f"QT drug query failed: {e}")
+            return []
+
+        qt_drugs: list[dict[str, Any]] = []
+        for record in result.records:
+            qt_drugs.append({
+                "drug": record.get("drug_name"),
+                "risk_level": record.get("risk_level", "unknown"),
+                "mechanism": record.get("mechanism"),
+            })
+
+        return qt_drugs
+
+    def check_qt_pair_interaction(
+        self,
+        drug1: str,
+        drug2: str,
+    ) -> DrugInteraction | None:
+        """Check for QT prolongation interaction between two drugs.
+
+        Args:
+            drug1: First drug name.
+            drug2: Second drug name.
+
+        Returns:
+            DrugInteraction if both drugs prolong QT, None otherwise.
+        """
+        if not self._graph_service:
+            return None
+
+        d1 = self.normalize_drug_name(drug1)
+        d2 = self.normalize_drug_name(drug2)
+
+        try:
+            result = self._graph_service.execute_read(
+                QT_PROLONGATION_QUERY,
+                {"drug1": d1, "drug2": d2},
+            )
+        except Exception as e:
+            logger.debug(f"QT pair query failed: {e}")
+            return None
+
+        if not result.records:
+            return None
+
+        record = result.records[0]
+        severity_raw = record.get("combined_severity", "moderate")
+        severity = InteractionSeverity.MAJOR if severity_raw == "major" else InteractionSeverity.MODERATE
+
+        return DrugInteraction(
+            drug1=d1,
+            drug2=d2,
+            severity=severity,
+            interaction_type=InteractionType.QT_PROLONGATION,
+            description="Both drugs prolong QT interval",
+            clinical_effect=record.get("clinical_effect") or "Additive QT prolongation risk",
+            management="Avoid combination if possible; monitor ECG and electrolytes",
+            references=["CredibleMeds QT database"],
+        )
+
+    def check_interactions_enhanced(
+        self,
+        drugs: list[str],
+        include_pathway: bool = True,
+        include_qt_check: bool = True,
+    ) -> InteractionCheckResult:
+        """Enhanced interaction check combining curated, graph, and inferred interactions.
+
+        Extends the standard check_interactions() with:
+        1. Direct curated interactions from the database
+        2. Neo4j graph-based lookups (Concept and Drug nodes)
+        3. Pathway-based CYP450 interaction inference
+        4. QT prolongation combination checks
+
+        Args:
+            drugs: List of drug names to check.
+            include_pathway: Whether to include CYP450 pathway inference.
+            include_qt_check: Whether to include QT prolongation checks.
+
+        Returns:
+            InteractionCheckResult with all found interactions.
+        """
+        # Start with standard interaction check
+        base_result = self.check_interactions(drugs)
+        all_interactions = list(base_result.interactions_found)
+        seen_pairs: set[tuple[str, str]] = {
+            tuple(sorted([i.drug1, i.drug2]))
+            for i in all_interactions
+        }
+
+        normalized = [self.normalize_drug_name(d) for d in drugs]
+        unique_drugs = list(set(normalized))
+
+        # Add pathway-based interactions
+        if include_pathway and self._graph_service:
+            for i, d1 in enumerate(unique_drugs):
+                for d2 in unique_drugs[i + 1:]:
+                    pair = tuple(sorted([d1, d2]))
+                    if pair not in seen_pairs:
+                        pathway_interactions = self.check_pathway_interactions(d1, d2)
+                        for pi in pathway_interactions:
+                            pair_key = tuple(sorted([pi.drug1, pi.drug2]))
+                            if pair_key not in seen_pairs:
+                                all_interactions.append(pi)
+                                seen_pairs.add(pair_key)
+
+        # Add QT prolongation interactions
+        if include_qt_check and self._graph_service:
+            for i, d1 in enumerate(unique_drugs):
+                for d2 in unique_drugs[i + 1:]:
+                    pair = tuple(sorted([d1, d2]))
+                    if pair not in seen_pairs:
+                        qt_interaction = self.check_qt_pair_interaction(d1, d2)
+                        if qt_interaction:
+                            all_interactions.append(qt_interaction)
+                            seen_pairs.add(pair)
+
+        # Recalculate severity counts
+        by_severity: dict[str, int] = {}
+        for interaction in all_interactions:
+            sev = interaction.severity.value
+            by_severity[sev] = by_severity.get(sev, 0) + 1
+
+        highest_severity = None
+        has_contraindicated = False
+        has_major = False
+
+        for interaction in all_interactions:
+            if interaction.severity == InteractionSeverity.CONTRAINDICATED:
+                has_contraindicated = True
+                highest_severity = InteractionSeverity.CONTRAINDICATED
+            elif interaction.severity == InteractionSeverity.MAJOR:
+                has_major = True
+                if highest_severity != InteractionSeverity.CONTRAINDICATED:
+                    highest_severity = InteractionSeverity.MAJOR
+            elif highest_severity is None:
+                highest_severity = interaction.severity
+
+        return InteractionCheckResult(
+            drugs_checked=unique_drugs,
+            interactions_found=all_interactions,
+            total_interactions=len(all_interactions),
+            by_severity=by_severity,
+            highest_severity=highest_severity,
+            has_contraindicated=has_contraindicated,
+            has_major=has_major,
+        )
 
     def get_stats(self) -> dict[str, Any]:
         """Get statistics about the interaction database.
