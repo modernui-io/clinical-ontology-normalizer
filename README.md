@@ -266,6 +266,25 @@ uv run pytest --cov=app --cov-report=html
 uv run pytest tests/test_nlp_rule_based.py -v
 ```
 
+## Working With Agents
+
+Use the prompt template and context bundler to keep tasks scoped and high-signal.
+
+- Prompt template: `AGENT_PROMPT_TEMPLATE.md`
+- Context bundle generator: `scripts/prepare_agent_context.py`
+
+Example:
+
+```bash
+make agent-bundle
+```
+
+Filtered bundle:
+
+```bash
+python3 scripts/prepare_agent_context.py --query health --query graph --out agent_context_health_graph.md
+```
+
 ## Environment Variables
 
 Key environment variables (see `.env.example`):

@@ -610,31 +610,6 @@ class MLModelService:
         # For demo, generate realistic predictions based on features
         prediction = self._simulate_prediction(model, metadata, feature_set)
 
-        # Apply calibration if available
-        try:
-            from app.services.prediction_calibration_service import (
-                get_prediction_calibration_service,
-            )
-
-            calibration_service = get_prediction_calibration_service()
-            calibrated_scores = calibration_service.apply_calibration(
-                model_id, metadata.version, [prediction.prediction], strict=False
-            )
-            if calibrated_scores:
-                calibrated = float(calibrated_scores[0])
-                if abs(calibrated - prediction.prediction) > 1e-6:
-                    calibrated = round(calibrated, 4)
-                    prediction = prediction.model_copy(
-                        update={
-                            "prediction": calibrated,
-                            "confidence": round(abs(calibrated - 0.5) * 2, 4),
-                            "risk_tier": self._risk_tier_from_probability(calibrated),
-                            "prediction_label": "Positive" if calibrated >= 0.5 else "Negative",
-                        }
-                    )
-        except Exception as exc:
-            logger.debug(f"Calibration skipped for {model_id}: {exc}")
-
         return prediction
 
     def predict_batch(

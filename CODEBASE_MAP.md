@@ -161,13 +161,14 @@ python3 scripts/generate_codebase_kg.py
 
 - `scripts/export_codebase_kg_neo4j.py`: export KG to Neo4j CSV (`kg_export/nodes.csv`, `kg_export/edges.csv`)
 - `scripts/install_repo_skills.py`: install repo skills into `$CODEX_HOME/skills`
- - `scripts/prepare_agent_context.py`: generate an agent context bundle (map + KG slice)
- - `AGENT_PROMPT_TEMPLATE.md`: prompt template for scoped tasks
+- `scripts/prepare_agent_context.py`: generate an agent context bundle (map + KG slice)
+- `AGENT_PROMPT_TEMPLATE.md`: prompt template for scoped tasks
 
 Make targets:
 - `make kg`: regenerate `codebase_kg.json`
 - `make kg-export`: export KG to `kg_export/`
 - `make kg-check`: verify KG is up to date (useful in CI)
+- `make agent-bundle`: generate `agent_context_bundle.md`
 
 ---
 

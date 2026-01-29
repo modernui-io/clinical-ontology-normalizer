@@ -98,3 +98,4 @@ Repo maps:
 - `CODEBASE_MAP.md`: human-readable map
 - `codebase_kg.json`: machine-readable KG
 - `scripts/generate_codebase_kg.py`: regenerate KG
+ - `AGENT_PROMPT_TEMPLATE.md`: scoped task template

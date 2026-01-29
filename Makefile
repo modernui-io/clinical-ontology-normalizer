@@ -1,4 +1,4 @@
-.PHONY: test lint typecheck dev dev-backend dev-worker clean help docker-up docker-down docker-build docker-logs docker-dev docker-migrate kg kg-export kg-check kg-lint skills-install
+.PHONY: test lint typecheck dev dev-backend dev-worker clean help docker-up docker-down docker-build docker-logs docker-dev docker-migrate kg kg-export kg-check kg-lint skills-install agent-bundle
 
 # Default target
 help:
@@ -19,6 +19,7 @@ help:
 	@echo "  kg-check      Verify codebase_kg.json is up to date"
 	@echo "  kg-lint       Lint KG scripts with Ruff"
 	@echo "  skills-install Install repo skills into CODEX_HOME"
+	@echo "  agent-bundle  Build an agent context bundle (agent_context_bundle.md)"
 	@echo ""
 	@echo "Docker targets:"
 	@echo "  docker-build  Build Docker images"
@@ -124,6 +125,9 @@ kg-lint:
 
 skills-install:
 	@python3 scripts/install_repo_skills.py
+
+agent-bundle:
+	@python3 scripts/prepare_agent_context.py
 
 # =============================================================================
 # Docker targets
