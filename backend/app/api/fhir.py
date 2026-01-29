@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import ipaddress
 import logging
-import os
 import re
 from datetime import datetime
 from pathlib import Path
@@ -23,6 +22,7 @@ from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.database import get_db
 from app.services.fhir_import import FHIRImportService
 from app.services.bulk_export_service import (
@@ -38,20 +38,8 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/fhir", tags=["fhir"])
 
 # =============================================================================
-# SSRF Prevention - URL Validation
+# SSRF Prevention - URL Validation (VP-Round51: Centralized in settings)
 # =============================================================================
-
-# Allowed FHIR servers (from environment variable, comma-separated)
-# If not set, all public URLs are allowed (with private IP blocking)
-_ALLOWED_FHIR_SERVERS_RAW = os.getenv("ALLOWED_FHIR_SERVERS", "")
-ALLOWED_FHIR_SERVERS: set[str] = {
-    s.strip().lower().rstrip("/")
-    for s in _ALLOWED_FHIR_SERVERS_RAW.split(",")
-    if s.strip()
-}
-
-# Always allow localhost in development
-ALLOW_LOCALHOST = os.getenv("ALLOW_LOCALHOST_FHIR", "true").lower() == "true"
 
 
 def _is_private_ip(hostname: str) -> bool:
@@ -121,7 +109,7 @@ def validate_fhir_url(url: str) -> str:
     # Check for localhost (allowed in dev mode)
     is_localhost = hostname in ("localhost", "127.0.0.1", "::1")
     if is_localhost:
-        if ALLOW_LOCALHOST:
+        if settings.allow_localhost_fhir:
             logger.debug(f"Allowing localhost FHIR server: {url}")
             return url
         else:
@@ -134,11 +122,12 @@ def validate_fhir_url(url: str) -> str:
             f"Cannot connect to internal/private addresses: {hostname}"
         )
 
-    # Check allowlist if configured
-    if ALLOWED_FHIR_SERVERS:
+    # Check allowlist if configured (VP-Round51: Uses centralized settings)
+    allowed_servers = settings.allowed_fhir_servers_set
+    if allowed_servers:
         normalized_url = f"{parsed.scheme}://{parsed.netloc}".lower().rstrip("/")
-        if normalized_url not in ALLOWED_FHIR_SERVERS:
-            allowed_list = ", ".join(sorted(ALLOWED_FHIR_SERVERS))
+        if normalized_url not in allowed_servers:
+            allowed_list = ", ".join(sorted(allowed_servers))
             raise ValueError(
                 f"FHIR server not in allowlist. Allowed servers: {allowed_list}"
             )

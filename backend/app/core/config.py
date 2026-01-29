@@ -124,6 +124,26 @@ class Settings(BaseSettings):
     umls_api_key: str | None = None  # For UMLS API access
     umls_data_path: str | None = None  # Path to UMLS META directory
 
+    # FHIR Configuration (VP-Round51: Centralized from fhir.py)
+    # Comma-separated list of allowed FHIR servers for SSRF prevention
+    # If not set, all public URLs are allowed (with private IP blocking)
+    allowed_fhir_servers: str = ""
+    allow_localhost_fhir: bool = True  # Allow localhost in development
+
+    @cached_property
+    def allowed_fhir_servers_set(self) -> set[str]:
+        """Parse allowed FHIR servers from comma-separated string.
+
+        Returns normalized set of server URLs (lowercase, no trailing slash).
+        """
+        if not self.allowed_fhir_servers:
+            return set()
+        return {
+            s.strip().lower().rstrip("/")
+            for s in self.allowed_fhir_servers.split(",")
+            if s.strip()
+        }
+
     @field_validator("jwt_secret_key", "api_key", "neo4j_password", mode="before")
     @classmethod
     def check_not_insecure_default(cls, v: str | None) -> str | None:
