@@ -1,24 +1,31 @@
 """Data-Driven Clinical Calculator Definitions.
 
-This module provides data structures for defining clinical calculators
-in a declarative, data-driven manner. The goal is to reduce code duplication
-while maintaining safety and testability for medical calculations.
+This module provides comprehensive data structures for defining clinical calculators
+in a declarative, data-driven manner. Based on patterns from:
+- MDCalc (900+ calculators): https://www.mdcalc.com/
+- EBMcalc: https://ebmcalc.com/
+- MedCalc-Bench (NCBI/NLM): https://github.com/ncbi-nlp/MedCalc-Bench
 
-Two main patterns are supported:
+Calculator Types Supported:
+1. CRITERIA: Point-based scoring (CHA2DS2-VASc, HAS-BLED, Wells, CURB-65)
+2. EQUATION: Mathematical formulas (BMI, eGFR, MELD, ASCVD)
+3. DECISION_TREE: Algorithmic pathways (Ottawa Ankle, PERC)
+4. CONVERSION: Unit conversions (temperature, weight, lab values)
 
-1. Point-Based Scoring: Calculators that sum points for boolean criteria
-   (CHA2DS2-VASc, HAS-BLED, Wells DVT, CURB-65, etc.)
-
-2. Formula-Based: Calculators with mathematical formulas
-   (BMI, eGFR, MELD, ASCVD, etc.) - formulas stay as Python code
+Scoring Patterns:
+- Boolean criteria (1 point if true)
+- Multi-level criteria (0/1/2 points based on severity)
+- Threshold criteria (points based on numeric ranges)
+- Age-based scoring (tiered by age brackets)
 
 The data-driven approach handles:
-- Calculator metadata (name, category, references)
-- Scoring criteria definitions
+- Calculator metadata (name, category, specialty, references)
+- Scoring criteria definitions (all patterns)
 - Risk threshold interpretations
 - Recommendations per risk level
+- Formula parameter definitions (for equation-based)
 
-This reduces repetitive boilerplate while keeping formulas safe.
+This reduces repetitive boilerplate while keeping formulas safe and testable.
 """
 
 from dataclasses import dataclass, field
@@ -36,8 +43,16 @@ class RiskLevel(str, Enum):
     VERY_HIGH = "very_high"
 
 
+class CalculatorType(str, Enum):
+    """Calculator computation types (based on MDCalc/MedCalc-Bench taxonomy)."""
+    CRITERIA = "criteria"  # Rule-based scoring (risk, severity, diagnosis)
+    EQUATION = "equation"  # Mathematical formulas (lab test, dosage, physical)
+    DECISION_TREE = "decision_tree"  # Algorithmic pathways
+    CONVERSION = "conversion"  # Unit conversions
+
+
 class CalculatorCategory(str, Enum):
-    """Calculator categories."""
+    """Calculator clinical categories (based on MDCalc specialties)."""
     CARDIOVASCULAR = "cardiovascular"
     RENAL = "renal"
     HEPATIC = "hepatic"
@@ -48,12 +63,29 @@ class CalculatorCategory(str, Enum):
     SURGICAL = "surgical"
     OBSTETRIC = "obstetric"
     METABOLIC = "metabolic"
+    HEMATOLOGY = "hematology"
+    ONCOLOGY = "oncology"
+    EMERGENCY = "emergency"
+    PEDIATRIC = "pediatric"
+    GERIATRIC = "geriatric"
     GENERAL = "general"
+
+
+class OutputType(str, Enum):
+    """Calculator output types (based on MedCalc-Bench)."""
+    INTEGER = "integer"  # Whole number score
+    DECIMAL = "decimal"  # Floating point value
+    PERCENTAGE = "percentage"  # Risk as percentage
+    CATEGORY = "category"  # Categorical result (low/moderate/high)
+    DATE = "date"  # Date calculation (e.g., due date)
+    DURATION = "duration"  # Time duration (weeks, days)
 
 
 @dataclass
 class ScoringCriterion:
-    """A single scoring criterion for point-based calculators.
+    """A single boolean scoring criterion for point-based calculators.
+
+    Use for simple yes/no criteria that award fixed points.
 
     Attributes:
         name: Parameter name (e.g., "congestive_heart_failure")
@@ -68,6 +100,47 @@ class ScoringCriterion:
 
 
 @dataclass
+class MultiLevelCriterion:
+    """Multi-level scoring criterion (0/1/2 points based on severity).
+
+    Use for criteria like HEART score history (slightly/moderately/highly suspicious)
+    or troponin levels (normal/1-3x/3x+ ULN).
+
+    Attributes:
+        name: Parameter name base (e.g., "history")
+        display_name: Human-readable category (e.g., "History")
+        levels: List of (level_name, points, display_text) tuples
+                First match wins, so order from most to least severe.
+        description: Clinical description
+    """
+    name: str
+    display_name: str
+    levels: list[tuple[str, int, str]]  # [(param_suffix, points, display), ...]
+    description: str = ""
+
+
+@dataclass
+class ThresholdCriterion:
+    """Threshold-based scoring criterion for numeric values.
+
+    Use for criteria like SIRS temperature (>38°C or <36°C awards 1 point).
+
+    Attributes:
+        name: Parameter name (e.g., "temperature")
+        display_name: Human-readable name (e.g., "Temperature")
+        thresholds: List of (operator, value, points, display) tuples
+                   Operators: "gt", "lt", "gte", "lte", "eq", "between"
+        unit: Unit of measurement (e.g., "°C", "bpm")
+        description: Clinical description
+    """
+    name: str
+    display_name: str
+    thresholds: list[tuple[str, float | tuple[float, float], int, str]]
+    unit: str = ""
+    description: str = ""
+
+
+@dataclass
 class AgeScoringRule:
     """Age-based scoring rule for calculators with age thresholds.
 
@@ -77,6 +150,47 @@ class AgeScoringRule:
     """
     thresholds: list[tuple[int, int]]  # [(threshold, points), ...]
     display_format: str = "Age ≥{threshold}"
+
+
+@dataclass
+class FormulaParameter:
+    """Parameter definition for equation-based calculators.
+
+    Attributes:
+        name: Parameter name (e.g., "creatinine")
+        display_name: Human-readable name (e.g., "Serum Creatinine")
+        unit: Unit of measurement (e.g., "mg/dL")
+        min_value: Minimum valid value (for validation)
+        max_value: Maximum valid value (for validation)
+        required: Whether parameter is required
+        description: Clinical description
+    """
+    name: str
+    display_name: str
+    unit: str = ""
+    min_value: float | None = None
+    max_value: float | None = None
+    required: bool = True
+    description: str = ""
+
+
+@dataclass
+class FormulaDefinition:
+    """Definition for equation-based calculators.
+
+    The actual formula stays as Python code for safety, but this defines
+    the parameters and expected output.
+
+    Attributes:
+        parameters: List of input parameters
+        formula_text: Human-readable formula description
+        output_unit: Unit of the calculated result
+        precision: Number of decimal places for output
+    """
+    parameters: list[FormulaParameter]
+    formula_text: str
+    output_unit: str
+    precision: int = 1
 
 
 @dataclass
@@ -101,30 +215,48 @@ class ThresholdInterpretation:
 class CalculatorDefinition:
     """Complete definition for a clinical calculator.
 
+    Supports multiple calculator types from MDCalc/MedCalc-Bench taxonomy:
+    - CRITERIA: Point-based scoring with boolean, multi-level, or threshold criteria
+    - EQUATION: Mathematical formulas with defined parameters
+    - DECISION_TREE: Algorithmic decision pathways
+    - CONVERSION: Unit conversion calculations
+
     Attributes:
         id: Unique calculator identifier (e.g., "chadsvasc")
         name: Full display name (e.g., "CHA₂DS₂-VASc Score")
         short_name: Abbreviated name (e.g., "CHA2DS2-VASc")
-        category: Calculator category
+        calc_type: Type of calculator (CRITERIA, EQUATION, etc.)
+        category: Clinical category (cardiovascular, renal, etc.)
+        output_type: Type of output (integer, decimal, percentage, etc.)
         score_unit: Unit for the score (e.g., "points", "kg/m²", "%")
         references: List of literature references
         description: Clinical description/indication
-        criteria: List of scoring criteria (for point-based)
+        criteria: List of boolean scoring criteria
+        multi_level_criteria: List of multi-level criteria (0/1/2 points)
+        threshold_criteria: List of threshold-based criteria
         age_scoring: Age-based scoring rule (optional)
+        formula: Formula definition (for equation-based)
         interpretations: List of threshold interpretations
         notes: Additional clinical notes
+        specialties: List of relevant medical specialties
     """
     id: str
     name: str
     short_name: str
-    category: CalculatorCategory
-    score_unit: str
-    references: list[str]
+    calc_type: CalculatorType = CalculatorType.CRITERIA
+    category: CalculatorCategory = CalculatorCategory.GENERAL
+    output_type: OutputType = OutputType.INTEGER
+    score_unit: str = "points"
+    references: list[str] = field(default_factory=list)
     description: str = ""
     criteria: list[ScoringCriterion] = field(default_factory=list)
+    multi_level_criteria: list[MultiLevelCriterion] = field(default_factory=list)
+    threshold_criteria: list[ThresholdCriterion] = field(default_factory=list)
     age_scoring: AgeScoringRule | None = None
+    formula: FormulaDefinition | None = None
     interpretations: list[ThresholdInterpretation] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
+    specialties: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -153,16 +285,46 @@ class CalculatorResult:
     warnings: list[str] = field(default_factory=list)
 
 
+def _evaluate_threshold(
+    value: float,
+    operator: str,
+    threshold: float | tuple[float, float],
+) -> bool:
+    """Evaluate a threshold condition."""
+    if operator == "gt":
+        return value > threshold
+    elif operator == "lt":
+        return value < threshold
+    elif operator == "gte":
+        return value >= threshold
+    elif operator == "lte":
+        return value <= threshold
+    elif operator == "eq":
+        return value == threshold
+    elif operator == "between":
+        if isinstance(threshold, tuple):
+            return threshold[0] <= value <= threshold[1]
+    elif operator == "outside":
+        if isinstance(threshold, tuple):
+            return value < threshold[0] or value > threshold[1]
+    return False
+
+
 def calculate_point_based_score(
     definition: CalculatorDefinition,
-    values: dict[str, bool],
+    values: dict[str, bool | int | float],
     age: int | None = None,
 ) -> CalculatorResult:
     """Calculate score for a point-based calculator using its definition.
 
+    Supports three types of criteria:
+    1. Boolean criteria: Simple yes/no with fixed points
+    2. Multi-level criteria: 0/1/2 points based on severity level
+    3. Threshold criteria: Points based on numeric value ranges
+
     Args:
         definition: Calculator definition with criteria and interpretations
-        values: Dict mapping criterion names to boolean values
+        values: Dict mapping criterion names to values (bool, int, or float)
         age: Patient age (for calculators with age-based scoring)
 
     Returns:
@@ -171,13 +333,37 @@ def calculate_point_based_score(
     score = 0
     components: dict[str, int] = {}
 
-    # Sum points from boolean criteria
+    # 1. Sum points from boolean criteria
     for criterion in definition.criteria:
         if values.get(criterion.name, False):
             score += criterion.points
             components[criterion.display_name] = criterion.points
 
-    # Apply age-based scoring if applicable
+    # 2. Process multi-level criteria (0/1/2 based on severity)
+    for mlc in definition.multi_level_criteria:
+        matched = False
+        for level_suffix, points, display in mlc.levels:
+            param_name = f"{mlc.name}_{level_suffix}"
+            if values.get(param_name, False):
+                score += points
+                components[display] = points
+                matched = True
+                break
+        if not matched:
+            # No level matched, record 0 points for the base criterion
+            components[f"{mlc.display_name} (none)"] = 0
+
+    # 3. Process threshold-based criteria (numeric ranges)
+    for tc in definition.threshold_criteria:
+        value = values.get(tc.name)
+        if value is not None and isinstance(value, (int, float)):
+            for operator, threshold, points, display in tc.thresholds:
+                if _evaluate_threshold(float(value), operator, threshold):
+                    score += points
+                    components[display] = points
+                    break
+
+    # 4. Apply age-based scoring if applicable
     if age is not None and definition.age_scoring is not None:
         sorted_thresholds = sorted(definition.age_scoring.thresholds, reverse=True)
         for i, (threshold, points) in enumerate(sorted_thresholds):
@@ -515,12 +701,272 @@ QSOFA_DEFINITION = CalculatorDefinition(
 
 
 # Registry of all calculator definitions
+HEART_SCORE_DEFINITION = CalculatorDefinition(
+    id="heart_score",
+    name="HEART Score",
+    short_name="HEART",
+    calc_type=CalculatorType.CRITERIA,
+    category=CalculatorCategory.CARDIOVASCULAR,
+    output_type=OutputType.INTEGER,
+    score_unit="points",
+    description="Major adverse cardiac events risk in chest pain patients",
+    references=["Six AJ, et al. Neth Heart J 2008", "Backus BE, et al. Int J Cardiol 2013"],
+    specialties=["Emergency Medicine", "Cardiology"],
+    multi_level_criteria=[
+        MultiLevelCriterion(
+            name="history",
+            display_name="History",
+            levels=[
+                ("highly_suspicious", 2, "History (highly suspicious)"),
+                ("moderately_suspicious", 1, "History (moderately suspicious)"),
+                ("slightly_suspicious", 0, "History (slightly suspicious)"),
+            ],
+            description="History suspicion level for ACS",
+        ),
+        MultiLevelCriterion(
+            name="ekg",
+            display_name="EKG",
+            levels=[
+                ("significant_st_depression", 2, "EKG (significant ST depression)"),
+                ("nonspecific_changes", 1, "EKG (non-specific changes)"),
+                ("normal", 0, "EKG (normal)"),
+            ],
+            description="EKG findings",
+        ),
+        MultiLevelCriterion(
+            name="risk_factors",
+            display_name="Risk Factors",
+            levels=[
+                ("three_or_more", 2, "Risk factors ≥3"),
+                ("one_or_two", 1, "Risk factors 1-2"),
+                ("none", 0, "No risk factors"),
+            ],
+            description="HTN, DM, smoking, obesity, family hx, hyperlipidemia",
+        ),
+        MultiLevelCriterion(
+            name="troponin",
+            display_name="Troponin",
+            levels=[
+                ("elevated_3x", 2, "Troponin >3x ULN"),
+                ("elevated_1_3x", 1, "Troponin 1-3x ULN"),
+                ("normal", 0, "Troponin normal"),
+            ],
+            description="Initial troponin level",
+        ),
+    ],
+    age_scoring=AgeScoringRule(
+        thresholds=[(65, 2), (45, 1)],
+        display_format="Age ≥{threshold}",
+    ),
+    interpretations=[
+        ThresholdInterpretation(
+            min_score=0, max_score=4,
+            risk_level=RiskLevel.LOW,
+            interpretation="Low risk - consider early discharge",
+            recommendations=[
+                "Consider early discharge with outpatient follow-up",
+                "Stress testing within 72 hours if discharged",
+                "Return precautions for chest pain",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=4, max_score=7,
+            risk_level=RiskLevel.MODERATE,
+            interpretation="Moderate risk - admission recommended",
+            recommendations=[
+                "Admission for observation recommended",
+                "Serial troponins",
+                "Consider non-invasive stress testing",
+                "Cardiology consultation",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=7, max_score=None,
+            risk_level=RiskLevel.HIGH,
+            interpretation="High risk - early invasive management",
+            recommendations=[
+                "Admit to monitored bed",
+                "Early invasive strategy recommended",
+                "Cardiology consultation urgent",
+                "Dual antiplatelet therapy if not contraindicated",
+            ],
+        ),
+    ],
+)
+
+
+SIRS_DEFINITION = CalculatorDefinition(
+    id="sirs",
+    name="SIRS Criteria",
+    short_name="SIRS",
+    calc_type=CalculatorType.CRITERIA,
+    category=CalculatorCategory.CRITICAL_CARE,
+    output_type=OutputType.INTEGER,
+    score_unit="criteria",
+    description="Systemic Inflammatory Response Syndrome criteria",
+    references=["Bone RC, et al. Chest 1992"],
+    specialties=["Critical Care", "Emergency Medicine", "Internal Medicine"],
+    threshold_criteria=[
+        ThresholdCriterion(
+            name="temperature",
+            display_name="Temperature",
+            thresholds=[
+                ("gt", 38.0, 1, "Temperature >38°C"),
+                ("lt", 36.0, 1, "Temperature <36°C"),
+            ],
+            unit="°C",
+            description="Body temperature abnormal (>38°C or <36°C)",
+        ),
+        ThresholdCriterion(
+            name="heart_rate",
+            display_name="Heart Rate",
+            thresholds=[
+                ("gt", 90, 1, "Heart rate >90 bpm"),
+            ],
+            unit="bpm",
+            description="Heart rate >90 bpm",
+        ),
+        ThresholdCriterion(
+            name="respiratory_rate",
+            display_name="Respiratory Rate",
+            thresholds=[
+                ("gt", 20, 1, "Respiratory rate >20/min"),
+            ],
+            unit="/min",
+            description="Respiratory rate >20/min or PaCO2 <32 mmHg",
+        ),
+        ThresholdCriterion(
+            name="wbc",
+            display_name="WBC",
+            thresholds=[
+                ("gt", 12.0, 1, "WBC >12,000"),
+                ("lt", 4.0, 1, "WBC <4,000"),
+            ],
+            unit="×10³/µL",
+            description="WBC >12,000 or <4,000 or >10% bands",
+        ),
+    ],
+    interpretations=[
+        ThresholdInterpretation(
+            min_score=0, max_score=2,
+            risk_level=RiskLevel.LOW,
+            interpretation="SIRS negative",
+            recommendations=[
+                "SIRS criteria not met",
+                "Continue monitoring vital signs",
+                "Investigate other causes of symptoms",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=2, max_score=None,
+            risk_level=RiskLevel.MODERATE,
+            interpretation="SIRS positive - evaluate for infection",
+            recommendations=[
+                "SIRS criteria met - evaluate for infection source",
+                "Consider sepsis workup (cultures, lactate)",
+                "Monitor for organ dysfunction (qSOFA, SOFA)",
+                "Early antibiotics if infection suspected",
+            ],
+        ),
+    ],
+)
+
+
+GCS_DEFINITION = CalculatorDefinition(
+    id="gcs",
+    name="Glasgow Coma Scale",
+    short_name="GCS",
+    calc_type=CalculatorType.CRITERIA,
+    category=CalculatorCategory.NEUROLOGICAL,
+    output_type=OutputType.INTEGER,
+    score_unit="points",
+    description="Level of consciousness assessment",
+    references=["Teasdale G, Jennett B. Lancet 1974"],
+    specialties=["Emergency Medicine", "Neurology", "Critical Care", "Trauma"],
+    multi_level_criteria=[
+        MultiLevelCriterion(
+            name="eye",
+            display_name="Eye Opening",
+            levels=[
+                ("spontaneous", 4, "Eye: Spontaneous (4)"),
+                ("to_voice", 3, "Eye: To voice (3)"),
+                ("to_pain", 2, "Eye: To pain (2)"),
+                ("none", 1, "Eye: None (1)"),
+            ],
+            description="Best eye opening response",
+        ),
+        MultiLevelCriterion(
+            name="verbal",
+            display_name="Verbal Response",
+            levels=[
+                ("oriented", 5, "Verbal: Oriented (5)"),
+                ("confused", 4, "Verbal: Confused (4)"),
+                ("inappropriate", 3, "Verbal: Inappropriate words (3)"),
+                ("incomprehensible", 2, "Verbal: Incomprehensible sounds (2)"),
+                ("none", 1, "Verbal: None (1)"),
+            ],
+            description="Best verbal response",
+        ),
+        MultiLevelCriterion(
+            name="motor",
+            display_name="Motor Response",
+            levels=[
+                ("obeys", 6, "Motor: Obeys commands (6)"),
+                ("localizes", 5, "Motor: Localizes pain (5)"),
+                ("withdraws", 4, "Motor: Withdraws from pain (4)"),
+                ("flexion", 3, "Motor: Abnormal flexion (3)"),
+                ("extension", 2, "Motor: Extension (2)"),
+                ("none", 1, "Motor: None (1)"),
+            ],
+            description="Best motor response",
+        ),
+    ],
+    interpretations=[
+        ThresholdInterpretation(
+            min_score=3, max_score=9,
+            risk_level=RiskLevel.VERY_HIGH,
+            interpretation="Severe brain injury - GCS 3-8",
+            recommendations=[
+                "Airway protection likely needed",
+                "Consider intubation for GCS ≤8",
+                "Urgent neuroimaging",
+                "Neurosurgery consultation",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=9, max_score=13,
+            risk_level=RiskLevel.MODERATE,
+            interpretation="Moderate brain injury - GCS 9-12",
+            recommendations=[
+                "Close neurological monitoring",
+                "Neuroimaging recommended",
+                "Frequent reassessment",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=13, max_score=None,
+            risk_level=RiskLevel.LOW,
+            interpretation="Mild brain injury - GCS 13-15",
+            recommendations=[
+                "Observation and monitoring",
+                "Consider CT if indicated by mechanism",
+                "Discharge with head injury precautions if appropriate",
+            ],
+        ),
+    ],
+)
+
+
+# Registry of all calculator definitions
 CALCULATOR_DEFINITIONS: dict[str, CalculatorDefinition] = {
     "chadsvasc": CHADSVASC_DEFINITION,
     "hasbled": HASBLED_DEFINITION,
     "wells_dvt": WELLS_DVT_DEFINITION,
     "curb65": CURB65_DEFINITION,
     "qsofa": QSOFA_DEFINITION,
+    "heart_score": HEART_SCORE_DEFINITION,
+    "sirs": SIRS_DEFINITION,
+    "gcs": GCS_DEFINITION,
 }
 
 
