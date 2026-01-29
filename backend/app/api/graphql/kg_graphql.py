@@ -11,6 +11,7 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
 import json
 import re
+import threading
 
 
 # =============================================================================
@@ -1727,17 +1728,22 @@ class KGGraphQLService:
 
 
 _kg_graphql_service: Optional[KGGraphQLService] = None
+_kg_graphql_lock = threading.Lock()
 
 
 def get_kg_graphql_service() -> KGGraphQLService:
     """Get the singleton KG GraphQL service instance."""
     global _kg_graphql_service
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _kg_graphql_service is None:
-        _kg_graphql_service = KGGraphQLService()
+        with _kg_graphql_lock:
+            if _kg_graphql_service is None:
+                _kg_graphql_service = KGGraphQLService()
     return _kg_graphql_service
 
 
 def reset_kg_graphql_service():
     """Reset the singleton instance (for testing)."""
     global _kg_graphql_service
-    _kg_graphql_service = None
+    with _kg_graphql_lock:
+        _kg_graphql_service = None

@@ -1,6 +1,7 @@
 """Document processing job functions."""
 
 import logging
+import threading
 from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
@@ -20,13 +21,17 @@ logger = logging.getLogger(__name__)
 
 # Singleton NLP service for reuse across job calls
 _nlp_service: RuleBasedNLPService | None = None
+_nlp_service_lock = threading.Lock()
 
 
 def get_nlp_service() -> RuleBasedNLPService:
     """Get or create the NLP service singleton."""
     global _nlp_service
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _nlp_service is None:
-        _nlp_service = RuleBasedNLPService()
+        with _nlp_service_lock:
+            if _nlp_service is None:
+                _nlp_service = RuleBasedNLPService()
     return _nlp_service
 
 

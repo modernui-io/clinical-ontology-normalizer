@@ -24,6 +24,7 @@ Usage:
 import asyncio
 import logging
 import os
+import threading
 import platform
 import time
 from datetime import datetime, timezone
@@ -474,6 +475,7 @@ def _determine_overall_status(checks: dict[str, ComponentHealth]) -> HealthStatu
 # =============================================================================
 
 _app_start_time: float | None = None
+_app_start_lock = threading.Lock()
 
 
 def set_app_start_time(start_time: float) -> None:
@@ -483,7 +485,9 @@ def set_app_start_time(start_time: float) -> None:
         start_time: Unix timestamp when the app started.
     """
     global _app_start_time
-    _app_start_time = start_time
+    # VP-ThreadSafety: Lock for thread-safe write
+    with _app_start_lock:
+        _app_start_time = start_time
 
 
 def get_uptime_seconds() -> float | None:
@@ -492,6 +496,7 @@ def get_uptime_seconds() -> float | None:
     Returns:
         Uptime in seconds, or None if start time not set.
     """
+    # VP-ThreadSafety: Read is atomic for float, no lock needed
     if _app_start_time is None:
         return None
     return time.time() - _app_start_time
