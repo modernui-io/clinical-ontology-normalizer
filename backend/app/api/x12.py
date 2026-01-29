@@ -262,6 +262,15 @@ async def parse_x12_file(file: UploadFile = File(...)) -> X12ParseResponse:
     logger.info(f"Parsing X12 file: {file.filename}")
 
     content = await file.read()
+
+    # VP-Security: Limit file size to prevent memory exhaustion (10MB max)
+    max_size = 10 * 1024 * 1024
+    if len(content) > max_size:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File too large. Maximum size is {max_size // (1024*1024)}MB",
+        )
+
     content_str = content.decode("utf-8")
 
     service = get_x12_service()

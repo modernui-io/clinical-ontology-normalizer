@@ -942,6 +942,15 @@ async def import_csv(
 
     try:
         contents = await file.read()
+
+        # VP-Security: Limit file size to prevent memory exhaustion (10MB max)
+        max_size = 10 * 1024 * 1024
+        if len(contents) > max_size:
+            raise HTTPException(
+                status_code=400,
+                detail=f"File too large. Maximum size is {max_size // (1024*1024)}MB",
+            )
+
         csv_data = contents.decode("utf-8")
 
         vs = service.import_csv(
