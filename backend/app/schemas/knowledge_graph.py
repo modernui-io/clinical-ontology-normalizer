@@ -30,8 +30,38 @@ class EdgeType(str, Enum):
     DRUG_TREATS = "drug_treats"
 
 
+class TemporalOrder(str, Enum):
+    """Temporal ordering relationships based on Allen's interval algebra.
+
+    Used to express temporal relationships between events/facts:
+    - BEFORE: Event A ends before event B starts
+    - AFTER: Event A starts after event B ends
+    - DURING: Event A occurs within the timespan of event B
+    - CONTAINS: Event A contains event B (inverse of DURING)
+    - OVERLAPS: Event A overlaps with the start of event B
+    - STARTS: Event A starts at the same time as event B
+    - FINISHES: Event A ends at the same time as event B
+    - CONCURRENT: Events A and B occur at approximately the same time
+    - UNKNOWN: Temporal relationship cannot be determined
+    """
+
+    BEFORE = "before"
+    AFTER = "after"
+    DURING = "during"
+    CONTAINS = "contains"
+    OVERLAPS = "overlaps"
+    STARTS = "starts"
+    FINISHES = "finishes"
+    CONCURRENT = "concurrent"
+    UNKNOWN = "unknown"
+
+
 class KGNodeCreate(BaseModel):
-    """Schema for creating a knowledge graph node."""
+    """Schema for creating a knowledge graph node.
+
+    Base schema with core node fields. Used for node creation
+    and as a base class for the full KGNode response schema.
+    """
 
     patient_id: str = Field(..., description="Patient this node belongs to")
     node_type: NodeType = Field(..., description="Type of node")
@@ -42,8 +72,10 @@ class KGNodeCreate(BaseModel):
     properties: dict = Field(default_factory=dict, description="Node-specific properties")
 
 
-class KGNode(BaseModel):
-    """Schema for a knowledge graph node.
+class KGNode(KGNodeCreate):
+    """Schema for a knowledge graph node response.
+
+    Extends KGNodeCreate with server-generated fields (id, created_at).
 
     Nodes represent entities in the patient's clinical knowledge graph:
     - Patient node: Central node for the patient
@@ -56,18 +88,25 @@ class KGNode(BaseModel):
     """
 
     id: UUID = Field(..., description="Unique node identifier")
-    patient_id: str = Field(..., description="Patient this node belongs to")
-    node_type: NodeType = Field(..., description="Type of node")
-    omop_concept_id: int | None = Field(None, description="OMOP concept ID")
-    label: str = Field(..., description="Human-readable label")
-    properties: dict = Field(default_factory=dict, description="Node properties")
     created_at: datetime = Field(..., description="When node was created")
 
     model_config = {"from_attributes": True}
 
 
+class Temporality(str, Enum):
+    """Temporal assertion from NLP extraction."""
+
+    CURRENT = "current"  # Happening now / ongoing
+    PAST = "past"  # Historical / happened before
+    FUTURE = "future"  # Planned / anticipated
+
+
 class KGEdgeCreate(BaseModel):
-    """Schema for creating a knowledge graph edge."""
+    """Schema for creating a knowledge graph edge.
+
+    Base schema with core edge fields. Used for edge creation
+    and as a base class for the full KGEdge response schema.
+    """
 
     patient_id: str = Field(..., description="Patient this edge belongs to")
     source_node_id: UUID = Field(..., description="Source node ID")
@@ -76,27 +115,66 @@ class KGEdgeCreate(BaseModel):
     fact_id: UUID | None = Field(None, description="Source clinical fact ID")
     properties: dict = Field(default_factory=dict, description="Edge-specific properties")
 
+    # Valid Time: When the clinical event happened in the real world
+    event_date: datetime | None = Field(
+        None, description="When this clinical event occurred (point in time)"
+    )
+    valid_from: datetime | None = Field(
+        None, description="When this relationship became true (start of validity)"
+    )
+    valid_to: datetime | None = Field(
+        None, description="When this relationship ceased to be true (null = ongoing)"
+    )
 
-class KGEdge(BaseModel):
-    """Schema for a knowledge graph edge.
+    # Transaction Time: Provenance - when/where we learned about it
+    recorded_at: datetime | None = Field(
+        None, description="When this was recorded in the source system"
+    )
+    source_document_date: datetime | None = Field(
+        None, description="Date of the source document (note date, lab date)"
+    )
+
+    # Temporal Assertion from NLP
+    temporality: Temporality | None = Field(
+        None, description="Temporal assertion: current, past, future"
+    )
+
+    # Temporal ordering and confidence
+    temporal_order: TemporalOrder | None = Field(
+        None, description="Temporal ordering vs related events"
+    )
+    temporal_confidence: float | None = Field(
+        None, ge=0.0, le=1.0, description="Confidence in temporal assertions (0-1)"
+    )
+
+
+class KGEdge(KGEdgeCreate):
+    """Schema for a knowledge graph edge response.
+
+    Extends KGEdgeCreate with server-generated fields (id, created_at).
 
     Edges represent relationships between nodes:
-    - has_condition: Patient → Condition
-    - takes_drug: Patient → Drug
-    - has_measurement: Patient → Measurement
-    - condition_treated_by: Condition → Drug
+    - has_condition: Patient -> Condition
+    - takes_drug: Patient -> Drug
+    - has_measurement: Patient -> Measurement
+    - condition_treated_by: Condition -> Drug
 
-    Properties may include temporal information, evidence strength, etc.
+    Bi-Temporal Fields:
+    1. Valid Time (Event Time): When the clinical event happened
+       - event_date: Point in time (e.g., "diagnosed on 2023-03-15")
+       - valid_from/to: Validity period (e.g., "on med from Jan-June 2023")
+
+    2. Transaction Time (Record Time): Provenance - when we learned about it
+       - recorded_at: When recorded in source system
+       - source_document_date: Date of the source document
+       - created_at: When created in our KG
+
+    3. Temporal Assertion: From NLP extraction
+       - temporality: current, past, future
     """
 
     id: UUID = Field(..., description="Unique edge identifier")
-    patient_id: str = Field(..., description="Patient this edge belongs to")
-    source_node_id: UUID = Field(..., description="Source node ID")
-    target_node_id: UUID = Field(..., description="Target node ID")
-    edge_type: EdgeType = Field(..., description="Type of relationship")
-    fact_id: UUID | None = Field(None, description="Source clinical fact ID")
-    properties: dict = Field(default_factory=dict, description="Edge properties")
-    created_at: datetime = Field(..., description="When edge was created")
+    created_at: datetime = Field(..., description="When edge was created in KG")
 
     model_config = {"from_attributes": True}
 

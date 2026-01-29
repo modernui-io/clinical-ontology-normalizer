@@ -9,7 +9,11 @@ from app.schemas.base import Assertion, Domain, Experiencer, Temporality
 
 
 class MentionCreate(BaseModel):
-    """Schema for creating a mention extracted from text."""
+    """Schema for creating a mention extracted from text.
+
+    Base schema with core mention fields. Used for mention creation
+    and as a base class for the full Mention response schema.
+    """
 
     document_id: UUID = Field(..., description="ID of source document")
     text: str = Field(..., description="The extracted text span")
@@ -32,27 +36,24 @@ class MentionCreate(BaseModel):
         return v
 
 
-class Mention(BaseModel):
-    """Schema for an extracted mention."""
+class Mention(MentionCreate):
+    """Schema for an extracted mention response.
+
+    Extends MentionCreate with server-generated fields (id, created_at).
+    """
 
     id: UUID = Field(..., description="Unique mention identifier")
-    document_id: UUID = Field(..., description="ID of source document")
-    text: str = Field(..., description="The extracted text span")
-    start_offset: int = Field(..., description="Character start position")
-    end_offset: int = Field(..., description="Character end position")
-    lexical_variant: str = Field(..., description="Normalized form")
-    section: str | None = Field(None, description="Clinical section")
-    assertion: Assertion = Field(..., description="Assertion status")
-    temporality: Temporality = Field(..., description="Temporal context")
-    experiencer: Experiencer = Field(..., description="Who it applies to")
-    confidence: float = Field(..., description="Extraction confidence")
     created_at: datetime = Field(..., description="When mention was created")
 
     model_config = {"from_attributes": True}
 
 
 class MentionConceptCandidateCreate(BaseModel):
-    """Schema for creating a concept mapping candidate."""
+    """Schema for creating a concept mapping candidate.
+
+    Base schema with core candidate fields. Used for candidate creation
+    and as a base class for the full MentionConceptCandidate response schema.
+    """
 
     mention_id: UUID = Field(..., description="ID of the mention being mapped")
     omop_concept_id: int = Field(..., description="OMOP concept ID")
@@ -65,19 +66,13 @@ class MentionConceptCandidateCreate(BaseModel):
     rank: int = Field(..., ge=1, description="Rank among candidates (1=best)")
 
 
-class MentionConceptCandidate(BaseModel):
-    """Schema for a concept mapping candidate."""
+class MentionConceptCandidate(MentionConceptCandidateCreate):
+    """Schema for a concept mapping candidate response.
+
+    Extends MentionConceptCandidateCreate with server-generated fields.
+    """
 
     id: UUID = Field(..., description="Unique candidate identifier")
-    mention_id: UUID = Field(..., description="ID of the mention")
-    omop_concept_id: int = Field(..., description="OMOP concept ID")
-    concept_name: str = Field(..., description="Human-readable concept name")
-    concept_code: str = Field(..., description="Source vocabulary code")
-    vocabulary_id: str = Field(..., description="Source vocabulary")
-    domain_id: Domain = Field(..., description="OMOP domain")
-    score: float = Field(..., description="Mapping confidence score")
-    method: str = Field(..., description="Mapping method used")
-    rank: int = Field(..., description="Rank among candidates")
     created_at: datetime = Field(..., description="When candidate was created")
 
     model_config = {"from_attributes": True}

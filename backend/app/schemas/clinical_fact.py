@@ -18,7 +18,11 @@ class EvidenceType(str, Enum):
 
 
 class ClinicalFactCreate(BaseModel):
-    """Schema for creating a canonical clinical fact."""
+    """Schema for creating a canonical clinical fact.
+
+    Base schema with core clinical fact fields. Used for fact creation
+    and as a base class for the full ClinicalFact response schema.
+    """
 
     patient_id: str = Field(..., description="Patient identifier")
     domain: Domain = Field(..., description="OMOP domain (condition, drug, etc.)")
@@ -34,8 +38,10 @@ class ClinicalFactCreate(BaseModel):
     end_date: datetime | None = Field(None, description="When the fact ended (if applicable)")
 
 
-class ClinicalFact(BaseModel):
-    """Schema for a canonical clinical fact.
+class ClinicalFact(ClinicalFactCreate):
+    """Schema for a canonical clinical fact response.
+
+    Extends ClinicalFactCreate with server-generated fields (id, created_at).
 
     ClinicalFacts are the normalized, deduplicated representation of clinical
     information. They combine evidence from both unstructured (NLP) and
@@ -47,18 +53,6 @@ class ClinicalFact(BaseModel):
     """
 
     id: UUID = Field(..., description="Unique fact identifier")
-    patient_id: str = Field(..., description="Patient identifier")
-    domain: Domain = Field(..., description="OMOP domain")
-    omop_concept_id: int = Field(..., description="Standard OMOP concept ID")
-    concept_name: str = Field(..., description="Human-readable concept name")
-    assertion: Assertion = Field(..., description="Assertion status (present/absent/possible)")
-    temporality: Temporality = Field(..., description="Temporal context")
-    experiencer: Experiencer = Field(..., description="Who the fact applies to")
-    confidence: float = Field(..., description="Overall confidence score")
-    value: str | None = Field(None, description="Value for measurements")
-    unit: str | None = Field(None, description="Unit for measurements")
-    start_date: datetime | None = Field(None, description="Start date")
-    end_date: datetime | None = Field(None, description="End date")
     created_at: datetime = Field(..., description="When fact was created")
 
     model_config = {"from_attributes": True}
@@ -80,7 +74,11 @@ class ClinicalFact(BaseModel):
 
 
 class FactEvidenceCreate(BaseModel):
-    """Schema for creating a link between a fact and its evidence."""
+    """Schema for creating a link between a fact and its evidence.
+
+    Base schema with core evidence fields. Used for evidence creation
+    and as a base class for the full FactEvidence response schema.
+    """
 
     fact_id: UUID = Field(..., description="ID of the clinical fact")
     evidence_type: EvidenceType = Field(..., description="Type of evidence")
@@ -90,8 +88,10 @@ class FactEvidenceCreate(BaseModel):
     metadata: dict = Field(default_factory=dict, description="Additional evidence metadata")
 
 
-class FactEvidence(BaseModel):
-    """Schema for evidence supporting a clinical fact.
+class FactEvidence(FactEvidenceCreate):
+    """Schema for evidence supporting a clinical fact response.
+
+    Extends FactEvidenceCreate with server-generated fields (id, created_at).
 
     Links ClinicalFacts to their source evidence, enabling full provenance
     tracking. A single fact may have multiple evidence sources (e.g., a
@@ -100,12 +100,6 @@ class FactEvidence(BaseModel):
     """
 
     id: UUID = Field(..., description="Unique evidence link identifier")
-    fact_id: UUID = Field(..., description="ID of the clinical fact")
-    evidence_type: EvidenceType = Field(..., description="Type of evidence")
-    source_id: UUID = Field(..., description="ID of the source")
-    source_table: str = Field(..., description="Source table name")
-    weight: float = Field(..., description="Evidence weight")
-    metadata: dict = Field(default_factory=dict, description="Additional metadata")
     created_at: datetime = Field(..., description="When evidence link was created")
 
     model_config = {"from_attributes": True}
