@@ -14,8 +14,9 @@ communication, using mock multi-organization data for demonstration.
 import hashlib
 import logging
 import secrets
+import threading
 import time
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 from uuid import uuid4
@@ -164,8 +165,8 @@ class Federation(BaseModel):
     description: str | None = Field(None)
     config: FederationConfig = Field(..., description="Federation configuration")
     status: FederationStatus = Field(default=FederationStatus.INITIALIZING)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     created_by: str = Field(default="system")
     coordinator_id: str | None = Field(None, description="Coordinator org ID")
     current_round: int = Field(default=0, description="Current training round")
@@ -180,7 +181,7 @@ class Participant(BaseModel):
     federation_id: str = Field(..., description="Federation ID")
     org: Organization = Field(..., description="Organization details")
     role: FederationRole = Field(default=FederationRole.PARTICIPANT)
-    joined_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    joined_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     status: str = Field(default="active")
     last_update_at: datetime | None = Field(None)
     rounds_participated: int = Field(default=0)
@@ -203,8 +204,8 @@ class GlobalModel(BaseModel):
         default_factory=dict, description="Model weights (serialized)"
     )
     feature_names: list[str] = Field(default_factory=list)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     training_samples: int = Field(default=0)
     performance_metrics: dict[str, float] = Field(default_factory=dict)
 
@@ -224,7 +225,7 @@ class ModelUpdate(BaseModel):
     local_metrics: dict[str, float] = Field(
         default_factory=dict, description="Local evaluation metrics"
     )
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     noise_added: bool = Field(default=False, description="Whether DP noise was added")
     checksum: str = Field(default="", description="Update integrity checksum")
 
@@ -242,7 +243,7 @@ class AggregatedUpdate(BaseModel):
     total_samples: int = Field(..., description="Total samples used")
     weighted_loss: float = Field(..., description="Weighted average loss")
     aggregation_method: AggregationProtocol = Field(...)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class TrainingRound(BaseModel):
@@ -271,7 +272,7 @@ class Distribution(BaseModel):
     federation_id: str = Field(..., description="Federation ID")
     participant_id: str = Field(..., description="Target participant")
     model_version: int = Field(..., description="Model version distributed")
-    distributed_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    distributed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     acknowledged: bool = Field(default=False)
     acknowledged_at: datetime | None = Field(None)
 
@@ -915,8 +916,8 @@ class FederatedLearningService:
                 federation_id=federation.federation_id,
                 round_number=round_num,
                 status=RoundStatus.COMPLETED,
-                started_at=datetime.now(UTC),
-                completed_at=datetime.now(UTC),
+                started_at=datetime.now(timezone.utc),
+                completed_at=datetime.now(timezone.utc),
                 participating_orgs=[p.org.org_id for p in self._participants.get(federation.federation_id, {}).values()],
                 updates_received=5,
                 updates_expected=5,
@@ -1032,7 +1033,7 @@ class FederatedLearningService:
 
         # Update federation total samples
         federation.total_samples += org.data_size
-        federation.updated_at = datetime.now(UTC)
+        federation.updated_at = datetime.now(timezone.utc)
 
         # Check if we have enough participants to start
         if len(self._participants[federation_id]) >= federation.config.min_participants:
@@ -1133,7 +1134,7 @@ class FederatedLearningService:
             federation_id=federation_id,
             round_number=round_number,
             status=RoundStatus.IN_PROGRESS,
-            started_at=datetime.now(UTC),
+            started_at=datetime.now(timezone.utc),
             participating_orgs=[p.org.org_id for p in participants.values()],
             updates_expected=len(participants),
         )
@@ -1143,7 +1144,7 @@ class FederatedLearningService:
 
         # Update federation status
         federation.status = FederationStatus.TRAINING
-        federation.updated_at = datetime.now(UTC)
+        federation.updated_at = datetime.now(timezone.utc)
 
         logger.info(f"Started training round {round_number} for federation {federation_id}")
         return training_round
@@ -1236,7 +1237,7 @@ class FederatedLearningService:
         )
 
         # Update participant stats
-        participant.last_update_at = datetime.now(UTC)
+        participant.last_update_at = datetime.now(timezone.utc)
         participant.rounds_participated += 1
 
         logger.info(
@@ -1346,7 +1347,7 @@ class FederatedLearningService:
                     ).tolist()
 
             global_model.version += 1
-            global_model.updated_at = datetime.now(UTC)
+            global_model.updated_at = datetime.now(timezone.utc)
             global_model.training_samples = sum(u.num_samples for u in updates)
 
             # Update performance metrics (simulated improvement)
@@ -1370,12 +1371,12 @@ class FederatedLearningService:
             "accuracy": np.mean([u.local_metrics.get("accuracy", 0.65) for u in updates]),
         }
         training_round.status = RoundStatus.COMPLETED
-        training_round.completed_at = datetime.now(UTC)
+        training_round.completed_at = datetime.now(timezone.utc)
 
         # Update federation
         federation.current_round = training_round.round_number
         federation.status = FederationStatus.ACTIVE
-        federation.updated_at = datetime.now(UTC)
+        federation.updated_at = datetime.now(timezone.utc)
 
         # Track privacy budget
         privacy_engine = PrivacyEngine(
@@ -1422,7 +1423,7 @@ class FederatedLearningService:
                 participant_id=participant_id,
                 model_version=global_model.version,
                 acknowledged=True,  # Simulated acknowledgment
-                acknowledged_at=datetime.now(UTC),
+                acknowledged_at=datetime.now(timezone.utc),
             )
             distributions.append(distribution)
             self._distributions[federation_id].append(distribution)
@@ -1585,11 +1586,15 @@ class FederatedLearningService:
 # ============================================================================
 
 _federated_learning_service: FederatedLearningService | None = None
+_federated_lock = threading.Lock()
 
 
 def get_federated_learning_service() -> FederatedLearningService:
     """Get the singleton federated learning service instance."""
     global _federated_learning_service
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _federated_learning_service is None:
-        _federated_learning_service = FederatedLearningService()
+        with _federated_lock:
+            if _federated_learning_service is None:
+                _federated_learning_service = FederatedLearningService()
     return _federated_learning_service

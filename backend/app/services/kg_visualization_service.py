@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import logging
 import math
+import threading
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
@@ -742,11 +743,15 @@ class KGVisualizationService:
 
 # Singleton instance
 _kg_vis_service: KGVisualizationService | None = None
+_kg_vis_lock = threading.Lock()
 
 
 def get_kg_visualization_service() -> KGVisualizationService:
     """Get the singleton knowledge graph visualization service."""
     global _kg_vis_service
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _kg_vis_service is None:
-        _kg_vis_service = KGVisualizationService()
+        with _kg_vis_lock:
+            if _kg_vis_service is None:
+                _kg_vis_service = KGVisualizationService()
     return _kg_vis_service

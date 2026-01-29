@@ -15,6 +15,7 @@ Based on published approaches:
 from __future__ import annotations
 
 import logging
+import threading
 from dataclasses import dataclass
 from typing import Any
 
@@ -619,17 +620,21 @@ class GraphEmbeddingService:
 
 # Singleton instance
 _embedding_service: GraphEmbeddingService | None = None
+_embedding_lock = threading.Lock()
 
 
 def get_graph_embedding_service() -> GraphEmbeddingService:
     """Get the singleton graph embedding service."""
     global _embedding_service
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _embedding_service is None:
-        from app.core.config import settings
+        with _embedding_lock:
+            if _embedding_service is None:
+                from app.core.config import settings
 
-        _embedding_service = GraphEmbeddingService(
-            neo4j_uri=getattr(settings, "neo4j_uri", "bolt://localhost:7687"),
-            neo4j_user=getattr(settings, "neo4j_user", "neo4j"),
-            neo4j_password=getattr(settings, "neo4j_password", "clinical123"),
-        )
+                _embedding_service = GraphEmbeddingService(
+                    neo4j_uri=getattr(settings, "neo4j_uri", "bolt://localhost:7687"),
+                    neo4j_user=getattr(settings, "neo4j_user", "neo4j"),
+                    neo4j_password=getattr(settings, "neo4j_password", "clinical123"),
+                )
     return _embedding_service
