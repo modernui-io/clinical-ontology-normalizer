@@ -2384,6 +2384,399 @@ FRAMINGHAM_CVD_DEFINITION = CalculatorDefinition(
 )
 
 
+# ============================================================================
+# CHILD-PUGH SCORE - Cirrhosis Severity
+# ============================================================================
+CHILD_PUGH_DEFINITION = CalculatorDefinition(
+    id="child_pugh",
+    name="Child-Pugh Score",
+    short_name="Child-Pugh",
+    calc_type=CalculatorType.CRITERIA,
+    category=CalculatorCategory.HEPATIC,
+    output_type=OutputType.INTEGER,
+    score_unit="points",
+    description="Assesses severity of cirrhosis and predicts survival",
+    references=["Pugh RN, et al. Br J Surg 1973", "Child CG, Turcotte JG. Surgery 1964"],
+    specialties=["Hepatology", "Gastroenterology", "Surgery"],
+    multi_level_criteria=[
+        MultiLevelCriterion(
+            name="encephalopathy",
+            display_name="Hepatic Encephalopathy",
+            levels=[
+                ("none", 1, "None (1)"),
+                ("grade_1_2", 2, "Grade I-II (2)"),
+                ("grade_3_4", 3, "Grade III-IV (3)"),
+            ],
+            description="Hepatic encephalopathy grade",
+        ),
+        MultiLevelCriterion(
+            name="ascites",
+            display_name="Ascites",
+            levels=[
+                ("none", 1, "Absent (1)"),
+                ("slight", 2, "Mild/diuretic-responsive (2)"),
+                ("moderate", 3, "Moderate-severe/refractory (3)"),
+            ],
+            description="Ascites severity",
+        ),
+    ],
+    threshold_criteria=[
+        ThresholdCriterion(
+            name="bilirubin",
+            display_name="Bilirubin",
+            thresholds=[
+                ("lt", 2, 1, "Bilirubin <2"),
+                ("range", (2, 3), 2, "Bilirubin 2-3"),
+                ("gt", 3, 3, "Bilirubin >3"),
+            ],
+            unit="mg/dL",
+            description="Total serum bilirubin",
+        ),
+        ThresholdCriterion(
+            name="albumin",
+            display_name="Albumin",
+            thresholds=[
+                ("gt", 3.5, 1, "Albumin >3.5"),
+                ("range", (2.8, 3.5), 2, "Albumin 2.8-3.5"),
+                ("lt", 2.8, 3, "Albumin <2.8"),
+            ],
+            unit="g/dL",
+            description="Serum albumin",
+        ),
+        ThresholdCriterion(
+            name="inr",
+            display_name="INR",
+            thresholds=[
+                ("lt", 1.7, 1, "INR <1.7"),
+                ("range", (1.7, 2.3), 2, "INR 1.7-2.3"),
+                ("gt", 2.3, 3, "INR >2.3"),
+            ],
+            unit="",
+            description="INR",
+        ),
+    ],
+    interpretations=[
+        ThresholdInterpretation(
+            min_score=5, max_score=7,
+            risk_level=RiskLevel.LOW,
+            interpretation="Child-Pugh Class A - Well-compensated",
+            recommendations=[
+                "1-year survival ~100%, 2-year ~85%",
+                "Low perioperative mortality (~10%)",
+                "Continue monitoring",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=7, max_score=10,
+            risk_level=RiskLevel.MODERATE,
+            interpretation="Child-Pugh Class B - Significant compromise",
+            recommendations=[
+                "1-year survival ~80%, 2-year ~60%",
+                "Moderate perioperative mortality (~30%)",
+                "Consider transplant evaluation",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=10, max_score=None,
+            risk_level=RiskLevel.HIGH,
+            interpretation="Child-Pugh Class C - Decompensated",
+            recommendations=[
+                "1-year survival ~45%, 2-year ~35%",
+                "High perioperative mortality (~80%)",
+                "Urgent transplant evaluation",
+            ],
+        ),
+    ],
+)
+
+
+# ============================================================================
+# ABCD2 SCORE - TIA Stroke Risk
+# ============================================================================
+ABCD2_DEFINITION = CalculatorDefinition(
+    id="abcd2",
+    name="ABCD² Score for TIA",
+    short_name="ABCD²",
+    calc_type=CalculatorType.CRITERIA,
+    category=CalculatorCategory.NEUROLOGICAL,
+    output_type=OutputType.INTEGER,
+    score_unit="points",
+    description="Predicts 2-day stroke risk after TIA",
+    references=["Johnston SC, et al. Lancet 2007"],
+    specialties=["Neurology", "Emergency Medicine", "Internal Medicine"],
+    threshold_criteria=[
+        ThresholdCriterion(
+            name="age",
+            display_name="Age",
+            thresholds=[("gte", 60, 1, "Age ≥60")],
+            description="Age ≥60 years",
+        ),
+        ThresholdCriterion(
+            name="systolic_bp",
+            display_name="Blood Pressure",
+            thresholds=[("gte", 140, 1, "SBP ≥140 or DBP ≥90")],
+            unit="mmHg",
+            description="BP ≥140/90 at presentation",
+        ),
+        ThresholdCriterion(
+            name="duration",
+            display_name="Duration",
+            thresholds=[
+                ("gte", 60, 2, "≥60 minutes"),
+                ("range", (10, 60), 1, "10-59 minutes"),
+            ],
+            unit="minutes",
+            description="TIA duration",
+        ),
+    ],
+    criteria=[
+        ScoringCriterion("unilateral_weakness", "Unilateral weakness", 2, ""),
+        ScoringCriterion("speech_impairment", "Speech impairment (no weakness)", 1, ""),
+        ScoringCriterion("diabetes", "Diabetes", 1, ""),
+    ],
+    interpretations=[
+        ThresholdInterpretation(
+            min_score=0, max_score=4,
+            risk_level=RiskLevel.LOW,
+            interpretation="Low risk - 2-day stroke risk ~1%",
+            recommendations=["Urgent outpatient workup within 48-72h", "Start aspirin"],
+        ),
+        ThresholdInterpretation(
+            min_score=4, max_score=6,
+            risk_level=RiskLevel.MODERATE,
+            interpretation="Moderate risk - 2-day stroke risk ~4%",
+            recommendations=["Consider admission", "Rapid neurology consult"],
+        ),
+        ThresholdInterpretation(
+            min_score=6, max_score=None,
+            risk_level=RiskLevel.HIGH,
+            interpretation="High risk - 2-day stroke risk ~8%",
+            recommendations=["Hospital admission", "Emergent workup"],
+        ),
+    ],
+)
+
+
+# ============================================================================
+# PHQ-9 - Depression Screening
+# ============================================================================
+PHQ9_DEFINITION = CalculatorDefinition(
+    id="phq9",
+    name="Patient Health Questionnaire-9",
+    short_name="PHQ-9",
+    calc_type=CalculatorType.CRITERIA,
+    category=CalculatorCategory.GENERAL,
+    output_type=OutputType.INTEGER,
+    score_unit="points",
+    description="Depression screening and severity",
+    references=["Kroenke K, et al. J Gen Intern Med 2001"],
+    specialties=["Psychiatry", "Family Medicine", "Internal Medicine"],
+    notes=["Each item 0-3 over past 2 weeks", "Item 9 (suicidality) requires assessment"],
+    multi_level_criteria=[
+        MultiLevelCriterion(name="interest", display_name="1. Little interest",
+            levels=[("not_at_all", 0, "0"), ("several_days", 1, "1"), ("more_than_half", 2, "2"), ("nearly_every_day", 3, "3")],
+            description="Little interest or pleasure"),
+        MultiLevelCriterion(name="depressed", display_name="2. Feeling down",
+            levels=[("not_at_all", 0, "0"), ("several_days", 1, "1"), ("more_than_half", 2, "2"), ("nearly_every_day", 3, "3")],
+            description="Feeling down, depressed, hopeless"),
+        MultiLevelCriterion(name="sleep", display_name="3. Sleep problems",
+            levels=[("not_at_all", 0, "0"), ("several_days", 1, "1"), ("more_than_half", 2, "2"), ("nearly_every_day", 3, "3")],
+            description="Sleep problems"),
+        MultiLevelCriterion(name="energy", display_name="4. Little energy",
+            levels=[("not_at_all", 0, "0"), ("several_days", 1, "1"), ("more_than_half", 2, "2"), ("nearly_every_day", 3, "3")],
+            description="Tired or little energy"),
+        MultiLevelCriterion(name="appetite", display_name="5. Appetite",
+            levels=[("not_at_all", 0, "0"), ("several_days", 1, "1"), ("more_than_half", 2, "2"), ("nearly_every_day", 3, "3")],
+            description="Poor appetite or overeating"),
+        MultiLevelCriterion(name="self_esteem", display_name="6. Self-esteem",
+            levels=[("not_at_all", 0, "0"), ("several_days", 1, "1"), ("more_than_half", 2, "2"), ("nearly_every_day", 3, "3")],
+            description="Feeling bad about yourself"),
+        MultiLevelCriterion(name="concentration", display_name="7. Concentration",
+            levels=[("not_at_all", 0, "0"), ("several_days", 1, "1"), ("more_than_half", 2, "2"), ("nearly_every_day", 3, "3")],
+            description="Trouble concentrating"),
+        MultiLevelCriterion(name="psychomotor", display_name="8. Psychomotor",
+            levels=[("not_at_all", 0, "0"), ("several_days", 1, "1"), ("more_than_half", 2, "2"), ("nearly_every_day", 3, "3")],
+            description="Moving/speaking slowly or restless"),
+        MultiLevelCriterion(name="suicidality", display_name="9. Self-harm thoughts",
+            levels=[("not_at_all", 0, "0"), ("several_days", 1, "1"), ("more_than_half", 2, "2"), ("nearly_every_day", 3, "3")],
+            description="Thoughts of self-harm"),
+    ],
+    interpretations=[
+        ThresholdInterpretation(min_score=0, max_score=5, risk_level=RiskLevel.LOW,
+            interpretation="Minimal depression", recommendations=["Supportive care", "Re-screen PRN"]),
+        ThresholdInterpretation(min_score=5, max_score=10, risk_level=RiskLevel.LOW_MODERATE,
+            interpretation="Mild depression", recommendations=["Watchful waiting", "Consider therapy"]),
+        ThresholdInterpretation(min_score=10, max_score=15, risk_level=RiskLevel.MODERATE,
+            interpretation="Moderate depression", recommendations=["Treatment plan needed", "Therapy/meds"]),
+        ThresholdInterpretation(min_score=15, max_score=20, risk_level=RiskLevel.MODERATE_HIGH,
+            interpretation="Moderately severe depression", recommendations=["Active treatment", "Safety planning"]),
+        ThresholdInterpretation(min_score=20, max_score=None, risk_level=RiskLevel.HIGH,
+            interpretation="Severe depression", recommendations=["Immediate treatment", "Psychiatry referral"]),
+    ],
+)
+
+
+# ============================================================================
+# GAD-7 - Anxiety Screening
+# ============================================================================
+GAD7_DEFINITION = CalculatorDefinition(
+    id="gad7",
+    name="Generalized Anxiety Disorder 7-item",
+    short_name="GAD-7",
+    calc_type=CalculatorType.CRITERIA,
+    category=CalculatorCategory.GENERAL,
+    output_type=OutputType.INTEGER,
+    score_unit="points",
+    description="Anxiety screening and severity",
+    references=["Spitzer RL, et al. Arch Intern Med 2006"],
+    specialties=["Psychiatry", "Family Medicine", "Internal Medicine"],
+    multi_level_criteria=[
+        MultiLevelCriterion(name="nervous", display_name="1. Nervous/anxious",
+            levels=[("not_at_all", 0, "0"), ("several_days", 1, "1"), ("more_than_half", 2, "2"), ("nearly_every_day", 3, "3")],
+            description="Feeling nervous, anxious, on edge"),
+        MultiLevelCriterion(name="worry_control", display_name="2. Can't stop worrying",
+            levels=[("not_at_all", 0, "0"), ("several_days", 1, "1"), ("more_than_half", 2, "2"), ("nearly_every_day", 3, "3")],
+            description="Not being able to stop worrying"),
+        MultiLevelCriterion(name="excessive_worry", display_name="3. Worrying too much",
+            levels=[("not_at_all", 0, "0"), ("several_days", 1, "1"), ("more_than_half", 2, "2"), ("nearly_every_day", 3, "3")],
+            description="Worrying too much about different things"),
+        MultiLevelCriterion(name="relaxing", display_name="4. Trouble relaxing",
+            levels=[("not_at_all", 0, "0"), ("several_days", 1, "1"), ("more_than_half", 2, "2"), ("nearly_every_day", 3, "3")],
+            description="Trouble relaxing"),
+        MultiLevelCriterion(name="restless", display_name="5. Restless",
+            levels=[("not_at_all", 0, "0"), ("several_days", 1, "1"), ("more_than_half", 2, "2"), ("nearly_every_day", 3, "3")],
+            description="Being so restless it's hard to sit still"),
+        MultiLevelCriterion(name="irritable", display_name="6. Easily annoyed",
+            levels=[("not_at_all", 0, "0"), ("several_days", 1, "1"), ("more_than_half", 2, "2"), ("nearly_every_day", 3, "3")],
+            description="Becoming easily annoyed or irritable"),
+        MultiLevelCriterion(name="afraid", display_name="7. Feeling afraid",
+            levels=[("not_at_all", 0, "0"), ("several_days", 1, "1"), ("more_than_half", 2, "2"), ("nearly_every_day", 3, "3")],
+            description="Feeling afraid as if something awful might happen"),
+    ],
+    interpretations=[
+        ThresholdInterpretation(min_score=0, max_score=5, risk_level=RiskLevel.LOW,
+            interpretation="Minimal anxiety", recommendations=["Monitor symptoms"]),
+        ThresholdInterpretation(min_score=5, max_score=10, risk_level=RiskLevel.LOW_MODERATE,
+            interpretation="Mild anxiety", recommendations=["Watchful waiting", "Self-management"]),
+        ThresholdInterpretation(min_score=10, max_score=15, risk_level=RiskLevel.MODERATE,
+            interpretation="Moderate anxiety", recommendations=["CBT recommended", "Consider meds"]),
+        ThresholdInterpretation(min_score=15, max_score=None, risk_level=RiskLevel.HIGH,
+            interpretation="Severe anxiety", recommendations=["Pharmacotherapy", "Psychiatry referral"]),
+    ],
+)
+
+
+# ============================================================================
+# CORRECTED CALCIUM
+# ============================================================================
+CORRECTED_CALCIUM_DEFINITION = CalculatorDefinition(
+    id="corrected_calcium",
+    name="Corrected Calcium",
+    short_name="Corrected Ca",
+    calc_type=CalculatorType.EQUATION,
+    category=CalculatorCategory.METABOLIC,
+    output_type=OutputType.DECIMAL,
+    score_unit="mg/dL",
+    description="Adjusts calcium for albumin levels",
+    references=["Payne RB, et al. Br Med J 1973"],
+    specialties=["Internal Medicine", "Nephrology", "Endocrinology"],
+    formula=FormulaDefinition(
+        formula_text="Ca + 0.8 × (4.0 - Albumin)",
+        output_unit="mg/dL",
+        precision=1,
+        parameters=[
+            FormulaParameter(name="calcium", display_name="Measured Ca", unit="mg/dL", min_value=4.0, max_value=16.0),
+            FormulaParameter(name="albumin", display_name="Albumin", unit="g/dL", min_value=1.0, max_value=5.5),
+        ],
+    ),
+    interpretations=[
+        ThresholdInterpretation(min_score=0, max_score=8.5, risk_level=RiskLevel.MODERATE,
+            interpretation="Hypocalcemia", recommendations=["Evaluate cause", "Check ionized Ca"]),
+        ThresholdInterpretation(min_score=8.5, max_score=10.5, risk_level=RiskLevel.LOW,
+            interpretation="Normal", recommendations=["No intervention needed"]),
+        ThresholdInterpretation(min_score=10.5, max_score=12.0, risk_level=RiskLevel.MODERATE,
+            interpretation="Mild hypercalcemia", recommendations=["Check PTH", "Hydration"]),
+        ThresholdInterpretation(min_score=12.0, max_score=14.0, risk_level=RiskLevel.HIGH,
+            interpretation="Moderate hypercalcemia", recommendations=["IV saline", "Bisphosphonates"]),
+        ThresholdInterpretation(min_score=14.0, max_score=None, risk_level=RiskLevel.VERY_HIGH,
+            interpretation="Severe hypercalcemia - Emergency", recommendations=["Aggressive hydration", "Calcitonin"]),
+    ],
+)
+
+
+# ============================================================================
+# CORRECTED QT (QTc)
+# ============================================================================
+CORRECTED_QT_DEFINITION = CalculatorDefinition(
+    id="corrected_qt",
+    name="Corrected QT Interval (QTc)",
+    short_name="QTc",
+    calc_type=CalculatorType.EQUATION,
+    category=CalculatorCategory.CARDIOVASCULAR,
+    output_type=OutputType.INTEGER,
+    score_unit="ms",
+    description="Heart rate-corrected QT interval (Bazett)",
+    references=["Bazett HC. Heart 1920"],
+    specialties=["Cardiology", "Emergency Medicine", "Critical Care"],
+    formula=FormulaDefinition(
+        formula_text="QT / √(60/HR)",
+        output_unit="ms",
+        precision=0,
+        parameters=[
+            FormulaParameter(name="qt_interval", display_name="QT Interval", unit="ms", min_value=200, max_value=700),
+            FormulaParameter(name="heart_rate", display_name="Heart Rate", unit="bpm", min_value=40, max_value=200),
+        ],
+    ),
+    interpretations=[
+        ThresholdInterpretation(min_score=0, max_score=440, risk_level=RiskLevel.LOW,
+            interpretation="Normal QTc", recommendations=["No intervention"]),
+        ThresholdInterpretation(min_score=440, max_score=460, risk_level=RiskLevel.LOW_MODERATE,
+            interpretation="Borderline prolonged", recommendations=["Review QT-prolonging meds"]),
+        ThresholdInterpretation(min_score=460, max_score=500, risk_level=RiskLevel.MODERATE,
+            interpretation="Prolonged QTc", recommendations=["D/C QT meds if possible", "Correct lytes"]),
+        ThresholdInterpretation(min_score=500, max_score=None, risk_level=RiskLevel.HIGH,
+            interpretation="Markedly prolonged - Torsades risk", recommendations=["D/C QT meds", "K >4, Mg >2", "Monitoring"]),
+    ],
+)
+
+
+# ============================================================================
+# ANION GAP
+# ============================================================================
+ANION_GAP_DEFINITION = CalculatorDefinition(
+    id="anion_gap",
+    name="Anion Gap",
+    short_name="AG",
+    calc_type=CalculatorType.EQUATION,
+    category=CalculatorCategory.METABOLIC,
+    output_type=OutputType.INTEGER,
+    score_unit="mEq/L",
+    description="Serum anion gap for acidosis classification",
+    references=["Kraut JA, Madias NE. N Engl J Med 2007"],
+    specialties=["Critical Care", "Nephrology", "Emergency Medicine"],
+    formula=FormulaDefinition(
+        formula_text="Na - (Cl + HCO3)",
+        output_unit="mEq/L",
+        precision=0,
+        parameters=[
+            FormulaParameter(name="sodium", display_name="Sodium", unit="mEq/L", min_value=100, max_value=180),
+            FormulaParameter(name="chloride", display_name="Chloride", unit="mEq/L", min_value=70, max_value=130),
+            FormulaParameter(name="bicarbonate", display_name="HCO3", unit="mEq/L", min_value=5, max_value=45),
+        ],
+    ),
+    interpretations=[
+        ThresholdInterpretation(min_score=0, max_score=8, risk_level=RiskLevel.LOW_MODERATE,
+            interpretation="Low AG", recommendations=["Evaluate: hypoalbuminemia, myeloma"]),
+        ThresholdInterpretation(min_score=8, max_score=12, risk_level=RiskLevel.LOW,
+            interpretation="Normal AG", recommendations=["If acidosis: non-AG (diarrhea, RTA)"]),
+        ThresholdInterpretation(min_score=12, max_score=20, risk_level=RiskLevel.MODERATE,
+            interpretation="Elevated AG", recommendations=["Check lactate, ketones, uremia, toxins"]),
+        ThresholdInterpretation(min_score=20, max_score=None, risk_level=RiskLevel.HIGH,
+            interpretation="High AG - Significant acidosis", recommendations=["MUDPILES workup", "Treat cause"]),
+    ],
+)
+
+
 # Registry of all calculator definitions
 CALCULATOR_DEFINITIONS: dict[str, CalculatorDefinition] = {
     "chadsvasc": CHADSVASC_DEFINITION,
@@ -2398,18 +2791,33 @@ CALCULATOR_DEFINITIONS: dict[str, CalculatorDefinition] = {
     "perc": PERC_DEFINITION,
     "centor": CENTOR_DEFINITION,
     "apgar": APGAR_DEFINITION,
-    # New calculators
+    # Pulmonary/VTE
     "wells_pe": WELLS_PE_DEFINITION,
+    # Comorbidity
     "charlson": CHARLSON_DEFINITION,
+    # Cardiac
     "timi_stemi": TIMI_STEMI_DEFINITION,
     "timi_nstemi": TIMI_NSTEMI_DEFINITION,
+    "framingham_cvd": FRAMINGHAM_CVD_DEFINITION,
+    "corrected_qt": CORRECTED_QT_DEFINITION,
+    # Hepatic
     "meld": MELD_DEFINITION,
     "meld_na": MELD_NA_DEFINITION,
+    "child_pugh": CHILD_PUGH_DEFINITION,
+    # Metabolic
     "bmi": BMI_DEFINITION,
+    "corrected_calcium": CORRECTED_CALCIUM_DEFINITION,
+    "anion_gap": ANION_GAP_DEFINITION,
+    # Critical Care
     "sofa": SOFA_DEFINITION,
+    # Emergency
     "ottawa_ankle": OTTAWA_ANKLE_DEFINITION,
     "ciwa_ar": CIWA_AR_DEFINITION,
-    "framingham_cvd": FRAMINGHAM_CVD_DEFINITION,
+    # Neurological
+    "abcd2": ABCD2_DEFINITION,
+    # Psychiatry
+    "phq9": PHQ9_DEFINITION,
+    "gad7": GAD7_DEFINITION,
 }
 
 
