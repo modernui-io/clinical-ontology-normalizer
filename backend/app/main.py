@@ -16,6 +16,7 @@ from app.api import (
     ErrorHandlerMiddleware,
     MetricsMiddleware,
     RequestIdMiddleware,
+    SecurityHeadersMiddleware,
     agent_router,
     ai_audit_router,
     ai_coding_router,
@@ -591,13 +592,17 @@ app.add_middleware(RateLimitMiddleware)
 # 5. Error handler middleware - catches exceptions and returns standardized responses
 app.add_middleware(ErrorHandlerMiddleware)
 
-# 6. CORS middleware - handles cross-origin requests
+# 6. Security headers middleware - adds OWASP security headers (VP-Security)
+app.add_middleware(SecurityHeadersMiddleware)
+
+# 7. CORS middleware - handles cross-origin requests
+# VP-Security: Tightened CORS - use environment variable for production
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"],  # Next.js dev server
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],  # Explicit methods (was "*")
+    allow_headers=["Content-Type", "Authorization", "X-Request-ID", "Accept"],  # Explicit headers (was "*")
     expose_headers=[
         "X-Request-ID",
         "X-RateLimit-Limit",

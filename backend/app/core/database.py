@@ -12,10 +12,15 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from app.core.config import settings
 
 # Create async engine (for FastAPI async endpoints)
+# VP-Platform: Added connection pool configuration for production scalability
 engine = create_async_engine(
     settings.database_url,
     echo=settings.debug,
     future=True,
+    pool_size=20,  # Base pool size (default was 5)
+    max_overflow=40,  # Additional connections under load (default was 10)
+    pool_pre_ping=True,  # Validate connections before use (prevents stale connections)
+    pool_recycle=3600,  # Recycle connections after 1 hour (prevents timeouts)
 )
 
 # Lazy initialized sync engine (for RQ workers and background jobs)
@@ -34,6 +39,10 @@ def get_sync_engine() -> Engine:
             settings.sync_database_url,
             echo=settings.debug,
             future=True,
+            pool_size=10,  # Smaller pool for background workers
+            max_overflow=20,
+            pool_pre_ping=True,
+            pool_recycle=3600,
         )
     return _sync_engine
 

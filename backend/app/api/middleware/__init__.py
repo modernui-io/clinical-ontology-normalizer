@@ -26,6 +26,7 @@ from app.api.middleware.rate_limit import (
     rate_limit,
 )
 from app.api.middleware.request_id import RequestIdMiddleware, get_request_id
+from app.api.middleware.security_headers import SecurityHeadersMiddleware
 
 __all__ = [
     # Audit Middleware
@@ -60,4 +61,6 @@ __all__ = [
     # Request ID Middleware
     "RequestIdMiddleware",
     "get_request_id",
+    # Security Headers Middleware
+    "SecurityHeadersMiddleware",
 ]
