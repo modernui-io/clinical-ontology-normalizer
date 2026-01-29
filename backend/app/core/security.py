@@ -14,7 +14,6 @@ module is deprecated and will be removed in a future version.
 from __future__ import annotations
 
 import logging
-import os
 from functools import lru_cache
 from typing import Annotated, Optional
 
@@ -39,26 +38,23 @@ api_key_header = APIKeyHeader(
 
 @lru_cache
 def get_api_keys() -> set[str]:
-    """Get configured API keys from environment.
+    """Get configured API keys from settings.
 
-    API keys can be set via the CON_API_KEYS environment variable
-    as a comma-separated list for multi-key support.
+    VP-Round60: Uses centralized settings.api_keys_set instead of os.environ.
+    API keys can be set via API_KEYS environment variable (comma-separated)
+    or single API_KEY for backwards compatibility.
 
     Returns:
         Set of valid API keys
     """
-    api_keys_str = os.environ.get("CON_API_KEYS", "")
-    if not api_keys_str:
-        # Fall back to single key from settings
-        if settings.api_key:
-            return {settings.api_key}
+    keys = settings.api_keys_set
+    if not keys:
         logger.warning(
-            "No API keys configured (CON_API_KEYS not set). "
+            "No API keys configured (API_KEYS not set). "
             "Authentication is disabled for development."
         )
         return set()
 
-    keys = {k.strip() for k in api_keys_str.split(",") if k.strip()}
     logger.info(f"Loaded {len(keys)} API key(s) for authentication")
     return keys
 

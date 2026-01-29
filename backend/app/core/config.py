@@ -98,8 +98,21 @@ class Settings(BaseSettings):
 
     # Authentication - NO INSECURE DEFAULTS
     api_key: str | None = None  # Required when auth_enabled=True
+    api_keys: str = ""  # Comma-separated list for multi-key support (VP-Round60)
     api_key_header: str = "X-API-Key"
     auth_enabled: bool = False  # Disabled by default for local dev
+
+    @cached_property
+    def api_keys_set(self) -> set[str]:
+        """Parse API keys from comma-separated string.
+
+        VP-Round60: Centralized multi-key support. Falls back to single api_key.
+        """
+        if self.api_keys:
+            return {k.strip() for k in self.api_keys.split(",") if k.strip()}
+        if self.api_key:
+            return {self.api_key}
+        return set()
     jwt_secret_key: str | None = None  # Required when auth_enabled=True
     jwt_algorithm: str = "HS256"
     jwt_access_token_expire_minutes: int = 30

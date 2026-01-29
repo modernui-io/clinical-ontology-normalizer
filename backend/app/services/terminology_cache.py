@@ -16,6 +16,8 @@ from collections import OrderedDict
 from dataclasses import dataclass, field
 from typing import Any, Callable, TypeVar
 
+from app.core.config import settings
+
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
@@ -395,12 +397,13 @@ _redis_terminology_cache: RedisTerminologyCache | None = None
 
 
 def get_redis_terminology_cache() -> RedisTerminologyCache:
-    """Get the Redis terminology cache singleton."""
+    """Get the Redis terminology cache singleton.
+
+    VP-Round60: Uses centralized settings.redis_url instead of os.environ.
+    """
     global _redis_terminology_cache
     if _redis_terminology_cache is None:
-        import os
-        redis_url = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
-        _redis_terminology_cache = RedisTerminologyCache(redis_url=redis_url)
+        _redis_terminology_cache = RedisTerminologyCache(redis_url=settings.redis_url)
     return _redis_terminology_cache
 
 
