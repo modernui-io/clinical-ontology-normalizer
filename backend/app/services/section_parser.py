@@ -4,6 +4,8 @@ Parses clinical notes to identify section boundaries and provides
 section-domain affinity mapping for improved extraction accuracy.
 """
 
+from __future__ import annotations
+
 import re
 import threading
 from dataclasses import dataclass, field

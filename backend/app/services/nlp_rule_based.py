@@ -4,6 +4,8 @@ Uses Aho-Corasick algorithm for O(n) pattern matching and vocabulary
 lookups to extract mentions from clinical documents.
 """
 
+from __future__ import annotations
+
 import logging
 import os
 import re

@@ -12,6 +12,8 @@ Note: Code suggestions should be verified by qualified medical coders.
 ICD-10-CM codes are for US clinical use.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from enum import Enum
 import json

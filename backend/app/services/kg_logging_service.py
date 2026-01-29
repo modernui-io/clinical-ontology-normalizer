@@ -4,6 +4,8 @@ This module provides structured logging with correlation ID tracking,
 context propagation, and multiple output formats for the Knowledge Graph API.
 """
 
+from __future__ import annotations
+
 import json
 import logging
 import os

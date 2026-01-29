@@ -18,6 +18,8 @@ Supported measure categories:
 - Medication: Adherence (PDC - Proportion of Days Covered)
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from datetime import date, datetime, timezone, timedelta
 from enum import Enum

@@ -4,6 +4,8 @@ Compares current vocabulary versions against a metadata table to identify
 vocabularies that have newer versions available.
 """
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 

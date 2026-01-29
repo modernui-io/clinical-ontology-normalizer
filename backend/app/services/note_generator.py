@@ -15,6 +15,8 @@ Features:
 - Singleton pattern for efficient resource usage
 """
 
+from __future__ import annotations
+
 import json
 import logging
 import re

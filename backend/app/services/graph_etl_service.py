@@ -12,6 +12,8 @@ Features:
 - Batch processing for large datasets
 """
 
+from __future__ import annotations
+
 import logging
 import time
 from dataclasses import dataclass, field

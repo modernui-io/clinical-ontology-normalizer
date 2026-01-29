@@ -21,6 +21,8 @@ Clinical Use Cases:
 - High-risk medication monitoring
 """
 
+from __future__ import annotations
+
 import logging
 import uuid
 from dataclasses import dataclass, field

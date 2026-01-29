@@ -14,6 +14,8 @@ Key capabilities:
 CMS HCC Model V28 (2024+) is the basis for category mappings.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum

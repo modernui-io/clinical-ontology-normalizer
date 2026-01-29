@@ -4,6 +4,8 @@ Provides version import, history tracking, and concept retirement/merge
 operations with full provenance and audit logging.
 """
 
+from __future__ import annotations
+
 import logging
 import threading
 from datetime import datetime, timezone

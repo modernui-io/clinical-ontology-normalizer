@@ -4,6 +4,8 @@ This module provides API key management and authentication for the Knowledge Gra
 Supports key generation, validation, rotation, scopes, and rate limiting per key.
 """
 
+from __future__ import annotations
+
 import hashlib
 import hmac
 import logging

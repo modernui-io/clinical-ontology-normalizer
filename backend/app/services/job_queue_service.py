@@ -6,6 +6,8 @@ job retry/cancel operations, and wait time estimation.
 VP-Memory-2: History collections bounded with deque to prevent memory growth.
 """
 
+from __future__ import annotations
+
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timezone, timedelta

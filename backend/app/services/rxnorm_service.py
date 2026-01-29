@@ -14,6 +14,8 @@ Note: This service integrates with DrugInteractionService and DrugSafetyService
 to provide enhanced clinical decision support.
 """
 
+from __future__ import annotations
+
 import json
 import logging
 import re

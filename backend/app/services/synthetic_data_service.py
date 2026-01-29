@@ -8,6 +8,8 @@ Provides synthetic patient data generation with:
 - Privacy vs utility metrics
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from datetime import date, datetime, timezone, timedelta
 from enum import Enum

@@ -5,6 +5,8 @@ Provides an in-memory TTL cache for terminology operations
 to reduce repeated computation on common queries.
 """
 
+from __future__ import annotations
+
 import hashlib
 import json
 import logging

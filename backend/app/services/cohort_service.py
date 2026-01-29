@@ -26,6 +26,8 @@ Usage:
     count = service.get_patient_count(cohort.id)
 """
 
+from __future__ import annotations
+
 import logging
 import threading
 import uuid

@@ -46,6 +46,8 @@ Usage:
     await orchestrator.cancel_job(job.job_id)
 """
 
+from __future__ import annotations
+
 import asyncio
 import logging
 from collections import deque

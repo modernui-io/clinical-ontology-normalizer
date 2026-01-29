@@ -7,6 +7,8 @@ Provides real-time aggregations:
 - Throughput and latency tracking
 """
 
+from __future__ import annotations
+
 import asyncio
 import logging
 import threading

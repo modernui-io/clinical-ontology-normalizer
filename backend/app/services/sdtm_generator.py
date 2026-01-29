@@ -6,6 +6,8 @@ Generates SDTM datasets in submission-ready formats:
 - define.xml metadata
 """
 
+from __future__ import annotations
+
 import csv
 import io
 import json

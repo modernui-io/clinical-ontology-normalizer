@@ -4,6 +4,8 @@ Maps clinical mentions to OMOP standard concepts by querying
 the database tables populated by the seed script.
 """
 
+from __future__ import annotations
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
 

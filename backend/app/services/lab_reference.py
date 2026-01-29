@@ -4,6 +4,8 @@ Provides reference ranges and interpretation for clinical laboratory values.
 Based on standard clinical reference ranges from major laboratories.
 """
 
+from __future__ import annotations
+
 import logging
 from dataclasses import dataclass, field
 from enum import Enum

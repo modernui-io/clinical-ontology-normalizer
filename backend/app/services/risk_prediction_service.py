@@ -7,6 +7,8 @@ Provides clinical risk prediction models:
 - Risk tier classification (Low/Medium/High/Critical)
 """
 
+from __future__ import annotations
+
 import hashlib
 import logging
 import math

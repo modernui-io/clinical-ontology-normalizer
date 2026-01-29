@@ -11,6 +11,8 @@ Architecture:
 5. Combine with document retrieval for comprehensive context
 """
 
+from __future__ import annotations
+
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime

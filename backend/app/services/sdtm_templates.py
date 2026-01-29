@@ -13,6 +13,8 @@ Supported domains:
 - LB (Laboratory Test Results)
 """
 
+from __future__ import annotations
+
 from app.models.sdtm_mapping import (
     SDTMDataType,
     SDTMDomainClass,

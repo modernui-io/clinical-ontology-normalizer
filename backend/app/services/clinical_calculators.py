@@ -9,6 +9,8 @@ the generic calculate_from_definition() function instead of
 individual implementations.
 """
 
+from __future__ import annotations
+
 import logging
 import math
 from dataclasses import dataclass, field

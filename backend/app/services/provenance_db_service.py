@@ -4,6 +4,8 @@ Provides CRUD operations for provenance records and reasoning traces,
 supporting full traceability from clinical answers back to source data.
 """
 
+from __future__ import annotations
+
 import logging
 import threading
 from datetime import datetime, timezone

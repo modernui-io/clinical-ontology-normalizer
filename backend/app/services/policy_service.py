@@ -4,6 +4,8 @@ Handles upload, parsing, embedding, searching, and lifecycle management
 of institutional policy documents.
 """
 
+from __future__ import annotations
+
 import hashlib
 import logging
 import re

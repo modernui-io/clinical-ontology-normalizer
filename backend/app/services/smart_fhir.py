@@ -4,6 +4,8 @@ Provides OAuth2 authorization code flow with PKCE support for
 Epic, Cerner, and other SMART on FHIR compliant EHR systems.
 """
 
+from __future__ import annotations
+
 import base64
 import hashlib
 import logging

@@ -14,6 +14,8 @@ Each calculator includes:
 - Reference ranges and recommendations
 """
 
+from __future__ import annotations
+
 import logging
 import math
 from dataclasses import dataclass, field

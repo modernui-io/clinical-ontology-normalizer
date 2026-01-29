@@ -7,6 +7,8 @@ IMPORTANT: Negated findings (assertion=ABSENT) MUST be preserved
 and correctly represented in the knowledge graph.
 """
 
+from __future__ import annotations
+
 import logging
 from uuid import UUID
 

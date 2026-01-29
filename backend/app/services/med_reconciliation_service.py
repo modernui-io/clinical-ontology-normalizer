@@ -4,6 +4,8 @@ Compares medication lists and identifies discrepancies with severity classificat
 Supports admission vs discharge and EHR vs patient-reported comparisons.
 """
 
+from __future__ import annotations
+
 import logging
 import uuid
 from dataclasses import dataclass, field

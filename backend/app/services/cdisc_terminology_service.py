@@ -21,6 +21,8 @@ Note: Full CDISC CT is available from NCI EVS at:
 https://evs.nci.nih.gov/ftp1/CDISC/
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum

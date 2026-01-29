@@ -1,4 +1,6 @@
 """
+
+from __future__ import annotations
 Clinical Intelligence Agent API
 
 Unified orchestration layer for clinical NLP and intelligence services.
@@ -26,6 +28,8 @@ This service orchestrates:
 - Cohort Definition Building
 - Hybrid LLM Analysis
 """
+
+from __future__ import annotations
 
 import logging
 import threading
@@ -635,7 +639,7 @@ class ClinicalIntelligenceAgent:
 
         return response
 
-    def analyze_for_research(self, clinical_text: str, criteria: list[Dict] = None) -> AgentResponse:
+    def analyze_for_research(self, clinical_text: str, criteria: list[dict] | None = None) -> AgentResponse:
         """
         Convenience method for drug discovery/clinical trial workflow.
 

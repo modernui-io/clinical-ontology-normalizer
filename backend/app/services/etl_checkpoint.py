@@ -14,6 +14,8 @@ Checkpoints are stored in JSON files with the following structure:
 - timestamp: When checkpoint was saved
 """
 
+from __future__ import annotations
+
 import json
 import logging
 import os

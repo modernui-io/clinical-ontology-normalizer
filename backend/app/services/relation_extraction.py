@@ -10,6 +10,8 @@ Extracts relationships between clinical entities such as:
 Uses pattern matching and dependency parsing for relation detection.
 """
 
+from __future__ import annotations
+
 import logging
 import re
 import threading

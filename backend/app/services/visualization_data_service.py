@@ -9,6 +9,8 @@ This service provides data preparation functions for various visualization types
 - Study timeline Gantt charts
 """
 
+from __future__ import annotations
+
 import logging
 import math
 import random

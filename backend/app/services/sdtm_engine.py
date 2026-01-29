@@ -4,6 +4,8 @@ Transforms source data to SDTM format using mapping specifications.
 Handles variable transformations, codelist lookups, and data type conversions.
 """
 
+from __future__ import annotations
+
 import logging
 import re
 import threading

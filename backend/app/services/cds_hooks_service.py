@@ -10,6 +10,8 @@ Provides hooks for:
 See: https://cds-hooks.org/specification/current/
 """
 
+from __future__ import annotations
+
 import logging
 import uuid
 from dataclasses import dataclass, field

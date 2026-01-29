@@ -13,6 +13,8 @@ Note: CPT codes are owned by the American Medical Association (AMA).
 Code suggestions should be verified by qualified medical coders.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from enum import Enum
 import json

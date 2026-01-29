@@ -4,6 +4,8 @@ Provides audio transcription and structured extraction for clinical notes.
 Designed for integration with Whisper-compatible transcription services.
 """
 
+from __future__ import annotations
+
 import asyncio
 import hashlib
 import io

@@ -19,6 +19,8 @@ Uses TF-IDF based text matching with:
 - Query expansion using synonyms from vocabulary data
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum

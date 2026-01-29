@@ -4,6 +4,8 @@ Provides functionality to create, manage, and evaluate clinical alert rules
 based on risk thresholds, lab values, and clinical conditions.
 """
 
+from __future__ import annotations
+
 import logging
 import threading
 from dataclasses import dataclass, field

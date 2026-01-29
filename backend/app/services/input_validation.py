@@ -10,6 +10,8 @@ Also provides a validation decorator for API endpoints that automatically
 validates specified parameters and returns field-level error messages.
 """
 
+from __future__ import annotations
+
 import re
 import functools
 import logging

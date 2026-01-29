@@ -4,6 +4,8 @@ Provides semantic similarity search over clinical facts, mentions,
 and OMOP concepts using vector embeddings.
 """
 
+from __future__ import annotations
+
 import logging
 from dataclasses import dataclass
 from typing import Sequence

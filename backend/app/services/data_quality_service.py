@@ -20,6 +20,8 @@ Supports OMOP CDM tables:
 - NOTE_NLP
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from datetime import date, datetime, timezone, timedelta
 from enum import Enum

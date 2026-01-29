@@ -28,6 +28,8 @@ The data-driven approach handles:
 This reduces repetitive boilerplate while keeping formulas safe and testable.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable

@@ -4,6 +4,8 @@ Provides functionality to configure and manage risk thresholds
 for various predictive models (mortality, readmission, etc.).
 """
 
+from __future__ import annotations
+
 import logging
 import threading
 from dataclasses import dataclass, field

@@ -8,6 +8,8 @@ This module uses a singleton pattern consistent with VocabularyService
 and LLMService.
 """
 
+from __future__ import annotations
+
 import json
 import logging
 import time

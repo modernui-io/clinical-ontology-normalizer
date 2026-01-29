@@ -8,6 +8,8 @@ This service complements the rule-based NLP service and can be combined
 in an ensemble for better coverage and accuracy.
 """
 
+from __future__ import annotations
+
 import logging
 import re
 import threading

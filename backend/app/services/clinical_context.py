@@ -10,6 +10,8 @@ These capabilities dramatically improve extraction precision by filtering
 out false positives from negated mentions, family history, etc.
 """
 
+from __future__ import annotations
+
 import re
 import threading
 from dataclasses import dataclass, field

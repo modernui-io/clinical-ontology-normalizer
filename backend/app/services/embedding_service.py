@@ -4,6 +4,8 @@ Uses sentence-transformers to generate embeddings for clinical text,
 enabling semantic similarity search across clinical facts and concepts.
 """
 
+from __future__ import annotations
+
 import logging
 import threading
 from functools import lru_cache

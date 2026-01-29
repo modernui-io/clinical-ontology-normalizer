@@ -16,6 +16,8 @@ The RBAC system supports:
 VP-Memory-1: Permission cache is bounded with TTL to prevent memory growth.
 """
 
+from __future__ import annotations
+
 import logging
 import threading
 import time

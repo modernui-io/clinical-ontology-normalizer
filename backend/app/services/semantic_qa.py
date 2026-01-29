@@ -7,6 +7,8 @@ Provides semantic search over clinical notes and knowledge graphs with:
 - Evidence retrieval with citations
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum

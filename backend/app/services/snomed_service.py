@@ -17,6 +17,8 @@ SNOMED CT is a comprehensive clinical terminology system covering:
 Note: This service requires proper SNOMED CT licensing for production use.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from enum import Enum
 import json

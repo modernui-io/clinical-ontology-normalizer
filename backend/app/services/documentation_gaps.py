@@ -1,4 +1,6 @@
 """
+
+from __future__ import annotations
 Documentation Gap Detection Service.
 
 Analyzes clinical documentation to identify:
@@ -9,6 +11,8 @@ Analyzes clinical documentation to identify:
 
 Generates structured queries for providers/coders.
 """
+
+from __future__ import annotations
 
 import logging
 import threading

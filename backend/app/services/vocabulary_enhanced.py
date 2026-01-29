@@ -7,6 +7,8 @@ This service extends the basic vocabulary service with:
 - Efficient lookup with Aho-Corasick automaton
 """
 
+from __future__ import annotations
+
 import json
 import logging
 import time

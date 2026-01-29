@@ -15,6 +15,8 @@ Supports multiple clinical NLP tasks:
 - Clinical Summarization
 """
 
+from __future__ import annotations
+
 import asyncio
 import hashlib
 import json

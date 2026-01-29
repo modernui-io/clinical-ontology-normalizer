@@ -7,6 +7,8 @@ Generates structured clinical summaries from extracted facts including:
 - Discharge summaries
 """
 
+from __future__ import annotations
+
 import logging
 import threading
 from dataclasses import dataclass, field

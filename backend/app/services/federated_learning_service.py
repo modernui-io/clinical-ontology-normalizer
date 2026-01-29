@@ -11,6 +11,8 @@ This implementation simulates federated learning without actual network
 communication, using mock multi-organization data for demonstration.
 """
 
+from __future__ import annotations
+
 import hashlib
 import logging
 import secrets

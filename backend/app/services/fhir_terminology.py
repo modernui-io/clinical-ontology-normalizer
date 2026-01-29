@@ -21,6 +21,8 @@ Note: This service provides terminology services using locally loaded vocabulary
 For full terminology services, consider integrating with a terminology server.
 """
 
+from __future__ import annotations
+
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timezone

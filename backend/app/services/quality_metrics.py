@@ -7,6 +7,8 @@ Tracks and reports on NLP processing quality including:
 - Error tracking and analysis
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from datetime import datetime, timezone, timedelta
 from enum import Enum

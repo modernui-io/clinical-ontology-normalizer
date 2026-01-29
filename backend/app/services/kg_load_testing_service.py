@@ -5,6 +5,8 @@ for the Knowledge Graph API. Supports concurrent requests, latency measurement,
 throughput calculation, and resource monitoring.
 """
 
+from __future__ import annotations
+
 import asyncio
 import statistics
 import threading

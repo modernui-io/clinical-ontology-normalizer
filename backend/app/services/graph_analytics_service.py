@@ -10,6 +10,8 @@ Features:
 - Community detection for patient clusters
 """
 
+from __future__ import annotations
+
 import logging
 import time
 from dataclasses import dataclass, field

@@ -4,6 +4,8 @@ Provides version comparison, change detection, and conflict analysis
 between active policies.
 """
 
+from __future__ import annotations
+
 import logging
 from difflib import SequenceMatcher
 from typing import Any

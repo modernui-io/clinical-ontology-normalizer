@@ -15,6 +15,8 @@ Flow:
 3. NodeInput/EdgeInput → DatabaseGraphBuilderService → Database
 """
 
+from __future__ import annotations
+
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timezone

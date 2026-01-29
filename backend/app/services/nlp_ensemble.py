@@ -9,6 +9,8 @@ Combines multiple NLP extraction methods for improved accuracy:
 The ensemble uses voting and confidence boosting when multiple methods agree.
 """
 
+from __future__ import annotations
+
 import logging
 import threading
 from dataclasses import dataclass, field
@@ -22,6 +24,11 @@ from app.services.nlp_clinical_ner import (
     ClinicalNERService,
     TransformerNERConfig,
     get_clinical_ner_service,
+)
+from app.services.nlp_modernbert_ner import (
+    ModernBERTNERService,
+    ModernBERTConfig,
+    get_modernbert_ner_service,
 )
 from app.services.value_extraction import (
     ValueExtractionService,
@@ -43,6 +50,7 @@ class EnsembleConfig:
     # Enable/disable individual extractors
     use_rule_based: bool = True
     use_ml_ner: bool = True
+    use_modernbert: bool = True  # ModernBERT with 8K context
     use_value_extraction: bool = True
     use_relation_extraction: bool = True
 
@@ -50,7 +58,11 @@ class EnsembleConfig:
     min_confidence: float = 0.5
     rule_based_confidence: float = 0.85
     ml_ner_confidence: float = 0.80
+    modernbert_confidence: float = 0.88  # Higher base confidence (better accuracy)
     value_confidence: float = 0.90
+
+    # ModernBERT weight multiplier (1.2x due to better accuracy on long contexts)
+    modernbert_weight: float = 1.2
 
     # Confidence boosting when multiple methods agree
     agreement_boost: float = 0.10  # Add this when methods agree
@@ -130,6 +142,7 @@ class EnsembleNLPService(BaseNLPService):
     # Component services (lazy initialized)
     _rule_based_service: RuleBasedNLPService | None = field(default=None, init=False)
     _ml_ner_service: ClinicalNERService | None = field(default=None, init=False)
+    _modernbert_service: ModernBERTNERService | None = field(default=None, init=False)
     _value_service: ValueExtractionService | None = field(default=None, init=False)
     _relation_service: RelationExtractionService | None = field(default=None, init=False)
     _initialized: bool = field(default=False, init=False)
@@ -146,6 +159,18 @@ class EnsembleNLPService(BaseNLPService):
         if self.config.use_ml_ner:
             self._ml_ner_service = get_clinical_ner_service()
             logger.info("Initialized ML NER service")
+
+        if self.config.use_modernbert:
+            try:
+                self._modernbert_service = get_modernbert_ner_service()
+                if self._modernbert_service.is_available():
+                    logger.info("Initialized ModernBERT NER service (8K context)")
+                else:
+                    logger.info("ModernBERT service unavailable, using fallback NER")
+                    self._modernbert_service = None
+            except Exception as e:
+                logger.warning(f"Could not initialize ModernBERT service: {e}")
+                self._modernbert_service = None
 
         if self.config.use_value_extraction:
             self._value_service = get_value_extraction_service()
@@ -322,6 +347,33 @@ class EnsembleNLPService(BaseNLPService):
             logger.warning(f"ML NER extraction failed: {e}")
             return []
 
+    def _extract_modernbert(
+        self,
+        text: str,
+        document_id: UUID,
+        note_type: str | None,
+    ) -> list[ExtractedMention]:
+        """Extract mentions using ModernBERT NER service.
+
+        ModernBERT has 8K context and higher accuracy, so we apply
+        a weight multiplier to its confidence scores.
+        """
+        if not self._modernbert_service:
+            return []
+
+        try:
+            mentions = self._modernbert_service.extract_mentions(
+                text, document_id, note_type
+            )
+            # Apply weight multiplier for ModernBERT's higher accuracy
+            for m in mentions:
+                boosted = m.confidence * self.config.modernbert_weight
+                m.confidence = min(boosted, self.config.max_confidence)
+            return mentions
+        except Exception as e:
+            logger.warning(f"ModernBERT extraction failed: {e}")
+            return []
+
     def _extract_values(
         self,
         text: str,
@@ -411,7 +463,14 @@ class EnsembleNLPService(BaseNLPService):
                 mentions_by_source["rule_based"] = rule_mentions
                 logger.debug(f"Rule-based: {len(rule_mentions)} mentions")
 
-        # ML NER extraction
+        # ModernBERT extraction (preferred for long documents)
+        if self.config.use_modernbert and self._modernbert_service:
+            modernbert_mentions = self._extract_modernbert(text, document_id, note_type)
+            if modernbert_mentions:
+                mentions_by_source["modernbert"] = modernbert_mentions
+                logger.debug(f"ModernBERT: {len(modernbert_mentions)} mentions")
+
+        # ML NER extraction (fallback/supplement)
         if self.config.use_ml_ner:
             ml_mentions = self._extract_ml_ner(text, document_id, note_type)
             if ml_mentions:

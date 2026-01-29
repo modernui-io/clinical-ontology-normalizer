@@ -14,6 +14,8 @@ Note: This is a clinical decision support tool. All recommendations should
 be reviewed by qualified medical coders and billing professionals.
 """
 
+from __future__ import annotations
+
 import logging
 import threading
 from dataclasses import dataclass, field

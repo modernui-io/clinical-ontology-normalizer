@@ -14,6 +14,8 @@ X12 Format Overview:
 - Repetition separator (typically ^) for repeating elements
 """
 
+from __future__ import annotations
+
 import logging
 import re
 import threading

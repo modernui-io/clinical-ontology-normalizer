@@ -15,6 +15,8 @@ Note: This is a clinical decision support tool and should not replace
 clinical judgment. Always consult current prescribing information.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from enum import Enum
 import json

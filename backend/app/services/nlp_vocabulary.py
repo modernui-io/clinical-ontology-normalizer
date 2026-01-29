@@ -15,6 +15,8 @@ For full vocabulary lookup/mapping, use DatabaseMappingServiceSQL
 which performs SQL queries instead of in-memory matching.
 """
 
+from __future__ import annotations
+
 import json
 import logging
 from dataclasses import dataclass, field

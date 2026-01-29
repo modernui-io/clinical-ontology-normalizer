@@ -4,6 +4,8 @@ Analyzes the downstream effects of concept retirements, deprecations,
 and version updates on KG nodes, alert rules, and policy sections.
 """
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 

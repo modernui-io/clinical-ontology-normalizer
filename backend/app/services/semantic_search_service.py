@@ -10,6 +10,8 @@ Provides intelligent search across clinical terminology vocabularies with:
 - Concept hierarchy traversal
 """
 
+from __future__ import annotations
+
 import json
 import logging
 import math

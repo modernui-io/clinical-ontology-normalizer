@@ -13,6 +13,8 @@ Pipeline:
 Based on research from Decision Knowledge Graphs for Clinical Practice Guidelines.
 """
 
+from __future__ import annotations
+
 import json
 import logging
 import re

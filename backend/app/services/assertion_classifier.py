@@ -16,6 +16,8 @@ References:
 - NegBERT: Khandelwal & Sawant (2020) - Transformer-based negation detection
 """
 
+from __future__ import annotations
+
 import logging
 import threading
 from dataclasses import dataclass, field

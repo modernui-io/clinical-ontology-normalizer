@@ -4,6 +4,8 @@ Provides token refresh, session timeout tracking, session listing,
 revocation, and refresh token rotation.
 """
 
+from __future__ import annotations
+
 import hashlib
 import logging
 import secrets

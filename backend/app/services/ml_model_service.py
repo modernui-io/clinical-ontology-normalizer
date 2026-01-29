@@ -8,6 +8,8 @@ Provides comprehensive ML model management:
 - Model performance tracking (AUC, calibration)
 """
 
+from __future__ import annotations
+
 import hashlib
 import json
 import logging

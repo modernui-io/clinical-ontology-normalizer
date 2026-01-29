@@ -19,6 +19,8 @@ References:
 - Monarch (2021) - Human-in-the-Loop Machine Learning
 """
 
+from __future__ import annotations
+
 import hashlib
 import json
 import logging

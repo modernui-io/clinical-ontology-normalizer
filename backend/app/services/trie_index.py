@@ -1,4 +1,6 @@
 """
+
+from __future__ import annotations
 Trie-based Index for Fast Clinical Terminology Lookup.
 
 Provides O(m) prefix/substring matching where m is the query length,
@@ -15,6 +17,8 @@ The trie supports:
 - Word boundary matching: "heart" matches "congestive heart failure"
 - Ranked results by match quality and usage frequency
 """
+
+from __future__ import annotations
 
 import logging
 import threading

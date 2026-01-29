@@ -12,6 +12,8 @@ Uses the LLM service for AI-powered responses while integrating
 with existing vocabulary services (SNOMED, ICD-10, CPT, RxNorm).
 """
 
+from __future__ import annotations
+
 import json
 import logging
 import threading

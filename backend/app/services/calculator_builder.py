@@ -13,6 +13,8 @@ Supported Features:
 - Lookup tables: lookup($value, table_name)
 """
 
+from __future__ import annotations
+
 import logging
 import math
 import operator

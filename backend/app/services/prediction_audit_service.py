@@ -4,6 +4,8 @@ Provides functionality to log and query ML model predictions
 for auditing, explainability, and drift detection.
 """
 
+from __future__ import annotations
+
 import logging
 import threading
 from dataclasses import dataclass, field

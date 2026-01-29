@@ -4,6 +4,8 @@ Implements validation rules compatible with Pinnacle 21 for SDTM datasets.
 Checks variable names, lengths, types, controlled terminology, and consistency.
 """
 
+from __future__ import annotations
+
 import logging
 import re
 import threading

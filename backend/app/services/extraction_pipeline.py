@@ -13,6 +13,8 @@ Architecture designed to maximize both precision and recall by combining
 rule-based speed with contextual understanding.
 """
 
+from __future__ import annotations
+
 import logging
 import re
 import threading

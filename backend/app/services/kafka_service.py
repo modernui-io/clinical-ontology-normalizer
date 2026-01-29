@@ -7,6 +7,8 @@ When Kafka is unavailable, this service provides mock data
 for development and testing purposes.
 """
 
+from __future__ import annotations
+
 import asyncio
 import json
 import logging

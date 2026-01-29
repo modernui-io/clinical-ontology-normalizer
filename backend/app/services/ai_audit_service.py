@@ -7,6 +7,8 @@ Logs and queries AI model interactions for:
 - Usage analytics (model distribution, prompt patterns)
 """
 
+from __future__ import annotations
+
 import hashlib
 import logging
 import threading

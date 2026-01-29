@@ -11,6 +11,8 @@ Features:
 - Graceful fallback with mock data when Neo4j is unavailable
 """
 
+from __future__ import annotations
+
 import logging
 import time
 from dataclasses import dataclass, field

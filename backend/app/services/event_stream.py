@@ -17,6 +17,8 @@ Event Types:
 - job_complete: Batch job finished
 """
 
+from __future__ import annotations
+
 import asyncio
 import json
 import logging

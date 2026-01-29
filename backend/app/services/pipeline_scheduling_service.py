@@ -4,6 +4,8 @@ Provides functionality to create and manage scheduled ETL pipeline runs
 with support for cron expressions and various schedule patterns.
 """
 
+from __future__ import annotations
+
 import logging
 import threading
 from dataclasses import dataclass, field

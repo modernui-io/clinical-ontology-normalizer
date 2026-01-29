@@ -4,6 +4,8 @@ Assembles reasoning chains and entity provenance from database records
 into structured dictionaries suitable for API responses.
 """
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 

@@ -12,6 +12,8 @@ Based on research from temporal knowledge graph reasoning literature:
 - Temporal constraint propagation for causal reasoning
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum

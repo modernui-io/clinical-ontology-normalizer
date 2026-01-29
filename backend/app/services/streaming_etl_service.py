@@ -8,6 +8,8 @@ Provides real-time processing for:
 - Exactly-once semantics support
 """
 
+from __future__ import annotations
+
 import asyncio
 import json
 import logging

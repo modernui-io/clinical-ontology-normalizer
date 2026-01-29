@@ -1,4 +1,6 @@
 """
+
+from __future__ import annotations
 Neo4j Schema Migration Service for Knowledge Graph.
 
 This service provides versioned schema migrations for Neo4j, including:
@@ -8,6 +10,8 @@ This service provides versioned schema migrations for Neo4j, including:
 - Rollback capabilities
 - Migration history tracking
 """
+
+from __future__ import annotations
 
 import hashlib
 import json

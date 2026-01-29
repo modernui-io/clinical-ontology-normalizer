@@ -8,6 +8,8 @@ Provides high-quality entity extraction with:
 - Integration with vocabulary services for OMOP mapping
 """
 
+from __future__ import annotations
+
 import hashlib
 import logging
 import re

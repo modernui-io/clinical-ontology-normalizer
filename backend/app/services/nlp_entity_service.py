@@ -10,6 +10,8 @@ The service is now split into:
 - nlp_entity/nlp_entity_normalizers.py - Text preprocessing and negation detection
 """
 
+from __future__ import annotations
+
 # Re-export everything from the new package for backwards compatibility
 from app.services.nlp_entity import (
     # Main service

@@ -8,6 +8,8 @@ TEFCA enables standardized, secure exchange of health information across
 different healthcare organizations and EHR systems.
 """
 
+from __future__ import annotations
+
 import hashlib
 import logging
 import secrets

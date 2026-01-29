@@ -12,6 +12,8 @@ Key features:
 - X12 model to internal model mapping
 """
 
+from __future__ import annotations
+
 import logging
 import re
 import threading

@@ -7,6 +7,8 @@ This module uses a singleton pattern to ensure vocabulary is loaded
 only once and shared across all services.
 """
 
+from __future__ import annotations
+
 import json
 import logging
 import time

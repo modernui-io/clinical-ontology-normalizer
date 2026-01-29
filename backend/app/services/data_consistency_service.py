@@ -7,6 +7,8 @@ Performs cross-table consistency checks on OMOP CDM data:
 - Orphan record detection
 """
 
+from __future__ import annotations
+
 import logging
 import time
 import uuid

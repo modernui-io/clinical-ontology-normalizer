@@ -10,6 +10,8 @@ Key features:
 3. No memory overhead - all lookups via SQL
 """
 
+from __future__ import annotations
+
 import logging
 
 from sqlalchemy import select, func, text, union_all

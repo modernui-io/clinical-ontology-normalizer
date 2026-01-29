@@ -6,6 +6,8 @@ data export in NDJSON format.
 See: https://hl7.org/fhir/uv/bulkdata/
 """
 
+from __future__ import annotations
+
 import asyncio
 import gzip
 import json

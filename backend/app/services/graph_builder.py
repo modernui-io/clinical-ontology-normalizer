@@ -4,6 +4,8 @@ Converts ClinicalFacts into a patient knowledge graph with
 nodes and edges.
 """
 
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime

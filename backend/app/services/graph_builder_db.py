@@ -4,6 +4,8 @@ Implements graph construction with database persistence.
 Supports bi-temporal model for temporal reasoning.
 """
 
+from __future__ import annotations
+
 import logging
 from datetime import datetime
 from uuid import UUID

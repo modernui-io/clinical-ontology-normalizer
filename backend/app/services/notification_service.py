@@ -13,6 +13,8 @@ Features:
 - User preference management
 """
 
+from __future__ import annotations
+
 import asyncio
 import hashlib
 import hmac
