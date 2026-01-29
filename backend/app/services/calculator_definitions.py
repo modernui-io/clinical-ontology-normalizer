@@ -2777,6 +2777,428 @@ ANION_GAP_DEFINITION = CalculatorDefinition(
 )
 
 
+# ============================================================================
+# eGFR CKD-EPI (2021 Race-free)
+# ============================================================================
+EGFR_CKDEPI_DEFINITION = CalculatorDefinition(
+    id="egfr_ckdepi",
+    name="eGFR CKD-EPI 2021",
+    short_name="eGFR",
+    calc_type=CalculatorType.EQUATION,
+    category=CalculatorCategory.RENAL,
+    output_type=OutputType.DECIMAL,
+    score_unit="mL/min/1.73m²",
+    description="Estimated glomerular filtration rate (2021 race-free equation)",
+    references=["Inker LA, et al. N Engl J Med 2021", "KDIGO 2012 Clinical Practice Guideline"],
+    specialties=["Nephrology", "Internal Medicine", "Primary Care"],
+    notes=["2021 equation removes race adjustment", "More accurate than Cockcroft-Gault for drug dosing"],
+    formula=FormulaDefinition(
+        formula_text="142 × min(Scr/κ, 1)^α × max(Scr/κ, 1)^-1.200 × 0.9938^age × sex_factor",
+        output_unit="mL/min/1.73m²",
+        precision=0,
+        parameters=[
+            FormulaParameter(name="creatinine", display_name="Serum Creatinine", unit="mg/dL", min_value=0.2, max_value=15.0),
+            FormulaParameter(name="age", display_name="Age", unit="years", min_value=18, max_value=100),
+            FormulaParameter(name="female", display_name="Female", unit="", min_value=0, max_value=1, description="1 if female, 0 if male"),
+        ],
+    ),
+    interpretations=[
+        ThresholdInterpretation(min_score=90, max_score=None, risk_level=RiskLevel.LOW,
+            interpretation="G1: Normal or high (≥90)", recommendations=["CKD if other markers of kidney damage"]),
+        ThresholdInterpretation(min_score=60, max_score=90, risk_level=RiskLevel.LOW_MODERATE,
+            interpretation="G2: Mildly decreased (60-89)", recommendations=["CKD if other markers present"]),
+        ThresholdInterpretation(min_score=45, max_score=60, risk_level=RiskLevel.MODERATE,
+            interpretation="G3a: Mildly-moderately decreased (45-59)", recommendations=["Nephrology referral", "BP/DM control"]),
+        ThresholdInterpretation(min_score=30, max_score=45, risk_level=RiskLevel.MODERATE_HIGH,
+            interpretation="G3b: Moderately-severely decreased (30-44)", recommendations=["Nephrology referral", "Avoid nephrotoxins"]),
+        ThresholdInterpretation(min_score=15, max_score=30, risk_level=RiskLevel.HIGH,
+            interpretation="G4: Severely decreased (15-29)", recommendations=["Prepare for RRT", "Dietary modifications"]),
+        ThresholdInterpretation(min_score=0, max_score=15, risk_level=RiskLevel.VERY_HIGH,
+            interpretation="G5: Kidney failure (<15)", recommendations=["Dialysis/transplant evaluation"]),
+    ],
+)
+
+
+# ============================================================================
+# FIB-4 (Fibrosis-4 Index)
+# ============================================================================
+FIB4_DEFINITION = CalculatorDefinition(
+    id="fib4",
+    name="FIB-4 Index for Liver Fibrosis",
+    short_name="FIB-4",
+    calc_type=CalculatorType.EQUATION,
+    category=CalculatorCategory.HEPATIC,
+    output_type=OutputType.DECIMAL,
+    score_unit="",
+    description="Non-invasive liver fibrosis assessment",
+    references=["Sterling RK, et al. Hepatology 2006", "McPherson S, et al. Gut 2010"],
+    specialties=["Hepatology", "Gastroenterology", "Primary Care"],
+    notes=["Best validated in NAFLD and hepatitis C", "Low FIB-4 rules out advanced fibrosis"],
+    formula=FormulaDefinition(
+        formula_text="(Age × AST) / (Platelets × √ALT)",
+        output_unit="",
+        precision=2,
+        parameters=[
+            FormulaParameter(name="age", display_name="Age", unit="years", min_value=18, max_value=100),
+            FormulaParameter(name="ast", display_name="AST", unit="U/L", min_value=5, max_value=2000),
+            FormulaParameter(name="alt", display_name="ALT", unit="U/L", min_value=5, max_value=2000),
+            FormulaParameter(name="platelets", display_name="Platelets", unit="×10⁹/L", min_value=20, max_value=600),
+        ],
+    ),
+    interpretations=[
+        ThresholdInterpretation(min_score=0, max_score=1.3, risk_level=RiskLevel.LOW,
+            interpretation="Low risk for advanced fibrosis (F3-F4)",
+            recommendations=["Low probability of cirrhosis", "Routine follow-up", "No further testing needed"]),
+        ThresholdInterpretation(min_score=1.3, max_score=2.67, risk_level=RiskLevel.MODERATE,
+            interpretation="Indeterminate - further testing recommended",
+            recommendations=["Consider FibroScan or ELF test", "Hepatology consultation if high risk"]),
+        ThresholdInterpretation(min_score=2.67, max_score=None, risk_level=RiskLevel.HIGH,
+            interpretation="High risk for advanced fibrosis",
+            recommendations=["High probability of F3-F4 fibrosis", "Hepatology referral", "Consider liver biopsy or FibroScan"]),
+    ],
+)
+
+
+# ============================================================================
+# NEWS2 (National Early Warning Score 2)
+# ============================================================================
+NEWS2_DEFINITION = CalculatorDefinition(
+    id="news2",
+    name="National Early Warning Score 2",
+    short_name="NEWS2",
+    calc_type=CalculatorType.CRITERIA,
+    category=CalculatorCategory.CRITICAL_CARE,
+    output_type=OutputType.INTEGER,
+    score_unit="points",
+    description="Identifies patients at risk of clinical deterioration",
+    references=["Royal College of Physicians 2017"],
+    specialties=["Emergency Medicine", "Critical Care", "Internal Medicine", "Nursing"],
+    notes=["Scale 2 for SpO2 in COPD patients with target 88-92%", "3 in any parameter = clinical concern"],
+    multi_level_criteria=[
+        MultiLevelCriterion(
+            name="respiratory_rate",
+            display_name="Respiratory Rate",
+            levels=[
+                ("leq_8", 3, "≤8 (3)"), ("9_11", 1, "9-11 (1)"), ("12_20", 0, "12-20 (0)"),
+                ("21_24", 2, "21-24 (2)"), ("gte_25", 3, "≥25 (3)"),
+            ],
+            description="Breaths per minute",
+        ),
+        MultiLevelCriterion(
+            name="spo2_scale1",
+            display_name="SpO2 (Scale 1)",
+            levels=[
+                ("leq_91", 3, "≤91% (3)"), ("92_93", 2, "92-93% (2)"),
+                ("94_95", 1, "94-95% (1)"), ("gte_96", 0, "≥96% (0)"),
+            ],
+            description="Oxygen saturation (normal target)",
+        ),
+        MultiLevelCriterion(
+            name="air_or_oxygen",
+            display_name="Air or Oxygen",
+            levels=[("air", 0, "Air (0)"), ("oxygen", 2, "Oxygen (2)")],
+            description="Supplemental oxygen",
+        ),
+        MultiLevelCriterion(
+            name="systolic_bp",
+            display_name="Systolic BP",
+            levels=[
+                ("leq_90", 3, "≤90 (3)"), ("91_100", 2, "91-100 (2)"), ("101_110", 1, "101-110 (1)"),
+                ("111_219", 0, "111-219 (0)"), ("gte_220", 3, "≥220 (3)"),
+            ],
+            description="Systolic blood pressure mmHg",
+        ),
+        MultiLevelCriterion(
+            name="pulse",
+            display_name="Pulse",
+            levels=[
+                ("leq_40", 3, "≤40 (3)"), ("41_50", 1, "41-50 (1)"), ("51_90", 0, "51-90 (0)"),
+                ("91_110", 1, "91-110 (1)"), ("111_130", 2, "111-130 (2)"), ("gte_131", 3, "≥131 (3)"),
+            ],
+            description="Heart rate bpm",
+        ),
+        MultiLevelCriterion(
+            name="consciousness",
+            display_name="Consciousness",
+            levels=[("alert", 0, "Alert (0)"), ("cvpu", 3, "Confused/V/P/U (3)")],
+            description="ACVPU scale",
+        ),
+        MultiLevelCriterion(
+            name="temperature",
+            display_name="Temperature",
+            levels=[
+                ("leq_35", 3, "≤35.0°C (3)"), ("35_36", 1, "35.1-36.0°C (1)"),
+                ("36_38", 0, "36.1-38.0°C (0)"), ("38_39", 1, "38.1-39.0°C (1)"), ("gte_39", 2, "≥39.1°C (2)"),
+            ],
+            description="Temperature °C",
+        ),
+    ],
+    interpretations=[
+        ThresholdInterpretation(min_score=0, max_score=1, risk_level=RiskLevel.LOW,
+            interpretation="Low risk", recommendations=["Routine monitoring"]),
+        ThresholdInterpretation(min_score=1, max_score=5, risk_level=RiskLevel.LOW_MODERATE,
+            interpretation="Low-medium clinical risk", recommendations=["Increased monitoring", "Nurse assessment"]),
+        ThresholdInterpretation(min_score=5, max_score=7, risk_level=RiskLevel.MODERATE,
+            interpretation="Medium clinical risk", recommendations=["Urgent physician review", "Consider ICU"]),
+        ThresholdInterpretation(min_score=7, max_score=None, risk_level=RiskLevel.HIGH,
+            interpretation="High clinical risk - Emergency response", recommendations=["Immediate physician review", "Critical care assessment"]),
+    ],
+)
+
+
+# ============================================================================
+# A-a GRADIENT
+# ============================================================================
+AA_GRADIENT_DEFINITION = CalculatorDefinition(
+    id="aa_gradient",
+    name="Alveolar-arterial Gradient",
+    short_name="A-a Gradient",
+    calc_type=CalculatorType.EQUATION,
+    category=CalculatorCategory.PULMONARY,
+    output_type=OutputType.DECIMAL,
+    score_unit="mmHg",
+    description="Difference between alveolar and arterial oxygen",
+    references=["West JB. Respiratory Physiology"],
+    specialties=["Pulmonology", "Critical Care", "Emergency Medicine"],
+    notes=["Normal gradient increases with age: (Age/4) + 4", "High gradient = V/Q mismatch, shunt, diffusion defect"],
+    formula=FormulaDefinition(
+        formula_text="PAO2 - PaO2 = [(FiO2 × (Patm - 47)) - (PaCO2/0.8)] - PaO2",
+        output_unit="mmHg",
+        precision=1,
+        parameters=[
+            FormulaParameter(name="pao2", display_name="PaO2", unit="mmHg", min_value=20, max_value=600),
+            FormulaParameter(name="paco2", display_name="PaCO2", unit="mmHg", min_value=10, max_value=120),
+            FormulaParameter(name="fio2", display_name="FiO2", unit="%", min_value=21, max_value=100),
+            FormulaParameter(name="age", display_name="Age", unit="years", min_value=18, max_value=100, required=False),
+        ],
+    ),
+    interpretations=[
+        ThresholdInterpretation(min_score=0, max_score=15, risk_level=RiskLevel.LOW,
+            interpretation="Normal A-a gradient", recommendations=["If hypoxemic: hypoventilation (CNS, NM disease)"]),
+        ThresholdInterpretation(min_score=15, max_score=30, risk_level=RiskLevel.MODERATE,
+            interpretation="Mildly elevated gradient", recommendations=["V/Q mismatch most likely", "Consider PE, pneumonia, asthma"]),
+        ThresholdInterpretation(min_score=30, max_score=None, risk_level=RiskLevel.HIGH,
+            interpretation="Markedly elevated gradient", recommendations=["Significant V/Q mismatch or shunt", "Consider PE, ARDS, severe pneumonia"]),
+    ],
+)
+
+
+# ============================================================================
+# MEAN ARTERIAL PRESSURE (MAP)
+# ============================================================================
+MAP_DEFINITION = CalculatorDefinition(
+    id="map",
+    name="Mean Arterial Pressure",
+    short_name="MAP",
+    calc_type=CalculatorType.EQUATION,
+    category=CalculatorCategory.CARDIOVASCULAR,
+    output_type=OutputType.INTEGER,
+    score_unit="mmHg",
+    description="Average arterial pressure during cardiac cycle",
+    references=["Chemla D, et al. Chest 2005"],
+    specialties=["Critical Care", "Emergency Medicine", "Cardiology", "Anesthesiology"],
+    formula=FormulaDefinition(
+        formula_text="DBP + (SBP - DBP)/3 or (SBP + 2×DBP)/3",
+        output_unit="mmHg",
+        precision=0,
+        parameters=[
+            FormulaParameter(name="systolic", display_name="Systolic BP", unit="mmHg", min_value=40, max_value=300),
+            FormulaParameter(name="diastolic", display_name="Diastolic BP", unit="mmHg", min_value=20, max_value=200),
+        ],
+    ),
+    interpretations=[
+        ThresholdInterpretation(min_score=0, max_score=60, risk_level=RiskLevel.HIGH,
+            interpretation="Hypotension - inadequate organ perfusion", recommendations=["Consider fluid resuscitation", "Vasopressors may be needed"]),
+        ThresholdInterpretation(min_score=60, max_score=65, risk_level=RiskLevel.MODERATE,
+            interpretation="Low-normal (may be inadequate in sepsis)", recommendations=["Target MAP ≥65 in sepsis"]),
+        ThresholdInterpretation(min_score=65, max_score=100, risk_level=RiskLevel.LOW,
+            interpretation="Normal MAP", recommendations=["Adequate perfusion pressure"]),
+        ThresholdInterpretation(min_score=100, max_score=None, risk_level=RiskLevel.MODERATE,
+            interpretation="Elevated MAP", recommendations=["Evaluate for hypertensive urgency/emergency if symptomatic"]),
+    ],
+)
+
+
+# ============================================================================
+# CALCULATED SERUM OSMOLALITY
+# ============================================================================
+SERUM_OSMOLALITY_DEFINITION = CalculatorDefinition(
+    id="serum_osmolality",
+    name="Calculated Serum Osmolality",
+    short_name="Osm",
+    calc_type=CalculatorType.EQUATION,
+    category=CalculatorCategory.METABOLIC,
+    output_type=OutputType.INTEGER,
+    score_unit="mOsm/kg",
+    description="Estimated serum osmolality from routine labs",
+    references=["Purssell RA, et al. Ann Emerg Med 2001"],
+    specialties=["Nephrology", "Emergency Medicine", "Critical Care"],
+    formula=FormulaDefinition(
+        formula_text="(2 × Na) + (Glucose/18) + (BUN/2.8)",
+        output_unit="mOsm/kg",
+        precision=0,
+        parameters=[
+            FormulaParameter(name="sodium", display_name="Sodium", unit="mEq/L", min_value=100, max_value=180),
+            FormulaParameter(name="glucose", display_name="Glucose", unit="mg/dL", min_value=20, max_value=1500),
+            FormulaParameter(name="bun", display_name="BUN", unit="mg/dL", min_value=2, max_value=200),
+        ],
+    ),
+    interpretations=[
+        ThresholdInterpretation(min_score=0, max_score=275, risk_level=RiskLevel.MODERATE,
+            interpretation="Hypo-osmolal", recommendations=["Evaluate for hyponatremia causes"]),
+        ThresholdInterpretation(min_score=275, max_score=295, risk_level=RiskLevel.LOW,
+            interpretation="Normal osmolality (275-295)", recommendations=["Normal"]),
+        ThresholdInterpretation(min_score=295, max_score=320, risk_level=RiskLevel.MODERATE,
+            interpretation="Hyperosmolal", recommendations=["Evaluate for hypernatremia, hyperglycemia, uremia"]),
+        ThresholdInterpretation(min_score=320, max_score=None, risk_level=RiskLevel.HIGH,
+            interpretation="Severely hyperosmolal (>320)", recommendations=["HHS? DKA? Evaluate urgently"]),
+    ],
+)
+
+
+# ============================================================================
+# CAPRINI VTE RISK SCORE
+# ============================================================================
+CAPRINI_DEFINITION = CalculatorDefinition(
+    id="caprini",
+    name="Caprini VTE Risk Score",
+    short_name="Caprini",
+    calc_type=CalculatorType.CRITERIA,
+    category=CalculatorCategory.SURGICAL,
+    output_type=OutputType.INTEGER,
+    score_unit="points",
+    description="Perioperative VTE risk stratification",
+    references=["Caprini JA, et al. Dis Mon 2005", "Gould MK, et al. Chest 2012"],
+    specialties=["Surgery", "Anesthesiology", "Internal Medicine", "Hospitalist"],
+    threshold_criteria=[
+        ThresholdCriterion(name="age", display_name="Age",
+            thresholds=[("range", (41, 60), 1, "41-60 (1)"), ("range", (61, 74), 2, "61-74 (2)"), ("gte", 75, 3, "≥75 (3)")],
+            description="Age category"),
+    ],
+    criteria=[
+        # 1-point factors
+        ScoringCriterion("minor_surgery", "Minor surgery planned", 1, ""),
+        ScoringCriterion("swollen_legs", "Swollen legs", 1, ""),
+        ScoringCriterion("varicose_veins", "Varicose veins", 1, ""),
+        ScoringCriterion("inflammatory_bowel", "IBD history", 1, ""),
+        ScoringCriterion("obesity_bmi_25", "BMI >25", 1, ""),
+        ScoringCriterion("mi", "Acute MI", 1, ""),
+        ScoringCriterion("chf", "CHF", 1, ""),
+        ScoringCriterion("sepsis", "Sepsis (<1 month)", 1, ""),
+        ScoringCriterion("pneumonia", "Serious lung disease", 1, ""),
+        ScoringCriterion("oral_contraceptives", "OCP/HRT", 1, ""),
+        ScoringCriterion("pregnant", "Pregnant/postpartum", 1, ""),
+        ScoringCriterion("unexplained_stillborn", "Unexplained stillborn", 1, ""),
+        ScoringCriterion("recurrent_miscarriage", "Recurrent miscarriage", 1, ""),
+        ScoringCriterion("bed_rest", "Bed rest >72 hours", 1, ""),
+        # 2-point factors
+        ScoringCriterion("major_surgery", "Major surgery >45 min", 2, ""),
+        ScoringCriterion("laparoscopic_45", "Laparoscopic >45 min", 2, ""),
+        ScoringCriterion("malignancy", "Malignancy", 2, ""),
+        ScoringCriterion("confined_to_bed", "Confined to bed >72h", 2, ""),
+        ScoringCriterion("immobilizing_cast", "Immobilizing cast", 2, ""),
+        ScoringCriterion("central_venous_access", "Central venous access", 2, ""),
+        # 3-point factors
+        ScoringCriterion("prior_vte", "Prior VTE", 3, ""),
+        ScoringCriterion("family_vte", "Family VTE history", 3, ""),
+        ScoringCriterion("factor_v_leiden", "Factor V Leiden", 3, ""),
+        ScoringCriterion("prothrombin_mutation", "Prothrombin 20210A", 3, ""),
+        ScoringCriterion("lupus_anticoagulant", "Lupus anticoagulant", 3, ""),
+        ScoringCriterion("anticardiolipin_ab", "Anticardiolipin antibodies", 3, ""),
+        ScoringCriterion("elevated_homocysteine", "Elevated homocysteine", 3, ""),
+        ScoringCriterion("heparin_induced_thrombocytopenia", "HIT", 3, ""),
+        # 5-point factors
+        ScoringCriterion("stroke", "Stroke (<1 month)", 5, ""),
+        ScoringCriterion("elective_arthroplasty", "Hip/knee arthroplasty", 5, ""),
+        ScoringCriterion("hip_pelvis_leg_fracture", "Fracture hip/pelvis/leg", 5, ""),
+        ScoringCriterion("acute_spinal_cord_injury", "Acute spinal cord injury", 5, ""),
+    ],
+    interpretations=[
+        ThresholdInterpretation(min_score=0, max_score=1, risk_level=RiskLevel.LOW,
+            interpretation="Very low risk (<0.5%)", recommendations=["Early ambulation"]),
+        ThresholdInterpretation(min_score=1, max_score=3, risk_level=RiskLevel.LOW_MODERATE,
+            interpretation="Low risk (1.5%)", recommendations=["Mechanical prophylaxis (SCDs)"]),
+        ThresholdInterpretation(min_score=3, max_score=5, risk_level=RiskLevel.MODERATE,
+            interpretation="Moderate risk (3%)", recommendations=["Pharmacologic +/- mechanical prophylaxis"]),
+        ThresholdInterpretation(min_score=5, max_score=None, risk_level=RiskLevel.HIGH,
+            interpretation="High risk (6%)", recommendations=["Pharmacologic + mechanical prophylaxis", "Extended prophylaxis for high-risk surgeries"]),
+    ],
+)
+
+
+# ============================================================================
+# BISAP SCORE (Pancreatitis)
+# ============================================================================
+BISAP_DEFINITION = CalculatorDefinition(
+    id="bisap",
+    name="BISAP Score for Pancreatitis Mortality",
+    short_name="BISAP",
+    calc_type=CalculatorType.CRITERIA,
+    category=CalculatorCategory.GENERAL,
+    output_type=OutputType.INTEGER,
+    score_unit="points",
+    description="Predicts mortality in acute pancreatitis within 24h",
+    references=["Wu BU, et al. Gut 2008"],
+    specialties=["Gastroenterology", "Surgery", "Emergency Medicine", "Critical Care"],
+    criteria=[
+        ScoringCriterion("bun_over_25", "BUN >25 mg/dL", 1, ""),
+        ScoringCriterion("impaired_mental_status", "Impaired mental status", 1, ""),
+        ScoringCriterion("sirs_present", "SIRS present", 1, "≥2 SIRS criteria"),
+        ScoringCriterion("age_over_60", "Age >60", 1, ""),
+        ScoringCriterion("pleural_effusion", "Pleural effusion on imaging", 1, ""),
+    ],
+    interpretations=[
+        ThresholdInterpretation(min_score=0, max_score=1, risk_level=RiskLevel.LOW,
+            interpretation="Low mortality (<1%)", recommendations=["Standard care", "Monitor for deterioration"]),
+        ThresholdInterpretation(min_score=1, max_score=3, risk_level=RiskLevel.MODERATE,
+            interpretation="Intermediate mortality (~5%)", recommendations=["Close monitoring", "Consider ICU"]),
+        ThresholdInterpretation(min_score=3, max_score=None, risk_level=RiskLevel.HIGH,
+            interpretation="High mortality (>15%)", recommendations=["ICU admission", "Aggressive supportive care"]),
+    ],
+)
+
+
+# ============================================================================
+# COCKCROFT-GAULT CREATININE CLEARANCE
+# ============================================================================
+CREATININE_CLEARANCE_DEFINITION = CalculatorDefinition(
+    id="creatinine_clearance",
+    name="Creatinine Clearance (Cockcroft-Gault)",
+    short_name="CrCl",
+    calc_type=CalculatorType.EQUATION,
+    category=CalculatorCategory.RENAL,
+    output_type=OutputType.DECIMAL,
+    score_unit="mL/min",
+    description="Estimated creatinine clearance for drug dosing",
+    references=["Cockcroft DW, Gault MH. Nephron 1976"],
+    specialties=["Nephrology", "Pharmacy", "Internal Medicine"],
+    notes=["FDA prefers CrCl for drug dosing", "Uses actual or ideal body weight per drug label"],
+    formula=FormulaDefinition(
+        formula_text="[(140 - age) × weight] / (72 × Scr) × 0.85 if female",
+        output_unit="mL/min",
+        precision=0,
+        parameters=[
+            FormulaParameter(name="age", display_name="Age", unit="years", min_value=18, max_value=120),
+            FormulaParameter(name="weight", display_name="Weight", unit="kg", min_value=30, max_value=250),
+            FormulaParameter(name="creatinine", display_name="Serum Creatinine", unit="mg/dL", min_value=0.3, max_value=15.0),
+            FormulaParameter(name="female", display_name="Female", unit="", min_value=0, max_value=1),
+        ],
+    ),
+    interpretations=[
+        ThresholdInterpretation(min_score=90, max_score=None, risk_level=RiskLevel.LOW,
+            interpretation="Normal renal function", recommendations=["Standard drug dosing"]),
+        ThresholdInterpretation(min_score=60, max_score=90, risk_level=RiskLevel.LOW_MODERATE,
+            interpretation="Mild impairment", recommendations=["Check drug-specific dosing"]),
+        ThresholdInterpretation(min_score=30, max_score=60, risk_level=RiskLevel.MODERATE,
+            interpretation="Moderate impairment", recommendations=["Dose reduction often needed"]),
+        ThresholdInterpretation(min_score=15, max_score=30, risk_level=RiskLevel.HIGH,
+            interpretation="Severe impairment", recommendations=["Significant dose reductions", "Avoid nephrotoxins"]),
+        ThresholdInterpretation(min_score=0, max_score=15, risk_level=RiskLevel.VERY_HIGH,
+            interpretation="End-stage (<15 mL/min)", recommendations=["Dialysis dosing considerations"]),
+    ],
+)
+
+
 # Registry of all calculator definitions
 CALCULATOR_DEFINITIONS: dict[str, CalculatorDefinition] = {
     "chadsvasc": CHADSVASC_DEFINITION,
@@ -2793,6 +3215,7 @@ CALCULATOR_DEFINITIONS: dict[str, CalculatorDefinition] = {
     "apgar": APGAR_DEFINITION,
     # Pulmonary/VTE
     "wells_pe": WELLS_PE_DEFINITION,
+    "aa_gradient": AA_GRADIENT_DEFINITION,
     # Comorbidity
     "charlson": CHARLSON_DEFINITION,
     # Cardiac
@@ -2800,19 +3223,28 @@ CALCULATOR_DEFINITIONS: dict[str, CalculatorDefinition] = {
     "timi_nstemi": TIMI_NSTEMI_DEFINITION,
     "framingham_cvd": FRAMINGHAM_CVD_DEFINITION,
     "corrected_qt": CORRECTED_QT_DEFINITION,
+    "map": MAP_DEFINITION,
     # Hepatic
     "meld": MELD_DEFINITION,
     "meld_na": MELD_NA_DEFINITION,
     "child_pugh": CHILD_PUGH_DEFINITION,
+    "fib4": FIB4_DEFINITION,
+    # Renal
+    "egfr_ckdepi": EGFR_CKDEPI_DEFINITION,
+    "creatinine_clearance": CREATININE_CLEARANCE_DEFINITION,
     # Metabolic
     "bmi": BMI_DEFINITION,
     "corrected_calcium": CORRECTED_CALCIUM_DEFINITION,
     "anion_gap": ANION_GAP_DEFINITION,
+    "serum_osmolality": SERUM_OSMOLALITY_DEFINITION,
     # Critical Care
     "sofa": SOFA_DEFINITION,
-    # Emergency
+    "news2": NEWS2_DEFINITION,
+    # Emergency/Surgical
     "ottawa_ankle": OTTAWA_ANKLE_DEFINITION,
     "ciwa_ar": CIWA_AR_DEFINITION,
+    "caprini": CAPRINI_DEFINITION,
+    "bisap": BISAP_DEFINITION,
     # Neurological
     "abcd2": ABCD2_DEFINITION,
     # Psychiatry
