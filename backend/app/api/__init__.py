@@ -78,6 +78,7 @@ from app.api.middleware import (
     require_role,
     track_time,
 )
+from app.api.middleware.security_headers import SecurityHeadersMiddleware
 from app.api.patients import router as patients_router
 from app.api.search import router as search_router
 from app.api.semantic_search import router as semantic_search_router
@@ -231,6 +232,7 @@ __all__ = [
     "RateLimitConfig",
     "RateLimitMiddleware",
     "RequestIdMiddleware",
+    "SecurityHeadersMiddleware",
     "get_rate_limiter_store",
     "get_request_id",
     "rate_limit",
