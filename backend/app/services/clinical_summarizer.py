@@ -10,7 +10,7 @@ Generates structured clinical summaries from extracted facts including:
 import logging
 import threading
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -325,7 +325,7 @@ class ClinicalSummarizerService:
         return ClinicalSummary(
             summary_type=summary_type,
             patient_id=patient_id,
-            generated_at=datetime.now().isoformat(),
+            generated_at=datetime.now(UTC).isoformat(),
             one_liner=one_liner,
             sections=sections,
             problem_list=problem_list,
