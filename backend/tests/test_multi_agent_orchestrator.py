@@ -244,11 +244,13 @@ class TestMultiAgentOrchestrator:
     def test_orchestrator_initialization(self) -> None:
         """Test orchestrator initializes with all agents."""
         orchestrator = MultiAgentOrchestrator()
-        assert len(orchestrator.agents) == 4
+        assert len(orchestrator.agents) == 6
         assert AgentRole.DIAGNOSTIC in orchestrator.agents
         assert AgentRole.TREATMENT in orchestrator.agents
         assert AgentRole.SAFETY in orchestrator.agents
         assert AgentRole.EVIDENCE in orchestrator.agents
+        assert AgentRole.POLICY in orchestrator.agents
+        assert AgentRole.TEMPORAL in orchestrator.agents
 
     @pytest.mark.asyncio
     async def test_create_session(self) -> None:

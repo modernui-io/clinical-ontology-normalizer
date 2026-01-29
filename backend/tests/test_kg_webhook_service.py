@@ -2,7 +2,7 @@
 
 import asyncio
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 import json
 
@@ -31,7 +31,7 @@ class TestWebhookFilter:
             id="test-1",
             event_type=WebhookEventType.CONCEPT_CREATED,
             payload={"cui": "C0001234"},
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
         assert filter.matches(event)
 
@@ -45,13 +45,13 @@ class TestWebhookFilter:
             id="test-1",
             event_type=WebhookEventType.CONCEPT_CREATED,
             payload={},
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
         event2 = WebhookEvent(
             id="test-2",
             event_type=WebhookEventType.CONCEPT_DELETED,
             payload={},
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
 
         assert filter.matches(event1)
@@ -65,13 +65,13 @@ class TestWebhookFilter:
             id="test-1",
             event_type=WebhookEventType.PATIENT_FINDING_ADDED,
             payload={"patient_id": "P001"},
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
         event2 = WebhookEvent(
             id="test-2",
             event_type=WebhookEventType.PATIENT_FINDING_ADDED,
             payload={"patient_id": "P003"},
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
 
         assert filter.matches(event1)
@@ -85,13 +85,13 @@ class TestWebhookFilter:
             id="test-1",
             event_type=WebhookEventType.CONCEPT_CREATED,
             payload={"cui": "C0001234"},
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
         event2 = WebhookEvent(
             id="test-2",
             event_type=WebhookEventType.CONCEPT_CREATED,
             payload={"cui": "C9999999"},
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
 
         assert filter.matches(event1)
@@ -105,13 +105,13 @@ class TestWebhookFilter:
             id="test-1",
             event_type=WebhookEventType.CONCEPT_CREATED,
             payload={"semantic_type": "T047"},
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
         event2 = WebhookEvent(
             id="test-2",
             event_type=WebhookEventType.CONCEPT_CREATED,
             payload={"semantic_type": "T184"},
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
 
         assert filter.matches(event1)
@@ -125,13 +125,13 @@ class TestWebhookFilter:
             id="test-1",
             event_type=WebhookEventType.REASONING_PATH_FOUND,
             payload={"confidence": 0.9},
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
         event2 = WebhookEvent(
             id="test-2",
             event_type=WebhookEventType.REASONING_PATH_FOUND,
             payload={"confidence": 0.5},
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
 
         assert filter.matches(event1)
@@ -147,13 +147,13 @@ class TestWebhookFilter:
             id="test-1",
             event_type=WebhookEventType.HEALTH_STATUS_CHANGED,
             payload={"severity": "critical"},
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
         event2 = WebhookEvent(
             id="test-2",
             event_type=WebhookEventType.HEALTH_STATUS_CHANGED,
             payload={"severity": "warning"},
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
 
         assert filter.matches(event1)
@@ -171,19 +171,19 @@ class TestWebhookFilter:
             id="test-1",
             event_type=WebhookEventType.PATIENT_FINDING_ADDED,
             payload={"patient_id": "P001", "confidence": 0.9},
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
         event2 = WebhookEvent(
             id="test-2",
             event_type=WebhookEventType.PATIENT_FINDING_ADDED,
             payload={"patient_id": "P001", "confidence": 0.5},
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
         event3 = WebhookEvent(
             id="test-3",
             event_type=WebhookEventType.CONCEPT_CREATED,
             payload={"patient_id": "P001", "confidence": 0.9},
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
 
         assert filter.matches(event1)
@@ -400,7 +400,7 @@ class TestKGWebhookService:
         """Reject expired timestamp."""
         payload = '{"test": "data"}'
         secret = "my-secret-key"
-        old_timestamp = int((datetime.utcnow() - timedelta(hours=1)).timestamp())
+        old_timestamp = int((datetime.now(timezone.utc) - timedelta(hours=1)).timestamp())
         signature, _ = service.generate_signature(payload, secret, old_timestamp)
 
         with pytest.raises(WebhookSignatureError) as exc:
@@ -662,7 +662,7 @@ class TestKGWebhookService:
                 webhook_id=webhook.id,
                 event_id=f"event-{i}",
                 status=DeliveryStatus.DELIVERED,
-                attempted_at=datetime.utcnow() - timedelta(minutes=i)
+                attempted_at=datetime.now(timezone.utc) - timedelta(minutes=i)
             )
             service._delivery_attempts[webhook.id].append(attempt)
 
@@ -680,7 +680,7 @@ class TestKGWebhookService:
         )
         webhook.total_deliveries = 100
         webhook.total_failures = 5
-        webhook.last_delivery_at = datetime.utcnow()
+        webhook.last_delivery_at = datetime.now(timezone.utc)
 
         # Add recent attempts
         for i in range(10):
@@ -690,7 +690,7 @@ class TestKGWebhookService:
                 webhook_id=webhook.id,
                 event_id=f"event-{i}",
                 status=status,
-                attempted_at=datetime.utcnow() - timedelta(hours=i),
+                attempted_at=datetime.now(timezone.utc) - timedelta(hours=i),
                 duration_ms=100.0 + i * 10
             )
             service._delivery_attempts[webhook.id].append(attempt)

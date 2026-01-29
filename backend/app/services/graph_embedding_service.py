@@ -54,7 +54,7 @@ class GraphEmbeddingService:
         model_name: str = DEFAULT_MODEL,
         neo4j_uri: str = "bolt://localhost:7687",
         neo4j_user: str = "neo4j",
-        neo4j_password: str = "clinical123",
+        neo4j_password: str = "",
     ):
         self.model_name = model_name
         self.neo4j_uri = neo4j_uri
@@ -633,8 +633,8 @@ def get_graph_embedding_service() -> GraphEmbeddingService:
                 from app.core.config import settings
 
                 _embedding_service = GraphEmbeddingService(
-                    neo4j_uri=getattr(settings, "neo4j_uri", "bolt://localhost:7687"),
-                    neo4j_user=getattr(settings, "neo4j_user", "neo4j"),
-                    neo4j_password=getattr(settings, "neo4j_password", "clinical123"),
+                    neo4j_uri=settings.neo4j_uri,
+                    neo4j_user=settings.neo4j_user,
+                    neo4j_password=settings.neo4j_password or "",
                 )
     return _embedding_service

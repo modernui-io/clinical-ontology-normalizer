@@ -2,7 +2,7 @@
 
 import pytest
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from app.services.kg_audit_service import (
     AuditEventType,
@@ -82,7 +82,7 @@ class TestAuditEvent:
         ctx = AuditContext(user_id="user123")
         event = AuditEvent(
             id="evt-001",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             event_type=AuditEventType.PATIENT_VIEW,
             severity=AuditSeverity.INFO,
             context=ctx,
@@ -96,7 +96,7 @@ class TestAuditEvent:
         ctx = AuditContext(user_id="user123")
         event = AuditEvent(
             id="evt-001",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             event_type=AuditEventType.KG_QUERY,
             severity=AuditSeverity.INFO,
             context=ctx,
@@ -108,7 +108,7 @@ class TestAuditEvent:
         ctx = AuditContext(user_id="user123")
         event = AuditEvent(
             id="evt-001",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             event_type=AuditEventType.LOGIN,
             severity=AuditSeverity.INFO,
             context=ctx,
@@ -240,7 +240,7 @@ class TestKGAuditService:
 
         # Query future time range
         filters = AuditQueryFilters(
-            start_time=datetime.utcnow() + timedelta(hours=1),
+            start_time=datetime.now(timezone.utc) + timedelta(hours=1),
         )
         events, total = service.query(filters)
         assert total == 0

@@ -160,7 +160,7 @@ class CausalReasoningService:
         self,
         neo4j_uri: str = "bolt://localhost:7687",
         neo4j_user: str = "neo4j",
-        neo4j_password: str = "clinical123",
+        neo4j_password: str = "",
     ):
         self.neo4j_uri = neo4j_uri
         self.neo4j_user = neo4j_user
@@ -562,8 +562,8 @@ def get_causal_reasoning_service() -> CausalReasoningService:
                 from app.core.config import settings
 
                 _causal_service = CausalReasoningService(
-                    neo4j_uri=getattr(settings, "neo4j_uri", "bolt://localhost:7687"),
-                    neo4j_user=getattr(settings, "neo4j_user", "neo4j"),
-                    neo4j_password=getattr(settings, "neo4j_password", "clinical123"),
+                    neo4j_uri=settings.neo4j_uri,
+                    neo4j_user=settings.neo4j_user,
+                    neo4j_password=settings.neo4j_password or "",
                 )
     return _causal_service
