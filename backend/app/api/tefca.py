@@ -10,7 +10,7 @@ Provides RESTful endpoints for health information exchange:
 """
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query

@@ -20,7 +20,7 @@ import threading
 import time
 from collections import defaultdict
 from dataclasses import dataclass, field, asdict
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Type, TypeVar, Union

@@ -400,7 +400,7 @@ class MockNeo4jDriver:
         self._should_fail: bool = False
         self._fail_on_query: str | None = None
 
-    def execute_query(self, cypher: str, params: Dict | None = None) -> list[Dict]:
+    def execute_query(self, cypher: str, params: dict | None = None) -> list[dict]:
         """Execute a Cypher query (mock)."""
         self._executed_queries.append((cypher, params or {}))
 

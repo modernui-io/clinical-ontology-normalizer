@@ -24,7 +24,7 @@ Clinical Use Cases:
 import logging
 import uuid
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from enum import Enum
 from threading import Lock
 from typing import Any, TYPE_CHECKING

@@ -91,7 +91,7 @@ class Counter:
 
     def __init__(self, definition: MetricDefinition) -> None:
         self.definition = definition
-        self._values: dict[LabelMetricValue] = defaultdict(MetricValue)
+        self._values: dict[LabelSet, MetricValue] = defaultdict(MetricValue)
         self._lock = threading.RLock()
 
     def inc(self, value: float = 1.0, labels: dict[str, str | None] = None) -> None:
@@ -118,7 +118,7 @@ class Counter:
         with self._lock:
             return self._values[label_set].value
 
-    def get_all(self) -> dict[Labelfloat]:
+    def get_all(self) -> dict[LabelSet, float]:
         """Get all counter values with labels."""
         with self._lock:
             return {ls: mv.value for ls, mv in self._values.items()}
@@ -133,7 +133,7 @@ class Gauge:
 
     def __init__(self, definition: MetricDefinition) -> None:
         self.definition = definition
-        self._values: dict[LabelMetricValue] = defaultdict(MetricValue)
+        self._values: dict[LabelSet, MetricValue] = defaultdict(MetricValue)
         self._lock = threading.RLock()
 
     def set(self, value: float, labels: dict[str, str | None] = None) -> None:
@@ -175,7 +175,7 @@ class Gauge:
         with self._lock:
             return self._values[label_set].value
 
-    def get_all(self) -> dict[Labelfloat]:
+    def get_all(self) -> dict[LabelSet, float]:
         """Get all gauge values with labels."""
         with self._lock:
             return {ls: mv.value for ls, mv in self._values.items()}
@@ -193,7 +193,7 @@ class Histogram:
     def __init__(self, definition: MetricDefinition) -> None:
         self.definition = definition
         self.buckets = definition.buckets or self.DEFAULT_BUCKETS
-        self._values: dict[LabelMetricValue] = {}
+        self._values: dict[LabelSet, MetricValue] = {}
         self._lock = threading.RLock()
 
     def _init_label_set(self, label_set: LabelSet) -> None:
@@ -240,7 +240,7 @@ class Histogram:
             mv = self._values[label_set]
             return mv.bucket_counts.copy(), mv.sum, mv.count
 
-    def get_all(self) -> dict[Labeltuple[dict[float, int], float, int]]:
+    def get_all(self) -> dict[LabelSet, tuple[dict[float, int], float, int]]:
         """Get all histogram values with labels."""
         with self._lock:
             return {ls: (mv.bucket_counts.copy(), mv.sum, mv.count) for ls, mv in self._values.items()}
@@ -277,7 +277,7 @@ class Summary:
         self.definition = definition
         self.quantiles = definition.quantiles or self.DEFAULT_QUANTILES
         self.max_observations = max_observations
-        self._values: dict[LabelMetricValue] = {}
+        self._values: dict[LabelSet, MetricValue] = {}
         self._lock = threading.RLock()
 
     def _init_label_set(self, label_set: LabelSet) -> None:

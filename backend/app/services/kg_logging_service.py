@@ -14,7 +14,7 @@ import traceback
 import uuid
 from contextvars import ContextVar
 from dataclasses import dataclass, field, asdict
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from functools import wraps
 from typing import Any, Callable, TextIO, Union
