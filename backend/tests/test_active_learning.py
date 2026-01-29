@@ -196,7 +196,7 @@ class TestUncertaintySample:
         """High confidence should have low least_confident."""
         probs = {"a": 0.9, "b": 0.1}
         lc = UncertaintySample.calculate_least_confident(probs)
-        assert lc == 0.1
+        assert lc == pytest.approx(0.1)
 
     def test_calculate_least_confident_uncertain(self):
         """Low confidence should have high least_confident."""
