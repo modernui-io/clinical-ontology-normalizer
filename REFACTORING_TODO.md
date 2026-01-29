@@ -165,15 +165,16 @@
 
 ### In Progress
 - 🔄 3.1 Convert clinical_calculators.py to data-driven
-  - **Phase 1-5 COMPLETE**: Data-driven infrastructure with 30 calculators
-  - calculator_definitions.py: 2,831 lines with comprehensive definitions
-  - **Calculators converted**: CHA2DS2-VASc, HAS-BLED, Wells DVT/PE, CURB-65,
-    qSOFA, HEART, SIRS, GCS, RCRI, PERC, Centor, APGAR, Charlson, TIMI (STEMI/NSTEMI),
-    MELD, MELD-Na, BMI, SOFA, Ottawa Ankle, CIWA-Ar, Framingham, Child-Pugh,
-    ABCD2, PHQ-9, GAD-7, Corrected Calcium, QTc, Anion Gap
+  - **Phase 1-7 COMPLETE**: 47 data-driven calculator definitions
+  - **Phase 8 COMPLETE**: Data-driven integration bridge wired into service
+  - calculator_definitions.py: 3,679 lines with comprehensive definitions
+  - **All 42 original functions covered** plus variants (TIMI x2, Ranson, etc.)
   - **Structure supports**: Boolean criteria, multi-level (0/1/2), thresholds, equations
-  - **Next phase**: Wire definitions into calculator service to remove duplication
-  - Commits: 899c8bf, a7c3eee, 7e66652, 5fac78f, 573323c
+  - **Bridge functions added**: calculate_from_definition(), get_data_driven_calculators()
+  - **Service methods added**: calculate_data_driven(), list_data_driven_calculators()
+  - **Tests added**: 6 data-driven tests (46 total calculator tests pass)
+  - **Next phase**: Replace individual CRITERIA-type functions with data-driven calls
+  - Commits: 899c8bf, a7c3eee, 7e66652, 5fac78f, 573323c, 5c59182, 3488d2c, 5337b76
 
 ---
 
