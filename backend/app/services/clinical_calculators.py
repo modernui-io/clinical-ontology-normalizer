@@ -1130,83 +1130,30 @@ def calculate_gcs(
 ) -> CalculatorResult:
     """Calculate Glasgow Coma Scale score.
 
-    Args:
-        eye_response: Eye opening (1-4).
-            4 = Spontaneous
-            3 = To verbal command
-            2 = To pain
-            1 = None
-        verbal_response: Verbal response (1-5).
-            5 = Oriented
-            4 = Confused
-            3 = Inappropriate words
-            2 = Incomprehensible sounds
-            1 = None
-        motor_response: Motor response (1-6).
-            6 = Obeys commands
-            5 = Localizes pain
-            4 = Withdraws from pain
-            3 = Abnormal flexion (decorticate)
-            2 = Extension (decerebrate)
-            1 = None
+    Uses data-driven definition from calculator_definitions.py.
 
-    Returns:
-        CalculatorResult with consciousness level assessment.
+    Args:
+        eye_response: Eye opening (1-4): 4=Spontaneous, 3=To voice, 2=To pain, 1=None
+        verbal_response: Verbal response (1-5): 5=Oriented, 4=Confused, 3=Inappropriate, 2=Incomprehensible, 1=None
+        motor_response: Motor response (1-6): 6=Obeys, 5=Localizes, 4=Withdraws, 3=Flexion, 2=Extension, 1=None
     """
-    # Validate inputs
+    # Validate and clamp inputs
     eye = max(1, min(eye_response, 4))
     verbal = max(1, min(verbal_response, 5))
     motor = max(1, min(motor_response, 6))
 
-    score = eye + verbal + motor
+    # Map integer subscores to multi-level boolean flags
+    eye_map = {4: "spontaneous", 3: "to_voice", 2: "to_pain", 1: "none"}
+    verbal_map = {5: "oriented", 4: "confused", 3: "inappropriate", 2: "incomprehensible", 1: "none"}
+    motor_map = {6: "obeys", 5: "localizes", 4: "withdraws", 3: "flexion", 2: "extension", 1: "none"}
 
-    components = {
-        "Eye response (E)": eye,
-        "Verbal response (V)": verbal,
-        "Motor response (M)": motor,
-    }
-
-    # GCS interpretation
-    if score >= 13:
-        risk = RiskLevel.LOW
-        severity = "Mild"
-        interpretation = "Mild injury (GCS 13-15)"
-        recommendations = [
-            "Monitor neurological status",
-            "Head CT if trauma with risk factors",
-            "Consider discharge with reliable observer",
-        ]
-    elif score >= 9:
-        risk = RiskLevel.MODERATE
-        severity = "Moderate"
-        interpretation = "Moderate injury (GCS 9-12)"
-        recommendations = [
-            "Urgent head CT indicated",
-            "Close neurological monitoring",
-            "Consider neurosurgery consultation",
-            "Admission recommended",
-        ]
-    else:
-        risk = RiskLevel.VERY_HIGH
-        severity = "Severe"
-        interpretation = "Severe injury (GCS 3-8)"
-        recommendations = [
-            "Emergent head CT",
-            "Airway protection - consider intubation if GCS ≤8",
-            "ICU admission",
-            "Neurosurgery consultation urgent",
-            "ICP monitoring may be indicated",
-        ]
-
-    return CalculatorResult(
-        calculator_name="Glasgow Coma Scale (GCS)",
-        score=score,
-        score_unit="points",
-        risk_level=risk,
-        interpretation=f"{interpretation}. {severity} brain injury.",
-        recommendations=recommendations,
-        components=components,
-        references=["Teasdale G, Jennett B. Lancet 1974"],
+    return calculate_from_definition(
+        "gcs",
+        {
+            f"eye_{eye_map[eye]}": True,
+            f"verbal_{verbal_map[verbal]}": True,
+            f"motor_{motor_map[motor]}": True,
+        },
     )
 
 
