@@ -1251,21 +1251,27 @@ async def delete_patient_graph(
     patient_id: str,
     db: AsyncSession = Depends(get_db),
 ) -> dict:
-    """Delete a patient's knowledge graph."""
+    """Delete a patient's knowledge graph.
 
-    # Delete edges first (foreign key constraint)
-    edges_result = await db.execute(
-        delete(KGEdge).where(KGEdge.patient_id == patient_id)
-    )
-    edges_deleted = edges_result.rowcount
+    VP-Transactions-1: Uses nested transaction (savepoint) to ensure
+    atomicity of edge and node deletion. If any operation fails,
+    both are rolled back.
+    """
+    # VP-Transactions-1: Use nested transaction for atomic cleanup
+    async with db.begin_nested():
+        # Delete edges first (foreign key constraint)
+        edges_result = await db.execute(
+            delete(KGEdge).where(KGEdge.patient_id == patient_id)
+        )
+        edges_deleted = edges_result.rowcount
 
-    # Delete nodes
-    nodes_result = await db.execute(
-        delete(KGNode).where(KGNode.patient_id == patient_id)
-    )
-    nodes_deleted = nodes_result.rowcount
+        # Delete nodes
+        nodes_result = await db.execute(
+            delete(KGNode).where(KGNode.patient_id == patient_id)
+        )
+        nodes_deleted = nodes_result.rowcount
 
-    await db.commit()
+    # Note: get_db() dependency handles final commit/rollback
 
     return {
         "patient_id": patient_id,

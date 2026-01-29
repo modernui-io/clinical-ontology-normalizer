@@ -31,6 +31,7 @@ Usage:
         print(patient.source_id, patient.given_name, patient.family_name)
 """
 
+import logging
 import re
 import xml.etree.ElementTree as ET
 from collections.abc import AsyncIterator
@@ -38,6 +39,8 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 from app.connectors.base import (
     ConditionStatus,
@@ -937,8 +940,8 @@ class CCDAConnector(SourceConnector):
         Args:
             message: Error message.
         """
-        # In production, would use proper logging
-        print(f"[CCDAConnector] ERROR: {message}")
+        # VP-Logging-1: Use proper logging instead of print
+        logger.error(f"CCDAConnector: {message}")
 
     async def connect(self) -> bool:
         """Connect to data source.

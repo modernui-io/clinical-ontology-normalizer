@@ -48,8 +48,9 @@ Usage:
 
 import asyncio
 import logging
+from collections import deque
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any, Callable
 from uuid import UUID, uuid4
@@ -371,8 +372,8 @@ class ETLJob:
         config: Job configuration.
         progress: Current progress tracking.
         statistics: Collected statistics.
-        errors: List of errors encountered.
-        warnings: List of warning messages.
+        errors: Bounded list of errors encountered (max 1000).
+        warnings: Bounded list of warning messages (max 500).
         created_at: When the job was created.
         started_at: When job execution started.
         completed_at: When job execution finished.
@@ -381,13 +382,18 @@ class ETLJob:
         source_visit_mapping: Map of source_id -> visit_occurrence_id for linking.
     """
 
+    # VP-Memory-3: Limits for bounded collections
+    MAX_ERRORS = 1000
+    MAX_WARNINGS = 500
+
     job_id: UUID
     state: ETLJobState
     config: ETLJobConfig
     progress: ETLJobProgress = field(default_factory=ETLJobProgress)
     statistics: ETLJobStatistics = field(default_factory=ETLJobStatistics)
-    errors: list[ETLJobError] = field(default_factory=list)
-    warnings: list[str] = field(default_factory=list)
+    # VP-Memory-3: Use deque for bounded error/warning storage
+    errors: deque[ETLJobError] = field(default_factory=lambda: deque(maxlen=ETLJob.MAX_ERRORS))
+    warnings: deque[str] = field(default_factory=lambda: deque(maxlen=ETLJob.MAX_WARNINGS))
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     started_at: datetime | None = None
     completed_at: datetime | None = None
@@ -406,8 +412,8 @@ class ETLJob:
             "config": self.config.to_dict(),
             "progress": self.progress.to_dict(),
             "statistics": self.statistics.to_dict(),
-            "errors": [e.to_dict() for e in self.errors],
-            "warnings": self.warnings,
+            "errors": [e.to_dict() for e in self.errors],  # deque is iterable
+            "warnings": list(self.warnings),  # Convert deque to list
             "created_at": self.created_at.isoformat(),
             "started_at": self.started_at.isoformat() if self.started_at else None,
             "completed_at": self.completed_at.isoformat() if self.completed_at else None,
@@ -487,6 +493,10 @@ class ETLOrchestrator:
                 print(f"Error: {error.error_message}")
     """
 
+    # VP-Memory-3: Configuration for job retention and limits
+    MAX_COMPLETED_JOBS = 1000  # Max completed/failed/cancelled jobs to retain
+    JOB_RETENTION_HOURS = 24  # Hours to keep completed jobs before cleanup
+
     def __init__(
         self,
         session: AsyncSession | None = None,
@@ -509,6 +519,9 @@ class ETLOrchestrator:
 
         # Track running tasks for cancellation
         self._running_tasks: dict[UUID, asyncio.Task] = {}
+
+        # VP-Memory-3: Track last cleanup time
+        self._last_cleanup: datetime = datetime.now(UTC)
 
         logger.info("ETLOrchestrator initialized")
 
@@ -538,10 +551,67 @@ class ETLOrchestrator:
         )
 
         async with self._lock:
+            # VP-Memory-3: Trigger cleanup if needed
+            await self._maybe_cleanup_jobs()
             self._jobs[job.job_id] = job
 
         logger.info(f"Created ETL job {job.job_id} with connector type {config.connector_type}")
         return job
+
+    async def _maybe_cleanup_jobs(self) -> None:
+        """Clean up old completed jobs if retention thresholds exceeded.
+
+        Called automatically when creating new jobs.
+        Must be called while holding self._lock.
+        """
+        now = datetime.now(UTC)
+
+        # Only run cleanup every hour to avoid overhead
+        if (now - self._last_cleanup) < timedelta(hours=1):
+            # But still check if we're over the limit
+            completed_count = sum(
+                1 for j in self._jobs.values()
+                if j.state in (ETLJobState.COMPLETED, ETLJobState.FAILED, ETLJobState.CANCELLED)
+            )
+            if completed_count <= self.MAX_COMPLETED_JOBS:
+                return
+
+        self._last_cleanup = now
+        cutoff = now - timedelta(hours=self.JOB_RETENTION_HOURS)
+
+        # Find jobs to remove
+        jobs_to_remove: list[UUID] = []
+        for job_id, job in self._jobs.items():
+            # Only remove completed/failed/cancelled jobs
+            if job.state not in (ETLJobState.COMPLETED, ETLJobState.FAILED, ETLJobState.CANCELLED):
+                continue
+
+            # Remove if older than retention period
+            if job.completed_at and job.completed_at < cutoff:
+                jobs_to_remove.append(job_id)
+
+        # Remove old jobs
+        for job_id in jobs_to_remove:
+            del self._jobs[job_id]
+
+        if jobs_to_remove:
+            logger.info(f"Auto-cleaned {len(jobs_to_remove)} old ETL jobs")
+
+        # If still over limit, remove oldest completed jobs
+        completed_jobs = [
+            (job_id, job) for job_id, job in self._jobs.items()
+            if job.state in (ETLJobState.COMPLETED, ETLJobState.FAILED, ETLJobState.CANCELLED)
+        ]
+
+        if len(completed_jobs) > self.MAX_COMPLETED_JOBS:
+            # Sort by completed_at, oldest first
+            completed_jobs.sort(key=lambda x: x[1].completed_at or x[1].created_at)
+            excess = len(completed_jobs) - self.MAX_COMPLETED_JOBS
+
+            for job_id, _ in completed_jobs[:excess]:
+                del self._jobs[job_id]
+
+            logger.info(f"Removed {excess} excess ETL jobs to stay within limit")
 
     async def run_job(self, job_id: UUID) -> ETLJobResult:
         """Execute an ETL job.
@@ -1715,6 +1785,10 @@ class ETLOrchestrator:
             "total_jobs": len(self._jobs),
             "jobs_by_state": jobs_by_state,
             "running_tasks": len(self._running_tasks),
+            # VP-Memory-3: Include cleanup metrics
+            "max_completed_jobs": self.MAX_COMPLETED_JOBS,
+            "job_retention_hours": self.JOB_RETENTION_HOURS,
+            "last_cleanup": self._last_cleanup.isoformat(),
         }
 
 

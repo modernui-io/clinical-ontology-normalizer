@@ -2,8 +2,11 @@
 
 Provides queue statistics, worker status monitoring,
 job retry/cancel operations, and wait time estimation.
+
+VP-Memory-2: History collections bounded with deque to prevent memory growth.
 """
 
+from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
@@ -11,7 +14,6 @@ from typing import Any
 import threading
 import uuid
 import random
-from collections import defaultdict
 
 
 # ============================================================================
@@ -150,14 +152,18 @@ class JobQueueService:
     """Service for managing the job queue."""
 
     def __init__(self):
-        """Initialize the job queue service."""
+        """Initialize the job queue service.
+
+        VP-Memory-2: History collections bounded with deque to prevent OOM.
+        """
         self._jobs: dict[str, Job] = {}
         self._retry_history: dict[str, list[RetryAttempt]] = defaultdict(list)
         self._workers: dict[str, WorkerStatus] = {}
-        self._queue_depth_history: list[QueueDepthPoint] = []
+        # VP-Memory-2: Bounded history collections
+        self._queue_depth_history: deque[QueueDepthPoint] = deque(maxlen=1440)  # 24h @ 1min
         self._lock = threading.Lock()
-        self._processing_times: list[float] = []
-        self._completion_timestamps: list[datetime] = []
+        self._processing_times: deque[float] = deque(maxlen=1000)  # Last 1000 jobs
+        self._completion_timestamps: deque[datetime] = deque(maxlen=10000)  # Last 10k
 
         # Initialize with mock data
         self._initialize_mock_data()

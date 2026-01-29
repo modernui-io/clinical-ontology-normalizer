@@ -12,9 +12,14 @@ The RBAC system supports:
 - Multiple roles per user
 - System roles that cannot be deleted
 - Permission caching for performance
+
+VP-Memory-1: Permission cache is bounded with TTL to prevent memory growth.
 """
 
 import logging
+import threading
+import time
+from collections import OrderedDict
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
@@ -26,6 +31,94 @@ from sqlalchemy.orm import selectinload
 from app.models.rbac import Permission, Role, RolePermission, User, UserRole
 
 logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# VP-Memory-1: Bounded TTL Cache
+# =============================================================================
+
+
+class BoundedTTLCache:
+    """Thread-safe bounded cache with TTL eviction.
+
+    VP-Memory-1: Prevents unbounded memory growth by limiting cache size
+    and automatically expiring entries after TTL.
+    """
+
+    def __init__(self, maxsize: int = 10000, ttl: float = 3600.0):
+        """Initialize bounded TTL cache.
+
+        Args:
+            maxsize: Maximum number of entries
+            ttl: Time-to-live in seconds for each entry
+        """
+        self._maxsize = maxsize
+        self._ttl = ttl
+        self._cache: OrderedDict[str, tuple[Any, float]] = OrderedDict()
+        self._lock = threading.Lock()
+
+    def get(self, key: str) -> Any | None:
+        """Get value from cache if not expired."""
+        with self._lock:
+            if key not in self._cache:
+                return None
+
+            value, expires_at = self._cache[key]
+            if time.time() > expires_at:
+                # Expired, remove it
+                del self._cache[key]
+                return None
+
+            # Move to end (LRU)
+            self._cache.move_to_end(key)
+            return value
+
+    def set(self, key: str, value: Any) -> None:
+        """Set value in cache with TTL."""
+        with self._lock:
+            expires_at = time.time() + self._ttl
+
+            # If key exists, update it
+            if key in self._cache:
+                self._cache[key] = (value, expires_at)
+                self._cache.move_to_end(key)
+                return
+
+            # Evict oldest if at capacity
+            while len(self._cache) >= self._maxsize:
+                self._cache.popitem(last=False)
+
+            self._cache[key] = (value, expires_at)
+
+    def delete(self, key: str) -> bool:
+        """Delete key from cache."""
+        with self._lock:
+            if key in self._cache:
+                del self._cache[key]
+                return True
+            return False
+
+    def clear(self) -> None:
+        """Clear all entries."""
+        with self._lock:
+            self._cache.clear()
+
+    def __len__(self) -> int:
+        """Return number of entries (may include expired)."""
+        return len(self._cache)
+
+    def cleanup_expired(self) -> int:
+        """Remove all expired entries. Returns count removed."""
+        now = time.time()
+        removed = 0
+        with self._lock:
+            expired_keys = [
+                k for k, (_, exp) in self._cache.items() if now > exp
+            ]
+            for key in expired_keys:
+                del self._cache[key]
+                removed += 1
+        return removed
 
 
 class ResourceType(str, Enum):
@@ -221,8 +314,9 @@ class RBACService:
 
     def __init__(self) -> None:
         """Initialize the RBAC service."""
-        # Permission cache: user_id -> set of permissions
-        self._permission_cache: dict[str, set[str]] = {}
+        # VP-Memory-1: Bounded permission cache with TTL
+        # Max 10k users, 1-hour TTL to prevent unbounded memory growth
+        self._permission_cache = BoundedTTLCache(maxsize=10000, ttl=3600.0)
 
     def clear_cache(self, user_id: str | None = None) -> None:
         """Clear the permission cache.
@@ -231,7 +325,7 @@ class RBACService:
             user_id: Optional user ID to clear specific cache, or None to clear all
         """
         if user_id:
-            self._permission_cache.pop(user_id, None)
+            self._permission_cache.delete(user_id)
         else:
             self._permission_cache.clear()
 
@@ -309,8 +403,8 @@ class RBACService:
             UserPermissions with all roles and permissions, or None if user not found
         """
         # Check cache first
-        if user_id in self._permission_cache:
-            cached_perms = self._permission_cache[user_id]
+        cached_perms = self._permission_cache.get(user_id)
+        if cached_perms is not None:
             # Need to get user info from DB for full response
             stmt = select(User).where(User.id == user_id)
             result = await db.execute(stmt)
@@ -351,7 +445,7 @@ class RBACService:
                 permissions.add(role_perm.permission.name)
 
         # Update cache
-        self._permission_cache[user_id] = permissions
+        self._permission_cache.set(user_id, permissions)
 
         is_admin = "admin" in roles or "admin:manage_users" in permissions
 
