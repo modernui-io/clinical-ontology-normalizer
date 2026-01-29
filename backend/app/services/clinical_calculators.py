@@ -3940,66 +3940,31 @@ def calculate_bishop(
     position: int,  # 0=posterior, 1=mid, 2=anterior
 ) -> CalculatorResult:
     """Calculate Bishop score for cervical favorability before induction.
-
-    Args:
-        dilation: Cervical dilation points (0-3).
-        effacement: Cervical effacement points (0-3).
-        station: Fetal station points (0-3).
-        consistency: Cervical consistency points (0-2).
-        position: Cervical position points (0-2).
-
-    Returns:
-        CalculatorResult with induction success prediction.
+    Uses data-driven definition from calculator_definitions.py.
     """
-    score = dilation + effacement + station + consistency + position
+    # Clamp values to valid ranges
+    dilation = max(0, min(dilation, 3))
+    effacement = max(0, min(effacement, 3))
+    station = max(0, min(station, 3))
+    consistency = max(0, min(consistency, 2))
+    position = max(0, min(position, 2))
 
-    components = {
-        "Dilation": dilation,
-        "Effacement": effacement,
-        "Station": station,
-        "Consistency": consistency,
-        "Position": position,
-    }
+    # Map integer scores to multi-level criterion names
+    dilation_map = {0: "closed", 1: "1_2", 2: "3_4", 3: "5_plus"}
+    effacement_map = {0: "0_30", 1: "40_50", 2: "60_70", 3: "80_plus"}
+    station_map = {0: "minus_3", 1: "minus_2", 2: "minus_1_0", 3: "plus_1_2"}
+    consistency_map = {0: "firm", 1: "medium", 2: "soft"}
+    position_map = {0: "posterior", 1: "mid", 2: "anterior"}
 
-    if score >= 8:
-        risk = RiskLevel.LOW
-        interpretation = f"Bishop Score {score}: Favorable cervix"
-        recommendations = [
-            "Favorable for induction",
-            "High likelihood of vaginal delivery",
-            "Consider oxytocin induction",
-            "Amniotomy may be considered",
-        ]
-    elif score >= 5:
-        risk = RiskLevel.MODERATE
-        interpretation = f"Bishop Score {score}: Intermediate cervix"
-        recommendations = [
-            "Moderately favorable cervix",
-            "Consider cervical ripening",
-            "Prostaglandins (PGE2, misoprostol) or",
-            "Mechanical methods (Foley balloon)",
-            "Then oxytocin when favorable",
-        ]
-    else:
-        risk = RiskLevel.HIGH
-        interpretation = f"Bishop Score {score}: Unfavorable cervix"
-        recommendations = [
-            "Unfavorable for induction",
-            "Cervical ripening strongly recommended",
-            "Higher risk of failed induction",
-            "Consider waiting if not urgent",
-            "Prostaglandins or mechanical ripening",
-        ]
-
-    return CalculatorResult(
-        calculator_name="Bishop Score",
-        score=score,
-        score_unit="points",
-        risk_level=risk,
-        interpretation=interpretation,
-        recommendations=recommendations,
-        components=components,
-        references=["Bishop EH. Obstet Gynecol 1964"],
+    return calculate_from_definition(
+        "bishop",
+        {
+            f"dilation_{dilation_map[dilation]}": True,
+            f"effacement_{effacement_map[effacement]}": True,
+            f"station_{station_map[station]}": True,
+            f"consistency_{consistency_map[consistency]}": True,
+            f"position_{position_map[position]}": True,
+        },
     )
 
 
