@@ -25,9 +25,10 @@ import hmac
 import json
 import logging
 import secrets
+import threading
 import time
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timezone, timedelta
 from enum import Enum
 from typing import Any, Callable
 from urllib.parse import urlparse
@@ -414,7 +415,7 @@ class KGWebhookService:
             return False
 
         webhook.status = status
-        webhook.updated_at = datetime.now(UTC)
+        webhook.updated_at = datetime.now(timezone.utc)
 
         # Reset failure count if re-enabling
         if status == WebhookStatus.ACTIVE:
@@ -443,7 +444,7 @@ class KGWebhookService:
             id=str(uuid.uuid4()),
             event_type=event_type,
             payload=payload,
-            created_at=datetime.now(UTC),
+            created_at=datetime.now(timezone.utc),
             correlation_id=correlation_id
         )
 
@@ -522,7 +523,7 @@ class KGWebhookService:
         if not webhook:
             return False
 
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         cutoff = now - timedelta(minutes=1)
 
         # Clean old entries
@@ -710,7 +711,7 @@ class KGWebhookService:
                 webhook_id=webhook_id,
                 event_id=event.id,
                 status=DeliveryStatus.DELIVERED if 200 <= status_code < 300 else DeliveryStatus.FAILED,
-                attempted_at=datetime.now(UTC),
+                attempted_at=datetime.now(timezone.utc),
                 response_code=status_code,
                 response_body=response_body[:1000] if response_body else None,
                 duration_ms=duration_ms
@@ -718,7 +719,7 @@ class KGWebhookService:
             self._delivery_attempts[webhook_id].append(attempt)
 
             # Update webhook stats
-            webhook.last_delivery_at = datetime.now(UTC)
+            webhook.last_delivery_at = datetime.now(timezone.utc)
             webhook.total_deliveries += 1
 
             if 200 <= status_code < 300:
@@ -762,7 +763,7 @@ class KGWebhookService:
                 webhook_id=webhook_id,
                 event_id=event.id,
                 status=DeliveryStatus.FAILED,
-                attempted_at=datetime.now(UTC),
+                attempted_at=datetime.now(timezone.utc),
                 error_message=str(e),
                 duration_ms=duration_ms
             )
@@ -855,7 +856,7 @@ class KGWebhookService:
             return None
 
         attempts = self._delivery_attempts.get(webhook_id, [])
-        recent_attempts = [a for a in attempts if a.attempted_at > datetime.now(UTC) - timedelta(hours=24)]
+        recent_attempts = [a for a in attempts if a.attempted_at > datetime.now(timezone.utc) - timedelta(hours=24)]
 
         success_count = sum(1 for a in recent_attempts if a.status == DeliveryStatus.DELIVERED)
         failure_count = sum(1 for a in recent_attempts if a.status == DeliveryStatus.FAILED)
@@ -937,11 +938,15 @@ class KGWebhookService:
 
 # Singleton instance
 _webhook_service: KGWebhookService | None = None
+_webhook_lock = threading.Lock()
 
 
 def get_webhook_service() -> KGWebhookService:
     """Get or create webhook service singleton."""
     global _webhook_service
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _webhook_service is None:
-        _webhook_service = KGWebhookService()
+        with _webhook_lock:
+            if _webhook_service is None:
+                _webhook_service = KGWebhookService()
     return _webhook_service

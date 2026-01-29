@@ -23,6 +23,7 @@ import csv
 import io
 import json
 import logging
+import threading
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -970,11 +971,15 @@ class KGDataExportService:
 
 # Singleton instance
 _export_service: KGDataExportService | None = None
+_export_lock = threading.Lock()
 
 
 def get_data_export_service() -> KGDataExportService:
     """Get or create data export service singleton."""
     global _export_service
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _export_service is None:
-        _export_service = KGDataExportService()
+        with _export_lock:
+            if _export_service is None:
+                _export_service = KGDataExportService()
     return _export_service

@@ -17,6 +17,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import threading
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
@@ -578,11 +579,15 @@ class KGKafkaStreamingService:
 
 # Singleton instance
 _service: KGKafkaStreamingService | None = None
+_service_lock = threading.Lock()
 
 
 def get_kg_kafka_streaming_service() -> KGKafkaStreamingService:
     """Get the singleton KG Kafka Streaming service instance."""
     global _service
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _service is None:
-        _service = KGKafkaStreamingService()
+        with _service_lock:
+            if _service is None:
+                _service = KGKafkaStreamingService()
     return _service
