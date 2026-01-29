@@ -2374,155 +2374,32 @@ def calculate_charlson(
     aids: bool = False,
 ) -> CalculatorResult:
     """Calculate Charlson Comorbidity Index.
-
-    Args:
-        age: Patient age in years.
-        myocardial_infarction: History of MI.
-        congestive_heart_failure: CHF.
-        peripheral_vascular_disease: PVD.
-        cerebrovascular_disease: CVA or TIA.
-        dementia: Dementia.
-        chronic_pulmonary_disease: COPD.
-        connective_tissue_disease: Rheumatologic disease.
-        peptic_ulcer_disease: PUD.
-        mild_liver_disease: Mild liver disease.
-        diabetes_uncomplicated: DM without complications.
-        diabetes_with_complications: DM with end-organ damage.
-        hemiplegia: Hemiplegia or paraplegia.
-        moderate_severe_renal_disease: CKD stage 4-5.
-        solid_tumor_no_metastasis: Cancer without metastasis.
-        leukemia: Leukemia.
-        lymphoma: Lymphoma.
-        moderate_severe_liver_disease: Cirrhosis with complications.
-        solid_tumor_metastatic: Metastatic solid tumor.
-        aids: AIDS.
-
-    Returns:
-        CalculatorResult with mortality prediction.
+    Uses data-driven definition from calculator_definitions.py.
     """
-    score = 0
-    components = {}
-
-    # 1-point conditions
-    one_point = [
-        (myocardial_infarction, "MI"),
-        (congestive_heart_failure, "CHF"),
-        (peripheral_vascular_disease, "PVD"),
-        (cerebrovascular_disease, "CVD"),
-        (dementia, "Dementia"),
-        (chronic_pulmonary_disease, "COPD"),
-        (connective_tissue_disease, "Connective tissue"),
-        (peptic_ulcer_disease, "PUD"),
-        (mild_liver_disease, "Mild liver disease"),
-        (diabetes_uncomplicated, "DM uncomplicated"),
-    ]
-
-    for condition, name in one_point:
-        if condition:
-            score += 1
-            components[name] = 1
-
-    # 2-point conditions
-    two_point = [
-        (diabetes_with_complications, "DM with complications"),
-        (hemiplegia, "Hemiplegia"),
-        (moderate_severe_renal_disease, "Renal disease"),
-        (solid_tumor_no_metastasis, "Solid tumor"),
-        (leukemia, "Leukemia"),
-        (lymphoma, "Lymphoma"),
-    ]
-
-    for condition, name in two_point:
-        if condition:
-            score += 2
-            components[name] = 2
-
-    # 3-point conditions
-    if moderate_severe_liver_disease:
-        score += 3
-        components["Severe liver disease"] = 3
-
-    # 6-point conditions
-    six_point = [
-        (solid_tumor_metastatic, "Metastatic tumor"),
-        (aids, "AIDS"),
-    ]
-
-    for condition, name in six_point:
-        if condition:
-            score += 6
-            components[name] = 6
-
-    # Age adjustment
-    if age >= 80:
-        age_pts = 4
-    elif age >= 70:
-        age_pts = 3
-    elif age >= 60:
-        age_pts = 2
-    elif age >= 50:
-        age_pts = 1
-    else:
-        age_pts = 0
-    score += age_pts
-    components["Age adjustment"] = age_pts
-
-    # Mortality estimation (10-year survival)
-    if score == 0:
-        survival_10yr = "98%"
-        risk = RiskLevel.LOW
-    elif score == 1:
-        survival_10yr = "96%"
-        risk = RiskLevel.LOW
-    elif score == 2:
-        survival_10yr = "90%"
-        risk = RiskLevel.LOW_MODERATE
-    elif score == 3:
-        survival_10yr = "77%"
-        risk = RiskLevel.MODERATE
-    elif score == 4:
-        survival_10yr = "53%"
-        risk = RiskLevel.MODERATE_HIGH
-    elif score <= 6:
-        survival_10yr = "21%"
-        risk = RiskLevel.HIGH
-    else:
-        survival_10yr = "<21%"
-        risk = RiskLevel.VERY_HIGH
-
-    interpretation = f"Charlson Comorbidity Index: {score}. Estimated 10-year survival: ~{survival_10yr}"
-
-    if score <= 2:
-        recommendations = [
-            "Low comorbidity burden",
-            "Standard age-appropriate screening",
-            "Preventive care as indicated",
-        ]
-    elif score <= 4:
-        recommendations = [
-            "Moderate comorbidity burden",
-            "Consider functional status assessment",
-            "Coordinate care among specialists",
-            "Medication reconciliation important",
-        ]
-    else:
-        recommendations = [
-            "High comorbidity burden",
-            "Goals of care discussion",
-            "Palliative care consultation may benefit",
-            "Focus on quality of life",
-            "Careful medication review",
-        ]
-
-    return CalculatorResult(
-        calculator_name="Charlson Comorbidity Index",
-        score=score,
-        score_unit="points",
-        risk_level=risk,
-        interpretation=interpretation,
-        recommendations=recommendations,
-        components=components,
-        references=["Charlson ME, et al. J Chronic Dis 1987"],
+    return calculate_from_definition(
+        "charlson",
+        {
+            "myocardial_infarction": myocardial_infarction,
+            "congestive_heart_failure": congestive_heart_failure,
+            "peripheral_vascular_disease": peripheral_vascular_disease,
+            "cerebrovascular_disease": cerebrovascular_disease,
+            "dementia": dementia,
+            "chronic_pulmonary_disease": chronic_pulmonary_disease,
+            "connective_tissue_disease": connective_tissue_disease,
+            "peptic_ulcer_disease": peptic_ulcer_disease,
+            "mild_liver_disease": mild_liver_disease,
+            "diabetes_uncomplicated": diabetes_uncomplicated,
+            "diabetes_with_complications": diabetes_with_complications,
+            "hemiplegia": hemiplegia,
+            "moderate_severe_renal_disease": moderate_severe_renal_disease,
+            "solid_tumor_no_metastasis": solid_tumor_no_metastasis,
+            "leukemia": leukemia,
+            "lymphoma": lymphoma,
+            "moderate_severe_liver_disease": moderate_severe_liver_disease,
+            "solid_tumor_metastatic": solid_tumor_metastatic,
+            "aids": aids,
+        },
+        age=age,
     )
 
 

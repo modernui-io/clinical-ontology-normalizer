@@ -1318,28 +1318,28 @@ CHARLSON_DEFINITION = CalculatorDefinition(
     references=["Charlson ME, et al. J Chronic Dis 1987"],
     specialties=["Internal Medicine", "Geriatrics", "Oncology", "Surgery"],
     criteria=[
-        # 1-point conditions
-        ScoringCriterion("mi", "Myocardial infarction", 1, "History of MI"),
-        ScoringCriterion("chf", "Congestive heart failure", 1, "CHF"),
-        ScoringCriterion("peripheral_vascular", "Peripheral vascular disease", 1, "PVD"),
-        ScoringCriterion("cerebrovascular", "Cerebrovascular disease", 1, "CVA or TIA"),
+        # 1-point conditions (names match calculate_charlson function parameters)
+        ScoringCriterion("myocardial_infarction", "Myocardial infarction", 1, "History of MI"),
+        ScoringCriterion("congestive_heart_failure", "Congestive heart failure", 1, "CHF"),
+        ScoringCriterion("peripheral_vascular_disease", "Peripheral vascular disease", 1, "PVD"),
+        ScoringCriterion("cerebrovascular_disease", "Cerebrovascular disease", 1, "CVA or TIA"),
         ScoringCriterion("dementia", "Dementia", 1, "Dementia"),
-        ScoringCriterion("copd", "Chronic pulmonary disease", 1, "COPD"),
-        ScoringCriterion("connective_tissue", "Connective tissue disease", 1, "Rheumatoid arthritis, lupus, etc."),
-        ScoringCriterion("peptic_ulcer", "Peptic ulcer disease", 1, "PUD"),
-        ScoringCriterion("mild_liver", "Mild liver disease", 1, "Chronic hepatitis, cirrhosis without portal HTN"),
+        ScoringCriterion("chronic_pulmonary_disease", "Chronic pulmonary disease", 1, "COPD"),
+        ScoringCriterion("connective_tissue_disease", "Connective tissue disease", 1, "Rheumatoid arthritis, lupus, etc."),
+        ScoringCriterion("peptic_ulcer_disease", "Peptic ulcer disease", 1, "PUD"),
+        ScoringCriterion("mild_liver_disease", "Mild liver disease", 1, "Chronic hepatitis, cirrhosis without portal HTN"),
         ScoringCriterion("diabetes_uncomplicated", "Diabetes (uncomplicated)", 1, "DM without end-organ damage"),
         # 2-point conditions
         ScoringCriterion("hemiplegia", "Hemiplegia", 2, "Hemiplegia"),
-        ScoringCriterion("moderate_severe_ckd", "Moderate/severe CKD", 2, "Creatinine >3 or on dialysis"),
-        ScoringCriterion("diabetes_complicated", "Diabetes with complications", 2, "DM with retinopathy, nephropathy, neuropathy"),
-        ScoringCriterion("solid_tumor", "Tumor without metastasis", 2, "Solid tumor without mets (past 5 years)"),
+        ScoringCriterion("moderate_severe_renal_disease", "Moderate/severe CKD", 2, "Creatinine >3 or on dialysis"),
+        ScoringCriterion("diabetes_with_complications", "Diabetes with complications", 2, "DM with retinopathy, nephropathy, neuropathy"),
+        ScoringCriterion("solid_tumor_no_metastasis", "Tumor without metastasis", 2, "Solid tumor without mets (past 5 years)"),
         ScoringCriterion("leukemia", "Leukemia", 2, "Leukemia"),
         ScoringCriterion("lymphoma", "Lymphoma", 2, "Lymphoma"),
         # 3-point conditions
-        ScoringCriterion("moderate_severe_liver", "Moderate/severe liver disease", 3, "Cirrhosis with portal HTN, varices"),
+        ScoringCriterion("moderate_severe_liver_disease", "Moderate/severe liver disease", 3, "Cirrhosis with portal HTN, varices"),
         # 6-point conditions
-        ScoringCriterion("metastatic_tumor", "Metastatic solid tumor", 6, "Metastatic cancer"),
+        ScoringCriterion("solid_tumor_metastatic", "Metastatic solid tumor", 6, "Metastatic cancer"),
         ScoringCriterion("aids", "AIDS", 6, "AIDS (not just HIV+)"),
     ],
     age_scoring=AgeScoringRule(
