@@ -466,6 +466,7 @@ class BulkExportService:
         self._jobs: dict[str, ExportJob] = {}
         self._lock = Lock()
         self._running_exports: set[str] = set()
+        self._export_tasks: dict[str, asyncio.Task[None]] = {}
 
         logger.info(
             "Bulk export service initialized: export_dir=%s, retention=%dh",
@@ -540,8 +541,8 @@ class BulkExportService:
             self._jobs[job_id] = job
             self._running_exports.add(job_id)
 
-        # Start export in background
-        asyncio.create_task(self._run_export(job))
+        # Start export in background (store reference to prevent GC)
+        self._export_tasks[job_id] = asyncio.create_task(self._run_export(job))
 
         logger.info(
             "Started bulk export: job_id=%s, type=%s, resources=%s",

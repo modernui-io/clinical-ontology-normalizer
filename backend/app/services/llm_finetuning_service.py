@@ -470,6 +470,7 @@ class LLMFineTuningService:
         self._models: dict[str, FineTunedModel] = {}
         self._deployments: dict[str, Deployment] = {}
         self._running_simulations: dict[str, bool] = {}
+        self._simulation_tasks: dict[str, asyncio.Task[None]] = {}
         self._lock = threading.Lock()
 
         self._initialized = False
@@ -890,8 +891,8 @@ class LLMFineTuningService:
         with self._lock:
             self._jobs[job_id] = job
 
-        # Start simulated training in background
-        asyncio.create_task(self._simulate_training(job_id))
+        # Start simulated training in background (store reference to prevent GC)
+        self._simulation_tasks[job_id] = asyncio.create_task(self._simulate_training(job_id))
 
         logger.info(f"Started fine-tuning job {job_id} with {total_steps} total steps")
         return job

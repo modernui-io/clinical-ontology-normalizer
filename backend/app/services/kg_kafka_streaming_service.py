@@ -173,6 +173,9 @@ class KGKafkaStreamingService:
         self._recent_results: list[ProcessingResult] = []
         self._max_recent_results = 1000
 
+        # Background task reference (prevents garbage collection)
+        self._process_task: asyncio.Task[None] | None = None
+
         # Register default handlers
         self._register_default_handlers()
 
@@ -234,8 +237,8 @@ class KGKafkaStreamingService:
         self._running = True
         logger.info("Starting KG Kafka Streaming Service")
 
-        # Start processing loop
-        asyncio.create_task(self._process_events())
+        # Start processing loop (store reference to prevent GC)
+        self._process_task = asyncio.create_task(self._process_events())
 
     async def stop(self) -> None:
         """Stop the streaming service."""
