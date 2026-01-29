@@ -301,7 +301,7 @@ class TestDocumentUploadJobEnqueue:
 
         app.dependency_overrides[get_db] = override_get_db
 
-        with patch("app.api.documents.enqueue_job", mock_enqueue_job):
+        with patch("app.api.documents.documents_core.enqueue_job", mock_enqueue_job):
             async with AsyncClient(
                 transport=ASGITransport(app=app),
                 base_url="http://test/api/v1",
@@ -326,7 +326,7 @@ class TestDocumentUploadJobEnqueue:
 
         app.dependency_overrides[get_db] = override_get_db
 
-        with patch("app.api.documents.enqueue_job", mock_enqueue_job):
+        with patch("app.api.documents.documents_core.enqueue_job", mock_enqueue_job):
             async with AsyncClient(
                 transport=ASGITransport(app=app),
                 base_url="http://test/api/v1",
@@ -353,7 +353,7 @@ class TestDocumentUploadJobEnqueue:
 
         app.dependency_overrides[get_db] = override_get_db
 
-        with patch("app.api.documents.enqueue_job", mock_enqueue_job):
+        with patch("app.api.documents.documents_core.enqueue_job", mock_enqueue_job):
             async with AsyncClient(
                 transport=ASGITransport(app=app),
                 base_url="http://test/api/v1",
@@ -383,7 +383,7 @@ class TestDocumentUploadJobEnqueue:
         # Mock enqueue_job to raise a connection error
         mock_enqueue = MagicMock(side_effect=ConnectionError("Redis unavailable"))
 
-        with patch("app.api.documents.enqueue_job", mock_enqueue):
+        with patch("app.api.documents.documents_core.enqueue_job", mock_enqueue):
             async with AsyncClient(
                 transport=ASGITransport(app=app),
                 base_url="http://test/api/v1",
@@ -414,7 +414,7 @@ class TestDocumentUploadJobEnqueue:
         # Mock enqueue_job to raise ImportError (RQ not installed)
         mock_enqueue = MagicMock(side_effect=ImportError("No module named 'rq'"))
 
-        with patch("app.api.documents.enqueue_job", mock_enqueue):
+        with patch("app.api.documents.documents_core.enqueue_job", mock_enqueue):
             async with AsyncClient(
                 transport=ASGITransport(app=app),
                 base_url="http://test/api/v1",
@@ -463,7 +463,7 @@ class TestDocumentRetrieval:
 
         app.dependency_overrides[get_db] = override_get_db
 
-        with patch("app.api.documents.enqueue_job", mock_enqueue_job):
+        with patch("app.api.documents.documents_core.enqueue_job", mock_enqueue_job):
             async with AsyncClient(
                 transport=ASGITransport(app=app),
                 base_url="http://test/api/v1",
@@ -505,7 +505,7 @@ class TestDocumentRetrieval:
 
         app.dependency_overrides[get_db] = override_get_db
 
-        with patch("app.api.documents.enqueue_job", mock_enqueue_job):
+        with patch("app.api.documents.documents_core.enqueue_job", mock_enqueue_job):
             async with AsyncClient(
                 transport=ASGITransport(app=app),
                 base_url="http://test/api/v1",
@@ -541,7 +541,7 @@ class TestDocumentRetrieval:
 
         app.dependency_overrides[get_db] = override_get_db
 
-        with patch("app.api.documents.enqueue_job", mock_enqueue_job):
+        with patch("app.api.documents.documents_core.enqueue_job", mock_enqueue_job):
             async with AsyncClient(
                 transport=ASGITransport(app=app),
                 base_url="http://test/api/v1",
@@ -566,7 +566,7 @@ class TestDocumentRetrieval:
 
         app.dependency_overrides[get_db] = override_get_db
 
-        with patch("app.api.documents.enqueue_job", mock_enqueue_job):
+        with patch("app.api.documents.documents_core.enqueue_job", mock_enqueue_job):
             async with AsyncClient(
                 transport=ASGITransport(app=app),
                 base_url="http://test/api/v1",

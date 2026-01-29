@@ -230,7 +230,7 @@ async def client_with_mock_db(
 
     app.dependency_overrides[get_db] = override_get_db
 
-    with patch("app.api.documents.enqueue_job", mock_enqueue_job):
+    with patch("app.api.documents.documents_core.enqueue_job", mock_enqueue_job):
         async with AsyncClient(
             transport=ASGITransport(app=app),
             base_url="http://test/api/v1",
