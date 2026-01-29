@@ -49,6 +49,7 @@ Usage:
     )
 """
 
+from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING
@@ -70,6 +71,163 @@ from app.core.database import Base
 
 if TYPE_CHECKING:
     pass
+
+
+# =============================================================================
+# Concept Reference Pattern
+# =============================================================================
+
+
+@dataclass
+class ConceptReference:
+    """Generic concept reference following OMOP CDM pattern.
+
+    This pattern appears throughout OMOP CDM tables where a standardized concept
+    is paired with its original source value and an optional source concept ID.
+
+    OMOP CDM Pattern:
+        - concept_id: The standardized OMOP concept identifier
+        - source_value: The original value from the source data
+        - source_concept_id: The concept ID representing the source coding system
+
+    This dataclass is used for:
+        1. Documentation of the pattern
+        2. Type hints in service/API layers
+        3. Data transfer between layers
+
+    Note: SQLAlchemy models still define columns explicitly for ORM compatibility.
+    Use concept_columns() factory to generate column definitions with reduced boilerplate.
+
+    Usage in Python code:
+        condition_ref = ConceptReference(
+            concept_id=201826,  # Type 2 Diabetes
+            source_value="E11.9",
+            source_concept_id=45576876
+        )
+
+    Tables using this pattern:
+        - Person (gender, race, ethnicity)
+        - Provider (specialty, gender)
+        - Death (cause)
+        - VisitOccurrence (visit)
+        - VisitDetail (visit_detail, admitted_from, discharged_to)
+        - ConditionOccurrence (condition, condition_status)
+        - DrugExposure (drug, route)
+        - ProcedureOccurrence (procedure, modifier)
+        - DeviceExposure (device, unit)
+        - Measurement (measurement, unit)
+        - Observation (observation, unit, qualifier)
+        - Specimen (specimen)
+        - PayerPlanPeriod (payer, plan, sponsor, stop_reason)
+    """
+
+    concept_id: int
+    source_value: str | None = None
+    source_concept_id: int | None = None
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary for serialization."""
+        return {
+            "concept_id": self.concept_id,
+            "source_value": self.source_value,
+            "source_concept_id": self.source_concept_id,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "ConceptReference":
+        """Create from dictionary."""
+        return cls(
+            concept_id=data["concept_id"],
+            source_value=data.get("source_value"),
+            source_concept_id=data.get("source_concept_id"),
+        )
+
+
+def concept_columns(
+    prefix: str,
+    *,
+    concept_id_required: bool = True,
+    source_value_length: int = 50,
+) -> tuple:
+    """Factory function to generate OMOP concept column definitions.
+
+    This reduces boilerplate for the repeated pattern of:
+        - {prefix}_concept_id
+        - {prefix}_source_value
+        - {prefix}_source_concept_id
+
+    Args:
+        prefix: The column name prefix (e.g., 'condition', 'drug', 'procedure')
+        concept_id_required: Whether concept_id is required (nullable=False)
+        source_value_length: Max length of source_value string column
+
+    Returns:
+        Tuple of (concept_id_column, source_value_column, source_concept_id_column)
+
+    Example:
+        # In model definition:
+        condition_concept_id, condition_source_value, condition_source_concept_id = (
+            concept_columns("condition")
+        )
+
+    Note: This is a documentation helper. Due to SQLAlchemy's requirement for
+    explicit column definitions in model classes, the actual column definitions
+    remain inline in the models. This function serves as a reference pattern
+    and can be used in tests or dynamic model generation scenarios.
+    """
+    concept_id = mapped_column(Integer, nullable=not concept_id_required)
+    source_value = mapped_column(String(source_value_length))
+    source_concept_id = mapped_column(Integer)
+
+    return concept_id, source_value, source_concept_id
+
+
+def extract_concept_reference(
+    model,
+    prefix: str,
+) -> ConceptReference:
+    """Extract a ConceptReference from a model instance.
+
+    Args:
+        model: SQLAlchemy model instance
+        prefix: The concept prefix (e.g., 'condition', 'drug')
+
+    Returns:
+        ConceptReference with values from the model
+
+    Example:
+        condition = ConditionOccurrence(...)
+        ref = extract_concept_reference(condition, "condition")
+        # ref.concept_id == condition.condition_concept_id
+    """
+    return ConceptReference(
+        concept_id=getattr(model, f"{prefix}_concept_id"),
+        source_value=getattr(model, f"{prefix}_source_value", None),
+        source_concept_id=getattr(model, f"{prefix}_source_concept_id", None),
+    )
+
+
+def set_concept_reference(
+    model,
+    prefix: str,
+    ref: ConceptReference,
+) -> None:
+    """Set concept reference fields on a model instance.
+
+    Args:
+        model: SQLAlchemy model instance
+        prefix: The concept prefix (e.g., 'condition', 'drug')
+        ref: ConceptReference with values to set
+
+    Example:
+        ref = ConceptReference(concept_id=201826, source_value="E11.9")
+        set_concept_reference(condition, "condition", ref)
+    """
+    setattr(model, f"{prefix}_concept_id", ref.concept_id)
+    if hasattr(model, f"{prefix}_source_value"):
+        setattr(model, f"{prefix}_source_value", ref.source_value)
+    if hasattr(model, f"{prefix}_source_concept_id"):
+        setattr(model, f"{prefix}_source_concept_id", ref.source_concept_id)
 
 
 # =============================================================================
