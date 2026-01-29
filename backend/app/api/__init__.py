@@ -15,7 +15,7 @@ from app.api.cds_hooks import router as cds_hooks_router
 from app.api.coding import router as coding_router
 from app.api.cohorts import router as cohorts_router
 from app.api.dashboard import router as dashboard_router
-from app.api.documents import router as documents_router
+from app.api.documents import router as documents_router  # Now imports from documents package
 from app.api.etl import router as etl_router
 from app.api.graph import router as graph_router
 from app.api.graph import reasoning_router as graph_reasoning_router
