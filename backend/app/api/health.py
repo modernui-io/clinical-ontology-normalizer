@@ -1,10 +1,13 @@
 """Health check endpoints for Clinical Ontology Normalizer.
 
+VP-DevOps: Enhanced health checks with system metrics.
+
 Provides comprehensive health checks for all system dependencies including:
 - Database connectivity
 - Redis availability
 - Neo4j graph database
 - Kafka message broker
+- System metrics (CPU, memory, disk)
 
 Health status follows a simple model:
 - "healthy": All checks pass
@@ -15,10 +18,13 @@ Usage:
     GET /api/v1/health - Comprehensive health check
     GET /api/v1/health/live - Simple liveness probe
     GET /api/v1/health/ready - Readiness probe
+    GET /api/v1/health/deep - Deep health check with system metrics
 """
 
 import asyncio
 import logging
+import os
+import platform
 import time
 from datetime import UTC, datetime
 from enum import Enum
@@ -28,7 +34,7 @@ from fastapi import APIRouter, Response, status
 from pydantic import BaseModel, Field
 
 from app.core.config import settings
-from app.services.terminology_cache import get_all_cache_stats, clear_all_caches
+from app.services.terminology_cache import clear_all_caches, get_all_cache_stats
 
 logger = logging.getLogger(__name__)
 
@@ -108,6 +114,57 @@ class ReadinessResponse(BaseModel):
     timestamp: str = Field(description="ISO8601 timestamp")
     services_ready: int = Field(description="Number of services ready")
     services_total: int = Field(description="Total number of services checked")
+
+
+# VP-DevOps: Enhanced system metrics models
+class MemoryInfo(BaseModel):
+    """Memory usage information."""
+
+    total_mb: float = Field(description="Total memory in MB")
+    available_mb: float = Field(description="Available memory in MB")
+    used_mb: float = Field(description="Used memory in MB")
+    percent_used: float = Field(description="Percentage of memory used")
+
+
+class DiskInfo(BaseModel):
+    """Disk usage information."""
+
+    total_gb: float = Field(description="Total disk space in GB")
+    free_gb: float = Field(description="Free disk space in GB")
+    used_gb: float = Field(description="Used disk space in GB")
+    percent_used: float = Field(description="Percentage of disk used")
+
+
+class SystemInfo(BaseModel):
+    """System information."""
+
+    hostname: str = Field(description="Server hostname")
+    os: str = Field(description="Operating system")
+    os_version: str = Field(description="OS version")
+    python_version: str = Field(description="Python version")
+    cpu_count: int = Field(description="Number of CPU cores")
+    process_id: int = Field(description="Current process ID")
+
+
+class SystemMetrics(BaseModel):
+    """System resource metrics."""
+
+    memory: MemoryInfo | None = Field(default=None, description="Memory usage")
+    disk: DiskInfo | None = Field(default=None, description="Disk usage")
+    system: SystemInfo = Field(description="System information")
+    load_average: list[float] | None = Field(default=None, description="System load averages (1, 5, 15 min)")
+
+
+class DeepHealthResponse(BaseModel):
+    """Response model for deep health check with system metrics."""
+
+    status: HealthStatus = Field(description="Overall health status")
+    timestamp: str = Field(description="ISO8601 timestamp of the check")
+    version: str = Field(description="Application version")
+    environment: str = Field(description="Environment (development/production)")
+    checks: dict[str, ComponentHealth] = Field(description="Individual component health checks")
+    system_metrics: SystemMetrics = Field(description="System resource metrics")
+    uptime_seconds: float | None = Field(default=None, description="Application uptime in seconds")
 
 
 # =============================================================================
@@ -506,6 +563,126 @@ async def readiness_probe(response: Response) -> ReadinessResponse:
         timestamp=datetime.now(UTC).isoformat(),
         services_ready=services_ready,
         services_total=services_total,
+    )
+
+
+def _get_system_metrics() -> SystemMetrics:
+    """Collect system resource metrics.
+
+    VP-DevOps: Enhanced health check with system information.
+
+    Returns:
+        SystemMetrics with memory, disk, and system info.
+    """
+    import sys
+
+    # System info (always available)
+    system_info = SystemInfo(
+        hostname=platform.node(),
+        os=platform.system(),
+        os_version=platform.release(),
+        python_version=sys.version.split()[0],
+        cpu_count=os.cpu_count() or 1,
+        process_id=os.getpid(),
+    )
+
+    # Memory info (requires psutil, gracefully handle if not available)
+    memory_info = None
+    disk_info = None
+    load_average = None
+
+    try:
+        import psutil
+
+        # Memory
+        mem = psutil.virtual_memory()
+        memory_info = MemoryInfo(
+            total_mb=round(mem.total / (1024 * 1024), 2),
+            available_mb=round(mem.available / (1024 * 1024), 2),
+            used_mb=round(mem.used / (1024 * 1024), 2),
+            percent_used=mem.percent,
+        )
+
+        # Disk
+        disk = psutil.disk_usage("/")
+        disk_info = DiskInfo(
+            total_gb=round(disk.total / (1024 * 1024 * 1024), 2),
+            free_gb=round(disk.free / (1024 * 1024 * 1024), 2),
+            used_gb=round(disk.used / (1024 * 1024 * 1024), 2),
+            percent_used=disk.percent,
+        )
+    except ImportError:
+        logger.debug("psutil not available, skipping memory/disk metrics")
+    except Exception as e:
+        logger.warning(f"Failed to collect memory/disk metrics: {e}")
+
+    # Load average (Unix only)
+    try:
+        load_average = list(os.getloadavg())
+    except (AttributeError, OSError):
+        pass  # Not available on Windows
+
+    return SystemMetrics(
+        memory=memory_info,
+        disk=disk_info,
+        system=system_info,
+        load_average=load_average,
+    )
+
+
+@router.get(
+    "/deep",
+    response_model=DeepHealthResponse,
+    responses={
+        200: {"description": "System is healthy"},
+        503: {"description": "System is unhealthy"},
+    },
+    summary="Deep health check with system metrics",
+    description="Comprehensive health check including system resource metrics. Use for debugging and monitoring.",
+)
+async def deep_health_check(response: Response) -> DeepHealthResponse:
+    """Deep health check endpoint with system metrics.
+
+    VP-DevOps: Enhanced health check that includes:
+    - All standard service health checks
+    - System metrics (CPU, memory, disk)
+    - Environment information
+
+    Use for detailed system monitoring and debugging.
+    """
+    # Run all health checks in parallel
+    database_check, redis_check, neo4j_check, kafka_check = await asyncio.gather(
+        check_database(),
+        check_redis(),
+        check_neo4j(),
+        check_kafka(),
+        return_exceptions=False,
+    )
+
+    checks = {
+        "database": database_check,
+        "redis": redis_check,
+        "neo4j": neo4j_check,
+        "kafka": kafka_check,
+    }
+
+    overall_status = _determine_overall_status(checks)
+
+    # Collect system metrics
+    system_metrics = _get_system_metrics()
+
+    # Set HTTP status code based on health
+    if overall_status == HealthStatus.UNHEALTHY:
+        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+
+    return DeepHealthResponse(
+        status=overall_status,
+        timestamp=datetime.now(UTC).isoformat(),
+        version="1.0.0",
+        environment="development" if settings.debug else "production",
+        checks=checks,
+        system_metrics=system_metrics,
+        uptime_seconds=get_uptime_seconds(),
     )
 
 

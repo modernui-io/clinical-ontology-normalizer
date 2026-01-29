@@ -74,6 +74,19 @@ class LLMConfig:
     retry_delay_seconds: float = 1.0
     retry_backoff_multiplier: float = 2.0
 
+    # VP-AI: Provider fallback configuration
+    enable_fallback: bool = True
+    fallback_providers: list[LLMProvider] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        """Set default fallback providers if not specified."""
+        if self.enable_fallback and not self.fallback_providers:
+            # Default: fallback to the other provider
+            if self.provider == LLMProvider.OPENAI:
+                self.fallback_providers = [LLMProvider.ANTHROPIC]
+            else:
+                self.fallback_providers = [LLMProvider.OPENAI]
+
 
 @dataclass
 class TokenUsage:
@@ -677,7 +690,67 @@ class LLMService:
                     await asyncio.sleep(delay)
                     delay *= self.config.retry_backoff_multiplier
 
+        # VP-AI: Try fallback providers if configured
+        if self.config.enable_fallback and self.config.fallback_providers:
+            for fallback_provider in self.config.fallback_providers:
+                if fallback_provider == provider:
+                    continue  # Skip if same as primary
+                try:
+                    fallback_client = self._get_client(fallback_provider)
+                    if not fallback_client.is_available():
+                        continue
+
+                    # Get appropriate model for fallback provider
+                    fallback_model = self._get_fallback_model(fallback_provider)
+
+                    logger.info(
+                        f"Primary LLM failed, trying fallback provider: {fallback_provider.value}"
+                    )
+
+                    response = await fallback_client.generate(
+                        messages=messages,
+                        model=fallback_model,
+                        max_tokens=max_tokens,
+                        temperature=temperature,
+                        timeout=self.config.timeout_seconds,
+                    )
+
+                    # Record usage
+                    self._rate_limiter.record_usage(response.token_usage.total_tokens)
+                    self._total_requests += 1
+                    self._total_tokens += response.token_usage.total_tokens
+                    self._total_cost += response.cost_estimate.total_cost
+
+                    logger.info(
+                        f"Fallback to {fallback_provider.value} succeeded"
+                    )
+
+                    return response
+
+                except Exception as fallback_error:
+                    logger.warning(
+                        f"Fallback provider {fallback_provider.value} also failed: {fallback_error}"
+                    )
+                    continue
+
         raise Exception(f"LLM request failed after {self.config.max_retries} retries: {last_error}")
+
+    def _get_fallback_model(self, provider: LLMProvider) -> str:
+        """Get the default model for a fallback provider.
+
+        VP-AI: Maps to equivalent models when falling back to different providers.
+
+        Args:
+            provider: The fallback provider.
+
+        Returns:
+            Default model name for the provider.
+        """
+        if provider == LLMProvider.OPENAI:
+            return "gpt-4o-mini"  # Cost-effective default
+        elif provider == LLMProvider.ANTHROPIC:
+            return "claude-3-haiku-20240307"  # Cost-effective default
+        return "gpt-4o-mini"
 
     async def generate_chat(
         self,
@@ -751,6 +824,43 @@ class LLMService:
                 if attempt < self.config.max_retries - 1:
                     await asyncio.sleep(delay)
                     delay *= self.config.retry_backoff_multiplier
+
+        # VP-AI: Try fallback providers if configured
+        if self.config.enable_fallback and self.config.fallback_providers:
+            for fallback_provider in self.config.fallback_providers:
+                if fallback_provider == provider:
+                    continue
+                try:
+                    fallback_client = self._get_client(fallback_provider)
+                    if not fallback_client.is_available():
+                        continue
+
+                    fallback_model = self._get_fallback_model(fallback_provider)
+
+                    logger.info(
+                        f"Primary LLM chat failed, trying fallback: {fallback_provider.value}"
+                    )
+
+                    response = await fallback_client.generate(
+                        messages=messages,
+                        model=fallback_model,
+                        max_tokens=max_tokens,
+                        temperature=temperature,
+                        timeout=self.config.timeout_seconds,
+                    )
+
+                    self._rate_limiter.record_usage(response.token_usage.total_tokens)
+                    self._total_requests += 1
+                    self._total_tokens += response.token_usage.total_tokens
+                    self._total_cost += response.cost_estimate.total_cost
+
+                    return response
+
+                except Exception as fallback_error:
+                    logger.warning(
+                        f"Fallback {fallback_provider.value} also failed: {fallback_error}"
+                    )
+                    continue
 
         raise Exception(
             f"LLM chat request failed after {self.config.max_retries} retries: {last_error}"

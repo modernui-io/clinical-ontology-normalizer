@@ -2,17 +2,19 @@
 
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import DateTime, Enum, Float, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.core.database import Base
+from app.core.database import Base, SoftDeleteMixin
 from app.schemas.base import Assertion, Domain, Experiencer, Temporality
 from app.schemas.clinical_fact import EvidenceType
 
 
-class ClinicalFact(Base):
+class ClinicalFact(SoftDeleteMixin, Base):
     """Canonical normalized clinical fact.
+
+    VP-Compliance: Inherits SoftDeleteMixin for audit trail and data recovery.
 
     Represents a deduplicated, normalized clinical finding combining
     evidence from both NLP extraction and structured data sources.
@@ -94,6 +96,18 @@ class ClinicalFact(Base):
         "FactEvidence",
         back_populates="fact",
         cascade="all, delete-orphan",
+    )
+
+    # VP-Performance: Composite indexes for common query patterns
+    __table_args__ = (
+        # Patient + domain: "Get all conditions/drugs/measurements for patient"
+        Index("ix_clinical_facts_patient_domain", "patient_id", "domain"),
+        # Patient + assertion: "Get all negated findings for patient"
+        Index("ix_clinical_facts_patient_assertion", "patient_id", "assertion"),
+        # Patient + domain + assertion: "Get all positive conditions for patient"
+        Index("ix_clinical_facts_patient_domain_assertion", "patient_id", "domain", "assertion"),
+        # Patient + concept: "Get all instances of specific diagnosis for patient"
+        Index("ix_clinical_facts_patient_concept", "patient_id", "omop_concept_id"),
     )
 
     def __repr__(self) -> str:

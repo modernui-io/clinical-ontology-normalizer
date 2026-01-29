@@ -9,15 +9,17 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.core.database import Base
+from app.core.database import Base, SoftDeleteMixin
 from app.schemas.base import JobStatus, ResourceType
 
 if TYPE_CHECKING:
     from app.models.clinical_value import ClinicalValue
 
 
-class Document(Base):
+class Document(SoftDeleteMixin, Base):
     """Clinical document containing unstructured text.
+
+    VP-Compliance: Inherits SoftDeleteMixin for audit trail and data recovery.
 
     Represents a clinical note (progress note, discharge summary, etc.)
     that will be processed through the NLP pipeline to extract mentions.
@@ -70,8 +72,10 @@ class Document(Base):
         return f"<Document(id={self.id}, patient_id={self.patient_id}, note_type={self.note_type}, status={self.status})>"
 
 
-class StructuredResource(Base):
+class StructuredResource(SoftDeleteMixin, Base):
     """Structured clinical resource (FHIR bundle, CSV data).
+
+    VP-Compliance: Inherits SoftDeleteMixin for audit trail and data recovery.
 
     Represents structured clinical data that will be processed
     to extract clinical facts directly without NLP.

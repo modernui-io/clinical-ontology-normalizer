@@ -124,6 +124,14 @@ from app.schemas.mention import (
     MentionConceptCandidateCreate,
     MentionCreate,
 )
+from app.schemas.response import (
+    APIResponse,
+    ErrorDetail as APIErrorDetail,
+    ErrorResponse,
+    PaginatedAPIResponse,
+    PaginationMeta,
+    ResponseMeta,
+)
 
 __all__ = [
     # Base Enums
@@ -234,4 +242,11 @@ __all__ = [
     "validate_cui",
     "validate_patient_id",
     "validate_rxcui",
+    # VP-Backend: Standard API response models
+    "APIResponse",
+    "APIErrorDetail",
+    "ErrorResponse",
+    "PaginatedAPIResponse",
+    "PaginationMeta",
+    "ResponseMeta",
 ]

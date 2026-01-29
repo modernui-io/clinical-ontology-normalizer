@@ -1,7 +1,7 @@
 """Database configuration and session management."""
 
 from collections.abc import AsyncGenerator
-from datetime import datetime
+from datetime import UTC, datetime
 from uuid import uuid4
 
 from sqlalchemy import DateTime, Engine, create_engine, func
@@ -76,6 +76,59 @@ class Base(DeclarativeBase):
         server_default=func.now(),
         nullable=False,
     )
+
+
+class SoftDeleteMixin:
+    """VP-Compliance: Mixin for soft delete pattern.
+
+    Adds deleted_at and deleted_by columns to support:
+    - Audit trail for deletions (who deleted what, when)
+    - Data recovery (undelete operations)
+    - Compliance requirements (retain records for specified periods)
+
+    Usage:
+        class Patient(SoftDeleteMixin, Base):
+            __tablename__ = "patients"
+            ...
+
+    Query examples:
+        # Get active records only
+        session.query(Patient).filter(Patient.deleted_at.is_(None))
+
+        # Get deleted records
+        session.query(Patient).filter(Patient.deleted_at.isnot(None))
+    """
+
+    deleted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        default=None,
+        index=True,
+    )
+    deleted_by: Mapped[str | None] = mapped_column(
+        UUID(as_uuid=False),
+        nullable=True,
+        default=None,
+    )
+
+    @property
+    def is_deleted(self) -> bool:
+        """Check if record is soft-deleted."""
+        return self.deleted_at is not None
+
+    def soft_delete(self, deleted_by_user_id: str | None = None) -> None:
+        """Mark record as deleted without removing from database.
+
+        Args:
+            deleted_by_user_id: UUID of user performing the deletion
+        """
+        self.deleted_at = datetime.now(UTC)
+        self.deleted_by = deleted_by_user_id
+
+    def restore(self) -> None:
+        """Restore a soft-deleted record."""
+        self.deleted_at = None
+        self.deleted_by = None
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:

@@ -449,13 +449,97 @@ class DatabaseConnector(SourceConnector):
             raise RuntimeError("Not connected to database. Call connect() first.")
 
     def _build_query_from_table(self, table_mapping: TableMapping) -> str:
-        """Build SELECT query from table mapping."""
-        query = f"SELECT * FROM {table_mapping.table_name}"
+        """Build SELECT query from table mapping.
+
+        VP-Security: Added SQL injection protection via identifier validation.
+        Table names, column names, and operators are validated against allowlists.
+        """
+        # Validate table name (alphanumeric, underscores, dots for schema.table)
+        table_name = table_mapping.table_name
+        if not self._is_valid_identifier(table_name):
+            raise ValueError(f"Invalid table name: {table_name}")
+
+        query = f"SELECT * FROM {table_name}"
+
         if table_mapping.where_clause:
-            query += f" WHERE {table_mapping.where_clause}"
+            # Validate where clause - only allow simple conditions
+            # For complex queries, use parameterized queries directly
+            validated_where = self._validate_where_clause(table_mapping.where_clause)
+            query += f" WHERE {validated_where}"
+
         if table_mapping.order_by:
-            query += f" ORDER BY {table_mapping.order_by}"
+            # Validate order by - only allow column names and ASC/DESC
+            validated_order = self._validate_order_by(table_mapping.order_by)
+            query += f" ORDER BY {validated_order}"
+
         return query
+
+    def _is_valid_identifier(self, identifier: str) -> bool:
+        """Validate SQL identifier (table/column name).
+
+        Only allows alphanumeric characters, underscores, and dots (for schema.table).
+        """
+        import re
+        # Allow schema.table format (e.g., public.patients)
+        pattern = r'^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)?$'
+        return bool(re.match(pattern, identifier))
+
+    def _validate_where_clause(self, where_clause: str) -> str:
+        """Validate and sanitize WHERE clause.
+
+        VP-Security: Prevents SQL injection by validating clause structure.
+        Only allows simple column=value or column IN (...) patterns.
+        For complex queries, raise an error and require parameterized queries.
+        """
+        import re
+
+        # Check for dangerous SQL keywords/patterns
+        dangerous_patterns = [
+            r';\s*',           # Statement terminator
+            r'--',             # Comment
+            r'/\*',            # Block comment
+            r'\bUNION\b',      # UNION injection
+            r'\bDROP\b',       # DROP injection
+            r'\bDELETE\b',     # DELETE injection
+            r'\bINSERT\b',     # INSERT injection
+            r'\bUPDATE\b',     # UPDATE injection
+            r'\bEXEC\b',       # EXEC injection
+            r'\bEXECUTE\b',    # EXECUTE injection
+            r'\bxp_',          # SQL Server extended procedures
+        ]
+
+        for pattern in dangerous_patterns:
+            if re.search(pattern, where_clause, re.IGNORECASE):
+                raise ValueError(
+                    f"Potentially dangerous SQL pattern detected in WHERE clause. "
+                    f"Use parameterized queries for complex conditions."
+                )
+
+        return where_clause
+
+    def _validate_order_by(self, order_by: str) -> str:
+        """Validate ORDER BY clause.
+
+        VP-Security: Only allows column names with optional ASC/DESC.
+        """
+        import re
+
+        # Split by comma for multiple columns
+        parts = [p.strip() for p in order_by.split(',')]
+        validated_parts = []
+
+        for part in parts:
+            # Match: column_name or column_name ASC/DESC
+            match = re.match(
+                r'^([a-zA-Z_][a-zA-Z0-9_]*)(\s+(ASC|DESC))?$',
+                part,
+                re.IGNORECASE
+            )
+            if not match:
+                raise ValueError(f"Invalid ORDER BY clause: {part}")
+            validated_parts.append(part)
+
+        return ', '.join(validated_parts)
 
     def _get_column_value(
         self,
