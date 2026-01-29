@@ -134,8 +134,9 @@ async def upload_policy(
             uploaded_by=policy.uploaded_by,
         )
     except Exception as e:
-        logger.error(f"Policy upload failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Policy upload failed: {e}")
+        # VP-Security: Log full error, return sanitized message
+        logger.error(f"Policy upload failed: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Policy upload failed. Please try again.")
 
 
 @router.get(

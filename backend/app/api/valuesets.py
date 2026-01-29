@@ -904,7 +904,9 @@ async def import_value_set(fhir_value_set: dict[str, Any]) -> ValueSetResponse:
         vs = service.import_fhir(fhir_value_set)
         return _to_response(vs)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Failed to import value set: {str(e)}")
+        # VP-Security: Log full error, return sanitized message
+        logger.error(f"Failed to import value set: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=400, detail="Failed to import value set. Check FHIR format.")
 
 
 @router.post("/import/csv", response_model=ValueSetResponse)
@@ -951,7 +953,9 @@ async def import_csv(
         )
         return _to_response(vs)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Failed to import CSV: {str(e)}")
+        # VP-Security: Log full error, return sanitized message
+        logger.error(f"Failed to import CSV: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=400, detail="Failed to import CSV. Check file format.")
 
 
 @router.get("/{value_set_id}/export")
