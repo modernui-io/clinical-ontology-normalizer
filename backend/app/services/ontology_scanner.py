@@ -7,6 +7,7 @@ vocabularies that have newer versions available.
 from __future__ import annotations
 
 import logging
+from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy import distinct, func, select
@@ -129,7 +130,5 @@ async def check_all_vocabularies(
         "vocabularies": results,
         "total_vocabularies": len(results),
         "updates_available": updates_available,
-        "scan_timestamp": __import__("datetime").datetime.now(
-            __import__("datetime").timezone.utc
-        ).isoformat(),
+        "scan_timestamp": datetime.now(timezone.utc).isoformat(),
     }

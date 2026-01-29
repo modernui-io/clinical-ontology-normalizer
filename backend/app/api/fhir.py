@@ -10,6 +10,7 @@ VP-Security-5: Added URL validation to prevent SSRF attacks.
 from __future__ import annotations
 
 import ipaddress
+import json
 import logging
 import re
 from datetime import datetime
@@ -592,7 +593,7 @@ async def get_export_status(
         status_response = job.to_status_response(base_url)
         return Response(
             status_code=status.HTTP_200_OK,
-            content=__import__("json").dumps(status_response),
+            content=json.dumps(status_response),
             media_type="application/json",
         )
 
@@ -605,7 +606,7 @@ async def get_export_status(
                 "X-Progress": f"{progress:.1f}%",
                 "Retry-After": "5",
             },
-            content=__import__("json").dumps({
+            content=json.dumps({
                 "status": "in-progress",
                 "progress": progress,
             }),
@@ -616,7 +617,7 @@ async def get_export_status(
         # Return error details
         return Response(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content=__import__("json").dumps({
+            content=json.dumps({
                 "status": "failed",
                 "errors": [
                     {
@@ -633,7 +634,7 @@ async def get_export_status(
         # Pending, cancelled, or expired
         return Response(
             status_code=status.HTTP_200_OK,
-            content=__import__("json").dumps({
+            content=json.dumps({
                 "status": job.status.value,
             }),
             media_type="application/json",
