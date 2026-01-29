@@ -17,6 +17,7 @@ Checkpoints are stored in JSON files with the following structure:
 import json
 import logging
 import os
+import threading
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -258,6 +259,7 @@ class CheckpointManager:
 
 # Singleton instance
 _checkpoint_manager: CheckpointManager | None = None
+_checkpoint_lock = threading.Lock()
 
 
 def get_checkpoint_manager(checkpoint_dir: str | Path | None = None) -> CheckpointManager:
@@ -271,7 +273,10 @@ def get_checkpoint_manager(checkpoint_dir: str | Path | None = None) -> Checkpoi
     """
     global _checkpoint_manager
 
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _checkpoint_manager is None:
-        _checkpoint_manager = CheckpointManager(checkpoint_dir)
+        with _checkpoint_lock:
+            if _checkpoint_manager is None:
+                _checkpoint_manager = CheckpointManager(checkpoint_dir)
 
     return _checkpoint_manager

@@ -11,6 +11,7 @@ Generates structured queries for providers/coders.
 """
 
 import logging
+import threading
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
@@ -636,11 +637,15 @@ class DocumentationGapDetector:
 
 # Singleton instance
 _detector: DocumentationGapDetector | None = None
+_detector_lock = threading.Lock()
 
 
 def get_documentation_gap_detector() -> DocumentationGapDetector:
     """Get or create documentation gap detector singleton."""
     global _detector
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _detector is None:
-        _detector = DocumentationGapDetector()
+        with _detector_lock:
+            if _detector is None:
+                _detector = DocumentationGapDetector()
     return _detector
