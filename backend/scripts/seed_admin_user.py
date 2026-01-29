@@ -27,7 +27,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import async_session_maker, init_db
 from app.models.rbac import User
-from app.services.auth_service import get_auth_service
+from app.services.auth import get_auth_service
 from app.services.rbac_service import get_rbac_service
 
 logging.basicConfig(

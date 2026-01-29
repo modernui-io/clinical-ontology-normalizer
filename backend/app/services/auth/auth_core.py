@@ -2,7 +2,6 @@
 
 This service provides:
 - User authentication (login/logout)
-- Password hashing and verification using bcrypt
 - JWT access and refresh token generation/validation
 - User creation and management
 - Token rotation and revocation
@@ -18,63 +17,39 @@ Security considerations:
 
 import hashlib
 import logging
-import secrets
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
-from enum import Enum
 from typing import Any
 
-import bcrypt
-import jwt
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.core.config import settings
 from app.models.rbac import RefreshToken, Role, User, UserRole
+
+from .auth_password import hash_password, verify_password
+from .auth_tokens import (
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    JWT_ALGORITHM,
+    JWT_SECRET_KEY,
+    REFRESH_TOKEN_EXPIRE_DAYS,
+    TokenPair,
+    TokenPayload,
+    TokenType,
+    create_access_token,
+    create_refresh_token,
+    create_token_pair,
+    decode_token,
+    validate_access_token,
+    validate_refresh_token,
+)
 
 logger = logging.getLogger(__name__)
 
 
-# JWT Configuration - Use stable key from environment
-JWT_SECRET_KEY = settings.jwt_secret_key
-JWT_ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-REFRESH_TOKEN_EXPIRE_DAYS = 7
-
 # Brute force protection
 MAX_LOGIN_ATTEMPTS = 5
 LOCKOUT_DURATION_MINUTES = 30
-
-
-class TokenType(str, Enum):
-    """Type of JWT token."""
-
-    ACCESS = "access"
-    REFRESH = "refresh"
-
-
-@dataclass
-class TokenPair:
-    """Access and refresh token pair."""
-
-    access_token: str
-    refresh_token: str
-    token_type: str = "bearer"
-    expires_in: int = ACCESS_TOKEN_EXPIRE_MINUTES * 60  # seconds
-
-
-@dataclass
-class TokenPayload:
-    """Decoded JWT token payload."""
-
-    sub: str  # User ID
-    email: str
-    type: TokenType
-    exp: datetime
-    iat: datetime
-    roles: list[str]
-    permissions: list[str]
 
 
 @dataclass
@@ -116,7 +91,7 @@ class AuthService:
         self.refresh_token_expire_days = refresh_token_expire_days
 
     # -------------------------------------------------------------------------
-    # Password Hashing
+    # Password Hashing (delegated to auth_password module)
     # -------------------------------------------------------------------------
 
     def hash_password(self, password: str) -> str:
@@ -128,9 +103,7 @@ class AuthService:
         Returns:
             Bcrypt hashed password string
         """
-        salt = bcrypt.gensalt(rounds=12)
-        hashed = bcrypt.hashpw(password.encode("utf-8"), salt)
-        return hashed.decode("utf-8")
+        return hash_password(password)
 
     def verify_password(self, password: str, hashed_password: str) -> bool:
         """Verify a password against its hash.
@@ -142,16 +115,10 @@ class AuthService:
         Returns:
             True if password matches, False otherwise
         """
-        try:
-            return bcrypt.checkpw(
-                password.encode("utf-8"),
-                hashed_password.encode("utf-8"),
-            )
-        except Exception:
-            return False
+        return verify_password(password, hashed_password)
 
     # -------------------------------------------------------------------------
-    # JWT Token Generation
+    # JWT Token Generation (delegated to auth_tokens module)
     # -------------------------------------------------------------------------
 
     def create_access_token(
@@ -168,33 +135,13 @@ class AuthService:
         Returns:
             Encoded JWT access token
         """
-        if expires_delta is None:
-            expires_delta = timedelta(minutes=self.access_token_expire_minutes)
-
-        now = datetime.now(UTC)
-        expire = now + expires_delta
-
-        # Get user's roles and permissions
-        roles = [ur.role.name for ur in user.user_roles]
-        permissions: list[str] = []
-        for ur in user.user_roles:
-            for rp in ur.role.role_permissions:
-                perm_name = rp.permission.name
-                if perm_name not in permissions:
-                    permissions.append(perm_name)
-
-        payload = {
-            "sub": user.id,
-            "email": user.email,
-            "name": user.name,
-            "type": TokenType.ACCESS.value,
-            "exp": expire,
-            "iat": now,
-            "roles": roles,
-            "permissions": permissions,
-        }
-
-        return jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
+        return create_access_token(
+            user,
+            secret_key=self.secret_key,
+            algorithm=self.algorithm,
+            access_token_expire_minutes=self.access_token_expire_minutes,
+            expires_delta=expires_delta,
+        )
 
     def create_refresh_token(self, user: User) -> str:
         """Create a refresh token for a user.
@@ -205,23 +152,12 @@ class AuthService:
         Returns:
             Encoded JWT refresh token
         """
-        expires_delta = timedelta(days=self.refresh_token_expire_days)
-        now = datetime.now(UTC)
-        expire = now + expires_delta
-
-        # Generate a unique token ID for revocation tracking
-        token_id = secrets.token_urlsafe(32)
-
-        payload = {
-            "sub": user.id,
-            "email": user.email,
-            "type": TokenType.REFRESH.value,
-            "exp": expire,
-            "iat": now,
-            "jti": token_id,  # Token ID for revocation
-        }
-
-        return jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
+        return create_refresh_token(
+            user,
+            secret_key=self.secret_key,
+            algorithm=self.algorithm,
+            refresh_token_expire_days=self.refresh_token_expire_days,
+        )
 
     def create_token_pair(self, user: User) -> TokenPair:
         """Create both access and refresh tokens for a user.
@@ -232,17 +168,16 @@ class AuthService:
         Returns:
             TokenPair with access and refresh tokens
         """
-        access_token = self.create_access_token(user)
-        refresh_token = self.create_refresh_token(user)
-
-        return TokenPair(
-            access_token=access_token,
-            refresh_token=refresh_token,
-            expires_in=self.access_token_expire_minutes * 60,
+        return create_token_pair(
+            user,
+            secret_key=self.secret_key,
+            algorithm=self.algorithm,
+            access_token_expire_minutes=self.access_token_expire_minutes,
+            refresh_token_expire_days=self.refresh_token_expire_days,
         )
 
     # -------------------------------------------------------------------------
-    # JWT Token Validation
+    # JWT Token Validation (delegated to auth_tokens module)
     # -------------------------------------------------------------------------
 
     def decode_token(self, token: str) -> dict[str, Any] | None:
@@ -254,19 +189,11 @@ class AuthService:
         Returns:
             Decoded token payload or None if invalid
         """
-        try:
-            payload = jwt.decode(
-                token,
-                self.secret_key,
-                algorithms=[self.algorithm],
-            )
-            return payload
-        except jwt.ExpiredSignatureError:
-            logger.debug("Token has expired")
-            return None
-        except jwt.InvalidTokenError as e:
-            logger.debug(f"Invalid token: {e}")
-            return None
+        return decode_token(
+            token,
+            secret_key=self.secret_key,
+            algorithm=self.algorithm,
+        )
 
     def validate_access_token(self, token: str) -> TokenPayload | None:
         """Validate an access token and return its payload.
@@ -277,22 +204,10 @@ class AuthService:
         Returns:
             TokenPayload if valid, None otherwise
         """
-        payload = self.decode_token(token)
-        if not payload:
-            return None
-
-        # Verify it's an access token
-        if payload.get("type") != TokenType.ACCESS.value:
-            return None
-
-        return TokenPayload(
-            sub=payload["sub"],
-            email=payload["email"],
-            type=TokenType.ACCESS,
-            exp=datetime.fromtimestamp(payload["exp"], tz=UTC),
-            iat=datetime.fromtimestamp(payload["iat"], tz=UTC),
-            roles=payload.get("roles", []),
-            permissions=payload.get("permissions", []),
+        return validate_access_token(
+            token,
+            secret_key=self.secret_key,
+            algorithm=self.algorithm,
         )
 
     def validate_refresh_token(self, token: str) -> dict[str, Any] | None:
@@ -304,15 +219,11 @@ class AuthService:
         Returns:
             Token payload if valid, None otherwise
         """
-        payload = self.decode_token(token)
-        if not payload:
-            return None
-
-        # Verify it's a refresh token
-        if payload.get("type") != TokenType.REFRESH.value:
-            return None
-
-        return payload
+        return validate_refresh_token(
+            token,
+            secret_key=self.secret_key,
+            algorithm=self.algorithm,
+        )
 
     # -------------------------------------------------------------------------
     # User Authentication

@@ -26,7 +26,7 @@ from app.api.middleware.auth_middleware import (
     require_admin,
 )
 from app.core.database import get_db
-from app.services.auth_service import AuthService, get_auth_service
+from app.services.auth import AuthService, get_auth_service
 from app.services.rbac_service import RBACService, get_rbac_service
 
 logger = logging.getLogger(__name__)

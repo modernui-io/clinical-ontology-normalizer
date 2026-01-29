@@ -25,7 +25,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.services.auth_service import AuthService, TokenPayload, get_auth_service
+from app.services.auth import AuthService, TokenPayload, get_auth_service
 from app.services.rbac_service import RBACService, get_rbac_service
 
 logger = logging.getLogger(__name__)
