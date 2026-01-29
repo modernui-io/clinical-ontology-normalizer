@@ -1244,6 +1244,8 @@ def calculate_qsofa(
 ) -> CalculatorResult:
     """Calculate qSOFA score for sepsis screening.
 
+    Uses data-driven definition from calculator_definitions.py.
+
     Args:
         respiratory_rate_22_or_higher: Respiratory rate ≥22/min.
         altered_mental_status: Altered mentation (GCS <15).
@@ -1252,48 +1254,13 @@ def calculate_qsofa(
     Returns:
         CalculatorResult with sepsis risk assessment.
     """
-    score = 0
-    components = {}
-
-    if respiratory_rate_22_or_higher:
-        score += 1
-        components["RR ≥22"] = 1
-    if altered_mental_status:
-        score += 1
-        components["Altered mental status"] = 1
-    if systolic_bp_100_or_lower:
-        score += 1
-        components["SBP ≤100"] = 1
-
-    if score < 2:
-        risk = RiskLevel.LOW
-        interpretation = "Low risk - qSOFA negative"
-        recommendations = [
-            "Continue to monitor for signs of infection",
-            "qSOFA is a screening tool, not diagnostic",
-            "Consider other causes of symptoms",
-        ]
-    else:
-        risk = RiskLevel.HIGH
-        interpretation = "High risk - qSOFA positive (≥2)"
-        recommendations = [
-            "High suspicion for sepsis",
-            "Obtain lactate and blood cultures",
-            "Consider full SOFA score calculation",
-            "Early antibiotics if infection suspected",
-            "IV fluid resuscitation if hypotensive",
-            "Consider ICU admission",
-        ]
-
-    return CalculatorResult(
-        calculator_name="qSOFA Score",
-        score=score,
-        score_unit="points",
-        risk_level=risk,
-        interpretation=f"{interpretation}. Score ≥2 associated with increased mortality.",
-        recommendations=recommendations,
-        components=components,
-        references=["Singer M, et al. JAMA 2016 (Sepsis-3)"],
+    return calculate_from_definition(
+        "qsofa",
+        {
+            "respiratory_rate_22": respiratory_rate_22_or_higher,
+            "altered_mentation": altered_mental_status,
+            "systolic_bp_100": systolic_bp_100_or_lower,
+        },
     )
 
 
