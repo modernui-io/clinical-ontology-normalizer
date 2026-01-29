@@ -788,7 +788,7 @@ def log_and_raise_internal_error(
     user_id: str | None = None,
     additional_context: dict[str, Any] | None = None,
     user_message: str = "An internal error occurred. Please try again later.",
-) -> InternalServerError:
+) -> InternalError:
     """Log an internal error with full context and return a safe error response.
 
     This helper:
@@ -850,7 +850,7 @@ def log_and_raise_internal_error(
     if request_id:
         error_details += f" (Reference: {request_id})"
 
-    return InternalServerError(
+    return InternalError(
         message=error_details,
         error_code=ErrorCode.INTERNAL_ERROR,
     )

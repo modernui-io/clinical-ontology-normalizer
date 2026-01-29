@@ -20,7 +20,7 @@ import threading
 import uuid
 from collections import defaultdict
 from dataclasses import dataclass, field, asdict
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from functools import wraps
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple, TypeVar, Union
@@ -331,7 +331,7 @@ class KGAuditService:
     ) -> AuditEvent:
         """Log an audit event."""
         event_id = str(uuid.uuid4())
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
 
         # Determine severity - first check SEVERITY_MAP, then fallback based on outcome
         if severity is None:
@@ -691,7 +691,7 @@ class KGAuditService:
         limit: int = 100,
     ) -> List[AuditEvent]:
         """Get recent PHI access events for compliance monitoring."""
-        cutoff = datetime.utcnow() - timedelta(hours=hours)
+        cutoff = datetime.now(UTC) - timedelta(hours=hours)
         filters = AuditQueryFilters(
             start_time=cutoff,
             has_phi_access=True,
@@ -705,7 +705,7 @@ class KGAuditService:
         limit: int = 100,
     ) -> List[AuditEvent]:
         """Get recent security events."""
-        cutoff = datetime.utcnow() - timedelta(hours=hours)
+        cutoff = datetime.now(UTC) - timedelta(hours=hours)
         security_types = [
             AuditEventType.LOGIN_FAILED,
             AuditEventType.PERMISSION_DENIED,
@@ -752,7 +752,7 @@ def audit_log(
             context = kwargs.get("audit_context") or AuditContext(user_id="system")
             resource = kwargs.get(resource_arg) if resource_arg else None
 
-            start_time = datetime.utcnow()
+            start_time = datetime.now(UTC)
             outcome = "success"
             reason = None
 
@@ -764,7 +764,7 @@ def audit_log(
                 reason = str(e)
                 raise
             finally:
-                end_time = datetime.utcnow()
+                end_time = datetime.now(UTC)
                 duration_ms = int((end_time - start_time).total_seconds() * 1000)
                 audit_service.log(
                     event_type=event_type,
@@ -781,7 +781,7 @@ def audit_log(
             context = kwargs.get("audit_context") or AuditContext(user_id="system")
             resource = kwargs.get(resource_arg) if resource_arg else None
 
-            start_time = datetime.utcnow()
+            start_time = datetime.now(UTC)
             outcome = "success"
             reason = None
 
@@ -793,7 +793,7 @@ def audit_log(
                 reason = str(e)
                 raise
             finally:
-                end_time = datetime.utcnow()
+                end_time = datetime.now(UTC)
                 duration_ms = int((end_time - start_time).total_seconds() * 1000)
                 audit_service.log(
                     event_type=event_type,
