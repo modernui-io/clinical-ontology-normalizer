@@ -11,11 +11,14 @@ PHI Note: Ensure clinical data is properly de-identified before
 using these endpoints if sending to external LLM providers.
 """
 
+import logging
 from enum import Enum
 from uuid import uuid4
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/notes", tags=["Clinical Note Generation"])
 
@@ -484,8 +487,10 @@ async def generate_note(request: NoteGenerationRequest) -> GeneratedNoteResponse
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        # VP-Security-6: Log full error, return sanitized message
+        logger.error(f"Note generation failed: {type(e).__name__}: {e}")
         raise HTTPException(
-            status_code=500, detail=f"Note generation failed: {str(e)}"
+            status_code=500, detail="Note generation failed. Please try again."
         )
 
 
@@ -560,8 +565,10 @@ async def list_templates(
         )
 
     except Exception as e:
+        # VP-Security-6: Log full error, return sanitized message
+        logger.error(f"Failed to list templates: {type(e).__name__}: {e}")
         raise HTTPException(
-            status_code=500, detail=f"Failed to list templates: {str(e)}"
+            status_code=500, detail="Failed to list templates. Please try again."
         )
 
 
@@ -615,8 +622,10 @@ async def get_template(template_id: str) -> NoteTemplateResponse:
     except HTTPException:
         raise
     except Exception as e:
+        # VP-Security-6: Log full error, return sanitized message
+        logger.error(f"Failed to get template: {type(e).__name__}: {e}")
         raise HTTPException(
-            status_code=500, detail=f"Failed to get template: {str(e)}"
+            status_code=500, detail="Failed to get template. Please try again."
         )
 
 
@@ -743,8 +752,10 @@ async def enhance_note(request: NoteEnhanceRequest) -> NoteEnhanceResponse:
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        # VP-Security-6: Log full error, return sanitized message
+        logger.error(f"Note enhancement failed: {type(e).__name__}: {e}")
         raise HTTPException(
-            status_code=500, detail=f"Note enhancement failed: {str(e)}"
+            status_code=500, detail="Note enhancement failed. Please try again."
         )
 
 
@@ -809,8 +820,10 @@ async def validate_note(request: NoteValidateRequest) -> NoteValidationResponse:
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        # VP-Security-6: Log full error, return sanitized message
+        logger.error(f"Note validation failed: {type(e).__name__}: {e}")
         raise HTTPException(
-            status_code=500, detail=f"Note validation failed: {str(e)}"
+            status_code=500, detail="Note validation failed. Please try again."
         )
 
 
@@ -843,8 +856,10 @@ async def get_stats() -> NoteServiceStats:
         )
 
     except Exception as e:
+        # VP-Security-6: Log full error, return sanitized message
+        logger.error(f"Failed to get note stats: {type(e).__name__}: {e}")
         raise HTTPException(
-            status_code=500, detail=f"Failed to get stats: {str(e)}"
+            status_code=500, detail="Failed to get stats. Please try again."
         )
 
 
@@ -1140,8 +1155,10 @@ async def summarize_patient(request: PatientSummaryRequest) -> PatientSummaryRes
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        # VP-Security-6: Log full error, return sanitized message
+        logger.error(f"Summary generation failed: {type(e).__name__}: {e}")
         raise HTTPException(
-            status_code=500, detail=f"Summary generation failed: {str(e)}"
+            status_code=500, detail="Summary generation failed. Please try again."
         )
 
 
@@ -1221,8 +1238,10 @@ async def get_history(
         )
 
     except Exception as e:
+        # VP-Security-6: Log full error, return sanitized message
+        logger.error(f"Failed to get note history: {type(e).__name__}: {e}")
         raise HTTPException(
-            status_code=500, detail=f"Failed to get history: {str(e)}"
+            status_code=500, detail="Failed to get history. Please try again."
         )
 
 
@@ -1317,6 +1336,8 @@ async def customize_template(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        # VP-Security-6: Log full error, return sanitized message
+        logger.error(f"Template customization failed: {type(e).__name__}: {e}")
         raise HTTPException(
-            status_code=500, detail=f"Template customization failed: {str(e)}"
+            status_code=500, detail="Template customization failed. Please try again."
         )

@@ -10,12 +10,15 @@ PHI Note: Ensure clinical text is properly de-identified before
 using these endpoints if sending to external LLM providers.
 """
 
+import logging
 import time
 from enum import Enum
 from uuid import uuid4
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/llm", tags=["LLM Clinical Summarization"])
 
@@ -387,7 +390,9 @@ async def summarize_clinical_text(request: SummarizeRequest) -> SummarizeRespons
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Summarization failed: {str(e)}")
+        # VP-Security-5: Log full error, return sanitized message
+        logger.error(f"Summarization failed: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Summarization failed. Please try again.")
 
 
 @router.post(
@@ -455,8 +460,10 @@ async def generate_assessment(request: AssessmentRequest) -> AssessmentResponse:
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        # VP-Security-5: Log full error, return sanitized message
+        logger.error(f"Assessment generation failed: {type(e).__name__}: {e}")
         raise HTTPException(
-            status_code=500, detail=f"Assessment generation failed: {str(e)}"
+            status_code=500, detail="Assessment generation failed. Please try again."
         )
 
 
@@ -536,8 +543,10 @@ async def extract_key_findings(request: KeyFindingsRequest) -> KeyFindingsRespon
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        # VP-Security-5: Log full error, return sanitized message
+        logger.error(f"Key findings extraction failed: {type(e).__name__}: {e}")
         raise HTTPException(
-            status_code=500, detail=f"Key findings extraction failed: {str(e)}"
+            status_code=500, detail="Key findings extraction failed. Please try again."
         )
 
 
@@ -618,8 +627,10 @@ async def generate_discharge_summary(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        # VP-Security-5: Log full error, return sanitized message
+        logger.error(f"Discharge summary generation failed: {type(e).__name__}: {e}")
         raise HTTPException(
-            status_code=500, detail=f"Discharge summary generation failed: {str(e)}"
+            status_code=500, detail="Discharge summary generation failed. Please try again."
         )
 
 
@@ -654,8 +665,10 @@ async def get_llm_stats() -> LLMServiceStats:
         )
 
     except Exception as e:
+        # VP-Security-5: Log full error, return sanitized message
+        logger.error(f"Failed to get LLM stats: {type(e).__name__}: {e}")
         raise HTTPException(
-            status_code=500, detail=f"Failed to get stats: {str(e)}"
+            status_code=500, detail="Failed to get stats. Please try again."
         )
 
 
@@ -690,6 +703,8 @@ async def get_available_providers() -> dict:
         }
 
     except Exception as e:
+        # VP-Security-5: Log full error, return sanitized message
+        logger.error(f"Failed to get providers: {type(e).__name__}: {e}")
         raise HTTPException(
-            status_code=500, detail=f"Failed to get providers: {str(e)}"
+            status_code=500, detail="Failed to get providers. Please try again."
         )

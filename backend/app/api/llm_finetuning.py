@@ -20,11 +20,14 @@ Provides REST API for LLM fine-tuning operations:
 - POST /api/v1/llm/models/compare - Compare models
 """
 
+import logging
 from typing import Any
 from uuid import uuid4
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
+
+logger = logging.getLogger(__name__)
 
 from app.services.llm_finetuning_service import (
     AnnotationFormat,
@@ -226,7 +229,9 @@ async def create_dataset(request: CreateDatasetRequest) -> Dataset:
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to create dataset: {str(e)}")
+        # VP-Security-7: Log full error, return sanitized message
+        logger.error(f"Failed to create dataset: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create dataset. Please try again.")
 
 
 @router.get(
@@ -319,7 +324,9 @@ async def start_finetuning_job(request: StartFineTuneRequest) -> FineTuneJob:
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to start job: {str(e)}")
+        # VP-Security-7: Log full error, return sanitized message
+        logger.error(f"Failed to start fine-tuning job: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to start job. Please try again.")
 
 
 @router.get(
@@ -410,7 +417,9 @@ async def evaluate_model(request: EvaluateModelRequest) -> EvaluationResult:
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Evaluation failed: {str(e)}")
+        # VP-Security-7: Log full error, return sanitized message
+        logger.error(f"Evaluation failed: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Evaluation failed. Please try again.")
 
 
 # ============================================================================
@@ -445,7 +454,9 @@ async def deploy_model(request: DeployModelRequest) -> Deployment:
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Deployment failed: {str(e)}")
+        # VP-Security-7: Log full error, return sanitized message
+        logger.error(f"Deployment failed: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Deployment failed. Please try again.")
 
 
 @router.get(
@@ -508,7 +519,9 @@ async def run_inference(request: InferenceRequest) -> InferenceResponse:
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Inference failed: {str(e)}")
+        # VP-Security-7: Log full error, return sanitized message
+        logger.error(f"Inference failed: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Inference failed. Please try again.")
 
 
 # ============================================================================

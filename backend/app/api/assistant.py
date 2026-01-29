@@ -10,6 +10,7 @@ Provides endpoints for AI-powered coding assistance:
 - GET /assistant/lookup/{code} - Look up a specific code
 """
 
+import logging
 from datetime import datetime
 from enum import Enum
 from typing import Any
@@ -17,6 +18,8 @@ from uuid import uuid4
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/assistant", tags=["AI Coding Assistant"])
 
@@ -302,7 +305,9 @@ async def create_session(
         return _convert_session(session)
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to create session: {str(e)}")
+        # VP-Security-1: Log full error, return sanitized message
+        logger.error(f"Failed to create session: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create session. Please try again.")
 
 
 @router.get(
@@ -338,7 +343,9 @@ async def list_sessions(
         )
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to list sessions: {str(e)}")
+        # VP-Security-1: Log full error, return sanitized message
+        logger.error(f"Failed to list sessions for user {user_id}: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to list sessions. Please try again.")
 
 
 @router.get(
@@ -372,7 +379,9 @@ async def get_session(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get session: {str(e)}")
+        # VP-Security-1: Log full error, return sanitized message
+        logger.error(f"Failed to get session {session_id}: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get session. Please try again.")
 
 
 @router.delete(
@@ -405,7 +414,9 @@ async def delete_session(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to delete session: {str(e)}")
+        # VP-Security-1: Log full error, return sanitized message
+        logger.error(f"Failed to delete session {session_id}: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete session. Please try again.")
 
 
 @router.post(
@@ -442,9 +453,12 @@ async def chat(
         )
 
     except ValueError as e:
+        # ValueError typically means session not found - safe to expose
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to process chat: {str(e)}")
+        # VP-Security-1: Log full error, return sanitized message
+        logger.error(f"Failed to process chat for session {request.session_id}: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to process message. Please try again.")
 
 
 @router.get(
@@ -486,7 +500,9 @@ async def get_history(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get history: {str(e)}")
+        # VP-Security-1: Log full error, return sanitized message
+        logger.error(f"Failed to get history for session {session_id}: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get history. Please try again.")
 
 
 @router.delete(
@@ -519,7 +535,9 @@ async def clear_history(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to clear history: {str(e)}")
+        # VP-Security-1: Log full error, return sanitized message
+        logger.error(f"Failed to clear history for session {session_id}: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to clear history. Please try again.")
 
 
 @router.post(
@@ -562,7 +580,9 @@ async def get_suggestions(
         )
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get suggestions: {str(e)}")
+        # VP-Security-1: Log full error, return sanitized message
+        logger.error(f"Failed to get suggestions: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get suggestions. Please try again.")
 
 
 @router.get(
@@ -609,7 +629,9 @@ async def lookup_code(
             )
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to lookup code: {str(e)}")
+        # VP-Security-1: Log full error, return sanitized message
+        logger.error(f"Failed to lookup code {code}: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to lookup code. Please try again.")
 
 
 @router.get(
@@ -630,4 +652,6 @@ async def get_assistant_stats() -> dict:
         return service.get_stats()
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get stats: {str(e)}")
+        # VP-Security-1: Log full error, return sanitized message
+        logger.error(f"Failed to get assistant stats: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get stats. Please try again.")
