@@ -10,6 +10,7 @@ for development and testing purposes.
 import asyncio
 import json
 import logging
+import threading
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import Enum
@@ -619,6 +620,7 @@ class KafkaService:
 # =============================================================================
 
 _kafka_service: KafkaService | None = None
+_kafka_lock = threading.Lock()
 
 
 def get_kafka_service() -> KafkaService:
@@ -629,8 +631,11 @@ def get_kafka_service() -> KafkaService:
     """
     global _kafka_service
 
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _kafka_service is None:
-        _kafka_service = KafkaService()
+        with _kafka_lock:
+            if _kafka_service is None:
+                _kafka_service = KafkaService()
 
     return _kafka_service
 

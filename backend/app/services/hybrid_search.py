@@ -10,6 +10,7 @@ The hybrid approach ensures:
 - Performance remains fast for the common case (exact match)
 """
 
+import asyncio
 import logging
 from dataclasses import dataclass, field
 from typing import Sequence
@@ -339,6 +340,7 @@ class HybridSearchService:
 
 # Singleton instance
 _hybrid_search_service: HybridSearchService | None = None
+_hybrid_search_lock = asyncio.Lock()
 
 
 async def get_hybrid_search_service(
@@ -356,8 +358,11 @@ async def get_hybrid_search_service(
     """
     global _hybrid_search_service
 
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _hybrid_search_service is None:
-        _hybrid_search_service = HybridSearchService()
+        async with _hybrid_search_lock:
+            if _hybrid_search_service is None:
+                _hybrid_search_service = HybridSearchService()
 
     if not _hybrid_search_service._initialized:
         await _hybrid_search_service.initialize(session, domains)

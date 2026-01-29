@@ -27,6 +27,7 @@ Usage:
 """
 
 import logging
+import threading
 import uuid
 from abc import ABC, abstractmethod
 from datetime import date, datetime, timezone
@@ -1481,12 +1482,16 @@ class CohortService:
 # ==============================================================================
 
 _cohort_service: CohortService | None = None
+_cohort_lock = threading.Lock()
 
 
 def get_cohort_service() -> CohortService:
     """Get singleton cohort service instance."""
     global _cohort_service
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _cohort_service is None:
-        _cohort_service = CohortService()
-        logger.info("Initialized CohortService")
+        with _cohort_lock:
+            if _cohort_service is None:
+                _cohort_service = CohortService()
+                logger.info("Initialized CohortService")
     return _cohort_service
