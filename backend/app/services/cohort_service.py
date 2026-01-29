@@ -29,6 +29,7 @@ Usage:
 from __future__ import annotations
 
 import logging
+import re
 import threading
 import uuid
 from abc import ABC, abstractmethod
@@ -36,7 +37,7 @@ from datetime import date, datetime, timezone
 from enum import Enum
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 logger = logging.getLogger(__name__)
 
@@ -171,6 +172,23 @@ class CodeEntry(BaseModel):
     code: str
     display: str | None = None
     system: str | None = None  # ICD10CM, SNOMED, RxNorm, CPT, LOINC
+
+    # VP-Security: Validate code to prevent SQL injection
+    @field_validator("code")
+    @classmethod
+    def validate_code(cls, v: str) -> str:
+        """Validate code contains only safe characters for SQL queries.
+
+        Valid clinical codes (ICD10, SNOMED, RxNorm, CPT, LOINC) contain
+        only alphanumeric characters, dots, hyphens, underscores, and colons.
+        """
+        if not v or not re.match(r"^[A-Za-z0-9._:\-]+$", v):
+            raise ValueError(
+                "Code must contain only alphanumeric characters, dots, hyphens, underscores, or colons"
+            )
+        if len(v) > 50:
+            raise ValueError("Code must be 50 characters or fewer")
+        return v
 
 
 # ==============================================================================

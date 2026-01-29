@@ -807,7 +807,18 @@ class BulkExportService:
         if job.status != ExportStatus.COMPLETED:
             return None
 
-        file_path = Path(job.export_dir) / filename
+        # VP-Security: Prevent path traversal attacks
+        base_dir = Path(job.export_dir).resolve()
+        file_path = (base_dir / filename).resolve()
+
+        # Ensure the resolved path is still within the export directory
+        if not str(file_path).startswith(str(base_dir)):
+            logger.warning(
+                f"Path traversal attempt detected: {filename}",
+                extra={"job_id": job_id, "filename": filename},
+            )
+            return None
+
         if not file_path.exists():
             return None
 
