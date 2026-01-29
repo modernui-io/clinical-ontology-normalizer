@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import threading
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
@@ -1043,11 +1044,15 @@ class MultiAgentOrchestrator:
 
 # Singleton instance
 _orchestrator: MultiAgentOrchestrator | None = None
+_orchestrator_lock = threading.Lock()
 
 
 def get_multi_agent_orchestrator() -> MultiAgentOrchestrator:
     """Get the singleton multi-agent orchestrator."""
     global _orchestrator
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _orchestrator is None:
-        _orchestrator = MultiAgentOrchestrator()
+        with _orchestrator_lock:
+            if _orchestrator is None:
+                _orchestrator = MultiAgentOrchestrator()
     return _orchestrator

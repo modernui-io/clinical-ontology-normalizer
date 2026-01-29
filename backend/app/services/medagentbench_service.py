@@ -17,6 +17,7 @@ from __future__ import annotations
 import json
 import logging
 import statistics
+import threading
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
@@ -886,11 +887,15 @@ class MedAgentBenchService:
 
 # Singleton instance
 _service: MedAgentBenchService | None = None
+_service_lock = threading.Lock()
 
 
 def get_medagentbench_service() -> MedAgentBenchService:
     """Get the singleton MedAgentBench service instance."""
     global _service
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _service is None:
-        _service = MedAgentBenchService()
+        with _service_lock:
+            if _service is None:
+                _service = MedAgentBenchService()
     return _service

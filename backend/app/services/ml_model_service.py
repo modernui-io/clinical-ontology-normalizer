@@ -11,6 +11,7 @@ Provides comprehensive ML model management:
 import hashlib
 import json
 import logging
+import threading
 import time
 from datetime import datetime, timezone
 from enum import Enum
@@ -937,11 +938,15 @@ class MLModelService:
 # ============================================================================
 
 _ml_model_service: MLModelService | None = None
+_ml_model_lock = threading.Lock()
 
 
 def get_ml_model_service() -> MLModelService:
     """Get the singleton ML model service instance."""
     global _ml_model_service
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _ml_model_service is None:
-        _ml_model_service = MLModelService()
+        with _ml_model_lock:
+            if _ml_model_service is None:
+                _ml_model_service = MLModelService()
     return _ml_model_service
