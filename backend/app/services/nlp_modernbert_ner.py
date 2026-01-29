@@ -5,6 +5,7 @@ different default transformer model while reusing the existing extraction
 logic, assertion detection, and OMOP domain mapping.
 """
 
+import threading
 from dataclasses import dataclass, field
 
 from app.services.nlp_clinical_ner import ClinicalNERService, TransformerNERConfig
@@ -33,6 +34,7 @@ class ModernBERTNERService(ClinicalNERService):
 
 
 _modernbert_ner_service: ModernBERTNERService | None = None
+_modernbert_ner_lock = threading.Lock()
 
 
 def get_modernbert_ner_service(
@@ -40,14 +42,18 @@ def get_modernbert_ner_service(
 ) -> ModernBERTNERService:
     """Get the singleton ModernBERT NER service."""
     global _modernbert_ner_service
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _modernbert_ner_service is None:
-        _modernbert_ner_service = ModernBERTNERService(
-            config=config or ModernBERTNERConfig()
-        )
+        with _modernbert_ner_lock:
+            if _modernbert_ner_service is None:
+                _modernbert_ner_service = ModernBERTNERService(
+                    config=config or ModernBERTNERConfig()
+                )
     return _modernbert_ner_service
 
 
 def reset_modernbert_ner_service() -> None:
     """Reset the ModernBERT singleton service (mainly for testing)."""
     global _modernbert_ner_service
-    _modernbert_ner_service = None
+    with _modernbert_ner_lock:
+        _modernbert_ner_service = None

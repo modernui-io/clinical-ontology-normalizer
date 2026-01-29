@@ -25,8 +25,9 @@ import base64
 import hashlib
 import logging
 import secrets
+import threading
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timezone, timedelta
 from typing import Any
 
 import bcrypt
@@ -445,7 +446,7 @@ class SMARTAuthServer:
         self._launch_contexts[launch_token] = {
             "patient_id": patient_id,
             "encounter_id": encounter_id,
-            "created_at": datetime.now(UTC).isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         logger.debug(
@@ -487,7 +488,7 @@ class SMARTAuthServer:
         Returns:
             Number of contexts removed
         """
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         expired = []
 
         for token, context in self._launch_contexts.items():
@@ -557,7 +558,7 @@ class SMARTAuthServer:
 
         # Generate the authorization code
         code = secrets.token_urlsafe(32)
-        expires_at = datetime.now(UTC) + timedelta(
+        expires_at = datetime.now(timezone.utc) + timedelta(
             minutes=self.auth_code_expire_minutes
         )
 
@@ -642,7 +643,7 @@ class SMARTAuthServer:
             logger.warning(f"Attempted reuse of authorization code: {code[:8]}...")
             raise InvalidGrantError("Authorization code already used")
 
-        if auth_code.expires_at < datetime.now(UTC):
+        if auth_code.expires_at < datetime.now(timezone.utc):
             raise InvalidGrantError("Authorization code expired")
 
         if redirect_uri and auth_code.redirect_uri != redirect_uri:
@@ -743,7 +744,7 @@ class SMARTAuthServer:
         Returns:
             Encoded JWT access token
         """
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         expires = now + timedelta(minutes=self.access_token_expire_minutes)
 
         # Get user roles
@@ -797,7 +798,7 @@ class SMARTAuthServer:
         Returns:
             Encoded JWT refresh token
         """
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         expires = now + timedelta(days=self.refresh_token_expire_days)
 
         payload = {
@@ -896,7 +897,7 @@ class SMARTAuthServer:
             )
 
         # Generate access token (no user context)
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         expires = now + timedelta(minutes=self.access_token_expire_minutes)
 
         payload = {
@@ -970,6 +971,7 @@ class SMARTAuthServer:
 
 # Singleton instance
 _smart_auth_server: SMARTAuthServer | None = None
+_smart_auth_lock = threading.Lock()
 
 
 def get_smart_auth_server() -> SMARTAuthServer:
@@ -979,12 +981,16 @@ def get_smart_auth_server() -> SMARTAuthServer:
         SMARTAuthServer instance
     """
     global _smart_auth_server
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _smart_auth_server is None:
-        _smart_auth_server = SMARTAuthServer()
+        with _smart_auth_lock:
+            if _smart_auth_server is None:
+                _smart_auth_server = SMARTAuthServer()
     return _smart_auth_server
 
 
 def reset_smart_auth_server() -> None:
     """Reset the singleton for testing."""
     global _smart_auth_server
-    _smart_auth_server = None
+    with _smart_auth_lock:
+        _smart_auth_server = None
