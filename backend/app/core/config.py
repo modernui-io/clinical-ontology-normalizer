@@ -61,6 +61,38 @@ class Settings(BaseSettings):
     # API
     api_v1_prefix: str = "/api/v1"
 
+    # VP-Security-3: CORS Configuration - environment-based origins
+    # Comma-separated list of allowed origins, e.g., "https://app.example.com,https://admin.example.com"
+    # Defaults to localhost for development; MUST be set explicitly for production
+    cors_origins: str = "http://localhost:3000,http://localhost:3001,http://localhost:3002"
+    cors_allow_credentials: bool = True
+
+    @cached_property
+    def cors_origins_list(self) -> list[str]:
+        """Parse CORS origins from comma-separated string.
+
+        VP-Security-3: Validates that all origins are absolute URLs.
+        Returns empty list if validation fails (secure default).
+        """
+        if not self.cors_origins:
+            return []
+
+        origins = [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+        validated = []
+
+        for origin in origins:
+            # Validate absolute URL format
+            if origin.startswith(("http://", "https://")):
+                # Remove trailing slashes for consistency
+                validated.append(origin.rstrip("/"))
+            else:
+                logger.warning(
+                    f"Invalid CORS origin '{origin}' ignored. "
+                    f"Origins must be absolute URLs (http:// or https://)"
+                )
+
+        return validated
+
     # Authentication - NO INSECURE DEFAULTS
     api_key: str | None = None  # Required when auth_enabled=True
     api_key_header: str = "X-API-Key"

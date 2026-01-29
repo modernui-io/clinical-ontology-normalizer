@@ -30,6 +30,7 @@ Usage:
         print(patient.source_id, patient.given_name, patient.family_name)
 """
 
+import asyncio
 import logging
 from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
@@ -92,7 +93,8 @@ class FHIRConnectorConfig(ConnectorConfig):
     client_id: str | None = None
     client_secret: str | None = None
     page_size: int = 100
-    timeout: int = 30
+    timeout: int = 30  # Connection-level timeout
+    request_timeout: int = 60  # VP-Resilience-2: Per-request timeout (prevents stalled responses)
     verify_ssl: bool = True
     headers: dict[str, str] = field(default_factory=dict)
 
@@ -212,18 +214,36 @@ class FHIRConnector(SourceConnector):
         url: str,
         search_params: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        """Fetch a single page of resources with circuit breaker protection.
+        """Fetch a single page of resources with circuit breaker and timeout protection.
 
         VP-Reliability-1: Each HTTP call is protected by circuit breaker.
+        VP-Resilience-2: Per-request timeout prevents indefinite hangs.
         """
         circuit_breaker = self._get_circuit_breaker()
+        request_timeout = self.config.request_timeout
 
         async def _do_fetch() -> dict[str, Any]:
             response = await client.get(url, params=search_params)
             response.raise_for_status()
             return response.json()
 
-        return await circuit_breaker.call_async(_do_fetch)
+        async def _do_fetch_with_timeout() -> dict[str, Any]:
+            """VP-Resilience-2: Wrap fetch with asyncio timeout."""
+            try:
+                return await asyncio.wait_for(
+                    _do_fetch(),
+                    timeout=request_timeout,
+                )
+            except asyncio.TimeoutError:
+                logger.warning(
+                    f"Request timed out after {request_timeout}s: {url}"
+                )
+                raise httpx.TimeoutException(
+                    f"Request timed out after {request_timeout}s",
+                    request=None,
+                )
+
+        return await circuit_breaker.call_async(_do_fetch_with_timeout)
 
     async def _fetch_resources(
         self,

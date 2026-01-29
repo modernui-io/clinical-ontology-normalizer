@@ -11,13 +11,49 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import random
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Callable, Coroutine, TypeVar
 
 logger = logging.getLogger(__name__)
+
+# VP-Resilience-3: Exponential backoff configuration
+DEFAULT_RETRY_BASE_DELAY = 1.0  # Base delay in seconds
+DEFAULT_RETRY_MAX_DELAY = 60.0  # Maximum delay
+DEFAULT_RETRY_JITTER = 0.25  # Random jitter factor (0.25 = ±25%)
+
+
+def calculate_backoff_delay(
+    attempt: int,
+    base_delay: float = DEFAULT_RETRY_BASE_DELAY,
+    max_delay: float = DEFAULT_RETRY_MAX_DELAY,
+    jitter: float = DEFAULT_RETRY_JITTER,
+) -> float:
+    """Calculate exponential backoff delay with jitter.
+
+    VP-Resilience-3: Implements exponential backoff: delay = base * 2^attempt
+
+    Args:
+        attempt: Current retry attempt (0-indexed)
+        base_delay: Base delay in seconds
+        max_delay: Maximum delay cap
+        jitter: Random jitter factor (0.25 = ±25%)
+
+    Returns:
+        Delay in seconds with jitter applied
+    """
+    # Exponential: 1s, 2s, 4s, 8s, 16s, 32s...
+    delay = min(base_delay * (2 ** attempt), max_delay)
+
+    # Add jitter to prevent thundering herd
+    if jitter > 0:
+        jitter_amount = delay * jitter
+        delay = delay + random.uniform(-jitter_amount, jitter_amount)
+
+    return max(0.0, delay)
 
 T = TypeVar("T")
 
@@ -76,7 +112,10 @@ class TaskResult:
 
 @dataclass
 class Task:
-    """A task in the queue."""
+    """A task in the queue.
+
+    VP-Resilience-3: Enhanced with exponential backoff retry scheduling.
+    """
 
     id: str
     name: str
@@ -95,6 +134,9 @@ class Task:
     max_retries: int = 3
     cancel_event: asyncio.Event = field(default_factory=asyncio.Event)
     metadata: dict[str, Any] = field(default_factory=dict)
+    # VP-Resilience-3: Scheduled execution time for delayed retries
+    scheduled_at: datetime | None = None
+    last_error: str | None = None
 
     def __lt__(self, other: "Task") -> bool:
         """Compare tasks by priority for queue ordering."""
@@ -178,6 +220,7 @@ class TaskQueue:
             "tasks_completed": 0,
             "tasks_failed": 0,
             "tasks_cancelled": 0,
+            "tasks_retried": 0,  # VP-Resilience-3: Track retry count
             "total_processing_ms": 0.0,
         }
 
@@ -425,7 +468,10 @@ class TaskQueue:
         return len(to_remove)
 
     async def _worker(self, worker_id: str) -> None:
-        """Worker coroutine that processes tasks."""
+        """Worker coroutine that processes tasks.
+
+        VP-Resilience-3: Handles scheduled tasks with exponential backoff.
+        """
         logger.debug(f"{worker_id} started")
 
         while self._running or not self._queue.empty():
@@ -445,6 +491,20 @@ class TaskQueue:
                 if task.cancel_event.is_set():
                     self._queue.task_done()
                     continue
+
+                # VP-Resilience-3: Check if task is scheduled for future execution
+                if task.scheduled_at:
+                    now = datetime.now(timezone.utc)
+                    if task.scheduled_at > now:
+                        # Re-queue and wait for the scheduled time
+                        wait_seconds = (task.scheduled_at - now).total_seconds()
+                        if wait_seconds > 0.1:
+                            # Re-queue and let another worker handle it later
+                            await self._queue.put(task)
+                            self._queue.task_done()
+                            # Short sleep to avoid tight loop
+                            await asyncio.sleep(min(wait_seconds, 1.0))
+                            continue
 
                 await self._execute_task(task, worker_id)
                 self._queue.task_done()
@@ -505,25 +565,40 @@ class TaskQueue:
         except Exception as e:
             import traceback
 
+            error_msg = str(e)
             task.result = TaskResult(
                 success=False,
-                error=str(e),
+                error=error_msg,
                 error_type=type(e).__name__,
                 traceback=traceback.format_exc(),
             )
+            task.last_error = error_msg
 
-            # Check if we should retry
+            # VP-Resilience-3: Check if we should retry with exponential backoff
             if task.retries < task.max_retries:
                 task.retries += 1
                 task.status = TaskStatus.PENDING
+
+                # Calculate backoff delay
+                delay = calculate_backoff_delay(
+                    attempt=task.retries - 1,  # 0-indexed
+                    base_delay=DEFAULT_RETRY_BASE_DELAY,
+                    max_delay=DEFAULT_RETRY_MAX_DELAY,
+                )
+                task.scheduled_at = datetime.now(timezone.utc) + timedelta(seconds=delay)
+
                 await self._queue.put(task)
+                self._stats["tasks_retried"] += 1
                 logger.warning(
-                    f"Task {task.id} failed, retrying ({task.retries}/{task.max_retries})"
+                    f"Task {task.id} failed, scheduling retry {task.retries}/{task.max_retries} "
+                    f"in {delay:.1f}s (exponential backoff)"
                 )
             else:
                 task.status = TaskStatus.FAILED
                 self._stats["tasks_failed"] += 1
-                logger.error(f"Task {task.id} failed: {e}")
+                logger.error(
+                    f"Task {task.id} permanently failed after {task.max_retries} retries: {e}"
+                )
 
         finally:
             task.completed_at = datetime.now(timezone.utc)

@@ -596,13 +596,22 @@ app.add_middleware(ErrorHandlerMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
 
 # 7. CORS middleware - handles cross-origin requests
-# VP-Security: Tightened CORS - use environment variable for production
+# VP-Security-3: CORS origins loaded from environment (settings.cors_origins)
+_cors_origins = settings.cors_origins_list
+if not _cors_origins and settings.is_production:
+    logger.warning(
+        "No CORS origins configured for production! "
+        "Set CORS_ORIGINS environment variable."
+    )
+elif _cors_origins:
+    logger.info(f"CORS allowed origins: {_cors_origins}")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"],  # Next.js dev server
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],  # Explicit methods (was "*")
-    allow_headers=["Content-Type", "Authorization", "X-Request-ID", "Accept"],  # Explicit headers (was "*")
+    allow_origins=_cors_origins,
+    allow_credentials=settings.cors_allow_credentials,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],  # Explicit methods
+    allow_headers=["Content-Type", "Authorization", "X-Request-ID", "Accept"],  # Explicit headers
     expose_headers=[
         "X-Request-ID",
         "X-RateLimit-Limit",

@@ -173,19 +173,22 @@ class DeepHealthResponse(BaseModel):
 
 
 async def check_database() -> ComponentHealth:
-    """Check database connectivity.
+    """Check database connectivity and pool status.
 
-    Executes a simple SELECT query to verify the database is responding.
+    VP-Observability-1: Enhanced to include connection pool metrics.
+
+    Executes a simple SELECT query to verify the database is responding
+    and reports connection pool health.
 
     Returns:
-        ComponentHealth with database status.
+        ComponentHealth with database and pool status.
     """
     start_time = time.perf_counter()
 
     try:
         from sqlalchemy import text
 
-        from app.core.database import async_session_maker
+        from app.core.database import async_session_maker, engine
 
         async with async_session_maker() as session:
             # Execute a simple query with timeout
@@ -197,10 +200,52 @@ async def check_database() -> ComponentHealth:
 
             latency = (time.perf_counter() - start_time) * 1000
 
+            # VP-Observability-1: Get connection pool metrics
+            pool = engine.pool
+            pool_status = "healthy"
+            pool_metrics = {}
+
+            try:
+                # Get pool statistics
+                pool_size = pool.size()
+                checked_in = pool.checkedin()
+                checked_out = pool.checkedout()
+                overflow = pool.overflow()
+
+                pool_metrics = {
+                    "pool_size": pool_size,
+                    "connections_checked_in": checked_in,
+                    "connections_checked_out": checked_out,
+                    "connections_overflow": overflow,
+                    "connections_available": checked_in,
+                    "connections_in_use": checked_out,
+                }
+
+                # Check pool health thresholds
+                if checked_in < 2:
+                    pool_status = "warning"
+                    pool_metrics["warning"] = "Low available connections"
+                if checked_in == 0 and checked_out >= pool_size:
+                    pool_status = "critical"
+                    pool_metrics["warning"] = "Pool exhausted"
+
+            except Exception as pool_err:
+                pool_metrics["pool_error"] = str(pool_err)
+                pool_status = "unknown"
+
+            # Determine overall status
+            status = ComponentStatus.UP
+            if pool_status == "critical":
+                status = ComponentStatus.DEGRADED
+
             return ComponentHealth(
-                status=ComponentStatus.UP,
+                status=status,
                 latency_ms=round(latency, 2),
-                details={"database_url": _mask_connection_string(settings.database_url)},
+                details={
+                    "database_url": _mask_connection_string(settings.database_url),
+                    "pool_status": pool_status,
+                    **pool_metrics,
+                },
             )
 
     except asyncio.TimeoutError:

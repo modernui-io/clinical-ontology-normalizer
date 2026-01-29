@@ -6,9 +6,15 @@ lab values, and clinical conditions.
 
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Query
 from pydantic import BaseModel, Field
 
+from app.api.errors import (
+    ValidationError,
+    NotFoundError,
+    ErrorCode,
+    ErrorDetail,
+)
 from app.services.alert_rules_service import (
     get_alert_rules_service,
     AlertCategory,
@@ -319,21 +325,45 @@ async def list_rules(
         try:
             cat_enum = AlertCategory(category)
         except ValueError:
-            raise HTTPException(status_code=400, detail=f"Invalid category: {category}")
+            raise ValidationError(
+                message=f"Invalid category: {category}",
+                error_code=ErrorCode.VALIDATION_INVALID_ENUM_VALUE,
+                details=[ErrorDetail(
+                    field="category",
+                    message=f"Must be one of: {', '.join(c.value for c in AlertCategory)}",
+                    value=category,
+                )],
+            )
 
     status_enum = None
     if status:
         try:
             status_enum = RuleStatus(status)
         except ValueError:
-            raise HTTPException(status_code=400, detail=f"Invalid status: {status}")
+            raise ValidationError(
+                message=f"Invalid status: {status}",
+                error_code=ErrorCode.VALIDATION_INVALID_ENUM_VALUE,
+                details=[ErrorDetail(
+                    field="status",
+                    message=f"Must be one of: {', '.join(s.value for s in RuleStatus)}",
+                    value=status,
+                )],
+            )
 
     sev_enum = None
     if severity:
         try:
             sev_enum = AlertSeverity(severity)
         except ValueError:
-            raise HTTPException(status_code=400, detail=f"Invalid severity: {severity}")
+            raise ValidationError(
+                message=f"Invalid severity: {severity}",
+                error_code=ErrorCode.VALIDATION_INVALID_ENUM_VALUE,
+                details=[ErrorDetail(
+                    field="severity",
+                    message=f"Must be one of: {', '.join(s.value for s in AlertSeverity)}",
+                    value=severity,
+                )],
+            )
 
     rules = service.list_rules(
         category=cat_enum,
@@ -362,19 +392,43 @@ async def create_rule(request: CreateRuleRequest) -> RuleResponse:
     try:
         category = AlertCategory(request.category)
     except ValueError:
-        raise HTTPException(status_code=400, detail=f"Invalid category: {request.category}")
+        raise ValidationError(
+            message=f"Invalid category: {request.category}",
+            error_code=ErrorCode.VALIDATION_INVALID_ENUM_VALUE,
+            details=[ErrorDetail(
+                field="category",
+                message=f"Must be one of: {', '.join(c.value for c in AlertCategory)}",
+                value=request.category,
+            )],
+        )
 
     try:
         severity = AlertSeverity(request.severity)
     except ValueError:
-        raise HTTPException(status_code=400, detail=f"Invalid severity: {request.severity}")
+        raise ValidationError(
+            message=f"Invalid severity: {request.severity}",
+            error_code=ErrorCode.VALIDATION_INVALID_ENUM_VALUE,
+            details=[ErrorDetail(
+                field="severity",
+                message=f"Must be one of: {', '.join(s.value for s in AlertSeverity)}",
+                value=request.severity,
+            )],
+        )
 
     # Validate operators in conditions
     for cond in request.conditions:
         try:
             RuleOperator(cond.operator)
         except ValueError:
-            raise HTTPException(status_code=400, detail=f"Invalid operator: {cond.operator}")
+            raise ValidationError(
+                message=f"Invalid operator: {cond.operator}",
+                error_code=ErrorCode.VALIDATION_INVALID_ENUM_VALUE,
+                details=[ErrorDetail(
+                    field="conditions[].operator",
+                    message=f"Must be one of: {', '.join(o.value for o in RuleOperator)}",
+                    value=cond.operator,
+                )],
+            )
 
     rule = service.create_rule(
         name=request.name,
@@ -475,7 +529,15 @@ async def evaluate_patient(request: EvaluatePatientRequest) -> EvaluatePatientRe
         try:
             cat_enum = AlertCategory(request.category)
         except ValueError:
-            raise HTTPException(status_code=400, detail=f"Invalid category: {request.category}")
+            raise ValidationError(
+            message=f"Invalid category: {request.category}",
+            error_code=ErrorCode.VALIDATION_INVALID_ENUM_VALUE,
+            details=[ErrorDetail(
+                field="category",
+                message=f"Must be one of: {', '.join(c.value for c in AlertCategory)}",
+                value=request.category,
+            )],
+        )
 
     evaluations = service.evaluate_patient(
         patient_data=request.patient_data,
@@ -519,7 +581,10 @@ async def get_rule(rule_id: str) -> RuleResponse:
     rule = service.get_rule(rule_id)
 
     if not rule:
-        raise HTTPException(status_code=404, detail="Rule not found")
+        raise NotFoundError(
+            message=f"Alert rule with ID '{rule_id}' not found",
+            error_code=ErrorCode.NOT_FOUND_ALERT_RULE,
+        )
 
     return _rule_to_response(rule)
 
@@ -545,20 +610,44 @@ async def update_rule(rule_id: str, request: UpdateRuleRequest) -> RuleResponse:
             AlertSeverity(request.severity)
             updates["severity"] = request.severity
         except ValueError:
-            raise HTTPException(status_code=400, detail=f"Invalid severity: {request.severity}")
+            raise ValidationError(
+            message=f"Invalid severity: {request.severity}",
+            error_code=ErrorCode.VALIDATION_INVALID_ENUM_VALUE,
+            details=[ErrorDetail(
+                field="severity",
+                message=f"Must be one of: {', '.join(s.value for s in AlertSeverity)}",
+                value=request.severity,
+            )],
+        )
     if request.status is not None:
         try:
             RuleStatus(request.status)
             updates["status"] = request.status
         except ValueError:
-            raise HTTPException(status_code=400, detail=f"Invalid status: {request.status}")
+            raise ValidationError(
+                message=f"Invalid status: {request.status}",
+                error_code=ErrorCode.VALIDATION_INVALID_ENUM_VALUE,
+                details=[ErrorDetail(
+                    field="status",
+                    message=f"Must be one of: {', '.join(s.value for s in RuleStatus)}",
+                    value=request.status,
+                )],
+            )
     if request.conditions is not None:
         # Validate operators
         for cond in request.conditions:
             try:
                 RuleOperator(cond.operator)
             except ValueError:
-                raise HTTPException(status_code=400, detail=f"Invalid operator: {cond.operator}")
+                raise ValidationError(
+                message=f"Invalid operator: {cond.operator}",
+                error_code=ErrorCode.VALIDATION_INVALID_ENUM_VALUE,
+                details=[ErrorDetail(
+                    field="conditions[].operator",
+                    message=f"Must be one of: {', '.join(o.value for o in RuleOperator)}",
+                    value=cond.operator,
+                )],
+            )
         updates["conditions"] = [c.model_dump() for c in request.conditions]
     if request.actions is not None:
         updates["actions"] = [a.model_dump() for a in request.actions]
@@ -570,7 +659,10 @@ async def update_rule(rule_id: str, request: UpdateRuleRequest) -> RuleResponse:
     rule = service.update_rule(rule_id, **updates)
 
     if not rule:
-        raise HTTPException(status_code=404, detail="Rule not found")
+        raise NotFoundError(
+            message=f"Alert rule with ID '{rule_id}' not found",
+            error_code=ErrorCode.NOT_FOUND_ALERT_RULE,
+        )
 
     return _rule_to_response(rule)
 
@@ -586,7 +678,10 @@ async def delete_rule(rule_id: str) -> dict[str, bool]:
     deleted = service.delete_rule(rule_id)
 
     if not deleted:
-        raise HTTPException(status_code=404, detail="Rule not found")
+        raise NotFoundError(
+            message=f"Alert rule with ID '{rule_id}' not found",
+            error_code=ErrorCode.NOT_FOUND_ALERT_RULE,
+        )
 
     return {"deleted": True}
 
