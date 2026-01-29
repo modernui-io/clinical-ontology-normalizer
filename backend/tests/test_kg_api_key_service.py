@@ -2,7 +2,7 @@
 
 import pytest
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from app.services.kg_api_key_service import (
     APIKeyScope,
@@ -152,7 +152,7 @@ class TestAPIKey:
             key_id="key_123",
             key_hash="hash_abc",
             name="Test Key",
-            expires_at=datetime.utcnow() - timedelta(hours=1),
+            expires_at=datetime.now(timezone.utc) - timedelta(hours=1),
         )
         is_valid, error = api_key.is_valid()
         assert is_valid is False
@@ -261,7 +261,7 @@ class TestKGAPIKeyService:
             expires_in_days=30,
         )
         assert api_key.expires_at is not None
-        assert api_key.expires_at > datetime.utcnow()
+        assert api_key.expires_at > datetime.now(timezone.utc)
 
     def test_generate_key_with_rate_limit(self, service):
         """Test key generation with custom rate limit."""
@@ -548,7 +548,7 @@ class TestKGAPIKeyService:
             name="Expired Key",
             expires_in_days=0,
         )
-        api_key.expires_at = datetime.utcnow() - timedelta(hours=1)
+        api_key.expires_at = datetime.now(timezone.utc) - timedelta(hours=1)
 
         # Create valid key
         service.generate_key(name="Valid Key")

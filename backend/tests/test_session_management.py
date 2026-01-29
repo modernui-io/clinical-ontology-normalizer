@@ -130,7 +130,7 @@ class TestRefreshToken:
         mock_svc.return_value = _mock_session_service()
 
         response = client.post(
-            "/auth/refresh",
+            "/auth/sessions/refresh",
             json={"refresh_token": "valid-refresh-token"},
         )
         assert response.status_code == 200
@@ -145,7 +145,7 @@ class TestRefreshToken:
         mock_svc.return_value = svc
 
         response = client.post(
-            "/auth/refresh",
+            "/auth/sessions/refresh",
             json={"refresh_token": "invalid-token"},
         )
         assert response.status_code == 401

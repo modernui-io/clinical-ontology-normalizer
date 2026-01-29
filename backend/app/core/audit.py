@@ -53,7 +53,7 @@ class AuditEvent(BaseModel):
     patient_id: str | None = Field(None, description="Patient ID if applicable")
     user_id: str | None = Field(None, description="User who performed action")
     ip_address: str | None = Field(None, description="Client IP address")
-    details: dict[str, Any | None] = Field(None, description="Additional context")
+    details: dict[str, Any | None] = Field(default_factory=dict, description="Additional context")
     success: bool = Field(True, description="Whether action succeeded")
 
 
@@ -91,7 +91,7 @@ def log_audit(
         patient_id=patient_id,
         user_id=user_id,
         ip_address=ip_address,
-        details=details,
+        details=details or {},
         success=success,
     )
 
