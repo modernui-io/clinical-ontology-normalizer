@@ -14,6 +14,8 @@ Endpoints:
     GET /etl/stats - Get ETL orchestrator statistics
 """
 
+from __future__ import annotations
+
 import logging
 from datetime import datetime
 from typing import Annotated, Any

@@ -11,6 +11,8 @@ Security considerations:
 - Refresh tokens include unique JTI for revocation tracking
 """
 
+from __future__ import annotations
+
 import logging
 import secrets
 from dataclasses import dataclass

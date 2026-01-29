@@ -15,6 +15,8 @@ Security considerations:
 - Token rotation on refresh
 """
 
+from __future__ import annotations
+
 import hashlib
 import logging
 import threading

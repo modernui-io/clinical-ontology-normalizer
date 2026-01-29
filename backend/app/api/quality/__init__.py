@@ -8,6 +8,8 @@ It combines two focused routers:
 The combined router is exposed at the module level for backwards compatibility.
 """
 
+from __future__ import annotations
+
 from fastapi import APIRouter
 
 # Import the sub-routers

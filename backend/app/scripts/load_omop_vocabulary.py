@@ -19,6 +19,8 @@ Requirements:
     4. Run this script pointing to the extracted directory
 """
 
+from __future__ import annotations
+
 import argparse
 import asyncio
 import csv

@@ -9,6 +9,8 @@ Security considerations:
 - Timing-safe password comparison
 """
 
+from __future__ import annotations
+
 import bcrypt
 
 

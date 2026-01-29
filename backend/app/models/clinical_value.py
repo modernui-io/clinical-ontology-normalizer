@@ -1,5 +1,7 @@
 """SQLAlchemy models for extracted clinical values."""
 
+from __future__ import annotations
+
 from enum import Enum
 from typing import TYPE_CHECKING
 from uuid import UUID

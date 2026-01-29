@@ -14,6 +14,8 @@ Output:
     - backend/fixtures/loinc_measurements.json (LOINC lab codes)
 """
 
+from __future__ import annotations
+
 import argparse
 import csv
 import json

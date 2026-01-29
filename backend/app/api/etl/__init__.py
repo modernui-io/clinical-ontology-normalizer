@@ -32,6 +32,8 @@ Endpoints:
     GET /etl/pipelines/{id}/runs - Get run history
 """
 
+from __future__ import annotations
+
 from fastapi import APIRouter
 
 # Import routers from sub-modules

@@ -1,5 +1,7 @@
 """SQLAlchemy models for Document and StructuredResource."""
 
+from __future__ import annotations
+
 from datetime import datetime
 from typing import TYPE_CHECKING
 from uuid import UUID

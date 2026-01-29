@@ -9,6 +9,8 @@ or the expanded vocabulary from fixtures/omop_vocabulary_expanded.json into the 
 for local development and testing.
 """
 
+from __future__ import annotations
+
 import argparse
 import asyncio
 import json

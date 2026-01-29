@@ -1,5 +1,7 @@
 """SQLAlchemy models for Mention and MentionConceptCandidate."""
 
+from __future__ import annotations
+
 from sqlalchemy import Enum, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship

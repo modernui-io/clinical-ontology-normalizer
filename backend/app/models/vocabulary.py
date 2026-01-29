@@ -1,5 +1,7 @@
 """SQLAlchemy models for OMOP vocabulary concepts."""
 
+from __future__ import annotations
+
 import enum
 
 from sqlalchemy import Date, DateTime, Enum, ForeignKey, Integer, String

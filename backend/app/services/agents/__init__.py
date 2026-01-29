@@ -11,6 +11,8 @@ These agents extend the base agent types in multi_agent_orchestrator.py
 and can be added to the orchestrator for enhanced reasoning capabilities.
 """
 
+from __future__ import annotations
+
 from app.services.agents.policy_compliance_agent import (
     ComplianceGap,
     PolicyComplianceAgent,

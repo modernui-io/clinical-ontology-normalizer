@@ -17,6 +17,8 @@ The generated vocabulary includes:
 - Rich synonyms including abbreviations, common misspellings, and lay terms
 """
 
+from __future__ import annotations
+
 import argparse
 import json
 import logging

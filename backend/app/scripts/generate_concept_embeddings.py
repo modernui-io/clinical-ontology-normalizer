@@ -20,6 +20,8 @@ Usage:
     python -m app.scripts.generate_concept_embeddings --max-concepts 50000
 """
 
+from __future__ import annotations
+
 import argparse
 import logging
 import sys

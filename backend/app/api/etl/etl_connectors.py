@@ -14,6 +14,8 @@ Endpoints:
     GET /etl/sources/{id}/preview - Preview sample data
 """
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 from uuid import UUID

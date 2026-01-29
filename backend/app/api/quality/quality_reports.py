@@ -7,6 +7,8 @@ Provides endpoints for OHDSI-style Data Quality Dashboard:
 - Historical quality trends
 """
 
+from __future__ import annotations
+
 from enum import Enum
 from uuid import uuid4
 

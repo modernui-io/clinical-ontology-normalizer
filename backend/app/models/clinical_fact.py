@@ -1,5 +1,7 @@
 """SQLAlchemy models for ClinicalFact and FactEvidence."""
 
+from __future__ import annotations
+
 from datetime import datetime
 
 from sqlalchemy import DateTime, Enum, Float, ForeignKey, Index, Integer, String, Text

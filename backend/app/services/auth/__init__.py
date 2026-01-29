@@ -8,6 +8,8 @@ This package provides authentication functionality split into focused modules:
 For backwards compatibility, the main classes and functions are re-exported here.
 """
 
+from __future__ import annotations
+
 from .auth_core import (
     AuthResult,
     AuthService,

@@ -14,6 +14,8 @@ Usage:
     python -m app.scripts.load_concept_relationships --path /path/to/vocab/ --mapping-only
 """
 
+from __future__ import annotations
+
 import argparse
 import asyncio
 import csv

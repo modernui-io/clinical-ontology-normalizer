@@ -1,5 +1,7 @@
 """Core application configuration and utilities."""
 
+from __future__ import annotations
+
 from app.core.audit import AuditAction, AuditEvent, log_audit, log_data_access, log_export
 from app.core.config import settings
 from app.core.database import Base, get_db
