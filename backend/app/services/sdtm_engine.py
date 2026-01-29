@@ -6,6 +6,7 @@ Handles variable transformations, codelist lookups, and data type conversions.
 
 import logging
 import re
+import threading
 from datetime import datetime, UTC
 from dataclasses import dataclass, field
 from typing import Any
@@ -611,11 +612,15 @@ class SDTMEngine:
 
 # Singleton instance
 _engine_instance: SDTMEngine | None = None
+_engine_lock = threading.Lock()
 
 
 def get_sdtm_engine() -> SDTMEngine:
     """Get the SDTM engine singleton."""
     global _engine_instance
+    # VP-ThreadSafety-6: Double-checked locking for thread safety
     if _engine_instance is None:
-        _engine_instance = SDTMEngine()
+        with _engine_lock:
+            if _engine_instance is None:
+                _engine_instance = SDTMEngine()
     return _engine_instance

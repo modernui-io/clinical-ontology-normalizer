@@ -4,8 +4,9 @@ Implements validation rules compatible with Pinnacle 21 for SDTM datasets.
 Checks variable names, lengths, types, controlled terminology, and consistency.
 """
 
-import re
 import logging
+import re
+import threading
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -568,11 +569,15 @@ class SDTMValidator:
 
 # Singleton instance
 _validator_instance: SDTMValidator | None = None
+_validator_lock = threading.Lock()
 
 
 def get_sdtm_validator() -> SDTMValidator:
     """Get the SDTM validator singleton."""
     global _validator_instance
+    # VP-ThreadSafety-8: Double-checked locking for thread safety
     if _validator_instance is None:
-        _validator_instance = SDTMValidator()
+        with _validator_lock:
+            if _validator_instance is None:
+                _validator_instance = SDTMValidator()
     return _validator_instance

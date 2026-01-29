@@ -11,6 +11,7 @@ import io
 import json
 import logging
 import struct
+import threading
 from dataclasses import dataclass, field
 from datetime import datetime, UTC
 from pathlib import Path
@@ -459,11 +460,15 @@ class SDTMGenerator:
 
 # Singleton instance
 _generator_instance: SDTMGenerator | None = None
+_generator_lock = threading.Lock()
 
 
 def get_sdtm_generator() -> SDTMGenerator:
     """Get the SDTM generator singleton."""
     global _generator_instance
+    # VP-ThreadSafety-7: Double-checked locking for thread safety
     if _generator_instance is None:
-        _generator_instance = SDTMGenerator()
+        with _generator_lock:
+            if _generator_instance is None:
+                _generator_instance = SDTMGenerator()
     return _generator_instance

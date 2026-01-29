@@ -65,6 +65,7 @@ Architecture:
 
 import json
 import logging
+import threading
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, UTC
@@ -909,11 +910,15 @@ KNOWLEDGE GRAPH CONTEXT (from patient's clinical history):
 # =============================================================================
 
 _analyzer_instance: HybridClinicalAnalyzer | None = None
+_analyzer_lock = threading.Lock()
 
 
 def get_hybrid_analyzer() -> HybridClinicalAnalyzer:
     """Get or create the singleton HybridClinicalAnalyzer instance."""
     global _analyzer_instance
+    # VP-ThreadSafety-5: Double-checked locking for thread safety
     if _analyzer_instance is None:
-        _analyzer_instance = HybridClinicalAnalyzer()
+        with _analyzer_lock:
+            if _analyzer_instance is None:
+                _analyzer_instance = HybridClinicalAnalyzer()
     return _analyzer_instance

@@ -5,6 +5,7 @@ operations with full provenance and audit logging.
 """
 
 import logging
+import threading
 from datetime import datetime, timezone
 from typing import Any
 
@@ -276,11 +277,15 @@ class VocabularyVersionService:
 
 
 _service_instance: VocabularyVersionService | None = None
+_service_lock = threading.Lock()
 
 
 def get_vocabulary_version_service() -> VocabularyVersionService:
     """Get or create the singleton VocabularyVersionService."""
     global _service_instance
+    # VP-ThreadSafety-9: Double-checked locking for thread safety
     if _service_instance is None:
-        _service_instance = VocabularyVersionService()
+        with _service_lock:
+            if _service_instance is None:
+                _service_instance = VocabularyVersionService()
     return _service_instance

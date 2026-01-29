@@ -8,6 +8,7 @@ import asyncio
 import hashlib
 import io
 import logging
+import threading
 from dataclasses import dataclass, field
 from datetime import datetime, UTC
 from enum import Enum
@@ -546,11 +547,15 @@ class VoiceTranscriptionService:
 
 # Singleton instance
 _service_instance: VoiceTranscriptionService | None = None
+_service_lock = threading.Lock()
 
 
 def get_voice_transcription_service() -> VoiceTranscriptionService:
     """Get the voice transcription service singleton."""
     global _service_instance
+    # VP-ThreadSafety-10: Double-checked locking for thread safety
     if _service_instance is None:
-        _service_instance = VoiceTranscriptionService()
+        with _service_lock:
+            if _service_instance is None:
+                _service_instance = VoiceTranscriptionService()
     return _service_instance
