@@ -12,6 +12,7 @@ This service provides data preparation functions for various visualization types
 import logging
 import math
 import random
+import threading
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
@@ -914,11 +915,15 @@ class VisualizationDataService:
 
 
 _visualization_service: VisualizationDataService | None = None
+_visualization_lock = threading.Lock()
 
 
 def get_visualization_data_service() -> VisualizationDataService:
     """Get or create the visualization data service singleton."""
     global _visualization_service
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _visualization_service is None:
-        _visualization_service = VisualizationDataService()
+        with _visualization_lock:
+            if _visualization_service is None:
+                _visualization_service = VisualizationDataService()
     return _visualization_service
