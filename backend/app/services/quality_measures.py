@@ -19,7 +19,7 @@ Supported measure categories:
 """
 
 from dataclasses import dataclass, field
-from datetime import date, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from enum import Enum
 import logging
 import re
@@ -1581,7 +1581,7 @@ class QualityMeasureService:
 
         return PatientEvaluationResult(
             patient_id=patient_id,
-            evaluation_date=datetime.now(),
+            evaluation_date=datetime.now(UTC),
             measure_results=measure_results,
             total_measures_evaluated=len(measure_results),
             measures_compliant=compliant_count,
@@ -2165,7 +2165,7 @@ class QualityMeasureService:
         report_time = (time.perf_counter() - start_time) * 1000
 
         return PerformanceReport(
-            report_date=datetime.now(),
+            report_date=datetime.now(UTC),
             period_start=period_start,
             period_end=period_end,
             measures=measure_performances,

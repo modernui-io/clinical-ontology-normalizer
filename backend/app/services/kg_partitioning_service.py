@@ -18,7 +18,7 @@ import hashlib
 import logging
 import statistics
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 from enum import Enum
 from typing import Any
 
@@ -402,7 +402,7 @@ class KGPartitioningService:
         base_year = 2020
 
         start_year = start.year if isinstance(start, datetime) else base_year
-        end_year = end.year if isinstance(end, datetime) else datetime.now().year
+        end_year = end.year if isinstance(end, datetime) else datetime.now(UTC).year
 
         for year in range(start_year, end_year + 1):
             partition_idx = (year - base_year) % self._num_partitions

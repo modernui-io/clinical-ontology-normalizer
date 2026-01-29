@@ -9,7 +9,7 @@ Exports clinical facts to FHIR R4 resources including:
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 import threading
@@ -116,7 +116,7 @@ class FHIRBundle:
     bundle_type: str = "collection"
     total: int = 0
     entries: list[FHIRResource] = field(default_factory=list)
-    generated_at: str = field(default_factory=lambda: datetime.now().isoformat())
+    generated_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
 
 # ============================================================================

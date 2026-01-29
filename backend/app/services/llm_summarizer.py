@@ -17,7 +17,7 @@ import logging
 import re
 import threading
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -331,7 +331,7 @@ class ClinicalSummarizerLLM:
         if not text or not text.strip():
             return ClinicalSummaryResult(
                 summary="Unable to generate summary: empty input text.",
-                generated_at=datetime.now().isoformat(),
+                generated_at=datetime.now(UTC).isoformat(),
                 warnings=["Input text was empty"],
             )
 
@@ -383,7 +383,7 @@ class ClinicalSummarizerLLM:
                 cost_usd=response.cost_estimate.total_cost,
                 latency_ms=response.latency_ms,
                 model_used=response.model,
-                generated_at=datetime.now().isoformat(),
+                generated_at=datetime.now(UTC).isoformat(),
                 warnings=warnings,
             )
 
@@ -391,7 +391,7 @@ class ClinicalSummarizerLLM:
             logger.error(f"Failed to generate clinical summary: {e}")
             return ClinicalSummaryResult(
                 summary=f"Error generating summary: {str(e)}",
-                generated_at=datetime.now().isoformat(),
+                generated_at=datetime.now(UTC).isoformat(),
                 warnings=warnings + [f"LLM error: {str(e)}"],
             )
 

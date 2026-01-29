@@ -15,7 +15,7 @@ CMS HCC Model V28 (2024+) is the basis for category mappings.
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 import logging
 import re
@@ -560,7 +560,7 @@ class HCCAnalyzerService:
             projected_hccs=projected_hccs,
             projected_raf_score=round(projected_raf, 3),
             priority_actions=priority_actions,
-            analysis_date=datetime.now().isoformat(),
+            analysis_date=datetime.now(UTC).isoformat(),
             analysis_time_ms=round(analysis_time_ms, 2),
         )
 

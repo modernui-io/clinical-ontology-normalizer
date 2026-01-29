@@ -20,7 +20,7 @@ import logging
 import re
 import threading
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 from uuid import uuid4
@@ -764,7 +764,7 @@ class ClinicalNoteGeneratorService:
             GeneratedNote with complete note content and sections.
         """
         note_id = str(uuid4())
-        start_time = datetime.now()
+        start_time = datetime.now(UTC)
 
         # Get template
         template = self._get_template(request.note_type, request.template_id)
@@ -1917,7 +1917,7 @@ class PatientSummaryService:
             PatientSummary with generated content and citations.
         """
         summary_id = str(uuid4())
-        start_time = datetime.now()
+        start_time = datetime.now(UTC)
 
         # Organize facts by type
         facts_by_type = self._organize_facts(request.facts)

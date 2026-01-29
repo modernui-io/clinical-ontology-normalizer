@@ -10,7 +10,7 @@ Provides functionality to:
 import logging
 import threading
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 from uuid import uuid4
@@ -84,7 +84,7 @@ class ModelRegistryService:
 
     def _init_sample_models(self) -> None:
         """Initialize sample models for demonstration."""
-        now = datetime.now()
+        now = datetime.now(UTC)
 
         # Mortality risk model
         mortality_model = RegisteredModel(
@@ -167,7 +167,7 @@ class ModelRegistryService:
     ) -> RegisteredModel:
         """Register a new model."""
         model_id = str(uuid4())
-        now = datetime.now()
+        now = datetime.now(UTC)
 
         model = RegisteredModel(
             id=model_id,
@@ -250,7 +250,7 @@ class ModelRegistryService:
             new_version = ModelVersion(
                 version=version,
                 stage=ModelStage.DEVELOPMENT,
-                created_at=datetime.now(),
+                created_at=datetime.now(UTC),
                 created_by=created_by,
                 description=description,
                 metrics=metrics,
@@ -266,7 +266,7 @@ class ModelRegistryService:
 
             model.versions.append(new_version)
             model.latest_version = version
-            model.updated_at = datetime.now()
+            model.updated_at = datetime.now(UTC)
 
             logger.info(f"Added version {version} to model {model.name}")
             return new_version
@@ -303,7 +303,7 @@ class ModelRegistryService:
             elif old_stage == ModelStage.PRODUCTION:
                 model.production_version = None
 
-            model.updated_at = datetime.now()
+            model.updated_at = datetime.now(UTC)
 
             logger.info(f"Transitioned {model.name}:{version} from {old_stage} to {new_stage}")
             return version_obj

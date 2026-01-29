@@ -2090,9 +2090,9 @@ def get_worksheet(encounter_id: str) -> CodingWorksheet | None:
 
 def save_worksheet(worksheet: CodingWorksheet) -> None:
     """Save a coding worksheet."""
-    from datetime import datetime
+    from datetime import UTC, datetime
     with _worksheet_lock:
-        worksheet.updated_at = datetime.now().isoformat()
+        worksheet.updated_at = datetime.now(UTC).isoformat()
         _worksheets[worksheet.encounter_id] = worksheet
 
 
@@ -2102,14 +2102,14 @@ def create_worksheet(
     encounter_date: str
 ) -> CodingWorksheet:
     """Create a new coding worksheet."""
-    from datetime import datetime
+    from datetime import UTC, datetime
     worksheet = CodingWorksheet(
         encounter_id=encounter_id,
         patient_id=patient_id,
         encounter_date=encounter_date,
         status="draft",
-        created_at=datetime.now().isoformat(),
-        updated_at=datetime.now().isoformat(),
+        created_at=datetime.now(UTC).isoformat(),
+        updated_at=datetime.now(UTC).isoformat(),
     )
     save_worksheet(worksheet)
     return worksheet
@@ -2121,7 +2121,7 @@ def add_worksheet_entry(
     entry_type: str  # "diagnosis", "procedure", "em"
 ) -> CodingWorksheet | None:
     """Add an entry to a coding worksheet."""
-    from datetime import datetime
+    from datetime import UTC, datetime
     worksheet = get_worksheet(encounter_id)
     if not worksheet:
         return None
@@ -2136,7 +2136,7 @@ def add_worksheet_entry(
     worksheet.audit_trail.append({
         "action": f"add_{entry_type}",
         "code": entry.code,
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     })
 
     save_worksheet(worksheet)
@@ -2145,7 +2145,7 @@ def add_worksheet_entry(
 
 def submit_worksheet(encounter_id: str, submitted_by: str) -> CodingWorksheet | None:
     """Submit a coding worksheet for billing."""
-    from datetime import datetime
+    from datetime import UTC, datetime
     worksheet = get_worksheet(encounter_id)
     if not worksheet:
         return None
@@ -2156,13 +2156,13 @@ def submit_worksheet(encounter_id: str, submitted_by: str) -> CodingWorksheet | 
 
     if not any("ERROR" in w for w in warnings):
         worksheet.status = "submitted"
-        worksheet.submitted_at = datetime.now().isoformat()
+        worksheet.submitted_at = datetime.now(UTC).isoformat()
         worksheet.submitted_by = submitted_by
 
         worksheet.audit_trail.append({
             "action": "submit",
             "submitted_by": submitted_by,
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         })
 
     save_worksheet(worksheet)

@@ -7,7 +7,7 @@ for auditing, explainability, and drift detection.
 import logging
 import threading
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
 from uuid import uuid4
@@ -129,7 +129,7 @@ class PredictionAuditService:
             Created PredictionAudit record.
         """
         audit_id = str(uuid4())
-        now = datetime.now()
+        now = datetime.now(UTC)
 
         parsed_inputs = [
             PredictionInput(
@@ -232,7 +232,7 @@ class PredictionAuditService:
                 return None
 
             audit.outcome = outcome
-            audit.outcome_updated_at = datetime.now()
+            audit.outcome_updated_at = datetime.now(UTC)
 
         logger.info(f"Updated outcome for {audit_id}: {outcome.value}")
         return audit
@@ -267,7 +267,7 @@ class PredictionAuditService:
                 "value": value,
                 "comment": comment,
                 "user_id": user_id,
-                "created_at": datetime.now().isoformat(),
+                "created_at": datetime.now(UTC).isoformat(),
             })
 
         logger.info(f"Added feedback to {audit_id}: {feedback_type.value}")
@@ -287,7 +287,7 @@ class PredictionAuditService:
         Returns:
             DriftMetrics for the period.
         """
-        end_date = datetime.now()
+        end_date = datetime.now(UTC)
         start_date = end_date - timedelta(days=period_days)
 
         audits = self.list_audits(
