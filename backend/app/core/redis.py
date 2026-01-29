@@ -18,6 +18,7 @@ Usage:
 
 import asyncio
 import logging
+import threading
 from typing import Any
 
 from redis import Redis
@@ -28,9 +29,11 @@ logger = logging.getLogger(__name__)
 
 # Sync Redis connection instance (lazy initialized)
 _redis_client: Redis | None = None
+_redis_lock = threading.Lock()
 
 # Async Redis connection instance (lazy initialized)
 _async_redis_client: Any = None
+_async_redis_lock = asyncio.Lock()
 
 
 def get_redis() -> Redis:
@@ -45,11 +48,14 @@ def get_redis() -> Redis:
         Redis client instance.
     """
     global _redis_client
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _redis_client is None:
-        _redis_client = Redis.from_url(
-            settings.redis_url,
-            decode_responses=True,
-        )
+        with _redis_lock:
+            if _redis_client is None:
+                _redis_client = Redis.from_url(
+                    settings.redis_url,
+                    decode_responses=True,
+                )
     return _redis_client
 
 
@@ -71,20 +77,22 @@ async def get_async_redis() -> Any:
         ImportError: If redis[asyncio] is not installed.
     """
     global _async_redis_client
-
+    # VP-ThreadSafety: Double-checked locking for async thread safety
     if _async_redis_client is None:
-        try:
-            from redis.asyncio import Redis as AsyncRedis
+        async with _async_redis_lock:
+            if _async_redis_client is None:
+                try:
+                    from redis.asyncio import Redis as AsyncRedis
 
-            _async_redis_client = AsyncRedis.from_url(
-                settings.redis_url,
-                decode_responses=True,
-            )
-            logger.info("Async Redis client initialized")
-        except ImportError:
-            raise ImportError(
-                "redis[asyncio] not installed. Install with: pip install redis[asyncio]"
-            )
+                    _async_redis_client = AsyncRedis.from_url(
+                        settings.redis_url,
+                        decode_responses=True,
+                    )
+                    logger.info("Async Redis client initialized")
+                except ImportError:
+                    raise ImportError(
+                        "redis[asyncio] not installed. Install with: pip install redis[asyncio]"
+                    )
 
     return _async_redis_client
 
@@ -95,10 +103,11 @@ def close_redis() -> None:
     Should be called during application shutdown.
     """
     global _redis_client
-    if _redis_client is not None:
-        _redis_client.close()
-        _redis_client = None
-        logger.debug("Sync Redis connection closed")
+    with _redis_lock:
+        if _redis_client is not None:
+            _redis_client.close()
+            _redis_client = None
+            logger.debug("Sync Redis connection closed")
 
 
 async def close_async_redis() -> None:
@@ -107,10 +116,11 @@ async def close_async_redis() -> None:
     VP-Platform: Should be called during application shutdown.
     """
     global _async_redis_client
-    if _async_redis_client is not None:
-        await _async_redis_client.close()
-        _async_redis_client = None
-        logger.debug("Async Redis connection closed")
+    async with _async_redis_lock:
+        if _async_redis_client is not None:
+            await _async_redis_client.close()
+            _async_redis_client = None
+            logger.debug("Async Redis connection closed")
 
 
 def ping_redis() -> bool:

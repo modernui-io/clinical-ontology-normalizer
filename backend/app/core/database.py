@@ -6,6 +6,7 @@ VP-DevOps-3: Added request context logging for database exceptions.
 from __future__ import annotations
 
 import logging
+import threading
 from collections.abc import AsyncGenerator
 from contextvars import ContextVar
 from dataclasses import dataclass
@@ -82,6 +83,7 @@ engine = create_async_engine(
 
 # Lazy initialized sync engine (for RQ workers and background jobs)
 _sync_engine = None
+_sync_engine_lock = threading.Lock()
 
 
 def get_sync_engine() -> Engine:
@@ -91,16 +93,19 @@ def get_sync_engine() -> Engine:
     when psycopg2 is not installed (e.g., in test environments).
     """
     global _sync_engine
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _sync_engine is None:
-        _sync_engine = create_engine(
-            settings.sync_database_url,
-            echo=settings.debug,
-            future=True,
-            pool_size=10,  # Smaller pool for background workers
-            max_overflow=20,
-            pool_pre_ping=True,
-            pool_recycle=3600,
-        )
+        with _sync_engine_lock:
+            if _sync_engine is None:
+                _sync_engine = create_engine(
+                    settings.sync_database_url,
+                    echo=settings.debug,
+                    future=True,
+                    pool_size=10,  # Smaller pool for background workers
+                    max_overflow=20,
+                    pool_pre_ping=True,
+                    pool_recycle=3600,
+                )
     return _sync_engine
 
 

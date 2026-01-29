@@ -53,6 +53,7 @@ Usage:
 """
 
 import logging
+import threading
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
@@ -454,6 +455,7 @@ class PersonETL:
 
 # Singleton instance
 _person_etl_service: PersonETL | None = None
+_person_etl_lock = threading.Lock()
 
 
 def get_person_etl_service(
@@ -473,11 +475,13 @@ def get_person_etl_service(
         ValueError: If session not provided on first call.
     """
     global _person_etl_service
-
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _person_etl_service is None:
-        if session is None:
-            raise ValueError("Session required for first initialization")
-        _person_etl_service = PersonETL(session, config)
+        with _person_etl_lock:
+            if _person_etl_service is None:
+                if session is None:
+                    raise ValueError("Session required for first initialization")
+                _person_etl_service = PersonETL(session, config)
 
     return _person_etl_service
 
@@ -485,4 +489,5 @@ def get_person_etl_service(
 def reset_person_etl_service() -> None:
     """Reset the singleton instance (for testing)."""
     global _person_etl_service
-    _person_etl_service = None
+    with _person_etl_lock:
+        _person_etl_service = None
