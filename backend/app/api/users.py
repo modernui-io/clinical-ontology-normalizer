@@ -14,6 +14,7 @@ These endpoints require admin role for access.
 from __future__ import annotations
 
 import logging
+from datetime import datetime, timezone
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -234,9 +235,7 @@ async def get_user(
     roles = [ur.role.name for ur in user.user_roles]
     is_locked = (
         user.locked_until is not None
-        and user.locked_until > __import__("datetime").datetime.now(
-            __import__("datetime").timezone.utc
-        )
+        and user.locked_until > datetime.now(timezone.utc)
     )
 
     return UserDetail(
