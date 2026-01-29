@@ -616,7 +616,7 @@ CURB65_DEFINITION = CalculatorDefinition(
     ],
     interpretations=[
         ThresholdInterpretation(
-            min_score=0, max_score=1,
+            min_score=0, max_score=2,
             risk_level=RiskLevel.LOW,
             interpretation="Low severity - outpatient treatment appropriate",
             recommendations=[
@@ -626,7 +626,7 @@ CURB65_DEFINITION = CalculatorDefinition(
             ],
         ),
         ThresholdInterpretation(
-            min_score=1, max_score=2,
+            min_score=2, max_score=3,
             risk_level=RiskLevel.MODERATE,
             interpretation="Moderate severity - consider hospitalization",
             recommendations=[
@@ -636,13 +636,13 @@ CURB65_DEFINITION = CalculatorDefinition(
             ],
         ),
         ThresholdInterpretation(
-            min_score=2, max_score=4,
+            min_score=3, max_score=4,
             risk_level=RiskLevel.HIGH,
             interpretation="Severe pneumonia - hospitalization required",
             recommendations=[
                 "Inpatient hospitalization recommended",
                 "IV antibiotics indicated",
-                "Consider ICU evaluation if score ≥3",
+                "Consider ICU evaluation",
             ],
         ),
         ThresholdInterpretation(

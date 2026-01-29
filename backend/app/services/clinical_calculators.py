@@ -211,8 +211,8 @@ def calculate_bmi(
 # ============================================================================
 
 def calculate_chadsvasc(
-    age: int,
-    female: bool,
+    age: int = 0,
+    female: bool = False,
     congestive_heart_failure: bool = False,
     hypertension: bool = False,
     diabetes: bool = False,
@@ -220,6 +220,8 @@ def calculate_chadsvasc(
     vascular_disease: bool = False,
 ) -> CalculatorResult:
     """Calculate CHA₂DS₂-VASc score for stroke risk in atrial fibrillation.
+
+    Uses data-driven definition from calculator_definitions.py.
 
     Args:
         age: Patient age in years.
@@ -233,99 +235,17 @@ def calculate_chadsvasc(
     Returns:
         CalculatorResult with stroke risk assessment.
     """
-    score = 0
-    components = {}
-
-    # C - Congestive heart failure (1 point)
-    if congestive_heart_failure:
-        score += 1
-        components["CHF"] = 1
-
-    # H - Hypertension (1 point)
-    if hypertension:
-        score += 1
-        components["Hypertension"] = 1
-
-    # A₂ - Age ≥75 (2 points) or 65-74 (1 point)
-    if age >= 75:
-        score += 2
-        components["Age ≥75"] = 2
-    elif age >= 65:
-        score += 1
-        components["Age 65-74"] = 1
-
-    # D - Diabetes (1 point)
-    if diabetes:
-        score += 1
-        components["Diabetes"] = 1
-
-    # S₂ - Stroke/TIA/thromboembolism (2 points)
-    if stroke_tia_thromboembolism:
-        score += 2
-        components["Prior Stroke/TIA"] = 2
-
-    # V - Vascular disease (1 point)
-    if vascular_disease:
-        score += 1
-        components["Vascular disease"] = 1
-
-    # Sc - Sex category (1 point for female)
-    if female:
-        score += 1
-        components["Female"] = 1
-
-    # Risk stratification and annual stroke rates
-    if score == 0:
-        risk = RiskLevel.LOW
-        stroke_rate = "0%"
-        interpretation = "Low risk - anticoagulation generally not recommended"
-        recommendations = [
-            "Anticoagulation not recommended",
-            "Consider aspirin or no therapy",
-            "Reassess risk factors annually",
-        ]
-    elif score == 1:
-        risk = RiskLevel.LOW_MODERATE
-        stroke_rate = "1.3%"
-        interpretation = "Low-moderate risk - consider anticoagulation"
-        recommendations = [
-            "Consider oral anticoagulation based on patient preferences",
-            "If male with score 1 (no other risk factors), may consider no therapy",
-            "Discuss bleeding risk vs stroke prevention",
-        ]
-    elif score == 2:
-        risk = RiskLevel.MODERATE
-        stroke_rate = "2.2%"
-        interpretation = "Moderate risk - anticoagulation recommended"
-        recommendations = [
-            "Oral anticoagulation recommended",
-            "DOAC preferred over warfarin in most cases",
-            "Assess bleeding risk (HAS-BLED score)",
-        ]
-    else:
-        if score <= 4:
-            risk = RiskLevel.HIGH
-            stroke_rate = f"{1.3 + (score - 1) * 1.5:.1f}%"  # Approximate
-        else:
-            risk = RiskLevel.VERY_HIGH
-            stroke_rate = f"{6 + (score - 5) * 2}%"  # Approximate for high scores
-        interpretation = f"High risk - anticoagulation strongly recommended"
-        recommendations = [
-            "Oral anticoagulation strongly recommended",
-            "DOAC preferred unless contraindicated",
-            "Consider left atrial appendage closure if anticoagulation contraindicated",
-            "Strict risk factor control",
-        ]
-
-    return CalculatorResult(
-        calculator_name="CHA₂DS₂-VASc Score",
-        score=score,
-        score_unit="points",
-        risk_level=risk,
-        interpretation=f"{interpretation}. Annual stroke risk: ~{stroke_rate}",
-        recommendations=recommendations,
-        components=components,
-        references=["2019 AHA/ACC/HRS AF Guidelines"],
+    return calculate_from_definition(
+        "chadsvasc",
+        {
+            "congestive_heart_failure": congestive_heart_failure,
+            "hypertension": hypertension,
+            "diabetes": diabetes,
+            "stroke_tia_thromboembolism": stroke_tia_thromboembolism,
+            "vascular_disease": vascular_disease,
+            "female": female,
+        },
+        age=age,
     )
 
 
@@ -346,6 +266,8 @@ def calculate_hasbled(
 ) -> CalculatorResult:
     """Calculate HAS-BLED score for major bleeding risk on anticoagulation.
 
+    Uses data-driven definition from calculator_definitions.py.
+
     Args:
         hypertension: Uncontrolled SBP >160 mmHg.
         renal_disease: Dialysis, transplant, Cr >2.6 mg/dL.
@@ -360,86 +282,19 @@ def calculate_hasbled(
     Returns:
         CalculatorResult with bleeding risk assessment.
     """
-    score = 0
-    components = {}
-
-    # H - Hypertension
-    if hypertension:
-        score += 1
-        components["Hypertension"] = 1
-
-    # A - Abnormal renal/liver function (1 point each)
-    if renal_disease:
-        score += 1
-        components["Abnormal renal function"] = 1
-    if liver_disease:
-        score += 1
-        components["Abnormal liver function"] = 1
-
-    # S - Stroke
-    if stroke_history:
-        score += 1
-        components["Stroke history"] = 1
-
-    # B - Bleeding
-    if bleeding_history:
-        score += 1
-        components["Bleeding history"] = 1
-
-    # L - Labile INRs
-    if labile_inr:
-        score += 1
-        components["Labile INR"] = 1
-
-    # E - Elderly
-    if age_over_65:
-        score += 1
-        components["Age >65"] = 1
-
-    # D - Drugs/Alcohol (1 point each)
-    if antiplatelet_nsaid:
-        score += 1
-        components["Antiplatelet/NSAID"] = 1
-    if alcohol_use:
-        score += 1
-        components["Alcohol use"] = 1
-
-    # Risk stratification
-    if score <= 1:
-        risk = RiskLevel.LOW
-        interpretation = "Low bleeding risk"
-        recommendations = [
-            "Anticoagulation generally safe",
-            "Standard monitoring",
-        ]
-    elif score == 2:
-        risk = RiskLevel.MODERATE
-        interpretation = "Moderate bleeding risk"
-        recommendations = [
-            "Anticoagulation can be considered",
-            "Address modifiable risk factors",
-            "Enhanced monitoring recommended",
-        ]
-    else:
-        risk = RiskLevel.HIGH
-        interpretation = "High bleeding risk"
-        recommendations = [
-            "High bleeding risk does not contraindicate anticoagulation",
-            "Address all modifiable risk factors",
-            "Consider DOAC over warfarin",
-            "Close monitoring and follow-up",
-            "Consider PPI for GI protection",
-        ]
-
-    return CalculatorResult(
-        calculator_name="HAS-BLED Score",
-        score=score,
-        score_unit="points",
-        risk_level=risk,
-        interpretation=f"{interpretation}. Score ≥3 indicates high risk requiring caution.",
-        recommendations=recommendations,
-        components=components,
-        references=["Pisters R, et al. Chest 2010"],
+    return calculate_from_definition(
+        "hasbled",
+        {
+            "hypertension": hypertension,
+            "renal_disease": renal_disease,
+            "liver_disease": liver_disease,
+            "stroke_history": stroke_history,
+            "bleeding_history": bleeding_history,
+            "labile_inr": labile_inr,
+            "age_over_65": age_over_65,
+            "antiplatelet_nsaid": antiplatelet_nsaid,
+            "alcohol_use": alcohol_use,
+        },
     )
 
 
@@ -673,6 +528,8 @@ def calculate_wells_dvt(
 ) -> CalculatorResult:
     """Calculate Wells Score for DVT probability.
 
+    Uses data-driven definition from calculator_definitions.py.
+
     Args:
         active_cancer: Active cancer (treatment within 6 months).
         paralysis_immobilization: Paralysis or recent immobilization.
@@ -688,75 +545,20 @@ def calculate_wells_dvt(
     Returns:
         CalculatorResult with DVT probability assessment.
     """
-    score = 0
-    components = {}
-
-    if active_cancer:
-        score += 1
-        components["Active cancer"] = 1
-    if paralysis_immobilization:
-        score += 1
-        components["Paralysis/immobilization"] = 1
-    if bedridden_surgery:
-        score += 1
-        components["Bedridden/surgery"] = 1
-    if localized_tenderness:
-        score += 1
-        components["Localized tenderness"] = 1
-    if entire_leg_swollen:
-        score += 1
-        components["Entire leg swollen"] = 1
-    if calf_swelling_3cm:
-        score += 1
-        components["Calf swelling >3cm"] = 1
-    if pitting_edema:
-        score += 1
-        components["Pitting edema"] = 1
-    if collateral_veins:
-        score += 1
-        components["Collateral veins"] = 1
-    if previous_dvt:
-        score += 1
-        components["Previous DVT"] = 1
-    if alternative_diagnosis_likely:
-        score -= 2
-        components["Alternative diagnosis likely"] = -2
-
-    # Risk stratification
-    if score <= 0:
-        risk = RiskLevel.LOW
-        interpretation = "Low probability (~5% DVT risk)"
-        recommendations = [
-            "Check D-dimer",
-            "If D-dimer negative, DVT excluded",
-            "If D-dimer positive, perform ultrasound",
-        ]
-    elif score <= 2:
-        risk = RiskLevel.MODERATE
-        interpretation = "Moderate probability (~17% DVT risk)"
-        recommendations = [
-            "Check D-dimer",
-            "If D-dimer negative, DVT unlikely",
-            "If D-dimer positive, perform ultrasound",
-        ]
-    else:
-        risk = RiskLevel.HIGH
-        interpretation = "High probability (~53% DVT risk)"
-        recommendations = [
-            "Perform venous ultrasound",
-            "Consider empiric anticoagulation while awaiting imaging",
-            "D-dimer not recommended (high false negative rate)",
-        ]
-
-    return CalculatorResult(
-        calculator_name="Wells Score for DVT",
-        score=score,
-        score_unit="points",
-        risk_level=risk,
-        interpretation=interpretation,
-        recommendations=recommendations,
-        components=components,
-        references=["Wells PS, et al. NEJM 2003"],
+    return calculate_from_definition(
+        "wells_dvt",
+        {
+            "active_cancer": active_cancer,
+            "paralysis_paresis": paralysis_immobilization,
+            "bedridden": bedridden_surgery,
+            "localized_tenderness": localized_tenderness,
+            "entire_leg_swollen": entire_leg_swollen,
+            "calf_swelling": calf_swelling_3cm,
+            "pitting_edema": pitting_edema,
+            "collateral_veins": collateral_veins,
+            "previous_dvt": previous_dvt,
+            "alternative_diagnosis": alternative_diagnosis_likely,
+        },
     )
 
 
@@ -773,6 +575,8 @@ def calculate_curb65(
 ) -> CalculatorResult:
     """Calculate CURB-65 score for community-acquired pneumonia severity.
 
+    Uses data-driven definition from calculator_definitions.py.
+
     Args:
         confusion: New mental confusion (AMT ≤8 or disorientation).
         bun_over_19: BUN >19 mg/dL (or urea >7 mmol/L).
@@ -783,83 +587,15 @@ def calculate_curb65(
     Returns:
         CalculatorResult with pneumonia severity and disposition.
     """
-    score = 0
-    components = {}
-
-    if confusion:
-        score += 1
-        components["Confusion"] = 1
-    if bun_over_19:
-        score += 1
-        components["BUN >19"] = 1
-    if respiratory_rate_over_30:
-        score += 1
-        components["RR ≥30"] = 1
-    if sbp_under_90_or_dbp_under_60:
-        score += 1
-        components["Low BP"] = 1
-    if age_65_or_older:
-        score += 1
-        components["Age ≥65"] = 1
-
-    # Risk stratification
-    if score == 0:
-        risk = RiskLevel.LOW
-        mortality = "0.7%"
-        interpretation = "Low risk - consider outpatient treatment"
-        recommendations = [
-            "Outpatient treatment appropriate",
-            "Oral antibiotics",
-            "Return precautions for worsening symptoms",
-        ]
-    elif score == 1:
-        risk = RiskLevel.LOW
-        mortality = "3.2%"
-        interpretation = "Low risk - outpatient treatment likely appropriate"
-        recommendations = [
-            "Outpatient treatment likely appropriate",
-            "Consider short observation in some cases",
-            "Close follow-up in 24-48 hours",
-        ]
-    elif score == 2:
-        risk = RiskLevel.MODERATE
-        mortality = "13%"
-        interpretation = "Moderate risk - consider hospital admission"
-        recommendations = [
-            "Hospital admission recommended",
-            "IV antibiotics initially",
-            "Oxygen supplementation as needed",
-        ]
-    elif score == 3:
-        risk = RiskLevel.HIGH
-        mortality = "17%"
-        interpretation = "High risk - hospital admission required"
-        recommendations = [
-            "Inpatient treatment required",
-            "Consider ICU admission",
-            "IV antibiotics",
-            "Close monitoring for deterioration",
-        ]
-    else:
-        risk = RiskLevel.VERY_HIGH
-        mortality = "41-57%"
-        interpretation = "Very high risk - ICU admission recommended"
-        recommendations = [
-            "ICU admission strongly recommended",
-            "Broad-spectrum IV antibiotics",
-            "Monitor for sepsis and respiratory failure",
-            "Consider mechanical ventilation readiness",
-        ]
-
-    return CalculatorResult(
-        calculator_name="CURB-65 Score",
-        score=score,
-        score_unit="points",
-        risk_level=risk,
-        interpretation=f"{interpretation}. 30-day mortality: ~{mortality}",
-        recommendations=recommendations,
-        components=components,
-        references=["Lim WS, et al. Thorax 2003"],
+    return calculate_from_definition(
+        "curb65",
+        {
+            "confusion": confusion,
+            "uremia": bun_over_19,
+            "respiratory_rate": respiratory_rate_over_30,
+            "low_blood_pressure": sbp_under_90_or_dbp_under_60,
+            "age_65_or_older": age_65_or_older,
+        },
     )
 
 
