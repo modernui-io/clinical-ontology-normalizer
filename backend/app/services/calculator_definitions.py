@@ -1239,6 +1239,1151 @@ APGAR_DEFINITION = CalculatorDefinition(
 )
 
 
+# ============================================================================
+# WELLS PE SCORE - Pulmonary Embolism Probability
+# ============================================================================
+WELLS_PE_DEFINITION = CalculatorDefinition(
+    id="wells_pe",
+    name="Wells' Criteria for Pulmonary Embolism",
+    short_name="Wells PE",
+    calc_type=CalculatorType.CRITERIA,
+    category=CalculatorCategory.PULMONARY,
+    output_type=OutputType.DECIMAL,
+    score_unit="points",
+    description="Clinical probability assessment for pulmonary embolism",
+    references=["Wells PS, et al. Ann Intern Med 1998", "Wells PS, et al. Thromb Haemost 2000"],
+    specialties=["Emergency Medicine", "Pulmonology", "Internal Medicine"],
+    criteria=[
+        ScoringCriterion("clinical_signs_dvt", "Clinical signs of DVT", 3,
+                        "Leg swelling, pain with palpation of deep veins"),
+        ScoringCriterion("pe_most_likely", "PE is most likely diagnosis", 3,
+                        "PE is #1 diagnosis, or equally likely"),
+        ScoringCriterion("heart_rate_over_100", "Heart rate >100", 1.5,
+                        "Heart rate greater than 100 bpm"),
+        ScoringCriterion("immobilization_surgery", "Immobilization/surgery", 1.5,
+                        "Immobilization ≥3 days or surgery in past 4 weeks"),
+        ScoringCriterion("previous_pe_dvt", "Previous PE/DVT", 1.5,
+                        "Objectively diagnosed PE or DVT"),
+        ScoringCriterion("hemoptysis", "Hemoptysis", 1, "Hemoptysis present"),
+        ScoringCriterion("malignancy", "Malignancy", 1,
+                        "Cancer treatment within 6 months or palliative care"),
+    ],
+    interpretations=[
+        ThresholdInterpretation(
+            min_score=0, max_score=2,
+            risk_level=RiskLevel.LOW,
+            interpretation="Low probability of PE (<2% if PERC negative)",
+            recommendations=[
+                "Consider PERC rule if low clinical suspicion",
+                "If PERC positive, check D-dimer",
+                "If D-dimer negative, PE excluded",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=2, max_score=6,
+            risk_level=RiskLevel.MODERATE,
+            interpretation="Moderate probability of PE (~20%)",
+            recommendations=[
+                "D-dimer testing recommended",
+                "If D-dimer elevated, CT-PA indicated",
+                "If D-dimer negative, PE excluded",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=6, max_score=None,
+            risk_level=RiskLevel.HIGH,
+            interpretation="High probability of PE (~50-70%)",
+            recommendations=[
+                "CT-PA recommended (bypass D-dimer)",
+                "Consider empiric anticoagulation while awaiting imaging",
+                "If CT-PA negative but high suspicion, consider V/Q scan",
+            ],
+        ),
+    ],
+)
+
+
+# ============================================================================
+# CHARLSON COMORBIDITY INDEX
+# ============================================================================
+CHARLSON_DEFINITION = CalculatorDefinition(
+    id="charlson",
+    name="Charlson Comorbidity Index (CCI)",
+    short_name="Charlson",
+    calc_type=CalculatorType.CRITERIA,
+    category=CalculatorCategory.GENERAL,
+    output_type=OutputType.INTEGER,
+    score_unit="points",
+    description="Predicts 10-year survival based on comorbidities",
+    references=["Charlson ME, et al. J Chronic Dis 1987"],
+    specialties=["Internal Medicine", "Geriatrics", "Oncology", "Surgery"],
+    criteria=[
+        # 1-point conditions
+        ScoringCriterion("mi", "Myocardial infarction", 1, "History of MI"),
+        ScoringCriterion("chf", "Congestive heart failure", 1, "CHF"),
+        ScoringCriterion("peripheral_vascular", "Peripheral vascular disease", 1, "PVD"),
+        ScoringCriterion("cerebrovascular", "Cerebrovascular disease", 1, "CVA or TIA"),
+        ScoringCriterion("dementia", "Dementia", 1, "Dementia"),
+        ScoringCriterion("copd", "Chronic pulmonary disease", 1, "COPD"),
+        ScoringCriterion("connective_tissue", "Connective tissue disease", 1, "Rheumatoid arthritis, lupus, etc."),
+        ScoringCriterion("peptic_ulcer", "Peptic ulcer disease", 1, "PUD"),
+        ScoringCriterion("mild_liver", "Mild liver disease", 1, "Chronic hepatitis, cirrhosis without portal HTN"),
+        ScoringCriterion("diabetes_uncomplicated", "Diabetes (uncomplicated)", 1, "DM without end-organ damage"),
+        # 2-point conditions
+        ScoringCriterion("hemiplegia", "Hemiplegia", 2, "Hemiplegia"),
+        ScoringCriterion("moderate_severe_ckd", "Moderate/severe CKD", 2, "Creatinine >3 or on dialysis"),
+        ScoringCriterion("diabetes_complicated", "Diabetes with complications", 2, "DM with retinopathy, nephropathy, neuropathy"),
+        ScoringCriterion("solid_tumor", "Tumor without metastasis", 2, "Solid tumor without mets (past 5 years)"),
+        ScoringCriterion("leukemia", "Leukemia", 2, "Leukemia"),
+        ScoringCriterion("lymphoma", "Lymphoma", 2, "Lymphoma"),
+        # 3-point conditions
+        ScoringCriterion("moderate_severe_liver", "Moderate/severe liver disease", 3, "Cirrhosis with portal HTN, varices"),
+        # 6-point conditions
+        ScoringCriterion("metastatic_tumor", "Metastatic solid tumor", 6, "Metastatic cancer"),
+        ScoringCriterion("aids", "AIDS", 6, "AIDS (not just HIV+)"),
+    ],
+    age_scoring=AgeScoringRule(
+        thresholds=[(80, 4), (70, 3), (60, 2), (50, 1), (0, 0)],
+        display_format="Age points",
+    ),
+    interpretations=[
+        ThresholdInterpretation(
+            min_score=0, max_score=1,
+            risk_level=RiskLevel.LOW,
+            interpretation="Low comorbidity burden - ~98% 10-year survival",
+            recommendations=[
+                "Standard treatment approaches appropriate",
+                "Reassess annually or with new diagnoses",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=1, max_score=3,
+            risk_level=RiskLevel.LOW_MODERATE,
+            interpretation="Mild comorbidity burden - ~90% 10-year survival",
+            recommendations=[
+                "Standard treatment generally appropriate",
+                "Consider comorbidity impact on treatment decisions",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=3, max_score=5,
+            risk_level=RiskLevel.MODERATE,
+            interpretation="Moderate comorbidity burden - ~77% 10-year survival",
+            recommendations=[
+                "Consider functional status in treatment decisions",
+                "Multidisciplinary care coordination recommended",
+                "May need modified treatment intensity",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=5, max_score=7,
+            risk_level=RiskLevel.MODERATE_HIGH,
+            interpretation="High comorbidity burden - ~53% 10-year survival",
+            recommendations=[
+                "Goals of care discussion recommended",
+                "Treatment modifications likely needed",
+                "Close coordination with primary care",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=7, max_score=None,
+            risk_level=RiskLevel.HIGH,
+            interpretation="Very high comorbidity burden - <45% 10-year survival",
+            recommendations=[
+                "Advance care planning strongly recommended",
+                "Consider palliative care consultation",
+                "Treatment decisions should prioritize quality of life",
+            ],
+        ),
+    ],
+)
+
+
+# ============================================================================
+# TIMI RISK SCORE FOR STEMI
+# ============================================================================
+TIMI_STEMI_DEFINITION = CalculatorDefinition(
+    id="timi_stemi",
+    name="TIMI Risk Score for STEMI",
+    short_name="TIMI-STEMI",
+    calc_type=CalculatorType.CRITERIA,
+    category=CalculatorCategory.CARDIOVASCULAR,
+    output_type=OutputType.INTEGER,
+    score_unit="points",
+    description="30-day mortality risk in STEMI patients",
+    references=["Morrow DA, et al. Circulation 2000"],
+    specialties=["Cardiology", "Emergency Medicine", "Critical Care"],
+    threshold_criteria=[
+        ThresholdCriterion(
+            name="age",
+            display_name="Age",
+            thresholds=[
+                ("gte", 75, 3, "Age ≥75"),
+                ("range", (65, 75), 2, "Age 65-74"),
+            ],
+            description="Age category",
+        ),
+        ThresholdCriterion(
+            name="systolic_bp",
+            display_name="Systolic BP",
+            thresholds=[
+                ("lt", 100, 3, "SBP <100 mmHg"),
+            ],
+            unit="mmHg",
+            description="Systolic blood pressure",
+        ),
+        ThresholdCriterion(
+            name="heart_rate",
+            display_name="Heart Rate",
+            thresholds=[
+                ("gt", 100, 2, "HR >100 bpm"),
+            ],
+            unit="bpm",
+            description="Heart rate",
+        ),
+        ThresholdCriterion(
+            name="killip_class",
+            display_name="Killip Class",
+            thresholds=[
+                ("gte", 2, 2, "Killip class II-IV"),
+            ],
+            description="Heart failure severity",
+        ),
+        ThresholdCriterion(
+            name="weight",
+            display_name="Weight",
+            thresholds=[
+                ("lt", 67, 1, "Weight <67 kg"),
+            ],
+            unit="kg",
+            description="Body weight",
+        ),
+    ],
+    criteria=[
+        ScoringCriterion("anterior_st_elevation", "Anterior ST elevation or LBBB", 1,
+                        "Anterior STEMI or new LBBB"),
+        ScoringCriterion("time_to_treatment_over_4h", "Time to treatment >4 hours", 1,
+                        "Time from symptom onset to treatment >4 hours"),
+        ScoringCriterion("history_diabetes_htn_angina", "DM, HTN, or angina history", 1,
+                        "History of diabetes, hypertension, or angina"),
+    ],
+    interpretations=[
+        ThresholdInterpretation(
+            min_score=0, max_score=2,
+            risk_level=RiskLevel.LOW,
+            interpretation="Low risk - 30-day mortality ~1.6%",
+            recommendations=[
+                "Standard STEMI care",
+                "Primary PCI within 90 minutes",
+                "Guideline-directed medical therapy",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=2, max_score=4,
+            risk_level=RiskLevel.LOW_MODERATE,
+            interpretation="Low-intermediate risk - 30-day mortality ~4%",
+            recommendations=[
+                "Expedited reperfusion therapy",
+                "Close hemodynamic monitoring",
+                "Consider ICU level care",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=4, max_score=6,
+            risk_level=RiskLevel.MODERATE,
+            interpretation="Intermediate risk - 30-day mortality ~8%",
+            recommendations=[
+                "Urgent reperfusion - PCI preferred",
+                "ICU monitoring",
+                "Aggressive medical management",
+                "Watch for cardiogenic shock",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=6, max_score=8,
+            risk_level=RiskLevel.HIGH,
+            interpretation="High risk - 30-day mortality ~17%",
+            recommendations=[
+                "Emergent PCI",
+                "ICU monitoring with hemodynamic support ready",
+                "Consider mechanical circulatory support",
+                "Early involvement of heart failure/shock team",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=8, max_score=None,
+            risk_level=RiskLevel.VERY_HIGH,
+            interpretation="Very high risk - 30-day mortality >25%",
+            recommendations=[
+                "Emergent PCI with shock team activation",
+                "Consider IABP or Impella",
+                "Goals of care discussion if appropriate",
+                "Maximum medical support",
+            ],
+        ),
+    ],
+)
+
+
+# ============================================================================
+# TIMI RISK SCORE FOR NSTEMI/UA
+# ============================================================================
+TIMI_NSTEMI_DEFINITION = CalculatorDefinition(
+    id="timi_nstemi",
+    name="TIMI Risk Score for NSTEMI/UA",
+    short_name="TIMI-NSTEMI",
+    calc_type=CalculatorType.CRITERIA,
+    category=CalculatorCategory.CARDIOVASCULAR,
+    output_type=OutputType.INTEGER,
+    score_unit="points",
+    description="14-day risk of death, MI, or urgent revascularization in NSTEMI/UA",
+    references=["Antman EM, et al. JAMA 2000"],
+    specialties=["Cardiology", "Emergency Medicine"],
+    criteria=[
+        ScoringCriterion("age_65_or_older", "Age ≥65", 1, "Age 65 years or older"),
+        ScoringCriterion("3_or_more_cad_risk_factors", "≥3 CAD risk factors", 1,
+                        "HTN, DM, dyslipidemia, family hx, smoking"),
+        ScoringCriterion("known_cad", "Known CAD (stenosis ≥50%)", 1,
+                        "Prior coronary stenosis ≥50%"),
+        ScoringCriterion("aspirin_use_last_7_days", "Aspirin use in past 7 days", 1,
+                        "ASA use within 7 days"),
+        ScoringCriterion("severe_angina", "Severe angina (≥2 episodes/24h)", 1,
+                        "2 or more anginal episodes in past 24 hours"),
+        ScoringCriterion("st_changes", "ST changes ≥0.5mm", 1,
+                        "ST deviation ≥0.5mm on ECG"),
+        ScoringCriterion("elevated_cardiac_markers", "Elevated cardiac markers", 1,
+                        "Elevated troponin or CK-MB"),
+    ],
+    interpretations=[
+        ThresholdInterpretation(
+            min_score=0, max_score=2,
+            risk_level=RiskLevel.LOW,
+            interpretation="Low risk - 14-day event rate ~5%",
+            recommendations=[
+                "Stress testing before discharge",
+                "Consider non-invasive evaluation",
+                "Optimal medical therapy",
+                "Outpatient cardiology follow-up",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=2, max_score=4,
+            risk_level=RiskLevel.MODERATE,
+            interpretation="Intermediate risk - 14-day event rate ~12%",
+            recommendations=[
+                "Early invasive strategy within 24-72 hours",
+                "Dual antiplatelet therapy",
+                "Anticoagulation",
+                "Cardiology consultation",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=4, max_score=5,
+            risk_level=RiskLevel.MODERATE_HIGH,
+            interpretation="Intermediate-high risk - 14-day event rate ~20%",
+            recommendations=[
+                "Urgent invasive strategy within 24 hours",
+                "GP IIb/IIIa inhibitor consideration",
+                "CCU monitoring",
+                "Aggressive antiplatelet + anticoagulation",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=5, max_score=None,
+            risk_level=RiskLevel.HIGH,
+            interpretation="High risk - 14-day event rate >25%",
+            recommendations=[
+                "Immediate invasive strategy",
+                "CCU monitoring",
+                "Aggressive medical management",
+                "Consider intra-aortic balloon pump if hemodynamically unstable",
+            ],
+        ),
+    ],
+)
+
+
+# ============================================================================
+# MELD SCORE (Model for End-Stage Liver Disease)
+# ============================================================================
+MELD_DEFINITION = CalculatorDefinition(
+    id="meld",
+    name="MELD Score (Original)",
+    short_name="MELD",
+    calc_type=CalculatorType.EQUATION,
+    category=CalculatorCategory.HEPATIC,
+    output_type=OutputType.DECIMAL,
+    score_unit="points",
+    description="Predicts 3-month mortality in end-stage liver disease; used for transplant prioritization",
+    references=["Kamath PS, et al. Hepatology 2001", "Wiesner R, et al. Gastroenterology 2003"],
+    specialties=["Hepatology", "Transplant", "Gastroenterology", "Critical Care"],
+    notes=[
+        "Formula: 3.78×ln(bilirubin) + 11.2×ln(INR) + 9.57×ln(creatinine) + 6.43",
+        "Minimum values: bilirubin 1.0, creatinine 1.0, INR 1.0",
+        "Maximum creatinine: 4.0 (or 4.0 if on dialysis)",
+        "Score range: 6-40",
+    ],
+    formula=FormulaDefinition(
+        formula_text="3.78×ln(bilirubin) + 11.2×ln(INR) + 9.57×ln(creatinine) + 6.43",
+        output_unit="points",
+        precision=0,
+        parameters=[
+            FormulaParameter(
+                name="bilirubin",
+                display_name="Total Bilirubin",
+                unit="mg/dL",
+                min_value=1.0,
+                max_value=None,
+                description="Serum total bilirubin (minimum 1.0)",
+            ),
+            FormulaParameter(
+                name="inr",
+                display_name="INR",
+                unit="",
+                min_value=1.0,
+                max_value=None,
+                description="International normalized ratio (minimum 1.0)",
+            ),
+            FormulaParameter(
+                name="creatinine",
+                display_name="Creatinine",
+                unit="mg/dL",
+                min_value=1.0,
+                max_value=4.0,
+                description="Serum creatinine (min 1.0, max 4.0; use 4.0 if on dialysis)",
+            ),
+        ],
+    ),
+    interpretations=[
+        ThresholdInterpretation(
+            min_score=0, max_score=10,
+            risk_level=RiskLevel.LOW,
+            interpretation="MELD <10 - Low 3-month mortality (~2%)",
+            recommendations=[
+                "Continue monitoring every 3 months",
+                "Focus on treating underlying cause",
+                "Unlikely to benefit from transplant at this time",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=10, max_score=20,
+            risk_level=RiskLevel.MODERATE,
+            interpretation="MELD 10-19 - Moderate 3-month mortality (~6%)",
+            recommendations=[
+                "Monitor every 1-3 months",
+                "Transplant evaluation if progressive disease",
+                "Optimize nutrition and manage complications",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=20, max_score=30,
+            risk_level=RiskLevel.HIGH,
+            interpretation="MELD 20-29 - High 3-month mortality (~20%)",
+            recommendations=[
+                "Active transplant listing if appropriate",
+                "Monitor weekly to monthly",
+                "Aggressive management of hepatic decompensation",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=30, max_score=40,
+            risk_level=RiskLevel.VERY_HIGH,
+            interpretation="MELD 30-39 - Very high 3-month mortality (~50%)",
+            recommendations=[
+                "Urgent transplant evaluation",
+                "ICU level monitoring if needed",
+                "Consider living donor if available",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=40, max_score=None,
+            risk_level=RiskLevel.VERY_HIGH,
+            interpretation="MELD ≥40 - Highest priority; >70% 3-month mortality",
+            recommendations=[
+                "Highest transplant priority",
+                "ICU management",
+                "Goals of care discussion if transplant not possible",
+            ],
+        ),
+    ],
+)
+
+
+# ============================================================================
+# MELD-Na SCORE
+# ============================================================================
+MELD_NA_DEFINITION = CalculatorDefinition(
+    id="meld_na",
+    name="MELD-Na Score",
+    short_name="MELD-Na",
+    calc_type=CalculatorType.EQUATION,
+    category=CalculatorCategory.HEPATIC,
+    output_type=OutputType.DECIMAL,
+    score_unit="points",
+    description="MELD score adjusted for sodium; better predictor of waitlist mortality",
+    references=["Kim WR, et al. Hepatology 2008", "OPTN Policy (2016)"],
+    specialties=["Hepatology", "Transplant", "Gastroenterology"],
+    notes=[
+        "Formula: MELD + 1.32×(137-Na) - 0.033×MELD×(137-Na)",
+        "Sodium bounds: 125-137 mEq/L",
+        "Used by OPTN since January 2016 for transplant allocation",
+    ],
+    formula=FormulaDefinition(
+        formula_text="MELD + 1.32×(137-Na) - 0.033×MELD×(137-Na)",
+        output_unit="points",
+        precision=0,
+        parameters=[
+            FormulaParameter(
+                name="meld",
+                display_name="MELD Score",
+                unit="",
+                min_value=6,
+                max_value=40,
+                description="Original MELD score",
+            ),
+            FormulaParameter(
+                name="sodium",
+                display_name="Serum Sodium",
+                unit="mEq/L",
+                min_value=125,
+                max_value=137,
+                description="Serum sodium (bounds: 125-137)",
+            ),
+        ],
+    ),
+    interpretations=[
+        ThresholdInterpretation(
+            min_score=0, max_score=15,
+            risk_level=RiskLevel.LOW,
+            interpretation="MELD-Na <15 - Lower transplant priority",
+            recommendations=[
+                "Monitor every 3 months",
+                "Address underlying liver disease",
+                "Nutrition optimization",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=15, max_score=25,
+            risk_level=RiskLevel.MODERATE,
+            interpretation="MELD-Na 15-24 - Moderate priority",
+            recommendations=[
+                "Active transplant listing appropriate",
+                "Monitor every 1-2 months",
+                "Manage complications aggressively",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=25, max_score=None,
+            risk_level=RiskLevel.HIGH,
+            interpretation="MELD-Na ≥25 - High priority for transplant",
+            recommendations=[
+                "Urgent transplant prioritization",
+                "Weekly lab monitoring",
+                "ICU care if decompensated",
+            ],
+        ),
+    ],
+)
+
+
+# ============================================================================
+# BMI CALCULATOR
+# ============================================================================
+BMI_DEFINITION = CalculatorDefinition(
+    id="bmi",
+    name="Body Mass Index (BMI)",
+    short_name="BMI",
+    calc_type=CalculatorType.EQUATION,
+    category=CalculatorCategory.METABOLIC,
+    output_type=OutputType.DECIMAL,
+    score_unit="kg/m²",
+    description="Body mass index calculation and classification",
+    references=["WHO Expert Consultation. Lancet 2004"],
+    specialties=["Internal Medicine", "Family Medicine", "Endocrinology", "Nutrition"],
+    formula=FormulaDefinition(
+        formula_text="weight / height²",
+        output_unit="kg/m²",
+        precision=1,
+        parameters=[
+            FormulaParameter(
+                name="weight",
+                display_name="Weight",
+                unit="kg",
+                min_value=1,
+                max_value=None,
+                description="Body weight in kilograms",
+            ),
+            FormulaParameter(
+                name="height",
+                display_name="Height",
+                unit="m",
+                min_value=0.5,
+                max_value=2.5,
+                description="Height in meters",
+            ),
+        ],
+    ),
+    interpretations=[
+        ThresholdInterpretation(
+            min_score=0, max_score=18.5,
+            risk_level=RiskLevel.MODERATE,
+            interpretation="Underweight (BMI <18.5)",
+            recommendations=[
+                "Evaluate for underlying conditions",
+                "Nutrition assessment",
+                "Consider dietitian referral",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=18.5, max_score=25,
+            risk_level=RiskLevel.LOW,
+            interpretation="Normal weight (BMI 18.5-24.9)",
+            recommendations=[
+                "Maintain healthy lifestyle",
+                "Regular exercise and balanced diet",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=25, max_score=30,
+            risk_level=RiskLevel.LOW_MODERATE,
+            interpretation="Overweight (BMI 25-29.9)",
+            recommendations=[
+                "Lifestyle modifications recommended",
+                "Diet and exercise counseling",
+                "Screen for metabolic syndrome",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=30, max_score=35,
+            risk_level=RiskLevel.MODERATE,
+            interpretation="Obesity Class I (BMI 30-34.9)",
+            recommendations=[
+                "Comprehensive weight management program",
+                "Screen for comorbidities",
+                "Consider pharmacotherapy",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=35, max_score=40,
+            risk_level=RiskLevel.MODERATE_HIGH,
+            interpretation="Obesity Class II (BMI 35-39.9)",
+            recommendations=[
+                "Intensive lifestyle intervention",
+                "Pharmacotherapy consideration",
+                "Bariatric surgery evaluation if comorbidities",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=40, max_score=None,
+            risk_level=RiskLevel.HIGH,
+            interpretation="Obesity Class III (BMI ≥40)",
+            recommendations=[
+                "Bariatric surgery evaluation",
+                "Aggressive comorbidity management",
+                "Multidisciplinary care team",
+            ],
+        ),
+    ],
+)
+
+
+# ============================================================================
+# SOFA SCORE - Sequential Organ Failure Assessment
+# ============================================================================
+SOFA_DEFINITION = CalculatorDefinition(
+    id="sofa",
+    name="Sequential Organ Failure Assessment (SOFA)",
+    short_name="SOFA",
+    calc_type=CalculatorType.CRITERIA,
+    category=CalculatorCategory.CRITICAL_CARE,
+    output_type=OutputType.INTEGER,
+    score_unit="points",
+    description="Organ dysfunction assessment in critically ill patients",
+    references=["Vincent JL, et al. Intensive Care Med 1996", "Singer M, et al. JAMA 2016 (Sepsis-3)"],
+    specialties=["Critical Care", "Emergency Medicine", "Internal Medicine"],
+    notes=[
+        "Score each organ system 0-4 based on worst value in 24h",
+        "Total range: 0-24",
+        "Sepsis = suspected infection + SOFA ≥2 from baseline",
+    ],
+    multi_level_criteria=[
+        MultiLevelCriterion(
+            name="respiration",
+            display_name="Respiration (PaO2/FiO2)",
+            levels=[
+                ("gte_400", 0, "PaO2/FiO2 ≥400 (0)"),
+                ("300_399", 1, "PaO2/FiO2 300-399 (1)"),
+                ("200_299", 2, "PaO2/FiO2 200-299 (2)"),
+                ("100_199_vent", 3, "PaO2/FiO2 100-199 + ventilation (3)"),
+                ("lt_100_vent", 4, "PaO2/FiO2 <100 + ventilation (4)"),
+            ],
+            description="Respiratory function",
+        ),
+        MultiLevelCriterion(
+            name="coagulation",
+            display_name="Coagulation (Platelets)",
+            levels=[
+                ("gte_150", 0, "Platelets ≥150 (0)"),
+                ("100_149", 1, "Platelets 100-149 (1)"),
+                ("50_99", 2, "Platelets 50-99 (2)"),
+                ("20_49", 3, "Platelets 20-49 (3)"),
+                ("lt_20", 4, "Platelets <20 (4)"),
+            ],
+            description="Platelet count (×10³/µL)",
+        ),
+        MultiLevelCriterion(
+            name="liver",
+            display_name="Liver (Bilirubin)",
+            levels=[
+                ("lt_1_2", 0, "Bilirubin <1.2 (0)"),
+                ("1_2_1_9", 1, "Bilirubin 1.2-1.9 (1)"),
+                ("2_5_9", 2, "Bilirubin 2.0-5.9 (2)"),
+                ("6_11_9", 3, "Bilirubin 6.0-11.9 (3)"),
+                ("gte_12", 4, "Bilirubin ≥12 (4)"),
+            ],
+            description="Total bilirubin (mg/dL)",
+        ),
+        MultiLevelCriterion(
+            name="cardiovascular",
+            display_name="Cardiovascular",
+            levels=[
+                ("map_gte_70", 0, "MAP ≥70 (0)"),
+                ("map_lt_70", 1, "MAP <70 (1)"),
+                ("dopa_low", 2, "Dopamine ≤5 or dobutamine any (2)"),
+                ("dopa_mid", 3, "Dopamine >5 or epi/norepi ≤0.1 (3)"),
+                ("dopa_high", 4, "Dopamine >15 or epi/norepi >0.1 (4)"),
+            ],
+            description="Blood pressure and vasopressors",
+        ),
+        MultiLevelCriterion(
+            name="cns",
+            display_name="CNS (Glasgow Coma Scale)",
+            levels=[
+                ("gcs_15", 0, "GCS 15 (0)"),
+                ("gcs_13_14", 1, "GCS 13-14 (1)"),
+                ("gcs_10_12", 2, "GCS 10-12 (2)"),
+                ("gcs_6_9", 3, "GCS 6-9 (3)"),
+                ("gcs_lt_6", 4, "GCS <6 (4)"),
+            ],
+            description="Glasgow Coma Scale",
+        ),
+        MultiLevelCriterion(
+            name="renal",
+            display_name="Renal (Creatinine or UOP)",
+            levels=[
+                ("cr_lt_1_2", 0, "Creatinine <1.2 (0)"),
+                ("cr_1_2_1_9", 1, "Creatinine 1.2-1.9 (1)"),
+                ("cr_2_3_4", 2, "Creatinine 2.0-3.4 (2)"),
+                ("cr_3_5_4_9", 3, "Creatinine 3.5-4.9 or UOP <500 (3)"),
+                ("cr_gte_5", 4, "Creatinine ≥5.0 or UOP <200 (4)"),
+            ],
+            description="Creatinine (mg/dL) or urine output",
+        ),
+    ],
+    interpretations=[
+        ThresholdInterpretation(
+            min_score=0, max_score=6,
+            risk_level=RiskLevel.LOW,
+            interpretation="SOFA 0-6 - Low mortality risk (~10%)",
+            recommendations=[
+                "Standard ICU monitoring",
+                "Treat underlying condition",
+                "Reassess daily",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=6, max_score=10,
+            risk_level=RiskLevel.MODERATE,
+            interpretation="SOFA 6-9 - Moderate mortality risk (~20-30%)",
+            recommendations=[
+                "Aggressive organ support",
+                "Source control if infection",
+                "Consider early goals of care discussion",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=10, max_score=15,
+            risk_level=RiskLevel.HIGH,
+            interpretation="SOFA 10-14 - High mortality risk (~50%)",
+            recommendations=[
+                "Maximum organ support",
+                "Goals of care discussion",
+                "Family meeting recommended",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=15, max_score=None,
+            risk_level=RiskLevel.VERY_HIGH,
+            interpretation="SOFA ≥15 - Very high mortality risk (>80%)",
+            recommendations=[
+                "Reassess goals of care",
+                "Palliative care consultation",
+                "Family meeting urgently needed",
+            ],
+        ),
+    ],
+)
+
+
+# ============================================================================
+# OTTAWA ANKLE RULES
+# ============================================================================
+OTTAWA_ANKLE_DEFINITION = CalculatorDefinition(
+    id="ottawa_ankle",
+    name="Ottawa Ankle Rules",
+    short_name="Ottawa Ankle",
+    calc_type=CalculatorType.DECISION_TREE,
+    category=CalculatorCategory.EMERGENCY,
+    output_type=OutputType.CATEGORY,
+    score_unit="",
+    description="Clinical decision rule to exclude ankle/midfoot fractures without X-ray",
+    references=["Stiell IG, et al. JAMA 1993", "Stiell IG, et al. Ann Emerg Med 1995"],
+    specialties=["Emergency Medicine", "Family Medicine", "Sports Medicine"],
+    notes=[
+        "Sensitivity ~98-100% for clinically significant fractures",
+        "X-ray needed if ANY criteria present",
+        "Not validated for age <18",
+    ],
+    criteria=[
+        # Ankle series criteria
+        ScoringCriterion("bone_tenderness_lat_malleolus", "Bone tenderness at posterior edge or tip of lateral malleolus", 1, ""),
+        ScoringCriterion("bone_tenderness_med_malleolus", "Bone tenderness at posterior edge or tip of medial malleolus", 1, ""),
+        ScoringCriterion("unable_bear_weight", "Unable to bear weight immediately and in ED (4 steps)", 1, ""),
+        # Foot series criteria
+        ScoringCriterion("bone_tenderness_navicular", "Bone tenderness at navicular", 1, ""),
+        ScoringCriterion("bone_tenderness_base_5th_mt", "Bone tenderness at base of 5th metatarsal", 1, ""),
+    ],
+    interpretations=[
+        ThresholdInterpretation(
+            min_score=0, max_score=1,
+            risk_level=RiskLevel.LOW,
+            interpretation="Ottawa negative - X-ray not required",
+            recommendations=[
+                "Very low probability of fracture",
+                "Supportive care: RICE (rest, ice, compression, elevation)",
+                "NSAIDs for pain",
+                "Follow up if not improving in 5-7 days",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=1, max_score=None,
+            risk_level=RiskLevel.MODERATE,
+            interpretation="Ottawa positive - X-ray indicated",
+            recommendations=[
+                "Obtain ankle X-ray series (if ankle criteria met)",
+                "Obtain foot X-ray series (if foot criteria met)",
+                "Immobilize pending results",
+            ],
+        ),
+    ],
+)
+
+
+# ============================================================================
+# CIWA-Ar (Alcohol Withdrawal)
+# ============================================================================
+CIWA_AR_DEFINITION = CalculatorDefinition(
+    id="ciwa_ar",
+    name="CIWA-Ar (Alcohol Withdrawal)",
+    short_name="CIWA-Ar",
+    calc_type=CalculatorType.CRITERIA,
+    category=CalculatorCategory.GENERAL,
+    output_type=OutputType.INTEGER,
+    score_unit="points",
+    description="Clinical Institute Withdrawal Assessment for Alcohol - monitors withdrawal severity",
+    references=["Sullivan JT, et al. Br J Addict 1989"],
+    specialties=["Emergency Medicine", "Psychiatry", "Internal Medicine", "Addiction Medicine"],
+    notes=[
+        "Assess every 1-4 hours based on score",
+        "Score range: 0-67",
+        "Used to guide benzodiazepine dosing",
+    ],
+    multi_level_criteria=[
+        MultiLevelCriterion(
+            name="nausea_vomiting",
+            display_name="Nausea/Vomiting",
+            levels=[
+                ("none", 0, "None (0)"),
+                ("mild", 1, "Mild nausea, no vomiting (1)"),
+                ("intermittent", 4, "Intermittent nausea (4)"),
+                ("constant_retching", 7, "Constant nausea, retching (7)"),
+            ],
+            description="Nausea and vomiting",
+        ),
+        MultiLevelCriterion(
+            name="tremor",
+            display_name="Tremor",
+            levels=[
+                ("none", 0, "No tremor (0)"),
+                ("not_visible", 1, "Not visible, can be felt (1)"),
+                ("moderate", 4, "Moderate, with arms extended (4)"),
+                ("severe", 7, "Severe, even with arms at rest (7)"),
+            ],
+            description="Tremor severity",
+        ),
+        MultiLevelCriterion(
+            name="paroxysmal_sweats",
+            display_name="Sweating",
+            levels=[
+                ("none", 0, "No sweat visible (0)"),
+                ("barely", 1, "Barely perceptible, palms moist (1)"),
+                ("beads", 4, "Beads of sweat on forehead (4)"),
+                ("drenching", 7, "Drenching sweats (7)"),
+            ],
+            description="Paroxysmal sweats",
+        ),
+        MultiLevelCriterion(
+            name="anxiety",
+            display_name="Anxiety",
+            levels=[
+                ("none", 0, "No anxiety, at ease (0)"),
+                ("mildly", 1, "Mildly anxious (1)"),
+                ("moderately", 4, "Moderately anxious/guarded (4)"),
+                ("equivalent_panic", 7, "Equivalent to acute panic state (7)"),
+            ],
+            description="Anxiety level",
+        ),
+        MultiLevelCriterion(
+            name="agitation",
+            display_name="Agitation",
+            levels=[
+                ("none", 0, "Normal activity (0)"),
+                ("somewhat", 1, "Somewhat more than normal (1)"),
+                ("moderately", 4, "Moderately restless (4)"),
+                ("paces_thrashing", 7, "Paces or thrashes about (7)"),
+            ],
+            description="Agitation",
+        ),
+        MultiLevelCriterion(
+            name="tactile_disturbances",
+            display_name="Tactile Disturbances",
+            levels=[
+                ("none", 0, "None (0)"),
+                ("mild", 1, "Mild itching, pins/needles, burning (1)"),
+                ("moderate", 2, "Moderate (2)"),
+                ("moderately_severe", 3, "Moderately severe (3)"),
+                ("hallucinations", 4, "Continuous hallucinations (4)"),
+            ],
+            description="Tactile disturbances",
+        ),
+        MultiLevelCriterion(
+            name="auditory_disturbances",
+            display_name="Auditory Disturbances",
+            levels=[
+                ("none", 0, "Not present (0)"),
+                ("mild", 1, "Mild sensitivity (1)"),
+                ("moderate", 2, "Moderate (2)"),
+                ("moderately_severe", 3, "Moderately severe (3)"),
+                ("hallucinations", 4, "Continuous hallucinations (4)"),
+            ],
+            description="Auditory disturbances",
+        ),
+        MultiLevelCriterion(
+            name="visual_disturbances",
+            display_name="Visual Disturbances",
+            levels=[
+                ("none", 0, "Not present (0)"),
+                ("mild", 1, "Mild sensitivity (1)"),
+                ("moderate", 2, "Moderate (2)"),
+                ("moderately_severe", 3, "Moderately severe (3)"),
+                ("hallucinations", 4, "Continuous hallucinations (4)"),
+            ],
+            description="Visual disturbances",
+        ),
+        MultiLevelCriterion(
+            name="headache",
+            display_name="Headache/Fullness",
+            levels=[
+                ("none", 0, "Not present (0)"),
+                ("mild", 1, "Very mild (1)"),
+                ("mild_moderate", 2, "Mild (2)"),
+                ("moderate", 3, "Moderate (3)"),
+                ("moderately_severe", 4, "Moderately severe (4)"),
+                ("severe", 5, "Severe (5)"),
+                ("very_severe", 6, "Very severe (6)"),
+                ("extremely_severe", 7, "Extremely severe (7)"),
+            ],
+            description="Headache, fullness in head",
+        ),
+        MultiLevelCriterion(
+            name="orientation",
+            display_name="Orientation/Clouding",
+            levels=[
+                ("oriented", 0, "Oriented, can do serial additions (0)"),
+                ("uncertain", 1, "Cannot do serial additions or uncertain about date (1)"),
+                ("disoriented_date", 2, "Disoriented to date by <2 days (2)"),
+                ("disoriented_date_more", 3, "Disoriented to date by >2 days (3)"),
+                ("disoriented_place", 4, "Disoriented to place/person (4)"),
+            ],
+            description="Orientation and sensorium",
+        ),
+    ],
+    interpretations=[
+        ThresholdInterpretation(
+            min_score=0, max_score=9,
+            risk_level=RiskLevel.LOW,
+            interpretation="Minimal withdrawal - Supportive care",
+            recommendations=[
+                "Reassess every 4 hours",
+                "Supportive care: hydration, nutrition, thiamine",
+                "May not require pharmacologic treatment",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=9, max_score=16,
+            risk_level=RiskLevel.MODERATE,
+            interpretation="Mild-moderate withdrawal",
+            recommendations=[
+                "Reassess every 2-4 hours",
+                "Consider symptom-triggered benzodiazepines",
+                "Typical dose: chlordiazepoxide 25-50mg or lorazepam 1-2mg",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=16, max_score=25,
+            risk_level=RiskLevel.MODERATE_HIGH,
+            interpretation="Moderate-severe withdrawal",
+            recommendations=[
+                "Reassess every 1-2 hours",
+                "Benzodiazepines indicated",
+                "Higher doses needed: chlordiazepoxide 50-100mg or lorazepam 2-4mg",
+                "Monitor for seizure activity",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=25, max_score=None,
+            risk_level=RiskLevel.HIGH,
+            interpretation="Severe withdrawal - High risk of complications",
+            recommendations=[
+                "Continuous monitoring",
+                "Aggressive benzodiazepine dosing",
+                "Consider ICU admission",
+                "Watch for delirium tremens",
+                "May need IV diazepam or phenobarbital",
+            ],
+        ),
+    ],
+)
+
+
+# ============================================================================
+# FRAMINGHAM RISK SCORE (Simplified 10-year CVD)
+# ============================================================================
+FRAMINGHAM_CVD_DEFINITION = CalculatorDefinition(
+    id="framingham_cvd",
+    name="Framingham 10-Year CVD Risk",
+    short_name="Framingham",
+    calc_type=CalculatorType.CRITERIA,
+    category=CalculatorCategory.CARDIOVASCULAR,
+    output_type=OutputType.PERCENTAGE,
+    score_unit="%",
+    description="10-year risk of cardiovascular disease",
+    references=["D'Agostino RB, et al. Circulation 2008"],
+    specialties=["Cardiology", "Internal Medicine", "Family Medicine"],
+    notes=[
+        "Sex-specific calculations",
+        "Risk factors: age, total cholesterol, HDL, SBP, smoking, diabetes",
+        "Note: This is a simplified point-based approximation",
+    ],
+    threshold_criteria=[
+        ThresholdCriterion(
+            name="age",
+            display_name="Age",
+            thresholds=[
+                ("range", (30, 34), 0, "Age 30-34"),
+                ("range", (35, 39), 2, "Age 35-39"),
+                ("range", (40, 44), 5, "Age 40-44"),
+                ("range", (45, 49), 6, "Age 45-49"),
+                ("range", (50, 54), 8, "Age 50-54"),
+                ("range", (55, 59), 10, "Age 55-59"),
+                ("range", (60, 64), 11, "Age 60-64"),
+                ("range", (65, 69), 12, "Age 65-69"),
+                ("range", (70, 74), 14, "Age 70-74"),
+                ("gte", 75, 15, "Age ≥75"),
+            ],
+            description="Age in years",
+        ),
+        ThresholdCriterion(
+            name="total_cholesterol",
+            display_name="Total Cholesterol",
+            thresholds=[
+                ("lt", 160, 0, "TC <160"),
+                ("range", (160, 199), 1, "TC 160-199"),
+                ("range", (200, 239), 2, "TC 200-239"),
+                ("range", (240, 279), 3, "TC 240-279"),
+                ("gte", 280, 4, "TC ≥280"),
+            ],
+            unit="mg/dL",
+            description="Total cholesterol",
+        ),
+        ThresholdCriterion(
+            name="hdl",
+            display_name="HDL Cholesterol",
+            thresholds=[
+                ("gte", 60, -2, "HDL ≥60"),
+                ("range", (50, 59), -1, "HDL 50-59"),
+                ("range", (45, 49), 0, "HDL 45-49"),
+                ("range", (35, 44), 1, "HDL 35-44"),
+                ("lt", 35, 2, "HDL <35"),
+            ],
+            unit="mg/dL",
+            description="HDL cholesterol",
+        ),
+        ThresholdCriterion(
+            name="systolic_bp",
+            display_name="Systolic BP",
+            thresholds=[
+                ("lt", 120, 0, "SBP <120"),
+                ("range", (120, 129), 1, "SBP 120-129"),
+                ("range", (130, 139), 2, "SBP 130-139"),
+                ("range", (140, 159), 3, "SBP 140-159"),
+                ("gte", 160, 4, "SBP ≥160"),
+            ],
+            unit="mmHg",
+            description="Systolic blood pressure (add points if untreated)",
+        ),
+    ],
+    criteria=[
+        ScoringCriterion("current_smoker", "Current smoker", 4, "Current tobacco use"),
+        ScoringCriterion("diabetes", "Diabetes", 3, "Diabetes mellitus"),
+    ],
+    interpretations=[
+        ThresholdInterpretation(
+            min_score=0, max_score=10,
+            risk_level=RiskLevel.LOW,
+            interpretation="Low 10-year CVD risk (<10%)",
+            recommendations=[
+                "Lifestyle modifications",
+                "Reassess risk factors every 4-6 years",
+                "Diet and exercise counseling",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=10, max_score=20,
+            risk_level=RiskLevel.MODERATE,
+            interpretation="Intermediate 10-year CVD risk (10-20%)",
+            recommendations=[
+                "Aggressive lifestyle modifications",
+                "Consider statin therapy based on LDL",
+                "Blood pressure management",
+                "Reassess annually",
+            ],
+        ),
+        ThresholdInterpretation(
+            min_score=20, max_score=None,
+            risk_level=RiskLevel.HIGH,
+            interpretation="High 10-year CVD risk (≥20%)",
+            recommendations=[
+                "Statin therapy indicated",
+                "Aggressive BP control (<130/80)",
+                "Aspirin consideration if benefit > bleed risk",
+                "Consider cardiology referral",
+            ],
+        ),
+    ],
+)
+
+
 # Registry of all calculator definitions
 CALCULATOR_DEFINITIONS: dict[str, CalculatorDefinition] = {
     "chadsvasc": CHADSVASC_DEFINITION,
@@ -1253,6 +2398,18 @@ CALCULATOR_DEFINITIONS: dict[str, CalculatorDefinition] = {
     "perc": PERC_DEFINITION,
     "centor": CENTOR_DEFINITION,
     "apgar": APGAR_DEFINITION,
+    # New calculators
+    "wells_pe": WELLS_PE_DEFINITION,
+    "charlson": CHARLSON_DEFINITION,
+    "timi_stemi": TIMI_STEMI_DEFINITION,
+    "timi_nstemi": TIMI_NSTEMI_DEFINITION,
+    "meld": MELD_DEFINITION,
+    "meld_na": MELD_NA_DEFINITION,
+    "bmi": BMI_DEFINITION,
+    "sofa": SOFA_DEFINITION,
+    "ottawa_ankle": OTTAWA_ANKLE_DEFINITION,
+    "ciwa_ar": CIWA_AR_DEFINITION,
+    "framingham_cvd": FRAMINGHAM_CVD_DEFINITION,
 }
 
 
