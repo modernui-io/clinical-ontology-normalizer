@@ -48,7 +48,7 @@ class SankeyResponse(BaseModel):
     nodes: list[SankeyNodeResponse]
     links: list[SankeyLinkResponse]
     total_patients: int
-    generated_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+    generated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
 class SurvivalPointResponse(BaseModel):
@@ -80,7 +80,7 @@ class SurvivalResponse(BaseModel):
     hazard_ratio: float | None
     hazard_ratio_ci: list[float] | None
     time_unit: str = "months"
-    generated_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+    generated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
 class GeospatialRegionResponse(BaseModel):
@@ -107,7 +107,7 @@ class GeospatialResponse(BaseModel):
     max_value: float
     national_average: float
     time_period: str
-    generated_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+    generated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
 class ForestPlotStudyResponse(BaseModel):
@@ -137,7 +137,7 @@ class ForestPlotResponse(BaseModel):
     heterogeneity_p: float
     effect_measure: str
     null_value: float = 1.0
-    generated_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+    generated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
 class VolcanoPointResponse(BaseModel):
@@ -161,7 +161,7 @@ class VolcanoResponse(BaseModel):
     significant_up: int
     significant_down: int
     comparison: str
-    generated_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+    generated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
 class TimelineMilestone(BaseModel):
@@ -190,7 +190,7 @@ class TimelineResponse(BaseModel):
     study_start: str
     study_end: str | None
     categories: list[str]
-    generated_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+    generated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
 # ==============================================================================

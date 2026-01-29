@@ -507,7 +507,7 @@ class KGConfigService:
             key=key,
             old_value=old_value,
             new_value=new_value,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             source=source,
             user=user,
         )
@@ -623,7 +623,7 @@ class KGConfigService:
             self._current_version += 1
             version = ConfigVersion(
                 version=self._current_version,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(timezone.utc),
                 config=copy.deepcopy(self._config),
                 hash=ConfigVersion.compute_hash(self._config),
                 source=source,

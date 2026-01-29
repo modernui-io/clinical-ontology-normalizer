@@ -255,7 +255,7 @@ class RegisteredApp:
         self.tos_uri = tos_uri
         self.policy_uri = policy_uri
         self.jwks_uri = jwks_uri
-        self.created_at = datetime.utcnow()
+        self.created_at = datetime.now(timezone.utc)
         self.is_active = True
 
 

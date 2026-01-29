@@ -464,7 +464,7 @@ class KGLogger:
 
         # Build entry
         entry = LogEntry(
-            timestamp=datetime.utcnow().isoformat() + "Z",
+            timestamp=datetime.now(timezone.utc).isoformat() + "Z",
             level=level,
             message=message,
             correlation_id=correlation_id,

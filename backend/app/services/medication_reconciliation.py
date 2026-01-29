@@ -836,7 +836,7 @@ class MedicationReconciliationService:
             id=reconciliation_id,
             source_list_name=source_name,
             target_list_name=target_name,
-            reconciliation_timestamp=datetime.utcnow(),
+            reconciliation_timestamp=datetime.now(timezone.utc),
             status=status,
             matches=matches,
             additions=additions,
@@ -954,7 +954,7 @@ class MedicationReconciliationService:
         return MedicationListAnalysis(
             id=analysis_id,
             list_name=list_name,
-            analysis_timestamp=datetime.utcnow(),
+            analysis_timestamp=datetime.now(timezone.utc),
             total_medications=len(medications),
             high_risk_medications=high_risk,
             therapeutic_duplicates=duplicates,
@@ -1047,8 +1047,8 @@ class MedicationReconciliationService:
             id=session_id,
             patient_id=patient_id,
             encounter_id=encounter_id,
-            created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
             status=ReconciliationStatus.PENDING if result.alerts else ReconciliationStatus.COMPLETED,
             created_by=created_by,
             source_list_name=source_name,
@@ -1148,13 +1148,13 @@ class MedicationReconciliationService:
             reason=reason,
             reason_text=reason_text,
             resolved_by=resolved_by,
-            resolved_at=datetime.utcnow(),
+            resolved_at=datetime.now(timezone.utc),
             notes=notes,
         )
 
         # Store the resolution
         session.resolutions[discrepancy_id] = resolution
-        session.updated_at = datetime.utcnow()
+        session.updated_at = datetime.now(timezone.utc)
 
         # Update status
         if session.get_unresolved_count() == 0:
@@ -1205,11 +1205,11 @@ class MedicationReconciliationService:
         reconciled = self._build_reconciled_list(session)
 
         session.reconciled_medications = reconciled
-        session.completed_at = datetime.utcnow()
+        session.completed_at = datetime.now(timezone.utc)
         session.completed_by = completed_by
         session.completion_notes = notes
         session.status = ReconciliationStatus.COMPLETED
-        session.updated_at = datetime.utcnow()
+        session.updated_at = datetime.now(timezone.utc)
 
         # Re-check interactions for final list
         session.interaction_warnings = self._check_interactions(reconciled)

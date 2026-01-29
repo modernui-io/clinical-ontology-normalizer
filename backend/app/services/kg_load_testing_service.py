@@ -293,7 +293,7 @@ class KGLoadTestRunner:
         result = LoadTestResult(
             config=config,
             status=LoadTestStatus.RUNNING,
-            start_time=datetime.utcnow(),
+            start_time=datetime.now(timezone.utc),
         )
 
         with self._lock:
@@ -361,12 +361,12 @@ class KGLoadTestRunner:
                     result.error_breakdown[error_key] = result.error_breakdown.get(error_key, 0) + 1
 
             result.status = LoadTestStatus.COMPLETED
-            result.end_time = datetime.utcnow()
+            result.end_time = datetime.now(timezone.utc)
 
         except Exception as e:
             result.status = LoadTestStatus.FAILED
             result.error_message = str(e)
-            result.end_time = datetime.utcnow()
+            result.end_time = datetime.now(timezone.utc)
 
         with self._lock:
             self._current_test = None
@@ -572,7 +572,7 @@ class KGLoadTestRunner:
                 "successful": self._current_test.successful_requests,
                 "failed": self._current_test.failed_requests,
                 "elapsed_seconds": (
-                    datetime.utcnow() - self._current_test.start_time
+                    datetime.now(timezone.utc) - self._current_test.start_time
                 ).total_seconds(),
             }
 

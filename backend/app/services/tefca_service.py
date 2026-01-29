@@ -580,7 +580,7 @@ class TEFCAService:
                 organization_types=qhin_data["organization_types"],
                 fhir_version=qhin_data["fhir_version"],
                 ihe_profiles=qhin_data["ihe_profiles"],
-                last_health_check=datetime.utcnow(),
+                last_health_check=datetime.now(timezone.utc),
                 average_response_time_ms=qhin_data["average_response_time_ms"],
             )
             self._qhins.append(qhin)
@@ -712,7 +712,7 @@ class TEFCAService:
                     address=f"{demographics.city or 'Unknown'}, {demographics.state or 'XX'}",
                     mrn=f"MRN{secrets.randbelow(1000000):07d}",
                     document_count=secrets.randbelow(50) + 1,
-                    last_updated=datetime.utcnow() - timedelta(days=secrets.randbelow(365)),
+                    last_updated=datetime.now(timezone.utc) - timedelta(days=secrets.randbelow(365)),
                 )
                 matches.append(match)
 
@@ -725,7 +725,7 @@ class TEFCAService:
 
         response = QueryResponse(
             query_id=query_id,
-            query_time=datetime.utcnow(),
+            query_time=datetime.now(timezone.utc),
             query_duration_ms=duration_ms,
             total_matches=len(matches),
             matches=matches,
@@ -795,7 +795,7 @@ class TEFCAService:
             num_docs = secrets.randbelow(15) + 1  # 1-15 documents
             for i in range(num_docs):
                 doc_class = doc_types[secrets.randbelow(len(doc_types))]
-                creation_date = datetime.utcnow() - timedelta(days=secrets.randbelow(730))
+                creation_date = datetime.now(timezone.utc) - timedelta(days=secrets.randbelow(730))
 
                 doc_type_displays = {
                     DocumentClass.CCD: "Continuity of Care Document",
@@ -851,7 +851,7 @@ class TEFCAService:
         response = DocumentQueryResponse(
             query_id=query_id,
             patient_id=patient_id,
-            query_time=datetime.utcnow(),
+            query_time=datetime.now(timezone.utc),
             query_duration_ms=duration_ms,
             total_documents=len(documents),
             documents=documents,
@@ -914,8 +914,8 @@ class TEFCAService:
                 format="C-CDA",
                 title=f"Clinical Document - {ref_id[:8]}",
                 document_type="34133-9",
-                creation_date=datetime.utcnow() - timedelta(days=secrets.randbelow(365)),
-                retrieved_at=datetime.utcnow(),
+                creation_date=datetime.now(timezone.utc) - timedelta(days=secrets.randbelow(365)),
+                retrieved_at=datetime.now(timezone.utc),
                 retrieval_duration_ms=int((time.time() - retrieval_start) * 1000),
             )
 
@@ -946,7 +946,7 @@ class TEFCAService:
     <id root="{doc_id}"/>
     <code code="34133-9" codeSystem="2.16.840.1.113883.6.1" displayName="Summarization of Episode Note"/>
     <title>Continuity of Care Document</title>
-    <effectiveTime value="{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"/>
+    <effectiveTime value="{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"/>
     <confidentialityCode code="N" codeSystem="2.16.840.1.113883.5.25"/>
     <languageCode code="en-US"/>
     <recordTarget>
@@ -1000,7 +1000,7 @@ class TEFCAService:
             return SendResult(
                 message_id=message_id,
                 status=DirectMessageStatus.FAILED,
-                sent_at=datetime.utcnow(),
+                sent_at=datetime.now(timezone.utc),
                 recipient_qhin=recipient_qhin,
                 error_message=f"QHIN {recipient_qhin} not found",
             )
@@ -1009,7 +1009,7 @@ class TEFCAService:
             return SendResult(
                 message_id=message_id,
                 status=DirectMessageStatus.FAILED,
-                sent_at=datetime.utcnow(),
+                sent_at=datetime.now(timezone.utc),
                 recipient_qhin=recipient_qhin,
                 error_message=f"QHIN {recipient_qhin} does not support Direct messaging",
             )
@@ -1018,7 +1018,7 @@ class TEFCAService:
             return SendResult(
                 message_id=message_id,
                 status=DirectMessageStatus.FAILED,
-                sent_at=datetime.utcnow(),
+                sent_at=datetime.now(timezone.utc),
                 recipient_qhin=recipient_qhin,
                 error_message=f"QHIN {recipient_qhin} is offline",
             )
@@ -1046,7 +1046,7 @@ class TEFCAService:
         return SendResult(
             message_id=message_id,
             status=status,
-            sent_at=datetime.utcnow(),
+            sent_at=datetime.now(timezone.utc),
             recipient_qhin=recipient_qhin,
             recipient_organization=None,
             tracking_id=f"track-{uuid.uuid4().hex[:8]}",
@@ -1071,7 +1071,7 @@ class TEFCAService:
             )
 
         # Mock successful validation
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         return ValidationResult(
             valid=True,
             issuer="https://idp.example.com",
@@ -1107,7 +1107,7 @@ class TEFCAService:
 
         audit_log = AuditLog(
             id=audit_id,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             event_type=event_type,
             user_id=query.user_id,
             user_name=None,  # Would be populated from user context

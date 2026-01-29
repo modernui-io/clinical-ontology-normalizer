@@ -200,7 +200,7 @@ async def list_qhins(
     return QHINListResponse(
         total=len(qhins),
         qhins=qhins,
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(timezone.utc),
     )
 
 
@@ -347,7 +347,7 @@ async def retrieve_documents(request: DocumentRetrieveRequest) -> DocumentRetrie
         patient_id=request.patient_id,
         documents=documents,
         total=len(documents),
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(timezone.utc),
     )
 
 
@@ -476,8 +476,8 @@ async def set_patient_consent(request: ConsentRequest) -> PatientConsent:
         expiration_date=request.expiration_date,
         excluded_organizations=request.excluded_organizations,
         excluded_document_types=request.excluded_document_types,
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow(),
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
         created_by="api-user",
     )
 
@@ -527,7 +527,7 @@ async def get_service_status() -> ServiceStatusResponse:
         active_qhins=stats["active_qhins"],
         total_participants=stats["total_participants"],
         audit_log_count=stats["audit_log_count"],
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(timezone.utc),
     )
 
 
