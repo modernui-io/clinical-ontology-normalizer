@@ -15,6 +15,7 @@ Based on published research:
 from __future__ import annotations
 
 import logging
+import threading
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -679,17 +680,21 @@ class Neo4jTemporalService:
 
 # Singleton instance
 _neo4j_temporal_service: Neo4jTemporalService | None = None
+_neo4j_temporal_lock = threading.Lock()
 
 
 def get_neo4j_temporal_service() -> Neo4jTemporalService:
     """Get the singleton Neo4j temporal service."""
     global _neo4j_temporal_service
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _neo4j_temporal_service is None:
-        from app.core.config import settings
+        with _neo4j_temporal_lock:
+            if _neo4j_temporal_service is None:
+                from app.core.config import settings
 
-        _neo4j_temporal_service = Neo4jTemporalService(
-            uri=getattr(settings, "NEO4J_URI", "bolt://localhost:7687"),
-            user=getattr(settings, "NEO4J_USER", "neo4j"),
-            password=getattr(settings, "NEO4J_PASSWORD", "clinical123"),
-        )
+                _neo4j_temporal_service = Neo4jTemporalService(
+                    uri=getattr(settings, "NEO4J_URI", "bolt://localhost:7687"),
+                    user=getattr(settings, "NEO4J_USER", "neo4j"),
+                    password=getattr(settings, "NEO4J_PASSWORD", "clinical123"),
+                )
     return _neo4j_temporal_service

@@ -10,6 +10,7 @@ in an ensemble for better coverage and accuracy.
 
 import logging
 import re
+import threading
 from dataclasses import dataclass, field
 from typing import Any
 from uuid import UUID
@@ -509,6 +510,7 @@ class ClinicalNERService(BaseNLPService):
 
 # Singleton instance
 _clinical_ner_service: ClinicalNERService | None = None
+_clinical_ner_lock = threading.Lock()
 
 
 def get_clinical_ner_service(
@@ -523,14 +525,18 @@ def get_clinical_ner_service(
         ClinicalNERService instance.
     """
     global _clinical_ner_service
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _clinical_ner_service is None:
-        _clinical_ner_service = ClinicalNERService(
-            config=config or TransformerNERConfig()
-        )
+        with _clinical_ner_lock:
+            if _clinical_ner_service is None:
+                _clinical_ner_service = ClinicalNERService(
+                    config=config or TransformerNERConfig()
+                )
     return _clinical_ner_service
 
 
 def reset_clinical_ner_service() -> None:
     """Reset the singleton service (mainly for testing)."""
     global _clinical_ner_service
-    _clinical_ner_service = None
+    with _clinical_ner_lock:
+        _clinical_ner_service = None

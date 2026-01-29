@@ -10,6 +10,7 @@ The ensemble uses voting and confidence boosting when multiple methods agree.
 """
 
 import logging
+import threading
 from dataclasses import dataclass, field
 from typing import Any
 from uuid import UUID
@@ -500,6 +501,7 @@ class EnsembleNLPService(BaseNLPService):
 
 # Singleton instance
 _ensemble_service: EnsembleNLPService | None = None
+_ensemble_lock = threading.Lock()
 
 
 def get_ensemble_nlp_service(
@@ -514,14 +516,18 @@ def get_ensemble_nlp_service(
         EnsembleNLPService instance.
     """
     global _ensemble_service
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _ensemble_service is None:
-        _ensemble_service = EnsembleNLPService(
-            config=config or EnsembleConfig()
-        )
+        with _ensemble_lock:
+            if _ensemble_service is None:
+                _ensemble_service = EnsembleNLPService(
+                    config=config or EnsembleConfig()
+                )
     return _ensemble_service
 
 
 def reset_ensemble_nlp_service() -> None:
     """Reset the singleton service (mainly for testing)."""
     global _ensemble_service
-    _ensemble_service = None
+    with _ensemble_lock:
+        _ensemble_service = None
