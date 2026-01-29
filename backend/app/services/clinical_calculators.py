@@ -2,6 +2,11 @@
 
 Provides validated clinical risk scoring calculators for common
 medical conditions and decision support.
+
+This module is being migrated to a data-driven approach using
+calculator_definitions.py. CRITERIA-type calculators can now use
+the generic calculate_from_definition() function instead of
+individual implementations.
 """
 
 import logging
@@ -10,6 +15,16 @@ from dataclasses import dataclass, field
 from enum import Enum
 from threading import Lock
 from typing import Any
+
+from app.services.calculator_definitions import (
+    CALCULATOR_DEFINITIONS,
+    CalculatorType,
+    calculate_point_based_score,
+    get_calculator_definition,
+)
+from app.services.calculator_definitions import (
+    RiskLevel as DDRiskLevel,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +52,78 @@ class CalculatorResult:
     recommendations: list[str]
     components: dict[str, Any] = field(default_factory=dict)
     references: list[str] = field(default_factory=list)
+
+
+# ============================================================================
+# Data-Driven Calculator Bridge
+# ============================================================================
+
+def calculate_from_definition(
+    calculator_id: str,
+    values: dict[str, bool | int | float],
+    age: int | None = None,
+) -> CalculatorResult:
+    """Calculate using data-driven definition from calculator_definitions.py.
+
+    This function provides a bridge to the data-driven calculator definitions,
+    enabling CRITERIA-type calculators to use the generic point-based scoring
+    engine instead of individual function implementations.
+
+    Args:
+        calculator_id: Calculator ID from CALCULATOR_DEFINITIONS.
+        values: Dict mapping criterion names to values (bool, int, or float).
+        age: Patient age (for calculators with age-based scoring).
+
+    Returns:
+        CalculatorResult with score and interpretation.
+
+    Raises:
+        ValueError: If calculator not found or not a CRITERIA type.
+
+    Example:
+        >>> result = calculate_from_definition(
+        ...     "chadsvasc",
+        ...     {"hypertension": True, "diabetes": True, "female": True},
+        ...     age=72
+        ... )
+        >>> result.score  # 5 (HTN + DM + female + age 65-74)
+    """
+    definition = get_calculator_definition(calculator_id)
+    if definition is None:
+        raise ValueError(f"Data-driven calculator not found: {calculator_id}")
+
+    if definition.calc_type != CalculatorType.CRITERIA:
+        raise ValueError(
+            f"Calculator {calculator_id} is type {definition.calc_type.value}. "
+            f"Use the specific formula function instead."
+        )
+
+    # Use the generic point-based calculation
+    dd_result = calculate_point_based_score(definition, values, age)
+
+    # Convert to this module's CalculatorResult format
+    return CalculatorResult(
+        calculator_name=dd_result.calculator_name,
+        score=dd_result.score,
+        score_unit=dd_result.score_unit,
+        risk_level=RiskLevel(dd_result.risk_level.value),
+        interpretation=dd_result.interpretation,
+        recommendations=dd_result.recommendations,
+        components=dd_result.components,
+        references=dd_result.references,
+    )
+
+
+def get_data_driven_calculators() -> list[str]:
+    """Get list of calculator IDs available via data-driven definitions.
+
+    Returns:
+        List of calculator IDs that can be used with calculate_from_definition().
+    """
+    return [
+        calc_id for calc_id, defn in CALCULATOR_DEFINITIONS.items()
+        if defn.calc_type == CalculatorType.CRITERIA
+    ]
 
 
 # ============================================================================

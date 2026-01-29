@@ -24,6 +24,16 @@ from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
+from app.services.calculator_definitions import (
+    CALCULATOR_DEFINITIONS,
+    CalculatorType,
+    calculate_point_based_score,
+    get_calculator_definition,
+)
+from app.services.calculator_definitions import (
+    CalculatorResult as DataDrivenResult,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -2734,7 +2744,163 @@ class ClinicalCalculatorService:
             "categories": list(category_counts.keys()),
             "category_counts": category_counts,
             "total_users_with_favorites": len(self._favorites),
+            "data_driven_calculators": len(CALCULATOR_DEFINITIONS),
         }
+
+    def calculate_data_driven(
+        self,
+        calculator_id: str,
+        values: dict[str, bool | int | float],
+        age: int | None = None,
+    ) -> CalculatorResult:
+        """Calculate using data-driven definition.
+
+        This method uses the CalculatorDefinition registry for CRITERIA-type
+        calculators, providing a more maintainable approach than individual
+        function implementations.
+
+        Args:
+            calculator_id: Calculator identifier from CALCULATOR_DEFINITIONS.
+            values: Dict mapping criterion names to values.
+            age: Patient age (for age-based scoring).
+
+        Returns:
+            CalculatorResult with score and interpretation.
+
+        Raises:
+            ValueError: If calculator not found or not a CRITERIA type.
+        """
+        definition = get_calculator_definition(calculator_id)
+        if definition is None:
+            raise ValueError(f"Data-driven calculator not found: {calculator_id}")
+
+        if definition.calc_type != CalculatorType.CRITERIA:
+            raise ValueError(
+                f"Calculator {calculator_id} is type {definition.calc_type.value}, "
+                f"use specific formula function instead"
+            )
+
+        # Use the generic point-based calculation
+        dd_result = calculate_point_based_score(definition, values, age)
+
+        # Convert to service's CalculatorResult format
+        return CalculatorResult(
+            calculator_id=calculator_id,
+            calculator_name=dd_result.calculator_name,
+            score=dd_result.score,
+            score_unit=dd_result.score_unit,
+            risk_level=RiskLevel(dd_result.risk_level.value),
+            interpretation=dd_result.interpretation,
+            recommendations=dd_result.recommendations,
+            components=dd_result.components,
+            references=dd_result.references,
+            formula_used=f"Data-driven {definition.calc_type.value} calculator",
+            warnings=dd_result.warnings,
+        )
+
+    def get_data_driven_calculator(self, calculator_id: str) -> dict[str, Any] | None:
+        """Get data-driven calculator definition with full criteria details.
+
+        Args:
+            calculator_id: Calculator identifier.
+
+        Returns:
+            Calculator definition with criteria details, or None.
+        """
+        definition = get_calculator_definition(calculator_id)
+        if definition is None:
+            return None
+
+        # Build criteria schema from definition
+        criteria_schema = []
+        for criterion in definition.criteria:
+            criteria_schema.append({
+                "name": criterion.name,
+                "display_name": criterion.display_name,
+                "points": criterion.points,
+                "type": "boolean",
+                "description": criterion.description,
+            })
+
+        for mlc in definition.multi_level_criteria:
+            criteria_schema.append({
+                "name": mlc.name,
+                "display_name": mlc.display_name,
+                "type": "multi_level",
+                "levels": [
+                    {"suffix": suffix, "points": pts, "display": disp}
+                    for suffix, pts, disp in mlc.levels
+                ],
+                "description": mlc.description,
+            })
+
+        for tc in definition.threshold_criteria:
+            criteria_schema.append({
+                "name": tc.name,
+                "display_name": tc.display_name,
+                "type": "threshold",
+                "unit": tc.unit,
+                "thresholds": [
+                    {"operator": op, "value": val, "points": pts, "display": disp}
+                    for op, val, pts, disp in tc.thresholds
+                ],
+                "description": tc.description,
+            })
+
+        return {
+            "id": definition.id,
+            "name": definition.name,
+            "short_name": definition.short_name,
+            "category": definition.category.value,
+            "description": definition.description,
+            "calc_type": definition.calc_type.value,
+            "score_unit": definition.score_unit,
+            "criteria": criteria_schema,
+            "has_age_scoring": definition.age_scoring is not None,
+            "interpretations": [
+                {
+                    "min_score": interp.min_score,
+                    "max_score": interp.max_score,
+                    "risk_level": interp.risk_level.value,
+                    "interpretation": interp.interpretation,
+                    "recommendations": interp.recommendations,
+                }
+                for interp in definition.interpretations
+            ],
+            "references": definition.references,
+            "notes": definition.notes,
+        }
+
+    def list_data_driven_calculators(
+        self,
+        category: str | None = None,
+        calc_type: str | None = None,
+    ) -> list[dict[str, Any]]:
+        """List all available data-driven calculators.
+
+        Args:
+            category: Optional category filter.
+            calc_type: Optional calculator type filter (criteria, equation, etc.).
+
+        Returns:
+            List of calculator summaries.
+        """
+        result = []
+        for calc_id, definition in CALCULATOR_DEFINITIONS.items():
+            if category and definition.category.value != category:
+                continue
+            if calc_type and definition.calc_type.value != calc_type:
+                continue
+
+            result.append({
+                "id": definition.id,
+                "name": definition.name,
+                "short_name": definition.short_name,
+                "category": definition.category.value,
+                "calc_type": definition.calc_type.value,
+                "description": definition.description,
+            })
+        return result
 
 
 # Singleton instance

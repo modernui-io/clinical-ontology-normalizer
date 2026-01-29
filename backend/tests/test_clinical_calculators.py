@@ -19,6 +19,8 @@ from app.services.clinical_calculators import (
     calculate_wells_dvt,
     calculate_curb65,
     calculate_framingham_10yr,
+    calculate_from_definition,
+    get_data_driven_calculators,
 )
 
 
@@ -521,3 +523,80 @@ class TestIntegration:
 
         assert stats["total_calculators"] == 42
         assert "bmi" in stats["calculator_list"]
+
+
+# ============================================================================
+# Data-Driven Calculator Tests
+# ============================================================================
+
+
+class TestDataDrivenCalculators:
+    """Test data-driven calculator integration."""
+
+    def test_get_data_driven_calculators(self):
+        """Test listing data-driven calculators."""
+        calcs = get_data_driven_calculators()
+        assert len(calcs) > 0
+        assert "chadsvasc" in calcs
+        assert "hasbled" in calcs
+        assert "wells_dvt" in calcs
+        assert "curb65" in calcs
+
+    def test_calculate_from_definition_chadsvasc(self):
+        """Test CHA2DS2-VASc via data-driven approach."""
+        result = calculate_from_definition(
+            "chadsvasc",
+            {
+                "hypertension": True,
+                "diabetes": True,
+                "vascular_disease": True,
+            },
+            age=72,
+        )
+
+        # HTN(1) + DM(1) + Vascular(1) + Age65-74(1) = 4
+        assert result.score == 4
+        assert result.risk_level in [RiskLevel.HIGH, RiskLevel.MODERATE]
+        assert "CHA" in result.calculator_name
+
+    def test_calculate_from_definition_wells_dvt(self):
+        """Test Wells DVT via data-driven approach."""
+        result = calculate_from_definition(
+            "wells_dvt",
+            {
+                "active_cancer": True,
+                "calf_swelling": True,
+                "pitting_edema": True,
+            },
+        )
+
+        # Cancer(1) + Calf(1) + Edema(1) = 3
+        assert result.score == 3
+        assert "Wells" in result.calculator_name
+
+    def test_calculate_from_definition_curb65(self):
+        """Test CURB-65 via data-driven approach."""
+        result = calculate_from_definition(
+            "curb65",
+            {
+                "confusion": True,
+                "uremia": True,
+                "respiratory_rate": True,
+                "low_blood_pressure": True,
+                "age_65_or_older": True,
+            },
+        )
+
+        assert result.score == 5
+        assert result.risk_level == RiskLevel.VERY_HIGH
+
+    def test_data_driven_unknown_raises(self):
+        """Test unknown calculator raises ValueError."""
+        with pytest.raises(ValueError):
+            calculate_from_definition("not_a_real_calculator", {})
+
+    def test_data_driven_equation_type_raises(self):
+        """Test that EQUATION type calculators raise ValueError."""
+        # BMI is an EQUATION type, should raise
+        with pytest.raises(ValueError, match="equation"):
+            calculate_from_definition("bmi", {"weight_kg": 70, "height_cm": 175})
