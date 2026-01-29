@@ -109,6 +109,17 @@ export interface GraphEdge {
   edge_type: string;
   fact_id: string | null;
   properties: Record<string, unknown>;
+  // Valid Time: When the clinical event happened
+  event_date: string | null;
+  valid_from: string | null;
+  valid_to: string | null;
+  // Transaction Time: Provenance
+  recorded_at: string | null;
+  source_document_date: string | null;
+  // Temporal Assertion
+  temporality: string | null; // "current", "past", "future"
+  temporal_order: string | null;
+  temporal_confidence: number | null;
   created_at: string;
 }
 

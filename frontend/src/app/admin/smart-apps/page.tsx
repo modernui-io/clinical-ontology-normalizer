@@ -52,6 +52,7 @@ interface SMARTApp {
   scope: string;  // API returns scope as string, not scopes array
   app_type: string;
   is_active: boolean;
+  is_confidential: boolean;
   created_at: string;
 }
 
