@@ -141,7 +141,7 @@ class CheckpointManager:
             return True
 
         except Exception as e:
-            logger.error(f"Failed to save checkpoint for {checkpoint.job_id}: {e}")
+            logger.error(f"Failed to save checkpoint for {checkpoint.job_id}: {e}", exc_info=True)
             return False
 
     def load_checkpoint(self, job_id: str | UUID) -> ETLCheckpoint | None:
@@ -167,7 +167,7 @@ class CheckpointManager:
             return checkpoint
 
         except Exception as e:
-            logger.error(f"Failed to load checkpoint for {job_id}: {e}")
+            logger.error(f"Failed to load checkpoint for {job_id}: {e}", exc_info=True)
             return None
 
     def delete_checkpoint(self, job_id: str | UUID) -> bool:
@@ -189,7 +189,7 @@ class CheckpointManager:
             return True
 
         except Exception as e:
-            logger.error(f"Failed to delete checkpoint for {job_id}: {e}")
+            logger.error(f"Failed to delete checkpoint for {job_id}: {e}", exc_info=True)
             return False
 
     def list_checkpoints(self) -> list[ETLCheckpoint]:
@@ -210,7 +210,7 @@ class CheckpointManager:
                     logger.warning(f"Failed to load checkpoint {path}: {e}")
 
         except Exception as e:
-            logger.error(f"Failed to list checkpoints: {e}")
+            logger.error(f"Failed to list checkpoints: {e}", exc_info=True)
 
         return checkpoints
 

@@ -285,7 +285,7 @@ class AsyncQueryExecutor:
             context.progress.status = QueryStatus.FAILED
             result.error = str(e)
             result.error_type = type(e).__name__
-            logger.error(f"Query {context.query_id} failed: {e}")
+            logger.error(f"Query {context.query_id} failed: {e}", exc_info=True)
 
         finally:
             async with self._lock:
@@ -367,7 +367,7 @@ class AsyncQueryExecutor:
 
         except Exception as e:
             context.progress.status = QueryStatus.FAILED
-            logger.error(f"Stream query {context.query_id} failed: {e}")
+            logger.error(f"Stream query {context.query_id} failed: {e}", exc_info=True)
             raise
 
         finally:

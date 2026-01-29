@@ -364,7 +364,7 @@ class DataSourceService:
             return result
 
         except Exception as e:
-            logger.error(f"Connection test failed for {source_id}: {e}")
+            logger.error(f"Connection test failed for {source_id}: {e}", exc_info=True)
             await self._update_health_status(
                 source_id,
                 HealthStatus.OFFLINE,
