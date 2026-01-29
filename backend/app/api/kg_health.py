@@ -11,6 +11,7 @@ components, including:
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 from datetime import datetime, timezone
@@ -466,6 +467,50 @@ async def check_neo4j_dependency() -> DependencyHealth:
 # API Endpoints
 # ============================================================================
 
+def _determine_kg_health_status(
+    components: list[ComponentHealth],
+) -> tuple[HealthStatus, int, int, int]:
+    """Determine overall health status from component checks.
+
+    VP-Cleanup-1: Extracted to avoid duplication across endpoints.
+
+    Returns:
+        Tuple of (overall_status, healthy_count, degraded_count, unhealthy_count)
+    """
+    healthy_count = sum(1 for c in components if c.status == HealthStatus.HEALTHY)
+    degraded_count = sum(1 for c in components if c.status == HealthStatus.DEGRADED)
+    unhealthy_count = sum(1 for c in components if c.status == HealthStatus.UNHEALTHY)
+
+    if unhealthy_count > 0:
+        overall_status = HealthStatus.UNHEALTHY
+    elif degraded_count > 0:
+        overall_status = HealthStatus.DEGRADED
+    else:
+        overall_status = HealthStatus.HEALTHY
+
+    return overall_status, healthy_count, degraded_count, unhealthy_count
+
+
+def _safe_component_result(
+    result: ComponentHealth | Exception,
+    name: str,
+) -> ComponentHealth:
+    """Convert exception to UNHEALTHY ComponentHealth.
+
+    VP-Performance-1: Helper for graceful degradation with asyncio.gather.
+    """
+    if isinstance(result, Exception):
+        logger.warning(f"KG health check for {name} raised exception: {result}")
+        return ComponentHealth(
+            name=name,
+            status=HealthStatus.UNHEALTHY,
+            latency_ms=None,
+            last_check=datetime.now(timezone.utc),
+            error=f"Health check failed: {type(result).__name__}",
+        )
+    return result
+
+
 @router.get("/")
 async def get_overall_health() -> dict[str, Any]:
     """Get overall health status of all KG components.
@@ -477,38 +522,53 @@ async def get_overall_health() -> dict[str, Any]:
     """
     start = time.perf_counter()
 
-    # Check all components in parallel
+    # VP-Performance-1: Check all components in parallel using asyncio.gather
+    # return_exceptions=True ensures one failing check doesn't crash the endpoint
+    component_names = [
+        "graph_database", "graph_analytics", "graph_embedding",
+        "causal_reasoning", "provenance", "multi_agent_orchestrator",
+        "kg_visualization", "medagentbench", "drknows_benchmark",
+        "kg_partitioning", "kg_kafka_streaming", "fhir_export",
+    ]
+
+    component_results = await asyncio.gather(
+        check_graph_database(),
+        check_graph_analytics(),
+        check_graph_embedding(),
+        check_causal_reasoning(),
+        check_provenance_service(),
+        check_multi_agent_orchestrator(),
+        check_visualization_service(),
+        check_medagentbench(),
+        check_drknows_benchmark(),
+        check_partitioning_service(),
+        check_kafka_streaming(),
+        check_fhir_export(),
+        return_exceptions=True,
+    )
+
     components = [
-        await check_graph_database(),
-        await check_graph_analytics(),
-        await check_graph_embedding(),
-        await check_causal_reasoning(),
-        await check_provenance_service(),
-        await check_multi_agent_orchestrator(),
-        await check_visualization_service(),
-        await check_medagentbench(),
-        await check_drknows_benchmark(),
-        await check_partitioning_service(),
-        await check_kafka_streaming(),
-        await check_fhir_export(),
+        _safe_component_result(result, name)
+        for result, name in zip(component_results, component_names)
     ]
 
-    # Check dependencies
+    # Check dependencies (also in parallel if multiple)
+    dep_results = await asyncio.gather(
+        check_neo4j_dependency(),
+        return_exceptions=True,
+    )
     dependencies = [
-        await check_neo4j_dependency(),
+        dep_results[0] if not isinstance(dep_results[0], Exception) else
+        DependencyHealth(
+            name="neo4j",
+            type="graph_database",
+            status=HealthStatus.UNHEALTHY,
+            connection_info={"error": str(dep_results[0])},
+        )
     ]
 
-    # Determine overall status
-    healthy_count = sum(1 for c in components if c.status == HealthStatus.HEALTHY)
-    degraded_count = sum(1 for c in components if c.status == HealthStatus.DEGRADED)
-    unhealthy_count = sum(1 for c in components if c.status == HealthStatus.UNHEALTHY)
-
-    if unhealthy_count > 0:
-        overall_status = HealthStatus.UNHEALTHY
-    elif degraded_count > 0:
-        overall_status = HealthStatus.DEGRADED
-    else:
-        overall_status = HealthStatus.HEALTHY
+    # VP-Cleanup-1: Use helper function for status determination
+    overall_status, healthy_count, degraded_count, unhealthy_count = _determine_kg_health_status(components)
 
     total_time = (time.perf_counter() - start) * 1000
 
@@ -643,10 +703,16 @@ async def readiness_probe() -> dict[str, Any]:
 
     Checks if all critical components are ready to serve requests.
     """
-    # Check critical components only
+    # VP-Performance-2: Check critical components in parallel
+    critical_names = ["graph_database", "graph_analytics"]
+    critical_results = await asyncio.gather(
+        check_graph_database(),
+        check_graph_analytics(),
+        return_exceptions=True,
+    )
     critical_components = [
-        await check_graph_database(),
-        await check_graph_analytics(),
+        _safe_component_result(result, name)
+        for result, name in zip(critical_results, critical_names)
     ]
 
     all_ready = all(c.status in (HealthStatus.HEALTHY, HealthStatus.DEGRADED) for c in critical_components)
@@ -674,20 +740,33 @@ async def get_health_metrics(
     """
     now = datetime.now(timezone.utc)
 
-    # Check all components
+    # VP-Performance-2: Check all components in parallel
+    component_names = [
+        "graph_database", "graph_analytics", "graph_embedding",
+        "causal_reasoning", "provenance", "multi_agent_orchestrator",
+        "kg_visualization", "medagentbench", "drknows_benchmark",
+        "kg_partitioning", "kg_kafka_streaming", "fhir_export",
+    ]
+
+    component_results = await asyncio.gather(
+        check_graph_database(),
+        check_graph_analytics(),
+        check_graph_embedding(),
+        check_causal_reasoning(),
+        check_provenance_service(),
+        check_multi_agent_orchestrator(),
+        check_visualization_service(),
+        check_medagentbench(),
+        check_drknows_benchmark(),
+        check_partitioning_service(),
+        check_kafka_streaming(),
+        check_fhir_export(),
+        return_exceptions=True,
+    )
+
     components = [
-        await check_graph_database(),
-        await check_graph_analytics(),
-        await check_graph_embedding(),
-        await check_causal_reasoning(),
-        await check_provenance_service(),
-        await check_multi_agent_orchestrator(),
-        await check_visualization_service(),
-        await check_medagentbench(),
-        await check_drknows_benchmark(),
-        await check_partitioning_service(),
-        await check_kafka_streaming(),
-        await check_fhir_export(),
+        _safe_component_result(result, name)
+        for result, name in zip(component_results, component_names)
     ]
 
     # Calculate metrics
@@ -718,19 +797,33 @@ async def get_health_metrics(
 @router.get("/alerts")
 async def get_health_alerts() -> dict[str, Any]:
     """Get current health alerts for unhealthy or degraded components."""
+    # VP-Performance-2: Check all components in parallel
+    component_names = [
+        "graph_database", "graph_analytics", "graph_embedding",
+        "causal_reasoning", "provenance", "multi_agent_orchestrator",
+        "kg_visualization", "medagentbench", "drknows_benchmark",
+        "kg_partitioning", "kg_kafka_streaming", "fhir_export",
+    ]
+
+    component_results = await asyncio.gather(
+        check_graph_database(),
+        check_graph_analytics(),
+        check_graph_embedding(),
+        check_causal_reasoning(),
+        check_provenance_service(),
+        check_multi_agent_orchestrator(),
+        check_visualization_service(),
+        check_medagentbench(),
+        check_drknows_benchmark(),
+        check_partitioning_service(),
+        check_kafka_streaming(),
+        check_fhir_export(),
+        return_exceptions=True,
+    )
+
     components = [
-        await check_graph_database(),
-        await check_graph_analytics(),
-        await check_graph_embedding(),
-        await check_causal_reasoning(),
-        await check_provenance_service(),
-        await check_multi_agent_orchestrator(),
-        await check_visualization_service(),
-        await check_medagentbench(),
-        await check_drknows_benchmark(),
-        await check_partitioning_service(),
-        await check_kafka_streaming(),
-        await check_fhir_export(),
+        _safe_component_result(result, name)
+        for result, name in zip(component_results, component_names)
     ]
 
     alerts = []
