@@ -4,6 +4,8 @@ These schemas define the API interface for the Policy KG,
 which encodes clinical guidelines and decision rules.
 """
 
+from __future__ import annotations
+
 from datetime import datetime
 from enum import Enum
 from typing import Any

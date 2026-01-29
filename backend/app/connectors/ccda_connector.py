@@ -31,6 +31,8 @@ Usage:
         print(patient.source_id, patient.given_name, patient.family_name)
 """
 
+from __future__ import annotations
+
 import logging
 import re
 import xml.etree.ElementTree as ET

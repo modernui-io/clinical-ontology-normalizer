@@ -21,6 +21,8 @@ Usage:
     vocab = normalize_code_system("http://loinc.org")  # Returns "LOINC"
 """
 
+from __future__ import annotations
+
 from app.connectors.base import (
     ConditionStatus,
     DrugStatus,

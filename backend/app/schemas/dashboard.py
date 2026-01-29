@@ -1,5 +1,7 @@
 """Dashboard response schemas for role-based views."""
 
+from __future__ import annotations
+
 from datetime import datetime
 from typing import Any
 

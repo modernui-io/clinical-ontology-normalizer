@@ -10,6 +10,8 @@ All connectors extract data into these standardized models, which are then
 transformed to OMOP CDM format by the ETL pipeline.
 """
 
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import date, datetime

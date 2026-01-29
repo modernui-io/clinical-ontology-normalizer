@@ -1,5 +1,7 @@
 """Base schemas and enums for Clinical Ontology Normalizer."""
 
+from __future__ import annotations
+
 from enum import Enum
 
 

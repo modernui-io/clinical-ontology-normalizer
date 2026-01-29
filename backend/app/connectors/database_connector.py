@@ -36,6 +36,8 @@ Usage:
         print(patient.source_id, patient.given_name)
 """
 
+from __future__ import annotations
+
 import logging
 from collections.abc import AsyncIterator
 from dataclasses import dataclass, field

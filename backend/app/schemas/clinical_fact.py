@@ -1,5 +1,7 @@
 """ClinicalFact and FactEvidence schemas."""
 
+from __future__ import annotations
+
 from datetime import datetime
 from enum import Enum
 from uuid import UUID

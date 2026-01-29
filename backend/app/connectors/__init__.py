@@ -21,6 +21,8 @@ Usage:
         print(patient.source_id, patient.given_name, patient.family_name)
 """
 
+from __future__ import annotations
+
 from app.connectors.base import (
     ConditionStatus,
     ConnectorConfig,

@@ -16,6 +16,8 @@ Usage:
             print(patient.full_name)
 """
 
+from __future__ import annotations
+
 import csv
 import logging
 from dataclasses import dataclass, field

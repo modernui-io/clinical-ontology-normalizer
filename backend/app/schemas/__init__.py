@@ -1,5 +1,7 @@
 """Pydantic schemas for Clinical Ontology Normalizer."""
 
+from __future__ import annotations
+
 from app.schemas.base import (
     Assertion,
     Domain,
