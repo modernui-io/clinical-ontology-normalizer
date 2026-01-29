@@ -444,7 +444,7 @@ class KGKafkaStreamingService:
         loinc_code = payload.get("loinc_code", "")
         value = payload.get("value")
 
-        logger.info(f"Processing lab result: {loinc_code} = {value} for patient {patient_id}")
+        logger.info(f"Processing lab result: {loinc_code} for patient {patient_id}")
 
         return ProcessingResult(
             event_id=event.event_id,
