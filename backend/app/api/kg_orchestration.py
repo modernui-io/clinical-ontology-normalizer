@@ -19,6 +19,8 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
+from app.api.errors import log_and_raise_internal_error
+
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/kg/orchestration", tags=["kg-orchestration"])
 
@@ -510,8 +512,11 @@ async def execute_unified_query(request: UnifiedQueryRequest) -> dict[str, Any]:
             }
 
     except Exception as e:
-        logger.exception(f"Error executing query: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise log_and_raise_internal_error(
+            exception=e,
+            endpoint="/kg/orchestration/query",
+            user_message="Failed to execute knowledge graph query",
+        )
 
     return result
 
@@ -642,8 +647,11 @@ async def answer_clinical_question(request: ClinicalQuestionRequest) -> dict[str
             }
 
     except Exception as e:
-        logger.exception(f"Error answering clinical question: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise log_and_raise_internal_error(
+            exception=e,
+            endpoint="/kg/orchestration/clinical-question",
+            user_message="Failed to answer clinical question",
+        )
 
     return result
 
@@ -728,8 +736,11 @@ async def find_reasoning_paths(request: ReasoningPathRequest) -> dict[str, Any]:
         }
 
     except Exception as e:
-        logger.exception(f"Error finding reasoning paths: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise log_and_raise_internal_error(
+            exception=e,
+            endpoint="/kg/orchestration/reasoning-path",
+            user_message="Failed to find reasoning paths",
+        )
 
     return result
 
@@ -811,8 +822,11 @@ async def get_patient_knowledge_graph(
         }
 
     except Exception as e:
-        logger.exception(f"Error building patient graph: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise log_and_raise_internal_error(
+            exception=e,
+            endpoint="/kg/orchestration/patient/{patient_id}/graph",
+            user_message="Failed to build patient knowledge graph",
+        )
 
 
 @router.get("/patient/{patient_id}/timeline")
@@ -892,8 +906,11 @@ async def get_patient_timeline(
         }
 
     except Exception as e:
-        logger.exception(f"Error building patient timeline: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise log_and_raise_internal_error(
+            exception=e,
+            endpoint="/kg/orchestration/patient/{patient_id}/timeline",
+            user_message="Failed to build patient timeline",
+        )
 
 
 # ============================================================================
@@ -970,8 +987,11 @@ async def export_knowledge_graph(request: ExportRequest) -> dict[str, Any]:
         }
 
     except Exception as e:
-        logger.exception(f"Error exporting knowledge graph: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise log_and_raise_internal_error(
+            exception=e,
+            endpoint="/kg/orchestration/export",
+            user_message="Failed to export knowledge graph",
+        )
 
 
 # ============================================================================
@@ -1048,8 +1068,11 @@ async def start_mdt_session(
         }
 
     except Exception as e:
-        logger.exception(f"Error running MDT session: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise log_and_raise_internal_error(
+            exception=e,
+            endpoint="/kg/orchestration/mdt-session",
+            user_message="Failed to run multi-disciplinary team session",
+        )
 
 
 # ============================================================================

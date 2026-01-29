@@ -23,6 +23,7 @@ from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.errors import log_and_raise_internal_error
 from app.core.config import settings
 from app.core.database import get_db
 from app.services.fhir_import import FHIRImportService
@@ -200,8 +201,11 @@ async def import_fhir_patient(
         )
         return FHIRImportResponse(**result)
     except Exception as e:
-        logger.exception(f"FHIR import failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise log_and_raise_internal_error(
+            exception=e,
+            endpoint="/fhir/import",
+            user_message="FHIR import failed",
+        )
     finally:
         await service.close()
 

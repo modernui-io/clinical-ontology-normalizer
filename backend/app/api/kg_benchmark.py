@@ -12,6 +12,8 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
+from app.api.errors import log_and_raise_internal_error
+
 from app.services.drknows_benchmark_service import (
     DRKNOWSBenchmarkService,
     get_drknows_benchmark_service,
@@ -151,8 +153,11 @@ async def run_benchmark_suite(suite_id: str) -> dict[str, Any]:
             "run_at": report.run_at.isoformat(),
         }
     except Exception as e:
-        logger.exception(f"Error running benchmark suite: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise log_and_raise_internal_error(
+            exception=e,
+            endpoint="/kg/benchmark/medagentbench/run",
+            user_message="Failed to run benchmark suite",
+        )
 
 
 @router.post("/medagentbench/compare")
@@ -221,8 +226,11 @@ async def run_drknows_benchmark() -> dict[str, Any]:
 
         return service.export_benchmark_report(result)
     except Exception as e:
-        logger.exception(f"Error running DR.KNOWS benchmark: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise log_and_raise_internal_error(
+            exception=e,
+            endpoint="/kg/benchmark/drknows/run",
+            user_message="Failed to run DR.KNOWS benchmark",
+        )
 
 
 @router.get("/drknows/history")
