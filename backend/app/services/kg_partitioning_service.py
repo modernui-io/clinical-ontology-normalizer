@@ -17,8 +17,9 @@ from __future__ import annotations
 import hashlib
 import logging
 import statistics
+import threading
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timezone
+from datetime import datetime, timezone, timezone
 from enum import Enum
 from typing import Any
 
@@ -402,7 +403,7 @@ class KGPartitioningService:
         base_year = 2020
 
         start_year = start.year if isinstance(start, datetime) else base_year
-        end_year = end.year if isinstance(end, datetime) else datetime.now(UTC).year
+        end_year = end.year if isinstance(end, datetime) else datetime.now(timezone.utc).year
 
         for year in range(start_year, end_year + 1):
             partition_idx = (year - base_year) % self._num_partitions
@@ -573,6 +574,7 @@ class KGPartitioningService:
 
 # Singleton instances for different strategies
 _services: dict[PartitionStrategy, KGPartitioningService] = {}
+_services_lock = threading.Lock()
 
 
 def get_kg_partitioning_service(
@@ -581,9 +583,12 @@ def get_kg_partitioning_service(
 ) -> KGPartitioningService:
     """Get the singleton KG Partitioning service instance."""
     global _services
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if strategy not in _services:
-        _services[strategy] = KGPartitioningService(
-            num_partitions=num_partitions,
-            strategy=strategy,
-        )
+        with _services_lock:
+            if strategy not in _services:
+                _services[strategy] = KGPartitioningService(
+                    num_partitions=num_partitions,
+                    strategy=strategy,
+                )
     return _services[strategy]

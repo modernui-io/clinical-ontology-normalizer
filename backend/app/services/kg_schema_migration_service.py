@@ -12,9 +12,10 @@ This service provides versioned schema migrations for Neo4j, including:
 import hashlib
 import json
 import re
+import threading
 import time
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
@@ -543,7 +544,7 @@ class KGSchemaMigrationService:
 
     def run_migration(self, migration: Migration) -> MigrationResult:
         """Run a single migration."""
-        start_time = datetime.now(UTC)
+        start_time = datetime.now(timezone.utc)
         self._emit_event("migration_started", version=migration.version, name=migration.name)
 
         result = MigrationResult(
@@ -592,7 +593,7 @@ class KGSchemaMigrationService:
 
             # Record success
             result.status = MigrationStatus.COMPLETED
-            result.completed_at = datetime.now(UTC)
+            result.completed_at = datetime.now(timezone.utc)
             result.duration_ms = (result.completed_at - start_time).total_seconds() * 1000
 
             history = MigrationHistory(
@@ -611,7 +612,7 @@ class KGSchemaMigrationService:
             )
 
         except Exception as e:
-            result.completed_at = datetime.now(UTC)
+            result.completed_at = datetime.now(timezone.utc)
             result.duration_ms = (result.completed_at - start_time).total_seconds() * 1000
 
             self._emit_event(
@@ -653,12 +654,12 @@ class KGSchemaMigrationService:
                 version=version,
                 name="unknown",
                 status=MigrationStatus.FAILED,
-                started_at=datetime.now(UTC),
+                started_at=datetime.now(timezone.utc),
                 error_message=f"Migration {version} not found"
             )
 
         migration = self._migrations[version]
-        start_time = datetime.now(UTC)
+        start_time = datetime.now(timezone.utc)
 
         result = MigrationResult(
             version=version,
@@ -679,13 +680,13 @@ class KGSchemaMigrationService:
             self.driver.remove_migration_record(version)
 
             result.status = MigrationStatus.ROLLED_BACK
-            result.completed_at = datetime.now(UTC)
+            result.completed_at = datetime.now(timezone.utc)
             result.duration_ms = (result.completed_at - start_time).total_seconds() * 1000
 
         except Exception as e:
             result.status = MigrationStatus.FAILED
             result.error_message = str(e)
-            result.completed_at = datetime.now(UTC)
+            result.completed_at = datetime.now(timezone.utc)
             result.duration_ms = (result.completed_at - start_time).total_seconds() * 1000
 
         return result
@@ -855,15 +856,19 @@ def create_kg_base_migrations() -> List[Migration]:
 
 # Singleton accessor
 _migration_service: Optional[KGSchemaMigrationService] = None
+_migration_lock = threading.Lock()
 
 
 def get_migration_service() -> KGSchemaMigrationService:
     """Get or create the migration service singleton."""
     global _migration_service
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _migration_service is None:
-        _migration_service = KGSchemaMigrationService()
-        # Register base migrations
-        _migration_service.register_migrations(create_kg_base_migrations())
+        with _migration_lock:
+            if _migration_service is None:
+                _migration_service = KGSchemaMigrationService()
+                # Register base migrations
+                _migration_service.register_migrations(create_kg_base_migrations())
     return _migration_service
 
 

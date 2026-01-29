@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import json
 import logging
+import threading
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
@@ -731,11 +732,15 @@ class KnowledgeGraphFHIRExporter:
 
 # Singleton instance
 _kg_fhir_exporter: KnowledgeGraphFHIRExporter | None = None
+_kg_fhir_lock = threading.Lock()
 
 
 def get_kg_fhir_exporter() -> KnowledgeGraphFHIRExporter:
     """Get the singleton knowledge graph FHIR exporter."""
     global _kg_fhir_exporter
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _kg_fhir_exporter is None:
-        _kg_fhir_exporter = KnowledgeGraphFHIRExporter()
+        with _kg_fhir_lock:
+            if _kg_fhir_exporter is None:
+                _kg_fhir_exporter = KnowledgeGraphFHIRExporter()
     return _kg_fhir_exporter
