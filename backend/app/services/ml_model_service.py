@@ -609,6 +609,31 @@ class MLModelService:
         # For demo, generate realistic predictions based on features
         prediction = self._simulate_prediction(model, metadata, feature_set)
 
+        # Apply calibration if available
+        try:
+            from app.services.prediction_calibration_service import (
+                get_prediction_calibration_service,
+            )
+
+            calibration_service = get_prediction_calibration_service()
+            calibrated_scores = calibration_service.apply_calibration(
+                model_id, metadata.version, [prediction.prediction], strict=False
+            )
+            if calibrated_scores:
+                calibrated = float(calibrated_scores[0])
+                if abs(calibrated - prediction.prediction) > 1e-6:
+                    calibrated = round(calibrated, 4)
+                    prediction = prediction.model_copy(
+                        update={
+                            "prediction": calibrated,
+                            "confidence": round(abs(calibrated - 0.5) * 2, 4),
+                            "risk_tier": self._risk_tier_from_probability(calibrated),
+                            "prediction_label": "Positive" if calibrated >= 0.5 else "Negative",
+                        }
+                    )
+        except Exception as exc:
+            logger.debug(f"Calibration skipped for {model_id}: {exc}")
+
         return prediction
 
     def predict_batch(
@@ -690,15 +715,7 @@ class MLModelService:
         # Clamp to valid probability range
         prediction = max(0.01, min(0.99, base_prob))
 
-        # Determine risk tier
-        if prediction >= 0.7:
-            risk_tier = "Critical"
-        elif prediction >= 0.5:
-            risk_tier = "High"
-        elif prediction >= 0.3:
-            risk_tier = "Medium"
-        else:
-            risk_tier = "Low"
+        risk_tier = self._risk_tier_from_probability(prediction)
 
         # Generate feature contributions (mock SHAP values)
         contributions = {}
@@ -727,6 +744,16 @@ class MLModelService:
             feature_contributions=contributions,
             explanation=explanation,
         )
+
+    @staticmethod
+    def _risk_tier_from_probability(prediction: float) -> str:
+        if prediction >= 0.7:
+            return "Critical"
+        if prediction >= 0.5:
+            return "High"
+        if prediction >= 0.3:
+            return "Medium"
+        return "Low"
 
     def train_model(
         self,

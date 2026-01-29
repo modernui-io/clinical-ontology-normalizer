@@ -84,6 +84,7 @@ from app.api import (
     alert_rules_router,
     risk_thresholds_router,
     prediction_audit_router,
+    prediction_calibration_router,
     pipeline_scheduling_router,
     data_completeness_router,
     data_consistency_router,
@@ -93,6 +94,7 @@ from app.api import (
     policy_router,
     vocabulary_router,
     data_sources_router,
+    phenotypes_router,
     pipelines_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
@@ -689,6 +691,7 @@ api_v1_router.include_router(lab_reference_router)
 api_v1_router.include_router(alert_rules_router)
 api_v1_router.include_router(risk_thresholds_router)
 api_v1_router.include_router(prediction_audit_router)
+api_v1_router.include_router(prediction_calibration_router)
 api_v1_router.include_router(pipeline_scheduling_router)
 api_v1_router.include_router(data_completeness_router)
 api_v1_router.include_router(data_consistency_router)
@@ -700,6 +703,7 @@ api_v1_router.include_router(vocabulary_router)
 api_v1_router.include_router(auth_router)
 api_v1_router.include_router(users_router)
 api_v1_router.include_router(data_sources_router)
+api_v1_router.include_router(phenotypes_router)
 api_v1_router.include_router(pipelines_router)
 
 # Mount versioned API router

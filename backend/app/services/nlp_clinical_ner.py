@@ -100,6 +100,12 @@ class TransformerNERConfig:
     # Batch size for transformer inference
     batch_size: int = 8
 
+    # Fallback transformer checkpoints to try if the primary model fails to load
+    fallback_models: tuple[str, ...] = (
+        "alvaroalon2/biobert_diseases_ner",
+        "dmis-lab/biobert-base-cased-v1.1",
+    )
+
 
 @dataclass
 class ClinicalNERService(BaseNLPService):
@@ -223,12 +229,8 @@ class ClinicalNERService(BaseNLPService):
                 self._transformer_available = True
             except Exception as e:
                 logger.warning(f"Could not load transformer model {self.config.model_name}: {e}")
-                # Try fallback to a biomedical NER model
-                fallback_models = [
-                    "alvaroalon2/biobert_diseases_ner",
-                    "dmis-lab/biobert-base-cased-v1.1",
-                ]
-                for fallback in fallback_models:
+                # Try fallback to biomedical NER models
+                for fallback in self.config.fallback_models:
                     try:
                         self._transformer_pipeline = pipeline(
                             "ner",

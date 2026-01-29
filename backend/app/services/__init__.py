@@ -60,6 +60,12 @@ from app.services.nlp_clinical_ner import (
     get_clinical_ner_service,
     reset_clinical_ner_service,
 )
+from app.services.nlp_modernbert_ner import (
+    ModernBERTNERConfig,
+    ModernBERTNERService,
+    get_modernbert_ner_service,
+    reset_modernbert_ner_service,
+)
 from app.services.relation_extraction import (
     ExtractedRelation,
     RelationExtractionConfig,
@@ -552,6 +558,10 @@ __all__ = [
     "TransformerNERConfig",
     "get_clinical_ner_service",
     "reset_clinical_ner_service",
+    "ModernBERTNERConfig",
+    "ModernBERTNERService",
+    "get_modernbert_ner_service",
+    "reset_modernbert_ner_service",
     "ExtractedRelation",
     "RelationExtractionConfig",
     "RelationExtractionService",

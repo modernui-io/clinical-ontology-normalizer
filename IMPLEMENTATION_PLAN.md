@@ -100,6 +100,17 @@ Each task should be completed in one iteration with tests passing before checkin
 - [x] 10.4 Add privacy safeguards (no real PHI checks)
 - [x] 10.5 Final integration test across full pipeline
 
+## Phase 11: Advanced NLP Enhancements
+
+- [x] 11.1 Implement BioClinical ModernBERT NER Service
+- [x] 11.2 Implement Neo4j Drug Interaction Enhancement
+
+## Phase 12: Advanced ML Enhancements
+
+- [ ] 12.1 Implement Computable Phenotype Engine
+- [ ] 12.2 Implement Active Learning Feedback Service
+- [x] 12.3 Implement Prediction Calibration Service
+
 ---
 
 ## Completion Criteria

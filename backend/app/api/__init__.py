@@ -131,6 +131,7 @@ from app.api.lab_reference import router as lab_reference_router
 from app.api.alert_rules import router as alert_rules_router
 from app.api.risk_thresholds import router as risk_thresholds_router
 from app.api.prediction_audit import router as prediction_audit_router
+from app.api.prediction_calibration import router as prediction_calibration_router
 from app.api.pipeline_scheduling import router as pipeline_scheduling_router
 from app.api.data_completeness import router as data_completeness_router
 from app.api.data_consistency import router as data_consistency_router
@@ -141,6 +142,7 @@ from app.api.policy import router as policy_router
 from app.api.vocabulary import router as vocabulary_router
 from app.api.smart_server import router as smart_server_router
 from app.api.data_sources import router as data_sources_router
+from app.api.phenotypes import router as phenotypes_router
 from app.api.pipelines import router as pipelines_router
 
 __all__ = [
@@ -212,6 +214,7 @@ __all__ = [
     "alert_rules_router",
     "risk_thresholds_router",
     "prediction_audit_router",
+    "prediction_calibration_router",
     "pipeline_scheduling_router",
     "data_completeness_router",
     "data_consistency_router",
@@ -222,6 +225,7 @@ __all__ = [
     "vocabulary_router",
     "smart_server_router",
     "data_sources_router",
+    "phenotypes_router",
     "pipelines_router",
     # Middleware
     "AuditMiddleware",

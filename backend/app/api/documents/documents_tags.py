@@ -1,6 +1,7 @@
 """Document Tags API endpoints - Tagging, categorization, and clinical decision support."""
 
 import logging
+from typing import Literal
 from uuid import uuid4
 
 from fastapi import APIRouter, HTTPException, status
@@ -9,6 +10,7 @@ from pydantic import BaseModel, Field
 from app.models.clinical_value import ValueType
 from app.services.value_extraction import get_value_extraction_service
 from app.services.nlp_clinical_ner import get_clinical_ner_service
+from app.services.nlp_modernbert_ner import get_modernbert_ner_service
 from app.services.relation_extraction import get_relation_extraction_service, RelationType
 
 logger = logging.getLogger(__name__)
@@ -144,6 +146,10 @@ class ExtractNERRequest(BaseModel):
     text: str = Field(..., description="Clinical note text to extract entities from")
     note_type: str | None = Field(None, description="Type of clinical note for context")
     min_confidence: float = Field(0.5, ge=0.0, le=1.0, description="Minimum confidence threshold")
+    model: Literal["clinical_bert", "modernbert"] = Field(
+        "clinical_bert",
+        description="NER model backend to use",
+    )
 
 
 class ExtractedNEREntity(BaseModel):
@@ -202,7 +208,10 @@ async def preview_ner_extraction(
     import time
 
     # Get NER service
-    service = get_clinical_ner_service()
+    if request.model == "modernbert":
+        service = get_modernbert_ner_service()
+    else:
+        service = get_clinical_ner_service()
 
     # Run extraction with timing
     start_time = time.perf_counter()
