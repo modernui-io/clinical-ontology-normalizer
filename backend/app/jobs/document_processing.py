@@ -12,6 +12,7 @@ from app.models import Document
 from app.models.mention import Mention, MentionConceptCandidate
 from app.schemas.base import Assertion, Domain, Experiencer, JobStatus, Temporality
 from app.services.fact_builder_db import DatabaseFactBuilderService
+from app.services.kg_cache_service import get_kg_cache_service
 from app.services.mapping_sql import SQLMappingService
 from app.services.nlp_rule_based import RuleBasedNLPService
 
@@ -276,6 +277,20 @@ def process_document(document_id: str) -> dict:
                 )
             )
             session.commit()
+
+            # VP-Caching-1: Invalidate cache after creating new facts
+            if fact_count > 0 and document.patient_id:
+                try:
+                    cache_service = get_kg_cache_service()
+                    invalidated = cache_service.invalidate_patient(document.patient_id)
+                    if invalidated > 0:
+                        logger.info(
+                            f"Invalidated {invalidated} cache entries for patient_id={document.patient_id}"
+                        )
+                except Exception as e:
+                    logger.warning(
+                        f"Failed to invalidate cache for patient_id={document.patient_id}: {e}"
+                    )
 
             logger.info(
                 f"Document processing completed for document_id={document_id}, "

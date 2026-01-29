@@ -1,15 +1,20 @@
-"""Patient API endpoints."""
+"""Patient API endpoints.
+
+VP-Compliance-1: All PHI access is logged for HIPAA compliance.
+"""
 
 import logging
 from datetime import datetime, UTC
 from typing import Annotated, Any
 from uuid import UUID
 
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Depends, Query, Request, status
 from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 
 from app.api.errors import ErrorCode, NotFoundError
+from app.api.middleware.auth_middleware import CurrentUser, get_current_user
+from app.core.audit import log_data_access, AuditAction
 from app.core.database import get_sync_engine
 from app.models.clinical_fact import ClinicalFact as ClinicalFactModel
 from app.models.knowledge_graph import KGNode, KGEdge
@@ -17,6 +22,7 @@ from app.schemas import ClinicalFact
 from app.schemas.base import Assertion, Domain
 from app.schemas.knowledge_graph import PatientGraph, KGNode as KGNodeSchema, KGEdge as KGEdgeSchema, NodeType, EdgeType
 from app.services.graph_builder_db import DatabaseGraphBuilderService
+from app.services.kg_cache_service import get_kg_cache_service
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +35,10 @@ router = APIRouter(prefix="/patients", tags=["Patients"])
     summary="Get patient knowledge graph",
     description="Retrieve the complete knowledge graph for a patient, including all nodes and edges.",
 )
-def get_patient_graph(patient_id: str) -> PatientGraph:
+def get_patient_graph(
+    patient_id: str,
+    current_user: CurrentUser = Depends(get_current_user),
+) -> PatientGraph:
     """Get the complete knowledge graph for a patient.
 
     This endpoint builds or retrieves the patient's knowledge graph,
@@ -40,6 +49,7 @@ def get_patient_graph(patient_id: str) -> PatientGraph:
 
     Args:
         patient_id: The patient identifier.
+        current_user: Authenticated user (injected).
 
     Returns:
         PatientGraph with all nodes and edges.
@@ -47,7 +57,16 @@ def get_patient_graph(patient_id: str) -> PatientGraph:
     Raises:
         HTTPException: 404 if patient has no data.
     """
-    logger.info(f"Getting knowledge graph for patient_id={patient_id}")
+    # VP-Compliance-1: Log PHI access for HIPAA compliance
+    log_data_access(
+        resource_type="patient_graph",
+        resource_id=patient_id,
+        patient_id=patient_id,
+        user_id=current_user.id,
+        action=AuditAction.READ,
+    )
+
+    logger.info(f"Getting knowledge graph for patient_id={patient_id} by user={current_user.id}")
 
     with Session(get_sync_engine()) as session:
         # Direct query for nodes
@@ -76,6 +95,15 @@ def get_patient_graph(patient_id: str) -> PatientGraph:
             graph_service = DatabaseGraphBuilderService(session)
             graph_service.build_graph_for_patient(patient_id)
             session.commit()
+
+            # VP-Caching-1: Invalidate cache after graph build
+            try:
+                cache_service = get_kg_cache_service()
+                invalidated = cache_service.invalidate_patient(patient_id)
+                if invalidated > 0:
+                    logger.info(f"Invalidated {invalidated} cache entries for patient_id={patient_id}")
+            except Exception as e:
+                logger.warning(f"Failed to invalidate cache for patient_id={patient_id}: {e}")
 
             # Re-query after building
             node_result = session.execute(node_stmt)
@@ -135,7 +163,10 @@ def get_patient_graph(patient_id: str) -> PatientGraph:
     summary="Build patient knowledge graph",
     description="Build or rebuild the knowledge graph for a patient from their clinical facts.",
 )
-def build_patient_graph(patient_id: str) -> PatientGraph:
+def build_patient_graph(
+    patient_id: str,
+    current_user: CurrentUser = Depends(get_current_user),
+) -> PatientGraph:
     """Build the knowledge graph for a patient from clinical facts.
 
     This endpoint forces a rebuild of the patient's knowledge graph,
@@ -143,6 +174,7 @@ def build_patient_graph(patient_id: str) -> PatientGraph:
 
     Args:
         patient_id: The patient identifier.
+        current_user: Authenticated user (injected).
 
     Returns:
         PatientGraph with all nodes and edges.
@@ -150,7 +182,16 @@ def build_patient_graph(patient_id: str) -> PatientGraph:
     Raises:
         HTTPException: 404 if patient has no clinical facts.
     """
-    logger.info(f"Building knowledge graph for patient_id={patient_id}")
+    # VP-Compliance-1: Log PHI access for HIPAA compliance
+    log_data_access(
+        resource_type="patient_graph",
+        resource_id=patient_id,
+        patient_id=patient_id,
+        user_id=current_user.id,
+        action=AuditAction.CREATE,
+    )
+
+    logger.info(f"Building knowledge graph for patient_id={patient_id} by user={current_user.id}")
 
     with Session(get_sync_engine()) as session:
         # Check if patient has any facts
@@ -174,6 +215,15 @@ def build_patient_graph(patient_id: str) -> PatientGraph:
         result = graph_service.build_graph_for_patient(patient_id)
         session.commit()
 
+        # VP-Caching-1: Invalidate cache after graph rebuild
+        try:
+            cache_service = get_kg_cache_service()
+            invalidated = cache_service.invalidate_patient(patient_id)
+            if invalidated > 0:
+                logger.info(f"Invalidated {invalidated} cache entries for patient_id={patient_id}")
+        except Exception as e:
+            logger.warning(f"Failed to invalidate cache for patient_id={patient_id}: {e}")
+
         logger.info(
             f"Built graph for patient_id={patient_id}: "
             f"nodes_created={result.nodes_created}, edges_created={result.edges_created}"
@@ -195,6 +245,7 @@ def get_patient_facts(
     assertion: Annotated[Assertion | None, Query(description="Filter by assertion")] = None,
     limit: Annotated[int, Query(ge=1, le=1000, description="Max facts to return")] = 100,
     offset: Annotated[int, Query(ge=0, description="Offset for pagination")] = 0,
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> list[ClinicalFact]:
     """Get clinical facts for a patient.
 
@@ -207,6 +258,7 @@ def get_patient_facts(
         assertion: Optional filter by assertion status.
         limit: Maximum number of facts to return.
         offset: Pagination offset.
+        current_user: Authenticated user (injected).
 
     Returns:
         List of ClinicalFact objects.
@@ -214,7 +266,16 @@ def get_patient_facts(
     Raises:
         HTTPException: 404 if patient has no facts.
     """
-    logger.info(f"Getting clinical facts for patient_id={patient_id}")
+    # VP-Compliance-1: Log PHI access for HIPAA compliance
+    log_data_access(
+        resource_type="patient_facts",
+        resource_id=patient_id,
+        patient_id=patient_id,
+        user_id=current_user.id,
+        action=AuditAction.READ,
+    )
+
+    logger.info(f"Getting clinical facts for patient_id={patient_id} by user={current_user.id}")
 
     with Session(get_sync_engine()) as session:
         # Build query

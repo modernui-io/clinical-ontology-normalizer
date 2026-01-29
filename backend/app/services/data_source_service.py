@@ -11,7 +11,7 @@ import asyncio
 import base64
 import hashlib
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from uuid import UUID
 
@@ -20,6 +20,8 @@ from cryptography.fernet import Fernet
 from pydantic import BaseModel, Field
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from dataclasses import dataclass
 
 from app.core.config import settings
 from app.models.data_source import (
@@ -30,6 +32,48 @@ from app.models.data_source import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+# ============================================================================
+# VP-Concurrency-1: OAuth2 Token Caching with Race Condition Prevention
+# ============================================================================
+
+
+@dataclass
+class CachedToken:
+    """Cached OAuth2 token with expiry tracking."""
+
+    access_token: str
+    expires_at: datetime
+    source_id: str
+
+    def is_expired(self, buffer_seconds: int = 60) -> bool:
+        """Check if token is expired or will expire soon.
+
+        Args:
+            buffer_seconds: Consider expired if within this many seconds of expiry
+        """
+        return datetime.now(timezone.utc) >= (
+            self.expires_at - timedelta(seconds=buffer_seconds)
+        )
+
+
+# Module-level token cache and locks
+_token_cache: dict[str, CachedToken] = {}
+_token_locks: dict[str, asyncio.Lock] = {}
+_locks_lock = asyncio.Lock()  # Protects access to _token_locks
+
+
+async def _get_token_lock(source_id: str) -> asyncio.Lock:
+    """Get or create a lock for a specific source.
+
+    VP-Concurrency-1: Each source gets its own lock to prevent
+    concurrent token refresh requests for the same source.
+    """
+    async with _locks_lock:
+        if source_id not in _token_locks:
+            _token_locks[source_id] = asyncio.Lock()
+        return _token_locks[source_id]
 
 
 # Generate a stable encryption key from JWT secret
@@ -455,7 +499,39 @@ class DataSourceService:
         return headers
 
     async def _get_oauth2_token(self, source: DataSource) -> Optional[str]:
-        """Get OAuth2 access token using client credentials."""
+        """Get OAuth2 access token using client credentials.
+
+        VP-Concurrency-1: Uses caching and locking to prevent race conditions
+        when multiple requests try to refresh tokens simultaneously.
+        """
+        source_id = str(source.id)
+
+        # Check cache first (without lock for read)
+        cached = _token_cache.get(source_id)
+        if cached and not cached.is_expired():
+            logger.debug(f"Using cached OAuth2 token for source {source_id}")
+            return cached.access_token
+
+        # Need to refresh - acquire lock for this specific source
+        lock = await _get_token_lock(source_id)
+        async with lock:
+            # Double-check cache after acquiring lock (another request may have refreshed)
+            cached = _token_cache.get(source_id)
+            if cached and not cached.is_expired():
+                logger.debug(f"Using cached OAuth2 token for source {source_id} (post-lock)")
+                return cached.access_token
+
+            # Actually fetch the token
+            token = await self._fetch_oauth2_token(source)
+            return token
+
+    async def _fetch_oauth2_token(self, source: DataSource) -> Optional[str]:
+        """Actually fetch a new OAuth2 token from the token endpoint.
+
+        VP-Concurrency-1: This is the underlying fetch, called only when
+        cache miss and lock acquired.
+        """
+        source_id = str(source.id)
         config = source.connection_config or {}
 
         token_url = config.get("token_url")
@@ -468,19 +544,47 @@ class DataSourceService:
         client_secret = decrypt_value(client_secret_enc)
         scopes = config.get("scopes", [])
 
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                token_url,
-                data={
-                    "grant_type": "client_credentials",
-                    "client_id": client_id,
-                    "client_secret": client_secret,
-                    "scope": " ".join(scopes) if scopes else None,
-                },
-            )
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(
+                    token_url,
+                    data={
+                        "grant_type": "client_credentials",
+                        "client_id": client_id,
+                        "client_secret": client_secret,
+                        "scope": " ".join(scopes) if scopes else None,
+                    },
+                )
 
-            if response.status_code == 200:
-                return response.json().get("access_token")
+                if response.status_code == 200:
+                    token_data = response.json()
+                    access_token = token_data.get("access_token")
+
+                    if access_token:
+                        # Calculate expiry (use expires_in or default to 1 hour)
+                        expires_in = token_data.get("expires_in", 3600)
+                        expires_at = datetime.now(timezone.utc) + timedelta(seconds=expires_in)
+
+                        # Cache the token
+                        _token_cache[source_id] = CachedToken(
+                            access_token=access_token,
+                            expires_at=expires_at,
+                            source_id=source_id,
+                        )
+
+                        logger.info(
+                            f"Fetched new OAuth2 token for source {source_id}, "
+                            f"expires in {expires_in}s"
+                        )
+                        return access_token
+
+                logger.warning(
+                    f"OAuth2 token request failed for source {source_id}: "
+                    f"status={response.status_code}"
+                )
+
+        except Exception as e:
+            logger.error(f"OAuth2 token fetch error for source {source_id}: {e}")
 
         return None
 

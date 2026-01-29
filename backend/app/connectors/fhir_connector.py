@@ -39,6 +39,13 @@ from urllib.parse import urljoin
 
 import httpx
 
+from app.services.circuit_breaker import (
+    CircuitBreaker,
+    CircuitBreakerConfig,
+    CircuitBreakerOpen,
+    get_circuit_breaker_registry,
+)
+
 from app.connectors.base import (
     ConditionStatus,
     ConnectorConfig,
@@ -99,6 +106,8 @@ class FHIRConnector(SourceConnector):
 
     Extracts clinical data from FHIR servers using the standard REST API.
     Supports pagination, authentication, and various search parameters.
+
+    VP-Reliability-1: Uses circuit breaker pattern for external API calls.
     """
 
     def __init__(self, config: FHIRConnectorConfig):
@@ -110,6 +119,27 @@ class FHIRConnector(SourceConnector):
         super().__init__(config)
         self.config: FHIRConnectorConfig = config
         self._client: httpx.AsyncClient | None = None
+        self._circuit_breaker: CircuitBreaker | None = None
+
+    def _get_circuit_breaker(self) -> CircuitBreaker:
+        """Get or create circuit breaker for this FHIR server.
+
+        VP-Reliability-1: Circuit breaker prevents cascading failures.
+        """
+        if self._circuit_breaker is None:
+            # Create unique circuit breaker per FHIR server URL
+            server_id = self.config.base_url.replace("://", "_").replace("/", "_")[:50]
+            registry = get_circuit_breaker_registry()
+            self._circuit_breaker = registry.get_or_create(
+                f"fhir:{server_id}",
+                CircuitBreakerConfig(
+                    failure_threshold=5,  # Trip after 5 consecutive failures
+                    success_threshold=3,  # Close after 3 successes
+                    recovery_timeout=45.0,  # Wait 45s before retrying
+                    trip_exceptions=(httpx.HTTPError, httpx.TimeoutException, ConnectionError),
+                )
+            )
+        return self._circuit_breaker
 
     def _get_headers(self) -> dict[str, str]:
         """Build HTTP headers for requests."""
@@ -140,17 +170,28 @@ class FHIRConnector(SourceConnector):
     async def connect(self) -> bool:
         """Connect to FHIR server.
 
+        VP-Reliability-1: Protected by circuit breaker.
+
         Returns:
             True if connection successful.
         """
         if not self.config.base_url:
             return False
 
+        circuit_breaker = self._get_circuit_breaker()
+
         try:
-            client = await self._get_client()
-            # Try to get capability statement
-            response = await client.get("/metadata")
-            return response.status_code == 200
+            # Use circuit breaker to protect external call
+            async def _do_connect() -> bool:
+                client = await self._get_client()
+                response = await client.get("/metadata")
+                response.raise_for_status()
+                return response.status_code == 200
+
+            return await circuit_breaker.call_async(_do_connect)
+        except CircuitBreakerOpen as e:
+            logger.warning(f"FHIR connection blocked by circuit breaker: {e}")
+            return False
         except Exception as e:
             logger.error(f"Failed to connect to FHIR server: {e}")
             return False
@@ -165,12 +206,33 @@ class FHIRConnector(SourceConnector):
         """Test connection to FHIR server."""
         return await self.connect()
 
+    async def _fetch_page(
+        self,
+        client: httpx.AsyncClient,
+        url: str,
+        search_params: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Fetch a single page of resources with circuit breaker protection.
+
+        VP-Reliability-1: Each HTTP call is protected by circuit breaker.
+        """
+        circuit_breaker = self._get_circuit_breaker()
+
+        async def _do_fetch() -> dict[str, Any]:
+            response = await client.get(url, params=search_params)
+            response.raise_for_status()
+            return response.json()
+
+        return await circuit_breaker.call_async(_do_fetch)
+
     async def _fetch_resources(
         self,
         resource_type: str,
         params: dict[str, Any] | None = None,
     ) -> AsyncIterator[dict[str, Any]]:
         """Fetch resources from FHIR server with pagination.
+
+        VP-Reliability-1: Protected by circuit breaker.
 
         Args:
             resource_type: FHIR resource type (Patient, Condition, etc.).
@@ -189,9 +251,11 @@ class FHIRConnector(SourceConnector):
 
         while url:
             try:
-                response = await client.get(url, params=search_params if "?" not in url else None)
-                response.raise_for_status()
-                bundle = response.json()
+                bundle = await self._fetch_page(
+                    client,
+                    url,
+                    search_params if "?" not in url else None,
+                )
 
                 # Yield entries from bundle
                 if bundle.get("resourceType") == "Bundle":
@@ -208,6 +272,12 @@ class FHIRConnector(SourceConnector):
                         search_params = {}  # Params are in the URL
                         break
 
+            except CircuitBreakerOpen as e:
+                # VP-Reliability-1: Circuit breaker is open, stop fetching
+                logger.warning(
+                    f"Circuit breaker open for {resource_type}, stopping pagination: {e}"
+                )
+                break
             except httpx.HTTPError as e:
                 logger.error(f"HTTP error fetching {resource_type}: {e}")
                 break

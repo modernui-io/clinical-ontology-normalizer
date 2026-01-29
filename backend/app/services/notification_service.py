@@ -38,6 +38,37 @@ logger = logging.getLogger(__name__)
 
 
 # ============================================================================
+# Exceptions
+# ============================================================================
+
+
+class NotificationDeliveryError(Exception):
+    """VP-Reliability-2: Exception for critical notification delivery failures.
+
+    Raised when a critical notification fails permanently after all retries.
+    This allows callers to handle critical failures appropriately.
+    """
+
+    def __init__(
+        self,
+        notification_id: str,
+        priority: "NotificationPriority",
+        channel: "NotificationChannel",
+        error_message: str,
+        attempts: int,
+    ):
+        self.notification_id = notification_id
+        self.priority = priority
+        self.channel = channel
+        self.error_message = error_message
+        self.attempts = attempts
+        super().__init__(
+            f"Critical notification {notification_id} failed on {channel.value} "
+            f"after {attempts} attempts: {error_message}"
+        )
+
+
+# ============================================================================
 # Enums and Types
 # ============================================================================
 
@@ -753,6 +784,21 @@ class QueuedDelivery:
     next_retry_at: datetime | None = None
 
 
+@dataclass
+class DeadLetterEntry:
+    """VP-Reliability-2: Entry in the dead letter queue for failed critical notifications."""
+
+    id: str
+    notification: Notification
+    channel: NotificationChannel
+    final_error: str
+    attempts: int
+    failed_at: datetime
+    acknowledged: bool = False
+    acknowledged_at: datetime | None = None
+    acknowledged_by: str | None = None
+
+
 class DeliveryQueue:
     """Queue for notification deliveries with retry logic."""
 
@@ -845,6 +891,145 @@ class DeliveryQueue:
 
 
 # ============================================================================
+# Dead Letter Queue
+# ============================================================================
+
+
+class DeadLetterQueue:
+    """VP-Reliability-2: Dead letter queue for permanently failed notifications.
+
+    Stores notifications that failed all retry attempts for manual review
+    and reprocessing. Critical for ensuring no important notifications are lost.
+    """
+
+    def __init__(self, max_entries: int = 1000):
+        """Initialize dead letter queue.
+
+        Args:
+            max_entries: Maximum entries to retain
+        """
+        self._entries: list[DeadLetterEntry] = []
+        self._lock = threading.Lock()
+        self._max_entries = max_entries
+
+    def add(
+        self,
+        notification: Notification,
+        channel: NotificationChannel,
+        error_message: str,
+        attempts: int,
+    ) -> DeadLetterEntry:
+        """Add a failed notification to the dead letter queue.
+
+        VP-Reliability-2: Log structured errors with priority context.
+        """
+        entry = DeadLetterEntry(
+            id=str(uuid4()),
+            notification=notification,
+            channel=channel,
+            final_error=error_message,
+            attempts=attempts,
+            failed_at=datetime.now(UTC),
+        )
+
+        # VP-Reliability-2: Structured logging with priority
+        logger.error(
+            "Notification permanently failed",
+            extra={
+                "notification_id": notification.id,
+                "notification_type": notification.type.value,
+                "priority": notification.priority.value,
+                "channel": channel.value,
+                "attempts": attempts,
+                "error": error_message,
+                "user_id": notification.user_id,
+                "dlq_entry_id": entry.id,
+            },
+        )
+
+        with self._lock:
+            self._entries.append(entry)
+            # Prune old entries if over limit (keep most recent)
+            if len(self._entries) > self._max_entries:
+                self._entries = self._entries[-self._max_entries:]
+
+        return entry
+
+    def get_entries(
+        self,
+        unacknowledged_only: bool = False,
+        priority: NotificationPriority | None = None,
+        limit: int = 100,
+    ) -> list[DeadLetterEntry]:
+        """Get dead letter queue entries.
+
+        Args:
+            unacknowledged_only: Only return unacknowledged entries
+            priority: Filter by notification priority
+            limit: Maximum entries to return
+
+        Returns:
+            List of dead letter entries
+        """
+        with self._lock:
+            entries = self._entries.copy()
+
+        if unacknowledged_only:
+            entries = [e for e in entries if not e.acknowledged]
+        if priority:
+            entries = [e for e in entries if e.notification.priority == priority]
+
+        return list(reversed(entries[-limit:]))
+
+    def acknowledge(self, entry_id: str, acknowledged_by: str) -> bool:
+        """Acknowledge a dead letter entry.
+
+        Args:
+            entry_id: Entry ID to acknowledge
+            acknowledged_by: User/system acknowledging the entry
+
+        Returns:
+            True if acknowledged, False if not found
+        """
+        with self._lock:
+            for entry in self._entries:
+                if entry.id == entry_id and not entry.acknowledged:
+                    entry.acknowledged = True
+                    entry.acknowledged_at = datetime.now(UTC)
+                    entry.acknowledged_by = acknowledged_by
+                    logger.info(
+                        f"DLQ entry {entry_id} acknowledged by {acknowledged_by}"
+                    )
+                    return True
+        return False
+
+    def get_critical_unacknowledged_count(self) -> int:
+        """Get count of unacknowledged critical notifications."""
+        with self._lock:
+            return sum(
+                1 for e in self._entries
+                if not e.acknowledged
+                and e.notification.priority == NotificationPriority.CRITICAL
+            )
+
+    def get_stats(self) -> dict[str, Any]:
+        """Get dead letter queue statistics."""
+        with self._lock:
+            total = len(self._entries)
+            unacknowledged = sum(1 for e in self._entries if not e.acknowledged)
+            by_priority = {}
+            for entry in self._entries:
+                p = entry.notification.priority.value
+                by_priority[p] = by_priority.get(p, 0) + 1
+
+        return {
+            "total_entries": total,
+            "unacknowledged": unacknowledged,
+            "by_priority": by_priority,
+        }
+
+
+# ============================================================================
 # Main Notification Service
 # ============================================================================
 
@@ -875,6 +1060,9 @@ class NotificationService:
 
         # Delivery queue
         self._queue = DeliveryQueue()
+
+        # VP-Reliability-2: Dead letter queue for permanently failed notifications
+        self._dead_letter_queue = DeadLetterQueue()
 
         # User preferences cache
         self._preferences: dict[str, UserNotificationPreferences] = {}
@@ -1244,14 +1432,25 @@ class NotificationService:
     # Queue Processing
     # ========================================================================
 
-    async def process_queue(self) -> int:
+    async def process_queue(self, raise_on_critical_failure: bool = False) -> int:
         """Process pending deliveries in the queue.
+
+        VP-Reliability-2: Enhanced error handling for critical notifications.
+
+        Args:
+            raise_on_critical_failure: If True, raise NotificationDeliveryError
+                when a critical notification fails permanently.
 
         Returns:
             Number of deliveries processed
+
+        Raises:
+            NotificationDeliveryError: If raise_on_critical_failure is True and
+                a critical notification fails permanently.
         """
         deliveries = self._queue.get_ready_deliveries()
         processed = 0
+        critical_failures: list[NotificationDeliveryError] = []
 
         for delivery in deliveries:
             handler = self._get_handler(delivery.channel)
@@ -1268,10 +1467,52 @@ class NotificationService:
                 # Try to requeue
                 if not self._queue.requeue_for_retry(delivery):
                     self._total_failed += 1
-                    logger.warning(
-                        f"Notification {delivery.notification.id} failed permanently "
-                        f"after {delivery.attempt} attempts"
+
+                    # VP-Reliability-2: Add to dead letter queue
+                    dlq_entry = self._dead_letter_queue.add(
+                        notification=delivery.notification,
+                        channel=delivery.channel,
+                        error_message=log.error_message or "Unknown error",
+                        attempts=delivery.attempt,
                     )
+
+                    # VP-Reliability-2: Escalate critical notification failures
+                    if delivery.notification.priority in (
+                        NotificationPriority.CRITICAL,
+                        NotificationPriority.HIGH,
+                    ):
+                        error = NotificationDeliveryError(
+                            notification_id=delivery.notification.id,
+                            priority=delivery.notification.priority,
+                            channel=delivery.channel,
+                            error_message=log.error_message or "Unknown error",
+                            attempts=delivery.attempt,
+                        )
+
+                        # Log at ERROR level for critical, WARN for high
+                        if delivery.notification.priority == NotificationPriority.CRITICAL:
+                            logger.error(
+                                f"CRITICAL notification {delivery.notification.id} "
+                                f"permanently failed on {delivery.channel.value}! "
+                                f"DLQ entry: {dlq_entry.id}. Immediate attention required.",
+                                extra={
+                                    "alert": "critical_notification_failure",
+                                    "dlq_entry_id": dlq_entry.id,
+                                    "notification_type": delivery.notification.type.value,
+                                    "user_id": delivery.notification.user_id,
+                                },
+                            )
+                            critical_failures.append(error)
+                        else:
+                            logger.warning(
+                                f"HIGH priority notification {delivery.notification.id} "
+                                f"permanently failed on {delivery.channel.value}. "
+                                f"DLQ entry: {dlq_entry.id}"
+                            )
+
+        # VP-Reliability-2: Optionally raise on critical failures
+        if raise_on_critical_failure and critical_failures:
+            raise critical_failures[0]
 
         return processed
 
@@ -1290,7 +1531,85 @@ class NotificationService:
             "user_preferences_count": len(self._preferences),
             "webhook_count": len(self._webhook_handler._webhooks),
             "template_count": len(self._templates),
+            # VP-Reliability-2: Include DLQ stats
+            "dead_letter_queue": self._dead_letter_queue.get_stats(),
         }
+
+    # ========================================================================
+    # Dead Letter Queue Access (VP-Reliability-2)
+    # ========================================================================
+
+    def get_dead_letter_entries(
+        self,
+        unacknowledged_only: bool = False,
+        priority: NotificationPriority | None = None,
+        limit: int = 100,
+    ) -> list[DeadLetterEntry]:
+        """Get dead letter queue entries.
+
+        VP-Reliability-2: Access failed notifications for review.
+
+        Args:
+            unacknowledged_only: Only return unacknowledged entries
+            priority: Filter by notification priority
+            limit: Maximum entries to return
+
+        Returns:
+            List of dead letter entries
+        """
+        return self._dead_letter_queue.get_entries(
+            unacknowledged_only=unacknowledged_only,
+            priority=priority,
+            limit=limit,
+        )
+
+    def acknowledge_dead_letter(self, entry_id: str, acknowledged_by: str) -> bool:
+        """Acknowledge a dead letter entry.
+
+        VP-Reliability-2: Mark a failed notification as reviewed.
+
+        Args:
+            entry_id: Entry ID to acknowledge
+            acknowledged_by: User/system acknowledging
+
+        Returns:
+            True if acknowledged, False if not found
+        """
+        return self._dead_letter_queue.acknowledge(entry_id, acknowledged_by)
+
+    def get_critical_failure_count(self) -> int:
+        """Get count of unacknowledged critical notification failures.
+
+        VP-Reliability-2: Quick check for critical issues needing attention.
+        """
+        return self._dead_letter_queue.get_critical_unacknowledged_count()
+
+    async def retry_dead_letter(self, entry_id: str) -> bool:
+        """Retry a dead letter notification.
+
+        VP-Reliability-2: Attempt to resend a failed notification.
+
+        Args:
+            entry_id: Dead letter entry ID to retry
+
+        Returns:
+            True if retry queued, False if not found
+        """
+        entries = self._dead_letter_queue.get_entries(limit=1000)
+        for entry in entries:
+            if entry.id == entry_id:
+                # Re-queue the notification
+                preferences = self.get_preferences(
+                    entry.notification.user_id or "anonymous"
+                )
+                self._queue.enqueue(
+                    entry.notification,
+                    entry.channel,
+                    preferences,
+                )
+                logger.info(f"DLQ entry {entry_id} queued for retry")
+                return True
+        return False
 
 
 # ============================================================================
