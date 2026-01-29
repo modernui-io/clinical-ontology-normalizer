@@ -169,6 +169,8 @@ Make targets:
 - `make kg-export`: export KG to `kg_export/`
 - `make kg-check`: verify KG is up to date (useful in CI)
 - `make agent-bundle`: generate `agent_context_bundle.md`
+- `make agent-bundle-filtered`: generate `agent_context_health_graph.md`
+- `make agent-bundles`: generate common domain bundles in `agent_bundles/`
 
 ---
 

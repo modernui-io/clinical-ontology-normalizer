@@ -1,4 +1,6 @@
 """
+
+from __future__ import annotations
 Clinical Intelligence Agent API Endpoints.
 
 Provides REST API access to the Clinical Intelligence Agent for:
@@ -6,6 +8,8 @@ Provides REST API access to the Clinical Intelligence Agent for:
 - Medical coding and billing support (Ambient Scribe)
 - Clinical reasoning and Q&A
 """
+
+from __future__ import annotations
 
 from typing import Any
 

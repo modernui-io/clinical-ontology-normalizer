@@ -8,6 +8,8 @@ Provides:
 - POST /data-quality/consistency/run - Trigger consistency checks
 """
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 

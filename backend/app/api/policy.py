@@ -4,6 +4,8 @@ Provides endpoints for uploading, searching, and managing
 institutional clinical policies.
 """
 
+from __future__ import annotations
+
 import logging
 from datetime import datetime
 from typing import Any

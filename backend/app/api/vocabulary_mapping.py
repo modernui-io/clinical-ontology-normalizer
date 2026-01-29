@@ -6,6 +6,8 @@ Provides endpoints for cross-vocabulary translation:
 - Unmapped code reporting
 """
 
+from __future__ import annotations
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 

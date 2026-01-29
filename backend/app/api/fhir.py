@@ -7,6 +7,8 @@ Includes:
 VP-Security-5: Added URL validation to prevent SSRF attacks.
 """
 
+from __future__ import annotations
+
 import ipaddress
 import logging
 import os

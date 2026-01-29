@@ -10,6 +10,8 @@ Production systems should use comprehensive PHI detection
 and comply with HIPAA/GDPR requirements.
 """
 
+from __future__ import annotations
+
 import logging
 import re
 

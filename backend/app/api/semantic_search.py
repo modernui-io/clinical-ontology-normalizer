@@ -8,6 +8,8 @@ Provides intelligent search across clinical terminology vocabularies with:
 - Result clustering by concept type
 """
 
+from __future__ import annotations
+
 import logging
 from typing import Annotated, Any
 

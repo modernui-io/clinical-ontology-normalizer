@@ -20,6 +20,8 @@ Endpoints:
     GET /api/v1/cohorts/criteria-library/categories - Get criteria categories
 """
 
+from __future__ import annotations
+
 import logging
 from typing import Annotated, Any, Literal
 

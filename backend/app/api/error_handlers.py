@@ -15,6 +15,8 @@ Usage:
     register_all_exception_handlers(app)
 """
 
+from __future__ import annotations
+
 import logging
 import traceback
 from typing import Any

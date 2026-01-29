@@ -16,6 +16,8 @@ Models:
 - User, Role, Permission, UserRole, RolePermission, RefreshToken (RBAC)
 """
 
+from __future__ import annotations
+
 from app.core.database import Base
 from app.models.audit import (
     AuditAction,

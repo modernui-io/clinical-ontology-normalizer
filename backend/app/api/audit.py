@@ -9,6 +9,8 @@ Provides endpoints for:
 All endpoints require admin authorization in production.
 """
 
+from __future__ import annotations
+
 import logging
 from datetime import datetime, timezone
 from pathlib import Path

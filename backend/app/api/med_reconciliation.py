@@ -5,6 +5,8 @@ Provides:
 - GET /medications/reconcile/{id} - Retrieve a reconciliation result
 """
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 

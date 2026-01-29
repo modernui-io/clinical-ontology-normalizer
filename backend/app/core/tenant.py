@@ -5,6 +5,8 @@ Each API key can be associated with a set of allowed patient IDs,
 ensuring data isolation between different clients.
 """
 
+from __future__ import annotations
+
 import logging
 import os
 from functools import lru_cache

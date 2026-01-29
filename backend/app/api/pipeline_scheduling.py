@@ -4,6 +4,8 @@ Provides endpoints for managing scheduled ETL pipeline runs
 including schedule CRUD, triggering runs, and viewing history.
 """
 
+from __future__ import annotations
+
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query

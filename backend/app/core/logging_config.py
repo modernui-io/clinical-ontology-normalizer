@@ -4,6 +4,8 @@ VP-DevOps: Provides JSON-formatted structured logging for production environment
 Enables log aggregation with ELK, Datadog, CloudWatch, etc.
 """
 
+from __future__ import annotations
+
 import logging
 import sys
 from datetime import datetime, timezone

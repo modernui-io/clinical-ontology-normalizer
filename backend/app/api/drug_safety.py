@@ -4,6 +4,8 @@ Provides drug safety checking including contraindications,
 warnings, pregnancy/lactation safety, and dosing guidelines.
 """
 
+from __future__ import annotations
+
 import time
 from typing import Any
 from uuid import uuid4

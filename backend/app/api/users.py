@@ -11,6 +11,8 @@ This module provides REST API endpoints for:
 These endpoints require admin role for access.
 """
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 

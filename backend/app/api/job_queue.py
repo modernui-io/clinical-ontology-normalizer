@@ -4,6 +4,8 @@ Provides endpoints for queue visualization, worker status,
 job retry/cancel operations, and wait time estimation.
 """
 
+from __future__ import annotations
+
 import logging
 from datetime import timedelta
 from typing import Annotated, Any

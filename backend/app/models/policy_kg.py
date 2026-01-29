@@ -19,6 +19,8 @@ Based on research from Decision Knowledge Graphs for Clinical Practice Guideline
 and temporal knowledge graph reasoning patterns.
 """
 
+from __future__ import annotations
+
 from datetime import datetime
 from enum import Enum
 from typing import Any

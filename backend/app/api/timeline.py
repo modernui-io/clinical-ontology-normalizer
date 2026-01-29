@@ -9,6 +9,8 @@ Provides endpoints for building and querying patient timelines:
 Supports clinical decision support and care coordination workflows.
 """
 
+from __future__ import annotations
+
 import time
 from datetime import date, datetime
 from enum import Enum

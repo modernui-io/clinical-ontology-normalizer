@@ -4,6 +4,8 @@ Provides CPT code suggestions for procedures and E/M services
 with documentation requirements and CER citations.
 """
 
+from __future__ import annotations
+
 import time
 from typing import Any
 from uuid import uuid4

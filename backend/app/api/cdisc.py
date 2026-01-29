@@ -23,6 +23,8 @@ API Endpoints:
 - GET /api/v1/cdisc/versions - List available CT versions
 """
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 

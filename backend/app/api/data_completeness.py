@@ -6,6 +6,8 @@ Provides endpoints for calculating and tracking OMOP CDM data completeness:
 - Historical trends
 """
 
+from __future__ import annotations
+
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query

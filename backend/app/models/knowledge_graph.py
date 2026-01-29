@@ -6,6 +6,8 @@ Includes temporal fields for bi-temporal knowledge graph queries:
 - temporal_confidence: Confidence in the temporal assertions
 """
 
+from __future__ import annotations
+
 from datetime import datetime, timezone
 
 from sqlalchemy import DateTime, JSON, Enum, Float, ForeignKey, Index, Integer, String

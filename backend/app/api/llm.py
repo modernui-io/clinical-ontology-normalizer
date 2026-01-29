@@ -10,6 +10,8 @@ PHI Note: Ensure clinical text is properly de-identified before
 using these endpoints if sending to external LLM providers.
 """
 
+from __future__ import annotations
+
 import logging
 import time
 from enum import Enum

@@ -4,6 +4,8 @@ Provides configuration for SMART on FHIR OAuth2 authorization flow,
 supporting EHR launch context for Epic, Cerner, and other compliant systems.
 """
 
+from __future__ import annotations
+
 import logging
 from enum import Enum
 from typing import Any

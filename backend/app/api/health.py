@@ -21,6 +21,8 @@ Usage:
     GET /api/v1/health/deep - Deep health check with system metrics
 """
 
+from __future__ import annotations
+
 import asyncio
 import logging
 import os

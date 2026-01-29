@@ -20,6 +20,8 @@ Provides REST API for LLM fine-tuning operations:
 - POST /api/v1/llm/models/compare - Compare models
 """
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 from uuid import uuid4

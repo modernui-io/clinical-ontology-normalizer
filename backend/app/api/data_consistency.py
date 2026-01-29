@@ -7,6 +7,8 @@ Provides endpoints for running OMOP CDM data consistency checks:
 - Orphan record detection
 """
 
+from __future__ import annotations
+
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query

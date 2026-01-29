@@ -6,6 +6,8 @@ Provides:
 - POST /risk/charlson - Calculate Charlson Comorbidity Index from ICD-10 codes
 """
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 

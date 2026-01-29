@@ -4,6 +4,8 @@ Provides endpoints for listing and searching clinical guidelines
 loaded from the fixture file via the RAG service.
 """
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 

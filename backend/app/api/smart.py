@@ -7,6 +7,8 @@ Provides OAuth2 authorization endpoints for SMART App Launch:
 - Patient/Encounter context access
 """
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 from uuid import uuid4

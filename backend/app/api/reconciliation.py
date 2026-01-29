@@ -14,6 +14,8 @@ Clinical Use Cases:
 - High-risk medication monitoring
 """
 
+from __future__ import annotations
+
 import time
 from datetime import date, datetime
 from enum import Enum

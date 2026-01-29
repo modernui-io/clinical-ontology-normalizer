@@ -1,4 +1,4 @@
-.PHONY: test lint typecheck dev dev-backend dev-worker clean help docker-up docker-down docker-build docker-logs docker-dev docker-migrate kg kg-export kg-check kg-lint skills-install agent-bundle
+.PHONY: test lint typecheck dev dev-backend dev-worker clean help docker-up docker-down docker-build docker-logs docker-dev docker-migrate kg kg-export kg-check kg-lint skills-install agent-bundle agent-bundle-filtered agent-bundles
 
 # Default target
 help:
@@ -20,6 +20,8 @@ help:
 	@echo "  kg-lint       Lint KG scripts with Ruff"
 	@echo "  skills-install Install repo skills into CODEX_HOME"
 	@echo "  agent-bundle  Build an agent context bundle (agent_context_bundle.md)"
+	@echo "  agent-bundle-filtered  Build a filtered agent bundle (health + graph)"
+	@echo "  agent-bundles  Build common domain bundles into agent_bundles/"
 	@echo ""
 	@echo "Docker targets:"
 	@echo "  docker-build  Build Docker images"
@@ -128,6 +130,16 @@ skills-install:
 
 agent-bundle:
 	@python3 scripts/prepare_agent_context.py
+
+agent-bundle-filtered:
+	@python3 scripts/prepare_agent_context.py --query health --query graph --out agent_context_health_graph.md
+
+agent-bundles:
+	@mkdir -p agent_bundles
+	@python3 scripts/prepare_agent_context.py --query nlp --query extraction --query mentions --out agent_bundles/agent_context_nlp.md
+	@python3 scripts/prepare_agent_context.py --query graph --query kg --query neo4j --out agent_bundles/agent_context_graph.md
+	@python3 scripts/prepare_agent_context.py --query billing --query icd10 --query cpt --query hcc --out agent_bundles/agent_context_billing.md
+	@python3 scripts/prepare_agent_context.py --query etl --query export --query omop --query fhir --out agent_bundles/agent_context_etl.md
 
 # =============================================================================
 # Docker targets

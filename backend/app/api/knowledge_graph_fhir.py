@@ -7,6 +7,8 @@ Provides REST endpoints for exporting knowledge graph data to FHIR R4 format:
 - Export full graph as Bundle
 """
 
+from __future__ import annotations
+
 import logging
 from datetime import datetime
 from typing import Any

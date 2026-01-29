@@ -10,6 +10,8 @@ This module provides REST API endpoints for value set management:
 All endpoints follow FHIR R4 conventions where applicable.
 """
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 

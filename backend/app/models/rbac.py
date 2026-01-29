@@ -14,6 +14,8 @@ The RBAC system follows the principle of least privilege and supports:
 - Action-based permissions (read, write, delete, admin)
 """
 
+from __future__ import annotations
+
 from datetime import datetime
 from typing import TYPE_CHECKING
 

@@ -16,6 +16,8 @@ All responses are FHIR R4 compliant, returning Parameters or resource types
 as appropriate for each operation.
 """
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 

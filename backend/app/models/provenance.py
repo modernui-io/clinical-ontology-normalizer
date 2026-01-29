@@ -8,6 +8,8 @@ Models:
 - ReasoningTrace: Records each step of the hybrid query reasoning pipeline
 """
 
+from __future__ import annotations
+
 from datetime import datetime
 from enum import Enum
 from typing import Any

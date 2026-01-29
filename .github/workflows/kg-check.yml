@@ -50,3 +50,57 @@ jobs:
         with:
           name: codebase-kg-csv
           path: kg_export/
+
+  agent-bundle:
+    runs-on: ubuntu-latest
+    needs: kg-check
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Build agent bundle
+        run: make agent-bundle
+      - name: Upload agent bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-context-bundle
+          path: agent_context_bundle.md
+
+  agent-bundle-filtered:
+    runs-on: ubuntu-latest
+    needs: kg-check
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Build filtered agent bundle
+        run: make agent-bundle-filtered
+      - name: Upload filtered agent bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-context-bundle-health-graph
+          path: agent_context_health_graph.md
+
+  agent-bundles:
+    runs-on: ubuntu-latest
+    needs: kg-check
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Build domain bundles
+        run: make agent-bundles
+      - name: Upload domain bundles
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-context-bundles
+          path: agent_bundles/

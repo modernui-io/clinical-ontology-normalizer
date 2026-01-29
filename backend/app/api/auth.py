@@ -13,6 +13,8 @@ All authentication uses JWT tokens:
 - Refresh tokens: Long-lived (7 days), used to get new access tokens
 """
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 

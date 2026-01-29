@@ -9,6 +9,8 @@ Provides endpoints for:
 - WebSocket for real-time event stream
 """
 
+from __future__ import annotations
+
 import asyncio
 import json
 import logging

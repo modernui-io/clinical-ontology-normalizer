@@ -9,6 +9,8 @@ Provides computable phenotype evaluation for clinical decision support:
 Based on standards from OHDSI, PheKB, and eMERGE.
 """
 
+from __future__ import annotations
+
 import logging
 from datetime import datetime, timezone
 from typing import Annotated, Any

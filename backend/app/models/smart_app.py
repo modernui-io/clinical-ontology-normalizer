@@ -11,6 +11,8 @@ The implementation supports:
 - Scoped access based on SMART on FHIR scopes
 """
 
+from __future__ import annotations
+
 from datetime import datetime
 from typing import TYPE_CHECKING
 

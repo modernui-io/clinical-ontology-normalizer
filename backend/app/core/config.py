@@ -6,6 +6,8 @@ The application will fail to start if required credentials are missing
 when auth_enabled=True or environment=production.
 """
 
+from __future__ import annotations
+
 import logging
 import warnings
 from functools import cached_property

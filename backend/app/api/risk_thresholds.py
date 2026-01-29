@@ -4,6 +4,8 @@ Provides endpoints for configuring risk model thresholds for
 patient risk classification (mortality, readmission, etc.).
 """
 
+from __future__ import annotations
+
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query

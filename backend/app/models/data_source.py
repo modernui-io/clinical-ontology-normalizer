@@ -1,8 +1,12 @@
 """
+
+from __future__ import annotations
 Data Source Models
 
 Models for managing external data source connections (FHIR servers, HIEs, aggregators).
 """
+
+from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum as PyEnum

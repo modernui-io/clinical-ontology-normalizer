@@ -11,6 +11,8 @@ These endpoints enable integration with clearinghouses, payers,
 and practice management systems.
 """
 
+from __future__ import annotations
+
 import logging
 from datetime import date
 from decimal import Decimal

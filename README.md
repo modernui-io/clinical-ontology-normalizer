@@ -285,6 +285,12 @@ Filtered bundle:
 python3 scripts/prepare_agent_context.py --query health --query graph --out agent_context_health_graph.md
 ```
 
+Common domain bundles:
+
+```bash
+make agent-bundles
+```
+
 ## Environment Variables
 
 Key environment variables (see `.env.example`):

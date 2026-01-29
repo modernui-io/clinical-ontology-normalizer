@@ -9,6 +9,8 @@ Usage:
     ws://localhost:8000/ws/jobs/{job_id}/status
 """
 
+from __future__ import annotations
+
 import asyncio
 import json
 import logging

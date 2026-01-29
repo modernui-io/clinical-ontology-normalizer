@@ -8,6 +8,8 @@ Implements CDS Hooks specification 1.1 REST endpoints:
 See: https://cds-hooks.org/specification/current/
 """
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 

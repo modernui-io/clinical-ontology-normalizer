@@ -4,6 +4,8 @@ Provides DB-backed storage for clinical alert rules,
 replacing the in-memory dict storage in AlertRulesService.
 """
 
+from __future__ import annotations
+
 from datetime import datetime
 from typing import Any
 

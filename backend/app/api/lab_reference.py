@@ -4,6 +4,8 @@ Provides endpoints for looking up lab reference ranges and interpreting
 laboratory values for clinical decision support.
 """
 
+from __future__ import annotations
+
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 

@@ -6,6 +6,8 @@ Provides endpoints for:
 - DELETE /auth/sessions/{session_id} - Revoke a session
 """
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 

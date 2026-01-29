@@ -28,6 +28,8 @@ Endpoints:
     GET /api/v1/etl-management/specimen-mappings - Get specimen type mappings
 """
 
+from __future__ import annotations
+
 import logging
 from datetime import datetime
 from typing import Annotated, Any

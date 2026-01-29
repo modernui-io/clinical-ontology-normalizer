@@ -13,6 +13,8 @@ All functionality has been consolidated into app.core.security:
 This module re-exports from app.core.security for backwards compatibility.
 """
 
+from __future__ import annotations
+
 import warnings
 
 from app.core.security import (

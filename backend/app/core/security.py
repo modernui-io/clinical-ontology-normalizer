@@ -11,6 +11,8 @@ Note: This is the canonical API key auth module. The legacy app.core.auth
 module is deprecated and will be removed in a future version.
 """
 
+from __future__ import annotations
+
 import logging
 import os
 from functools import lru_cache

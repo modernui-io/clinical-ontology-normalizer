@@ -9,6 +9,8 @@ Provides endpoints for clinical quality measure tracking:
 - Generate performance trends and benchmark comparisons
 """
 
+from __future__ import annotations
+
 import logging
 import time
 from datetime import date, datetime

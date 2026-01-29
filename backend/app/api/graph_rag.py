@@ -16,6 +16,8 @@ Two knowledge sources are integrated:
 - Neo4j OMOP Concepts: 5.6M medical concepts with 32M semantic relationships
 """
 
+from __future__ import annotations
+
 from datetime import datetime
 from typing import Annotated, Any
 from uuid import UUID

@@ -1,5 +1,7 @@
 """Visualization API endpoints for advanced clinical analytics."""
 
+from __future__ import annotations
+
 import logging
 from dataclasses import asdict
 from datetime import datetime, timezone

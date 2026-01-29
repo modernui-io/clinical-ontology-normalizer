@@ -3,6 +3,8 @@
 Provides AI-powered assistance for medical coding questions.
 """
 
+from __future__ import annotations
+
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 from typing import Any

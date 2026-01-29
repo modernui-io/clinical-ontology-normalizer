@@ -10,6 +10,8 @@ Provides endpoints for AI-powered coding assistance:
 - GET /assistant/lookup/{code} - Look up a specific code
 """
 
+from __future__ import annotations
+
 import logging
 from datetime import datetime
 from enum import Enum

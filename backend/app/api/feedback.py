@@ -7,6 +7,8 @@ Provides REST endpoints for human-in-the-loop clinical NLP improvement:
 - Track improvement metrics
 """
 
+from __future__ import annotations
+
 from datetime import datetime
 from typing import Any
 

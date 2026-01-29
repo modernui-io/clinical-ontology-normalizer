@@ -3,6 +3,8 @@
 VP-Compliance-1: All PHI access is logged for HIPAA compliance.
 """
 
+from __future__ import annotations
+
 import logging
 from datetime import datetime, timezone
 from typing import Annotated, Any

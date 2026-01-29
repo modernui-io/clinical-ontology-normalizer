@@ -11,6 +11,8 @@ PHI Note: Ensure clinical data is properly de-identified before
 using these endpoints if sending to external LLM providers.
 """
 
+from __future__ import annotations
+
 import logging
 from enum import Enum
 from uuid import uuid4

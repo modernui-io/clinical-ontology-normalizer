@@ -4,6 +4,8 @@ Provides endpoints for managing clinical alert rules based on risk thresholds,
 lab values, and clinical conditions.
 """
 
+from __future__ import annotations
+
 from typing import Any
 
 from fastapi import APIRouter, Query

@@ -4,6 +4,8 @@ Provides vocabulary listing, version history, update scanning,
 impact analysis, and version update application.
 """
 
+from __future__ import annotations
+
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException

@@ -12,6 +12,8 @@ Endpoints:
 - GET /api/ai-coding/search - Search for codes
 """
 
+from __future__ import annotations
+
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 from typing import Any

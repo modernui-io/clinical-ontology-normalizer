@@ -9,6 +9,8 @@ These models represent the hierarchical structure of X12 transactions
 and support both parsing (X12 -> JSON) and generation (JSON -> X12).
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 from dataclasses import field as dataclass_field
 from datetime import date, datetime

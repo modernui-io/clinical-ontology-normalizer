@@ -8,6 +8,8 @@ Models:
 - AuditExport: Records of audit log exports for compliance reporting
 """
 
+from __future__ import annotations
+
 from datetime import datetime
 from enum import Enum
 from typing import Any

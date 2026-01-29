@@ -4,6 +4,8 @@ Provides ICD-10-CM code suggestions based on clinical text,
 diagnoses, and extracted information with CER citations.
 """
 
+from __future__ import annotations
+
 import time
 from uuid import uuid4
 

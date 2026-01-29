@@ -12,6 +12,8 @@ This implements the SMART App Launch Framework v2.0:
 https://hl7.org/fhir/smart-app-launch/
 """
 
+from __future__ import annotations
+
 import hashlib
 import logging
 import secrets

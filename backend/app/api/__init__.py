@@ -1,5 +1,7 @@
 """API routers for Clinical Ontology Normalizer."""
 
+from __future__ import annotations
+
 from app.api.agent import router as agent_router
 from app.api.ai_audit import router as ai_audit_router
 from app.api.ai_coding import router as ai_coding_router

@@ -10,6 +10,8 @@ Provides predictive analytics endpoints:
 - POST /api/predictions/explain - SHAP-based explanation
 """
 
+from __future__ import annotations
+
 import time
 from datetime import datetime, timezone
 from typing import Any

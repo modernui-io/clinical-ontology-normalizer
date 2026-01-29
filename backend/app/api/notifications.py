@@ -11,6 +11,8 @@ Provides endpoints for notification management:
 - POST /webhooks/{id}/test - Test webhook
 """
 
+from __future__ import annotations
+
 import logging
 from datetime import datetime
 from enum import Enum

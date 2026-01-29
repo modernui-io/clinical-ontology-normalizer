@@ -6,6 +6,8 @@ Provides:
 - POST /ai/audit/{id}/feedback - Submit feedback for an interaction
 """
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 

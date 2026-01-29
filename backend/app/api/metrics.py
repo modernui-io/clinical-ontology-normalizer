@@ -15,6 +15,8 @@ Usage:
 The metrics are collected by the MetricsMiddleware and exposed here.
 """
 
+from __future__ import annotations
+
 import logging
 import time
 from collections import defaultdict

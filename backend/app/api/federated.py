@@ -14,6 +14,8 @@ Provides endpoints for federated learning operations:
 - POST /api/v1/federated/federations/{id}/simulate - Simulate training round
 """
 
+from __future__ import annotations
+
 import time
 from datetime import datetime, timezone
 from typing import Any

@@ -7,6 +7,8 @@ Provides endpoints for ML model lifecycle management:
 - Model metadata and metrics
 """
 
+from __future__ import annotations
+
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query

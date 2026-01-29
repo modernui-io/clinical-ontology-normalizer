@@ -12,6 +12,8 @@ Provides endpoints for:
 - Admin Cypher query execution
 """
 
+from __future__ import annotations
+
 import hashlib
 import json
 import time

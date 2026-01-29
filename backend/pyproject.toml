@@ -45,6 +45,12 @@ ml = [
     "transformers>=4.36.0",
     "torch>=2.0.0",
 ]
+modernbert = [
+    "transformers>=4.36.0",
+    "torch>=2.0.0",
+    "flash-attn>=2.5.0",  # Optional: Flash Attention 2 for efficient long-context
+    "accelerate>=0.25.0",  # For device mapping
+]
 
 [build-system]
 requires = ["setuptools>=61.0"]

@@ -1,8 +1,12 @@
 """
+
+from __future__ import annotations
 Pipelines API
 
 REST endpoints for managing data ingestion pipelines.
 """
+
+from __future__ import annotations
 
 from typing import Optional
 from uuid import UUID

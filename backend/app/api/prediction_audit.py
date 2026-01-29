@@ -4,6 +4,8 @@ Provides endpoints for logging and querying ML model predictions
 for auditing, explainability, and model performance tracking.
 """
 
+from __future__ import annotations
+
 from datetime import datetime
 from typing import Any
 

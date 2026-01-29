@@ -6,6 +6,8 @@ Models for user-defined calculators that extend the built-in clinical calculator
 - CalculatorResult: Result from executing a calculator
 """
 
+from __future__ import annotations
+
 from datetime import datetime
 from enum import Enum
 from typing import TYPE_CHECKING
