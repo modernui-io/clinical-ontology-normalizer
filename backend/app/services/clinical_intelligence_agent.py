@@ -153,7 +153,7 @@ class ClinicalIntelligenceAgent:
     Orchestrates multiple underlying services for comprehensive analysis.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._initialized = False
         self._nlp_service = None
         self._hcc_service = None
@@ -164,7 +164,7 @@ class ClinicalIntelligenceAgent:
         self._icd10_suggester = None
         self._cpt_suggester = None
 
-    def _lazy_init(self):
+    def _lazy_init(self) -> None:
         """Lazy initialization of services to avoid circular imports."""
         if self._initialized:
             return
@@ -269,7 +269,7 @@ class ClinicalIntelligenceAgent:
         response.processing_time_ms = (time.perf_counter() - start_time) * 1000
         return response
 
-    def _handle_extract_entities(self, request: AgentRequest, response: AgentResponse):
+    def _handle_extract_entities(self, request: AgentRequest, response: AgentResponse) -> None:
         """Extract clinical entities from text."""
         if not self._nlp_service:
             response.warnings.append("NLP service not available")
@@ -310,7 +310,7 @@ class ClinicalIntelligenceAgent:
             elif entity.entity_type in ["PROCEDURE"]:
                 response.procedures.append(entity_dict)
 
-    def _handle_extract_measurements(self, request: AgentRequest, response: AgentResponse):
+    def _handle_extract_measurements(self, request: AgentRequest, response: AgentResponse) -> None:
         """Extract lab values and vital signs."""
         if not self._value_service:
             response.warnings.append("Value extraction service not available")
@@ -338,7 +338,7 @@ class ClinicalIntelligenceAgent:
 
             response.measurements.append(value_dict)
 
-    def _handle_analyze_hcc(self, request: AgentRequest, response: AgentResponse):
+    def _handle_analyze_hcc(self, request: AgentRequest, response: AgentResponse) -> None:
         """Analyze for HCC coding opportunities."""
         if not self._hcc_service:
             response.warnings.append("HCC analyzer service not available")
@@ -387,7 +387,7 @@ class ClinicalIntelligenceAgent:
         for action in result.priority_actions:
             response.documentation_gaps.append(action)
 
-    def _handle_generate_codes(self, request: AgentRequest, response: AgentResponse):
+    def _handle_generate_codes(self, request: AgentRequest, response: AgentResponse) -> None:
         """Generate ICD-10 and CPT code suggestions."""
         # Extract entities first for context
         self._handle_extract_entities(request, response)
@@ -422,7 +422,7 @@ class ClinicalIntelligenceAgent:
                         "source_text": procedure.get("text", ""),
                     })
 
-    def _handle_build_timeline(self, request: AgentRequest, response: AgentResponse):
+    def _handle_build_timeline(self, request: AgentRequest, response: AgentResponse) -> None:
         """Build a patient timeline from clinical text."""
         if not self._timeline_service:
             response.warnings.append("Timeline service not available")
@@ -443,7 +443,7 @@ class ClinicalIntelligenceAgent:
 
         response.timeline_events = events
 
-    def _handle_build_phenotype(self, request: AgentRequest, response: AgentResponse):
+    def _handle_build_phenotype(self, request: AgentRequest, response: AgentResponse) -> None:
         """Build a patient phenotype for research/trials."""
         # Extract all relevant information
         self._handle_extract_entities(request, response)
@@ -484,7 +484,7 @@ class ClinicalIntelligenceAgent:
             ],
         }
 
-    def _handle_check_eligibility(self, request: AgentRequest, response: AgentResponse):
+    def _handle_check_eligibility(self, request: AgentRequest, response: AgentResponse) -> None:
         """Check patient eligibility against criteria."""
         # First build phenotype
         self._handle_build_phenotype(request, response)
@@ -542,7 +542,7 @@ class ClinicalIntelligenceAgent:
             }
         }
 
-    def _handle_clinical_reasoning(self, request: AgentRequest, response: AgentResponse):
+    def _handle_clinical_reasoning(self, request: AgentRequest, response: AgentResponse) -> None:
         """Use hybrid analyzer for clinical reasoning."""
         if not self._hybrid_analyzer:
             response.warnings.append("Hybrid analyzer not available")
@@ -565,7 +565,7 @@ class ClinicalIntelligenceAgent:
             response.medications = ctx.medications
             response.measurements = ctx.labs + ctx.vitals
 
-    def _handle_summarize(self, request: AgentRequest, response: AgentResponse):
+    def _handle_summarize(self, request: AgentRequest, response: AgentResponse) -> None:
         """Generate a clinical summary."""
         if not self._hybrid_analyzer:
             response.warnings.append("Hybrid analyzer not available")
@@ -580,7 +580,7 @@ class ClinicalIntelligenceAgent:
 
         response.summary = result.analysis
 
-    def _handle_answer_question(self, request: AgentRequest, response: AgentResponse):
+    def _handle_answer_question(self, request: AgentRequest, response: AgentResponse) -> None:
         """Answer a clinical question about the note."""
         if not self._hybrid_analyzer:
             response.warnings.append("Hybrid analyzer not available")

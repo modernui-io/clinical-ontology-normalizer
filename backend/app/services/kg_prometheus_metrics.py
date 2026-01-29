@@ -42,7 +42,7 @@ class MetricDefinition:
     buckets: Optional[List[float]] = None  # For histograms
     quantiles: Optional[List[float]] = None  # For summaries
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         # Validate metric name
         if not re.match(r'^[a-zA-Z_:][a-zA-Z0-9_:]*$', self.name):
             raise ValueError(f"Invalid metric name: {self.name}")
@@ -59,10 +59,10 @@ class LabelSet:
 
     labels: Dict[str, str]
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(tuple(sorted(self.labels.items())))
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, LabelSet):
             return False
         return self.labels == other.labels
@@ -89,12 +89,12 @@ class Counter:
     increasing counter whose value can only increase or be reset to zero.
     """
 
-    def __init__(self, definition: MetricDefinition):
+    def __init__(self, definition: MetricDefinition) -> None:
         self.definition = definition
         self._values: Dict[LabelSet, MetricValue] = defaultdict(MetricValue)
         self._lock = threading.RLock()
 
-    def inc(self, value: float = 1.0, labels: Optional[Dict[str, str]] = None):
+    def inc(self, value: float = 1.0, labels: Optional[Dict[str, str]] = None) -> None:
         """Increment the counter."""
         if value < 0:
             raise ValueError("Counter can only increase")
@@ -131,33 +131,33 @@ class Gauge:
     arbitrarily go up and down.
     """
 
-    def __init__(self, definition: MetricDefinition):
+    def __init__(self, definition: MetricDefinition) -> None:
         self.definition = definition
         self._values: Dict[LabelSet, MetricValue] = defaultdict(MetricValue)
         self._lock = threading.RLock()
 
-    def set(self, value: float, labels: Optional[Dict[str, str]] = None):
+    def set(self, value: float, labels: Optional[Dict[str, str]] = None) -> None:
         """Set the gauge to a value."""
         label_set = LabelSet(labels or {})
         with self._lock:
             self._values[label_set].value = value
             self._values[label_set].timestamp = time.time()
 
-    def inc(self, value: float = 1.0, labels: Optional[Dict[str, str]] = None):
+    def inc(self, value: float = 1.0, labels: Optional[Dict[str, str]] = None) -> None:
         """Increment the gauge."""
         label_set = LabelSet(labels or {})
         with self._lock:
             self._values[label_set].value += value
             self._values[label_set].timestamp = time.time()
 
-    def dec(self, value: float = 1.0, labels: Optional[Dict[str, str]] = None):
+    def dec(self, value: float = 1.0, labels: Optional[Dict[str, str]] = None) -> None:
         """Decrement the gauge."""
         label_set = LabelSet(labels or {})
         with self._lock:
             self._values[label_set].value -= value
             self._values[label_set].timestamp = time.time()
 
-    def set_to_current_time(self, labels: Optional[Dict[str, str]] = None):
+    def set_to_current_time(self, labels: Optional[Dict[str, str]] = None) -> None:
         """Set gauge to current Unix timestamp."""
         self.set(time.time(), labels)
 
@@ -190,13 +190,13 @@ class Histogram:
 
     DEFAULT_BUCKETS = [0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1.0, 2.5, 5.0, 7.5, 10.0, float('inf')]
 
-    def __init__(self, definition: MetricDefinition):
+    def __init__(self, definition: MetricDefinition) -> None:
         self.definition = definition
         self.buckets = definition.buckets or self.DEFAULT_BUCKETS
         self._values: Dict[LabelSet, MetricValue] = {}
         self._lock = threading.RLock()
 
-    def _init_label_set(self, label_set: LabelSet):
+    def _init_label_set(self, label_set: LabelSet) -> None:
         """Initialize bucket counts for a label set."""
         if label_set not in self._values:
             self._values[label_set] = MetricValue(
@@ -205,7 +205,7 @@ class Histogram:
                 count=0
             )
 
-    def observe(self, value: float, labels: Optional[Dict[str, str]] = None):
+    def observe(self, value: float, labels: Optional[Dict[str, str]] = None) -> None:
         """Observe a value."""
         label_set = LabelSet(labels or {})
         with self._lock:
@@ -219,7 +219,7 @@ class Histogram:
                     mv.bucket_counts[bucket] += 1
             mv.timestamp = time.time()
 
-    def time(self):
+    def time(self) -> "HistogramTimer":
         """Context manager to time a block of code."""
         return HistogramTimer(self)
 
@@ -249,16 +249,16 @@ class Histogram:
 class HistogramTimer:
     """Timer context manager for Histogram."""
 
-    def __init__(self, histogram: Histogram, labels: Optional[Dict[str, str]] = None):
+    def __init__(self, histogram: Histogram, labels: Optional[Dict[str, str]] = None) -> None:
         self.histogram = histogram
         self.labels = labels
         self.start_time: Optional[float] = None
 
-    def __enter__(self):
+    def __enter__(self) -> "HistogramTimer":
         self.start_time = time.time()
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> bool:
         if self.start_time is not None:
             duration = time.time() - self.start_time
             self.histogram.observe(duration, self.labels)
@@ -273,14 +273,14 @@ class Summary:
 
     DEFAULT_QUANTILES = [0.5, 0.9, 0.95, 0.99]
 
-    def __init__(self, definition: MetricDefinition, max_observations: int = 1000):
+    def __init__(self, definition: MetricDefinition, max_observations: int = 1000) -> None:
         self.definition = definition
         self.quantiles = definition.quantiles or self.DEFAULT_QUANTILES
         self.max_observations = max_observations
         self._values: Dict[LabelSet, MetricValue] = {}
         self._lock = threading.RLock()
 
-    def _init_label_set(self, label_set: LabelSet):
+    def _init_label_set(self, label_set: LabelSet) -> None:
         """Initialize for a label set."""
         if label_set not in self._values:
             self._values[label_set] = MetricValue(
@@ -289,7 +289,7 @@ class Summary:
                 count=0
             )
 
-    def observe(self, value: float, labels: Optional[Dict[str, str]] = None):
+    def observe(self, value: float, labels: Optional[Dict[str, str]] = None) -> None:
         """Observe a value."""
         label_set = LabelSet(labels or {})
         with self._lock:
@@ -304,7 +304,7 @@ class Summary:
                 mv.sum -= removed
             mv.timestamp = time.time()
 
-    def time(self):
+    def time(self) -> "SummaryTimer":
         """Context manager to time a block of code."""
         return SummaryTimer(self)
 
@@ -343,16 +343,16 @@ class Summary:
 class SummaryTimer:
     """Timer context manager for Summary."""
 
-    def __init__(self, summary: Summary, labels: Optional[Dict[str, str]] = None):
+    def __init__(self, summary: Summary, labels: Optional[Dict[str, str]] = None) -> None:
         self.summary = summary
         self.labels = labels
         self.start_time: Optional[float] = None
 
-    def __enter__(self):
+    def __enter__(self) -> "SummaryTimer":
         self.start_time = time.time()
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> bool:
         if self.start_time is not None:
             duration = time.time() - self.start_time
             self.summary.observe(duration, self.labels)
@@ -362,7 +362,7 @@ class SummaryTimer:
 class KGPrometheusRegistry:
     """Registry for Prometheus metrics."""
 
-    def __init__(self, prefix: str = "kg"):
+    def __init__(self, prefix: str = "kg") -> None:
         self.prefix = prefix
         self._metrics: Dict[str, Union[Counter, Gauge, Histogram, Summary]] = {}
         self._lock = threading.RLock()
@@ -519,11 +519,11 @@ class KGMetricsService:
     Provides pre-defined metrics for all KG components.
     """
 
-    def __init__(self, prefix: str = "kg"):
+    def __init__(self, prefix: str = "kg") -> None:
         self.registry = KGPrometheusRegistry(prefix)
         self._setup_metrics()
 
-    def _setup_metrics(self):
+    def _setup_metrics(self) -> None:
         """Setup all KG metrics."""
 
         # =============
@@ -884,7 +884,7 @@ class KGMetricsService:
         method: str,
         status: int,
         duration: float
-    ):
+    ) -> None:
         """Record a request completion."""
         status_str = str(status)
         self.requests_total.inc(labels={
@@ -902,7 +902,7 @@ class KGMetricsService:
         query_type: str,
         duration: float,
         success: bool = True
-    ):
+    ) -> None:
         """Record a Neo4j query."""
         status = "success" if success else "error"
         self.neo4j_queries_total.inc(labels={
@@ -920,7 +920,7 @@ class KGMetricsService:
         paths_found: int,
         avg_hops: float,
         success: bool = True
-    ):
+    ) -> None:
         """Record a reasoning query."""
         status = "success" if success else "error"
         self.reasoning_queries_total.inc(labels={
@@ -938,15 +938,15 @@ class KGMetricsService:
                 "strategy": strategy
             })
 
-    def record_cache_hit(self, cache_type: str):
+    def record_cache_hit(self, cache_type: str) -> None:
         """Record a cache hit."""
         self.cache_hits_total.inc(labels={"cache_type": cache_type})
 
-    def record_cache_miss(self, cache_type: str):
+    def record_cache_miss(self, cache_type: str) -> None:
         """Record a cache miss."""
         self.cache_misses_total.inc(labels={"cache_type": cache_type})
 
-    def update_cache_stats(self, cache_type: str, size_bytes: int, entries: int):
+    def update_cache_stats(self, cache_type: str, size_bytes: int, entries: int) -> None:
         """Update cache statistics."""
         self.cache_size.set(size_bytes, labels={"cache_type": cache_type})
         self.cache_entries.set(entries, labels={"cache_type": cache_type})
@@ -957,7 +957,7 @@ class KGMetricsService:
         duration: float,
         success: bool = True,
         retry_count: int = 0
-    ):
+    ) -> None:
         """Record a webhook delivery."""
         status = "success" if success else "failure"
         self.webhook_deliveries_total.inc(labels={
@@ -977,7 +977,7 @@ class KGMetricsService:
         duration: float,
         records: int,
         success: bool = True
-    ):
+    ) -> None:
         """Record a data export."""
         status = "success" if success else "failure"
         self.data_exports_total.inc(labels={
@@ -994,7 +994,7 @@ class KGMetricsService:
         memory_bytes: Optional[int] = None,
         cpu_percent: Optional[float] = None,
         threads: Optional[int] = None
-    ):
+    ) -> None:
         """Update system metrics."""
         if memory_bytes is not None:
             self.memory_usage_bytes.set(memory_bytes, labels={"type": "rss"})
@@ -1104,7 +1104,7 @@ def get_metrics_service() -> KGMetricsService:
     return _metrics_service
 
 
-def reset_metrics_service():
+def reset_metrics_service() -> None:
     """Reset the metrics service (for testing)."""
     global _metrics_service
     _metrics_service = None

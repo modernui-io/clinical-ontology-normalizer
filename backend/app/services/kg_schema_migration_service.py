@@ -132,7 +132,7 @@ class MigrationHistory:
 class MigrationBuilder:
     """Builder for creating migrations fluently."""
 
-    def __init__(self, version: str, name: str):
+    def __init__(self, version: str, name: str) -> None:
         self.version = version
         self.name = name
         self.description = ""
@@ -391,7 +391,7 @@ class MockNeo4jDriver:
     Mock Neo4j driver for testing migrations without a real database.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._executed_queries: List[Tuple[str, Dict]] = []
         self._constraints: Dict[str, Dict] = {}
         self._indexes: Dict[str, Dict] = {}
@@ -450,19 +450,19 @@ class MockNeo4jDriver:
         """Get all migration history."""
         return list(self._migration_history.values())
 
-    def record_migration(self, history: MigrationHistory):
+    def record_migration(self, history: MigrationHistory) -> None:
         """Record a completed migration."""
         self._migration_history[history.version] = history
 
-    def remove_migration_record(self, version: str):
+    def remove_migration_record(self, version: str) -> None:
         """Remove migration from history (for rollback)."""
         self._migration_history.pop(version, None)
 
-    def set_fail(self, should_fail: bool):
+    def set_fail(self, should_fail: bool) -> None:
         """Set whether queries should fail."""
         self._should_fail = should_fail
 
-    def set_fail_on_query(self, query_substring: Optional[str]):
+    def set_fail_on_query(self, query_substring: Optional[str]) -> None:
         """Set a query substring that should cause failure."""
         self._fail_on_query = query_substring
 
@@ -474,25 +474,25 @@ class KGSchemaMigrationService:
 
     HISTORY_LABEL = "_SchemaMigration"
 
-    def __init__(self, driver: Optional[MockNeo4jDriver] = None):
+    def __init__(self, driver: Optional[MockNeo4jDriver] = None) -> None:
         self.driver = driver or MockNeo4jDriver()
         self._migrations: Dict[str, Migration] = {}
         self._listeners: List[Callable] = []
 
-    def register_migration(self, migration: Migration):
+    def register_migration(self, migration: Migration) -> None:
         """Register a migration."""
         self._migrations[migration.version] = migration
 
-    def register_migrations(self, migrations: List[Migration]):
+    def register_migrations(self, migrations: List[Migration]) -> None:
         """Register multiple migrations."""
         for migration in migrations:
             self.register_migration(migration)
 
-    def add_listener(self, listener: Callable):
+    def add_listener(self, listener: Callable) -> None:
         """Add migration event listener."""
         self._listeners.append(listener)
 
-    def _emit_event(self, event_type: str, **kwargs):
+    def _emit_event(self, event_type: str, **kwargs: Any) -> None:
         """Emit event to listeners."""
         for listener in self._listeners:
             try:
@@ -622,7 +622,7 @@ class KGSchemaMigrationService:
 
         return result
 
-    def _rollback_operations(self, migration: Migration, up_to_index: int):
+    def _rollback_operations(self, migration: Migration, up_to_index: int) -> None:
         """Rollback operations from index down to 0."""
         for i in range(up_to_index, -1, -1):
             operation = migration.operations[i]
@@ -867,7 +867,7 @@ def get_migration_service() -> KGSchemaMigrationService:
     return _migration_service
 
 
-def reset_migration_service():
+def reset_migration_service() -> None:
     """Reset the migration service (for testing)."""
     global _migration_service
     _migration_service = None

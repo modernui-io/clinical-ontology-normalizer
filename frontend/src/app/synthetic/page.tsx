@@ -43,6 +43,17 @@ import {
   SyntheticGenerateRequest,
 } from "@/lib/api";
 
+// Type for synthetic patient preview data
+interface SyntheticPatientPreview {
+  patient_id: string;
+  gender: string;
+  age: number;
+  race: string;
+  conditions: Array<{ name: string; code?: string }>;
+  medications?: Array<{ name: string }>;
+  labs?: Array<{ name: string; value: number }>;
+}
+
 const OUTPUT_FORMATS = [
   { value: "fhir_json", label: "FHIR R4 JSON" },
   { value: "csv", label: "CSV" },
@@ -85,7 +96,7 @@ export default function SyntheticDataPage() {
 
   // Job tracking
   const [currentJob, setCurrentJob] = useState<SyntheticJob | null>(null);
-  const [previewData, setPreviewData] = useState<any[] | null>(null);
+  const [previewData, setPreviewData] = useState<SyntheticPatientPreview[] | null>(null);
 
   // Fetch initial data
   const fetchData = useCallback(async () => {
@@ -582,7 +593,7 @@ export default function SyntheticDataPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {previewData.map((p: any) => (
+                        {previewData.map((p) => (
                           <tr key={p.patient_id} className="border-b last:border-0">
                             <td className="py-2 px-2 font-mono text-xs">
                               {p.patient_id}
@@ -594,7 +605,7 @@ export default function SyntheticDataPage() {
                             </td>
                             <td className="py-2 px-2">
                               <div className="flex flex-wrap gap-1">
-                                {p.conditions.slice(0, 2).map((c: any, i: number) => (
+                                {p.conditions.slice(0, 2).map((c, i) => (
                                   <Badge key={i} variant="secondary" className="text-xs">
                                     {c.name.length > 20
                                       ? c.name.slice(0, 20) + "..."

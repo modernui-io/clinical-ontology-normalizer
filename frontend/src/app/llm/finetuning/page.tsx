@@ -95,20 +95,23 @@ interface TrainingMetrics {
   timestamp: string;
 }
 
+// Training configuration for fine-tuning jobs
+interface TrainingConfig {
+  dataset_id?: string;
+  base_model: BaseModel;
+  method: FineTuningMethod;
+  task: FineTuningTask | null;
+  epochs: number;
+  batch_size: number;
+  learning_rate: number;
+  lora_r?: number;
+  lora_alpha?: number;
+  model_name?: string;
+}
+
 interface FineTuneJob {
   id: string;
-  config: {
-    dataset_id: string;
-    base_model: BaseModel;
-    method: FineTuningMethod;
-    task: FineTuningTask;
-    epochs: number;
-    batch_size: number;
-    learning_rate: number;
-    lora_r?: number;
-    lora_alpha?: number;
-    model_name?: string;
-  };
+  config: TrainingConfig;
   status: JobStatus;
   created_at: string;
   started_at?: string;
@@ -160,6 +163,24 @@ interface EvaluationResult {
   entity_metrics?: Record<string, Record<string, number>>;
   test_examples: number;
   avg_inference_time_ms?: number;
+}
+
+// NER entity prediction result
+interface NEREntity {
+  text: string;
+  label: string;
+  start: number;
+  end: number;
+  confidence: number;
+}
+
+// Inference prediction results
+interface InferencePrediction {
+  entities?: NEREntity[];
+  label?: string;
+  confidence?: number;
+  probabilities?: Record<string, number>;
+  inference_time_ms?: number;
 }
 
 // ============================================================================
@@ -694,7 +715,7 @@ function ModelConfigurationForm({
   selectedDataset,
   selectedTask,
 }: {
-  onStartTraining: (config: any) => void;
+  onStartTraining: (config: TrainingConfig) => void;
   selectedDataset: Dataset | null;
   selectedTask: FineTuningTask | null;
 }) {
@@ -1144,7 +1165,7 @@ function ModelComparisonTable({ models }: { models: FineTunedModel[] }) {
 function InferencePlayground({ models }: { models: FineTunedModel[] }) {
   const [selectedModelId, setSelectedModelId] = useState(models[0]?.id || "");
   const [inputText, setInputText] = useState("The patient presents with chest pain and shortness of breath. Started on aspirin 81mg daily and metoprolol 25mg twice daily.");
-  const [predictions, setPredictions] = useState<any>(null);
+  const [predictions, setPredictions] = useState<InferencePrediction | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleRunInference = () => {
@@ -1237,7 +1258,7 @@ function InferencePlayground({ models }: { models: FineTunedModel[] }) {
 
             {selectedModel?.task === "ner" && predictions.entities && (
               <div className="space-y-2">
-                {predictions.entities.map((entity: any, idx: number) => (
+                {predictions.entities.map((entity, idx) => (
                   <div key={idx} className="flex items-center justify-between p-2 bg-white rounded border">
                     <div className="flex items-center gap-2">
                       <span className="font-medium">{entity.text}</span>
@@ -1261,7 +1282,7 @@ function InferencePlayground({ models }: { models: FineTunedModel[] }) {
                 <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
                   <span className="font-medium">Predicted: {predictions.label}</span>
                   <span className="text-blue-600 font-semibold">
-                    {(predictions.confidence * 100).toFixed(1)}%
+                    {((predictions.confidence ?? 0) * 100).toFixed(1)}%
                   </span>
                 </div>
                 <div className="space-y-1">
@@ -1305,7 +1326,7 @@ export default function LLMFineTuningPage() {
 
   const activeJob = jobs.find((j) => j.status === "training" || j.status === "preparing");
 
-  const handleStartTraining = (config: any) => {
+  const handleStartTraining = (config: TrainingConfig) => {
     const newJob: FineTuneJob = {
       id: `job-${Date.now()}`,
       config,

@@ -356,7 +356,7 @@ class KGConfigService:
             self.load_from_file(config_file)
         self._apply_env_overrides()
 
-    def register_schema(self, schema: ConfigSchema):
+    def register_schema(self, schema: ConfigSchema) -> None:
         """Register a configuration schema."""
         with self._lock:
             self._schemas[schema.key] = schema
@@ -365,13 +365,13 @@ class KGConfigService:
         """Get schema for a configuration key."""
         return self._schemas.get(key)
 
-    def _load_defaults(self):
+    def _load_defaults(self) -> None:
         """Load default values from schemas."""
         for key, schema in self._schemas.items():
             if schema.default is not None:
                 self._config[key] = schema.default
 
-    def _apply_env_overrides(self):
+    def _apply_env_overrides(self) -> None:
         """Apply environment variable overrides."""
         for key, schema in self._schemas.items():
             if schema.env_var:
@@ -492,7 +492,7 @@ class KGConfigService:
         new_value: Any,
         source: str,
         user: Optional[str] = None,
-    ):
+    ) -> None:
         """Record a configuration change."""
         # Mask sensitive values
         schema = self._schemas.get(key)
@@ -517,7 +517,7 @@ class KGConfigService:
             except Exception:
                 pass
 
-    def _notify_listeners(self, key: str, old_value: Any, new_value: Any):
+    def _notify_listeners(self, key: str, old_value: Any, new_value: Any) -> None:
         """Notify listeners of a configuration change."""
         # Key-specific listeners
         for listener in self._listeners.get(key, []):
@@ -540,7 +540,7 @@ class KGConfigService:
         self,
         key: str,
         listener: Callable[[str, Any, Any], None],
-    ):
+    ) -> None:
         """Add a listener for configuration changes.
 
         Key can be specific ("cache.ttl_seconds") or pattern ("cache.*").
@@ -552,17 +552,17 @@ class KGConfigService:
         self,
         key: str,
         listener: Callable[[str, Any, Any], None],
-    ):
+    ) -> None:
         """Remove a configuration listener."""
         with self._lock:
             if listener in self._listeners.get(key, []):
                 self._listeners[key].remove(listener)
 
-    def add_global_listener(self, listener: Callable[[ConfigChange], None]):
+    def add_global_listener(self, listener: Callable[[ConfigChange], None]) -> None:
         """Add a global listener for all configuration changes."""
         self._global_listeners.append(listener)
 
-    def remove_global_listener(self, listener: Callable[[ConfigChange], None]):
+    def remove_global_listener(self, listener: Callable[[ConfigChange], None]) -> None:
         """Remove a global listener."""
         if listener in self._global_listeners:
             self._global_listeners.remove(listener)
@@ -614,7 +614,7 @@ class KGConfigService:
         with open(filepath, "rb") as f:
             return hashlib.sha256(f.read()).hexdigest()
 
-    def _save_version(self, source: str):
+    def _save_version(self, source: str) -> None:
         """Save a configuration version snapshot."""
         with self._lock:
             self._current_version += 1
@@ -678,7 +678,7 @@ class KGConfigService:
         with self._lock:
             return list(reversed(self._changes[-limit:]))
 
-    def start_watching(self):
+    def start_watching(self) -> None:
         """Start watching configuration file for changes."""
         if not self.config_file:
             return
@@ -694,7 +694,7 @@ class KGConfigService:
             )
             self._watch_thread.start()
 
-    def stop_watching(self):
+    def stop_watching(self) -> None:
         """Stop watching configuration file."""
         with self._lock:
             self._watching = False
@@ -702,7 +702,7 @@ class KGConfigService:
                 self._watch_thread.join(timeout=self.watch_interval + 1)
                 self._watch_thread = None
 
-    def _watch_file(self):
+    def _watch_file(self) -> None:
         """Watch configuration file for changes."""
         while self._watching:
             try:
@@ -806,7 +806,7 @@ def get_config_service() -> KGConfigService:
     return _config_service
 
 
-def reset_config_service():
+def reset_config_service() -> None:
     """Reset the config service (for testing)."""
     global _config_service
     if _config_service:

@@ -373,10 +373,11 @@ function CDSTestContent() {
       setResponse(result);
       setResponseJson(JSON.stringify(result, null, 2));
       toast.success(`Test complete: ${result.cards.length} card(s) returned`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      toast.error(error.message || "Test failed");
-      setResponseJson(JSON.stringify({ error: error.message }, null, 2));
+      const message = error instanceof Error ? error.message : "Test failed";
+      toast.error(message);
+      setResponseJson(JSON.stringify({ error: message }, null, 2));
     } finally {
       setIsTesting(false);
     }

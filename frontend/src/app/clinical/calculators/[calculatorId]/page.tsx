@@ -551,7 +551,7 @@ export default function CalculatorPage({ params }: { params: Promise<{ calculato
     }
   }, [calculatorId]);
 
-  const handleInputChange = (key: string, value: any) => {
+  const handleInputChange = (key: string, value: string | number | boolean) => {
     setFormValues((prev) => ({ ...prev, [key]: value }));
     setErrors((prev) => {
       const next = { ...prev };

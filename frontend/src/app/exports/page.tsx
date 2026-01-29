@@ -504,8 +504,8 @@ export default function ExportsPage() {
       const jobId = await startExport(selectedTypes, sinceDate || undefined);
       toast.success(`Export started: ${jobId.slice(0, 8)}...`);
       loadData();
-    } catch (error: any) {
-      toast.error(error.message || "Failed to start export");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Failed to start export");
     } finally {
       setIsStarting(false);
     }
