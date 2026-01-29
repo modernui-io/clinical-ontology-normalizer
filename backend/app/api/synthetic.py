@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import logging
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Annotated
 from uuid import uuid4
 
@@ -375,7 +375,7 @@ def _run_generation_job(job_id: str) -> None:
 
     try:
         job.status = JobStatus.RUNNING
-        job.started_at = datetime.now().isoformat()
+        job.started_at = datetime.now(timezone.utc).isoformat()
 
         # Generate patients
         patients = service.generate_patients(job.config)
@@ -403,14 +403,14 @@ def _run_generation_job(job_id: str) -> None:
             )
 
         job.status = JobStatus.COMPLETED
-        job.completed_at = datetime.now().isoformat()
+        job.completed_at = datetime.now(timezone.utc).isoformat()
         job.progress_percent = 100.0
 
     except Exception as e:
         logger.exception(f"Generation job failed: {job_id}")
         job.status = JobStatus.FAILED
         job.error = str(e)
-        job.completed_at = datetime.now().isoformat()
+        job.completed_at = datetime.now(timezone.utc).isoformat()
 
 
 # ============================================================================

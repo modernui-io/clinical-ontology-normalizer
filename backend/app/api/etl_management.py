@@ -31,7 +31,7 @@ Endpoints:
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Annotated, Any
 from uuid import UUID, uuid4
 
@@ -85,8 +85,8 @@ class MappingTemplate(BaseModel):
     source_type: str = Field(..., description="Source data type (fhir, csv, hl7v2, ccda)")
     target_table: str = Field(..., description="Target OMOP table (e.g., device_exposure, specimen)")
     fields: list[MappingField] = Field(default_factory=list)
-    created_at: str = Field(default_factory=lambda: datetime.now().isoformat())
-    updated_at: str = Field(default_factory=lambda: datetime.now().isoformat())
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    updated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -444,7 +444,7 @@ async def update_mapping(mapping_id: str, request: UpdateMappingRequest) -> Mapp
     if request.metadata is not None:
         mapping.metadata = request.metadata
 
-    mapping.updated_at = datetime.now().isoformat()
+    mapping.updated_at = datetime.now(timezone.utc).isoformat()
 
     logger.info(f"Updated mapping template {mapping_id}")
     return mapping

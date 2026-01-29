@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from enum import Enum
 from typing import Any, AsyncIterator
 
@@ -897,7 +897,7 @@ class SourceConnector(ABC):
         result = ExtractionResult(
             connector_type=self.connector_type,
             source_system=self.source_system,
-            started_at=datetime.now(),
+            started_at=datetime.now(timezone.utc),
         )
 
         try:
