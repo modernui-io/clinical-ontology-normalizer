@@ -9,7 +9,8 @@ These models represent the hierarchical structure of X12 transactions
 and support both parsing (X12 -> JSON) and generation (JSON -> X12).
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from dataclasses import field as dataclass_field
 from datetime import date, datetime
 from decimal import Decimal
 from enum import Enum
@@ -130,6 +131,23 @@ class EntityTypeQualifier(str, Enum):
     NON_PERSON = "2"
 
 
+class X12EntityRole(str, Enum):
+    """Role of an X12 entity in a transaction.
+
+    Used to distinguish between different provider types in a single
+    unified X12Entity model instead of separate classes.
+    """
+
+    BILLING = "billing"  # Billing provider (NM1*85)
+    RENDERING = "rendering"  # Rendering/performing provider (NM1*82)
+    REFERRING = "referring"  # Referring provider (NM1*DN)
+    PAY_TO = "pay_to"  # Pay-to provider (NM1*87)
+    FACILITY = "facility"  # Service facility (NM1*77)
+    ATTENDING = "attending"  # Attending physician
+    OPERATING = "operating"  # Operating physician
+    SUPERVISING = "supervising"  # Supervising provider
+
+
 class IdentificationCodeQualifier(str, Enum):
     """Identification code qualifiers."""
 
@@ -177,9 +195,25 @@ class X12Identifier(BaseModel):
 # ============================================================================
 
 
-class X12Provider(BaseModel):
-    """Healthcare provider information (NM1/N3/N4/REF segments)."""
+class X12Entity(BaseModel):
+    """Unified healthcare entity model for all provider types.
 
+    This single model replaces X12Provider, X12RenderingProvider, and
+    X12ReferringProvider by using a role field to distinguish entity types.
+    Different roles may use different subsets of fields.
+
+    Roles and typical field usage:
+    - BILLING: Full provider info (org or person, address, tax_id, contact)
+    - RENDERING: Person name, NPI, taxonomy_code
+    - REFERRING: Person name, NPI
+    - PAY_TO: Same as BILLING
+    - FACILITY: Organization name, NPI, address
+    """
+
+    role: X12EntityRole = Field(
+        X12EntityRole.BILLING,
+        description="Role of this entity in the transaction"
+    )
     entity_type: EntityTypeQualifier = Field(
         EntityTypeQualifier.NON_PERSON,
         description="Entity type (person or organization)"
@@ -192,29 +226,25 @@ class X12Provider(BaseModel):
     npi: str = Field(..., min_length=10, max_length=10, description="National Provider Identifier")
     tax_id: str | None = Field(None, max_length=50, description="Federal Tax ID or SSN")
     taxonomy_code: str | None = Field(None, max_length=50, description="Provider taxonomy code")
-    address: X12Address | None = Field(None, description="Provider address")
+    address: X12Address | None = Field(None, description="Entity address")
     contact: X12ContactInfo | None = Field(None, description="Contact information")
 
     # Additional identifiers
     other_ids: list[X12Identifier] = Field(default_factory=list, description="Additional identifiers")
 
-
-class X12RenderingProvider(BaseModel):
-    """Rendering provider (performing physician)."""
-
-    last_name: str = Field(..., max_length=60, description="Last name")
-    first_name: str = Field(..., max_length=35, description="First name")
-    middle_name: str | None = Field(None, max_length=25, description="Middle name")
-    npi: str = Field(..., min_length=10, max_length=10, description="NPI")
-    taxonomy_code: str | None = Field(None, description="Taxonomy code")
+    @property
+    def display_name(self) -> str:
+        """Get display name based on entity type."""
+        if self.entity_type == EntityTypeQualifier.NON_PERSON:
+            return self.organization_name or "Unknown Organization"
+        parts = [self.last_name or "", self.first_name or ""]
+        return ", ".join(p for p in parts if p) or "Unknown"
 
 
-class X12ReferringProvider(BaseModel):
-    """Referring provider information."""
-
-    last_name: str = Field(..., max_length=60, description="Last name")
-    first_name: str = Field(..., max_length=35, description="First name")
-    npi: str = Field(..., min_length=10, max_length=10, description="NPI")
+# Type aliases for backwards compatibility
+X12Provider = X12Entity
+X12RenderingProvider = X12Entity
+X12ReferringProvider = X12Entity
 
 
 # ============================================================================
@@ -289,9 +319,9 @@ class X12Procedure(BaseModel):
         ProcedureCodeQualifier.CPT,
         description="Code qualifier"
     )
-    modifiers: list[str] = Field(default_factory=list, max_length=4, description="Modifiers")
+    modifiers: list[str] = Field(default_factory=list, description="Modifiers (max 4)")
     description: str | None = Field(None, description="Procedure description")
-    date: date | None = Field(None, description="Procedure date")
+    procedure_date: date | None = Field(None, description="Procedure date")
 
 
 # ============================================================================
@@ -327,7 +357,7 @@ class X12ServiceLine(BaseModel):
     )
 
     # Rendering provider (if different from billing)
-    rendering_provider: X12RenderingProvider | None = Field(
+    rendering_provider: X12Entity | None = Field(
         None,
         description="Rendering provider for this line"
     )
@@ -414,12 +444,12 @@ class X12Claim(BaseModel):
         description="Place of service"
     )
 
-    # Parties
-    billing_provider: X12Provider = Field(..., description="Billing provider")
-    pay_to_provider: X12Provider | None = Field(None, description="Pay-to provider")
-    rendering_provider: X12RenderingProvider | None = Field(None, description="Rendering provider")
-    referring_provider: X12ReferringProvider | None = Field(None, description="Referring provider")
-    facility: X12Provider | None = Field(None, description="Service facility")
+    # Parties (all use unified X12Entity with different roles)
+    billing_provider: X12Entity = Field(..., description="Billing provider")
+    pay_to_provider: X12Entity | None = Field(None, description="Pay-to provider")
+    rendering_provider: X12Entity | None = Field(None, description="Rendering provider")
+    referring_provider: X12Entity | None = Field(None, description="Referring provider")
+    facility: X12Entity | None = Field(None, description="Service facility")
 
     # Insurance
     payer: X12Payer = Field(..., description="Primary payer")
@@ -601,8 +631,8 @@ class X12InterchangeHeader(BaseModel):
     sender_id: str = Field(..., max_length=15)
     receiver_qualifier: str = Field("ZZ", max_length=2)
     receiver_id: str = Field(..., max_length=15)
-    date: date = Field(default_factory=date.today)
-    time: str = Field(default_factory=lambda: datetime.now().strftime("%H%M"))
+    interchange_date: date = Field(default_factory=date.today)
+    interchange_time: str = Field(default_factory=lambda: datetime.now().strftime("%H%M"))
     repetition_separator: str = Field("^", max_length=1)
     version: str = Field("00501", max_length=5)
     control_number: str = Field(..., max_length=9)
@@ -617,8 +647,8 @@ class X12FunctionalGroupHeader(BaseModel):
     functional_id: str = Field(..., max_length=2)  # HC for 837
     sender_id: str = Field(..., max_length=15)
     receiver_id: str = Field(..., max_length=15)
-    date: date = Field(default_factory=date.today)
-    time: str = Field(default_factory=lambda: datetime.now().strftime("%H%M%S"))
+    group_date: date = Field(default_factory=date.today)
+    group_time: str = Field(default_factory=lambda: datetime.now().strftime("%H%M%S"))
     group_control_number: str = Field(..., max_length=9)
     responsible_agency: str = Field("X", max_length=2)
     version: str = Field("005010X222A1", max_length=12)  # 837P version

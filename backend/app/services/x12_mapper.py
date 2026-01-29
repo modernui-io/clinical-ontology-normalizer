@@ -34,12 +34,11 @@ from app.models.x12 import (
     X12ClaimPayment,
     X12ContactInfo,
     X12Diagnosis,
+    X12Entity,
+    X12EntityRole,
     X12Payer,
     X12Payment,
-    X12Provider,
-    X12ReferringProvider,
     X12Remittance,
-    X12RenderingProvider,
     X12ServiceLine,
     X12ServicePayment,
     X12Subscriber,
@@ -431,7 +430,9 @@ class X12MapperService:
             name_parts = claim.referring_provider_name.split(",")
             last_name = name_parts[0].strip() if name_parts else "Unknown"
             first_name = name_parts[1].strip() if len(name_parts) > 1 else "Unknown"
-            referring_provider = X12ReferringProvider(
+            referring_provider = X12Entity(
+                role=X12EntityRole.REFERRING,
+                entity_type=EntityTypeQualifier.PERSON,
                 last_name=last_name,
                 first_name=first_name,
                 npi=claim.referring_provider_npi,
@@ -457,8 +458,12 @@ class X12MapperService:
             referring_provider=referring_provider,
         )
 
-    def _map_internal_provider(self, provider: InternalProvider) -> X12Provider:
-        """Map internal provider to X12Provider."""
+    def _map_internal_provider(
+        self,
+        provider: InternalProvider,
+        role: X12EntityRole = X12EntityRole.BILLING,
+    ) -> X12Entity:
+        """Map internal provider to X12Entity."""
         # Parse name to determine entity type
         name_parts = provider.name.split(",") if "," in provider.name else [provider.name]
 
@@ -485,7 +490,8 @@ class X12MapperService:
             )
 
         if is_org:
-            return X12Provider(
+            return X12Entity(
+                role=role,
                 entity_type=EntityTypeQualifier.NON_PERSON,
                 organization_name=provider.name,
                 npi=provider.npi,
@@ -497,7 +503,8 @@ class X12MapperService:
         else:
             last_name = name_parts[0].strip()
             first_name = name_parts[1].strip() if len(name_parts) > 1 else ""
-            return X12Provider(
+            return X12Entity(
+                role=role,
                 entity_type=EntityTypeQualifier.PERSON,
                 last_name=last_name,
                 first_name=first_name,
@@ -647,7 +654,9 @@ class X12MapperService:
         # Map rendering provider if present
         rendering_provider = None
         if line.rendering_provider_npi:
-            rendering_provider = X12RenderingProvider(
+            rendering_provider = X12Entity(
+                role=X12EntityRole.RENDERING,
+                entity_type=EntityTypeQualifier.PERSON,
                 last_name="Provider",
                 first_name="Rendering",
                 npi=line.rendering_provider_npi,
@@ -844,8 +853,8 @@ class X12MapperService:
             zip_code=zip_code,
         )
 
-    def _map_x12_provider_to_internal(self, provider: X12Provider) -> InternalProvider:
-        """Map X12Provider to internal format."""
+    def _map_x12_provider_to_internal(self, provider: X12Entity) -> InternalProvider:
+        """Map X12Entity to internal format."""
         # Build name
         if provider.entity_type == EntityTypeQualifier.NON_PERSON:
             name = provider.organization_name or "Unknown Organization"

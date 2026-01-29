@@ -37,6 +37,8 @@ from app.models.x12 import (
     X12ClaimPayment,
     X12ContactInfo,
     X12Diagnosis,
+    X12Entity,
+    X12EntityRole,
     X12Envelope,
     X12FunctionalGroup,
     X12FunctionalGroupHeader,
@@ -48,10 +50,7 @@ from app.models.x12 import (
     X12Payer,
     X12Payment,
     X12Procedure,
-    X12Provider,
-    X12ReferringProvider,
     X12Remittance,
-    X12RenderingProvider,
     X12ServiceLine,
     X12ServicePayment,
     X12Subscriber,
@@ -1043,7 +1042,8 @@ class X12Service:
 
         # Build provider
         billing_provider_data = data.get("billing_provider", {})
-        billing_provider = X12Provider(
+        billing_provider = X12Entity(
+            role=X12EntityRole.BILLING,
             entity_type=EntityTypeQualifier.NON_PERSON if billing_provider_data.get("organization_name") else EntityTypeQualifier.PERSON,
             organization_name=billing_provider_data.get("organization_name"),
             last_name=billing_provider_data.get("last_name"),
