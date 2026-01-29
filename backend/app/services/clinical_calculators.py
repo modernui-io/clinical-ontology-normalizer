@@ -3897,70 +3897,35 @@ def calculate_apgar(
     time_minutes: int = 1,  # Usually 1 and 5 minutes
 ) -> CalculatorResult:
     """Calculate Apgar score for newborn assessment.
-
-    Args:
-        appearance: Skin color (0-2).
-        pulse: Heart rate (0-2).
-        grimace: Reflex irritability (0-2).
-        activity: Muscle tone (0-2).
-        respiration: Breathing effort (0-2).
-        time_minutes: Time of assessment (1, 5, or 10 minutes).
-
-    Returns:
-        CalculatorResult with newborn assessment.
+    Uses data-driven definition from calculator_definitions.py.
     """
-    score = appearance + pulse + grimace + activity + respiration
+    # Clamp values to valid ranges
+    appearance = max(0, min(appearance, 2))
+    pulse = max(0, min(pulse, 2))
+    grimace = max(0, min(grimace, 2))
+    activity = max(0, min(activity, 2))
+    respiration = max(0, min(respiration, 2))
 
-    components = {
-        "Appearance": appearance,
-        "Pulse": pulse,
-        "Grimace": grimace,
-        "Activity": activity,
-        "Respiration": respiration,
-        "Time": f"{time_minutes} min",
-    }
+    # Map integer scores to multi-level criterion names
+    appearance_map = {2: "pink", 1: "acrocyanosis", 0: "blue_pale"}
+    pulse_map = {2: "above_100", 1: "below_100", 0: "absent"}
+    grimace_map = {2: "cry_sneeze", 1: "grimace", 0: "no_response"}
+    activity_map = {2: "active", 1: "some_flexion", 0: "limp"}
+    respiration_map = {2: "crying", 1: "weak_cry", 0: "absent"}
 
-    if score >= 7:
-        risk = RiskLevel.LOW
-        interpretation = f"Apgar {score} at {time_minutes} min: Normal/Reassuring"
-        recommendations = [
-            "Normal transition",
-            "Routine newborn care",
-            "Skin-to-skin contact",
-            "Initiate breastfeeding when ready",
-        ]
-    elif score >= 4:
-        risk = RiskLevel.MODERATE
-        interpretation = f"Apgar {score} at {time_minutes} min: Moderately depressed"
-        recommendations = [
-            "Stimulation and tactile support",
-            "Clear airway as needed",
-            "Supplemental oxygen if needed",
-            "Continue monitoring",
-            "Repeat Apgar at 5 minutes",
-        ]
-    else:
-        risk = RiskLevel.VERY_HIGH
-        interpretation = f"Apgar {score} at {time_minutes} min: Severely depressed"
-        recommendations = [
-            "Immediate resuscitation",
-            "Bag-mask ventilation",
-            "Consider intubation if no response",
-            "Chest compressions if HR <60 despite ventilation",
-            "Consider epinephrine if HR <60 despite CPR",
-            "NICU admission",
-        ]
-
-    return CalculatorResult(
-        calculator_name="Apgar Score",
-        score=score,
-        score_unit=f"at {time_minutes} min",
-        risk_level=risk,
-        interpretation=interpretation,
-        recommendations=recommendations,
-        components=components,
-        references=["Apgar V. Anesth Analg 1953"],
+    result = calculate_from_definition(
+        "apgar",
+        {
+            f"appearance_{appearance_map[appearance]}": True,
+            f"pulse_{pulse_map[pulse]}": True,
+            f"grimace_{grimace_map[grimace]}": True,
+            f"activity_{activity_map[activity]}": True,
+            f"respiration_{respiration_map[respiration]}": True,
+        },
     )
+    # Add time context to interpretation
+    result.score_unit = f"at {time_minutes} min"
+    return result
 
 
 # ============================================================================
