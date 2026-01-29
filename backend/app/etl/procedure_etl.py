@@ -35,6 +35,8 @@ Usage:
     proc_occ = await etl.transform_and_load(procedure, person_id=1)
 """
 
+from __future__ import annotations
+
 import logging
 from dataclasses import dataclass, field
 from datetime import date, datetime

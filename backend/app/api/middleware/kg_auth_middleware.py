@@ -9,6 +9,8 @@ This middleware integrates the KG API Key Service with FastAPI to provide:
 - Audit logging integration
 """
 
+from __future__ import annotations
+
 import time
 from dataclasses import dataclass, field
 from datetime import datetime

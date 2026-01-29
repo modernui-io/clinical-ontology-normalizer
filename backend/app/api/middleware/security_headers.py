@@ -4,6 +4,8 @@ VP-Security: Adds security headers to all responses per OWASP recommendations.
 VP-Security-4: HSTS only sent in production to avoid dev issues with self-signed certs.
 """
 
+from __future__ import annotations
+
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response

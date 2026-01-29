@@ -13,6 +13,8 @@ Usage:
     app.add_middleware(ErrorHandlerMiddleware)
 """
 
+from __future__ import annotations
+
 import logging
 import sys
 import traceback

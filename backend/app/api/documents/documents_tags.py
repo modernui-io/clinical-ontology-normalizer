@@ -1,5 +1,7 @@
 """Document Tags API endpoints - Tagging, categorization, and clinical decision support."""
 
+from __future__ import annotations
+
 import logging
 from typing import Literal
 from uuid import uuid4

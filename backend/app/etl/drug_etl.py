@@ -48,6 +48,8 @@ Usage:
     drug_exposure = await etl.transform_and_load(drug, person_id=1)
 """
 
+from __future__ import annotations
+
 import logging
 from dataclasses import dataclass, field
 from datetime import date, datetime

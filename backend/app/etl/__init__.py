@@ -45,6 +45,8 @@ Usage:
         spec = await specimen_etl.transform_and_load(specimen, person_id=person.person_id)
 """
 
+from __future__ import annotations
+
 from app.etl.condition_etl import (
     ConditionETL,
     ConditionETLConfig,

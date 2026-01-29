@@ -1,5 +1,7 @@
 """Document Bulk API endpoints - Batch upload/download, reports."""
 
+from __future__ import annotations
+
 import logging
 
 from fastapi import APIRouter, HTTPException

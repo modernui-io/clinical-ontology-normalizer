@@ -5,6 +5,8 @@ Provides a GraphQL interface for querying the knowledge graph,
 including concepts, relationships, reasoning paths, and patient data.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum

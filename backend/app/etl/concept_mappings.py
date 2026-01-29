@@ -12,6 +12,8 @@ Standard OMOP Vocabularies:
     - Type Concepts: EHR source indicators
 """
 
+from __future__ import annotations
+
 from app.connectors.base import Gender
 
 

@@ -1,5 +1,7 @@
 """Documents API package - split into modular routers following Karpathy's simplicity principle."""
 
+from __future__ import annotations
+
 from fastapi import APIRouter
 
 from app.api.documents.documents_core import router as core_router

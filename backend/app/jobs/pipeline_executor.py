@@ -22,6 +22,8 @@ Dependencies:
     - app.services.data_source_service: Data source operations (fetch, transform, load)
 """
 
+from __future__ import annotations
+
 import logging
 from datetime import datetime, timezone
 from uuid import UUID

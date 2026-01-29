@@ -17,6 +17,8 @@ Usage:
     request_id = get_request_id()
 """
 
+from __future__ import annotations
+
 import logging
 import uuid
 from collections.abc import Awaitable, Callable

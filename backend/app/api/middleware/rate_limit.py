@@ -12,6 +12,8 @@ Usage:
     app.add_middleware(RateLimitMiddleware)
 """
 
+from __future__ import annotations
+
 import logging
 import time
 from collections import defaultdict

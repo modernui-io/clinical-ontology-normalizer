@@ -1,5 +1,7 @@
 """Document Core API endpoints - CRUD operations."""
 
+from __future__ import annotations
+
 import logging
 from typing import Annotated
 from uuid import UUID, uuid4

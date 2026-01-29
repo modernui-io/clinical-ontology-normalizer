@@ -1,5 +1,7 @@
 """Document FHIR API endpoints - FHIR export/import."""
 
+from __future__ import annotations
+
 import logging
 
 from fastapi import APIRouter

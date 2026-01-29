@@ -52,6 +52,8 @@ Usage:
     print(f"person_id={person.person_id}, gender={person.gender_concept_id}")
 """
 
+from __future__ import annotations
+
 import logging
 import threading
 from dataclasses import dataclass, field

@@ -14,6 +14,8 @@ Usage:
 The collected metrics are exposed via the /api/v1/metrics endpoint.
 """
 
+from __future__ import annotations
+
 import logging
 import time
 from collections.abc import Awaitable, Callable

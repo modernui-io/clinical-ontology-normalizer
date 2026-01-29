@@ -1,5 +1,7 @@
 """Middleware components for Clinical Ontology Normalizer API."""
 
+from __future__ import annotations
+
 from app.api.middleware.audit_middleware import AuditMiddleware, AsyncAuditMiddleware
 from app.api.middleware.auth_middleware import (
     CurrentUser,

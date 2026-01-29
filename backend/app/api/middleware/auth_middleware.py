@@ -14,6 +14,8 @@ Security features:
 - Integration with RBAC service
 """
 
+from __future__ import annotations
+
 import logging
 from contextvars import ContextVar
 from dataclasses import dataclass

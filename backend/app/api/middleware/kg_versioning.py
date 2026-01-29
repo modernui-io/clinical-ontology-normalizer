@@ -9,6 +9,8 @@ This module provides comprehensive API versioning including:
 - Changelog generation
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from datetime import datetime, date
 from enum import Enum
