@@ -833,112 +833,29 @@ def calculate_heart_score(
 ) -> CalculatorResult:
     """Calculate HEART Score for major adverse cardiac events in chest pain patients.
 
-    Args:
-        history_highly_suspicious: History highly suspicious for ACS.
-        history_moderately_suspicious: History moderately suspicious for ACS.
-        ekg_significant_st_depression: Significant ST depression.
-        ekg_nonspecific_repolarization: Non-specific repolarization abnormality.
-        age: Patient age in years.
-        risk_factors_count: Number of risk factors (HTN, DM, smoking, obesity, family hx, hyperlipidemia).
-        initial_troponin_elevated_3x: Troponin >3x upper limit of normal.
-        initial_troponin_elevated_1_3x: Troponin 1-3x upper limit of normal.
-
-    Returns:
-        CalculatorResult with MACE risk assessment.
+    Uses data-driven definition from calculator_definitions.py.
     """
-    score = 0
-    components = {}
+    # Map risk_factors_count to boolean level flags
+    risk_factors_three_or_more = risk_factors_count >= 3
+    risk_factors_one_or_two = 1 <= risk_factors_count < 3
 
-    # History (0-2 points)
-    if history_highly_suspicious:
-        score += 2
-        components["History (highly suspicious)"] = 2
-    elif history_moderately_suspicious:
-        score += 1
-        components["History (moderately suspicious)"] = 1
-    else:
-        components["History (slightly suspicious)"] = 0
-
-    # EKG (0-2 points)
-    if ekg_significant_st_depression:
-        score += 2
-        components["EKG (significant ST depression)"] = 2
-    elif ekg_nonspecific_repolarization:
-        score += 1
-        components["EKG (non-specific changes)"] = 1
-    else:
-        components["EKG (normal)"] = 0
-
-    # Age (0-2 points)
-    if age >= 65:
-        score += 2
-        components["Age ≥65"] = 2
-    elif age >= 45:
-        score += 1
-        components["Age 45-64"] = 1
-    else:
-        components["Age <45"] = 0
-
-    # Risk factors (0-2 points)
-    if risk_factors_count >= 3:
-        score += 2
-        components["Risk factors ≥3"] = 2
-    elif risk_factors_count >= 1:
-        score += 1
-        components["Risk factors 1-2"] = 1
-    else:
-        components["No risk factors"] = 0
-
-    # Troponin (0-2 points)
-    if initial_troponin_elevated_3x:
-        score += 2
-        components["Troponin >3x ULN"] = 2
-    elif initial_troponin_elevated_1_3x:
-        score += 1
-        components["Troponin 1-3x ULN"] = 1
-    else:
-        components["Troponin normal"] = 0
-
-    # Risk stratification
-    if score <= 3:
-        risk = RiskLevel.LOW
-        mace_risk = "0.9-1.7%"
-        interpretation = "Low risk - consider early discharge"
-        recommendations = [
-            "Consider early discharge with outpatient follow-up",
-            "Stress testing within 72 hours if discharged",
-            "Return precautions for chest pain",
-        ]
-    elif score <= 6:
-        risk = RiskLevel.MODERATE
-        mace_risk = "12-16.6%"
-        interpretation = "Moderate risk - admission recommended"
-        recommendations = [
-            "Admission for observation recommended",
-            "Serial troponins",
-            "Consider non-invasive stress testing",
-            "Cardiology consultation",
-        ]
-    else:
-        risk = RiskLevel.HIGH
-        mace_risk = "50-65%"
-        interpretation = "High risk - early invasive management"
-        recommendations = [
-            "Admit to monitored bed",
-            "Early invasive strategy recommended",
-            "Cardiology consultation urgent",
-            "Dual antiplatelet therapy if not contraindicated",
-        ]
-
-    return CalculatorResult(
-        calculator_name="HEART Score",
-        score=score,
-        score_unit="points",
-        risk_level=risk,
-        interpretation=f"{interpretation}. 6-week MACE risk: ~{mace_risk}",
-        recommendations=recommendations,
-        components=components,
-        references=["Six AJ, et al. Neth Heart J 2008", "Backus BE, et al. Int J Cardiol 2013"],
+    return calculate_from_definition(
+        "heart_score",
+        {
+            # History multi-level
+            "history_highly_suspicious": history_highly_suspicious,
+            "history_moderately_suspicious": history_moderately_suspicious,
+            # EKG multi-level
+            "ekg_significant_st_depression": ekg_significant_st_depression,
+            "ekg_nonspecific_repolarization": ekg_nonspecific_repolarization,
+            # Risk factors multi-level (converted from count)
+            "risk_factors_three_or_more": risk_factors_three_or_more,
+            "risk_factors_one_or_two": risk_factors_one_or_two,
+            # Troponin multi-level
+            "initial_troponin_elevated_3x": initial_troponin_elevated_3x,
+            "initial_troponin_elevated_1_3x": initial_troponin_elevated_1_3x,
+        },
+        age=age,
     )
 
 

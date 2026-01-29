@@ -728,7 +728,7 @@ HEART_SCORE_DEFINITION = CalculatorDefinition(
             display_name="EKG",
             levels=[
                 ("significant_st_depression", 2, "EKG (significant ST depression)"),
-                ("nonspecific_changes", 1, "EKG (non-specific changes)"),
+                ("nonspecific_repolarization", 1, "EKG (non-specific changes)"),
                 ("normal", 0, "EKG (normal)"),
             ],
             description="EKG findings",
@@ -744,7 +744,7 @@ HEART_SCORE_DEFINITION = CalculatorDefinition(
             description="HTN, DM, smoking, obesity, family hx, hyperlipidemia",
         ),
         MultiLevelCriterion(
-            name="troponin",
+            name="initial_troponin",
             display_name="Troponin",
             levels=[
                 ("elevated_3x", 2, "Troponin >3x ULN"),
