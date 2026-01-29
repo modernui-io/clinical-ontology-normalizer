@@ -11,6 +11,7 @@ Uses regex patterns with medical unit normalization and OMOP concept linking.
 
 import logging
 import re
+import threading
 from dataclasses import dataclass, field
 from typing import Sequence
 from uuid import UUID
@@ -729,11 +730,15 @@ class ValueExtractionService:
 
 # Singleton instance
 _value_extraction_service: ValueExtractionService | None = None
+_value_extraction_lock = threading.Lock()
 
 
 def get_value_extraction_service() -> ValueExtractionService:
     """Get the singleton value extraction service."""
     global _value_extraction_service
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _value_extraction_service is None:
-        _value_extraction_service = ValueExtractionService()
+        with _value_extraction_lock:
+            if _value_extraction_service is None:
+                _value_extraction_service = ValueExtractionService()
     return _value_extraction_service

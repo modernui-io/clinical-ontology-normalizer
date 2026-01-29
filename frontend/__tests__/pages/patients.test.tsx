@@ -12,6 +12,7 @@
 
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { jest } from '@jest/globals';
 import PatientsPage from '@/app/patients/page';
 
 // Mock next/link
@@ -38,9 +39,10 @@ jest.mock('@/lib/api', () => ({
 }));
 
 import { getPatientGraph } from '@/lib/api';
+import type { MockedFunction } from 'jest-mock';
 import { toast } from 'sonner';
 
-const mockGetPatientGraph = getPatientGraph as jest.MockedFunction<typeof getPatientGraph>;
+const mockGetPatientGraph = getPatientGraph as MockedFunction<typeof getPatientGraph>;
 
 describe('Patients Page', () => {
   beforeEach(() => {
@@ -135,7 +137,7 @@ describe('Patients Page', () => {
 
       // Should not have been called with empty string
       const calls = mockGetPatientGraph.mock.calls;
-      const emptyCalls = calls.filter((call) => call[0] === '');
+      const emptyCalls = calls.filter((call: [string, ...unknown[]]) => call[0] === '');
       expect(emptyCalls.length).toBe(0);
     });
   });

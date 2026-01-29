@@ -10,10 +10,13 @@ normalization and ingredient extraction.
 import json
 import logging
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from threading import Lock
 from typing import Any, TYPE_CHECKING
+
+from app.services.graph_database_service import GraphDatabaseService, get_graph_database_service
 
 if TYPE_CHECKING:
     from app.services.rxnorm_service import RxNormService
@@ -630,21 +633,34 @@ class DrugInteractionService:
         result = service.check_interactions(["Coumadin", "Advil"])  # Resolves to warfarin + ibuprofen
     """
 
-    def __init__(self, use_rxnorm: bool = True) -> None:
+    def __init__(
+        self,
+        use_rxnorm: bool = True,
+        use_graph: bool = True,
+        graph_service: GraphDatabaseService | None = None,
+    ) -> None:
         """Initialize the drug interaction service.
 
         Args:
             use_rxnorm: Whether to use RxNormService for enhanced drug name resolution.
                        Defaults to True. Set to False to disable RxNorm integration.
+            use_graph: Whether to enable Neo4j-backed interaction lookups when available.
+            graph_service: Optional GraphDatabaseService for Neo4j integration (primarily for tests).
         """
         # Load extended interactions from fixture
         self._interactions, self._drug_index, self._pair_index = load_extended_interactions()
         self._aliases = DRUG_ALIASES
         self._rxnorm_service: "RxNormService | None" = None
         self._use_rxnorm = use_rxnorm
+        self._graph_service: GraphDatabaseService | None = None
+        self._use_graph = use_graph
+        self._concept_lookup_cache: dict[str, tuple[int, str]] = {}
 
         if use_rxnorm:
             self._init_rxnorm()
+
+        if use_graph:
+            self._init_graph(graph_service)
 
         logger.info(f"Drug interaction service initialized with {len(self._interactions)} interactions")
 
@@ -657,6 +673,231 @@ class DrugInteractionService:
         except Exception as e:
             logger.warning(f"Failed to initialize RxNorm service: {e}")
             self._rxnorm_service = None
+
+    def _lookup_drug_concept(self, drug: str) -> tuple[int, str] | None:
+        """Resolve a drug name to (OMOP concept ID, display name)."""
+        if not self._rxnorm_service:
+            return None
+
+        normalized = drug.lower().strip()
+        if normalized in self._concept_lookup_cache:
+            return self._concept_lookup_cache[normalized]
+
+        try:
+            result = self._rxnorm_service.lookup_drug(drug)
+            if result and result.found and result.drug_info:
+                concept_id = result.drug_info.omop_concept_id
+                if concept_id is None:
+                    return None
+                display_name = (
+                    result.drug_info.generic_name
+                    or result.drug_info.concept_name
+                    or normalized
+                )
+                value = (int(concept_id), display_name)
+                self._concept_lookup_cache[normalized] = value
+                return value
+        except Exception as e:
+            logger.debug(f"RxNorm concept lookup failed for {drug}: {e}")
+
+        return None
+
+    def _init_graph(self, graph_service: GraphDatabaseService | None) -> None:
+        """Initialize Neo4j graph integration if available."""
+        try:
+            service = graph_service or get_graph_database_service()
+            if not service.is_connected and graph_service is None:
+                logger.info("Neo4j not connected; graph interaction lookups disabled")
+                return
+
+            self._graph_service = service
+            self._ensure_graph_schema()
+
+            loaded = self._graph_interactions_loaded()
+            if not loaded.get("drug", False) or not loaded.get("concept", False):
+                self._load_interactions_to_graph(
+                    load_drug=not loaded.get("drug", False),
+                    load_concept=not loaded.get("concept", False),
+                )
+        except Exception as e:
+            logger.warning(f"Failed to initialize Neo4j drug interaction graph: {e}")
+            self._graph_service = None
+
+    def _ensure_graph_schema(self) -> None:
+        """Ensure Neo4j schema exists for drug interaction nodes."""
+        if not self._graph_service:
+            return
+
+        schema_queries = [
+            "CREATE CONSTRAINT drug_name_unique IF NOT EXISTS FOR (d:Drug) REQUIRE d.name IS UNIQUE",
+            "CREATE INDEX drug_display_name_idx IF NOT EXISTS FOR (d:Drug) ON (d.display_name)",
+        ]
+
+        for query in schema_queries:
+            try:
+                self._graph_service.execute_write(query)
+            except Exception as e:
+                logger.debug(f"Neo4j schema creation skipped: {e}")
+
+    def _graph_interactions_loaded(self) -> dict[str, bool]:
+        """Check if drug interactions are already present in Neo4j."""
+        status = {"drug": False, "concept": False}
+        if not self._graph_service:
+            return status
+
+        try:
+            result = self._graph_service.execute_read(
+                "MATCH (:Drug)-[r:INTERACTS_WITH|CONTRAINDICATED_WITH]-(:Drug) RETURN count(r) AS count"
+            )
+            if result.records:
+                status["drug"] = bool(result.records[0].get("count", 0))
+        except Exception as e:
+            logger.debug(f"Neo4j interaction check failed: {e}")
+        try:
+            result = self._graph_service.execute_read(
+                "MATCH (:Concept)-[r:INTERACTS_WITH|CONTRAINDICATED_WITH]-(:Concept) RETURN count(r) AS count"
+            )
+            if result.records:
+                status["concept"] = bool(result.records[0].get("count", 0))
+        except Exception as e:
+            logger.debug(f"Neo4j concept interaction check failed: {e}")
+
+        return status
+
+    def _load_interactions_to_graph(
+        self,
+        load_drug: bool = True,
+        load_concept: bool = True,
+    ) -> None:
+        """Load drug interactions into Neo4j for graph-based lookups."""
+        if not self._graph_service:
+            return
+        if load_concept and not self._rxnorm_service:
+            load_concept = False
+
+        def build_row(interaction: DrugInteraction) -> dict[str, Any]:
+            d1 = interaction.drug1.lower()
+            d2 = interaction.drug2.lower()
+            drug1, drug2 = sorted([d1, d2])
+            return {
+                "drug1": drug1,
+                "drug2": drug2,
+                "drug1_display": drug1,
+                "drug2_display": drug2,
+                "severity": interaction.severity.value,
+                "interaction_type": interaction.interaction_type.value,
+                "description": interaction.description,
+                "clinical_effect": interaction.clinical_effect,
+                "management": interaction.management,
+                "references": interaction.references,
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            }
+
+        contraindicated_rows: list[dict[str, Any]] = []
+        interaction_rows: list[dict[str, Any]] = []
+        contraindicated_concept_rows: list[dict[str, Any]] = []
+        interaction_concept_rows: list[dict[str, Any]] = []
+        seen_pairs: set[tuple[str, str]] = set()
+        seen_concept_pairs: set[tuple[int, int]] = set()
+
+        for interaction in self._interactions:
+            row = build_row(interaction)
+            pair_key = (row["drug1"], row["drug2"])
+            if pair_key in seen_pairs:
+                continue
+            seen_pairs.add(pair_key)
+
+            if interaction.severity == InteractionSeverity.CONTRAINDICATED:
+                contraindicated_rows.append(row)
+            else:
+                interaction_rows.append(row)
+
+            if load_concept:
+                concept_1 = self._lookup_drug_concept(interaction.drug1)
+                concept_2 = self._lookup_drug_concept(interaction.drug2)
+                if concept_1 and concept_2:
+                    c1_id, c1_name = concept_1
+                    c2_id, c2_name = concept_2
+                    if c1_id == c2_id:
+                        continue
+                    sorted_pair = sorted([(c1_id, c1_name), (c2_id, c2_name)], key=lambda item: item[0])
+                    concept_pair = (sorted_pair[0][0], sorted_pair[1][0])
+                    if concept_pair in seen_concept_pairs:
+                        continue
+                    seen_concept_pairs.add(concept_pair)
+                    concept_row = {
+                        "concept_id_1": sorted_pair[0][0],
+                        "concept_id_2": sorted_pair[1][0],
+                        "concept_name_1": sorted_pair[0][1],
+                        "concept_name_2": sorted_pair[1][1],
+                        "severity": interaction.severity.value,
+                        "interaction_type": interaction.interaction_type.value,
+                        "description": interaction.description,
+                        "clinical_effect": interaction.clinical_effect,
+                        "management": interaction.management,
+                        "references": interaction.references,
+                        "updated_at": datetime.now(timezone.utc).isoformat(),
+                    }
+                    if interaction.severity == InteractionSeverity.CONTRAINDICATED:
+                        contraindicated_concept_rows.append(concept_row)
+                    else:
+                        interaction_concept_rows.append(concept_row)
+
+        def load_batch(rows: list[dict[str, Any]], rel_type: str) -> None:
+            if not rows:
+                return
+            query = f"""
+            UNWIND $rows AS row
+            MERGE (d1:Drug {{name: row.drug1}})
+              ON CREATE SET d1.display_name = row.drug1_display
+            MERGE (d2:Drug {{name: row.drug2}})
+              ON CREATE SET d2.display_name = row.drug2_display
+            MERGE (d1)-[r:{rel_type}]->(d2)
+            SET r.severity = row.severity,
+                r.interaction_type = row.interaction_type,
+                r.description = row.description,
+                r.clinical_effect = row.clinical_effect,
+                r.management = row.management,
+                r.references = row.references,
+                r.updated_at = row.updated_at
+            RETURN count(r) AS relationships_created
+            """
+            batch_size = 500
+            for i in range(0, len(rows), batch_size):
+                self._graph_service.execute_write(query, {"rows": rows[i:i + batch_size]})
+
+        if load_drug:
+            load_batch(contraindicated_rows, "CONTRAINDICATED_WITH")
+            load_batch(interaction_rows, "INTERACTS_WITH")
+
+        if load_concept and (contraindicated_concept_rows or interaction_concept_rows):
+            def load_concept_batch(rows: list[dict[str, Any]], rel_type: str) -> None:
+                if not rows:
+                    return
+                query = f"""
+                UNWIND $rows AS row
+                MERGE (c1:Concept {{concept_id: row.concept_id_1}})
+                  ON CREATE SET c1.name = row.concept_name_1,
+                                c1.vocabulary_id = 'RxNorm'
+                MERGE (c2:Concept {{concept_id: row.concept_id_2}})
+                  ON CREATE SET c2.name = row.concept_name_2,
+                                c2.vocabulary_id = 'RxNorm'
+                MERGE (c1)-[r:{rel_type}]->(c2)
+                SET r.severity = row.severity,
+                    r.interaction_type = row.interaction_type,
+                    r.description = row.description,
+                    r.clinical_effect = row.clinical_effect,
+                    r.management = row.management,
+                    r.references = row.references,
+                    r.updated_at = row.updated_at
+                RETURN count(r) AS relationships_created
+                """
+                batch_size = 500
+                for i in range(0, len(rows), batch_size):
+                    self._graph_service.execute_write(query, {"rows": rows[i:i + batch_size]})
+
+            load_concept_batch(contraindicated_concept_rows, "CONTRAINDICATED_WITH")
+            load_concept_batch(interaction_concept_rows, "INTERACTS_WITH")
 
     def normalize_drug_name(self, drug: str) -> str:
         """Normalize drug name to lowercase, resolving aliases.
@@ -734,7 +975,100 @@ class DrugInteractionService:
         if idx is not None:
             return self._interactions[idx]
 
+        graph_interaction = self._check_pair_graph(d1, d2)
+        if graph_interaction:
+            return graph_interaction
+
         return None
+
+    def _check_pair_graph(self, drug1: str, drug2: str) -> DrugInteraction | None:
+        """Check for interaction between two drugs using Neo4j."""
+        if not self._graph_service:
+            return None
+
+        concept_1 = self._lookup_drug_concept(drug1)
+        concept_2 = self._lookup_drug_concept(drug2)
+
+        if concept_1 and concept_2:
+            try:
+                result = self._graph_service.execute_read(
+                    """
+                    MATCH (c1:Concept {concept_id: $concept_id_1})-[r:INTERACTS_WITH|CONTRAINDICATED_WITH]-(c2:Concept {concept_id: $concept_id_2})
+                    RETURN type(r) AS rel_type,
+                           r.severity AS severity,
+                           r.interaction_type AS interaction_type,
+                           r.description AS description,
+                           r.clinical_effect AS clinical_effect,
+                           r.management AS management,
+                           r.references AS references
+                    LIMIT 1
+                    """,
+                    {"concept_id_1": concept_1[0], "concept_id_2": concept_2[0]},
+                )
+                if result.records:
+                    return self._build_graph_interaction(drug1, drug2, result.records[0])
+            except Exception as e:
+                logger.debug(f"Neo4j concept interaction lookup failed: {e}")
+
+        try:
+            result = self._graph_service.execute_read(
+                """
+                MATCH (d1:Drug {name: $drug1})-[r:INTERACTS_WITH|CONTRAINDICATED_WITH]-(d2:Drug {name: $drug2})
+                RETURN type(r) AS rel_type,
+                       r.severity AS severity,
+                       r.interaction_type AS interaction_type,
+                       r.description AS description,
+                       r.clinical_effect AS clinical_effect,
+                       r.management AS management,
+                       r.references AS references
+                LIMIT 1
+                """,
+                {"drug1": drug1, "drug2": drug2},
+            )
+        except Exception as e:
+            logger.debug(f"Neo4j interaction lookup failed: {e}")
+            return None
+
+        if not result.records:
+            return None
+
+        return self._build_graph_interaction(drug1, drug2, result.records[0])
+
+    def _build_graph_interaction(
+        self,
+        drug1: str,
+        drug2: str,
+        record: dict[str, Any],
+    ) -> DrugInteraction:
+        """Build a DrugInteraction from a Neo4j record."""
+        rel_type = record.get("rel_type", "")
+        severity_raw = record.get("severity") or (
+            InteractionSeverity.CONTRAINDICATED.value
+            if rel_type == "CONTRAINDICATED_WITH"
+            else InteractionSeverity.MODERATE.value
+        )
+        interaction_type_raw = record.get("interaction_type") or InteractionType.PHARMACODYNAMIC.value
+
+        try:
+            severity = InteractionSeverity(severity_raw)
+        except Exception:
+            severity = InteractionSeverity.MODERATE
+
+        try:
+            interaction_type = InteractionType(interaction_type_raw)
+        except Exception:
+            interaction_type = InteractionType.PHARMACODYNAMIC
+
+        return DrugInteraction(
+            drug1=drug1,
+            drug2=drug2,
+            severity=severity,
+            interaction_type=interaction_type,
+            description=record.get("description") or "Graph-derived interaction",
+            clinical_effect=record.get("clinical_effect") or "Unknown clinical effect",
+            management=record.get("management") or "Monitor closely",
+            references=record.get("references") or [],
+        )
 
     def check_interactions(self, drugs: list[str]) -> InteractionCheckResult:
         """Check for interactions among a list of drugs.

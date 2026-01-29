@@ -17,6 +17,7 @@ The trie supports:
 """
 
 import logging
+import threading
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Set, Tuple, Iterator
 from collections import defaultdict
@@ -454,11 +455,15 @@ class ClinicalTerminologyIndex:
 
 # Singleton instance
 _terminology_index: Optional[ClinicalTerminologyIndex] = None
+_terminology_lock = threading.Lock()
 
 
 def get_terminology_index() -> ClinicalTerminologyIndex:
     """Get singleton terminology index."""
     global _terminology_index
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _terminology_index is None:
-        _terminology_index = ClinicalTerminologyIndex()
+        with _terminology_lock:
+            if _terminology_index is None:
+                _terminology_index = ClinicalTerminologyIndex()
     return _terminology_index

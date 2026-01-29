@@ -9,9 +9,10 @@ Provides real-time aggregations:
 
 import asyncio
 import logging
+import threading
 from collections import deque
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timezone, timedelta
 from enum import Enum
 from typing import Any
 from uuid import uuid4
@@ -115,7 +116,7 @@ class StreamingAlert:
     source: str = ""
     metric_value: float | None = None
     threshold_value: float | None = None
-    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     acknowledged: bool = False
     acknowledged_at: datetime | None = None
     acknowledged_by: str | None = None
@@ -312,7 +313,7 @@ class StreamingAggregationService:
         # Running state
         self._is_running = False
         self._aggregation_task: asyncio.Task | None = None
-        self._start_time = datetime.now(UTC)
+        self._start_time = datetime.now(timezone.utc)
 
         # Initialize windows
         self._init_windows()
@@ -321,7 +322,7 @@ class StreamingAggregationService:
 
     def _init_windows(self) -> None:
         """Initialize time windows."""
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
 
         # 1-minute window
         window_start = now.replace(second=0, microsecond=0)
@@ -354,7 +355,7 @@ class StreamingAggregationService:
             return
 
         self._is_running = True
-        self._start_time = datetime.now(UTC)
+        self._start_time = datetime.now(timezone.utc)
 
         # Start aggregation loop
         self._aggregation_task = asyncio.create_task(self._aggregation_loop())
@@ -387,7 +388,7 @@ class StreamingAggregationService:
 
         while self._is_running:
             try:
-                now = datetime.now(UTC)
+                now = datetime.now(timezone.utc)
 
                 # Check and rotate windows
                 self._rotate_windows(now)
@@ -492,7 +493,7 @@ class StreamingAggregationService:
         Args:
             message: The streaming message.
         """
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
 
         # Update current windows
         if self._current_window_1min:
@@ -594,7 +595,7 @@ class StreamingAggregationService:
                 alert.alert_type == alert_type
                 and not alert.acknowledged
                 and not alert.resolved
-                and (datetime.now(UTC) - alert.created_at).total_seconds() < 300
+                and (datetime.now(timezone.utc) - alert.created_at).total_seconds() < 300
             ):
                 return  # Don't create duplicate
 
@@ -686,7 +687,7 @@ class StreamingAggregationService:
         for alert in self._alerts:
             if alert.alert_id == alert_id:
                 alert.acknowledged = True
-                alert.acknowledged_at = datetime.now(UTC)
+                alert.acknowledged_at = datetime.now(timezone.utc)
                 alert.acknowledged_by = acknowledged_by
                 logger.info(f"Alert {alert_id} acknowledged by {acknowledged_by}")
                 return True
@@ -704,7 +705,7 @@ class StreamingAggregationService:
         for alert in self._alerts:
             if alert.alert_id == alert_id:
                 alert.resolved = True
-                alert.resolved_at = datetime.now(UTC)
+                alert.resolved_at = datetime.now(timezone.utc)
                 logger.info(f"Alert {alert_id} resolved")
                 return True
         return False
@@ -747,7 +748,7 @@ class StreamingAggregationService:
         Returns:
             List of throughput metrics.
         """
-        cutoff = datetime.now(UTC) - timedelta(minutes=minutes)
+        cutoff = datetime.now(timezone.utc) - timedelta(minutes=minutes)
         return [
             m for m in self._throughput_history
             if m.timestamp > cutoff
@@ -762,7 +763,7 @@ class StreamingAggregationService:
         Returns:
             List of latency metrics.
         """
-        cutoff = datetime.now(UTC) - timedelta(minutes=minutes)
+        cutoff = datetime.now(timezone.utc) - timedelta(minutes=minutes)
         return [
             m for m in self._latency_history
             if m.timestamp > cutoff
@@ -777,7 +778,7 @@ class StreamingAggregationService:
         Returns:
             List of quality metrics.
         """
-        cutoff = datetime.now(UTC) - timedelta(minutes=minutes)
+        cutoff = datetime.now(timezone.utc) - timedelta(minutes=minutes)
         return [
             m for m in self._quality_history
             if m.timestamp > cutoff
@@ -814,6 +815,7 @@ class StreamingAggregationService:
 # =============================================================================
 
 _streaming_aggregation_service: StreamingAggregationService | None = None
+_streaming_aggregation_lock = threading.Lock()
 
 
 def get_streaming_aggregation_service() -> StreamingAggregationService:
@@ -823,9 +825,11 @@ def get_streaming_aggregation_service() -> StreamingAggregationService:
         The StreamingAggregationService singleton.
     """
     global _streaming_aggregation_service
-
+    # VP-ThreadSafety: Double-checked locking for thread safety
     if _streaming_aggregation_service is None:
-        _streaming_aggregation_service = StreamingAggregationService()
+        with _streaming_aggregation_lock:
+            if _streaming_aggregation_service is None:
+                _streaming_aggregation_service = StreamingAggregationService()
 
     return _streaming_aggregation_service
 
@@ -833,4 +837,5 @@ def get_streaming_aggregation_service() -> StreamingAggregationService:
 def reset_streaming_aggregation_service() -> None:
     """Reset the singleton StreamingAggregation service (for testing)."""
     global _streaming_aggregation_service
-    _streaming_aggregation_service = None
+    with _streaming_aggregation_lock:
+        _streaming_aggregation_service = None
