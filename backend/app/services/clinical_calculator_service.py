@@ -84,19 +84,62 @@ class CalculatorDefinition:
 
 
 # =============================================================================
-# Input Schemas (Pydantic)
+# Input Schemas (Pydantic) - Consolidated with Base Classes
 # =============================================================================
 
-class BMIInput(BaseModel):
+# -----------------------------------------------------------------------------
+# Base Input Classes - Common field patterns consolidated to reduce duplication
+# -----------------------------------------------------------------------------
+
+
+class BodyMetricsInput(BaseModel):
+    """Base input for calculators requiring body measurements (weight, height)."""
+    weight_kg: float = Field(..., gt=0, le=500, description="Weight in kilograms")
+    height_cm: float = Field(..., gt=50, le=300, description="Height in centimeters")
+
+
+class AgeSexInput(BaseModel):
+    """Base input for calculators requiring age and sex."""
+    age: int = Field(..., ge=18, le=120, description="Age in years")
+    sex: str = Field(..., pattern="^(male|female)$", description="Sex (male/female)")
+
+
+class CreatinineInput(BaseModel):
+    """Base input for calculators requiring serum creatinine."""
+    creatinine: float = Field(..., gt=0, le=30, description="Serum creatinine mg/dL")
+
+
+class LipidPanelInput(BaseModel):
+    """Base input for calculators requiring lipid panel values."""
+    total_cholesterol: float = Field(..., ge=100, le=400, description="Total cholesterol mg/dL")
+    hdl_cholesterol: float = Field(..., ge=20, le=150, description="HDL cholesterol mg/dL")
+
+
+class BloodPressureInput(BaseModel):
+    """Base input for calculators requiring blood pressure."""
+    systolic_bp: float = Field(..., ge=40, le=300, description="Systolic BP mmHg")
+
+
+class LiverLabsInput(BaseModel):
+    """Base input for calculators requiring liver function labs."""
+    bilirubin: float = Field(..., ge=0.1, le=50, description="Total bilirubin mg/dL")
+    inr: float = Field(..., ge=0.5, le=15, description="INR")
+
+
+# -----------------------------------------------------------------------------
+# Specific Calculator Input Classes - Using inheritance where appropriate
+# -----------------------------------------------------------------------------
+
+
+# BMI and BSA share identical inputs - use single base class
+class BMIInput(BodyMetricsInput):
     """Input for BMI calculator."""
-    weight_kg: float = Field(..., gt=0, le=500, description="Weight in kilograms")
-    height_cm: float = Field(..., gt=50, le=300, description="Height in centimeters")
+    pass
 
 
-class BSAInput(BaseModel):
+class BSAInput(BodyMetricsInput):
     """Input for Body Surface Area calculator."""
-    weight_kg: float = Field(..., gt=0, le=500, description="Weight in kilograms")
-    height_cm: float = Field(..., gt=50, le=300, description="Height in centimeters")
+    pass
 
 
 class ASCVDInput(BaseModel):
@@ -133,10 +176,8 @@ class HEARTInput(BaseModel):
     risk_factors: int = Field(..., ge=0, le=7, description="Number of risk factors (0-7)")
 
 
-class CHA2DS2VAScInput(BaseModel):
+class CHA2DS2VAScInput(AgeSexInput):
     """Input for CHA2DS2-VASc Score."""
-    age: int = Field(..., ge=18, le=120, description="Age in years")
-    sex: str = Field(..., pattern="^(male|female)$", description="Sex")
     chf: bool = Field(default=False, description="Congestive heart failure")
     hypertension: bool = Field(default=False, description="Hypertension")
     diabetes: bool = Field(default=False, description="Diabetes mellitus")
@@ -157,19 +198,14 @@ class HASBLEDInput(BaseModel):
     alcohol_use: bool = Field(default=False, description=">=8 drinks/week")
 
 
-class EGFRInput(BaseModel):
+class EGFRInput(AgeSexInput, CreatinineInput):
     """Input for CKD-EPI 2021 eGFR calculator."""
-    creatinine: float = Field(..., gt=0, le=30, description="Serum creatinine mg/dL")
-    age: int = Field(..., ge=18, le=120, description="Age in years")
-    sex: str = Field(..., pattern="^(male|female)$", description="Sex")
+    pass
 
 
-class CockcroftGaultInput(BaseModel):
+class CockcroftGaultInput(AgeSexInput, CreatinineInput):
     """Input for Cockcroft-Gault creatinine clearance."""
-    creatinine: float = Field(..., gt=0, le=30, description="Serum creatinine mg/dL")
-    age: int = Field(..., ge=18, le=120, description="Age in years")
     weight_kg: float = Field(..., gt=0, le=500, description="Weight in kg")
-    sex: str = Field(..., pattern="^(male|female)$", description="Sex")
 
 
 class UACRInput(BaseModel):
@@ -177,20 +213,15 @@ class UACRInput(BaseModel):
     uacr: float = Field(..., ge=0, description="Urine albumin-to-creatinine ratio mg/g")
 
 
-class MELDInput(BaseModel):
+class MELDInput(LiverLabsInput, CreatinineInput):
     """Input for MELD/MELD-Na Score."""
-    creatinine: float = Field(..., ge=0.1, le=15, description="Serum creatinine mg/dL")
-    bilirubin: float = Field(..., ge=0.1, le=50, description="Total bilirubin mg/dL")
-    inr: float = Field(..., ge=0.5, le=15, description="INR")
     sodium: float | None = Field(None, ge=100, le=160, description="Serum sodium mEq/L (for MELD-Na)")
     on_dialysis: bool = Field(default=False, description="On dialysis (sets Cr to 4)")
 
 
-class ChildPughInput(BaseModel):
+class ChildPughInput(LiverLabsInput):
     """Input for Child-Pugh Score."""
-    bilirubin: float = Field(..., ge=0.1, le=50, description="Total bilirubin mg/dL")
     albumin: float = Field(..., ge=1, le=6, description="Serum albumin g/dL")
-    inr: float = Field(..., ge=0.5, le=10, description="INR")
     ascites: str = Field(..., pattern="^(none|mild|moderate_severe)$", description="Ascites severity")
     encephalopathy: str = Field(..., pattern="^(none|grade_1_2|grade_3_4)$", description="Encephalopathy grade")
 
@@ -203,7 +234,7 @@ class FIB4Input(BaseModel):
     platelets: float = Field(..., gt=0, le=1000, description="Platelet count (10^9/L)")
 
 
-class APACHEIIInput(BaseModel):
+class APACHEIIInput(CreatinineInput):
     """Input for APACHE II Score."""
     age: int = Field(..., ge=0, le=120, description="Age in years")
     temperature: float = Field(..., ge=25, le=45, description="Core temperature C")
@@ -216,7 +247,6 @@ class APACHEIIInput(BaseModel):
     ph: float = Field(..., ge=6.5, le=8.0, description="Arterial pH")
     sodium: float = Field(..., ge=100, le=200, description="Serum sodium mEq/L")
     potassium: float = Field(..., ge=1, le=10, description="Serum potassium mEq/L")
-    creatinine: float = Field(..., ge=0.1, le=20, description="Serum creatinine mg/dL")
     hematocrit: float = Field(..., ge=10, le=70, description="Hematocrit %")
     wbc: float = Field(..., ge=0, le=100, description="WBC count (10^3/uL)")
     gcs: int = Field(..., ge=3, le=15, description="Glasgow Coma Scale")
@@ -224,7 +254,7 @@ class APACHEIIInput(BaseModel):
     acute_renal_failure: bool = Field(default=False, description="Acute renal failure")
 
 
-class SOFAInput(BaseModel):
+class SOFAInput(CreatinineInput):
     """Input for SOFA Score."""
     pao2_fio2: float = Field(..., ge=0, le=700, description="PaO2/FiO2 ratio")
     on_ventilator: bool = Field(default=False, description="On mechanical ventilation")
@@ -233,14 +263,12 @@ class SOFAInput(BaseModel):
     map: float = Field(..., ge=0, le=300, description="Mean arterial pressure mmHg")
     vasopressor: str = Field(default="none", description="Vasopressor use")
     gcs: int = Field(..., ge=3, le=15, description="Glasgow Coma Scale")
-    creatinine: float = Field(..., ge=0, le=20, description="Creatinine mg/dL")
     urine_output: float | None = Field(None, ge=0, description="24h urine output mL")
 
 
-class QSOFAInput(BaseModel):
+class QSOFAInput(BloodPressureInput):
     """Input for qSOFA Score."""
     respiratory_rate: float = Field(..., ge=0, le=80, description="Respiratory rate /min")
-    systolic_bp: float = Field(..., ge=0, le=300, description="Systolic BP mmHg")
     altered_mental_status: bool = Field(default=False, description="Altered mental status (GCS <15)")
 
 
@@ -290,13 +318,12 @@ class GCSInput(BaseModel):
     motor_response: int = Field(..., ge=1, le=6, description="Motor response (1-6)")
 
 
-class NEWS2Input(BaseModel):
+class NEWS2Input(BloodPressureInput):
     """Input for NEWS2 (National Early Warning Score 2)."""
     respiratory_rate: int = Field(..., ge=0, le=60, description="Respiratory rate /min")
     spo2: float = Field(..., ge=50, le=100, description="Oxygen saturation %")
     supplemental_o2: bool = Field(default=False, description="On supplemental oxygen")
     temperature: float = Field(..., ge=30, le=42, description="Temperature °C")
-    systolic_bp: int = Field(..., ge=50, le=250, description="Systolic BP mmHg")
     heart_rate: int = Field(..., ge=20, le=250, description="Heart rate bpm")
     consciousness: str = Field(default="alert", description="AVPU: alert, verbal, pain, unresponsive, or confusion")
     copd_scale_2: bool = Field(default=False, description="Use Scale 2 for COPD (target SpO2 88-92%)")
@@ -366,9 +393,8 @@ class CentorInput(BaseModel):
     age_45_plus: bool = Field(default=False, description="Age ≥45 years")
 
 
-class MAPInput(BaseModel):
+class MAPInput(BloodPressureInput):
     """Input for Mean Arterial Pressure calculator."""
-    systolic_bp: float = Field(..., ge=40, le=300, description="Systolic BP mmHg")
     diastolic_bp: float = Field(..., ge=20, le=200, description="Diastolic BP mmHg")
 
 
