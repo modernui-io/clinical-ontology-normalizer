@@ -1155,81 +1155,19 @@ def calculate_wells_pe(
 ) -> CalculatorResult:
     """Calculate Wells Score for Pulmonary Embolism probability.
 
-    Args:
-        clinical_signs_dvt: Clinical signs of DVT (leg swelling, pain with palpation).
-        pe_most_likely: PE is #1 diagnosis, or equally likely.
-        heart_rate_over_100: Heart rate >100 bpm.
-        immobilization_surgery: Immobilization/surgery in past 4 weeks.
-        previous_pe_dvt: Previous PE or DVT.
-        hemoptysis: Hemoptysis.
-        malignancy: Active cancer (treatment within 6 months, palliative).
-
-    Returns:
-        CalculatorResult with PE probability assessment.
+    Uses data-driven definition from calculator_definitions.py.
     """
-    score = 0
-    components = {}
-
-    if clinical_signs_dvt:
-        score += 3
-        components["Clinical signs of DVT"] = 3
-    if pe_most_likely:
-        score += 3
-        components["PE most likely diagnosis"] = 3
-    if heart_rate_over_100:
-        score += 1.5
-        components["Heart rate >100"] = 1.5
-    if immobilization_surgery:
-        score += 1.5
-        components["Immobilization/surgery"] = 1.5
-    if previous_pe_dvt:
-        score += 1.5
-        components["Previous PE/DVT"] = 1.5
-    if hemoptysis:
-        score += 1
-        components["Hemoptysis"] = 1
-    if malignancy:
-        score += 1
-        components["Active malignancy"] = 1
-
-    # Traditional three-tier scoring
-    if score < 2:
-        risk = RiskLevel.LOW
-        pe_probability = "~1.3%"
-        interpretation = "Low probability"
-        recommendations = [
-            "Check D-dimer (PERC rule first if applicable)",
-            "If D-dimer negative, PE excluded",
-            "If D-dimer positive, CT pulmonary angiography",
-        ]
-    elif score <= 6:
-        risk = RiskLevel.MODERATE
-        pe_probability = "~16.2%"
-        interpretation = "Moderate probability"
-        recommendations = [
-            "Check high-sensitivity D-dimer",
-            "If D-dimer negative, consider age-adjusted cutoff",
-            "If D-dimer positive, CT pulmonary angiography",
-        ]
-    else:
-        risk = RiskLevel.HIGH
-        pe_probability = "~37.5%"
-        interpretation = "High probability"
-        recommendations = [
-            "CT pulmonary angiography indicated",
-            "Consider empiric anticoagulation while awaiting imaging",
-            "D-dimer not recommended (high false negative rate)",
-        ]
-
-    return CalculatorResult(
-        calculator_name="Wells Score for PE",
-        score=score,
-        score_unit="points",
-        risk_level=risk,
-        interpretation=f"{interpretation}. PE probability: ~{pe_probability}",
-        recommendations=recommendations,
-        components=components,
-        references=["Wells PS, et al. Ann Intern Med 2001", "Thromb Haemost 2000"],
+    return calculate_from_definition(
+        "wells_pe",
+        {
+            "clinical_signs_dvt": clinical_signs_dvt,
+            "pe_most_likely": pe_most_likely,
+            "heart_rate_over_100": heart_rate_over_100,
+            "immobilization_surgery": immobilization_surgery,
+            "previous_pe_dvt": previous_pe_dvt,
+            "hemoptysis": hemoptysis,
+            "malignancy": malignancy,
+        },
     )
 
 
@@ -2684,95 +2622,18 @@ def calculate_rcri(
 ) -> CalculatorResult:
     """Calculate Revised Cardiac Risk Index (Lee Index) for perioperative cardiac risk.
 
-    Args:
-        high_risk_surgery: High-risk surgical procedure.
-        history_of_ihd: History of ischemic heart disease.
-        history_of_chf: History of congestive heart failure.
-        history_of_cvd: History of cerebrovascular disease.
-        insulin_therapy: Preoperative insulin therapy for diabetes.
-        preop_creatinine_over_2: Preoperative creatinine >2 mg/dL.
-
-    Returns:
-        CalculatorResult with perioperative cardiac risk estimate.
+    Uses data-driven definition from calculator_definitions.py.
     """
-    score = 0
-    components = {}
-
-    if high_risk_surgery:
-        score += 1
-        components["High-risk surgery"] = 1
-    if history_of_ihd:
-        score += 1
-        components["Ischemic heart disease"] = 1
-    if history_of_chf:
-        score += 1
-        components["CHF history"] = 1
-    if history_of_cvd:
-        score += 1
-        components["Cerebrovascular disease"] = 1
-    if insulin_therapy:
-        score += 1
-        components["Insulin therapy"] = 1
-    if preop_creatinine_over_2:
-        score += 1
-        components["Creatinine >2"] = 1
-
-    # Risk of major cardiac event (death, MI, cardiac arrest)
-    risk_rates = {
-        0: ("0.4%", RiskLevel.LOW),
-        1: ("0.9%", RiskLevel.LOW),
-        2: ("6.6%", RiskLevel.MODERATE),
-        3: ("11%", RiskLevel.HIGH),
-    }
-
-    if score <= 3:
-        event_rate, risk = risk_rates[score]
-    else:
-        event_rate = ">11%"
-        risk = RiskLevel.VERY_HIGH
-
-    if score == 0:
-        interpretation = f"RCRI Class I - Very low risk ({event_rate})"
-        recommendations = [
-            "Low cardiac risk - proceed with surgery",
-            "No additional cardiac testing recommended",
-            "Standard perioperative monitoring",
-        ]
-    elif score == 1:
-        interpretation = f"RCRI Class II - Low risk ({event_rate})"
-        recommendations = [
-            "Low cardiac risk - proceed with surgery",
-            "Consider beta-blocker if already on one",
-            "Standard perioperative monitoring",
-        ]
-    elif score == 2:
-        interpretation = f"RCRI Class III - Moderate risk ({event_rate})"
-        recommendations = [
-            "Moderate cardiac risk",
-            "Consider non-invasive testing if poor functional capacity",
-            "Perioperative beta-blockade may be beneficial",
-            "Close hemodynamic monitoring",
-        ]
-    else:
-        interpretation = f"RCRI Class IV - High risk ({event_rate})"
-        recommendations = [
-            "High cardiac risk",
-            "Non-invasive cardiac testing recommended",
-            "Cardiology consultation",
-            "Consider revascularization if severe CAD",
-            "Optimize medical therapy preoperatively",
-            "ICU monitoring postoperatively",
-        ]
-
-    return CalculatorResult(
-        calculator_name="Revised Cardiac Risk Index (RCRI)",
-        score=score,
-        score_unit="points",
-        risk_level=risk,
-        interpretation=interpretation,
-        recommendations=recommendations,
-        components=components,
-        references=["Lee TH, et al. Circulation 1999"],
+    return calculate_from_definition(
+        "rcri",
+        {
+            "high_risk_surgery": high_risk_surgery,
+            "history_of_ihd": history_of_ihd,
+            "history_of_chf": history_of_chf,
+            "history_of_cvd": history_of_cvd,
+            "insulin_therapy": insulin_therapy,
+            "preop_creatinine_over_2": preop_creatinine_over_2,
+        },
     )
 
 
@@ -3927,74 +3788,17 @@ def calculate_bisap(
 ) -> CalculatorResult:
     """Calculate BISAP score for acute pancreatitis mortality prediction.
 
-    Args:
-        bun_over_25: BUN >25 mg/dL.
-        impaired_mental_status: Impaired mental status.
-        sirs_criteria_2_or_more: ≥2 SIRS criteria met.
-        age_over_60: Age >60 years.
-        pleural_effusion: Pleural effusion on imaging.
-
-    Returns:
-        CalculatorResult with mortality prediction.
+    Uses data-driven definition from calculator_definitions.py.
     """
-    score = 0
-    components = {}
-
-    if bun_over_25:
-        score += 1
-        components["BUN >25"] = 1
-    if impaired_mental_status:
-        score += 1
-        components["Impaired mental status"] = 1
-    if sirs_criteria_2_or_more:
-        score += 1
-        components["SIRS ≥2 criteria"] = 1
-    if age_over_60:
-        score += 1
-        components["Age >60"] = 1
-    if pleural_effusion:
-        score += 1
-        components["Pleural effusion"] = 1
-
-    # Mortality estimates
-    mortality_rates = {
-        0: ("<1%", RiskLevel.LOW),
-        1: ("~1%", RiskLevel.LOW),
-        2: ("2%", RiskLevel.LOW_MODERATE),
-        3: ("5-8%", RiskLevel.MODERATE),
-        4: ("12-20%", RiskLevel.HIGH),
-        5: (">20%", RiskLevel.VERY_HIGH),
-    }
-
-    mortality, risk = mortality_rates.get(score, (">20%", RiskLevel.VERY_HIGH))
-
-    if score <= 2:
-        interpretation = f"BISAP {score}: Low risk (mortality {mortality})"
-        recommendations = [
-            "Low risk for in-hospital mortality",
-            "Conservative management likely sufficient",
-            "Monitor for clinical deterioration",
-            "NPO, IV fluids, pain control",
-        ]
-    else:
-        interpretation = f"BISAP {score}: High risk (mortality {mortality})"
-        recommendations = [
-            "Higher risk for severe pancreatitis and mortality",
-            "Consider ICU admission",
-            "Aggressive fluid resuscitation",
-            "Early CT if necrotizing pancreatitis suspected",
-            "Consider early ERCP if biliary etiology",
-        ]
-
-    return CalculatorResult(
-        calculator_name="BISAP Score",
-        score=score,
-        score_unit="points",
-        risk_level=risk,
-        interpretation=interpretation,
-        recommendations=recommendations,
-        components=components,
-        references=["Wu BU, et al. Gut 2008"],
+    return calculate_from_definition(
+        "bisap",
+        {
+            "bun_over_25": bun_over_25,
+            "impaired_mental_status": impaired_mental_status,
+            "sirs_present": sirs_criteria_2_or_more,  # Map to definition's criterion name
+            "age_over_60": age_over_60,
+            "pleural_effusion": pleural_effusion,
+        },
     )
 
 
