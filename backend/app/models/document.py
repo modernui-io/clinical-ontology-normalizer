@@ -16,6 +16,7 @@ from app.schemas.base import JobStatus, ResourceType
 
 if TYPE_CHECKING:
     from app.models.clinical_value import ClinicalValue
+    from app.models.mention import Mention
 
 
 class Document(SoftDeleteMixin, Base):
@@ -66,6 +67,10 @@ class Document(SoftDeleteMixin, Base):
 
     # Relationships
     clinical_values: Mapped[list["ClinicalValue"]] = relationship(
+        back_populates="document",
+        cascade="all, delete-orphan",
+    )
+    mentions: Mapped[list["Mention"]] = relationship(
         back_populates="document",
         cascade="all, delete-orphan",
     )

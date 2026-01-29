@@ -71,7 +71,7 @@ class Mention(Base):
     )
 
     # Relationships
-    document = relationship("Document", backref="mentions")
+    document = relationship("Document", back_populates="mentions")
     concept_candidates = relationship(
         "MentionConceptCandidate",
         back_populates="mention",
