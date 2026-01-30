@@ -1410,8 +1410,9 @@ export default function NLPWorkbenchPage() {
         lab_result: "MEASUREMENT",
         vital_sign: "MEASUREMENT",
         symptom: "CONDITION",
-        anatomy: "OBSERVATION",
+        anatomical_location: "OBSERVATION",
         temporal: "OBSERVATION",
+        allergy: "CONDITION",
       };
 
       const entities = result.entities.map((e) => ({
