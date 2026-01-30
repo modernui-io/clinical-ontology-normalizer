@@ -88,6 +88,12 @@ from app.services.llm_service import (
     LLMResponse,
     LLMProvider,
 )
+# Import the unified NLP Entity Service for extraction
+from app.services.nlp_entity_service import (
+    get_nlp_entity_service,
+    EntityType as NLPEntityType,
+    AssertionStatus,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -479,15 +485,21 @@ class HybridClinicalAnalyzer:
         self,
         ontology_mapper: ClinicalOntologyMapper | None = None,
         llm_service: LLMService | None = None,
+        use_unified_extraction: bool = True,
     ):
         """Initialize the hybrid analyzer.
 
         Args:
             ontology_mapper: Ontology mapper instance (uses singleton if None).
             llm_service: LLM service instance (creates new if None).
+            use_unified_extraction: If True, use ClinicalNLPEntityService for extraction
+                                    (recommended). If False, use legacy OntologyMapper.
         """
         self._mapper = ontology_mapper or get_ontology_mapper()
         self._llm = llm_service or LLMService()
+        self._use_unified_extraction = use_unified_extraction
+        if use_unified_extraction:
+            self._nlp_service = get_nlp_entity_service()
 
     # Non-clinical terms to filter out (document metadata, common words)
     NON_CLINICAL_TERMS = frozenset({
@@ -598,20 +610,122 @@ class HybridClinicalAnalyzer:
 
         return True
 
-    def extract_structured_context(
-        self,
-        note_text: str,
-    ) -> tuple[StructuredContext, OntologyMappingResult]:
-        """Extract structured context from a clinical note.
+    def _extract_with_nlp_service(self, note_text: str) -> StructuredContext:
+        """Extract structured context using the unified ClinicalNLPEntityService.
 
-        This is the deterministic step - no LLM involved.
+        This provides consistent extraction quality with the Entity Extraction mode,
+        including proper SNOMED-CT normalization, negation detection, and section awareness.
 
         Args:
             note_text: The clinical note text.
 
         Returns:
-            Tuple of (StructuredContext, raw OntologyMappingResult).
+            StructuredContext populated from NLP Entity Service extraction.
         """
+        # Extract entities using the unified NLP service
+        result = self._nlp_service.extract_entities(text=note_text)
+
+        context = StructuredContext(
+            coverage_pct=100.0,  # NLP service processes full text
+            entity_count=result.entity_count,
+        )
+
+        # Map NLP entities to StructuredContext categories
+        for entity in result.entities:
+            is_negated = entity.assertion == AssertionStatus.ABSENT
+
+            # Build entity dict with normalized data
+            entity_dict = {
+                "name": entity.text,
+                "normalized": entity.normalized_text or entity.text,
+                "confidence": entity.confidence,
+                "negated": is_negated,
+            }
+
+            # Add SNOMED code if available from normalization
+            if hasattr(entity, 'normalized_codes') and entity.normalized_codes:
+                for code in entity.normalized_codes:
+                    if code.system.value == "snomed_ct":
+                        entity_dict["vocabulary_code"] = code.code
+                        entity_dict["vocabulary_system"] = "SNOMED-CT"
+                        break
+
+            # Add value/unit for measurements
+            if entity.value:
+                entity_dict["value"] = entity.value
+            if entity.unit:
+                entity_dict["unit"] = entity.unit
+
+            # Categorize by entity type
+            if entity.entity_type == NLPEntityType.DIAGNOSIS:
+                context.diagnoses.append(entity_dict)
+                if is_negated:
+                    context.negated_findings.append(entity.text)
+            elif entity.entity_type == NLPEntityType.MEDICATION:
+                # Add medication-specific fields
+                if entity.dosage:
+                    entity_dict["dose"] = entity.dosage
+                if entity.frequency:
+                    entity_dict["frequency"] = entity.frequency
+                if entity.route:
+                    entity_dict["route"] = entity.route
+                context.medications.append(entity_dict)
+            elif entity.entity_type == NLPEntityType.LAB_RESULT:
+                context.labs.append(entity_dict)
+            elif entity.entity_type == NLPEntityType.VITAL_SIGN:
+                context.vitals.append(entity_dict)
+            elif entity.entity_type == NLPEntityType.SYMPTOM:
+                context.symptoms.append(entity_dict)
+                if is_negated:
+                    context.negated_findings.append(entity.text)
+            elif entity.entity_type == NLPEntityType.PROCEDURE:
+                context.procedures.append(entity_dict)
+            elif entity.entity_type == NLPEntityType.ALLERGY:
+                # Treat allergies as findings with a special note
+                entity_dict["allergy"] = True
+                context.findings.append(entity_dict)
+            elif entity.entity_type in (NLPEntityType.ANATOMICAL_LOCATION, NLPEntityType.TEMPORAL):
+                # These are context entities, add to findings
+                context.findings.append(entity_dict)
+
+        # Update entity count to reflect actual categorized entities
+        context.entity_count = (
+            len(context.diagnoses) + len(context.medications) +
+            len(context.labs) + len(context.vitals) +
+            len(context.symptoms) + len(context.findings) +
+            len(context.procedures)
+        )
+
+        logger.debug(
+            f"Unified NLP extraction: {context.entity_count} entities "
+            f"({len(context.diagnoses)} diagnoses, {len(context.medications)} meds, "
+            f"{len(context.labs)} labs, {len(context.vitals)} vitals)"
+        )
+
+        return context
+
+    def extract_structured_context(
+        self,
+        note_text: str,
+    ) -> tuple[StructuredContext, OntologyMappingResult | None]:
+        """Extract structured context from a clinical note.
+
+        This is the deterministic step - no LLM involved.
+
+        Uses the unified ClinicalNLPEntityService by default for consistent
+        extraction quality across Entity Extraction and Hybrid Analyzer modes.
+
+        Args:
+            note_text: The clinical note text.
+
+        Returns:
+            Tuple of (StructuredContext, raw OntologyMappingResult or None).
+        """
+        # Use unified NLP Entity Service for extraction (recommended)
+        if self._use_unified_extraction:
+            return self._extract_with_nlp_service(note_text), None
+
+        # Legacy: Use OntologyMapper
         mapping = self._mapper.map_note(note_text)
 
         context = StructuredContext(
