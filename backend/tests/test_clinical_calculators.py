@@ -600,3 +600,395 @@ class TestDataDrivenCalculators:
         # BMI is an EQUATION type, should raise
         with pytest.raises(ValueError, match="equation"):
             calculate_from_definition("bmi", {"weight_kg": 70, "height_cm": 175})
+
+
+# ============================================================================
+# Specialty Calculators Tests - Neurology
+# ============================================================================
+
+
+class TestNeurologyCalculators:
+    """Test neurology specialty calculators."""
+
+    def test_nihss_minor_stroke(self):
+        """Test NIHSS for minor stroke."""
+        result = calculate_from_definition(
+            "nihss",
+            {
+                "loc_alert": True,  # 0
+                "loc_questions_both_correct": True,  # 0
+                "loc_commands_both_correct": True,  # 0
+                "gaze_normal": True,  # 0
+                "visual_normal": True,  # 0
+                "facial_minor": True,  # 1
+                "motor_left_arm_normal": True,  # 0
+                "motor_right_arm_normal": True,  # 0
+                "motor_left_leg_normal": True,  # 0
+                "motor_right_leg_normal": True,  # 0
+                "ataxia_absent": True,  # 0
+                "sensory_normal": True,  # 0
+                "language_normal": True,  # 0
+                "dysarthria_normal": True,  # 0
+                "extinction_normal": True,  # 0
+            },
+        )
+        assert result.score == 1
+        assert result.risk_level == RiskLevel.LOW
+        assert "Minor" in result.interpretation
+
+    def test_nihss_moderate_stroke(self):
+        """Test NIHSS for moderate stroke."""
+        result = calculate_from_definition(
+            "nihss",
+            {
+                "loc_drowsy": True,  # 1
+                "loc_questions_one_correct": True,  # 1
+                "loc_commands_both_correct": True,  # 0
+                "gaze_partial": True,  # 1
+                "visual_partial": True,  # 1
+                "facial_partial": True,  # 2
+                "motor_left_arm_drift": True,  # 1
+                "motor_right_arm_normal": True,  # 0
+                "motor_left_leg_drift": True,  # 1
+                "motor_right_leg_normal": True,  # 0
+                "ataxia_absent": True,  # 0
+                "sensory_mild": True,  # 1
+                "language_mild": True,  # 1
+                "dysarthria_mild": True,  # 1
+                "extinction_normal": True,  # 0
+            },
+        )
+        # Score: 1+1+0+1+1+2+1+0+1+0+0+1+1+1+0 = 11
+        assert result.score == 11
+        assert result.risk_level == RiskLevel.MODERATE
+
+    def test_hunt_hess_good_grade(self):
+        """Test Hunt & Hess for good grade SAH."""
+        result = calculate_from_definition(
+            "hunt_hess",
+            {"grade_grade_1": True},
+        )
+        assert result.score == 1
+        assert result.risk_level == RiskLevel.LOW
+
+    def test_hunt_hess_poor_grade(self):
+        """Test Hunt & Hess for poor grade SAH."""
+        result = calculate_from_definition(
+            "hunt_hess",
+            {"grade_grade_5": True},
+        )
+        assert result.score == 5
+        assert result.risk_level == RiskLevel.VERY_HIGH
+
+    def test_ich_score_low_risk(self):
+        """Test ICH Score for low mortality risk."""
+        result = calculate_from_definition(
+            "ich_score",
+            {
+                "gcs_13_15": True,  # 0
+                "volume_lt_30": True,  # 0
+                "ivh_no": True,  # 0
+                "infratentorial_no": True,  # 0
+                "age_lt_80": True,  # 0
+            },
+        )
+        assert result.score == 0
+        assert result.risk_level == RiskLevel.LOW
+
+    def test_ich_score_high_risk(self):
+        """Test ICH Score for high mortality risk."""
+        result = calculate_from_definition(
+            "ich_score",
+            {
+                "gcs_3_4": True,  # 2
+                "volume_gte_30": True,  # 1
+                "ivh_yes": True,  # 1
+                "infratentorial_yes": True,  # 1
+                "age_gte_80": True,  # 1
+            },
+        )
+        assert result.score == 6
+        assert result.risk_level == RiskLevel.VERY_HIGH
+
+    def test_four_score_severe(self):
+        """Test FOUR Score for severe impairment."""
+        result = calculate_from_definition(
+            "four_score",
+            {
+                "eye_e0": True,  # 0
+                "motor_m0": True,  # 0
+                "brainstem_b0": True,  # 0
+                "respiration_r0": True,  # 0
+            },
+        )
+        assert result.score == 0
+        assert result.risk_level == RiskLevel.VERY_HIGH
+
+    def test_mrs_good_outcome(self):
+        """Test mRS for good outcome."""
+        result = calculate_from_definition(
+            "mrs",
+            {"grade_grade_1": True},
+        )
+        assert result.score == 1
+        assert result.risk_level == RiskLevel.LOW
+
+    def test_canadian_ct_head_positive(self):
+        """Test Canadian CT Head Rule - CT indicated."""
+        result = calculate_from_definition(
+            "canadian_ct_head",
+            {
+                "gcs_below_15_at_2hr": True,
+                "vomiting_2_episodes": True,
+            },
+        )
+        assert result.score == 2
+        assert result.risk_level == RiskLevel.HIGH
+
+
+# ============================================================================
+# Specialty Calculators Tests - Oncology
+# ============================================================================
+
+
+class TestOncologyCalculators:
+    """Test oncology specialty calculators."""
+
+    def test_ecog_fully_active(self):
+        """Test ECOG PS 0."""
+        result = calculate_from_definition(
+            "ecog",
+            {"status_ps_0": True},
+        )
+        assert result.score == 0
+        assert result.risk_level == RiskLevel.LOW
+
+    def test_ecog_bedridden(self):
+        """Test ECOG PS 4."""
+        result = calculate_from_definition(
+            "ecog",
+            {"status_ps_4": True},
+        )
+        assert result.score == 4
+        assert result.risk_level == RiskLevel.HIGH
+
+    def test_karnofsky_normal(self):
+        """Test Karnofsky 100%."""
+        result = calculate_from_definition(
+            "karnofsky",
+            {"status_kps_100": True},
+        )
+        assert result.score == 100
+        assert result.risk_level == RiskLevel.LOW
+
+    def test_ipi_low_risk(self):
+        """Test IPI low risk."""
+        result = calculate_from_definition(
+            "ipi",
+            {
+                "age_over_60": False,
+                "stage_iii_iv": False,
+                "elevated_ldh": False,
+                "ecog_2_plus": False,
+                "extranodal_sites_gt_1": False,
+            },
+        )
+        assert result.score == 0
+        assert result.risk_level == RiskLevel.LOW
+
+    def test_ipi_high_risk(self):
+        """Test IPI high risk."""
+        result = calculate_from_definition(
+            "ipi",
+            {
+                "age_over_60": True,
+                "stage_iii_iv": True,
+                "elevated_ldh": True,
+                "ecog_2_plus": True,
+                "extranodal_sites_gt_1": True,
+            },
+        )
+        assert result.score == 5
+        assert result.risk_level == RiskLevel.HIGH
+
+    def test_mascc_low_risk(self):
+        """Test MASCC low risk febrile neutropenia."""
+        result = calculate_from_definition(
+            "mascc",
+            {
+                "symptoms_no_or_mild": True,  # 5
+                "hypotension_no": True,  # 5
+                "copd_no": True,  # 4
+                "solid_tumor_solid_or_no_fungal": True,  # 4
+                "dehydration_no": True,  # 3
+                "outpatient_outpatient": True,  # 3
+                "age_lt_60": True,  # 2
+            },
+        )
+        # 5+5+4+4+3+3+2 = 26
+        assert result.score == 26
+        assert result.risk_level == RiskLevel.LOW
+
+    def test_khorana_high_risk(self):
+        """Test Khorana VTE high risk."""
+        result = calculate_from_definition(
+            "khorana",
+            {
+                "cancer_site_very_high_risk": True,  # 2
+                "platelet_gte_350": True,  # 1
+                "hemoglobin_lt_10": True,  # 1
+                "leukocyte_gt_11": True,  # 1
+                "bmi_gte_35": True,  # 1
+            },
+        )
+        assert result.score == 6
+        assert result.risk_level == RiskLevel.HIGH
+
+
+# ============================================================================
+# Specialty Calculators Tests - Obstetrics
+# ============================================================================
+
+
+class TestObstetricCalculators:
+    """Test obstetric specialty calculators."""
+
+    def test_bpp_normal(self):
+        """Test normal BPP score."""
+        result = calculate_from_definition(
+            "bpp",
+            {
+                "nst_reactive": True,  # 2
+                "breathing_present": True,  # 2
+                "movement_present": True,  # 2
+                "tone_present": True,  # 2
+                "afi_normal": True,  # 2
+            },
+        )
+        assert result.score == 10
+        assert result.risk_level == RiskLevel.LOW
+
+    def test_bpp_abnormal(self):
+        """Test abnormal BPP score."""
+        result = calculate_from_definition(
+            "bpp",
+            {
+                "nst_nonreactive": True,  # 0
+                "breathing_absent": True,  # 0
+                "movement_absent": True,  # 0
+                "tone_absent": True,  # 0
+                "afi_low": True,  # 0
+            },
+        )
+        assert result.score == 0
+        assert result.risk_level == RiskLevel.HIGH
+
+    def test_epds_low_score(self):
+        """Test EPDS with low depression risk."""
+        result = calculate_from_definition(
+            "epds",
+            {
+                "q1_laugh_0": True,
+                "q2_enjoyment_0": True,
+                "q3_blame_0": True,
+                "q4_anxious_0": True,
+                "q5_scared_0": True,
+                "q6_overwhelmed_0": True,
+                "q7_unhappy_sleep_0": True,
+                "q8_sad_0": True,
+                "q9_crying_0": True,
+                "q10_self_harm_0": True,
+            },
+        )
+        assert result.score == 0
+        assert result.risk_level == RiskLevel.LOW
+
+    def test_preeclampsia_high_risk(self):
+        """Test preeclampsia risk with high-risk factors."""
+        result = calculate_from_definition(
+            "preeclampsia_risk",
+            {
+                "prior_preeclampsia": True,  # 2
+                "chronic_hypertension": True,  # 2
+            },
+        )
+        assert result.score == 4
+        assert result.risk_level == RiskLevel.HIGH
+
+
+# ============================================================================
+# Specialty Calculators Tests - Pediatrics
+# ============================================================================
+
+
+class TestPediatricCalculators:
+    """Test pediatric specialty calculators."""
+
+    def test_pecarn_low_risk(self):
+        """Test PECARN low risk for head CT."""
+        result = calculate_from_definition(
+            "pecarn_head",
+            {
+                "gcs_below_15": False,
+                "altered_mental_status": False,
+                "palpable_skull_fracture": False,
+                "scalp_hematoma": False,
+                "loc_5_sec": False,
+                "severe_mechanism": False,
+                "not_acting_normally": False,
+                "signs_basilar_skull_fx": False,
+                "severe_headache": False,
+                "vomiting": False,
+            },
+        )
+        assert result.score == 0
+        assert result.risk_level == RiskLevel.LOW
+
+    def test_westley_croup_severe(self):
+        """Test Westley Croup Score for severe croup."""
+        result = calculate_from_definition(
+            "westley_croup",
+            {
+                "stridor_at_rest_severe": True,  # 2
+                "retractions_severe": True,  # 3
+                "air_entry_markedly_decreased": True,  # 2
+                "cyanosis_at_rest": True,  # 5
+                "consciousness_normal": True,  # 0
+            },
+        )
+        assert result.score == 12
+        assert result.risk_level == RiskLevel.HIGH
+
+    def test_pediatric_appendicitis_high(self):
+        """Test PAS for high probability appendicitis."""
+        result = calculate_from_definition(
+            "pediatric_appendicitis",
+            {
+                "anorexia": True,  # 1
+                "nausea_vomiting": True,  # 1
+                "migration_pain": True,  # 1
+                "fever": True,  # 1
+                "cough_percussion_tenderness": True,  # 2
+                "rlq_tenderness": True,  # 2
+                "leukocytosis": True,  # 1
+                "neutrophilia": True,  # 1
+            },
+        )
+        assert result.score == 10
+        assert result.risk_level == RiskLevel.HIGH
+
+    def test_yale_observation_low_risk(self):
+        """Test Yale Observation Scale for low risk."""
+        result = calculate_from_definition(
+            "yale_observation",
+            {
+                "cry_quality_strong_normal": True,  # 1
+                "reaction_parent_cries_briefly": True,  # 1
+                "state_variation_stays_awake": True,  # 1
+                "color_pink": True,  # 1
+                "hydration_skin_normal": True,  # 1
+                "response_social_smiles_alert": True,  # 1
+            },
+        )
+        assert result.score == 6
+        assert result.risk_level == RiskLevel.LOW
