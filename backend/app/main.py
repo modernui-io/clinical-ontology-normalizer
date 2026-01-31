@@ -28,6 +28,7 @@ from app.api import (
     auth_sessions_router,
     calculators_router,
     clinical_calculators_router,
+    data_driven_calculators_router,
     cdisc_router,
     cds_hooks_router,
     coding_router,
@@ -637,6 +638,7 @@ api_v1_router.include_router(assistant_router)
 api_v1_router.include_router(auth_sessions_router)
 api_v1_router.include_router(audit_router)
 api_v1_router.include_router(clinical_calculators_router)
+api_v1_router.include_router(data_driven_calculators_router)  # Must be before calculators_router
 api_v1_router.include_router(calculators_router)
 api_v1_router.include_router(cdisc_router)
 api_v1_router.include_router(cds_hooks_router)

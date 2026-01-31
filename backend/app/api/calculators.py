@@ -940,3 +940,180 @@ async def list_clinical_categories() -> list[CategoryInfo]:
 
     service = get_clinical_calculator_service()
     return [CategoryInfo(**cat) for cat in service.get_categories()]
+
+
+# =============================================================================
+# Data-Driven Calculator Endpoints (using calculator_definitions)
+# =============================================================================
+
+# Create a separate router for data-driven calculators
+data_driven_router = APIRouter(prefix="/calculators/definitions", tags=["Data-Driven Calculators"])
+
+
+@data_driven_router.get(
+    "",
+    summary="List all data-driven calculators",
+    description="Get a list of all available data-driven clinical calculators.",
+)
+async def list_data_driven_calculators(
+    category: str | None = Query(None, description="Filter by category"),
+    calc_type: str | None = Query(None, description="Filter by calculator type (criteria, equation, etc.)"),
+):
+    """List all data-driven calculators.
+
+    Returns summaries of all available data-driven calculators including:
+    - 201 point-based scoring calculators (CHA2DS2-VASc, Wells, CURB-65, etc.)
+    - Risk assessment tools
+    - Clinical decision support scores
+
+    Supports filtering by category and calculator type.
+    """
+    from app.schemas.calculators import (
+        DataDrivenCalculatorListItem,
+        DataDrivenCalculatorListResponse,
+    )
+    from app.services.clinical_calculator_service import get_clinical_calculator_service
+
+    service = get_clinical_calculator_service()
+    calculators = service.list_data_driven_calculators(category=category, calc_type=calc_type)
+
+    return DataDrivenCalculatorListResponse(
+        calculators=[DataDrivenCalculatorListItem(**c) for c in calculators],
+        total_count=len(calculators),
+    )
+
+
+@data_driven_router.get(
+    "/{calculator_id}",
+    summary="Get data-driven calculator definition",
+    description="Get full details of a data-driven calculator including all criteria and scoring rules.",
+)
+async def get_data_driven_calculator(
+    calculator_id: str = Path(..., description="Calculator identifier"),
+):
+    """Get detailed definition of a data-driven calculator.
+
+    Returns the complete calculator definition including:
+    - Scoring criteria (boolean, multi-level, threshold)
+    - Age-based scoring rules (if applicable)
+    - Score interpretation thresholds
+    - Risk levels and recommendations
+    - Literature references
+
+    This endpoint provides all information needed to render the calculator
+    form and interpret results on the frontend.
+    """
+    from app.schemas.calculators import DataDrivenCalculatorDetail, InterpretationSchema
+    from app.services.clinical_calculator_service import get_clinical_calculator_service
+
+    service = get_clinical_calculator_service()
+    calc = service.get_data_driven_calculator(calculator_id)
+
+    if not calc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Data-driven calculator not found: {calculator_id}",
+        )
+
+    # Convert interpretations to schema
+    interpretations = [
+        InterpretationSchema(**interp) for interp in calc.get("interpretations", [])
+    ]
+
+    return DataDrivenCalculatorDetail(
+        id=calc["id"],
+        name=calc["name"],
+        short_name=calc["short_name"],
+        category=calc["category"],
+        calc_type=calc["calc_type"],
+        description=calc.get("description", ""),
+        score_unit=calc.get("score_unit", "points"),
+        criteria=calc.get("criteria", []),
+        has_age_scoring=calc.get("has_age_scoring", False),
+        interpretations=interpretations,
+        references=calc.get("references", []),
+        notes=calc.get("notes", []),
+    )
+
+
+@data_driven_router.post(
+    "/{calculator_id}/calculate",
+    summary="Calculate using data-driven engine",
+    description="Execute a data-driven calculator with provided values.",
+)
+async def calculate_data_driven(
+    calculator_id: str = Path(..., description="Calculator identifier"),
+    request: dict[str, Any] | None = None,
+):
+    """Execute a data-driven calculator.
+
+    Calculates the score using the data-driven engine and returns:
+    - Calculated score with unit
+    - Risk level classification
+    - Clinical interpretation
+    - Recommendations based on score
+    - Score component breakdown
+
+    Example request for CHA2DS2-VASc:
+    ```json
+    {
+        "values": {
+            "congestive_heart_failure": true,
+            "hypertension": true,
+            "diabetes_mellitus": false,
+            "stroke_tia_thromboembolism": false,
+            "vascular_disease": true,
+            "sex_female": false
+        },
+        "age": 72
+    }
+    ```
+
+    Example request for Wells PE:
+    ```json
+    {
+        "values": {
+            "clinical_dvt_signs": true,
+            "pe_most_likely": true,
+            "heart_rate_over_100": false,
+            "immobilization_surgery": false,
+            "previous_pe_dvt": true,
+            "hemoptysis": false,
+            "malignancy": false
+        }
+    }
+    ```
+    """
+    from app.schemas.calculators import DataDrivenCalculationResponse
+    from app.services.clinical_calculator_service import get_clinical_calculator_service
+
+    service = get_clinical_calculator_service()
+
+    # Parse request body
+    if request is None:
+        request = {}
+
+    values = request.get("values", {})
+    age = request.get("age")
+
+    try:
+        result = service.calculate_data_driven(calculator_id, values, age)
+
+        return DataDrivenCalculationResponse(
+            calculator_id=calculator_id,
+            calculator_name=result.calculator_name,
+            score=result.score,
+            score_unit=result.score_unit,
+            risk_level=result.risk_level.value,
+            interpretation=result.interpretation,
+            recommendations=result.recommendations,
+            components=result.components,
+            references=result.references,
+            warnings=result.warnings,
+        )
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )

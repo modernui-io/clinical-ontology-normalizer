@@ -12,6 +12,7 @@ from app.api.auth_sessions import router as auth_sessions_router
 from app.api.batch import router as batch_router
 from app.api.calculators import router as calculators_router
 from app.api.calculators import clinical_router as clinical_calculators_router
+from app.api.calculators import data_driven_router as data_driven_calculators_router
 from app.api.cdisc import router as cdisc_router
 from app.api.cds_hooks import router as cds_hooks_router
 from app.api.coding import router as coding_router
@@ -159,6 +160,7 @@ __all__ = [
     "batch_router",
     "calculators_router",
     "clinical_calculators_router",
+    "data_driven_calculators_router",
     "cdisc_router",
     "cds_hooks_router",
     "coding_router",

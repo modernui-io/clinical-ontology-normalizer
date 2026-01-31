@@ -37,6 +37,7 @@ interface CalculatorSummary {
   short_name: string;
   category: string;
   description: string;
+  calc_type?: string; // For data-driven calculators
 }
 
 interface CategoryInfo {
@@ -49,6 +50,11 @@ interface CalculatorsResponse {
   calculators: CalculatorSummary[];
   total_count: number;
   categories: CategoryInfo[];
+}
+
+interface DataDrivenCalculatorsResponse {
+  calculators: CalculatorSummary[];
+  total_count: number;
 }
 
 // Fallback data in case API is unavailable
@@ -64,13 +70,60 @@ const fallbackCategories: CategoryInfo[] = [
   { id: "general", name: "General", count: 1 },
 ];
 
-// Fetch calculators from API
-async function fetchCalculators(): Promise<CalculatorsResponse> {
+// Fetch clinical calculators from API
+async function fetchClinicalCalculators(): Promise<CalculatorsResponse> {
   const response = await fetch("/api/calculators/clinical");
   if (!response.ok) {
-    throw new Error("Failed to fetch calculators");
+    throw new Error("Failed to fetch clinical calculators");
   }
   return response.json();
+}
+
+// Fetch data-driven calculators from API
+async function fetchDataDrivenCalculators(): Promise<DataDrivenCalculatorsResponse> {
+  const response = await fetch("/api/calculators/definitions");
+  if (!response.ok) {
+    throw new Error("Failed to fetch data-driven calculators");
+  }
+  return response.json();
+}
+
+// Merge and deduplicate calculators, preferring data-driven versions
+function mergeCalculators(
+  clinical: CalculatorSummary[],
+  dataDriven: CalculatorSummary[]
+): CalculatorSummary[] {
+  const calcMap = new Map<string, CalculatorSummary>();
+
+  // Add clinical calculators first
+  for (const calc of clinical) {
+    calcMap.set(calc.id, calc);
+  }
+
+  // Override with data-driven versions (they have more detailed definitions)
+  for (const calc of dataDriven) {
+    calcMap.set(calc.id, calc);
+  }
+
+  return Array.from(calcMap.values());
+}
+
+// Rebuild category counts from merged calculators
+function buildCategories(calculators: CalculatorSummary[]): CategoryInfo[] {
+  const categoryMap = new Map<string, number>();
+
+  for (const calc of calculators) {
+    const count = categoryMap.get(calc.category) || 0;
+    categoryMap.set(calc.category, count + 1);
+  }
+
+  return Array.from(categoryMap.entries())
+    .map(([id, count]) => ({
+      id,
+      name: id.charAt(0).toUpperCase() + id.slice(1).replace(/_/g, " "),
+      count,
+    }))
+    .sort((a, b) => b.count - a.count);
 }
 
 const categoryIcons: Record<string, React.ReactNode> = {
@@ -80,6 +133,17 @@ const categoryIcons: Record<string, React.ReactNode> = {
   critical_care: <Gauge className="h-5 w-5" />,
   general: <Scale className="h-5 w-5" />,
   laboratory: <FlaskConical className="h-5 w-5" />,
+  pulmonary: <Activity className="h-5 w-5" />,
+  neurological: <Brain className="h-5 w-5" />,
+  infectious: <Stethoscope className="h-5 w-5" />,
+  emergency: <TrendingUp className="h-5 w-5" />,
+  surgical: <Activity className="h-5 w-5" />,
+  obstetric: <Heart className="h-5 w-5" />,
+  metabolic: <FlaskConical className="h-5 w-5" />,
+  hematology: <Droplets className="h-5 w-5" />,
+  oncology: <Activity className="h-5 w-5" />,
+  pediatric: <Heart className="h-5 w-5" />,
+  geriatric: <Activity className="h-5 w-5" />,
 };
 
 const categoryColors: Record<string, string> = {
@@ -89,6 +153,17 @@ const categoryColors: Record<string, string> = {
   critical_care: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
   general: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
   laboratory: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400",
+  pulmonary: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400",
+  neurological: "bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400",
+  infectious: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
+  emergency: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400",
+  surgical: "bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-400",
+  obstetric: "bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-900/30 dark:text-fuchsia-400",
+  metabolic: "bg-lime-100 text-lime-700 dark:bg-lime-900/30 dark:text-lime-400",
+  hematology: "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400",
+  oncology: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400",
+  pediatric: "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400",
+  geriatric: "bg-stone-100 text-stone-700 dark:bg-stone-900/30 dark:text-stone-400",
 };
 
 export default function CalculatorsPage() {
@@ -100,15 +175,40 @@ export default function CalculatorsPage() {
   const [categories, setCategories] = useState<CategoryInfo[]>(fallbackCategories);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch calculators from API on mount
+  // Fetch calculators from both APIs on mount
   useEffect(() => {
     const loadCalculators = async () => {
       try {
         setIsLoading(true);
         setError(null);
-        const data = await fetchCalculators();
-        setCalculators(data.calculators);
-        setCategories(data.categories);
+
+        // Fetch from both APIs in parallel
+        const [clinicalResult, dataDrivenResult] = await Promise.allSettled([
+          fetchClinicalCalculators(),
+          fetchDataDrivenCalculators(),
+        ]);
+
+        let clinicalCalcs: CalculatorSummary[] = [];
+        let dataDrivenCalcs: CalculatorSummary[] = [];
+
+        if (clinicalResult.status === "fulfilled") {
+          clinicalCalcs = clinicalResult.value.calculators;
+        }
+
+        if (dataDrivenResult.status === "fulfilled") {
+          dataDrivenCalcs = dataDrivenResult.value.calculators;
+        }
+
+        // Merge calculators, preferring data-driven versions
+        const mergedCalculators = mergeCalculators(clinicalCalcs, dataDrivenCalcs);
+
+        if (mergedCalculators.length > 0) {
+          setCalculators(mergedCalculators);
+          setCategories(buildCategories(mergedCalculators));
+        } else {
+          // Both APIs failed, use fallback
+          setError("Failed to load calculators. Using cached data.");
+        }
       } catch (err) {
         console.error("Failed to fetch calculators:", err);
         setError("Failed to load calculators. Using cached data.");
@@ -131,11 +231,11 @@ export default function CalculatorsPage() {
         selectedCategory === null || calc.category === selectedCategory;
       return matchesSearch && matchesCategory;
     });
-  }, [searchQuery, selectedCategory]);
+  }, [calculators, searchQuery, selectedCategory]);
 
   const favoriteCalculators = useMemo(() => {
     return calculators.filter((calc) => favorites.has(calc.id));
-  }, [favorites]);
+  }, [calculators, favorites]);
 
   const groupedCalculators = useMemo(() => {
     const groups: Record<string, CalculatorSummary[]> = {};
@@ -164,9 +264,33 @@ export default function CalculatorsPage() {
     try {
       setIsLoading(true);
       setError(null);
-      const data = await fetchCalculators();
-      setCalculators(data.calculators);
-      setCategories(data.categories);
+
+      // Fetch from both APIs in parallel
+      const [clinicalResult, dataDrivenResult] = await Promise.allSettled([
+        fetchClinicalCalculators(),
+        fetchDataDrivenCalculators(),
+      ]);
+
+      let clinicalCalcs: CalculatorSummary[] = [];
+      let dataDrivenCalcs: CalculatorSummary[] = [];
+
+      if (clinicalResult.status === "fulfilled") {
+        clinicalCalcs = clinicalResult.value.calculators;
+      }
+
+      if (dataDrivenResult.status === "fulfilled") {
+        dataDrivenCalcs = dataDrivenResult.value.calculators;
+      }
+
+      // Merge calculators
+      const mergedCalculators = mergeCalculators(clinicalCalcs, dataDrivenCalcs);
+
+      if (mergedCalculators.length > 0) {
+        setCalculators(mergedCalculators);
+        setCategories(buildCategories(mergedCalculators));
+      } else {
+        setError("Failed to refresh calculators.");
+      }
     } catch (err) {
       console.error("Failed to refresh calculators:", err);
       setError("Failed to refresh calculators.");
