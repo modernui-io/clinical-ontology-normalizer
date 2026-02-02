@@ -6,9 +6,15 @@ import os
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Export codebase_kg.json to Neo4j CSV.")
-    parser.add_argument("--kg", default="codebase_kg.json", help="Path to codebase KG JSON")
-    parser.add_argument("--outdir", default="kg_export", help="Output directory for CSVs")
+    parser = argparse.ArgumentParser(
+        description="Export codebase_kg.json to Neo4j CSV."
+    )
+    parser.add_argument(
+        "--kg", default="codebase_kg.json", help="Path to codebase KG JSON"
+    )
+    parser.add_argument(
+        "--outdir", default="kg_export", help="Output directory for CSVs"
+    )
     args = parser.parse_args()
 
     with open(args.kg, "r", encoding="utf-8") as f:

@@ -89,7 +89,15 @@ def _parse_routes_ast(file_path: str):
             if func.value.id != "router":
                 continue
             method = func.attr.upper()
-            if method not in {"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"}:
+            if method not in {
+                "GET",
+                "POST",
+                "PUT",
+                "DELETE",
+                "PATCH",
+                "OPTIONS",
+                "HEAD",
+            }:
                 continue
 
             path = ""
@@ -104,7 +112,13 @@ def _parse_routes_ast(file_path: str):
                 "function": fn_name,
             }
             for kw in call.keywords:
-                if kw.arg in {"response_model", "tags", "summary", "description", "status_code"}:
+                if kw.arg in {
+                    "response_model",
+                    "tags",
+                    "summary",
+                    "description",
+                    "status_code",
+                }:
                     meta[kw.arg] = _ast_literal(kw.value)
             routes.append(meta)
     return routes
@@ -278,8 +292,12 @@ def build_kg(root: str):
 
 def main():
     parser = argparse.ArgumentParser(description="Generate codebase_kg.json")
-    parser.add_argument("--root", default=None, help="Repo root (defaults to parent of scripts/)")
-    parser.add_argument("--out", default=None, help="Output path (defaults to <root>/codebase_kg.json)")
+    parser.add_argument(
+        "--root", default=None, help="Repo root (defaults to parent of scripts/)"
+    )
+    parser.add_argument(
+        "--out", default=None, help="Output path (defaults to <root>/codebase_kg.json)"
+    )
     args = parser.parse_args()
 
     if args.root:

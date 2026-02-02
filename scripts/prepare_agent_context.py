@@ -42,7 +42,9 @@ def slice_kg(kg: dict, queries: list[str], max_nodes: int, max_edges: int) -> di
     selected_nodes = [n for n in nodes if n["id"] in expanded][:max_nodes]
     selected_ids = {n["id"] for n in selected_nodes}
     selected_edges = [
-        e for e in edges if e.get("from") in selected_ids and e.get("to") in selected_ids
+        e
+        for e in edges
+        if e.get("from") in selected_ids and e.get("to") in selected_ids
     ][:max_edges]
 
     return {"nodes": selected_nodes, "edges": selected_edges}
@@ -50,7 +52,9 @@ def slice_kg(kg: dict, queries: list[str], max_nodes: int, max_edges: int) -> di
 
 def main():
     parser = argparse.ArgumentParser(description="Prepare agent context bundle.")
-    parser.add_argument("--query", action="append", default=[], help="Filter by keyword (repeatable)")
+    parser.add_argument(
+        "--query", action="append", default=[], help="Filter by keyword (repeatable)"
+    )
     parser.add_argument(
         "--out",
         default="agent_context_bundle.md",
