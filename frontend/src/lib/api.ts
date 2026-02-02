@@ -2730,6 +2730,8 @@ export interface NLPExtractRequest {
   include_uncovered_tokens?: boolean;
   include_gap_report?: boolean;
   max_gap_tokens?: number;
+  note_id?: string | null;
+  encounter_id?: string | null;
 }
 
 export interface NLPExtractResponse {
@@ -2743,6 +2745,8 @@ export interface NLPExtractResponse {
   model_used: string;
   coverage?: NLPExtractionCoverage | null;
   coverage_gap?: NLPCoverageGapReport | null;
+  note_id?: string | null;
+  encounter_id?: string | null;
 }
 
 export interface NLPBatchExtractRequest {
@@ -2942,6 +2946,8 @@ export interface HybridAnalyzeRequest {
   text: string;
   analysis_type?: AnalysisType;
   use_llm?: boolean;
+  note_id?: string | null;
+  encounter_id?: string | null;
 }
 
 export interface StructuredContext {
@@ -2969,6 +2975,8 @@ export interface HybridAnalyzeResponse {
   total_time_ms: number;
   llm_model: string | null;
   llm_available: boolean;
+  note_id?: string | null;
+  encounter_id?: string | null;
 }
 
 // ============================================================================

@@ -267,6 +267,12 @@ class ExtractRequest(BaseModel):
         default=False,
         description="Include sample of tokens not covered by extracted entities",
     )
+    note_id: str | None = Field(
+        None, description="Optional note identifier for provenance"
+    )
+    encounter_id: str | None = Field(
+        None, description="Optional encounter identifier for provenance"
+    )
     include_gap_report: bool = Field(
         default=False,
         description="Include token-level gap report comparing extraction vs ontology coverage",
@@ -314,6 +320,12 @@ class ExtractResponse(BaseModel):
     )
     coverage_gap: CoverageGapReportResponse | None = Field(
         None, description="Token-level gap report comparing extraction vs ontology coverage"
+    )
+    note_id: str | None = Field(
+        None, description="Note identifier used for provenance"
+    )
+    encounter_id: str | None = Field(
+        None, description="Encounter identifier used for provenance"
     )
 
 
@@ -808,6 +820,8 @@ async def extract_entities(request: ExtractRequest) -> ExtractResponse:
             patient_id=response_patient_id,
             coverage=coverage,
             coverage_gap=coverage_gap,
+            note_id=request.note_id,
+            encounter_id=request.encounter_id,
         )
 
     except Exception as e:
@@ -1448,6 +1462,12 @@ class HybridAnalyzeRequest(BaseModel):
         default=True,
         description="Whether to use LLM for reasoning (if False, returns extraction only)",
     )
+    note_id: str | None = Field(
+        None, description="Optional note identifier for provenance"
+    )
+    encounter_id: str | None = Field(
+        None, description="Optional encounter identifier for provenance"
+    )
 
 
 class StructuredContextResponse(BaseModel):
@@ -1483,6 +1503,12 @@ class HybridAnalyzeResponse(BaseModel):
     total_time_ms: float = Field(..., description="Total processing time")
     llm_model: str | None = Field(None, description="LLM model used (if any)")
     llm_available: bool = Field(..., description="Whether LLM was available")
+    note_id: str | None = Field(
+        None, description="Note identifier used for provenance"
+    )
+    encounter_id: str | None = Field(
+        None, description="Encounter identifier used for provenance"
+    )
 
 
 @router.post(
@@ -1588,6 +1614,8 @@ async def hybrid_analyze(request: HybridAnalyzeRequest) -> HybridAnalyzeResponse
             total_time_ms=round(total_time, 2),
             llm_model=llm_model,
             llm_available=llm_available,
+            note_id=request.note_id,
+            encounter_id=request.encounter_id,
         )
 
     except Exception as e:

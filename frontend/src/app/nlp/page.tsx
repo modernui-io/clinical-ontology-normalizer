@@ -1701,6 +1701,25 @@ interface ProvenanceChainResponse {
   total_confidence: number;
 }
 
+const hashText = (text: string) => {
+  let hash = 5381;
+  for (let i = 0; i < text.length; i += 1) {
+    hash = ((hash << 5) + hash) ^ text.charCodeAt(i);
+  }
+  return (hash >>> 0).toString(36);
+};
+
+const deriveContextIds = (text: string) => {
+  const trimmed = text.trim();
+  const patientIdMatch = trimmed.match(/\b(?:MRN|Patient\s+ID)[:\s]+([A-Z0-9_]+)/i);
+  const baseId = hashText(trimmed || "empty");
+  return {
+    patientId: patientIdMatch ? patientIdMatch[1] : `NLP_${baseId}`,
+    noteId: `note_${baseId}`,
+    encounterId: `enc_${baseId}`,
+  };
+};
+
 export default function NLPWorkbenchPage() {
   const router = useRouter();
   const [inputText, setInputText] = useState("");
@@ -1963,6 +1982,8 @@ export default function NLPWorkbenchPage() {
       return;
     }
 
+    const context = deriveContextIds(inputText);
+
     setIsExtracting(true);
     setResult(null);
     setSelectedEntity(null);
@@ -1989,6 +2010,8 @@ export default function NLPWorkbenchPage() {
           model_id: useMLModels ? selectedModelId : undefined,
           include_coverage: true,
           include_gap_report: true,
+          note_id: context.noteId,
+          encounter_id: context.encounterId,
         });
         setResult(extractionResult);
         toast.success(
@@ -2013,10 +2036,7 @@ export default function NLPWorkbenchPage() {
       return;
     }
 
-    const runId = Date.now();
-    const patientIdMatch = inputText.match(/\b(?:MRN|Patient\s+ID)[:\s]+([A-Z0-9_]+)/i);
-    const patientId = patientIdMatch ? patientIdMatch[1] : `PIPELINE_${runId}`;
-    const noteId = `pipeline_${runId}`;
+    const context = deriveContextIds(inputText);
 
     setIsRunningPipeline(true);
     setIsExtracting(true);
@@ -2043,6 +2063,8 @@ export default function NLPWorkbenchPage() {
         model_id: useMLModels ? selectedModelId : undefined,
         include_coverage: true,
         include_gap_report: true,
+        note_id: context.noteId,
+        encounter_id: context.encounterId,
       });
       setResult(extractionResult);
       toast.success(
@@ -2055,9 +2077,10 @@ export default function NLPWorkbenchPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          patient_id: patientId,
+          patient_id: context.patientId,
           clinical_text: inputText,
-          note_id: noteId,
+          note_id: context.noteId,
+          encounter_id: context.encounterId,
         }),
       });
 
@@ -2073,9 +2096,9 @@ export default function NLPWorkbenchPage() {
       const edges = buildResult.edges || [];
       setKgNodes(nodes);
       setKgEdges(edges);
-      setKgPatientId(patientId);
+      setKgPatientId(context.patientId);
       setKgSummary(
-        buildSummaryFromNodes(nodes, patientId, buildResult.node_count, buildResult.edge_count)
+        buildSummaryFromNodes(nodes, context.patientId, buildResult.node_count, buildResult.edge_count)
       );
 
       toast.success(
@@ -2100,6 +2123,8 @@ export default function NLPWorkbenchPage() {
       return;
     }
 
+    const context = deriveContextIds(inputText);
+
     setIsExtracting(true);
     setHybridResult(null);
     setOntologyResult(null);
@@ -2114,6 +2139,8 @@ export default function NLPWorkbenchPage() {
         text: inputText,
         analysis_type: analysisType,
         use_llm: useLLM,
+        note_id: context.noteId,
+        encounter_id: context.encounterId,
       });
       setHybridResult(hybridRes);
 
@@ -2220,11 +2247,9 @@ export default function NLPWorkbenchPage() {
     setQaMessages([]); // Clear Q&A history for new patient
 
     try {
-      // Generate a patient ID based on timestamp if not extractable from text
-      const patientIdMatch = inputText.match(/\b(?:MRN|Patient\s+ID)[:\s]+([A-Z0-9_]+)/i);
-      const patientId = patientIdMatch ? patientIdMatch[1] : `NLP_${Date.now()}`;
+      const context = deriveContextIds(inputText);
 
-      console.log("Building KG for patient:", patientId);
+      console.log("Building KG for patient:", context.patientId);
       console.log("Sending clinical text to backend");
 
       // Use ontology-based KG build for full coverage
@@ -2232,8 +2257,10 @@ export default function NLPWorkbenchPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          patient_id: patientId,
+          patient_id: context.patientId,
           clinical_text: inputText,
+          note_id: context.noteId,
+          encounter_id: context.encounterId,
         }),
       });
 
@@ -2245,8 +2272,10 @@ export default function NLPWorkbenchPage() {
         const edges = buildResult.edges || [];
         setKgNodes(nodes);
         setKgEdges(edges);
-        setKgPatientId(patientId);
-        setKgSummary(buildSummaryFromNodes(nodes, patientId, buildResult.node_count, buildResult.edge_count));
+        setKgPatientId(context.patientId);
+        setKgSummary(
+          buildSummaryFromNodes(nodes, context.patientId, buildResult.node_count, buildResult.edge_count)
+        );
 
         toast.success(
           `Knowledge graph built: ${buildResult.node_count || nodes.length} nodes, ${buildResult.edge_count || edges.length} edges`
@@ -2286,11 +2315,9 @@ export default function NLPWorkbenchPage() {
     setQaMessages([]);
 
     try {
-      // Generate a patient ID based on timestamp if not extractable from text
-      const patientIdMatch = inputText.match(/\b(?:MRN|Patient\s+ID)[:\s]+([A-Z0-9_]+)/i);
-      const patientId = patientIdMatch ? patientIdMatch[1] : `HYBRID_${Date.now()}`;
+      const context = deriveContextIds(inputText);
 
-      console.log("Building KG from hybrid for patient:", patientId);
+      console.log("Building KG from hybrid for patient:", context.patientId);
       console.log("Sending clinical text to backend");
 
       // Use ontology-based KG build for full coverage
@@ -2298,8 +2325,10 @@ export default function NLPWorkbenchPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          patient_id: patientId,
+          patient_id: context.patientId,
           clinical_text: inputText,
+          note_id: context.noteId,
+          encounter_id: context.encounterId,
         }),
       });
 
@@ -2311,8 +2340,10 @@ export default function NLPWorkbenchPage() {
         const edges = buildResult.edges || [];
         setKgNodes(nodes);
         setKgEdges(edges);
-        setKgPatientId(patientId);
-        setKgSummary(buildSummaryFromNodes(nodes, patientId, buildResult.node_count, buildResult.edge_count));
+        setKgPatientId(context.patientId);
+        setKgSummary(
+          buildSummaryFromNodes(nodes, context.patientId, buildResult.node_count, buildResult.edge_count)
+        );
 
         toast.success(
           `Knowledge graph built: ${buildResult.node_count || nodes.length} nodes, ${buildResult.edge_count || edges.length} edges`

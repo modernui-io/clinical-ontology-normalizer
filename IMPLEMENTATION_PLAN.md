@@ -133,6 +133,7 @@ Each task should be completed in one iteration with tests passing before checkin
 
 - [x] 15.1 Route clinical-agent build-graph to ontology integration when raw text is provided
 - [x] 15.2 Add one-click Workbench flow (Extract → Build KG → QA) with shared patient_id
+- [x] 15.3 Standardize note_id/encounter_id provenance across extraction → KG → QA
 
 ---
 
