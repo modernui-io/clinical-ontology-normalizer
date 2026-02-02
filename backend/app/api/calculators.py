@@ -1003,7 +1003,16 @@ async def get_data_driven_calculator(
     This endpoint provides all information needed to render the calculator
     form and interpret results on the frontend.
     """
-    from app.schemas.calculators import DataDrivenCalculatorDetail, InterpretationSchema
+    from app.schemas.calculators import (
+        DataDrivenCalculatorDetail,
+        InterpretationSchema,
+        CalculatorProvenanceSchema,
+        CitationSchema,
+        ValidationStudySchema,
+        ClinicalPearlSchema,
+        UsageGuidanceSchema,
+        GuidelineReferenceSchema,
+    )
     from app.services.clinical_calculator_service import get_clinical_calculator_service
 
     service = get_clinical_calculator_service()
@@ -1020,6 +1029,39 @@ async def get_data_driven_calculator(
         InterpretationSchema(**interp) for interp in calc.get("interpretations", [])
     ]
 
+    # Convert provenance to schema if present
+    provenance_schema = None
+    if calc.get("provenance"):
+        prov = calc["provenance"]
+        provenance_schema = CalculatorProvenanceSchema(
+            original_citation=CitationSchema(**prov["original_citation"]) if prov.get("original_citation") else None,
+            evidence_level=prov.get("evidence_level"),
+            evidence_summary=prov.get("evidence_summary"),
+            validation_studies=[
+                ValidationStudySchema(
+                    citation=CitationSchema(**vs["citation"]),
+                    population=vs["population"],
+                    sample_size=vs.get("sample_size"),
+                    setting=vs.get("setting"),
+                    performance_auc=vs.get("performance_auc"),
+                    validation_outcome=vs["validation_outcome"],
+                    notes=vs.get("notes"),
+                )
+                for vs in prov.get("validation_studies", [])
+            ],
+            overall_validation=prov.get("overall_validation"),
+            clinical_pearls=[
+                ClinicalPearlSchema(**pearl) for pearl in prov.get("clinical_pearls", [])
+            ],
+            pitfalls=prov.get("pitfalls", []),
+            usage_guidance=UsageGuidanceSchema(**prov["usage_guidance"]) if prov.get("usage_guidance") else None,
+            related_guidelines=[
+                GuidelineReferenceSchema(**g) for g in prov.get("related_guidelines", [])
+            ],
+            related_calculator_ids=prov.get("related_calculator_ids", []),
+            mdcalc_url=prov.get("mdcalc_url"),
+        )
+
     return DataDrivenCalculatorDetail(
         id=calc["id"],
         name=calc["name"],
@@ -1033,6 +1075,7 @@ async def get_data_driven_calculator(
         interpretations=interpretations,
         references=calc.get("references", []),
         notes=calc.get("notes", []),
+        provenance=provenance_schema,
     )
 
 

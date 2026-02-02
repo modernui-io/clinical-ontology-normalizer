@@ -39,6 +39,7 @@ class EntityTypeEnum(str, Enum):
     TEMPORAL = "temporal"
     SYMPTOM = "symptom"
     ALLERGY = "allergy"
+    SOCIAL_HISTORY = "social_history"
 
 
 class AssertionStatusEnum(str, Enum):
@@ -50,6 +51,7 @@ class AssertionStatusEnum(str, Enum):
     CONDITIONAL = "conditional"
     HYPOTHETICAL = "hypothetical"
     FAMILY_HISTORY = "family_history"
+    HISTORICAL = "historical"
 
 
 class ClinicalSectionEnum(str, Enum):
@@ -173,6 +175,14 @@ class ExtractRequest(BaseModel):
         default=True,
         description="Whether to include normalized codes in response",
     )
+    create_facts: bool = Field(
+        default=False,
+        description="Create ClinicalFacts from extracted entities and build knowledge graph",
+    )
+    patient_id: str | None = Field(
+        default=None,
+        description="Patient ID for fact/KG creation (required if create_facts=True)",
+    )
 
 
 class ExtractResponse(BaseModel):
@@ -192,6 +202,19 @@ class ExtractResponse(BaseModel):
     )
     processing_time_ms: float = Field(..., description="Processing time in milliseconds")
     model_used: str = Field(..., description="Model used for extraction")
+    # Optional fact/graph creation stats (populated when create_facts=True)
+    facts_created: int | None = Field(
+        None, description="Number of ClinicalFacts created (if create_facts=True)"
+    )
+    graph_nodes_created: int | None = Field(
+        None, description="Number of KG nodes created (if create_facts=True)"
+    )
+    graph_edges_created: int | None = Field(
+        None, description="Number of KG edges created (if create_facts=True)"
+    )
+    patient_id: str | None = Field(
+        None, description="Patient ID for created facts/graph (if create_facts=True)"
+    )
 
 
 class BatchExtractRequest(BaseModel):
@@ -339,28 +362,77 @@ async def extract_entities(request: ExtractRequest) -> ExtractResponse:
         ExtractResponse with extracted entities and metadata.
     """
     try:
+        from uuid import uuid4
         from app.services.nlp_entity_service import (
             get_nlp_entity_service,
             EntityType,
             NormalizationVocabulary,
+            ExtractionResult,
+            ExtractedEntity,
+            EntitySpan,
+            AssertionStatus,
+            ClinicalSection,
         )
 
-        service = get_nlp_entity_service()
+        # Use Ensemble NLP when use_ml_models is True (combines rule-based + ClinicalBERT + ModernBERT)
+        if request.use_ml_models:
+            from app.services.nlp_ensemble import get_ensemble_nlp_service
+            import time
 
-        # Convert API enums to service enums
-        entity_types = None
-        if request.entity_types:
-            entity_types = [EntityType(et.value) for et in request.entity_types]
+            start_time = time.perf_counter()
+            ensemble_service = get_ensemble_nlp_service()
+            ensemble_result = ensemble_service.extract_all(request.text, document_id=uuid4())
+            processing_time = (time.perf_counter() - start_time) * 1000
 
-        # Extract entities
-        # Note: use_ml_models is handled implicitly via model_id parameter
-        # If model_id is not "rule_based", ML model will be used if available
-        model_to_use = request.model_id if request.use_ml_models else "rule_based"
-        result = service.extract_entities(
-            text=request.text,
-            entity_types=entity_types,
-            model_id=model_to_use,
-        )
+            # Map ensemble mentions to ExtractedEntity format
+            domain_to_entity_type = {
+                "condition": EntityType.DIAGNOSIS,
+                "drug": EntityType.MEDICATION,
+                "procedure": EntityType.PROCEDURE,
+                "measurement": EntityType.LAB_RESULT,
+                "observation": EntityType.SYMPTOM,
+                "anatomy": EntityType.ANATOMICAL_LOCATION,
+            }
+
+            ml_entities = []
+            for m in ensemble_result.mentions:
+                entity_type = domain_to_entity_type.get(m.domain_hint, EntityType.DIAGNOSIS)
+                assertion = AssertionStatus.ABSENT if m.is_negated else AssertionStatus.PRESENT
+                if m.is_uncertain:
+                    assertion = AssertionStatus.UNCERTAIN
+
+                ml_entities.append(ExtractedEntity(
+                    id=str(uuid4()),
+                    entity_type=entity_type,
+                    text=m.text,
+                    normalized_text=m.lexical_variant or m.text,
+                    span=EntitySpan(start=m.start_offset, end=m.end_offset, text=m.text),
+                    section=ClinicalSection.UNKNOWN,
+                    assertion=assertion,
+                    confidence=float(m.confidence),
+                ))
+
+            result = ExtractionResult(
+                entities=ml_entities,
+                model_id="ensemble_nlp",  # Rule-based + ClinicalBERT + ModernBERT
+                processing_time_ms=round(processing_time, 2),
+                text_length=len(request.text),
+            )
+            service = get_nlp_entity_service()  # For normalization
+        else:
+            service = get_nlp_entity_service()
+
+            # Convert API enums to service enums
+            entity_types = None
+            if request.entity_types:
+                entity_types = [EntityType(et.value) for et in request.entity_types]
+
+            # Extract entities using rule-based service
+            result = service.extract_entities(
+                text=request.text,
+                entity_types=entity_types,
+                model_id="rule_based",
+            )
 
         # Generate request ID for this request
         import uuid
@@ -422,6 +494,109 @@ async def extract_entities(request: ExtractRequest) -> ExtractResponse:
             for s in result.sections
         ]
 
+        # Optional: Create facts and build knowledge graph
+        facts_created = None
+        graph_nodes_created = None
+        graph_edges_created = None
+        response_patient_id = None
+
+        if request.create_facts:
+            if not request.patient_id:
+                raise InternalError(
+                    message="patient_id is required when create_facts=True",
+                    error_code=ErrorCode.VALIDATION_ERROR,
+                )
+
+            from sqlalchemy.orm import Session
+            from app.core.database import get_sync_engine
+            from app.services.fact_builder_db import DatabaseFactBuilderService
+            from app.services.graph_builder_db import DatabaseGraphBuilderService
+            from app.schemas.base import Assertion, Domain, Temporality, Experiencer
+
+            # Map entity types to domains
+            entity_type_to_domain = {
+                EntityTypeEnum.DIAGNOSIS: Domain.CONDITION,
+                EntityTypeEnum.MEDICATION: Domain.DRUG,
+                EntityTypeEnum.PROCEDURE: Domain.PROCEDURE,
+                EntityTypeEnum.LAB_RESULT: Domain.MEASUREMENT,
+                EntityTypeEnum.VITAL_SIGN: Domain.MEASUREMENT,
+                EntityTypeEnum.SYMPTOM: Domain.CONDITION,
+                EntityTypeEnum.ALLERGY: Domain.OBSERVATION,
+                EntityTypeEnum.ANATOMICAL_LOCATION: Domain.OBSERVATION,
+                EntityTypeEnum.TEMPORAL: Domain.OBSERVATION,
+                EntityTypeEnum.SOCIAL_HISTORY: Domain.OBSERVATION,
+            }
+
+            # Map assertion status to Assertion enum
+            assertion_map = {
+                AssertionStatusEnum.PRESENT: Assertion.PRESENT,
+                AssertionStatusEnum.ABSENT: Assertion.ABSENT,
+                AssertionStatusEnum.POSSIBLE: Assertion.POSSIBLE,
+                AssertionStatusEnum.CONDITIONAL: Assertion.POSSIBLE,
+                AssertionStatusEnum.HYPOTHETICAL: Assertion.POSSIBLE,
+                AssertionStatusEnum.FAMILY_HISTORY: Assertion.PRESENT,
+                AssertionStatusEnum.HISTORICAL: Assertion.ABSENT,  # Historical/former = not currently present
+            }
+
+            with Session(get_sync_engine()) as session:
+                fact_builder = DatabaseFactBuilderService(session)
+                facts_created = 0
+
+                for entity in entities_response:
+                    # Get domain from entity type
+                    domain = entity_type_to_domain.get(entity.entity_type, Domain.OBSERVATION)
+
+                    # Get assertion
+                    assertion = assertion_map.get(entity.assertion, Assertion.PRESENT)
+
+                    # Get OMOP concept ID from normalized codes if available
+                    omop_concept_id = 0
+                    if entity.normalized_codes:
+                        # Use first normalized code as concept ID
+                        try:
+                            omop_concept_id = int(entity.normalized_codes[0].code)
+                        except (ValueError, IndexError):
+                            omop_concept_id = 0
+
+                    # Create fact
+                    try:
+                        fact_builder.create_fact_from_mention(
+                            mention_id=uuid4(),  # Generate a mention ID
+                            patient_id=request.patient_id,
+                            omop_concept_id=omop_concept_id,
+                            concept_name=entity.normalized_text or entity.text,
+                            domain=domain,
+                            assertion=assertion,
+                            temporality=Temporality.CURRENT,
+                            experiencer=Experiencer.PATIENT,
+                            confidence=entity.confidence,
+                        )
+                        facts_created += 1
+                    except Exception as fact_err:
+                        # Log but continue with other entities
+                        import logging
+                        logging.getLogger(__name__).warning(
+                            f"Failed to create fact for entity '{entity.text}': {fact_err}"
+                        )
+
+                # Build knowledge graph from facts
+                if facts_created > 0:
+                    try:
+                        graph_builder = DatabaseGraphBuilderService(session)
+                        graph_result = graph_builder.build_graph_for_patient(request.patient_id)
+                        graph_nodes_created = graph_result.nodes_created
+                        graph_edges_created = graph_result.edges_created
+                    except Exception as graph_err:
+                        import logging
+                        logging.getLogger(__name__).warning(
+                            f"Failed to build knowledge graph: {graph_err}"
+                        )
+                        graph_nodes_created = 0
+                        graph_edges_created = 0
+
+                session.commit()
+                response_patient_id = request.patient_id
+
         return ExtractResponse(
             request_id=request_id,
             text_length=result.text_length,
@@ -431,6 +606,10 @@ async def extract_entities(request: ExtractRequest) -> ExtractResponse:
             entities_by_type=result.entities_by_type,
             processing_time_ms=result.processing_time_ms,
             model_used=result.model_id,  # Map model_id to model_used
+            facts_created=facts_created,
+            graph_nodes_created=graph_nodes_created,
+            graph_edges_created=graph_edges_created,
+            patient_id=response_patient_id,
         )
 
     except Exception as e:

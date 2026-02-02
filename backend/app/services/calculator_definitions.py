@@ -213,6 +213,127 @@ class ThresholdInterpretation:
     recommendations: list[str]
 
 
+# =============================================================================
+# Provenance Data Structures (MDCalc-style evidence documentation)
+# =============================================================================
+
+
+class EvidenceLevel(str, Enum):
+    """Evidence quality levels based on GRADE methodology."""
+    HIGH = "high"  # Level A - RCTs, meta-analyses
+    MODERATE = "moderate"  # Level B - Downgraded RCTs, upgraded observational
+    LOW = "low"  # Level C - Observational studies
+    VERY_LOW = "very_low"  # Level D - Case series, expert opinion
+    EXPERT_CONSENSUS = "expert_consensus"  # Expert opinion without formal studies
+
+
+class ValidationOutcome(str, Enum):
+    """Outcome of validation studies."""
+    STRONGLY_VALIDATED = "strongly_validated"  # AUC >0.8, multiple populations
+    VALIDATED = "validated"  # AUC 0.7-0.8, external validation
+    PARTIALLY_VALIDATED = "partially_validated"  # Single center or limited pop
+    INTERNALLY_VALIDATED = "internally_validated"  # Only derivation cohort
+    NOT_VALIDATED = "not_validated"  # No external validation
+
+
+@dataclass
+class StructuredCitation:
+    """Structured citation for literature references.
+
+    Enables PubMed/DOI linking and proper academic attribution.
+
+    Attributes:
+        title: Full title of the paper
+        authors: List of author names
+        journal: Journal name
+        year: Publication year
+        pmid: PubMed ID for linking
+        doi: Digital Object Identifier
+        is_original_derivation: True if this is the original derivation paper
+    """
+    title: str
+    authors: list[str]
+    journal: str
+    year: int
+    volume: str | None = None
+    pages: str | None = None
+    pmid: str | None = None
+    doi: str | None = None
+    is_original_derivation: bool = False
+
+    @property
+    def pubmed_url(self) -> str | None:
+        """Generate PubMed URL if PMID is available."""
+        return f"https://pubmed.ncbi.nlm.nih.gov/{self.pmid}/" if self.pmid else None
+
+
+@dataclass
+class ValidationStudy:
+    """A validation study that tested the calculator."""
+    citation: StructuredCitation
+    population: str
+    sample_size: int | None = None
+    setting: str | None = None
+    performance_auc: float | None = None
+    validation_outcome: ValidationOutcome = ValidationOutcome.VALIDATED
+    notes: str | None = None
+
+
+@dataclass
+class ClinicalPearl:
+    """A clinical pearl or tip for using the calculator."""
+    text: str
+    category: str = "tip"  # interpretation, usage, limitation, tip, warning
+    source: str | None = None
+
+
+@dataclass
+class UsageGuidance:
+    """Guidance on when to use and when NOT to use the calculator."""
+    when_to_use: list[str] = field(default_factory=list)
+    when_not_to_use: list[str] = field(default_factory=list)
+    target_population: str | None = None
+    excluded_populations: list[str] = field(default_factory=list)
+
+
+@dataclass
+class GuidelineReference:
+    """Reference to a clinical guideline that endorses this calculator."""
+    guideline_name: str
+    recommendation_class: str | None = None  # I, IIa, IIb, III
+    evidence_level: str | None = None  # A, B, C
+    year: int | None = None
+    organization: str | None = None  # AHA, ACC, ESC, etc.
+
+
+@dataclass
+class CalculatorProvenance:
+    """Enhanced provenance data for clinical calculators (MDCalc-style).
+
+    All fields are optional to allow incremental population for 201 calculators.
+    """
+    # Core provenance
+    original_citation: StructuredCitation | None = None
+    evidence_level: EvidenceLevel | None = None
+    evidence_summary: str | None = None
+
+    # Validation evidence
+    validation_studies: list[ValidationStudy] = field(default_factory=list)
+    overall_validation: ValidationOutcome | None = None
+
+    # Clinical guidance
+    clinical_pearls: list[ClinicalPearl] = field(default_factory=list)
+    pitfalls: list[str] = field(default_factory=list)
+    usage_guidance: UsageGuidance | None = None
+
+    # Guideline relationships
+    related_guidelines: list[GuidelineReference] = field(default_factory=list)
+    related_calculator_ids: list[str] = field(default_factory=list)
+
+    # External links
+    mdcalc_url: str | None = None
+
+
 @dataclass
 class CalculatorDefinition:
     """Complete definition for a clinical calculator.
@@ -259,6 +380,7 @@ class CalculatorDefinition:
     interpretations: list[ThresholdInterpretation] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
     specialties: list[str] = field(default_factory=list)
+    provenance: CalculatorProvenance | None = None
 
 
 @dataclass
@@ -488,6 +610,101 @@ CHADSVASC_DEFINITION = CalculatorDefinition(
             ],
         ),
     ],
+    provenance=CalculatorProvenance(
+        original_citation=StructuredCitation(
+            title="Refining clinical risk stratification for predicting stroke and thromboembolism in atrial fibrillation using a novel risk factor-based approach: the Euro Heart Survey on atrial fibrillation",
+            authors=["Lip GY", "Nieuwlaat R", "Pisters R", "Lane DA", "Crijns HJ"],
+            journal="Chest",
+            year=2010,
+            volume="137",
+            pages="263-272",
+            pmid="19762550",
+            doi="10.1378/chest.09-1584",
+            is_original_derivation=True,
+        ),
+        evidence_level=EvidenceLevel.HIGH,
+        evidence_summary="Derived from 1,084 patients in the Euro Heart Survey on AF and extensively validated in millions of patients worldwide. Superior discrimination compared to original CHADS2.",
+        overall_validation=ValidationOutcome.STRONGLY_VALIDATED,
+        validation_studies=[
+            ValidationStudy(
+                citation=StructuredCitation(
+                    title="Validation of the CHA2DS2-VASc score for stroke risk in atrial fibrillation",
+                    authors=["Olesen JB", "Lip GY", "Hansen ML", "et al."],
+                    journal="Stroke",
+                    year=2011,
+                    volume="42",
+                    pages="1686-1691",
+                    pmid="21636813",
+                ),
+                population="Danish nationwide cohort",
+                sample_size=73538,
+                setting="National registry",
+                performance_auc=0.88,
+                validation_outcome=ValidationOutcome.STRONGLY_VALIDATED,
+                notes="Validated in >73,000 patients; superior to CHADS2 at identifying truly low-risk patients",
+            ),
+        ],
+        clinical_pearls=[
+            ClinicalPearl(
+                text="Female sex only adds a point if another risk factor is present - a woman with no other risk factors (CHA2DS2-VASc = 1) is still low risk",
+                category="interpretation",
+            ),
+            ClinicalPearl(
+                text="Always pair with HAS-BLED for bleeding risk assessment when considering anticoagulation",
+                category="usage",
+            ),
+            ClinicalPearl(
+                text="DOACs (apixaban, rivaroxaban, dabigatran, edoxaban) are preferred over warfarin for most patients",
+                category="tip",
+            ),
+            ClinicalPearl(
+                text="A score of 0 in males (or 1 in females with no other risk factors) identifies truly low-risk patients who may not need anticoagulation",
+                category="interpretation",
+            ),
+        ],
+        pitfalls=[
+            "Not validated for valvular AF (mitral stenosis, mechanical heart valves)",
+            "Does not account for LAA morphology or flow velocities",
+            "Risk factors are binary - doesn't account for severity (e.g., uncontrolled vs controlled HTN)",
+            "Female sex alone (without other risk factors) should not drive anticoagulation decision",
+        ],
+        usage_guidance=UsageGuidance(
+            when_to_use=[
+                "Non-valvular atrial fibrillation/flutter",
+                "Deciding whether to initiate anticoagulation",
+                "Annual reassessment of stroke risk",
+            ],
+            when_not_to_use=[
+                "Mechanical heart valves (use different risk assessment)",
+                "Moderate-severe mitral stenosis (valvular AF)",
+                "Post-cardiac surgery transient AF",
+            ],
+            target_population="Adults with non-valvular atrial fibrillation",
+            excluded_populations=[
+                "Patients with mechanical heart valves",
+                "Moderate-severe rheumatic mitral stenosis",
+                "Pediatric patients",
+            ],
+        ),
+        related_guidelines=[
+            GuidelineReference(
+                guideline_name="2019 AHA/ACC/HRS Focused Update on Atrial Fibrillation",
+                recommendation_class="I",
+                evidence_level="B",
+                year=2019,
+                organization="AHA/ACC/HRS",
+            ),
+            GuidelineReference(
+                guideline_name="2020 ESC Guidelines for AF Management",
+                recommendation_class="I",
+                evidence_level="A",
+                year=2020,
+                organization="ESC",
+            ),
+        ],
+        related_calculator_ids=["hasbled", "orbit"],
+        mdcalc_url="https://www.mdcalc.com/calc/801/cha2ds2-vasc-score-atrial-fibrillation-stroke-risk",
+    ),
 )
 
 
@@ -543,6 +760,76 @@ HASBLED_DEFINITION = CalculatorDefinition(
             ],
         ),
     ],
+    provenance=CalculatorProvenance(
+        original_citation=StructuredCitation(
+            title="A novel user-friendly score (HAS-BLED) to assess 1-year risk of major bleeding in patients with atrial fibrillation: the Euro Heart Survey",
+            authors=["Pisters R", "Lane DA", "Nieuwlaat R", "de Vos CB", "Crijns HJ", "Lip GY"],
+            journal="Chest",
+            year=2010,
+            volume="138",
+            pages="1093-1100",
+            pmid="20299623",
+            doi="10.1378/chest.10-0134",
+            is_original_derivation=True,
+        ),
+        evidence_level=EvidenceLevel.HIGH,
+        evidence_summary="Derived from 3,978 patients in the Euro Heart Survey on AF. Well-validated and endorsed by ESC and AHA/ACC guidelines for bleeding risk assessment.",
+        overall_validation=ValidationOutcome.STRONGLY_VALIDATED,
+        clinical_pearls=[
+            ClinicalPearl(
+                text="High HAS-BLED score should NOT be used to withhold anticoagulation - it identifies modifiable risk factors",
+                category="warning",
+            ),
+            ClinicalPearl(
+                text="Always pair with CHA2DS2-VASc - the net clinical benefit usually favors anticoagulation even with high bleeding risk",
+                category="usage",
+            ),
+            ClinicalPearl(
+                text="'L' (Labile INR) is only applicable for patients on warfarin, not DOACs",
+                category="interpretation",
+            ),
+            ClinicalPearl(
+                text="Several factors are modifiable: uncontrolled BP, labile INR, concomitant antiplatelets/NSAIDs, alcohol",
+                category="tip",
+            ),
+        ],
+        pitfalls=[
+            "Score ≥3 does NOT contraindicate anticoagulation",
+            "Designed for VKA users - 'Labile INR' not applicable to DOACs",
+            "Does not predict intracranial hemorrhage specifically",
+            "May overestimate bleeding risk in DOAC-treated patients",
+        ],
+        usage_guidance=UsageGuidance(
+            when_to_use=[
+                "AF patients being considered for anticoagulation",
+                "Identifying modifiable bleeding risk factors",
+                "Discussing bleeding risk with patients",
+            ],
+            when_not_to_use=[
+                "As sole reason to withhold anticoagulation",
+                "Predicting intracranial hemorrhage specifically",
+            ],
+            target_population="Adults with atrial fibrillation on or considered for anticoagulation",
+        ),
+        related_guidelines=[
+            GuidelineReference(
+                guideline_name="2019 AHA/ACC/HRS Focused Update on Atrial Fibrillation",
+                recommendation_class="IIa",
+                evidence_level="B",
+                year=2019,
+                organization="AHA/ACC/HRS",
+            ),
+            GuidelineReference(
+                guideline_name="2020 ESC Guidelines for AF Management",
+                recommendation_class="IIa",
+                evidence_level="B",
+                year=2020,
+                organization="ESC",
+            ),
+        ],
+        related_calculator_ids=["chadsvasc", "orbit"],
+        mdcalc_url="https://www.mdcalc.com/calc/807/has-bled-score-major-bleeding-risk",
+    ),
 )
 
 
@@ -598,6 +885,60 @@ WELLS_DVT_DEFINITION = CalculatorDefinition(
             ],
         ),
     ],
+    provenance=CalculatorProvenance(
+        original_citation=StructuredCitation(
+            title="Value of assessment of pretest probability of deep-vein thrombosis in clinical management",
+            authors=["Wells PS", "Anderson DR", "Bormanis J", "et al."],
+            journal="Lancet",
+            year=1997,
+            volume="350",
+            pages="1795-1798",
+            pmid="9428249",
+            is_original_derivation=True,
+        ),
+        evidence_level=EvidenceLevel.HIGH,
+        clinical_pearls=[
+            ClinicalPearl(
+                text="A negative D-dimer plus low Wells score (<2) has >99% NPV for excluding DVT",
+                category="interpretation",
+            ),
+            ClinicalPearl(
+                text="Modified Wells uses 'DVT as likely or more likely' as +2 instead of -2 for alternative diagnosis",
+                category="tip",
+            ),
+            ClinicalPearl(
+                text="Sensitivity drops in recurrent DVT - consider imaging regardless of score in these patients",
+                category="limitation",
+            ),
+        ],
+        pitfalls=[
+            "May miss upper extremity DVT (designed for lower extremity)",
+            "Less accurate in hospitalized patients and post-surgical patients",
+            "Requires clinical gestalt for 'alternative diagnosis' item",
+            "Should be combined with D-dimer for optimal performance",
+        ],
+        usage_guidance=UsageGuidance(
+            when_to_use=[
+                "Suspected lower extremity DVT in ambulatory patients",
+                "Deciding whether D-dimer testing is sufficient",
+            ],
+            when_not_to_use=[
+                "Upper extremity DVT",
+                "Post-operative patients <30 days",
+                "Patients already anticoagulated",
+            ],
+            target_population="Ambulatory patients with suspected lower extremity DVT",
+        ),
+        related_guidelines=[
+            GuidelineReference(
+                guideline_name="2018 CHEST Guideline on Antithrombotic Therapy for VTE",
+                year=2018,
+                organization="CHEST",
+            ),
+        ],
+        related_calculator_ids=["wells_pe", "perc"],
+        mdcalc_url="https://www.mdcalc.com/calc/362/wells-criteria-dvt",
+    ),
 )
 
 
@@ -659,6 +1000,71 @@ CURB65_DEFINITION = CalculatorDefinition(
             ],
         ),
     ],
+    provenance=CalculatorProvenance(
+        original_citation=StructuredCitation(
+            title="Defining community acquired pneumonia severity on presentation to hospital: an international derivation and validation study",
+            authors=["Lim WS", "van der Eerden MM", "Laing R", "et al."],
+            journal="Thorax",
+            year=2003,
+            volume="58",
+            pages="377-382",
+            pmid="12728155",
+            doi="10.1136/thorax.58.5.377",
+            is_original_derivation=True,
+        ),
+        evidence_level=EvidenceLevel.HIGH,
+        evidence_summary="Derived from 1,068 patients, validated internationally. BTS/NICE recommended. Simpler alternative to PSI with comparable performance.",
+        clinical_pearls=[
+            ClinicalPearl(
+                text="Score 0-1: Consider outpatient treatment; Score 2: Consider hospital admission; Score >=3: Consider ICU admission",
+                category="interpretation",
+            ),
+            ClinicalPearl(
+                text="CRB-65 (without urea) can be used in community settings where labs aren't available",
+                category="tip",
+            ),
+            ClinicalPearl(
+                text="Does not account for social factors, adherence, or comorbidities in disposition decision",
+                category="limitation",
+            ),
+            ClinicalPearl(
+                text="Age 65 cutoff is somewhat arbitrary - use clinical judgment near threshold",
+                category="warning",
+            ),
+        ],
+        pitfalls=[
+            "Does not capture all severity factors (hypoxia, multilobar disease)",
+            "May underestimate severity in young patients with severe disease",
+            "Social circumstances and ability to take oral medications not captured",
+            "Should be combined with clinical judgment, not used in isolation",
+        ],
+        usage_guidance=UsageGuidance(
+            when_to_use=[
+                "Risk stratification of CAP on presentation",
+                "Guiding disposition decisions",
+            ],
+            when_not_to_use=[
+                "Healthcare-associated pneumonia",
+                "Immunocompromised patients",
+                "Aspiration pneumonia",
+            ],
+            target_population="Adults with community-acquired pneumonia",
+        ),
+        related_guidelines=[
+            GuidelineReference(
+                guideline_name="BTS Guidelines for CAP",
+                year=2009,
+                organization="BTS",
+            ),
+            GuidelineReference(
+                guideline_name="IDSA/ATS CAP Guidelines",
+                year=2019,
+                organization="IDSA/ATS",
+            ),
+        ],
+        related_calculator_ids=["psi_port"],
+        mdcalc_url="https://www.mdcalc.com/calc/324/curb-65-score-pneumonia-severity",
+    ),
 )
 
 
@@ -699,6 +1105,71 @@ QSOFA_DEFINITION = CalculatorDefinition(
             ],
         ),
     ],
+    provenance=CalculatorProvenance(
+        original_citation=StructuredCitation(
+            title="Assessment of Clinical Criteria for Sepsis: For the Third International Consensus Definitions for Sepsis and Septic Shock (Sepsis-3)",
+            authors=["Seymour CW", "Liu VX", "Iwashyna TJ", "et al."],
+            journal="JAMA",
+            year=2016,
+            volume="315",
+            pages="762-774",
+            pmid="26903335",
+            doi="10.1001/jama.2016.0288",
+            is_original_derivation=True,
+        ),
+        evidence_level=EvidenceLevel.HIGH,
+        evidence_summary="Part of Sepsis-3 definitions. Validated in >1.3 million patients. Outperforms SIRS for predicting mortality in suspected infection.",
+        clinical_pearls=[
+            ClinicalPearl(
+                text="qSOFA >=2 identifies patients at high risk of poor outcomes who warrant increased monitoring",
+                category="interpretation",
+            ),
+            ClinicalPearl(
+                text="qSOFA is for risk stratification, NOT for diagnosing sepsis - use SOFA for organ dysfunction criteria",
+                category="warning",
+            ),
+            ClinicalPearl(
+                text="Can be calculated at bedside without laboratory values",
+                category="usage",
+            ),
+            ClinicalPearl(
+                text="Sensitivity is lower than SIRS but specificity is higher for poor outcomes",
+                category="limitation",
+            ),
+        ],
+        pitfalls=[
+            "Not a diagnostic tool for sepsis - screens for risk of deterioration",
+            "May miss early sepsis (lower sensitivity than SIRS)",
+            "Does not replace clinical judgment for antibiotic initiation",
+            "Requires altered mental status assessment which can be subjective",
+        ],
+        usage_guidance=UsageGuidance(
+            when_to_use=[
+                "Screening patients with suspected infection outside ICU",
+                "Quick bedside risk stratification",
+            ],
+            when_not_to_use=[
+                "ICU patients (use SOFA instead)",
+                "Diagnosing sepsis definitively",
+                "Deciding whether to initiate antibiotics",
+            ],
+            target_population="Adults with suspected infection outside the ICU",
+        ),
+        related_guidelines=[
+            GuidelineReference(
+                guideline_name="Surviving Sepsis Campaign 2021",
+                year=2021,
+                organization="SCCM/ESICM",
+            ),
+            GuidelineReference(
+                guideline_name="Sepsis-3 Consensus Definitions",
+                year=2016,
+                organization="SCCM/ESICM",
+            ),
+        ],
+        related_calculator_ids=["sofa", "sirs"],
+        mdcalc_url="https://www.mdcalc.com/calc/2654/qsofa-quick-sofa-score-sepsis",
+    ),
 )
 
 
@@ -793,6 +1264,86 @@ HEART_SCORE_DEFINITION = CalculatorDefinition(
             ],
         ),
     ],
+    provenance=CalculatorProvenance(
+        original_citation=StructuredCitation(
+            title="A simple risk score in suspected acute coronary syndrome: an analysis of the HEART study",
+            authors=["Six AJ", "Backus BE", "Kelder JC"],
+            journal="American Journal of Emergency Medicine",
+            year=2008,
+            volume="26",
+            pages="1036-1042",
+            pmid="19091264",
+            doi="10.1016/j.ajem.2007.12.015",
+            is_original_derivation=True,
+        ),
+        evidence_level=EvidenceLevel.HIGH,
+        evidence_summary="Validated in >10,000 patients across multiple studies including HEART Pathway trial. Low score (0-3) identifies patients safe for early discharge.",
+        overall_validation=ValidationOutcome.STRONGLY_VALIDATED,
+        validation_studies=[
+            ValidationStudy(
+                citation=StructuredCitation(
+                    title="Effect of the HEART Pathway on ED Evaluation of Patients With Acute Chest Pain",
+                    authors=["Mahler SA", "et al."],
+                    journal="JAMA Cardiology",
+                    year=2018,
+                    pmid="29188296",
+                ),
+                population="Multi-center randomized trial",
+                sample_size=8474,
+                validation_outcome=ValidationOutcome.STRONGLY_VALIDATED,
+            ),
+        ],
+        clinical_pearls=[
+            ClinicalPearl(
+                text="Score 0-3: Low risk, <2% MACE rate - safe for discharge with outpatient follow-up",
+                category="interpretation",
+            ),
+            ClinicalPearl(
+                text="Score 4-6: Intermediate risk - observation, serial troponins, stress testing",
+                category="interpretation",
+            ),
+            ClinicalPearl(
+                text="Score 7-10: High risk - early invasive strategy",
+                category="interpretation",
+            ),
+            ClinicalPearl(
+                text="Troponin component uses multiples of the 99th percentile upper limit of normal",
+                category="usage",
+            ),
+        ],
+        pitfalls=[
+            "History component is subjective and requires clinical experience",
+            "Troponin thresholds vary by assay - know your lab's values",
+            "Should not be used if STEMI/NSTEMI already diagnosed",
+            "Age is binary (≥65) which may oversimplify risk",
+        ],
+        usage_guidance=UsageGuidance(
+            when_to_use=[
+                "ED patients with acute chest pain",
+                "Risk stratifying for disposition decision",
+            ],
+            when_not_to_use=[
+                "Known STEMI or NSTEMI",
+                "Clearly non-cardiac chest pain",
+                "Trauma-related chest pain",
+            ],
+            target_population="Adult ED patients with undifferentiated chest pain",
+        ),
+        related_guidelines=[
+            GuidelineReference(
+                guideline_name="2021 AHA/ACC Chest Pain Guidelines",
+                year=2021,
+                organization="AHA/ACC",
+            ),
+            GuidelineReference(
+                guideline_name="ACEP Clinical Policy for Chest Pain",
+                year=2018,
+                organization="ACEP",
+            ),
+        ],
+        related_calculator_ids=["timi_risk", "grace_score"],
+        mdcalc_url="https://www.mdcalc.com/calc/1752/heart-score-major-cardiac-events",
+    ),
 )
 
 
@@ -955,6 +1506,71 @@ GCS_DEFINITION = CalculatorDefinition(
             ],
         ),
     ],
+    provenance=CalculatorProvenance(
+        original_citation=StructuredCitation(
+            title="Assessment of coma and impaired consciousness. A practical scale",
+            authors=["Teasdale G", "Jennett B"],
+            journal="Lancet",
+            year=1974,
+            volume="2",
+            pages="81-84",
+            pmid="4136544",
+            is_original_derivation=True,
+        ),
+        evidence_level=EvidenceLevel.HIGH,
+        evidence_summary="The most widely used neurological scoring system worldwide. Essential for TBI classification, intubation decisions, and prognostication. Validated across millions of patients over 50 years.",
+        clinical_pearls=[
+            ClinicalPearl(
+                text="GCS 3-8 = severe TBI; 9-12 = moderate; 13-15 = mild",
+                category="interpretation",
+            ),
+            ClinicalPearl(
+                text="Document best response, especially in intubated patients where verbal component is not assessable (use 'T' notation)",
+                category="usage",
+            ),
+            ClinicalPearl(
+                text="Motor score alone is the best predictor of outcome if full GCS cannot be obtained",
+                category="tip",
+            ),
+            ClinicalPearl(
+                text="Serial GCS changes are more important than single measurements",
+                category="interpretation",
+            ),
+        ],
+        pitfalls=[
+            "Cannot fully assess intubated/sedated patients (use GCS-T notation)",
+            "Eye opening may be impossible due to swelling",
+            "Pre-verbal children need modified pediatric scale",
+            "Affected by drugs, alcohol, metabolic derangements",
+            "Does not capture brainstem function or lateralizing signs",
+        ],
+        usage_guidance=UsageGuidance(
+            when_to_use=[
+                "Initial assessment of consciousness",
+                "TBI severity classification",
+                "Serial monitoring of neurological status",
+            ],
+            when_not_to_use=[
+                "Pre-verbal children (use pediatric GCS)",
+                "Isolated posterior fossa lesions",
+            ],
+            target_population="Adults and verbal children with altered consciousness",
+        ),
+        related_guidelines=[
+            GuidelineReference(
+                guideline_name="Brain Trauma Foundation TBI Guidelines",
+                year=2017,
+                organization="BTF",
+            ),
+            GuidelineReference(
+                guideline_name="ATLS Guidelines",
+                year=2018,
+                organization="ACS",
+            ),
+        ],
+        related_calculator_ids=["pediatric_gcs"],
+        mdcalc_url="https://www.mdcalc.com/calc/64/glasgow-coma-scale-score-gcs",
+    ),
 )
 
 
@@ -1029,6 +1645,75 @@ RCRI_DEFINITION = CalculatorDefinition(
             ],
         ),
     ],
+    provenance=CalculatorProvenance(
+        original_citation=StructuredCitation(
+            title="Derivation and prospective validation of a simple index for prediction of cardiac risk of major noncardiac surgery",
+            authors=["Lee TH", "Marcantonio ER", "Mangione CM", "et al."],
+            journal="Circulation",
+            year=1999,
+            volume="100",
+            pages="1043-1049",
+            pmid="10477528",
+            is_original_derivation=True,
+        ),
+        evidence_level=EvidenceLevel.HIGH,
+        evidence_summary="Gold standard for preoperative cardiac risk assessment. Derived from 4,315 patients, validated in 1,422. Endorsed by ACC/AHA guidelines for noncardiac surgery.",
+        clinical_pearls=[
+            ClinicalPearl(
+                text="Score 0 = 0.4% risk; 1 = 0.9%; 2 = 6.6%; ≥3 = 11% risk of major cardiac events",
+                category="interpretation",
+            ),
+            ClinicalPearl(
+                text="Use for intermediate-risk or higher surgeries; low-risk procedures (cataract, endoscopy) don't need risk stratification",
+                category="usage",
+            ),
+            ClinicalPearl(
+                text="Cardiac troponin and NT-proBNP may add prognostic value to RCRI",
+                category="tip",
+            ),
+            ClinicalPearl(
+                text="Does not capture functional capacity - combine with METs assessment",
+                category="limitation",
+            ),
+        ],
+        pitfalls=[
+            "Underestimates risk in vascular surgery patients (use dedicated vascular calculators)",
+            "Does not account for functional capacity (< 4 METs is high risk)",
+            "'High-risk surgery' definition is subjective",
+            "Insulin-treated diabetes only - oral agents alone score 0",
+        ],
+        usage_guidance=UsageGuidance(
+            when_to_use=[
+                "Preoperative risk assessment for noncardiac surgery",
+                "Shared decision-making about surgical risk",
+                "Identifying patients who may benefit from preoperative testing",
+            ],
+            when_not_to_use=[
+                "Emergency surgery (no time for risk stratification)",
+                "Low-risk surgeries",
+                "Vascular surgery (use VSGNE)",
+            ],
+            target_population="Adults undergoing elective noncardiac surgery",
+            excluded_populations=[
+                "Emergency surgery patients",
+                "Low-risk procedures",
+            ],
+        ),
+        related_guidelines=[
+            GuidelineReference(
+                guideline_name="2014 ACC/AHA Perioperative Guidelines",
+                year=2014,
+                organization="ACC/AHA",
+            ),
+            GuidelineReference(
+                guideline_name="2022 ESC Guidelines on Cardiovascular Assessment",
+                year=2022,
+                organization="ESC",
+            ),
+        ],
+        related_calculator_ids=["nsqip", "ariscat"],
+        mdcalc_url="https://www.mdcalc.com/calc/1739/revised-cardiac-risk-index-pre-operative-risk",
+    ),
 )
 
 
@@ -1079,6 +1764,70 @@ PERC_DEFINITION = CalculatorDefinition(
             ],
         ),
     ],
+    provenance=CalculatorProvenance(
+        original_citation=StructuredCitation(
+            title="Clinical criteria to prevent unnecessary diagnostic testing in emergency department patients with suspected pulmonary embolism",
+            authors=["Kline JA", "Mitchell AM", "Kabrhel C", "Richman PB", "Courtney DM"],
+            journal="Journal of Thrombosis and Haemostasis",
+            year=2004,
+            volume="2",
+            pages="1247-1255",
+            pmid="15304025",
+            is_original_derivation=True,
+        ),
+        evidence_level=EvidenceLevel.HIGH,
+        evidence_summary="Validated to have <2% miss rate when all 8 criteria negative. ACEP Level B recommendation. Only apply to low pre-test probability patients.",
+        clinical_pearls=[
+            ClinicalPearl(
+                text="PERC only applies to LOW pre-test probability patients (gestalt <15% or Wells <2)",
+                category="warning",
+            ),
+            ClinicalPearl(
+                text="All 8 criteria must be negative to rule out PE without D-dimer",
+                category="interpretation",
+            ),
+            ClinicalPearl(
+                text="If ANY criterion positive, proceed to D-dimer or imaging",
+                category="interpretation",
+            ),
+            ClinicalPearl(
+                text="Designed to avoid testing in very low-risk patients, not to diagnose PE",
+                category="usage",
+            ),
+        ],
+        pitfalls=[
+            "NEVER apply PERC to intermediate or high pre-test probability patients",
+            "Criteria must ALL be negative - a single positive means PERC doesn't apply",
+            "Does not apply to hospitalized patients",
+            "Hormone use includes any estrogen (OCPs, HRT, testosterone in females)",
+        ],
+        usage_guidance=UsageGuidance(
+            when_to_use=[
+                "First step in PE workup for low pre-test probability patients",
+                "Avoiding unnecessary D-dimer testing",
+            ],
+            when_not_to_use=[
+                "Intermediate or high pre-test probability",
+                "Hospitalized patients",
+                "Pregnancy",
+            ],
+            target_population="Low pre-test probability ED patients with possible PE",
+            excluded_populations=[
+                "Intermediate/high pre-test probability",
+                "Inpatients",
+                "Pregnant women",
+            ],
+        ),
+        related_guidelines=[
+            GuidelineReference(
+                guideline_name="ACEP Clinical Policy: PE",
+                year=2018,
+                organization="ACEP",
+            ),
+        ],
+        related_calculator_ids=["wells_pe", "pesi"],
+        mdcalc_url="https://www.mdcalc.com/calc/347/perc-rule-pulmonary-embolism",
+    ),
 )
 
 
@@ -1301,6 +2050,76 @@ WELLS_PE_DEFINITION = CalculatorDefinition(
             ],
         ),
     ],
+    provenance=CalculatorProvenance(
+        original_citation=StructuredCitation(
+            title="Derivation of a simple clinical model to categorize patients probability of pulmonary embolism: increasing the models utility with the SimpliRED D-dimer",
+            authors=["Wells PS", "Anderson DR", "Rodger M", "et al."],
+            journal="Thrombosis and Haemostasis",
+            year=2000,
+            volume="83",
+            pages="416-420",
+            pmid="10744147",
+            is_original_derivation=True,
+        ),
+        evidence_level=EvidenceLevel.HIGH,
+        evidence_summary="Validated in >10,000 patients. Part of ACEP clinical policy for PE workup. Combined with D-dimer can safely exclude PE in low-probability patients.",
+        clinical_pearls=[
+            ClinicalPearl(
+                text="PE unlikely (<4 or ≤4): Negative D-dimer can rule out PE without imaging",
+                category="interpretation",
+            ),
+            ClinicalPearl(
+                text="PE likely (>4 or ≥5): Proceed directly to CTPA, don't rely on D-dimer",
+                category="interpretation",
+            ),
+            ClinicalPearl(
+                text="Consider PERC rule first - if all 8 criteria negative and clinical probability low, no further testing needed",
+                category="tip",
+            ),
+            ClinicalPearl(
+                text="'PE most likely diagnosis' is subjective but important - requires clinical experience",
+                category="warning",
+            ),
+        ],
+        pitfalls=[
+            "Does not apply to pregnancy (use dedicated algorithms)",
+            "'PE most likely' criterion is highly subjective",
+            "D-dimer less useful in hospitalized/elderly/post-operative patients",
+            "Does not rule out subsegmental PE which may still be clinically significant",
+        ],
+        usage_guidance=UsageGuidance(
+            when_to_use=[
+                "ED evaluation of suspected PE",
+                "Deciding whether D-dimer testing is sufficient",
+                "Risk stratifying before imaging",
+            ],
+            when_not_to_use=[
+                "Pregnancy",
+                "Patients already anticoagulated",
+                "Known PE with suspected recurrence",
+            ],
+            target_population="Adult outpatients with suspected PE",
+            excluded_populations=[
+                "Pregnant patients",
+                "Anticoagulated patients",
+                "Hospitalized patients >48h",
+            ],
+        ),
+        related_guidelines=[
+            GuidelineReference(
+                guideline_name="ACEP Clinical Policy: PE",
+                year=2018,
+                organization="ACEP",
+            ),
+            GuidelineReference(
+                guideline_name="ESC PE Guidelines",
+                year=2019,
+                organization="ESC",
+            ),
+        ],
+        related_calculator_ids=["wells_dvt", "perc", "pesi"],
+        mdcalc_url="https://www.mdcalc.com/calc/115/wells-criteria-pulmonary-embolism",
+    ),
 )
 
 
@@ -1601,6 +2420,72 @@ TIMI_NSTEMI_DEFINITION = CalculatorDefinition(
             ],
         ),
     ],
+    provenance=CalculatorProvenance(
+        original_citation=StructuredCitation(
+            title="TIMI risk score for unstable angina/non-ST elevation MI: A method for prognostication and therapeutic decision making",
+            authors=["Antman EM", "Cohen M", "Bernink PJ", "et al."],
+            journal="JAMA",
+            year=2000,
+            volume="284",
+            pages="835-842",
+            pmid="10938172",
+            is_original_derivation=True,
+        ),
+        evidence_level=EvidenceLevel.HIGH,
+        evidence_summary="Derived from TIMI 11B trial (3,910 patients) and validated in ESSENCE trial. Validated in >10,000 patients. Predicts 14-day mortality, MI, and revascularization.",
+        clinical_pearls=[
+            ClinicalPearl(
+                text="Score 0-2: Low risk (~5% events); 3-4: Intermediate (~15%); 5-7: High risk (~40%)",
+                category="interpretation",
+            ),
+            ClinicalPearl(
+                text="Higher scores benefit more from early invasive strategy",
+                category="interpretation",
+            ),
+            ClinicalPearl(
+                text="ASA use in past 7 days indicates refractory symptoms = higher risk",
+                category="tip",
+            ),
+            ClinicalPearl(
+                text="TIMI is for UA/NSTEMI only - use different scores for STEMI",
+                category="warning",
+            ),
+        ],
+        pitfalls=[
+            "Only for UA/NSTEMI, not STEMI (use TIMI risk for STEMI separately)",
+            "Troponin positive is binary - doesn't account for degree of elevation",
+            "CAD ≥50% stenosis requires prior catheterization data",
+            "Does not account for ECG changes",
+        ],
+        usage_guidance=UsageGuidance(
+            when_to_use=[
+                "Risk stratification of UA/NSTEMI",
+                "Deciding early invasive vs conservative strategy",
+                "Prognosis discussions",
+            ],
+            when_not_to_use=[
+                "STEMI (use TIMI for STEMI)",
+                "Non-cardiac chest pain",
+                "Already decided on conservative management",
+            ],
+            target_population="Adults with diagnosed UA/NSTEMI",
+            excluded_populations=["STEMI patients", "Non-ACS chest pain"],
+        ),
+        related_guidelines=[
+            GuidelineReference(
+                guideline_name="2021 ACC/AHA Chest Pain Guidelines",
+                year=2021,
+                organization="ACC/AHA",
+            ),
+            GuidelineReference(
+                guideline_name="2020 ESC NSTEMI Guidelines",
+                year=2020,
+                organization="ESC",
+            ),
+        ],
+        related_calculator_ids=["heart_score", "grace_score"],
+        mdcalc_url="https://www.mdcalc.com/calc/111/timi-risk-score-ua-nstemi",
+    ),
 )
 
 
@@ -1707,6 +2592,75 @@ MELD_DEFINITION = CalculatorDefinition(
             ],
         ),
     ],
+    provenance=CalculatorProvenance(
+        original_citation=StructuredCitation(
+            title="A model to predict survival in patients with end-stage liver disease",
+            authors=["Kamath PS", "Wiesner RH", "Malinchoc M", "et al."],
+            journal="Hepatology",
+            year=2001,
+            volume="33",
+            pages="464-470",
+            pmid="11172350",
+            doi="10.1053/jhep.2001.22172",
+            is_original_derivation=True,
+        ),
+        evidence_level=EvidenceLevel.HIGH,
+        evidence_summary="UNOS standard for liver transplant allocation since 2002. Validated in >100,000 patients. MELD 3.0 (2022) incorporates sex and removes race-based eGFR.",
+        clinical_pearls=[
+            ClinicalPearl(
+                text="MELD is used by UNOS to prioritize liver transplant allocation - higher scores = higher priority",
+                category="interpretation",
+            ),
+            ClinicalPearl(
+                text="MELD-Na (with sodium) better predicts mortality in cirrhosis than original MELD",
+                category="tip",
+            ),
+            ClinicalPearl(
+                text="INR is affected by anticoagulation - use caution in patients on warfarin",
+                category="warning",
+            ),
+            ClinicalPearl(
+                text="MELD 3.0 (adopted 2022) adds sex, removes race from eGFR calculation",
+                category="usage",
+            ),
+        ],
+        pitfalls=[
+            "INR affected by warfarin, liver synthetic function, and lab variability",
+            "Creatinine affected by muscle mass, dialysis status",
+            "Does not capture HCC or hepatopulmonary syndrome (need exception points)",
+            "May underestimate severity in acute-on-chronic liver failure",
+        ],
+        usage_guidance=UsageGuidance(
+            when_to_use=[
+                "Liver transplant prioritization",
+                "Estimating 90-day mortality in cirrhosis",
+                "Assessing disease progression",
+            ],
+            when_not_to_use=[
+                "Fulminant hepatic failure (separate criteria)",
+                "Pediatric patients (use PELD)",
+            ],
+            target_population="Adults with chronic liver disease being considered for transplant",
+            excluded_populations=[
+                "Pediatric patients",
+                "Acute liver failure without chronic disease",
+            ],
+        ),
+        related_guidelines=[
+            GuidelineReference(
+                guideline_name="UNOS Liver Allocation Policy",
+                year=2022,
+                organization="UNOS/OPTN",
+            ),
+            GuidelineReference(
+                guideline_name="AASLD Cirrhosis Guidelines",
+                year=2021,
+                organization="AASLD",
+            ),
+        ],
+        related_calculator_ids=["child_pugh", "meld_na", "meld_3"],
+        mdcalc_url="https://www.mdcalc.com/calc/78/meld-score-model-end-stage-liver-disease-12-older",
+    ),
 )
 
 
@@ -1885,6 +2839,76 @@ BMI_DEFINITION = CalculatorDefinition(
             ],
         ),
     ],
+    provenance=CalculatorProvenance(
+        original_citation=StructuredCitation(
+            title="Indices of relative weight and obesity",
+            authors=["Keys A", "Fidanza F", "Karvonen MJ", "Kimura N", "Taylor HL"],
+            journal="Journal of Chronic Diseases",
+            year=1972,
+            volume="25",
+            pages="329-343",
+            pmid="4650929",
+            is_original_derivation=True,
+        ),
+        evidence_level=EvidenceLevel.HIGH,
+        evidence_summary="WHO global standard for weight classification since 1995. Simple screening tool validated in millions. Correlates with body fat and mortality risk at population level.",
+        clinical_pearls=[
+            ClinicalPearl(
+                text="BMI <18.5 = Underweight; 18.5-24.9 = Normal; 25-29.9 = Overweight; ≥30 = Obese",
+                category="interpretation",
+            ),
+            ClinicalPearl(
+                text="BMI does not distinguish muscle from fat - use waist circumference for central adiposity",
+                category="limitation",
+            ),
+            ClinicalPearl(
+                text="Asian populations have higher risk at lower BMI - use Asian-specific cutoffs (<23 overweight)",
+                category="warning",
+            ),
+            ClinicalPearl(
+                text="Always measure height and weight, don't rely on self-report",
+                category="tip",
+            ),
+        ],
+        pitfalls=[
+            "Does not account for muscle mass (athletes may be 'overweight' by BMI but not overfat)",
+            "Does not capture fat distribution (central obesity is higher risk)",
+            "Standard cutoffs may not apply to all ethnicities (lower cutoffs for Asians)",
+            "Not applicable to children (use CDC growth charts)",
+        ],
+        usage_guidance=UsageGuidance(
+            when_to_use=[
+                "Initial weight classification",
+                "Screening for obesity-related health risks",
+                "Population health studies",
+            ],
+            when_not_to_use=[
+                "Athletes with high muscle mass",
+                "Children <18 (use growth charts)",
+                "Patients with edema/ascites",
+            ],
+            target_population="Adults 18+ for initial weight assessment",
+            excluded_populations=[
+                "Children",
+                "Pregnant women",
+                "Athletes (use body composition)",
+            ],
+        ),
+        related_guidelines=[
+            GuidelineReference(
+                guideline_name="WHO Obesity Classification",
+                year=2000,
+                organization="WHO",
+            ),
+            GuidelineReference(
+                guideline_name="AHA/ACC/TOS Obesity Guidelines",
+                year=2013,
+                organization="AHA/ACC/TOS",
+            ),
+        ],
+        related_calculator_ids=["ideal_body_weight", "bsa"],
+        mdcalc_url="https://www.mdcalc.com/calc/29/body-mass-index-bmi-body-surface-area-bsa",
+    ),
 )
 
 
@@ -2023,6 +3047,70 @@ SOFA_DEFINITION = CalculatorDefinition(
             ],
         ),
     ],
+    provenance=CalculatorProvenance(
+        original_citation=StructuredCitation(
+            title="The SOFA (Sepsis-related Organ Failure Assessment) score to describe organ dysfunction/failure",
+            authors=["Vincent JL", "Moreno R", "Takala J", "et al."],
+            journal="Intensive Care Medicine",
+            year=1996,
+            volume="22",
+            pages="707-710",
+            pmid="8844239",
+            is_original_derivation=True,
+        ),
+        evidence_level=EvidenceLevel.HIGH,
+        evidence_summary="Gold standard for organ dysfunction assessment in critical care. Central to Sepsis-3 diagnostic criteria. Validated in thousands of ICU patients.",
+        clinical_pearls=[
+            ClinicalPearl(
+                text="Sepsis = suspected infection + SOFA increase ≥2 from baseline",
+                category="interpretation",
+            ),
+            ClinicalPearl(
+                text="Septic shock = sepsis + vasopressors + lactate >2 mmol/L despite fluids",
+                category="interpretation",
+            ),
+            ClinicalPearl(
+                text="Daily SOFA trends predict mortality better than single measurements",
+                category="usage",
+            ),
+            ClinicalPearl(
+                text="Baseline SOFA assumed to be 0 in patients without known pre-existing organ dysfunction",
+                category="tip",
+            ),
+        ],
+        pitfalls=[
+            "Requires laboratory values (not bedside calculation)",
+            "GCS component may be confounded by sedation",
+            "Chronic organ dysfunction may elevate baseline",
+            "Different vasopressor doses difficult to compare precisely",
+        ],
+        usage_guidance=UsageGuidance(
+            when_to_use=[
+                "ICU patients with suspected sepsis",
+                "Tracking organ dysfunction over time",
+                "Diagnosing sepsis per Sepsis-3 criteria",
+            ],
+            when_not_to_use=[
+                "Screening outside ICU (use qSOFA)",
+                "Chronic stable organ dysfunction",
+            ],
+            target_population="ICU patients, particularly those with suspected infection",
+        ),
+        related_guidelines=[
+            GuidelineReference(
+                guideline_name="Sepsis-3 Consensus Definitions",
+                year=2016,
+                organization="SCCM/ESICM",
+            ),
+            GuidelineReference(
+                guideline_name="Surviving Sepsis Campaign 2021",
+                year=2021,
+                organization="SCCM/ESICM",
+            ),
+        ],
+        related_calculator_ids=["qsofa", "sirs", "apache_ii"],
+        mdcalc_url="https://www.mdcalc.com/calc/691/sequential-organ-failure-assessment-sofa-score",
+    ),
 )
 
 
@@ -2382,6 +3470,71 @@ FRAMINGHAM_CVD_DEFINITION = CalculatorDefinition(
             ],
         ),
     ],
+    provenance=CalculatorProvenance(
+        original_citation=StructuredCitation(
+            title="Prediction of coronary heart disease using risk factor categories",
+            authors=["Wilson PW", "D'Agostino RB", "Levy D", "Belanger AM", "Silbershatz H", "Kannel WB"],
+            journal="Circulation",
+            year=1998,
+            volume="97",
+            pages="1837-1847",
+            pmid="9603539",
+            is_original_derivation=True,
+        ),
+        evidence_level=EvidenceLevel.HIGH,
+        evidence_summary="Foundation of cardiovascular risk prediction. Derived from 5,345 Framingham Heart Study participants. Basis for ASCVD risk calculator and statin guidelines.",
+        clinical_pearls=[
+            ClinicalPearl(
+                text="Estimates 10-year risk of coronary heart disease (MI, coronary death)",
+                category="interpretation",
+            ),
+            ClinicalPearl(
+                text="Risk ≥20% = high risk, equivalent to secondary prevention",
+                category="interpretation",
+            ),
+            ClinicalPearl(
+                text="ACC/AHA now prefer ASCVD Pooled Cohort Equation, which includes stroke risk",
+                category="usage",
+            ),
+            ClinicalPearl(
+                text="May underestimate risk in South Asian and Hispanic populations",
+                category="limitation",
+            ),
+        ],
+        pitfalls=[
+            "Derived primarily from white population - may not generalize to all ethnicities",
+            "ASCVD Pooled Cohort Equations now preferred by ACC/AHA guidelines",
+            "Does not include family history as risk factor",
+            "HDL and total cholesterol used, not LDL directly",
+        ],
+        usage_guidance=UsageGuidance(
+            when_to_use=[
+                "Primary prevention risk assessment",
+                "Discussing statin therapy initiation",
+                "Patient education about cardiovascular risk",
+            ],
+            when_not_to_use=[
+                "Secondary prevention (already have ASCVD)",
+                "Patients on statins",
+                "Patients <40 or >79 years",
+            ],
+            target_population="Adults 40-79 years without known ASCVD for primary prevention",
+            excluded_populations=[
+                "Known ASCVD",
+                "Age <40 or >79",
+                "On lipid-lowering therapy",
+            ],
+        ),
+        related_guidelines=[
+            GuidelineReference(
+                guideline_name="2018 ACC/AHA Cholesterol Guidelines",
+                year=2018,
+                organization="ACC/AHA",
+            ),
+        ],
+        related_calculator_ids=["ascvd_pooled_cohort"],
+        mdcalc_url="https://www.mdcalc.com/calc/38/framingham-risk-score-hard-coronary-heart-disease",
+    ),
 )
 
 
@@ -2488,6 +3641,70 @@ CHILD_PUGH_DEFINITION = CalculatorDefinition(
             ],
         ),
     ],
+    provenance=CalculatorProvenance(
+        original_citation=StructuredCitation(
+            title="Surgery of portal hypertension",
+            authors=["Pugh RN", "Murray-Lyon IM", "Dawson JL", "Pietroni MC", "Williams R"],
+            journal="British Journal of Surgery",
+            year=1973,
+            volume="60",
+            pages="646-649",
+            pmid="4541913",
+            is_original_derivation=True,
+        ),
+        evidence_level=EvidenceLevel.HIGH,
+        evidence_summary="Modified Child classification, used for 50+ years. Standard for assessing hepatic reserve in cirrhosis. Predicts perioperative mortality and guides treatment decisions.",
+        clinical_pearls=[
+            ClinicalPearl(
+                text="Class A (5-6): Good hepatic reserve, 100% 1-year survival; Class B (7-9): Moderate impairment, 80% 1-year; Class C (10-15): Severe, 45% 1-year",
+                category="interpretation",
+            ),
+            ClinicalPearl(
+                text="Ascites and encephalopathy are subjective - be consistent in grading",
+                category="tip",
+            ),
+            ClinicalPearl(
+                text="Used to determine if patient can tolerate surgery or chemotherapy",
+                category="usage",
+            ),
+            ClinicalPearl(
+                text="INR can substitute for PT prolongation in modern practice",
+                category="usage",
+            ),
+        ],
+        pitfalls=[
+            "Subjective assessment of ascites (controlled vs refractory) and encephalopathy grade",
+            "Does not account for renal function (important prognostic factor)",
+            "Ceiling effect at Class C limits discrimination",
+            "MELD preferred for transplant allocation due to better predictive validity",
+        ],
+        usage_guidance=UsageGuidance(
+            when_to_use=[
+                "Assessing severity of cirrhosis",
+                "Surgical risk stratification",
+                "Drug dosing in hepatic impairment",
+            ],
+            when_not_to_use=[
+                "Transplant prioritization (use MELD)",
+                "Non-cirrhotic liver disease",
+            ],
+            target_population="Adults with cirrhosis",
+        ),
+        related_guidelines=[
+            GuidelineReference(
+                guideline_name="EASL Cirrhosis Guidelines",
+                year=2018,
+                organization="EASL",
+            ),
+            GuidelineReference(
+                guideline_name="AASLD Ascites Management",
+                year=2021,
+                organization="AASLD",
+            ),
+        ],
+        related_calculator_ids=["meld", "meld_na"],
+        mdcalc_url="https://www.mdcalc.com/calc/340/child-pugh-score-cirrhosis-mortality",
+    ),
 )
 
 
@@ -2817,6 +4034,78 @@ EGFR_CKDEPI_DEFINITION = CalculatorDefinition(
         ThresholdInterpretation(min_score=0, max_score=15, risk_level=RiskLevel.VERY_HIGH,
             interpretation="G5: Kidney failure (<15)", recommendations=["Dialysis/transplant evaluation"]),
     ],
+    provenance=CalculatorProvenance(
+        original_citation=StructuredCitation(
+            title="A new equation to estimate glomerular filtration rate",
+            authors=["Levey AS", "Stevens LA", "Schmid CH", "et al."],
+            journal="Annals of Internal Medicine",
+            year=2009,
+            volume="150",
+            pages="604-612",
+            pmid="19414839",
+            doi="10.7326/0003-4819-150-9-200905050-00006",
+            is_original_derivation=True,
+        ),
+        evidence_level=EvidenceLevel.HIGH,
+        evidence_summary="Current KDIGO standard for GFR estimation. CKD-EPI 2021 removes race coefficient per NKF-ASN recommendations. More accurate than MDRD at higher GFR values.",
+        clinical_pearls=[
+            ClinicalPearl(
+                text="CKD-EPI 2021 (race-free) is now recommended by NKF-ASN - do not use race coefficient",
+                category="warning",
+            ),
+            ClinicalPearl(
+                text="More accurate than MDRD at eGFR >60 mL/min/1.73m²",
+                category="interpretation",
+            ),
+            ClinicalPearl(
+                text="Use cystatin C-based equation for patients with extremes of muscle mass",
+                category="tip",
+            ),
+            ClinicalPearl(
+                text="eGFR <60 for ≥3 months defines CKD, regardless of albuminuria",
+                category="interpretation",
+            ),
+        ],
+        pitfalls=[
+            "Creatinine-based equations affected by muscle mass (sarcopenia, amputees, bodybuilders)",
+            "Not valid in AKI (use urine output criteria)",
+            "Drug dosing may require different equations for specific medications",
+            "2021 race-free version gives different results than 2009 version",
+        ],
+        usage_guidance=UsageGuidance(
+            when_to_use=[
+                "CKD staging",
+                "Drug dosing for renally cleared medications",
+                "Monitoring kidney function over time",
+            ],
+            when_not_to_use=[
+                "AKI assessment",
+                "Patients on dialysis",
+                "Children <18 years (use Schwartz)",
+            ],
+            target_population="Adults with stable kidney function",
+            excluded_populations=[
+                "Children <18",
+                "Dialysis patients",
+                "AKI patients",
+                "Pregnancy",
+            ],
+        ),
+        related_guidelines=[
+            GuidelineReference(
+                guideline_name="KDIGO CKD Guidelines 2024",
+                year=2024,
+                organization="KDIGO",
+            ),
+            GuidelineReference(
+                guideline_name="NKF-ASN Taskforce Recommendations",
+                year=2021,
+                organization="NKF-ASN",
+            ),
+        ],
+        related_calculator_ids=["cockcroft_gault", "mdrd"],
+        mdcalc_url="https://www.mdcalc.com/calc/3939/ckd-epi-equations-glomerular-filtration-rate-gfr",
+    ),
 )
 
 
@@ -2944,6 +4233,74 @@ NEWS2_DEFINITION = CalculatorDefinition(
         ThresholdInterpretation(min_score=7, max_score=None, risk_level=RiskLevel.HIGH,
             interpretation="High clinical risk - Emergency response", recommendations=["Immediate physician review", "Critical care assessment"]),
     ],
+    provenance=CalculatorProvenance(
+        original_citation=StructuredCitation(
+            title="National Early Warning Score (NEWS) 2: Standardising the assessment of acute-illness severity in the NHS",
+            authors=["Royal College of Physicians"],
+            journal="Clinical Medicine",
+            year=2017,
+            pmid="29473828",
+            is_original_derivation=True,
+        ),
+        evidence_level=EvidenceLevel.HIGH,
+        evidence_summary="UK NHS standard for detecting acute deterioration. NEWS2 validated across >800,000 patients. Updated in 2017 to improve detection of Type 2 respiratory failure.",
+        clinical_pearls=[
+            ClinicalPearl(
+                text="NEWS2 aggregate score >=5 or any single parameter score of 3 = clinical urgency",
+                category="interpretation",
+            ),
+            ClinicalPearl(
+                text="SpO2 Scale 2 should be used for patients at risk of hypercapnic respiratory failure (COPD, obesity hypoventilation)",
+                category="usage",
+            ),
+            ClinicalPearl(
+                text="Track trends over time - a rising NEWS score is more concerning than a single high value",
+                category="tip",
+            ),
+            ClinicalPearl(
+                text="NEWS does not replace clinical judgment - it's a screening tool to trigger further assessment",
+                category="warning",
+            ),
+        ],
+        pitfalls=[
+            "SpO2 Scale 1 vs Scale 2 selection is critical for COPD patients",
+            "Does not account for patient baseline (e.g., chronically low BP)",
+            "Temperature can mask deterioration if antipyretics given",
+            "May not detect subtle neurological changes",
+        ],
+        usage_guidance=UsageGuidance(
+            when_to_use=[
+                "All acute hospital admissions",
+                "Tracking clinical deterioration",
+                "Triggering escalation protocols",
+            ],
+            when_not_to_use=[
+                "Children <16 (use PEWS)",
+                "Obstetric patients (use MEOWS)",
+                "End-of-life care settings",
+            ],
+            target_population="Adults in acute hospital settings",
+            excluded_populations=[
+                "Pediatric patients",
+                "Obstetric patients",
+                "Patients on comfort measures only",
+            ],
+        ),
+        related_guidelines=[
+            GuidelineReference(
+                guideline_name="NHS England NEWS2 Implementation Guidance",
+                year=2018,
+                organization="NHS England",
+            ),
+            GuidelineReference(
+                guideline_name="NICE CG50 Acutely ill adults",
+                year=2007,
+                organization="NICE",
+            ),
+        ],
+        related_calculator_ids=["qsofa", "mews"],
+        mdcalc_url="https://www.mdcalc.com/calc/1873/national-early-warning-score-news-2",
+    ),
 )
 
 
@@ -3443,6 +4800,77 @@ PSI_PORT_DEFINITION = CalculatorDefinition(
             interpretation="Class V: High risk (29.2% mortality)",
             recommendations=["ICU consideration", "Aggressive treatment"]),
     ],
+    provenance=CalculatorProvenance(
+        original_citation=StructuredCitation(
+            title="A prediction rule to identify low-risk patients with community-acquired pneumonia",
+            authors=["Fine MJ", "Auble TE", "Yealy DM", "et al."],
+            journal="New England Journal of Medicine",
+            year=1997,
+            volume="336",
+            pages="243-250",
+            pmid="8995086",
+            doi="10.1056/NEJM199701233360402",
+            is_original_derivation=True,
+        ),
+        evidence_level=EvidenceLevel.HIGH,
+        evidence_summary="Derived from 14,199 patients, validated in 38,039. IDSA/ATS recommended for CAP risk stratification. Classes I-II outpatient, III observation, IV-V inpatient.",
+        clinical_pearls=[
+            ClinicalPearl(
+                text="Class I-II: Safe for outpatient treatment; Class III: Consider brief observation; Class IV-V: Hospitalize",
+                category="interpretation",
+            ),
+            ClinicalPearl(
+                text="PSI may underestimate severity in young patients with severe disease (favors age)",
+                category="limitation",
+            ),
+            ClinicalPearl(
+                text="Mental status is key - new confusion = 20 points, big impact on disposition",
+                category="tip",
+            ),
+            ClinicalPearl(
+                text="Consider social factors (homeless, no oral intake) even with low PSI",
+                category="warning",
+            ),
+        ],
+        pitfalls=[
+            "Age-weighted - may underestimate risk in young patients",
+            "Does not capture social factors affecting disposition",
+            "Requires laboratory and imaging data not always available in office settings",
+            "Complex scoring system - CURB-65 simpler alternative",
+        ],
+        usage_guidance=UsageGuidance(
+            when_to_use=[
+                "Risk stratification of CAP in ED",
+                "Deciding outpatient vs inpatient treatment",
+                "Research settings",
+            ],
+            when_not_to_use=[
+                "Healthcare-associated pneumonia",
+                "Immunocompromised patients",
+                "Office settings without labs (use CURB-65)",
+            ],
+            target_population="Adults with community-acquired pneumonia",
+            excluded_populations=[
+                "Immunocompromised patients",
+                "HAP/VAP",
+                "Aspiration pneumonia",
+            ],
+        ),
+        related_guidelines=[
+            GuidelineReference(
+                guideline_name="IDSA/ATS CAP Guidelines",
+                year=2019,
+                organization="IDSA/ATS",
+            ),
+            GuidelineReference(
+                guideline_name="NICE Pneumonia Guidelines",
+                year=2019,
+                organization="NICE",
+            ),
+        ],
+        related_calculator_ids=["curb65", "smart_cop"],
+        mdcalc_url="https://www.mdcalc.com/calc/33/psi-port-score-pneumonia-severity-index-cap",
+    ),
 )
 
 
@@ -3604,6 +5032,73 @@ APACHE_II_DEFINITION = CalculatorDefinition(
         ThresholdInterpretation(min_score=30, max_score=None, risk_level=RiskLevel.VERY_HIGH,
             interpretation="Very high mortality risk (>70%)", recommendations=["Palliative care consultation", "Family meeting"]),
     ],
+    provenance=CalculatorProvenance(
+        original_citation=StructuredCitation(
+            title="APACHE II: a severity of disease classification system",
+            authors=["Knaus WA", "Draper EA", "Wagner DP", "Zimmerman JE"],
+            journal="Critical Care Medicine",
+            year=1985,
+            volume="13",
+            pages="818-829",
+            pmid="3928249",
+            is_original_derivation=True,
+        ),
+        evidence_level=EvidenceLevel.HIGH,
+        evidence_summary="The most widely used ICU severity score globally. Validated in millions of patients over 40 years. Predicts hospital mortality based on acute physiology, age, and chronic health.",
+        clinical_pearls=[
+            ClinicalPearl(
+                text="Calculate using worst values in first 24 hours of ICU admission",
+                category="usage",
+            ),
+            ClinicalPearl(
+                text="Score predicts hospital mortality risk, not individual patient outcomes",
+                category="interpretation",
+            ),
+            ClinicalPearl(
+                text="Chronic health points apply only if severe organ dysfunction existed BEFORE this admission",
+                category="warning",
+            ),
+            ClinicalPearl(
+                text="Use actual PaO2 if FiO2 >=0.5; otherwise use A-a gradient",
+                category="tip",
+            ),
+        ],
+        pitfalls=[
+            "Not validated for repeated measurements (designed for admission scoring)",
+            "May underestimate severity in patients who deteriorate after 24 hours",
+            "GCS component problematic in sedated/paralyzed patients",
+            "Lead-time bias can affect interpretation",
+            "Chronic health definitions are subjective",
+        ],
+        usage_guidance=UsageGuidance(
+            when_to_use=[
+                "ICU admission severity assessment",
+                "Research and benchmarking",
+                "Prognostic discussions with families",
+            ],
+            when_not_to_use=[
+                "Serial monitoring (use SOFA)",
+                "Burn patients (use ABSI)",
+                "Trauma (use TRISS)",
+                "Deciding to withhold treatment",
+            ],
+            target_population="Adult ICU patients within first 24 hours of admission",
+            excluded_populations=[
+                "Burn patients",
+                "Cardiac surgery patients",
+                "Pediatric patients",
+            ],
+        ),
+        related_guidelines=[
+            GuidelineReference(
+                guideline_name="SCCM ICU Admission Guidelines",
+                year=2016,
+                organization="SCCM",
+            ),
+        ],
+        related_calculator_ids=["sofa", "apache_iv", "saps_ii"],
+        mdcalc_url="https://www.mdcalc.com/calc/1868/apache-ii-score",
+    ),
 )
 
 

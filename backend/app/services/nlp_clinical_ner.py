@@ -314,29 +314,86 @@ class ClinicalNERService(BaseNLPService):
             return []
 
         try:
+            # Conservative estimate: ~3 chars per token, use 75% of max to be safe
+            safe_char_limit = int(self.config.max_sequence_length * 3 * 0.75)
+
             # Handle long texts by chunking
-            if len(text) > self.config.max_sequence_length * 4:
-                chunks = self._chunk_text(text)
-                all_entities = []
-                offset = 0
-                for chunk in chunks:
-                    entities = self._transformer_pipeline(chunk)
-                    # Adjust offsets for chunk position
-                    for ent in entities:
-                        ent["start"] += offset
-                        ent["end"] += offset
-                    all_entities.extend(entities)
-                    offset += len(chunk)
-                return all_entities
+            if len(text) > safe_char_limit:
+                return self._extract_chunked(text)
             else:
                 return self._transformer_pipeline(text)
         except Exception as e:
             logger.warning(f"Transformer extraction failed: {e}")
+            # Fallback: try chunking if direct call failed
+            try:
+                logger.info("Attempting chunked extraction as fallback")
+                return self._extract_chunked(text)
+            except Exception as e2:
+                logger.error(f"Chunked extraction also failed: {e2}")
+                return []
+
+    def _extract_chunked(self, text: str) -> list[dict]:
+        """Extract entities from long text using overlapping chunks."""
+        # Conservative: ~3 chars per token, use 75% of max to stay well under limit
+        chunk_size = int(self.config.max_sequence_length * 3 * 0.75)
+        overlap = 100
+
+        all_entities = []
+        start = 0
+        chunk_num = 0
+
+        while start < len(text):
+            end = min(start + chunk_size, len(text))
+
+            # Try to break at sentence boundary
+            if end < len(text):
+                for punct in [". ", ".\n", "! ", "? "]:
+                    last_punct = text[start:end].rfind(punct)
+                    if last_punct > chunk_size // 2:
+                        end = start + last_punct + len(punct)
+                        break
+
+            chunk = text[start:end]
+            chunk_num += 1
+
+            try:
+                entities = self._transformer_pipeline(chunk)
+                # Adjust offsets for chunk position
+                for ent in entities:
+                    ent["start"] += start
+                    ent["end"] += start
+                all_entities.extend(entities)
+            except Exception as e:
+                logger.warning(f"Chunk {chunk_num} extraction failed ({len(chunk)} chars): {e}")
+                # Continue with next chunk
+
+            start = end - overlap
+
+        logger.info(f"Processed {chunk_num} chunks, found {len(all_entities)} raw entities")
+        return self._deduplicate_entities(all_entities)
+
+    def _deduplicate_entities(self, entities: list[dict]) -> list[dict]:
+        """Remove duplicate entities from overlapping chunks."""
+        if not entities:
             return []
+
+        # Sort by start position, then by score (descending)
+        entities.sort(key=lambda e: (e.get("start", 0), -e.get("score", 0)))
+
+        deduplicated = []
+        seen_spans: set[tuple[int, int]] = set()
+
+        for ent in entities:
+            span = (ent.get("start", 0), ent.get("end", 0))
+            if span not in seen_spans:
+                deduplicated.append(ent)
+                seen_spans.add(span)
+
+        return deduplicated
 
     def _chunk_text(self, text: str, overlap: int = 50) -> list[str]:
         """Split text into overlapping chunks for processing."""
-        chunk_size = self.config.max_sequence_length * 4
+        chunk_size = int(self.config.max_sequence_length * 3 * 0.75)
         chunks = []
         start = 0
         while start < len(text):

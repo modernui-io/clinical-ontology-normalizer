@@ -72,6 +72,16 @@ class ExtractedEntity:
     negation_scope_start: int | None = None
     negation_scope_end: int | None = None
 
+    # Allergy-specific fields
+    reaction_type: str | None = None
+    reaction_severity: str | None = None
+    allergen_category: str | None = None
+
+    # Social history-specific fields
+    social_history_category: str | None = None  # smoking, alcohol, drugs
+    social_history_status: str | None = None  # current_smoker, former_smoker, etc.
+    quantity: str | None = None  # pack-years, drinks per week, etc.
+
 
 # ============================================================================
 # Diagnosis/Problem patterns
@@ -206,6 +216,22 @@ DIAGNOSIS_PATTERNS = [
     (r"\b(?:pancytopenia)\b", "Pancytopenia"),
     (r"\b(?:coagulopathy)\b", "Coagulopathy"),
     (r"\b(?:dic|disseminated\s+intravascular\s+coagulation)\b", "DIC"),
+    # Sickle cell disease and complications
+    (r"\b(?:sickle\s+cell\s+(?:disease|anemia|anaemia)|scd|hbss|hbs[\s-]?disease)\b", "Sickle Cell Disease"),
+    (r"\b(?:sickle\s+cell\s+trait|hbas|sickle\s+trait)\b", "Sickle Cell Trait"),
+    (r"\b(?:vaso[\s-]?occlusive\s+(?:crisis|episode|pain\s+crisis)|voc|sickle\s+(?:cell\s+)?(?:pain\s+)?crisis)\b", "Vaso-occlusive Crisis"),
+    (r"\b(?:acute\s+chest\s+syndrome)\b", "Acute Chest Syndrome"),
+    (r"\b(?:avascular\s+necrosis|osteonecrosis|avn|aseptic\s+necrosis)\b", "Avascular Necrosis"),
+    (r"\b(?:hemolytic\s+anemia|haemolytic\s+anaemia|hemolysis)\b", "Hemolytic Anemia"),
+    (r"\b(?:aplastic\s+crisis|aplastic\s+anemia)\b", "Aplastic Crisis"),
+    (r"\b(?:splenic\s+sequestration(?:\s+crisis)?)\b", "Splenic Sequestration"),
+    (r"\b(?:priapism)\b", "Priapism"),
+    (r"\b(?:iron\s+overload|hemochromatosis|hemosiderosis)\b", "Iron Overload"),
+    (r"\b(?:chronic\s+pain\s+syndrome)\b", "Chronic Pain Syndrome"),
+    (r"\b(?:leg\s+ulcer(?:s)?|sickle\s+cell\s+ulcer(?:s)?)\b", "Leg Ulcers"),
+    (r"\b(?:stroke|cerebrovascular\s+accident|cva)\b", "Stroke"),
+    (r"\b(?:pulmonary\s+hypertension|pah|phtn)\b", "Pulmonary Hypertension"),
+    (r"\b(?:retinopathy|proliferative\s+retinopathy)\b", "Retinopathy"),
     # Electrolyte/metabolic disorders
     (r"\b(?:hyponatremia|low\s+sodium)\b", "Hyponatremia"),
     (r"\b(?:hypernatremia|high\s+sodium)\b", "Hypernatremia"),
@@ -279,8 +305,7 @@ DIAGNOSIS_PATTERNS = [
     (r"\b(?:hypovolemic\s+shock)\b", "Hypovolemic Shock"),
     (r"\b(?:anaphylaxis|anaphylactic\s+shock)\b", "Anaphylaxis"),
     (r"\b(?:allergic\s+reaction)\b", "Allergic Reaction"),
-    (r"\b(?:nkda|no\s+known\s+(?:drug\s+)?allergies?)\b", "No Known Drug Allergies"),
-    (r"\b(?:drug\s+allergy|medication\s+allergy)\b", "Drug Allergy"),
+    # Note: NKDA and drug allergy patterns moved to ALLERGY_PATTERNS
     (r"\b(?:hypothermia)\b", "Hypothermia"),
     (r"\b(?:hyperthermia|heat\s+stroke)\b", "Hyperthermia"),
     (r"\b(?:malnutrition)\b", "Malnutrition"),
@@ -630,6 +655,15 @@ MEDICATION_PATTERNS = [
     r"\b(epoetin|procrit|epogen|epo)\s*(?:(\d+(?:\.\d+)?\s*(?:units?|u)))?",
     r"\b(darbepoetin|aranesp)\s*(?:(\d+(?:\.\d+)?\s*(?:mcg)))?",
     r"\b(filgrastim|neupogen|g-?csf)\s*(?:(\d+(?:\.\d+)?\s*(?:mcg)))?",
+    # Sickle cell disease medications
+    r"\b(hydroxyurea|hydrea|droxia|siklos)\s*(?:(\d+(?:\.\d+)?\s*(?:mg)))?(?:\s+(daily))?",
+    r"\b(l[\s-]?glutamine|endari)\s*(?:(\d+(?:\.\d+)?\s*(?:g|mg)))?(?:\s+(bid|daily))?",
+    r"\b(voxelotor|oxbryta)\s*(?:(\d+(?:\.\d+)?\s*(?:mg)))?(?:\s+(daily))?",
+    r"\b(crizanlizumab|adakveo)\s*(?:(\d+(?:\.\d+)?\s*(?:mg)))?",
+    r"\b(deferasirox|exjade|jadenu)\s*(?:(\d+(?:\.\d+)?\s*(?:mg)))?(?:\s+(daily))?",
+    r"\b(deferoxamine|desferal)\s*(?:(\d+(?:\.\d+)?\s*(?:mg|g)))?",
+    r"\b(deferiprone|ferriprox)\s*(?:(\d+(?:\.\d+)?\s*(?:mg)))?(?:\s+(tid))?",
+    r"\b(penicillin\s+v(?:k)?|pen\s*vk|veetids)\s*(?:(\d+(?:\.\d+)?\s*(?:mg)))?(?:\s+(bid|daily))?",
     r"\b(allopurinol|zyloprim)\s*(?:(\d+(?:\.\d+)?\s*(?:mg)))?(?:\s+(daily))?",
     r"\b(colchicine|colcrys)\s*(?:(\d+(?:\.\d+)?\s*(?:mg)))?(?:\s+(daily|bid))?",
     r"\b(tamsulosin|flomax)\s*(?:(\d+(?:\.\d+)?\s*(?:mg)))?(?:\s+(daily))?",
@@ -868,6 +902,100 @@ LAB_RESULT_PATTERNS = [
 
 
 # ============================================================================
+# Allergy patterns
+# ============================================================================
+
+# Allergy patterns: (pattern, normalized_name, allergen_category)
+ALLERGY_PATTERNS = [
+    # No Known Allergies variants
+    (r"\b(?:nkda|no\s+known\s+drug\s+allergies?)\b", "No Known Drug Allergies", "none"),
+    (r"\b(?:nka|no\s+known\s+allergies?)\b", "No Known Allergies", "none"),
+    (r"\b(?:nkfa|no\s+known\s+food\s+allergies?)\b", "No Known Food Allergies", "none"),
+    # Drug allergies - Antibiotics
+    (r"\b(?:penicillin|pcn)\s*(?:allergy|allergic)?\b", "Penicillin", "drug"),
+    (r"\b(?:allergic\s+to\s+)?(?:penicillin|pcn)\b", "Penicillin", "drug"),
+    (r"\b(?:amoxicillin|amox)\s*(?:allergy|allergic)?\b", "Amoxicillin", "drug"),
+    (r"\b(?:allergic\s+to\s+)?(?:amoxicillin|amox)\b", "Amoxicillin", "drug"),
+    (r"\b(?:ampicillin)\s*(?:allergy|allergic)?\b", "Ampicillin", "drug"),
+    (r"\b(?:sulfa|sulfonamide(?:s)?|sulfon?amide(?:s)?|bactrim|septra|tmp[\s-]?smx)\s*(?:allergy|allergic)?\b", "Sulfonamides", "drug"),
+    (r"\b(?:allergic\s+to\s+)?(?:sulfa|sulfonamide(?:s)?|bactrim|septra)\b", "Sulfonamides", "drug"),
+    (r"\b(?:cephalosporin(?:s)?|cefazolin|ancef|keflex|cephalexin|ceftriaxone|rocephin)\s*(?:allergy|allergic)?\b", "Cephalosporins", "drug"),
+    (r"\b(?:fluoroquinolone(?:s)?|cipro(?:floxacin)?|levaquin|levofloxacin|moxifloxacin|avelox)\s*(?:allergy|allergic)?\b", "Fluoroquinolones", "drug"),
+    (r"\b(?:macrolide(?:s)?|azithromycin|z[\s-]?pack|zithromax|erythromycin|clarithromycin|biaxin)\s*(?:allergy|allergic)?\b", "Macrolides", "drug"),
+    (r"\b(?:tetracycline(?:s)?|doxycycline|minocycline)\s*(?:allergy|allergic)?\b", "Tetracyclines", "drug"),
+    (r"\b(?:vancomycin|vanco)\s*(?:allergy|allergic)?\b", "Vancomycin", "drug"),
+    (r"\b(?:clindamycin|cleocin)\s*(?:allergy|allergic)?\b", "Clindamycin", "drug"),
+    (r"\b(?:metronidazole|flagyl)\s*(?:allergy|allergic)?\b", "Metronidazole", "drug"),
+    (r"\b(?:nitrofurantoin|macrobid)\s*(?:allergy|allergic)?\b", "Nitrofurantoin", "drug"),
+    # Drug allergies - Pain medications
+    (r"\b(?:aspirin|asa)\s*(?:allergy|allergic)?\b", "Aspirin", "drug"),
+    (r"\b(?:allergic\s+to\s+)?(?:aspirin|asa)\b", "Aspirin", "drug"),
+    (r"\b(?:nsaid(?:s)?|ibuprofen|advil|motrin|naproxen|aleve|celebrex|celecoxib)\s*(?:allergy|allergic)?\b", "NSAIDs", "drug"),
+    (r"\b(?:allergic\s+to\s+)?(?:nsaid(?:s)?|ibuprofen|naproxen)\b", "NSAIDs", "drug"),
+    (r"\b(?:codeine)\s*(?:allergy|allergic)?\b", "Codeine", "drug"),
+    (r"\b(?:morphine)\s*(?:allergy|allergic)?\b", "Morphine", "drug"),
+    (r"\b(?:hydrocodone|vicodin|norco)\s*(?:allergy|allergic)?\b", "Hydrocodone", "drug"),
+    (r"\b(?:oxycodone|percocet|oxycontin)\s*(?:allergy|allergic)?\b", "Oxycodone", "drug"),
+    (r"\b(?:tramadol|ultram)\s*(?:allergy|allergic)?\b", "Tramadol", "drug"),
+    (r"\b(?:fentanyl)\s*(?:allergy|allergic)?\b", "Fentanyl", "drug"),
+    (r"\b(?:meperidine|demerol)\s*(?:allergy|allergic)?\b", "Meperidine", "drug"),
+    # Drug allergies - Cardiovascular
+    (r"\b(?:ace[\s-]?inhibitor(?:s)?|lisinopril|enalapril|ramipril|captopril)\s*(?:allergy|allergic)?\b", "ACE Inhibitors", "drug"),
+    (r"\b(?:beta[\s-]?blocker(?:s)?|metoprolol|atenolol|propranolol|carvedilol)\s*(?:allergy|allergic)?\b", "Beta Blockers", "drug"),
+    (r"\b(?:statin(?:s)?|atorvastatin|lipitor|simvastatin|zocor|rosuvastatin|crestor|pravastatin)\s*(?:allergy|allergic)?\b", "Statins", "drug"),
+    # Drug allergies - Other
+    (r"\b(?:heparin)\s*(?:allergy|allergic)?\b", "Heparin", "drug"),
+    (r"\b(?:warfarin|coumadin)\s*(?:allergy|allergic)?\b", "Warfarin", "drug"),
+    (r"\b(?:metformin|glucophage)\s*(?:allergy|allergic)?\b", "Metformin", "drug"),
+    (r"\b(?:gabapentin|neurontin)\s*(?:allergy|allergic)?\b", "Gabapentin", "drug"),
+    (r"\b(?:pregabalin|lyrica)\s*(?:allergy|allergic)?\b", "Pregabalin", "drug"),
+    (r"\b(?:phenytoin|dilantin)\s*(?:allergy|allergic)?\b", "Phenytoin", "drug"),
+    (r"\b(?:carbamazepine|tegretol)\s*(?:allergy|allergic)?\b", "Carbamazepine", "drug"),
+    (r"\b(?:lamotrigine|lamictal)\s*(?:allergy|allergic)?\b", "Lamotrigine", "drug"),
+    (r"\b(?:allopurinol|zyloprim)\s*(?:allergy|allergic)?\b", "Allopurinol", "drug"),
+    # Food allergies
+    (r"\b(?:peanut(?:s)?)\s*(?:allergy|allergic)?\b", "Peanuts", "food"),
+    (r"\b(?:allergic\s+to\s+)?(?:peanut(?:s)?)\b", "Peanuts", "food"),
+    (r"\b(?:tree\s+nut(?:s)?|almond(?:s)?|walnut(?:s)?|cashew(?:s)?|pistachio(?:s)?|hazelnut(?:s)?|pecan(?:s)?)\s*(?:allergy|allergic)?\b", "Tree Nuts", "food"),
+    (r"\b(?:shellfish|shrimp|lobster|crab|scallop(?:s)?|clam(?:s)?|mussel(?:s)?|oyster(?:s)?)\s*(?:allergy|allergic)?\b", "Shellfish", "food"),
+    (r"\b(?:allergic\s+to\s+)?(?:shellfish|shrimp|lobster|crab)\b", "Shellfish", "food"),
+    (r"\b(?:fish)\s*(?:allergy|allergic)?\b", "Fish", "food"),
+    (r"\b(?:egg(?:s)?)\s*(?:allergy|allergic)?\b", "Eggs", "food"),
+    (r"\b(?:allergic\s+to\s+)?(?:egg(?:s)?)\b", "Eggs", "food"),
+    (r"\b(?:milk|dairy|lactose)\s*(?:allergy|allergic|intoleran(?:t|ce))?\b", "Dairy/Milk", "food"),
+    (r"\b(?:wheat|gluten)\s*(?:allergy|allergic|intoleran(?:t|ce)|sensitiv(?:e|ity))?\b", "Wheat/Gluten", "food"),
+    (r"\b(?:soy(?:bean)?(?:s)?)\s*(?:allergy|allergic)?\b", "Soy", "food"),
+    (r"\b(?:sesame)\s*(?:allergy|allergic)?\b", "Sesame", "food"),
+    # Environmental allergies
+    (r"\b(?:latex)\s*(?:allergy|allergic)?\b", "Latex", "environmental"),
+    (r"\b(?:allergic\s+to\s+)?(?:latex)\b", "Latex", "environmental"),
+    (r"\b(?:contrast(?:\s+dye)?|iodine(?:d)?\s+contrast|iodinated\s+contrast|iv\s+contrast)\s*(?:allergy|allergic)?\b", "Contrast Dye", "environmental"),
+    (r"\b(?:allergic\s+to\s+)?(?:contrast(?:\s+dye)?|iodine\s+contrast)\b", "Contrast Dye", "environmental"),
+    (r"\b(?:iodine)\s*(?:allergy|allergic)?\b", "Iodine", "environmental"),
+    (r"\b(?:adhesive(?:s)?|tape|bandage(?:s)?)\s*(?:allergy|allergic)?\b", "Adhesives", "environmental"),
+    (r"\b(?:bee(?:\s+sting)?|wasp(?:\s+sting)?|insect(?:\s+sting)?|hymenoptera)\s*(?:allergy|allergic)?\b", "Insect Stings", "environmental"),
+    (r"\b(?:pollen|hay\s+fever|seasonal\s+allerg(?:y|ies))\b", "Pollen", "environmental"),
+    (r"\b(?:dust(?:\s+mite)?(?:s)?)\s*(?:allergy|allergic)?\b", "Dust Mites", "environmental"),
+    (r"\b(?:pet\s+dander|cat(?:s)?|dog(?:s)?)\s*(?:allergy|allergic)?\b", "Pet Dander", "environmental"),
+    (r"\b(?:mold|mould)\s*(?:allergy|allergic)?\b", "Mold", "environmental"),
+    (r"\b(?:nickel)\s*(?:allergy|allergic)?\b", "Nickel", "environmental"),
+]
+
+# Reaction type patterns - used to capture reaction severity/type
+ALLERGY_REACTION_PATTERNS = [
+    (r"\b(?:anaphylaxis|anaphylactic(?:\s+(?:shock|reaction))?)\b", "anaphylaxis", "severe"),
+    (r"\b(?:rash|skin\s+rash|maculopapular\s+rash)\b", "rash", "moderate"),
+    (r"\b(?:hives|urticaria)\b", "hives", "moderate"),
+    (r"\b(?:angioedema|swelling|facial\s+swelling|tongue\s+swelling|lip\s+swelling)\b", "angioedema", "severe"),
+    (r"\b(?:shortness\s+of\s+breath|sob|dyspnea|difficulty\s+breathing|throat\s+(?:swelling|tightness|closing))\b", "respiratory", "severe"),
+    (r"\b(?:itching|pruritus|itchy)\b", "itching", "mild"),
+    (r"\b(?:nausea|vomiting|gi\s+upset|stomach\s+upset|diarrhea)\b", "gi_upset", "mild"),
+    (r"\b(?:stevens[\s-]?johnson(?:\s+syndrome)?|sjs|toxic\s+epidermal\s+necrolysis|ten)\b", "sjs_ten", "severe"),
+    (r"\b(?:drug\s+reaction|adverse\s+reaction|hypersensitivity)\b", "drug_reaction", "moderate"),
+]
+
+
+# ============================================================================
 # Anatomical location patterns
 # ============================================================================
 
@@ -929,6 +1057,120 @@ TEMPORAL_PATTERNS = [
     (r"\b(onset|started|began|developed)\s+(\d+)\s*(days?|weeks?|months?|years?)\s+ago\b", "onset"),
     (r"\b(\d{1,2}[/\-]\d{1,2}[/\-]\d{2,4})\b", "date"),
 ]
+
+
+# ============================================================================
+# Social History Patterns
+# ============================================================================
+
+# Social history patterns for smoking, alcohol, and drug use
+# NOTE: More specific patterns MUST come FIRST to avoid shorter patterns matching first
+SOCIAL_HISTORY_PATTERNS: dict[str, list[tuple[str, str, AssertionStatus]]] = {
+    "smoking": [
+        # Former smoker (MUST come before generic smoker patterns)
+        (r"\bformer\s+smok(?:er|ing)\b", "former_smoker", AssertionStatus.HISTORICAL),
+        (r"\bex[\s-]?smok(?:er|ing)\b", "former_smoker", AssertionStatus.HISTORICAL),
+        (r"\bprevious(?:ly)?\s+smok(?:er|ed|ing)\b", "former_smoker", AssertionStatus.HISTORICAL),
+        (r"\bused\s+to\s+smoke\b", "former_smoker", AssertionStatus.HISTORICAL),
+        (r"\bsmoked\s+(?:in\s+the\s+)?past\b", "former_smoker", AssertionStatus.HISTORICAL),
+        (r"\bhistory\s+of\s+(?:tobacco|smoking|cigarette)\s+(?:use|abuse)\b", "former_smoker", AssertionStatus.HISTORICAL),
+        (r"\bquit\s+(?:smoking|tobacco|cigarettes?)\b", "former_smoker", AssertionStatus.HISTORICAL),
+        (r"\b(?:stopped|discontinued|ceased)\s+(?:smoking|tobacco|cigarettes?)\b", "former_smoker", AssertionStatus.HISTORICAL),
+        # Never smoker (MUST come before generic smoker patterns)
+        (r"\bnever\s+smok(?:er|ed|ing)\b", "never_smoker", AssertionStatus.ABSENT),
+        (r"\bnon[\s-]?smok(?:er|ing)\b", "never_smoker", AssertionStatus.ABSENT),
+        (r"\bno\s+(?:tobacco|smoking|cigarette)\s*(?:use|history)?\b", "never_smoker", AssertionStatus.ABSENT),
+        (r"\bdeni(?:es|ed)\s+(?:tobacco|smoking|cigarettes?)\b", "never_smoker", AssertionStatus.ABSENT),
+        (r"\blifetime\s+non[\s-]?smok(?:er|ing)\b", "never_smoker", AssertionStatus.ABSENT),
+        # Current smoker (explicit modifier patterns)
+        (r"\bcurrent(?:ly)?\s+smok(?:er|es|ing)\b", "current_smoker", AssertionStatus.PRESENT),
+        (r"\bactive(?:ly)?\s+smok(?:er|es|ing)\b", "current_smoker", AssertionStatus.PRESENT),
+        (r"\b(?:tobacco|cigarette)(?:\s+use(?:r)?)\b", "current_smoker", AssertionStatus.PRESENT),
+        (r"\bppd\b", "current_smoker", AssertionStatus.PRESENT),  # packs per day
+        (r"\b(?:\d+)\s*(?:pack(?:s)?|ppd)\s*(?:per\s+)?(?:day|daily)\b", "current_smoker", AssertionStatus.PRESENT),
+        # Generic smoker (last resort - when no modifier present)
+        (r"\bsmok(?:er|es|ing)\b", "current_smoker", AssertionStatus.PRESENT),
+        # Pack-years (smoking quantification)
+        (r"\b(\d+(?:\.\d+)?)\s*pack[\s-]?years?\b", "pack_years", AssertionStatus.PRESENT),
+        # Quit duration
+        (r"\bquit\s+(\d+)\s+(years?|months?|weeks?|days?)\s+ago\b", "quit_duration", AssertionStatus.HISTORICAL),
+        (r"\b(?:stopped|discontinued|ceased)\s+(\d+)\s+(years?|months?|weeks?|days?)\s+ago\b", "quit_duration", AssertionStatus.HISTORICAL),
+        (r"\b(?:tobacco|smoke)[\s-]?free\s+(?:for\s+)?(\d+)\s+(years?|months?)\b", "quit_duration", AssertionStatus.HISTORICAL),
+    ],
+    "alcohol": [
+        # Current use
+        (r"\b(?:social(?:ly)?)\s*drink(?:er|s|ing)?\b", "social_drinker", AssertionStatus.PRESENT),
+        (r"\b(?:occasional(?:ly)?)\s*drink(?:er|s|ing)?\b", "occasional_drinker", AssertionStatus.PRESENT),
+        (r"\bdrinks?\s+(?:alcohol|socially|occasionally)\b", "current_drinker", AssertionStatus.PRESENT),
+        (r"\balcohol\s+use\b", "current_drinker", AssertionStatus.PRESENT),
+        (r"\bcurrent(?:ly)?\s+drink(?:er|s|ing)\b", "current_drinker", AssertionStatus.PRESENT),
+        (r"\bmoderate\s+(?:alcohol\s+)?(?:use|intake|consumption|drinker)\b", "moderate_drinker", AssertionStatus.PRESENT),
+        (r"\brare(?:ly)?\s+(?:drinks?|alcohol)\b", "rare_drinker", AssertionStatus.PRESENT),
+        # Heavy use
+        (r"\bheavy\s+drink(?:er|ing)\b", "heavy_drinker", AssertionStatus.PRESENT),
+        (r"\balcohol(?:ic|ism)\b", "alcoholism", AssertionStatus.PRESENT),
+        (r"\betoh\s+(?:abuse|dependence)\b", "alcohol_abuse", AssertionStatus.PRESENT),
+        (r"\balcohol\s+(?:abuse|dependence|use\s+disorder|addiction)\b", "alcohol_abuse", AssertionStatus.PRESENT),
+        (r"\baud\b", "alcohol_use_disorder", AssertionStatus.PRESENT),  # Alcohol Use Disorder
+        (r"\bbinge\s+drink(?:er|ing)\b", "binge_drinker", AssertionStatus.PRESENT),
+        (r"\bexcessive\s+(?:alcohol\s+)?(?:use|intake|consumption|drinking)\b", "excessive_drinker", AssertionStatus.PRESENT),
+        # Denies alcohol
+        (r"\bdeni(?:es|ed)\s+(?:alcohol|etoh|drinking)\b", "denies_alcohol", AssertionStatus.ABSENT),
+        (r"\bno\s+alcohol(?:\s+use)?\b", "denies_alcohol", AssertionStatus.ABSENT),
+        (r"\bnon[\s-]?drink(?:er|ing)\b", "denies_alcohol", AssertionStatus.ABSENT),
+        (r"\bdoes\s+not\s+drink\b", "denies_alcohol", AssertionStatus.ABSENT),
+        (r"\babstains?\s+(?:from\s+)?alcohol\b", "abstains_alcohol", AssertionStatus.ABSENT),
+        (r"\bteetotal(?:er|ing)?\b", "abstains_alcohol", AssertionStatus.ABSENT),
+        # Former drinker
+        (r"\bformer\s+(?:alcohol(?:ic)?|drinker|heavy\s+drinker)\b", "former_drinker", AssertionStatus.HISTORICAL),
+        (r"\bquit\s+(?:drinking|alcohol)\b", "former_drinker", AssertionStatus.HISTORICAL),
+        (r"\bsober\s+(?:for\s+)?(\d+)\s+(years?|months?)\b", "former_drinker", AssertionStatus.HISTORICAL),
+        (r"\bin\s+recovery\b", "former_drinker", AssertionStatus.HISTORICAL),
+        (r"\bhistory\s+of\s+(?:alcohol(?:ism)?|etoh)\s*(?:abuse|dependence)?\b", "former_drinker", AssertionStatus.HISTORICAL),
+        # Quantity patterns
+        (r"\b(\d+(?:-\d+)?)\s*drinks?\s*per\s*(day|week|month|night|occasion)\b", "alcohol_quantity", AssertionStatus.PRESENT),
+        (r"\b(\d+(?:-\d+)?)\s*(?:beers?|glasses?|drinks?)\s*(?:per\s*)?(daily|weekly|nightly)\b", "alcohol_quantity", AssertionStatus.PRESENT),
+        (r"\b(\d+(?:-\d+)?)\s*drinks?\s*/\s*(day|week|wk|d|w)\b", "alcohol_quantity", AssertionStatus.PRESENT),
+    ],
+    "drugs": [
+        # Denies (MUST come first to catch "denies illicit drug use" before "illicit drug use")
+        (r"\bdeni(?:es|ed)\s+(?:illicit\s+)?(?:drugs?|substances?)(?:\s+use)?\b", "denies_drugs", AssertionStatus.ABSENT),
+        (r"\bdeni(?:es|ed)\s+(?:recreational\s+)?(?:drugs?|substances?)(?:\s+use)?\b", "denies_drugs", AssertionStatus.ABSENT),
+        (r"\bdeni(?:es|ed)\s+(?:iv|injection)\s+(?:drugs?|substances?)(?:\s+use)?\b", "denies_drugs", AssertionStatus.ABSENT),
+        (r"\bno\s+(?:illicit|recreational)?\s*(?:drugs?|substances?)\s+use\b", "denies_drugs", AssertionStatus.ABSENT),
+        (r"\bdeni(?:es|ed)\s+(?:marijuana|cannabis|cocaine|heroin|meth(?:amphetamine)?|opioids?)\b", "denies_drugs", AssertionStatus.ABSENT),
+        (r"\bno\s+(?:marijuana|cannabis|cocaine|heroin|meth(?:amphetamine)?|opioids?)\b", "denies_drugs", AssertionStatus.ABSENT),
+        (r"\bdoes\s+not\s+use\s+(?:drugs?|substances?)\b", "denies_drugs", AssertionStatus.ABSENT),
+        # History (MUST come before current use patterns)
+        (r"\bhistory\s+of\s+(?:substance|drug)\s+(?:abuse|use|dependence)\b", "history_drug_use", AssertionStatus.HISTORICAL),
+        (r"\bhistory\s+of\s+iv\s+drug\s+use\b", "history_iv_drug_use", AssertionStatus.HISTORICAL),
+        (r"\bformer\s+(?:iv\s+)?drug\s+use(?:r)?\b", "former_drug_use", AssertionStatus.HISTORICAL),
+        (r"\bpast\s+(?:illicit|recreational)?\s*(?:drug|substance)\s+use\b", "former_drug_use", AssertionStatus.HISTORICAL),
+        (r"\bprevious(?:ly)?\s+(?:used|using)\s+(?:drugs?|substances?)\b", "former_drug_use", AssertionStatus.HISTORICAL),
+        (r"\b(?:clean|sober)\s+(?:from\s+drugs?\s+)?(?:for\s+)?(\d+)\s+(years?|months?)\b", "drug_free_duration", AssertionStatus.HISTORICAL),
+        (r"\bin\s+(?:drug\s+)?recovery\b", "in_recovery", AssertionStatus.HISTORICAL),
+        (r"\brecovering\s+addict\b", "recovering_addict", AssertionStatus.HISTORICAL),
+        (r"\bsubstance\s+use\s+disorder\s+(?:in\s+)?remission\b", "sud_remission", AssertionStatus.HISTORICAL),
+        # Current use
+        (r"\bmarijuana\s+use\b", "marijuana_use", AssertionStatus.PRESENT),
+        (r"\bcannabis\s+use\b", "cannabis_use", AssertionStatus.PRESENT),
+        (r"\bthc\s+(?:use|positive)\b", "thc_use", AssertionStatus.PRESENT),
+        (r"\bcocaine\s+use\b", "cocaine_use", AssertionStatus.PRESENT),
+        (r"\bopioid\s+use\b", "opioid_use", AssertionStatus.PRESENT),
+        (r"\bheroin\s+use\b", "heroin_use", AssertionStatus.PRESENT),
+        (r"\bmethamphetamine\s+use\b", "methamphetamine_use", AssertionStatus.PRESENT),
+        (r"\bmeth\s+use\b", "methamphetamine_use", AssertionStatus.PRESENT),
+        (r"\bamphetamine\s+use\b", "amphetamine_use", AssertionStatus.PRESENT),
+        (r"\bbenzo(?:diazepine)?\s+(?:abuse|misuse)\b", "benzodiazepine_abuse", AssertionStatus.PRESENT),
+        (r"\billicit\s+(?:drug|substance)\s+use\b", "illicit_drug_use", AssertionStatus.PRESENT),
+        (r"\brecreational\s+(?:drug|substance)\s+use\b", "recreational_drug_use", AssertionStatus.PRESENT),
+        (r"\bivdu\b", "iv_drug_use", AssertionStatus.PRESENT),  # IV drug use
+        (r"\biv\s+drug\s+use(?:r)?\b", "iv_drug_use", AssertionStatus.PRESENT),
+        (r"\bintravenous\s+drug\s+use(?:r)?\b", "iv_drug_use", AssertionStatus.PRESENT),
+        (r"\binjection\s+drug\s+use(?:r)?\b", "iv_drug_use", AssertionStatus.PRESENT),
+        (r"\b(?:uses?|using)\s+(?:marijuana|cannabis|cocaine|heroin|meth(?:amphetamine)?|opioids?)\b", "drug_use", AssertionStatus.PRESENT),
+    ],
+}
 
 
 # ============================================================================
@@ -1277,6 +1519,242 @@ class ExtractorMixin:
                     confidence=0.85,
                 )
                 entities.append(entity)
+
+        return entities
+
+    def _extract_allergies(
+        self, text: str, sections: list[SectionSpan]
+    ) -> list[ExtractedEntity]:
+        """Extract allergy entities with reaction type and severity.
+
+        Extracts drug allergies, food allergies, and environmental allergies.
+        Also captures reaction types (rash, anaphylaxis, etc.) when mentioned.
+        """
+        entities: list[ExtractedEntity] = []
+        text_lower = text.lower()
+
+        # Track matched spans to avoid duplicates
+        matched_spans: set[tuple[int, int]] = set()
+
+        for pattern, normalized_name, allergen_category in ALLERGY_PATTERNS:
+            for match in re.finditer(pattern, text_lower, re.IGNORECASE):
+                # Skip if this span overlaps with an existing match
+                span_key = (match.start(), match.end())
+                overlaps = False
+                for existing_start, existing_end in matched_spans:
+                    if not (match.end() <= existing_start or match.start() >= existing_end):
+                        overlaps = True
+                        break
+                if overlaps:
+                    continue
+
+                matched_spans.add(span_key)
+
+                span = EntitySpan(
+                    start=match.start(),
+                    end=match.end(),
+                    text=text[match.start():match.end()],
+                )
+                section = self._get_section_at_offset(match.start(), sections)
+
+                # Higher confidence in Allergies section
+                confidence = 0.90 if section == ClinicalSection.ALLERGIES else 0.80
+
+                # Look for reaction type in surrounding context
+                # Limit to 30 chars or stop at sentence/phrase boundaries
+                context_start = max(0, match.start() - 30)
+                context_end = min(len(text_lower), match.end() + 40)
+
+                # Find sentence/phrase boundaries to limit context
+                # Stop at period, semicolon, or newline
+                before_text = text_lower[context_start:match.start()]
+                after_text = text_lower[match.end():context_end]
+
+                # Trim context at phrase boundaries
+                for sep in ['. ', '; ', '\n', '|']:
+                    if sep in before_text:
+                        before_text = before_text.split(sep)[-1]
+                    if sep in after_text:
+                        after_text = after_text.split(sep)[0]
+
+                context = before_text + text_lower[match.start():match.end()] + after_text
+
+                reaction_type = None
+                reaction_severity = None
+
+                # Search for reaction patterns in the context
+                # First, check for negation words that might negate reactions
+                negation_match = re.search(r'\b(?:no|not|without|denies|denied)\s+', context)
+
+                for reaction_pattern, reaction_name, severity in ALLERGY_REACTION_PATTERNS:
+                    reaction_match = re.search(reaction_pattern, context, re.IGNORECASE)
+                    if reaction_match:
+                        # Check if this reaction is negated (negation word appears before reaction)
+                        if negation_match and negation_match.end() <= reaction_match.start():
+                            # This reaction is negated, skip it
+                            continue
+                        reaction_type = reaction_name
+                        reaction_severity = severity
+                        # Prefer more severe reactions if multiple found
+                        if severity == "severe":
+                            break
+
+                # For "no known allergies" variants, set assertion to ABSENT
+                assertion = AssertionStatus.PRESENT
+                if allergen_category == "none":
+                    assertion = AssertionStatus.ABSENT
+
+                entity = ExtractedEntity(
+                    id=str(uuid4()),
+                    entity_type=EntityType.ALLERGY,
+                    text=span.text,
+                    normalized_text=normalized_name,
+                    span=span,
+                    section=section,
+                    assertion=assertion,
+                    confidence=confidence,
+                    reaction_type=reaction_type,
+                    reaction_severity=reaction_severity,
+                    allergen_category=allergen_category,
+                )
+                entities.append(entity)
+
+        return entities
+
+    def _extract_social_history(
+        self, text: str, sections: list[SectionSpan]
+    ) -> list[ExtractedEntity]:
+        """Extract social history entities (smoking, alcohol, drugs).
+
+        Extracts structured information about:
+        - Smoking status (current, former, never) with pack-years and quit duration
+        - Alcohol use status with quantity
+        - Drug use status (current, former, denies)
+
+        Args:
+            text: The clinical text to process.
+            sections: List of detected clinical sections.
+
+        Returns:
+            List of ExtractedEntity objects for social history items.
+        """
+        entities: list[ExtractedEntity] = []
+        text_lower = text.lower()
+        matched_spans: set[tuple[int, int]] = set()
+
+        # Process each social history category
+        for category, patterns in SOCIAL_HISTORY_PATTERNS.items():
+            for pattern, status, default_assertion in patterns:
+                for match in re.finditer(pattern, text_lower, re.IGNORECASE):
+                    # Check for overlapping spans
+                    span_start = match.start()
+                    span_end = match.end()
+                    overlap = False
+                    for existing_start, existing_end in matched_spans:
+                        if not (span_end <= existing_start or span_start >= existing_end):
+                            overlap = True
+                            break
+
+                    if overlap:
+                        continue
+
+                    matched_spans.add((span_start, span_end))
+
+                    span = EntitySpan(
+                        start=span_start,
+                        end=span_end,
+                        text=text[span_start:span_end],
+                    )
+                    section = self._get_section_at_offset(span_start, sections)
+
+                    # Higher confidence in Social History section
+                    confidence = 0.90 if section == ClinicalSection.SOCIAL_HISTORY else 0.75
+
+                    # Extract quantity information if present
+                    quantity = None
+                    if status == "pack_years":
+                        # Extract numeric value for pack-years
+                        qty_match = re.search(r"(\d+(?:\.\d+)?)", match.group(0))
+                        if qty_match:
+                            quantity = f"{qty_match.group(1)} pack-years"
+                    elif status == "quit_duration" or status == "drug_free_duration":
+                        # Extract duration value
+                        if match.lastindex and match.lastindex >= 2:
+                            quantity = f"{match.group(1)} {match.group(2)} ago"
+                    elif status == "alcohol_quantity":
+                        # Extract drinks per period
+                        if match.lastindex and match.lastindex >= 1:
+                            quantity = match.group(0)
+
+                    # Build normalized text based on category and status
+                    if category == "smoking":
+                        if status == "current_smoker":
+                            normalized_text = "Current Smoker"
+                        elif status == "former_smoker":
+                            normalized_text = "Former Smoker"
+                        elif status == "never_smoker":
+                            normalized_text = "Never Smoker"
+                        elif status == "pack_years":
+                            normalized_text = f"Tobacco Use - {quantity}" if quantity else "Tobacco Use"
+                        elif status == "quit_duration":
+                            normalized_text = f"Former Smoker - Quit {quantity}" if quantity else "Former Smoker"
+                        else:
+                            normalized_text = f"Tobacco: {status.replace('_', ' ').title()}"
+                    elif category == "alcohol":
+                        if status in ("social_drinker", "occasional_drinker", "moderate_drinker", "rare_drinker", "current_drinker"):
+                            normalized_text = status.replace("_", " ").title()
+                        elif status in ("heavy_drinker", "binge_drinker", "excessive_drinker"):
+                            normalized_text = status.replace("_", " ").title()
+                        elif status in ("alcoholism", "alcohol_abuse", "alcohol_use_disorder"):
+                            normalized_text = "Alcohol Use Disorder"
+                        elif status in ("denies_alcohol", "abstains_alcohol"):
+                            normalized_text = "Denies Alcohol Use"
+                        elif status == "former_drinker":
+                            normalized_text = "Former Alcohol Use"
+                        elif status == "alcohol_quantity":
+                            normalized_text = f"Alcohol Use - {quantity}" if quantity else "Alcohol Use"
+                        else:
+                            normalized_text = f"Alcohol: {status.replace('_', ' ').title()}"
+                    else:  # drugs
+                        if status == "denies_drugs":
+                            normalized_text = "Denies Illicit Drug Use"
+                        elif status == "history_drug_use":
+                            normalized_text = "History of Substance Use"
+                        elif status == "history_iv_drug_use":
+                            normalized_text = "History of IV Drug Use"
+                        elif status == "former_drug_use":
+                            normalized_text = "Former Drug Use"
+                        elif status in ("in_recovery", "recovering_addict", "sud_remission"):
+                            normalized_text = "Substance Use Disorder - In Recovery"
+                        elif status == "drug_free_duration":
+                            normalized_text = f"Substance Use - Clean {quantity}" if quantity else "Substance Use - In Recovery"
+                        elif status == "iv_drug_use":
+                            normalized_text = "IV Drug Use"
+                        elif status == "illicit_drug_use":
+                            normalized_text = "Illicit Drug Use"
+                        elif status == "recreational_drug_use":
+                            normalized_text = "Recreational Drug Use"
+                        elif "_use" in status:
+                            # marijuana_use -> Marijuana Use
+                            substance = status.replace("_use", "").replace("_", " ").title()
+                            normalized_text = f"{substance} Use"
+                        else:
+                            normalized_text = f"Substance Use: {status.replace('_', ' ').title()}"
+
+                    entity = ExtractedEntity(
+                        id=str(uuid4()),
+                        entity_type=EntityType.SOCIAL_HISTORY,
+                        text=span.text,
+                        normalized_text=normalized_text,
+                        span=span,
+                        section=section,
+                        assertion=default_assertion,
+                        confidence=confidence,
+                        social_history_category=category,
+                        social_history_status=status,
+                        quantity=quantity,
+                    )
+                    entities.append(entity)
 
         return entities
 

@@ -2,10 +2,12 @@
 
 Implements graph construction with database persistence.
 Supports bi-temporal model for temporal reasoning.
+Syncs graphs to Neo4j for graph queries and visualization.
 """
 
 from __future__ import annotations
 
+import json
 import logging
 from datetime import datetime
 from uuid import UUID
@@ -23,6 +25,7 @@ from app.services.graph_builder import (
     GraphResult,
     NodeInput,
 )
+from app.services.graph_database_service import get_graph_database_service
 
 logger = logging.getLogger(__name__)
 
@@ -335,6 +338,8 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
         - created_at → source_document_date (when recorded)
         - temporality → temporality (current/past/future from NLP)
         - confidence → temporal_confidence
+
+        After building the PostgreSQL graph, syncs to Neo4j for graph queries.
         """
         nodes_created = 0
         edges_created = 0
@@ -389,9 +394,12 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
                 nodes_created += 1
                 edges_created += 1
 
-        # Get final counts
+        # Get final counts and data for Neo4j sync
         all_nodes = self.get_nodes_for_patient(patient_id)
         all_edges = self.get_edges_for_patient(patient_id)
+
+        # Sync to Neo4j for graph queries and visualization
+        self._sync_to_neo4j(patient_id, all_nodes, all_edges)
 
         return GraphResult(
             patient_id=patient_id,
@@ -400,6 +408,187 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
             nodes_created=nodes_created,
             edges_created=edges_created,
         )
+
+    def _sync_to_neo4j(
+        self,
+        patient_id: str,
+        nodes: list[NodeInput],
+        edges: list[EdgeInput],
+    ) -> None:
+        """Sync patient graph to Neo4j for graph queries and visualization.
+
+        This method gracefully handles Neo4j being unavailable:
+        - If Neo4j is not connected, logs a warning and returns
+        - PostgreSQL graph remains valid for local queries
+        - System degrades gracefully without failing
+
+        Args:
+            patient_id: The patient ID to sync
+            nodes: List of nodes to sync
+            edges: List of edges to sync
+        """
+        graph_db = get_graph_database_service()
+
+        # Check if Neo4j is available
+        if not graph_db.is_connected:
+            if graph_db.is_mock_mode:
+                logger.debug(
+                    f"Neo4j in mock mode, skipping sync for patient {patient_id}"
+                )
+            else:
+                logger.warning(
+                    f"Neo4j not available, skipping sync for patient {patient_id}"
+                )
+            return
+
+        try:
+            # Create or update patient node in Neo4j
+            patient_cypher = """
+            MERGE (p:Patient {patient_id: $patient_id})
+            SET p.label = $label,
+                p.updated_at = datetime()
+            RETURN p
+            """
+            graph_db.execute_write(
+                patient_cypher,
+                {"patient_id": patient_id, "label": f"Patient {patient_id}"},
+            )
+
+            # Create or update clinical fact nodes
+            for node in nodes:
+                # Skip patient nodes (already created above)
+                if node.node_type == NodeType.PATIENT:
+                    continue
+
+                # Generate a unique node ID based on patient + concept
+                node_id = f"{patient_id}_{node.node_type.value}_{node.omop_concept_id or node.label}"
+
+                node_cypher = """
+                MERGE (n:ClinicalFact {node_id: $node_id})
+                SET n.patient_id = $patient_id,
+                    n.label = $label,
+                    n.node_type = $node_type,
+                    n.omop_concept_id = $omop_concept_id,
+                    n.properties = $properties,
+                    n.updated_at = datetime()
+                """
+                graph_db.execute_write(
+                    node_cypher,
+                    {
+                        "node_id": node_id,
+                        "patient_id": patient_id,
+                        "label": node.label,
+                        "node_type": node.node_type.value,
+                        "omop_concept_id": node.omop_concept_id,
+                        "properties": json.dumps(node.properties),
+                    },
+                )
+
+            # Create edges between patient and clinical facts
+            for edge in edges:
+                # Generate node IDs for source and target
+                source_node = self._find_node_by_uuid(nodes, edge.source_node_id)
+                target_node = self._find_node_by_uuid(nodes, edge.target_node_id)
+
+                if source_node is None or target_node is None:
+                    logger.warning(
+                        f"Could not find nodes for edge {edge.source_node_id} -> {edge.target_node_id}"
+                    )
+                    continue
+
+                # Build source and target IDs
+                if source_node.node_type == NodeType.PATIENT:
+                    source_id = patient_id
+                    source_label = "Patient"
+                else:
+                    source_id = f"{patient_id}_{source_node.node_type.value}_{source_node.omop_concept_id or source_node.label}"
+                    source_label = "ClinicalFact"
+
+                if target_node.node_type == NodeType.PATIENT:
+                    target_id = patient_id
+                    target_label = "Patient"
+                else:
+                    target_id = f"{patient_id}_{target_node.node_type.value}_{target_node.omop_concept_id or target_node.label}"
+                    target_label = "ClinicalFact"
+
+                # Create relationship with edge type
+                # Use dynamic relationship type based on edge_type
+                edge_cypher = f"""
+                MATCH (s:{source_label} {{{('patient_id' if source_label == 'Patient' else 'node_id')}: $source_id}})
+                MATCH (t:{target_label} {{{('patient_id' if target_label == 'Patient' else 'node_id')}: $target_id}})
+                MERGE (s)-[r:{edge.edge_type.value.upper().replace(' ', '_')}]->(t)
+                SET r.edge_type = $edge_type,
+                    r.properties = $properties,
+                    r.temporality = $temporality,
+                    r.updated_at = datetime()
+                RETURN r
+                """
+                graph_db.execute_write(
+                    edge_cypher,
+                    {
+                        "source_id": source_id,
+                        "target_id": target_id,
+                        "edge_type": edge.edge_type.value,
+                        "properties": json.dumps(edge.properties),
+                        "temporality": edge.temporality,
+                    },
+                )
+
+            logger.info(
+                f"Synced {len(nodes)} nodes and {len(edges)} edges to Neo4j "
+                f"for patient {patient_id}"
+            )
+
+        except Exception as e:
+            # Log error but don't fail - PostgreSQL graph is still valid
+            logger.error(
+                f"Failed to sync graph to Neo4j for patient {patient_id}: {e}"
+            )
+
+    def _find_node_by_uuid(
+        self,
+        nodes: list[NodeInput],
+        node_uuid: UUID,
+    ) -> NodeInput | None:
+        """Find a node in the list by checking the dedup cache.
+
+        Since NodeInput doesn't have a UUID, we need to look up the node
+        based on the dedup key that maps to this UUID.
+
+        Args:
+            nodes: List of nodes to search
+            node_uuid: UUID to find
+
+        Returns:
+            The matching NodeInput or None
+        """
+        # Reverse lookup in dedup cache
+        for dedup_key, cached_uuid in self._node_dedup_cache.items():
+            if cached_uuid == node_uuid:
+                # Parse dedup key to find matching node
+                # Key format: "patient_id:node_type:omop_concept_id"
+                parts = dedup_key.split(":")
+                if len(parts) >= 2:
+                    patient_id = parts[0]
+                    node_type_str = parts[1]
+                    omop_id = int(parts[2]) if len(parts) > 2 and parts[2] else None
+
+                    for node in nodes:
+                        if (
+                            node.patient_id == patient_id
+                            and node.node_type.value == node_type_str
+                            and node.omop_concept_id == omop_id
+                        ):
+                            return node
+
+        # Check patient node cache
+        for patient_id, cached_uuid in self._patient_node_cache.items():
+            if cached_uuid == node_uuid:
+                for node in nodes:
+                    if node.node_type == NodeType.PATIENT and node.patient_id == patient_id:
+                        return node
+
+        return None
 
     def get_patient_graph(self, patient_id: str) -> PatientGraph:
         """Get the complete graph for a patient.

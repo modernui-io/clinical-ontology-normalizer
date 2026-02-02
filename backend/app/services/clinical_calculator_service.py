@@ -2849,6 +2849,83 @@ class ClinicalCalculatorService:
                 "description": tc.description,
             })
 
+        # Serialize provenance if available
+        provenance_dict = None
+        if definition.provenance:
+            prov = definition.provenance
+            provenance_dict = {
+                "original_citation": None,
+                "evidence_level": prov.evidence_level.value if prov.evidence_level else None,
+                "evidence_summary": prov.evidence_summary,
+                "validation_studies": [],
+                "overall_validation": prov.overall_validation.value if prov.overall_validation else None,
+                "clinical_pearls": [
+                    {"text": p.text, "category": p.category, "source": p.source}
+                    for p in prov.clinical_pearls
+                ],
+                "pitfalls": prov.pitfalls,
+                "usage_guidance": None,
+                "related_guidelines": [
+                    {
+                        "guideline_name": g.guideline_name,
+                        "recommendation_class": g.recommendation_class,
+                        "evidence_level": g.evidence_level,
+                        "year": g.year,
+                        "organization": g.organization,
+                    }
+                    for g in prov.related_guidelines
+                ],
+                "related_calculator_ids": prov.related_calculator_ids,
+                "mdcalc_url": prov.mdcalc_url,
+            }
+            # Serialize original citation
+            if prov.original_citation:
+                cit = prov.original_citation
+                provenance_dict["original_citation"] = {
+                    "title": cit.title,
+                    "authors": cit.authors,
+                    "journal": cit.journal,
+                    "year": cit.year,
+                    "volume": cit.volume,
+                    "pages": cit.pages,
+                    "pmid": cit.pmid,
+                    "doi": cit.doi,
+                    "is_original_derivation": cit.is_original_derivation,
+                    "pubmed_url": cit.pubmed_url,
+                }
+            # Serialize validation studies
+            for vs in prov.validation_studies:
+                vs_cit = vs.citation
+                provenance_dict["validation_studies"].append({
+                    "citation": {
+                        "title": vs_cit.title,
+                        "authors": vs_cit.authors,
+                        "journal": vs_cit.journal,
+                        "year": vs_cit.year,
+                        "volume": vs_cit.volume,
+                        "pages": vs_cit.pages,
+                        "pmid": vs_cit.pmid,
+                        "doi": vs_cit.doi,
+                        "is_original_derivation": vs_cit.is_original_derivation,
+                        "pubmed_url": vs_cit.pubmed_url,
+                    },
+                    "population": vs.population,
+                    "sample_size": vs.sample_size,
+                    "setting": vs.setting,
+                    "performance_auc": vs.performance_auc,
+                    "validation_outcome": vs.validation_outcome.value,
+                    "notes": vs.notes,
+                })
+            # Serialize usage guidance
+            if prov.usage_guidance:
+                ug = prov.usage_guidance
+                provenance_dict["usage_guidance"] = {
+                    "when_to_use": ug.when_to_use,
+                    "when_not_to_use": ug.when_not_to_use,
+                    "target_population": ug.target_population,
+                    "excluded_populations": ug.excluded_populations,
+                }
+
         return {
             "id": definition.id,
             "name": definition.name,
@@ -2871,6 +2948,7 @@ class ClinicalCalculatorService:
             ],
             "references": definition.references,
             "notes": definition.notes,
+            "provenance": provenance_dict,
         }
 
     def list_data_driven_calculators(

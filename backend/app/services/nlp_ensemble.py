@@ -334,7 +334,10 @@ class EnsembleNLPService(BaseNLPService):
         document_id: UUID,
         note_type: str | None,
     ) -> list[ExtractedMention]:
-        """Extract mentions using ML NER service."""
+        """Extract mentions using ML NER service.
+
+        Gracefully handles long texts that may exceed model limits.
+        """
         if not self._ml_ner_service:
             return []
 
@@ -345,6 +348,8 @@ class EnsembleNLPService(BaseNLPService):
             return mentions
         except Exception as e:
             logger.warning(f"ML NER extraction failed: {e}")
+            # Log text length for debugging
+            logger.debug(f"Failed text length: {len(text)} chars")
             return []
 
     def _extract_modernbert(
@@ -356,7 +361,8 @@ class EnsembleNLPService(BaseNLPService):
         """Extract mentions using ModernBERT NER service.
 
         ModernBERT has 8K context and higher accuracy, so we apply
-        a weight multiplier to its confidence scores.
+        a weight multiplier to its confidence scores. Long texts are
+        automatically chunked by the underlying service.
         """
         if not self._modernbert_service:
             return []
@@ -369,9 +375,11 @@ class EnsembleNLPService(BaseNLPService):
             for m in mentions:
                 boosted = m.confidence * self.config.modernbert_weight
                 m.confidence = min(boosted, self.config.max_confidence)
+            logger.debug(f"ModernBERT extracted {len(mentions)} mentions from {len(text)} chars")
             return mentions
         except Exception as e:
             logger.warning(f"ModernBERT extraction failed: {e}")
+            logger.debug(f"Failed text length: {len(text)} chars")
             return []
 
     def _extract_values(
@@ -442,7 +450,8 @@ class EnsembleNLPService(BaseNLPService):
         """Extract mentions using the ensemble of methods.
 
         This is the main extraction method that combines results from
-        all enabled extractors.
+        all enabled extractors. Long texts are automatically chunked
+        by the underlying services.
 
         Args:
             text: Clinical text to process
@@ -453,6 +462,9 @@ class EnsembleNLPService(BaseNLPService):
             Merged list of ExtractedMention objects
         """
         self._initialize()
+
+        text_len = len(text)
+        logger.info(f"Ensemble extraction starting for {text_len} chars text")
 
         mentions_by_source: dict[str, list[ExtractedMention]] = {}
 

@@ -371,32 +371,52 @@ class ModernBERTNERService(BaseNLPService):
             return []
 
         try:
-            # ModernBERT handles 8K tokens - no chunking needed for most docs
-            # Only chunk if text is exceptionally long
-            tokenized = self._tokenizer(text, return_length=True, truncation=False)
-            token_count = tokenized["length"][0] if isinstance(tokenized["length"], list) else tokenized["length"]
-
-            if token_count <= self.config.max_sequence_length:
-                # Single pass - no chunking
-                return self._pipeline(text)
-            else:
-                # Rare case: document exceeds 8K tokens
-                logger.info(f"Document exceeds {self.config.max_sequence_length} tokens, using chunking")
+            # Safety check: if text is long, always chunk
+            # ~3 chars per token on average, so 8192 * 3 = ~24,576 chars
+            # Use 20,000 chars as safe threshold
+            if len(text) > 20000:
+                logger.info(f"Text exceeds safe char limit ({len(text)} chars), using chunking")
                 return self._extract_chunked(text)
+
+            # For shorter texts, check token count precisely
+            if self._tokenizer is not None:
+                tokenized = self._tokenizer(text, return_length=True, truncation=False)
+                token_count = tokenized["length"][0] if isinstance(tokenized["length"], list) else tokenized["length"]
+
+                if token_count > self.config.max_sequence_length:
+                    logger.info(f"Document exceeds {self.config.max_sequence_length} tokens ({token_count}), using chunking")
+                    return self._extract_chunked(text)
+
+            # Single pass - text is within limits
+            return self._pipeline(text)
 
         except Exception as e:
             logger.warning(f"Entity extraction failed: {e}")
-            return []
+            # Fallback: try chunking anyway if direct call failed
+            try:
+                logger.info("Attempting chunked extraction as fallback")
+                return self._extract_chunked(text)
+            except Exception as e2:
+                logger.error(f"Chunked extraction also failed: {e2}")
+                return []
 
     def _extract_chunked(self, text: str) -> list[dict[str, Any]]:
-        """Extract from very long text using overlapping chunks."""
-        # Approximate chars per token (conservative)
-        chars_per_token = 4
-        chunk_chars = self.config.max_sequence_length * chars_per_token
+        """Extract from very long text using overlapping chunks.
+
+        Uses conservative chunk sizing to avoid exceeding model limits.
+        """
+        # Conservative: ~3 chars per token to stay well under limit
+        # This ensures chunks won't exceed max_sequence_length even with
+        # variable token lengths (some tokens < 1 char, e.g., subwords)
+        chars_per_token = 3
+        # Use 75% of max to leave buffer for tokenization variance
+        max_chunk_tokens = int(self.config.max_sequence_length * 0.75)
+        chunk_chars = max_chunk_tokens * chars_per_token
         overlap_chars = 200
 
         all_entities = []
         start = 0
+        chunk_num = 0
 
         while start < len(text):
             end = min(start + chunk_chars, len(text))
@@ -410,16 +430,24 @@ class ModernBERTNERService(BaseNLPService):
                         break
 
             chunk = text[start:end]
-            entities = self._pipeline(chunk)
+            chunk_num += 1
 
-            # Adjust offsets for chunk position
-            for ent in entities:
-                ent["start"] += start
-                ent["end"] += start
+            try:
+                entities = self._pipeline(chunk)
 
-            all_entities.extend(entities)
+                # Adjust offsets for chunk position
+                for ent in entities:
+                    ent["start"] += start
+                    ent["end"] += start
+
+                all_entities.extend(entities)
+            except Exception as e:
+                logger.warning(f"Chunk {chunk_num} extraction failed ({len(chunk)} chars): {e}")
+                # Continue with next chunk
+
             start = end - overlap_chars
 
+        logger.info(f"Processed {chunk_num} chunks, found {len(all_entities)} raw entities")
         return self._deduplicate_entities(all_entities)
 
     def _deduplicate_entities(self, entities: list[dict]) -> list[dict]:

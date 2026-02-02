@@ -15,6 +15,7 @@ from app.models import Document
 from app.models.mention import Mention, MentionConceptCandidate
 from app.schemas.base import Assertion, Domain, Experiencer, JobStatus, Temporality
 from app.services.fact_builder_db import DatabaseFactBuilderService
+from app.services.graph_builder_db import DatabaseGraphBuilderService
 from app.services.kg_cache_service import get_kg_cache_service
 from app.services.mapping_sql import SQLMappingService
 from app.services.nlp_rule_based import RuleBasedNLPService
@@ -274,6 +275,25 @@ def process_document(document_id: str) -> dict:
 
             logger.info(f"Created {fact_count} clinical facts from mentions")
 
+            # Phase 7: Auto-build knowledge graph from facts
+            graph_nodes_created = 0
+            graph_edges_created = 0
+            if fact_count > 0:
+                try:
+                    graph_builder = DatabaseGraphBuilderService(session)
+                    graph_result = graph_builder.build_graph_for_patient(document.patient_id)
+                    graph_nodes_created = graph_result.nodes_created
+                    graph_edges_created = graph_result.edges_created
+                    logger.info(
+                        f"Built knowledge graph for patient {document.patient_id}: "
+                        f"{graph_nodes_created} nodes, {graph_edges_created} edges"
+                    )
+                except Exception as e:
+                    logger.warning(
+                        f"Failed to build knowledge graph for patient {document.patient_id}: {e}"
+                    )
+                    # Continue processing - graph building failure shouldn't fail the document
+
             # Update status to COMPLETED
             session.execute(
                 update(Document)
@@ -312,6 +332,8 @@ def process_document(document_id: str) -> dict:
                 "mention_count": len(mention_records),
                 "candidate_count": candidate_count,
                 "fact_count": fact_count,
+                "graph_nodes_created": graph_nodes_created,
+                "graph_edges_created": graph_edges_created,
             }
 
     except Exception as e:

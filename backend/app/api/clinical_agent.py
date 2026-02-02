@@ -28,6 +28,12 @@ from app.models.mention import Mention as MentionModel
 from app.models.provenance import ReasoningStepType
 from app.schemas.base import Domain, JobStatus
 from app.schemas.knowledge_graph import EdgeType, NodeType
+from app.services.graph_augmented_rag import GraphAugmentedRAGService
+from app.services.multi_agent_orchestrator import (
+    AgentContext,
+    MultiAgentOrchestrator,
+    get_multi_agent_orchestrator,
+)
 from app.services.nlp_rule_based import RuleBasedNLPService
 from app.services.provenance_db_service import get_provenance_db_service
 
@@ -888,6 +894,77 @@ async def hybrid_query(
     except Exception as e:
         logger.warning(f"Failed to record KG provenance: {e}")
 
+    # Step: Multi-hop Graph RAG Retrieval for enriched context
+    graph_rag_start = time.perf_counter()
+    graph_paths_data: list[dict] = []
+    graph_context = ""
+    try:
+        graph_rag_service = GraphAugmentedRAGService(db)
+        enriched_context = await graph_rag_service.retrieve_context_async(
+            query=request.question,
+            patient_id=patient_id,
+            max_hops=3,  # Multi-hop traversal for richer context
+            max_paths=10,
+            include_temporal=True,
+            include_policies=True,
+        )
+
+        # Format graph context for LLM
+        graph_context = enriched_context.to_llm_prompt()
+
+        # Extract path data for provenance
+        for path in enriched_context.graph_paths:
+            graph_paths_data.append({
+                "path_type": path.path_type,
+                "nodes": [n.get("label", "?") for n in path.nodes],
+                "edges": [e.get("edge_type", "?") for e in path.edges],
+                "confidence": path.confidence,
+            })
+
+        graph_rag_duration = (time.perf_counter() - graph_rag_start) * 1000
+
+        # Record GRAPH_RAG_RETRIEVAL provenance trace
+        step_order += 1
+        await provenance_svc.create_reasoning_trace(
+            session=db,
+            query_id=query_id,
+            step_order=step_order,
+            step_type=ReasoningStepType.GRAPH_RAG_RETRIEVAL.value,
+            patient_id=patient_id,
+            input_summary=f"Query: '{request.question}', max_hops: 3",
+            output_summary=(
+                f"Traversed {len(graph_paths_data)} paths, "
+                f"{enriched_context.total_evidence_pieces} total evidence pieces"
+            ),
+            duration_ms=round(graph_rag_duration, 2),
+            metadata={
+                "paths_traversed": len(graph_paths_data),
+                "total_evidence": enriched_context.total_evidence_pieces,
+                "path_types": list(set(p["path_type"] for p in graph_paths_data)),
+                "temporal_events": len(enriched_context.temporal_context.event_timeline)
+                if enriched_context.temporal_context else 0,
+                "sample_paths": graph_paths_data[:3],
+            },
+        )
+        reasoning_chain.append({
+            "step": step_order,
+            "type": "graph_rag_retrieval",
+            "summary": f"Multi-hop graph traversal found {len(graph_paths_data)} paths",
+            "duration_ms": round(graph_rag_duration, 2),
+            "details": {
+                "paths_traversed": len(graph_paths_data),
+                "total_evidence": enriched_context.total_evidence_pieces,
+                "path_types": list(set(p["path_type"] for p in graph_paths_data)),
+            },
+        })
+
+        logger.info(
+            f"Graph RAG retrieved {len(graph_paths_data)} paths for patient {patient_id}"
+        )
+    except Exception as e:
+        logger.warning(f"Graph RAG retrieval failed, continuing without: {e}")
+        graph_rag_duration = (time.perf_counter() - graph_rag_start) * 1000
+
     # Find evidence in documents (only if documents exist)
     if request.include_evidence and documents:
         search_terms = [n.label.lower() for n in matching_nodes[:5]]
@@ -1075,6 +1152,118 @@ Knowledge Graph Summary ({len(nodes)} nodes):
     except Exception as e:
         logger.warning(f"Failed to record RAG provenance: {e}")
 
+    # =============================================================================
+    # Multi-Agent Orchestrator: Consensus-based clinical reasoning
+    # =============================================================================
+    orchestrator_start = time.perf_counter()
+    consensus_context = ""
+    mdt_session_summary: dict[str, Any] = {}
+    try:
+        # Build AgentContext from KG nodes
+        agent_context = AgentContext(
+            patient_id=patient_id,
+            clinical_text=request.question,
+        )
+
+        # Populate conditions with confidence
+        for node in nodes:
+            if node.node_type == NodeType.CONDITION:
+                agent_context.conditions.append({
+                    "name": node.label,
+                    "confidence": node.properties.get("confidence", 0.9) if node.properties else 0.9,
+                    "source": node.properties.get("source_notes", ["note"])[0] if node.properties else "note",
+                })
+            elif node.node_type == NodeType.DRUG:
+                agent_context.medications.append({
+                    "name": node.label,
+                    "dose": node.properties.get("dose", "") if node.properties else "",
+                })
+            elif node.node_type == NodeType.MEASUREMENT:
+                # Parse measurement for name/value if available
+                agent_context.lab_values.append({
+                    "name": node.label,
+                    "value": node.properties.get("value", "") if node.properties else "",
+                    "unit": node.properties.get("unit", "") if node.properties else "",
+                })
+
+        # Add allergies from properties if available
+        for node in nodes:
+            if node.properties and node.properties.get("assertion") == "ALLERGY":
+                agent_context.allergies.append(node.label)
+
+        # Run multi-agent orchestration
+        orchestrator = get_multi_agent_orchestrator()
+        session = await orchestrator.create_session(patient_id, agent_context)
+        mdt_result = await orchestrator.run_mdt_discussion(session.session_id)
+
+        # Build consensus context for LLM prompt
+        if mdt_result.consensus_results:
+            consensus_context = "\n\nClinical Agent Consensus (Multi-Disciplinary Team):"
+            for i, consensus in enumerate(mdt_result.consensus_results[:5], 1):
+                rec = consensus.recommendation
+                consensus_context += (
+                    f"\n[Agent {i}] {rec.agent_role.value.title()} Agent — "
+                    f"{rec.recommendation_type.value}: {rec.content} "
+                    f"(Consensus: {consensus.consensus_level.value}, "
+                    f"Confidence: {consensus.final_confidence:.2f})"
+                )
+                if consensus.dissenting_concerns:
+                    concerns_str = "; ".join(consensus.dissenting_concerns[:2])
+                    consensus_context += f"\n  Concerns: {concerns_str}"
+
+            # Store session summary for provenance
+            mdt_session_summary = orchestrator.get_session_summary(session.session_id)
+
+        logger.info(
+            f"MDT discussion completed: {len(mdt_result.consensus_results)} "
+            f"recommendations from {len(orchestrator.agents)} agents"
+        )
+
+    except Exception as e:
+        logger.warning(f"Multi-agent orchestration failed, proceeding without: {e}")
+
+    orchestrator_duration = (time.perf_counter() - orchestrator_start) * 1000
+
+    # Record ORCHESTRATOR_CONSENSUS reasoning trace
+    try:
+        step_order += 1
+        await provenance_svc.create_reasoning_trace(
+            session=db,
+            query_id=query_id,
+            step_order=step_order,
+            step_type=ReasoningStepType.ORCHESTRATOR_CONSENSUS.value,
+            patient_id=patient_id,
+            input_summary=f"Query: '{request.question}', {len(conditions)} conditions, {len(medications)} medications",
+            output_summary=(
+                f"Generated {len(mdt_session_summary.get('consensus_results', []))} "
+                f"consensus recommendations from MDT discussion"
+            ),
+            duration_ms=round(orchestrator_duration, 2),
+            metadata={
+                "session_id": mdt_session_summary.get("session_id", ""),
+                "total_recommendations": mdt_session_summary.get("total_recommendations", 0),
+                "agents_involved": [str(a) for a in mdt_session_summary.get("agents_involved", [])],
+                "consensus_levels": [
+                    r.get("consensus_level") for r in mdt_session_summary.get("consensus_results", [])
+                ],
+            },
+        )
+        reasoning_chain.append({
+            "step": step_order,
+            "type": "orchestrator_consensus",
+            "summary": (
+                f"Multi-agent deliberation: {len(mdt_session_summary.get('consensus_results', []))} "
+                f"consensus recommendations"
+            ),
+            "duration_ms": round(orchestrator_duration, 2),
+            "details": {
+                "agents": [str(a) for a in mdt_session_summary.get("agents_involved", [])],
+                "recommendations": len(mdt_session_summary.get("consensus_results", [])),
+            },
+        })
+    except Exception as e:
+        logger.warning(f"Failed to record orchestrator provenance: {e}")
+
     # Use LLM to generate answer
     llm_start = time.perf_counter()
     try:
@@ -1083,28 +1272,40 @@ Knowledge Graph Summary ({len(nodes)} nodes):
         llm = get_llm_service()
 
         system_prompt = """You are a clinical decision support assistant analyzing a patient's electronic health record data.
-You have access to a knowledge graph built from the patient's clinical notes.
+You have access to a knowledge graph built from the patient's clinical notes, including multi-hop relationship paths.
+You also have input from a multi-disciplinary clinical team (Diagnostic, Treatment, Safety, Evidence specialists).
 
 Guidelines:
-- Answer questions based ONLY on the provided clinical data and guideline references
+- Answer questions based ONLY on the provided clinical data, graph evidence, guideline references, and agent consensus
 - Be specific and cite relevant entities from the knowledge graph
+- When graph evidence paths are provided, use them to explain relationships between clinical entities
 - When clinical guideline references are provided, incorporate them into your answer using [Guideline N] citation format
 - When institutional policy references are provided, incorporate them using [Policy N] citation format
+- When agent consensus is provided, synthesize their recommendations and note any dissenting concerns
 - Distinguish between patient-specific data (from the knowledge graph) and general recommendations (from guidelines)
+- If agents have conflicting views, acknowledge the disagreement and explain the reasoning
 - If the data is insufficient, say so clearly
 - Use clinical terminology appropriately
 - Keep answers concise but thorough (2-4 sentences for simple questions, more for complex ones)
-- Never fabricate information not present in the data or guidelines"""
+- Never fabricate information not present in the data, guidelines, or agent consensus"""
 
-        user_prompt = f"""{clinical_context}{guideline_context}
+        # Include graph RAG context if available (multi-hop traversal paths and temporal context)
+        full_context = clinical_context
+        if graph_context:
+            full_context += "\n\n" + graph_context
+        full_context += guideline_context + consensus_context
+
+        user_prompt = f"""{full_context}
 
 Question: {request.question}
 
-Provide a clear, evidence-based answer using the clinical data above."""
+Provide a clear, evidence-based answer synthesizing the clinical data, graph relationships, and agent consensus above."""
         if guideline_citations_data:
             user_prompt += " Reference relevant guidelines using [Guideline N] citations where applicable."
         if policy_citations_data:
             user_prompt += " Reference relevant policies using [Policy N] citations where applicable."
+        if consensus_context:
+            user_prompt += " Note any significant agent consensus or dissenting opinions."
 
         response = await llm.generate(
             prompt=user_prompt,
@@ -1120,10 +1321,26 @@ Provide a clear, evidence-based answer using the clinical data above."""
         confidence = min(0.95, 0.6 + len(relevant_entities) * 0.03 + len(evidence_sources) * 0.08)
         # Boost confidence for guideline matches
         confidence = min(0.95, confidence + len(guideline_citations_data) * 0.05)
+        # Boost confidence for graph RAG multi-hop paths
+        confidence = min(0.95, confidence + len(graph_paths_data) * 0.02)
+        # Boost confidence for strong/unanimous agent consensus
+        consensus_results = mdt_session_summary.get("consensus_results", [])
+        strong_consensus_count = sum(
+            1 for r in consensus_results
+            if r.get("consensus_level") in ("unanimous", "strong")
+        )
+        confidence = min(0.95, confidence + strong_consensus_count * 0.04)
+
         guideline_info = f", {len(guideline_citations_data)} guideline references" if guideline_citations_data else ""
+        graph_rag_info = f", {len(graph_paths_data)} graph paths" if graph_paths_data else ""
+        orchestrator_info = (
+            f", {len(consensus_results)} agent recommendations "
+            f"({strong_consensus_count} strong/unanimous)"
+            if consensus_results else ""
+        )
         reasoning = (
             f"Answered using {model_used} with {len(nodes)} KG nodes, "
-            f"{len(evidence_sources)} evidence sources{guideline_info}. "
+            f"{len(evidence_sources)} evidence sources{graph_rag_info}{guideline_info}{orchestrator_info}. "
             f"Latency: {response.latency_ms:.0f}ms, "
             f"Tokens: {response.token_usage.total_tokens}"
         )
@@ -1180,8 +1397,15 @@ Provide a clear, evidence-based answer using the clinical data above."""
     # Step 7: Record confidence contributions per step
     try:
         kg_confidence = len(relevant_entities) * 0.03
+        graph_rag_confidence = len(graph_paths_data) * 0.02  # Multi-hop graph paths
         rag_confidence = len(guideline_citations_data) * 0.05
         evidence_confidence = len(evidence_sources) * 0.08
+        # Calculate orchestrator confidence contribution from strong/unanimous consensus
+        mdt_consensus_results = mdt_session_summary.get("consensus_results", [])
+        orchestrator_confidence = sum(
+            0.04 for r in mdt_consensus_results
+            if r.get("consensus_level") in ("unanimous", "strong")
+        )
         base_confidence = 0.6
 
         traces = await provenance_svc.get_reasoning_for_query(db, query_id)
@@ -1190,9 +1414,17 @@ Provide a clear, evidence-based answer using the clinical data above."""
                 await provenance_svc.update_reasoning_trace_confidence(
                     db, trace.id, round(kg_confidence, 4)
                 )
+            elif trace.step_type == ReasoningStepType.GRAPH_RAG_RETRIEVAL.value:
+                await provenance_svc.update_reasoning_trace_confidence(
+                    db, trace.id, round(graph_rag_confidence, 4)
+                )
             elif trace.step_type == ReasoningStepType.RAG_SEARCH.value:
                 await provenance_svc.update_reasoning_trace_confidence(
                     db, trace.id, round(rag_confidence + evidence_confidence, 4)
+                )
+            elif trace.step_type == ReasoningStepType.ORCHESTRATOR_CONSENSUS.value:
+                await provenance_svc.update_reasoning_trace_confidence(
+                    db, trace.id, round(orchestrator_confidence, 4)
                 )
             elif trace.step_type == ReasoningStepType.LLM_INFERENCE.value:
                 await provenance_svc.update_reasoning_trace_confidence(
@@ -1231,7 +1463,7 @@ Provide a clear, evidence-based answer using the clinical data above."""
         sources=sources,
         entities_found=relevant_entities[:request.max_results],
         evidence=evidence_sources if request.include_evidence else [],
-        knowledge_graph_paths=[],
+        knowledge_graph_paths=graph_paths_data,  # Multi-hop graph traversal paths
         reasoning=reasoning,
         guideline_citations=guideline_citations_data,
         query_id=query_id,

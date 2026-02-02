@@ -9,6 +9,8 @@ Architecture:
 3. Query temporal context for time-aware evidence
 4. Serialize graph paths as structured context
 5. Combine with document retrieval for comprehensive context
+
+Supports both sync and async SQLAlchemy sessions.
 """
 
 from __future__ import annotations
@@ -16,10 +18,11 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any
+from typing import Any, Union
 from uuid import UUID
 
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 from app.models.knowledge_graph import KGEdge, KGNode
@@ -143,22 +146,107 @@ class GraphAugmentedRAGService:
     Enhances LLM context with knowledge graph traversal paths
     and temporal reasoning for richer, more accurate responses.
 
-    Usage:
+    Supports both sync and async SQLAlchemy sessions.
+
+    Usage (sync):
         service = GraphAugmentedRAGService(session)
         context = service.retrieve_context(
             query="What medications is this patient on for diabetes?",
             patient_id="P001",
         )
         llm_prompt = context.to_llm_prompt()
+
+    Usage (async):
+        service = GraphAugmentedRAGService(async_session)
+        context = await service.retrieve_context_async(
+            query="What medications is this patient on for diabetes?",
+            patient_id="P001",
+        )
+        llm_prompt = context.to_llm_prompt()
     """
 
-    def __init__(self, session: Session) -> None:
+    def __init__(self, session: Union[Session, AsyncSession]) -> None:
         """Initialize the service.
 
         Args:
-            session: SQLAlchemy database session.
+            session: SQLAlchemy database session (sync or async).
         """
         self._session = session
+        self._is_async = isinstance(session, AsyncSession)
+
+    async def retrieve_context_async(
+        self,
+        query: str,
+        patient_id: str,
+        max_hops: int = 3,
+        max_paths: int = 10,
+        include_temporal: bool = True,
+        include_policies: bool = True,
+        time_point: datetime | None = None,
+    ) -> GraphAugmentedContext:
+        """Retrieve graph-augmented context for a query (async version).
+
+        Args:
+            query: The user's question or query.
+            patient_id: Patient to query graph for.
+            max_hops: Maximum hops in graph traversal.
+            max_paths: Maximum paths to return.
+            include_temporal: Include temporal context.
+            include_policies: Include policy constraints.
+            time_point: Optional time point for temporal queries.
+
+        Returns:
+            GraphAugmentedContext with paths, temporal info, and documents.
+        """
+        # Extract concepts from query
+        query_concepts = self._extract_query_concepts(query)
+
+        # Find relevant starting nodes in patient's graph
+        start_nodes = await self._find_matching_nodes_async(patient_id, query_concepts)
+
+        # Traverse graph from starting nodes
+        graph_paths = await self._traverse_graph_async(
+            patient_id=patient_id,
+            start_nodes=start_nodes,
+            max_hops=max_hops,
+            max_paths=max_paths,
+        )
+
+        # Get temporal context if requested
+        temporal_context = None
+        if include_temporal:
+            temporal_context = await self._get_temporal_context_async(
+                patient_id=patient_id,
+                time_point=time_point,
+            )
+
+        # Get applicable policy constraints if requested
+        policy_constraints = []
+        if include_policies:
+            policy_constraints = self._get_policy_constraints(
+                patient_id=patient_id,
+                query_concepts=query_concepts,
+            )
+
+        # Retrieve relevant documents (placeholder - would integrate with SemanticQA)
+        retrieved_documents = self._retrieve_documents(
+            query=query,
+            patient_id=patient_id,
+        )
+
+        return GraphAugmentedContext(
+            query=query,
+            patient_id=patient_id,
+            graph_paths=graph_paths,
+            temporal_context=temporal_context,
+            retrieved_documents=retrieved_documents,
+            policy_constraints=policy_constraints,
+            total_evidence_pieces=(
+                len(graph_paths)
+                + len(retrieved_documents)
+                + len(policy_constraints)
+            ),
+        )
 
     def retrieve_context(
         self,
@@ -170,7 +258,7 @@ class GraphAugmentedRAGService:
         include_policies: bool = True,
         time_point: datetime | None = None,
     ) -> GraphAugmentedContext:
-        """Retrieve graph-augmented context for a query.
+        """Retrieve graph-augmented context for a query (sync version).
 
         Args:
             query: The user's question or query.
@@ -293,6 +381,178 @@ class GraphAugmentedRAGService:
                     break
 
         return matching[:20]  # Limit starting nodes
+
+    async def _find_matching_nodes_async(
+        self,
+        patient_id: str,
+        concepts: list[str],
+    ) -> list[KGNode]:
+        """Find nodes in patient's graph matching query concepts (async version)."""
+        if not concepts:
+            # Return patient node as starting point
+            stmt = (
+                select(KGNode)
+                .where(KGNode.patient_id == patient_id)
+                .where(KGNode.node_type == NodeType.PATIENT)
+            )
+            result = await self._session.execute(stmt)
+            patient_node = result.scalar_one_or_none()
+            return [patient_node] if patient_node else []
+
+        # Search for nodes matching any concept
+        stmt = select(KGNode).where(KGNode.patient_id == patient_id)
+        result = await self._session.execute(stmt)
+        nodes = result.scalars().all()
+
+        matching = []
+        for node in nodes:
+            label_lower = node.label.lower()
+            for concept in concepts:
+                if concept.lower() in label_lower:
+                    matching.append(node)
+                    break
+
+        return matching[:20]  # Limit starting nodes
+
+    async def _traverse_graph_async(
+        self,
+        patient_id: str,
+        start_nodes: list[KGNode],
+        max_hops: int,
+        max_paths: int,
+    ) -> list[GraphPath]:
+        """Traverse graph from starting nodes to find relevant paths (async version)."""
+        paths = []
+
+        for start_node in start_nodes[:5]:  # Limit starting points
+            # BFS traversal from this node
+            node_paths = await self._bfs_traverse_async(
+                patient_id=patient_id,
+                start_node=start_node,
+                max_hops=max_hops,
+            )
+            paths.extend(node_paths)
+
+            if len(paths) >= max_paths:
+                break
+
+        return paths[:max_paths]
+
+    async def _bfs_traverse_async(
+        self,
+        patient_id: str,
+        start_node: KGNode,
+        max_hops: int,
+    ) -> list[GraphPath]:
+        """BFS traversal from a starting node (async version)."""
+        paths = []
+
+        # Get outgoing edges from start node
+        stmt = (
+            select(KGEdge)
+            .where(KGEdge.source_node_id == start_node.id)
+            .where(KGEdge.patient_id == patient_id)
+        )
+        result = await self._session.execute(stmt)
+        edges = result.scalars().all()
+
+        for edge in edges[:10]:
+            # Get target node
+            target_stmt = select(KGNode).where(KGNode.id == edge.target_node_id)
+            target_result = await self._session.execute(target_stmt)
+            target_node = target_result.scalar_one_or_none()
+
+            if target_node:
+                # Build 1-hop path
+                path = GraphPath(
+                    nodes=[
+                        {"id": str(start_node.id), "label": start_node.label, "type": start_node.node_type.value},
+                        {"id": str(target_node.id), "label": target_node.label, "type": target_node.node_type.value},
+                    ],
+                    edges=[
+                        {
+                            "edge_type": edge.edge_type.value,
+                            "confidence": edge.temporal_confidence or 1.0,
+                            "temporality": edge.temporality,
+                            "event_date": edge.event_date.isoformat() if edge.event_date else None,
+                        }
+                    ],
+                    path_type=self._classify_path_type(start_node, edge, target_node),
+                    confidence=edge.temporal_confidence or 1.0,
+                )
+                paths.append(path)
+
+                # Continue traversal if more hops allowed
+                if max_hops > 1:
+                    deeper_paths = await self._bfs_traverse_async(
+                        patient_id=patient_id,
+                        start_node=target_node,
+                        max_hops=max_hops - 1,
+                    )
+                    for deeper_path in deeper_paths[:3]:
+                        # Combine paths
+                        combined = GraphPath(
+                            nodes=path.nodes + deeper_path.nodes[1:],
+                            edges=path.edges + deeper_path.edges,
+                            path_type=path.path_type,
+                            confidence=min(path.confidence, deeper_path.confidence),
+                        )
+                        paths.append(combined)
+
+        return paths
+
+    async def _get_temporal_context_async(
+        self,
+        patient_id: str,
+        time_point: datetime | None,
+    ) -> TemporalContext:
+        """Get temporal context from patient's graph (async version)."""
+        # Get all edges with temporal data
+        stmt = (
+            select(KGEdge)
+            .where(KGEdge.patient_id == patient_id)
+            .where(KGEdge.event_date.isnot(None))
+            .order_by(KGEdge.event_date.desc())
+        )
+        result = await self._session.execute(stmt)
+        edges = result.scalars().all()
+
+        # Build timeline
+        timeline = []
+        current_state = {}
+        historical_state = {}
+
+        for edge in edges[:50]:
+            # Get target node for description
+            target_stmt = select(KGNode).where(KGNode.id == edge.target_node_id)
+            target_result = await self._session.execute(target_stmt)
+            target = target_result.scalar_one_or_none()
+
+            if target:
+                event = {
+                    "date": edge.event_date.isoformat() if edge.event_date else None,
+                    "description": f"{edge.edge_type.value}: {target.label}",
+                    "temporality": edge.temporality,
+                    "is_current": edge.temporality == "current",
+                }
+                timeline.append(event)
+
+                # Track current vs historical
+                if edge.temporality == "current":
+                    current_state[target.label] = "active"
+                elif edge.temporality == "past":
+                    historical_state[target.label] = "resolved"
+
+        # Detect temporal conflicts (simplified)
+        conflicts = []
+        # In a real implementation, use temporal_query_service
+
+        return TemporalContext(
+            event_timeline=timeline,
+            temporal_conflicts=conflicts,
+            current_state=current_state,
+            historical_state=historical_state,
+        )
 
     def _traverse_graph(
         self,
@@ -485,6 +745,15 @@ class GraphAugmentedRAGService:
         return []
 
 
-def get_graph_augmented_rag_service(session: Session) -> GraphAugmentedRAGService:
-    """Factory function to create GraphAugmentedRAGService."""
+def get_graph_augmented_rag_service(
+    session: Union[Session, AsyncSession]
+) -> GraphAugmentedRAGService:
+    """Factory function to create GraphAugmentedRAGService.
+
+    Args:
+        session: SQLAlchemy database session (sync or async).
+
+    Returns:
+        GraphAugmentedRAGService instance configured for the session type.
+    """
     return GraphAugmentedRAGService(session)

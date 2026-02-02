@@ -11,6 +11,10 @@ class Assertion(str, Enum):
     PRESENT = "present"
     ABSENT = "absent"  # Negated
     POSSIBLE = "possible"  # Uncertain
+    CONDITIONAL = "conditional"  # Conditional statement
+    HYPOTHETICAL = "hypothetical"  # Hypothetical scenario
+    FAMILY_HISTORY = "family_history"  # Family history mention
+    HISTORICAL = "historical"  # Past/former condition (e.g., former smoker)
 
 
 class Temporality(str, Enum):

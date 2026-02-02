@@ -34,6 +34,8 @@ from .nlp_entity_extractors import (
     PROCEDURE_PATTERNS,
     VITAL_SIGN_PATTERNS,
     LAB_RESULT_PATTERNS,
+    ALLERGY_PATTERNS,
+    SOCIAL_HISTORY_PATTERNS,
 )
 from .nlp_entity_linkers import (
     LinkerMixin,
@@ -186,6 +188,8 @@ class ClinicalNLPEntityService(NormalizerMixin, ExtractorMixin, LinkerMixin):
     PROCEDURE_PATTERNS = PROCEDURE_PATTERNS
     VITAL_SIGN_PATTERNS = VITAL_SIGN_PATTERNS
     LAB_RESULT_PATTERNS = LAB_RESULT_PATTERNS
+    ALLERGY_PATTERNS = ALLERGY_PATTERNS
+    SOCIAL_HISTORY_PATTERNS = SOCIAL_HISTORY_PATTERNS
     CLINICAL_CODE_MAPPINGS = CLINICAL_CODE_MAPPINGS
 
     # Negation triggers (from normalizers module)
@@ -299,6 +303,12 @@ class ClinicalNLPEntityService(NormalizerMixin, ExtractorMixin, LinkerMixin):
         if extract_all or EntityType.TEMPORAL in entity_types:
             all_entities.extend(self._extract_temporal_expressions(text, sections))
 
+        if extract_all or EntityType.ALLERGY in entity_types:
+            all_entities.extend(self._extract_allergies(text, sections))
+
+        if extract_all or EntityType.SOCIAL_HISTORY in entity_types:
+            all_entities.extend(self._extract_social_history(text, sections))
+
         # Extract from clinical abbreviations dictionary
         all_entities.extend(self._extract_from_clinical_abbreviations(text, sections))
 
@@ -364,6 +374,10 @@ class ClinicalNLPEntityService(NormalizerMixin, ExtractorMixin, LinkerMixin):
 
     def get_stats(self) -> dict:
         """Get service statistics."""
+        # Count total social history patterns
+        social_history_count = sum(
+            len(patterns) for patterns in self.SOCIAL_HISTORY_PATTERNS.values()
+        )
         return {
             "registered_ml_models": len(self._ml_models),
             "available_entity_types": [e.value for e in EntityType],
@@ -373,6 +387,8 @@ class ClinicalNLPEntityService(NormalizerMixin, ExtractorMixin, LinkerMixin):
             "procedure_patterns": len(self.PROCEDURE_PATTERNS),
             "lab_patterns": len(self.LAB_RESULT_PATTERNS),
             "vital_sign_patterns": len(self.VITAL_SIGN_PATTERNS),
+            "allergy_patterns": len(self.ALLERGY_PATTERNS),
+            "social_history_patterns": social_history_count,
         }
 
 

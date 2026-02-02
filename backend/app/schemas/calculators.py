@@ -80,6 +80,98 @@ class InterpretationSchema(BaseModel):
 
 
 # =============================================================================
+# Provenance Schemas (MDCalc-style evidence documentation)
+# =============================================================================
+
+
+class CitationSchema(BaseModel):
+    """Structured citation for literature references."""
+
+    title: str = Field(..., description="Full title of the paper")
+    authors: list[str] = Field(default_factory=list, description="List of author names")
+    journal: str = Field(..., description="Journal name")
+    year: int = Field(..., description="Publication year")
+    volume: str | None = Field(None, description="Journal volume")
+    pages: str | None = Field(None, description="Page range")
+    pmid: str | None = Field(None, description="PubMed ID")
+    doi: str | None = Field(None, description="Digital Object Identifier")
+    is_original_derivation: bool = Field(False, description="True if original derivation paper")
+    pubmed_url: str | None = Field(None, description="Link to PubMed")
+
+
+class ValidationStudySchema(BaseModel):
+    """A validation study that tested the calculator."""
+
+    citation: CitationSchema = Field(..., description="Study citation")
+    population: str = Field(..., description="Study population description")
+    sample_size: int | None = Field(None, description="Number of patients")
+    setting: str | None = Field(None, description="Clinical setting")
+    performance_auc: float | None = Field(None, description="Area under ROC curve")
+    validation_outcome: str = Field(..., description="Validation outcome classification")
+    notes: str | None = Field(None, description="Additional notes")
+
+
+class ClinicalPearlSchema(BaseModel):
+    """A clinical pearl or tip for using the calculator."""
+
+    text: str = Field(..., description="The clinical pearl content")
+    category: str = Field("tip", description="Category: interpretation, usage, limitation, tip, warning")
+    source: str | None = Field(None, description="Source of this pearl")
+
+
+class UsageGuidanceSchema(BaseModel):
+    """Guidance on when to use and when NOT to use the calculator."""
+
+    when_to_use: list[str] = Field(default_factory=list, description="Appropriate use cases")
+    when_not_to_use: list[str] = Field(default_factory=list, description="Contraindications/inappropriate uses")
+    target_population: str | None = Field(None, description="Target patient population")
+    excluded_populations: list[str] = Field(default_factory=list, description="Populations to exclude")
+
+
+class GuidelineReferenceSchema(BaseModel):
+    """Reference to a clinical guideline that endorses this calculator."""
+
+    guideline_name: str = Field(..., description="Name of the guideline")
+    recommendation_class: str | None = Field(None, description="Recommendation class (I, IIa, IIb, III)")
+    evidence_level: str | None = Field(None, description="Evidence level (A, B, C)")
+    year: int | None = Field(None, description="Guideline year")
+    organization: str | None = Field(None, description="Issuing organization")
+
+
+class CalculatorProvenanceSchema(BaseModel):
+    """Complete provenance data for a clinical calculator."""
+
+    # Core provenance
+    original_citation: CitationSchema | None = Field(None, description="Original derivation study")
+    evidence_level: str | None = Field(None, description="Overall evidence quality (high, moderate, low)")
+    evidence_summary: str | None = Field(None, description="Summary of evidence supporting this calculator")
+
+    # Validation
+    validation_studies: list[ValidationStudySchema] = Field(
+        default_factory=list, description="Validation studies"
+    )
+    overall_validation: str | None = Field(None, description="Overall validation status")
+
+    # Clinical guidance
+    clinical_pearls: list[ClinicalPearlSchema] = Field(
+        default_factory=list, description="Clinical pearls and tips"
+    )
+    pitfalls: list[str] = Field(default_factory=list, description="Common pitfalls to avoid")
+    usage_guidance: UsageGuidanceSchema | None = Field(None, description="When to use/not use")
+
+    # Guidelines
+    related_guidelines: list[GuidelineReferenceSchema] = Field(
+        default_factory=list, description="Guidelines endorsing this calculator"
+    )
+    related_calculator_ids: list[str] = Field(
+        default_factory=list, description="Related calculator IDs"
+    )
+
+    # External links
+    mdcalc_url: str | None = Field(None, description="MDCalc page URL")
+
+
+# =============================================================================
 # List/Summary Response
 # =============================================================================
 
@@ -128,6 +220,10 @@ class DataDrivenCalculatorDetail(BaseModel):
     )
     references: list[str] = Field(default_factory=list, description="Literature references")
     notes: list[str] = Field(default_factory=list, description="Additional clinical notes")
+    provenance: CalculatorProvenanceSchema | None = Field(
+        None,
+        description="Evidence provenance (citations, clinical pearls, guidelines)",
+    )
 
 
 # =============================================================================

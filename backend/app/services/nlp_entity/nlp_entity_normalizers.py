@@ -37,6 +37,7 @@ class EntityType(str, Enum):
     TEMPORAL = "temporal"
     SYMPTOM = "symptom"
     ALLERGY = "allergy"
+    SOCIAL_HISTORY = "social_history"
 
 
 class AssertionStatus(str, Enum):
@@ -48,6 +49,7 @@ class AssertionStatus(str, Enum):
     CONDITIONAL = "conditional"
     HYPOTHETICAL = "hypothetical"
     FAMILY_HISTORY = "family_history"
+    HISTORICAL = "historical"  # For past/former conditions (e.g., former smoker)
 
 
 class ClinicalSection(str, Enum):
@@ -399,6 +401,8 @@ class NormalizerMixin:
             (EntityType.PROCEDURE, ClinicalSection.PAST_SURGICAL_HISTORY): 0.1,
             (EntityType.VITAL_SIGN, ClinicalSection.VITAL_SIGNS): 0.1,
             (EntityType.LAB_RESULT, ClinicalSection.LABS): 0.1,
+            (EntityType.ALLERGY, ClinicalSection.ALLERGIES): 0.1,
+            (EntityType.SOCIAL_HISTORY, ClinicalSection.SOCIAL_HISTORY): 0.1,
         }
 
         bonus = section_bonuses.get((entity_type, section), 0)
@@ -418,15 +422,16 @@ class NormalizerMixin:
         if not entities:
             return entities
 
-        # Entity type priority: diagnoses/meds/procedures > symptoms > labs/vitals > others
+        # Entity type priority: diagnoses/meds/procedures/allergies > symptoms > labs/vitals/social_history > others
         type_priority = {
             EntityType.DIAGNOSIS: 0,
             EntityType.MEDICATION: 0,
             EntityType.PROCEDURE: 0,
+            EntityType.ALLERGY: 0,  # Allergies are critical clinical safety info
             EntityType.SYMPTOM: 1,
             EntityType.LAB_RESULT: 2,
             EntityType.VITAL_SIGN: 2,
-            EntityType.ALLERGY: 3,
+            EntityType.SOCIAL_HISTORY: 3,  # Social history (smoking, alcohol, drugs)
             EntityType.ANATOMICAL_LOCATION: 4,
             EntityType.TEMPORAL: 5,
         }

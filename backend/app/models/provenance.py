@@ -47,7 +47,9 @@ class ReasoningStepType(str, Enum):
     """Types of reasoning steps in the hybrid query pipeline."""
 
     KG_RETRIEVAL = "kg_retrieval"
+    GRAPH_RAG_RETRIEVAL = "graph_rag_retrieval"  # Multi-hop graph traversal
     RAG_SEARCH = "rag_search"
+    ORCHESTRATOR_CONSENSUS = "orchestrator_consensus"  # Multi-agent MDT deliberation
     LLM_INFERENCE = "llm_inference"
     GUIDELINE_MATCH = "guideline_match"
     POLICY_CHECK = "policy_check"

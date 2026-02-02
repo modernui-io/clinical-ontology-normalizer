@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,11 +46,10 @@ import {
   ExternalLink,
   Send,
   MessageSquare,
-  ZoomIn,
-  ZoomOut,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import KnowledgeGraph from "@/components/KnowledgeGraph";
 import { ConfidenceBadge } from "@/components/provenance/ConfidenceBadge";
 import { GuidelineCitationCard, PolicyCitationCard } from "@/components/provenance/CitationCard";
 import { ReasoningChain } from "@/components/provenance/ReasoningChain";
@@ -1190,10 +1189,14 @@ interface KGNode {
 
 interface KGEdge {
   id: string;
-  source_id: string;
-  target_id: string;
+  source_node_id: string;
+  target_node_id: string;
   edge_type: string;
   properties: Record<string, unknown>;
+  // Temporal fields for the advanced KnowledgeGraph component
+  temporality?: string | null;
+  temporal_confidence?: number | null;
+  event_date?: string | null;
 }
 
 interface KGSummary {
@@ -1237,6 +1240,7 @@ export default function NLPWorkbenchPage() {
   const [ontologyResult, setOntologyResult] = useState<OntologyMapResponse | null>(null);
   const [analysisType, setAnalysisType] = useState<AnalysisType>("clinical_summary");
   const [useLLM, setUseLLM] = useState(true);
+  const [useMLModels, setUseMLModels] = useState(false); // Ensemble NLP (ClinicalBERT + ModernBERT)
   const [question, setQuestion] = useState("");
 
   // Knowledge graph state
@@ -1244,16 +1248,12 @@ export default function NLPWorkbenchPage() {
   const [kgNodes, setKgNodes] = useState<KGNode[]>([]);
   const [kgEdges, setKgEdges] = useState<KGEdge[]>([]);
   const [kgSummary, setKgSummary] = useState<KGSummary | null>(null);
-  const [selectedNode, setSelectedNode] = useState<KGNode | null>(null);
   const [kgPatientId, setKgPatientId] = useState<string>("");
 
   // Q&A Agent state
   const [qaMessages, setQaMessages] = useState<QAMessage[]>([]);
   const [qaInput, setQaInput] = useState("");
   const [isQuerying, setIsQuerying] = useState(false);
-
-  // Canvas ref for KG visualization
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // Calculate entity counts
   const entityCounts = useMemo(() => {
@@ -1303,6 +1303,7 @@ export default function NLPWorkbenchPage() {
         detect_sections: true,
         normalize_entities: true,
         entity_types: Array.from(selectedEntityTypes),
+        use_ml_models: useMLModels,
       });
       setResult(extractionResult);
       toast.success(
@@ -1390,7 +1391,6 @@ export default function NLPWorkbenchPage() {
     setKgEdges([]);
     setKgSummary(null);
     setKgPatientId("");
-    setSelectedNode(null);
     setQaMessages([]); // Clear Q&A history for new patient
 
     try {
@@ -1596,7 +1596,6 @@ export default function NLPWorkbenchPage() {
     setKgEdges([]);
     setKgSummary(null);
     setKgPatientId("");
-    setSelectedNode(null);
     setQaMessages([]);
 
     try {
@@ -1765,116 +1764,68 @@ export default function NLPWorkbenchPage() {
         </Tabs>
       </div>
 
-      {/* Knowledge Graph View - Full Width */}
+      {/* Knowledge Graph View - Full Width with Advanced Component */}
       {workbenchMode === "knowledge_graph" && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Network className="h-5 w-5" />
-              Patient Knowledge Graph
-              {kgSummary && (
-                <Badge variant="secondary">
-                  {kgSummary.node_count} nodes, {kgSummary.edge_count} edges
-                </Badge>
-              )}
-            </CardTitle>
-            <CardDescription>
-              Interactive visualization of extracted clinical entities and their relationships
-            </CardDescription>
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Network className="h-5 w-5" />
+                  Patient Knowledge Graph
+                  {kgSummary && (
+                    <Badge variant="secondary">
+                      {kgSummary.node_count} nodes, {kgSummary.edge_count} edges
+                    </Badge>
+                  )}
+                </CardTitle>
+                <CardDescription>
+                  Interactive D3.js visualization with filtering, multiple layouts, and provenance
+                </CardDescription>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setWorkbenchMode("qa_agent")}
+              >
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Ask Questions
+              </Button>
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 lg:grid-cols-4">
-              {/* Graph Canvas */}
-              <div className="lg:col-span-3 rounded-lg border bg-slate-900 p-2 min-h-[500px] relative">
-                <KnowledgeGraphCanvas
-                  nodes={kgNodes}
-                  edges={kgEdges}
-                  onNodeSelect={setSelectedNode}
-                  selectedNode={selectedNode}
-                />
-                <div className="absolute top-4 left-4 flex flex-col gap-2 text-xs text-white/70">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-blue-500" /> PATIENT
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-red-500" /> CONDITION
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-blue-400" /> DRUG
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-amber-500" /> MEASUREMENT
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-green-500" /> PROCEDURE
-                  </div>
-                </div>
-              </div>
-
-              {/* Summary Panel */}
-              <div className="space-y-4">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm">Graph Summary</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2 text-sm">
-                    {kgSummary && (
-                      <>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Conditions</span>
-                          <Badge variant="destructive">{kgSummary.conditions.length}</Badge>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Medications</span>
-                          <Badge className="bg-blue-500">{kgSummary.medications.length}</Badge>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Measurements</span>
-                          <Badge className="bg-amber-500">{kgSummary.measurements.length}</Badge>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Procedures</span>
-                          <Badge className="bg-green-500">{kgSummary.procedures.length}</Badge>
-                        </div>
-                      </>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {selectedNode && (
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm">Selected Node</CardTitle>
-                    </CardHeader>
-                    <CardContent className="text-sm space-y-2">
-                      <div>
-                        <span className="text-muted-foreground">Label:</span>{" "}
-                        <span className="font-medium">{selectedNode.label}</span>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Type:</span>{" "}
-                        <Badge variant="outline">{selectedNode.node_type}</Badge>
-                      </div>
-                      {selectedNode.omop_concept_id && (
-                        <div>
-                          <span className="text-muted-foreground">OMOP ID:</span>{" "}
-                          <code className="text-xs bg-muted px-1 rounded">
-                            {selectedNode.omop_concept_id}
-                          </code>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                )}
-
-                <Button
-                  className="w-full"
-                  onClick={() => setWorkbenchMode("qa_agent")}
-                >
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Ask Questions
-                </Button>
-              </div>
+          <CardContent className="p-0">
+            {/* Advanced KnowledgeGraph Component - Full featured visualization */}
+            <div className="h-[700px]">
+              <KnowledgeGraph
+                nodes={kgNodes.map(n => ({
+                  id: n.id,
+                  patient_id: kgPatientId,
+                  node_type: n.node_type,
+                  label: n.label,
+                  omop_concept_id: n.omop_concept_id,
+                  properties: n.properties || {},
+                  created_at: new Date().toISOString(),
+                }))}
+                edges={kgEdges.map(e => ({
+                  id: e.id,
+                  patient_id: kgPatientId,
+                  source_node_id: e.source_node_id,
+                  target_node_id: e.target_node_id,
+                  edge_type: e.edge_type,
+                  fact_id: null,
+                  properties: e.properties || {},
+                  event_date: e.event_date || null,
+                  valid_from: null,
+                  valid_to: null,
+                  recorded_at: null,
+                  source_document_date: null,
+                  temporality: e.temporality || null,
+                  temporal_order: null,
+                  temporal_confidence: e.temporal_confidence || null,
+                  created_at: new Date().toISOString(),
+                }))}
+                patientId={kgPatientId}
+              />
             </div>
           </CardContent>
         </Card>
@@ -2110,6 +2061,42 @@ export default function NLPWorkbenchPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Extract Button - Prominent at top */}
+              {workbenchMode === "extraction" && (
+                <div className="flex items-center gap-4 p-3 bg-muted rounded-lg">
+                  <Button
+                    onClick={handleExtract}
+                    disabled={isExtracting || !inputText.trim()}
+                    size="lg"
+                    className="flex-shrink-0"
+                  >
+                    {isExtracting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        Extracting...
+                      </>
+                    ) : (
+                      <>
+                        <Search className="h-4 w-4 mr-2" />
+                        Extract Entities
+                      </>
+                    )}
+                  </Button>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="useMLModelsTop"
+                      checked={useMLModels}
+                      onChange={(e) => setUseMLModels(e.target.checked)}
+                      className="rounded"
+                    />
+                    <label htmlFor="useMLModelsTop" className="text-sm">
+                      Use ML Models (Ensemble NLP)
+                    </label>
+                  </div>
+                </div>
+              )}
+
               <Textarea
                 placeholder="Enter clinical text here..."
                 value={inputText}
@@ -2137,22 +2124,36 @@ export default function NLPWorkbenchPage() {
                 </div>
 
                 {workbenchMode === "extraction" ? (
-                  <Button
-                    onClick={handleExtract}
-                    disabled={isExtracting || !inputText.trim()}
-                  >
-                    {isExtracting ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        Extracting...
-                      </>
-                    ) : (
-                      <>
-                        <Search className="h-4 w-4 mr-2" />
-                        Extract Entities
-                      </>
-                    )}
-                  </Button>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="useMLModels"
+                        checked={useMLModels}
+                        onChange={(e) => setUseMLModels(e.target.checked)}
+                        className="rounded"
+                      />
+                      <label htmlFor="useMLModels" className="text-sm whitespace-nowrap">
+                        Use ML Models (Ensemble)
+                      </label>
+                    </div>
+                    <Button
+                      onClick={handleExtract}
+                      disabled={isExtracting || !inputText.trim()}
+                    >
+                      {isExtracting ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          Extracting...
+                        </>
+                      ) : (
+                        <>
+                          <Search className="h-4 w-4 mr-2" />
+                          Extract Entities
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 ) : (
                   <Button
                     onClick={handleHybridAnalyze}
@@ -2459,169 +2460,3 @@ export default function NLPWorkbenchPage() {
   );
 }
 
-// ============================================================================
-// Knowledge Graph Canvas Component
-// ============================================================================
-
-function KnowledgeGraphCanvas({
-  nodes,
-  edges,
-  onNodeSelect,
-  selectedNode,
-}: {
-  nodes: KGNode[];
-  edges: KGEdge[];
-  onNodeSelect: (node: KGNode | null) => void;
-  selectedNode: KGNode | null;
-}) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [zoom, setZoom] = useState(1);
-
-  // Apply force-directed layout
-  useEffect(() => {
-    if (nodes.length === 0) return;
-
-    const width = 700;
-    const height = 450;
-    const centerX = width / 2;
-    const centerY = height / 2;
-
-    // Find patient node and center it
-    const patientNode = nodes.find((n) => n.node_type === "patient");
-    if (patientNode) {
-      patientNode.x = centerX;
-      patientNode.y = centerY;
-    }
-
-    // Position other nodes in a circle around patient
-    const otherNodes = nodes.filter((n) => n.node_type !== "patient");
-    const angleStep = (2 * Math.PI) / otherNodes.length;
-    otherNodes.forEach((node, i) => {
-      const angle = i * angleStep;
-      const radius = 150 + Math.random() * 50;
-      node.x = centerX + Math.cos(angle) * radius;
-      node.y = centerY + Math.sin(angle) * radius;
-    });
-  }, [nodes]);
-
-  // Draw canvas
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || nodes.length === 0) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const width = canvas.width;
-    const height = canvas.height;
-
-    // Clear with dark background
-    ctx.fillStyle = "#0f172a";
-    ctx.fillRect(0, 0, width, height);
-
-    // Apply zoom
-    ctx.save();
-    ctx.scale(zoom, zoom);
-
-    // Draw edges
-    edges.forEach((edge) => {
-      const source = nodes.find((n) => n.id === edge.source_id);
-      const target = nodes.find((n) => n.id === edge.target_id);
-      if (source?.x && source?.y && target?.x && target?.y) {
-        ctx.beginPath();
-        ctx.moveTo(source.x, source.y);
-        ctx.lineTo(target.x, target.y);
-        ctx.strokeStyle = edge.edge_type === "drug_treats" ? "#22c55e" : "#475569";
-        ctx.lineWidth = edge.edge_type === "drug_treats" ? 2 : 1;
-        ctx.stroke();
-      }
-    });
-
-    // Draw nodes
-    const nodeColors: Record<string, string> = {
-      patient: "#8b5cf6",
-      condition: "#ef4444",
-      drug: "#3b82f6",
-      measurement: "#f59e0b",
-      procedure: "#22c55e",
-      observation: "#a855f7",
-    };
-
-    nodes.forEach((node) => {
-      if (node.x === undefined || node.y === undefined) return;
-
-      const isSelected = selectedNode?.id === node.id;
-      const radius = node.node_type === "patient" ? 25 : 15;
-
-      // Node circle
-      ctx.beginPath();
-      ctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
-      ctx.fillStyle = nodeColors[node.node_type] || "#64748b";
-      ctx.fill();
-
-      if (isSelected) {
-        ctx.strokeStyle = "#ffffff";
-        ctx.lineWidth = 3;
-        ctx.stroke();
-      }
-
-      // Node label
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "10px sans-serif";
-      ctx.textAlign = "center";
-      const label = node.label.length > 20 ? node.label.slice(0, 18) + "..." : node.label;
-      ctx.fillText(label, node.x, node.y + radius + 12);
-    });
-
-    ctx.restore();
-  }, [nodes, edges, selectedNode, zoom]);
-
-  // Handle click on canvas
-  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / zoom;
-    const y = (e.clientY - rect.top) / zoom;
-
-    // Find clicked node
-    const clickedNode = nodes.find((node) => {
-      if (node.x === undefined || node.y === undefined) return false;
-      const radius = node.node_type === "patient" ? 25 : 15;
-      const dx = node.x - x;
-      const dy = node.y - y;
-      return Math.sqrt(dx * dx + dy * dy) < radius;
-    });
-
-    onNodeSelect(clickedNode || null);
-  };
-
-  return (
-    <div className="relative w-full h-full">
-      <canvas
-        ref={canvasRef}
-        width={700}
-        height={450}
-        onClick={handleCanvasClick}
-        className="w-full h-full cursor-pointer"
-      />
-      <div className="absolute bottom-4 right-4 flex gap-2">
-        <Button
-          variant="secondary"
-          size="icon"
-          onClick={() => setZoom((z) => Math.min(z + 0.2, 2))}
-        >
-          <ZoomIn className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="secondary"
-          size="icon"
-          onClick={() => setZoom((z) => Math.max(z - 0.2, 0.5))}
-        >
-          <ZoomOut className="h-4 w-4" />
-        </Button>
-      </div>
-    </div>
-  );
-}
