@@ -16,7 +16,7 @@ from typing import Any
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from sqlalchemy import func, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -161,7 +161,30 @@ class BuildGraphFromEntitiesRequest(BaseModel):
     """Request to build knowledge graph from pre-extracted entities."""
 
     patient_id: str = Field(..., description="Patient identifier")
-    entities: list[ExtractedEntity] = Field(..., min_length=1, max_length=5000, description="Pre-extracted entities")
+    entities: list[ExtractedEntity] = Field(
+        default_factory=list,
+        max_length=5000,
+        description="Pre-extracted entities",
+    )
+    clinical_text: str | None = Field(
+        None,
+        description="Optional raw clinical text to build KG via ontology mapper",
+    )
+    note_id: str | None = Field(
+        None,
+        description="Optional note identifier (used when clinical_text is provided)",
+    )
+    encounter_id: str | None = Field(
+        None,
+        description="Optional encounter identifier (used when clinical_text is provided)",
+    )
+
+    @model_validator(mode="after")
+    def validate_input(self) -> "BuildGraphFromEntitiesRequest":
+        """Ensure either entities or clinical_text is provided."""
+        if not self.entities and not self.clinical_text:
+            raise ValueError("Either entities or clinical_text is required.")
+        return self
 
     model_config = {
         "json_schema_extra": {
@@ -184,7 +207,8 @@ class BuildGraphFromEntitiesRequest(BaseModel):
                         "omop_concept_id": 1305058,
                         "note_id": "frontend"
                     }
-                ]
+                ],
+                "clinical_text": "Patient presents with sickle cell disease. Taking hydroxyurea."
             }
         }
     }
@@ -639,8 +663,88 @@ async def build_graph_from_entities(
 
     This endpoint accepts entities that have already been extracted by the frontend
     NLP service, allowing the richer extraction results to be used for graph building.
+    If clinical_text is provided, the ontology mapper pipeline will be used instead.
     """
     start_time = datetime.now(timezone.utc)
+
+    if request.clinical_text:
+        from sqlalchemy.orm import Session
+        from app.core.database import get_sync_engine
+        from app.models import Document as DocumentModel
+        from app.schemas.base import JobStatus
+        from app.services.graph_builder_db import DatabaseGraphBuilderService
+        from app.services.ontology_graph_integration import OntologyGraphIntegration
+
+        note_id = request.note_id or f"note_{uuid4().hex[:12]}"
+        note_datetime = datetime.now(timezone.utc)
+
+        with Session(get_sync_engine()) as session:
+            integration = OntologyGraphIntegration(session)
+
+            existing_doc = (
+                session.query(DocumentModel)
+                .filter(DocumentModel.patient_id == request.patient_id)
+                .filter(DocumentModel.extra_metadata["original_note_id"].astext == note_id)
+                .first()
+            )
+
+            if existing_doc:
+                existing_doc.text = request.clinical_text
+                existing_doc.note_type = "clinical_agent"
+                existing_doc.status = JobStatus.COMPLETED
+                existing_doc.processed_at = note_datetime
+                existing_doc.extra_metadata = {
+                    **(existing_doc.extra_metadata or {}),
+                    "note_date": note_datetime.date().isoformat(),
+                    "source": "clinical_agent",
+                    "encounter_id": request.encounter_id,
+                }
+            else:
+                session.add(
+                    DocumentModel(
+                        id=str(uuid4()),
+                        patient_id=request.patient_id,
+                        note_type="clinical_agent",
+                        text=request.clinical_text,
+                        extra_metadata={
+                            "original_note_id": note_id,
+                            "note_date": note_datetime.date().isoformat(),
+                            "source": "clinical_agent",
+                            "encounter_id": request.encounter_id,
+                        },
+                        status=JobStatus.COMPLETED,
+                        processed_at=note_datetime,
+                    )
+                )
+
+            result = integration.ingest_note(
+                note_text=request.clinical_text,
+                patient_id=request.patient_id,
+                note_id=note_id,
+                encounter_id=request.encounter_id,
+                note_datetime=note_datetime,
+            )
+
+            session.commit()
+
+            graph_service = DatabaseGraphBuilderService(session)
+            patient_graph = graph_service.get_patient_graph(request.patient_id)
+
+            kg_summary = _summarize_graph_nodes(
+                patient_id=request.patient_id,
+                nodes=patient_graph.nodes,
+                edges=patient_graph.edges,
+            )
+
+            end_time = datetime.now(timezone.utc)
+            processing_time_ms = (end_time - start_time).total_seconds() * 1000
+
+            return BuildGraphResponse(
+                patient_id=request.patient_id,
+                entities_processed=result.entities_mapped,
+                knowledge_graph=kg_summary,
+                processing_time_ms=round(processing_time_ms, 2),
+            )
 
     # Build the knowledge graph directly from provided entities
     kg_summary = await _build_patient_knowledge_graph(
@@ -656,6 +760,46 @@ async def build_graph_from_entities(
         entities_processed=len(request.entities),
         knowledge_graph=kg_summary,
         processing_time_ms=round(processing_time_ms, 2),
+    )
+
+
+def _summarize_graph_nodes(
+    patient_id: str,
+    nodes: list[dict],
+    edges: list[dict],
+) -> KnowledgeGraphSummary:
+    """Build a summary from graph nodes/edges."""
+    conditions = []
+    medications = []
+    measurements = []
+    procedures = []
+
+    for node in nodes:
+        node_type = node.get("node_type")
+        if isinstance(node_type, NodeType):
+            node_type_value = node_type.value
+        elif node_type is None:
+            node_type_value = ""
+        else:
+            node_type_value = str(node_type)
+        label = node.get("label", "")
+        if node_type_value == NodeType.CONDITION.value:
+            conditions.append(label)
+        elif node_type_value == NodeType.DRUG.value:
+            medications.append(label)
+        elif node_type_value == NodeType.MEASUREMENT.value:
+            measurements.append(label)
+        elif node_type_value == NodeType.PROCEDURE.value:
+            procedures.append(label)
+
+    return KnowledgeGraphSummary(
+        patient_id=patient_id,
+        node_count=len(nodes),
+        edge_count=len(edges),
+        conditions=conditions[:20],
+        medications=medications[:20],
+        measurements=measurements[:20],
+        procedures=procedures[:20],
     )
 
 

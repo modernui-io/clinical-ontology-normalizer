@@ -129,5 +129,11 @@ Each task should be completed in one iteration with tests passing before checkin
 
 ---
 
+## Phase 15: Pipeline Unification
+
+- [x] 15.1 Route clinical-agent build-graph to ontology integration when raw text is provided
+
+---
+
 ## Completion Criteria
 All checkboxes must be checked, all tests must pass (`make test`), and all linting must pass (`make lint`) before outputting the completion promise.
