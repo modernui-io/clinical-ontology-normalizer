@@ -25,6 +25,11 @@ class NodeInput:
     omop_concept_id: int | None = None
     properties: dict = field(default_factory=dict)
 
+    # Provenance fields
+    source_document_id: UUID | None = None
+    extraction_method: str | None = None
+    extraction_confidence: float | None = None
+
 
 @dataclass
 class EdgeInput:
@@ -56,6 +61,11 @@ class EdgeInput:
     temporality: str | None = None  # "current", "past", "future"
     temporal_order: TemporalOrder | None = None
     temporal_confidence: float | None = None
+
+    # Provenance fields
+    source_document_id: UUID | None = None
+    extraction_method: str | None = None
+    extraction_confidence: float | None = None
 
 
 @dataclass
@@ -148,6 +158,10 @@ class GraphBuilderServiceInterface(ABC):
         recorded_at: datetime | None = None,
         source_document_date: datetime | None = None,
         temporal_confidence: float | None = None,
+        # Provenance fields
+        source_document_id: UUID | None = None,
+        extraction_method: str | None = None,
+        extraction_confidence: float | None = None,
     ) -> UUID:
         """Project a ClinicalFact to a node in the graph.
 
@@ -169,6 +183,9 @@ class GraphBuilderServiceInterface(ABC):
             recorded_at: When recorded in source system.
             source_document_date: Date of source document.
             temporal_confidence: Confidence in temporal assertions (0-1).
+            source_document_id: Source document this was extracted from.
+            extraction_method: How this was extracted (nlp, manual, imported).
+            extraction_confidence: Confidence in the extraction (0-1).
 
         Returns:
             UUID of the created node.
@@ -328,6 +345,10 @@ class BaseGraphBuilderService(GraphBuilderServiceInterface):
         recorded_at: datetime | None = None,
         source_document_date: datetime | None = None,
         temporal_confidence: float | None = None,
+        # Provenance fields
+        source_document_id: UUID | None = None,
+        extraction_method: str | None = None,
+        extraction_confidence: float | None = None,
     ) -> UUID:
         raise NotImplementedError("Subclass must implement")
 

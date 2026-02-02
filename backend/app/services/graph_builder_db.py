@@ -15,8 +15,9 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models.clinical_fact import ClinicalFact
+from app.models.clinical_fact import ClinicalFact, FactEvidence
 from app.models.knowledge_graph import KGEdge, KGNode
+from app.models.mention import Mention
 from app.schemas.base import Domain
 from app.schemas.knowledge_graph import EdgeType, NodeType, PatientGraph
 from app.services.graph_builder import (
@@ -133,13 +134,17 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
             self._node_dedup_cache[dedup_key] = node_id
             return node_id
 
-        # Create new node
+        # Create new node with provenance fields
         node = KGNode(
             patient_id=node_input.patient_id,
             node_type=node_input.node_type,
             omop_concept_id=node_input.omop_concept_id,
             label=node_input.label,
             properties=node_input.properties,
+            # Provenance fields
+            source_document_id=str(node_input.source_document_id) if node_input.source_document_id else None,
+            extraction_method=node_input.extraction_method,
+            extraction_confidence=node_input.extraction_confidence,
         )
         self._session.add(node)
         self._session.flush()
@@ -169,7 +174,7 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
         if existing:
             return UUID(existing.id)
 
-        # Create new edge with bi-temporal fields
+        # Create new edge with bi-temporal and provenance fields
         edge = KGEdge(
             patient_id=edge_input.patient_id,
             source_node_id=str(edge_input.source_node_id),
@@ -188,6 +193,10 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
             temporality=edge_input.temporality,
             temporal_order=edge_input.temporal_order.value if edge_input.temporal_order else None,
             temporal_confidence=edge_input.temporal_confidence,
+            # Provenance fields
+            source_document_id=str(edge_input.source_document_id) if edge_input.source_document_id else None,
+            extraction_method=edge_input.extraction_method,
+            extraction_confidence=edge_input.extraction_confidence,
         )
         self._session.add(edge)
         self._session.flush()
@@ -211,13 +220,17 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
         recorded_at: "datetime | None" = None,
         source_document_date: "datetime | None" = None,
         temporal_confidence: float | None = None,
+        # Provenance fields
+        source_document_id: "UUID | None" = None,
+        extraction_method: str | None = None,
+        extraction_confidence: float | None = None,
     ) -> UUID:
         """Project a ClinicalFact to a node in the graph.
 
         Creates a node for the fact and an edge connecting it to the patient node.
-        Populates bi-temporal fields for temporal reasoning.
+        Populates bi-temporal and provenance fields for temporal reasoning and lineage.
         """
-        # Create the fact node
+        # Create the fact node with provenance
         node_type = self.domain_to_node_type(domain)
         node_input = NodeInput(
             patient_id=patient_id,
@@ -232,6 +245,10 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
                 "is_negated": assertion == "absent",
                 "is_uncertain": assertion == "possible",
             },
+            # Provenance fields
+            source_document_id=source_document_id,
+            extraction_method=extraction_method,
+            extraction_confidence=extraction_confidence,
         )
         node_id = self.create_node(node_input)
 
@@ -256,6 +273,10 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
             source_document_date=source_document_date,
             temporality=temporality,
             temporal_confidence=temporal_confidence,
+            # Provenance fields
+            source_document_id=source_document_id,
+            extraction_method=extraction_method,
+            extraction_confidence=extraction_confidence,
         )
         self.create_edge(edge_input)
 
@@ -276,6 +297,10 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
             label=node.label,
             omop_concept_id=node.omop_concept_id,
             properties=node.properties,
+            # Provenance fields
+            source_document_id=UUID(node.source_document_id) if node.source_document_id else None,
+            extraction_method=node.extraction_method,
+            extraction_confidence=node.extraction_confidence,
         )
 
     def get_nodes_for_patient(
@@ -298,6 +323,10 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
                 label=n.label,
                 omop_concept_id=n.omop_concept_id,
                 properties=n.properties,
+                # Provenance fields
+                source_document_id=UUID(n.source_document_id) if n.source_document_id else None,
+                extraction_method=n.extraction_method,
+                extraction_confidence=n.extraction_confidence,
             )
             for n in nodes
         ]
@@ -323,6 +352,18 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
                 edge_type=e.edge_type,
                 fact_id=UUID(e.fact_id) if e.fact_id else None,
                 properties=e.properties,
+                # Bi-temporal fields
+                event_date=e.event_date,
+                valid_from=e.valid_from,
+                valid_to=e.valid_to,
+                recorded_at=e.recorded_at,
+                source_document_date=e.source_document_date,
+                temporality=e.temporality,
+                temporal_confidence=e.temporal_confidence,
+                # Provenance fields
+                source_document_id=UUID(e.source_document_id) if e.source_document_id else None,
+                extraction_method=e.extraction_method,
+                extraction_confidence=e.extraction_confidence,
             )
             for e in edges
         ]
@@ -338,6 +379,9 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
         - created_at → source_document_date (when recorded)
         - temporality → temporality (current/past/future from NLP)
         - confidence → temporal_confidence
+
+        Also traces provenance: FactEvidence → Mention → Document to capture
+        source_document_id for full lineage tracking.
 
         After building the PostgreSQL graph, syncs to Neo4j for graph queries.
         """
@@ -372,6 +416,31 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
             valid_to = fact.end_date  # End of validity (None = ongoing)
             source_document_date = fact.created_at  # When record was created
 
+            # Trace document_id via FactEvidence → Mention → Document
+            source_document_id = None
+            extraction_method = "nlp"  # Default for NLP-extracted facts
+            try:
+                # Get the first evidence record that points to a mention
+                evidence_stmt = (
+                    select(FactEvidence)
+                    .where(FactEvidence.fact_id == fact.id)
+                    .where(FactEvidence.source_table == "mentions")
+                    .limit(1)
+                )
+                evidence_result = self._session.execute(evidence_stmt)
+                evidence = evidence_result.scalar_one_or_none()
+
+                if evidence:
+                    # Get the mention to find its document_id
+                    mention_stmt = select(Mention).where(Mention.id == evidence.source_id)
+                    mention_result = self._session.execute(mention_stmt)
+                    mention = mention_result.scalar_one_or_none()
+
+                    if mention:
+                        source_document_id = UUID(mention.document_id)
+            except Exception as e:
+                logger.debug(f"Could not trace document_id for fact {fact.id}: {e}")
+
             self.project_fact_to_graph(
                 fact_id=UUID(fact.id),
                 patient_id=patient_id,
@@ -388,6 +457,10 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
                 recorded_at=None,  # Could be populated from FactEvidence source
                 source_document_date=source_document_date,
                 temporal_confidence=fact.confidence,
+                # Provenance fields
+                source_document_id=source_document_id,
+                extraction_method=extraction_method,
+                extraction_confidence=fact.confidence,
             )
 
             if not node_exists:

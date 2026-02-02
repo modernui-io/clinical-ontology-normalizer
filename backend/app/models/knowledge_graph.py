@@ -65,6 +65,28 @@ class KGNode(SoftDeleteMixin, Base):
         nullable=True,
     )
 
+    # ==========================================================================
+    # Provenance Fields
+    # ==========================================================================
+    # Track where this node came from for lineage and debugging
+    source_document_id: Mapped[str | None] = mapped_column(
+        UUID(as_uuid=False),
+        ForeignKey("documents.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+        doc="Source document this entity was extracted from",
+    )
+    extraction_method: Mapped[str | None] = mapped_column(
+        String(50),
+        nullable=True,
+        doc="How this entity was extracted: nlp, manual, imported, hybrid",
+    )
+    extraction_confidence: Mapped[float | None] = mapped_column(
+        Float,
+        nullable=True,
+        doc="Confidence in the extraction (0-1)",
+    )
+
     # Relationships for edges
     outgoing_edges = relationship(
         "KGEdge",
@@ -216,6 +238,28 @@ class KGEdge(SoftDeleteMixin, Base):
         Float,
         nullable=True,
         doc="Confidence in temporal assertions (0-1)",
+    )
+
+    # ==========================================================================
+    # Provenance Fields
+    # ==========================================================================
+    # Track where this edge/relationship came from for lineage and debugging
+    source_document_id: Mapped[str | None] = mapped_column(
+        UUID(as_uuid=False),
+        ForeignKey("documents.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+        doc="Source document this relationship was extracted from",
+    )
+    extraction_method: Mapped[str | None] = mapped_column(
+        String(50),
+        nullable=True,
+        doc="How this relationship was extracted: nlp, manual, imported, hybrid",
+    )
+    extraction_confidence: Mapped[float | None] = mapped_column(
+        Float,
+        nullable=True,
+        doc="Confidence in the extraction (0-1)",
     )
 
     # Relationships

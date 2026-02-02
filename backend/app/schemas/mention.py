@@ -27,6 +27,7 @@ class MentionCreate(BaseModel):
     temporality: Temporality = Field(default=Temporality.CURRENT, description="Temporal context")
     experiencer: Experiencer = Field(default=Experiencer.PATIENT, description="Who it applies to")
     confidence: float = Field(default=1.0, ge=0.0, le=1.0, description="Extraction confidence")
+    event_date: datetime | None = Field(None, description="When the clinical event occurred")
 
     @field_validator("end_offset")
     @classmethod

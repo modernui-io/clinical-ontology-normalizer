@@ -298,6 +298,18 @@ class NoteExcerpt(BaseModel):
     excerpt: str
 
 
+class CalculatorQueryResult(BaseModel):
+    """Result from executing a clinical calculator."""
+
+    calculator_id: str = Field(..., description="Calculator identifier (e.g., 'chadsvasc')")
+    calculator_name: str = Field(..., description="Human-readable calculator name")
+    score: float | None = Field(None, description="Calculated score value")
+    risk_level: str | None = Field(None, description="Risk category (e.g., 'low', 'moderate', 'high')")
+    interpretation: str | None = Field(None, description="Clinical interpretation of the result")
+    inputs_used: dict[str, Any] = Field(default_factory=dict, description="Input values used in calculation")
+    missing_inputs: list[str] = Field(default_factory=list, description="Required inputs that were not available")
+
+
 class HybridQueryResponse(BaseModel):
     """Response from hybrid query."""
 
@@ -315,6 +327,9 @@ class HybridQueryResponse(BaseModel):
     entity_provenance: list[dict] = []
     policy_citations: list[dict] = []
     provenance_url: str | None = None
+    calculator_results: list[CalculatorQueryResult] = Field(
+        default_factory=list, description="Risk calculator results if applicable"
+    )
 
 
 # =============================================================================
@@ -344,6 +359,93 @@ def _node_type_to_edge_type(node_type: NodeType) -> EdgeType:
         NodeType.OBSERVATION: EdgeType.HAS_OBSERVATION,
     }
     return mapping.get(node_type, EdgeType.HAS_OBSERVATION)
+
+
+async def _try_execute_calculator(
+    calc_id: str,
+    measurement_nodes: list,
+) -> CalculatorQueryResult | None:
+    """Try to execute a calculator using available measurement data.
+
+    Args:
+        calc_id: Calculator identifier.
+        measurement_nodes: List of KGNode measurement objects.
+
+    Returns:
+        CalculatorQueryResult if successful, None otherwise.
+    """
+    from app.services.kg_calculator_mapper import (
+        get_calculator_params_for_measurement,
+        get_measurements_for_calculator,
+    )
+
+    # Calculator metadata
+    calc_names = {
+        "chadsvasc": "CHA2DS2-VASc Score",
+        "hasbled": "HAS-BLED Score",
+        "ascvd": "ASCVD 10-Year Risk",
+        "egfr_ckd_epi": "eGFR (CKD-EPI)",
+        "meld": "MELD Score",
+        "wells_dvt": "Wells Score (DVT)",
+        "wells_pe": "Wells Score (PE)",
+        "curb65": "CURB-65 Score",
+    }
+
+    # Build inputs from measurement nodes
+    inputs: dict[str, Any] = {}
+    for node in measurement_nodes:
+        label = node.label.lower()
+        calc_params = get_calculator_params_for_measurement(label)
+
+        if calc_id in calc_params:
+            param_name = calc_params[calc_id]
+            # Try to extract value from properties
+            value = node.properties.get("value") if node.properties else None
+            if value is not None:
+                try:
+                    inputs[param_name] = float(value)
+                except (ValueError, TypeError):
+                    inputs[param_name] = value
+
+    # If we have no inputs, can't execute
+    if not inputs:
+        return None
+
+    # Get required inputs for missing list
+    required = get_measurements_for_calculator(calc_id)
+    missing = [m for m in required[:5] if m.lower() not in [i.lower() for i in inputs.keys()]]
+
+    # Try to execute via calculator registry
+    try:
+        from app.services.calculator_registry import get_calculator_registry
+
+        registry = get_calculator_registry()
+        calculator = registry.get_calculator(calc_id)
+
+        if calculator:
+            result = calculator.calculate(inputs)
+            return CalculatorQueryResult(
+                calculator_id=calc_id,
+                calculator_name=calc_names.get(calc_id, f"Calculator: {calc_id}"),
+                score=result.score,
+                risk_level=result.risk_level,
+                interpretation=result.interpretation,
+                inputs_used=inputs,
+                missing_inputs=missing,
+            )
+    except Exception as e:
+        logger.debug(f"Calculator {calc_id} execution failed: {e}")
+
+    # Return partial result showing what data is available
+    return CalculatorQueryResult(
+        calculator_id=calc_id,
+        calculator_name=calc_names.get(calc_id, f"Calculator: {calc_id}"),
+        score=None,
+        risk_level=None,
+        interpretation=f"Calculator applicable but incomplete data. Available: {list(inputs.keys())}",
+        inputs_used=inputs,
+        missing_inputs=missing,
+    )
 
 
 # =============================================================================
@@ -606,7 +708,7 @@ async def _build_patient_knowledge_graph(
         entity_key = f"{entity.text.lower()}|{entity.entity_type}"
 
         if entity_key not in seen_entities:
-            # Create new node
+            # Create new node with provenance
             node_id = str(uuid4())
             node_type = _domain_to_node_type(entity.entity_type)
 
@@ -621,12 +723,15 @@ async def _build_patient_knowledge_graph(
                     "confidence": entity.confidence,
                     "source_notes": [entity.note_id],
                 },
+                # Provenance fields - "hybrid" since entities come from frontend NLP
+                extraction_method="hybrid",
+                extraction_confidence=entity.confidence,
             )
             db.add(entity_node)
             seen_entities[entity_key] = node_id
             node_count += 1
 
-            # Create edge from patient to entity
+            # Create edge from patient to entity with provenance
             edge_type = _node_type_to_edge_type(node_type)
             edge = KGEdge(
                 id=str(uuid4()),
@@ -635,6 +740,9 @@ async def _build_patient_knowledge_graph(
                 target_node_id=node_id,
                 edge_type=edge_type,
                 properties={"first_noted": entity.note_id},
+                # Provenance fields
+                extraction_method="hybrid",
+                extraction_confidence=entity.confidence,
             )
             db.add(edge)
             edge_count += 1
@@ -682,7 +790,7 @@ async def _build_patient_knowledge_graph(
                     condition_text = condition_key.split("|")[0]
 
                     if any(cp in condition_text.lower() for cp in condition_patterns):
-                        # Create treats relationship
+                        # Create treats relationship with provenance
                         treats_edge = KGEdge(
                             id=str(uuid4()),
                             patient_id=patient_id,
@@ -690,6 +798,9 @@ async def _build_patient_knowledge_graph(
                             target_node_id=condition_node_id,
                             edge_type=EdgeType.DRUG_TREATS,
                             properties={"inferred": True},
+                            # Provenance - "inferred" since this is rule-based
+                            extraction_method="inferred",
+                            extraction_confidence=0.7,  # Lower confidence for inferred edges
                         )
                         db.add(treats_edge)
                         edge_count += 1
@@ -1500,6 +1611,35 @@ Provide a clear, evidence-based answer synthesizing the clinical data, graph rel
     for pc in policy_citations_data:
         sources.append(f"Policy: {pc['policy_name']} — {pc['section_title']}")
 
+    # Detect calculator-related queries and auto-invoke calculators
+    calculator_results: list[CalculatorQueryResult] = []
+    calculator_keywords = ["risk", "score", "calculate", "chadsvasc", "meld", "egfr", "wells"]
+    is_calculator_query = any(kw in question for kw in calculator_keywords)
+
+    if is_calculator_query:
+        try:
+            from app.services.condition_calculator_mapping import get_calculators_for_condition
+
+            # Get conditions from KG nodes
+            condition_nodes = [n for n in nodes if n.node_type == NodeType.CONDITION]
+            measurement_nodes = [n for n in nodes if n.node_type == NodeType.MEASUREMENT]
+
+            # Find applicable calculators
+            applicable_calcs: set[str] = set()
+            for cond_node in condition_nodes:
+                calc_ids = get_calculators_for_condition(cond_node.label)
+                applicable_calcs.update(calc_ids)
+
+            # Try to execute calculators with available data
+            for calc_id in applicable_calcs:
+                calc_result = await _try_execute_calculator(calc_id, measurement_nodes)
+                if calc_result:
+                    calculator_results.append(calc_result)
+
+            logger.info(f"Calculator query detected, found {len(calculator_results)} results")
+        except Exception as e:
+            logger.warning(f"Calculator integration failed: {e}")
+
     # Commit provenance records
     try:
         await db.flush()
@@ -1521,6 +1661,7 @@ Provide a clear, evidence-based answer synthesizing the clinical data, graph rel
         entity_provenance=entity_provenance_data if provenance_depth == "full" else [],
         policy_citations=policy_citations_data,
         provenance_url=f"/api/v1/clinical-agent/provenance/{query_id}",
+        calculator_results=calculator_results,
     )
 
 

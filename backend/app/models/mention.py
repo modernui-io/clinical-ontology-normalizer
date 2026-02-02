@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from sqlalchemy import Enum, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import DateTime, Enum, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 from app.schemas.base import Assertion, Domain, Experiencer, Temporality
+from datetime import datetime
 
 
 class Mention(Base):
@@ -68,6 +69,13 @@ class Mention(Base):
         Float,
         nullable=False,
         default=1.0,
+    )
+
+    # Event date - extracted from context like "diagnosed on 3/15/2023"
+    event_date: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        index=True,
     )
 
     # Relationships

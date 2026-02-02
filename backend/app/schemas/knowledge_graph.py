@@ -73,6 +73,17 @@ class KGNodeCreate(BaseModel):
     label: str = Field(..., description="Human-readable label")
     properties: dict = Field(default_factory=dict, description="Node-specific properties")
 
+    # Provenance fields
+    source_document_id: UUID | None = Field(
+        None, description="Source document this entity was extracted from"
+    )
+    extraction_method: str | None = Field(
+        None, description="How entity was extracted: nlp, manual, imported, hybrid"
+    )
+    extraction_confidence: float | None = Field(
+        None, ge=0.0, le=1.0, description="Confidence in the extraction (0-1)"
+    )
+
 
 class KGNode(KGNodeCreate):
     """Schema for a knowledge graph node response.
@@ -147,6 +158,17 @@ class KGEdgeCreate(BaseModel):
     )
     temporal_confidence: float | None = Field(
         None, ge=0.0, le=1.0, description="Confidence in temporal assertions (0-1)"
+    )
+
+    # Provenance fields
+    source_document_id: UUID | None = Field(
+        None, description="Source document this relationship was extracted from"
+    )
+    extraction_method: str | None = Field(
+        None, description="How relationship was extracted: nlp, manual, imported, hybrid"
+    )
+    extraction_confidence: float | None = Field(
+        None, ge=0.0, le=1.0, description="Confidence in the extraction (0-1)"
     )
 
 

@@ -12,6 +12,7 @@ import json
 import logging
 import re
 from dataclasses import dataclass, field
+from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 from uuid import uuid4
@@ -81,6 +82,10 @@ class ExtractedEntity:
     social_history_category: str | None = None  # smoking, alcohol, drugs
     social_history_status: str | None = None  # current_smoker, former_smoker, etc.
     quantity: str | None = None  # pack-years, drinks per week, etc.
+
+    # Event date fields
+    event_date: datetime | None = None  # Parsed datetime of the clinical event
+    event_date_text: str | None = None  # Original text of the date (e.g., "March 15, 2023")
 
 
 # ============================================================================
@@ -1056,6 +1061,32 @@ TEMPORAL_PATTERNS = [
     (r"\b(chronic|acute|subacute|intermittent|persistent)\b", "temporal_quality"),
     (r"\b(onset|started|began|developed)\s+(\d+)\s*(days?|weeks?|months?|years?)\s+ago\b", "onset"),
     (r"\b(\d{1,2}[/\-]\d{1,2}[/\-]\d{2,4})\b", "date"),
+]
+
+
+# ============================================================================
+# Event Date Patterns - for linking specific dates to clinical events
+# ============================================================================
+
+EVENT_DATE_PATTERNS = [
+    # Diagnosis date patterns
+    (r"(?:diagnosed|dx|discovered)(?:\s+with\s+\w+)?\s+(?:on\s+)?(\d{1,2}[/\-]\d{1,2}[/\-]\d{2,4})", "diagnosis_date"),
+    (r"(?:diagnosed|dx|discovered)(?:\s+with\s+\w+)?\s+(?:on\s+)?(\w+\s+\d{1,2},?\s+\d{4})", "diagnosis_date"),
+    (r"(?:diagnosed|dx|discovered)(?:\s+with\s+\w+)?\s+(?:in\s+)?(\w+\s+\d{4})", "diagnosis_date"),
+    # Result/report date patterns
+    (r"(?:resulted|reported|result\s+from)\s+(?:on\s+)?(\d{1,2}[/\-]\d{1,2}[/\-]\d{2,4})", "result_date"),
+    (r"(?:resulted|reported|result\s+from)\s+(?:on\s+)?(\w+\s+\d{1,2},?\s+\d{4})", "result_date"),
+    # Start date patterns (medication, treatment)
+    (r"(?:started|began|initiated|commenced)\s+(?:on\s+)?(\d{1,2}[/\-]\d{1,2}[/\-]\d{2,4})", "start_date"),
+    (r"(?:started|began|initiated|commenced)\s+(?:on\s+)?(\w+\s+\d{1,2},?\s+\d{4})", "start_date"),
+    (r"(?:started|began|initiated|commenced)\s+(?:in\s+)?(\w+\s+\d{4})", "start_date"),
+    # Since date patterns
+    (r"(?:since)\s+(\d{1,2}[/\-]\d{1,2}[/\-]\d{2,4})", "since_date"),
+    (r"(?:since)\s+(\w+\s+\d{1,2},?\s+\d{4})", "since_date"),
+    (r"(?:since)\s+(\w+\s+\d{4})", "since_date"),
+    # Full date (Month DD, YYYY or DD Month YYYY)
+    (r"(?:on\s+)?(\w+\s+\d{1,2},?\s+\d{4})", "full_date"),
+    (r"(?:on\s+)?(\d{1,2}\s+\w+\s+\d{4})", "full_date"),
 ]
 
 
