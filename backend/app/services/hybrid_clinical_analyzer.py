@@ -625,8 +625,20 @@ class HybridClinicalAnalyzer:
         # Extract entities using the unified NLP service
         result = self._nlp_service.extract_entities(text=note_text)
 
+        coverage_pct = 0.0
+        try:
+            from app.services.nlp_coverage import calculate_token_coverage
+
+            coverage_stats = calculate_token_coverage(
+                note_text,
+                [(entity.span.start, entity.span.end) for entity in result.entities],
+            )
+            coverage_pct = coverage_stats.coverage_pct
+        except Exception as coverage_error:
+            logger.warning(f"Failed to calculate token coverage: {coverage_error}")
+
         context = StructuredContext(
-            coverage_pct=100.0,  # NLP service processes full text
+            coverage_pct=coverage_pct,
             entity_count=result.entity_count,
         )
 
