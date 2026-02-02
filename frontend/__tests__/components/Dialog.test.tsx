@@ -47,6 +47,7 @@ describe("Dialog Component", () => {
           <DialogTrigger>Open Dialog</DialogTrigger>
           <DialogContent>
             <DialogTitle>Dialog Title</DialogTitle>
+            <DialogDescription>Dialog description</DialogDescription>
           </DialogContent>
         </Dialog>
       );
@@ -80,6 +81,7 @@ describe("Dialog Component", () => {
         <Dialog open={true}>
           <DialogContent>
             <DialogTitle>Controlled Dialog</DialogTitle>
+            <DialogDescription>Controlled dialog content</DialogDescription>
           </DialogContent>
         </Dialog>
       );
@@ -94,6 +96,7 @@ describe("Dialog Component", () => {
         <Dialog defaultOpen>
           <DialogContent>
             <DialogTitle>Dialog Title</DialogTitle>
+            <DialogDescription>Dialog description</DialogDescription>
             <DialogClose data-testid="close-btn">Close</DialogClose>
           </DialogContent>
         </Dialog>
@@ -116,6 +119,7 @@ describe("Dialog Component", () => {
           <DialogTrigger>Open Dialog</DialogTrigger>
           <DialogContent>
             <DialogTitle>Dialog Title</DialogTitle>
+            <DialogDescription>Dialog description</DialogDescription>
           </DialogContent>
         </Dialog>
       );
@@ -148,6 +152,7 @@ describe("Dialog Component", () => {
         <Dialog defaultOpen>
           <DialogContent>
             <DialogTitle>Dialog</DialogTitle>
+            <DialogDescription>Dialog description</DialogDescription>
             <DialogFooter>
               <Button variant="outline">Cancel</Button>
               <Button>Save</Button>
@@ -165,6 +170,7 @@ describe("Dialog Component", () => {
         <Dialog defaultOpen>
           <DialogContent>
             <DialogTitle>Form Dialog</DialogTitle>
+            <DialogDescription>Dialog description</DialogDescription>
             <form data-testid="dialog-form">
               <input placeholder="Name" />
               <input placeholder="Email" />
@@ -185,6 +191,7 @@ describe("Dialog Component", () => {
         <Dialog defaultOpen>
           <DialogContent>
             <DialogTitle>Accessible Dialog</DialogTitle>
+            <DialogDescription>Dialog description</DialogDescription>
           </DialogContent>
         </Dialog>
       );
@@ -197,6 +204,7 @@ describe("Dialog Component", () => {
         <Dialog defaultOpen>
           <DialogContent>
             <DialogTitle>Dialog Title</DialogTitle>
+            <DialogDescription>Dialog description</DialogDescription>
           </DialogContent>
         </Dialog>
       );
@@ -224,6 +232,7 @@ describe("Dialog Component", () => {
         <Dialog defaultOpen>
           <DialogContent>
             <DialogTitle>Focus Trap Dialog</DialogTitle>
+            <DialogDescription>Dialog description</DialogDescription>
             <Button>First Button</Button>
             <Button>Second Button</Button>
           </DialogContent>
@@ -248,6 +257,7 @@ describe("Dialog Component", () => {
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogContent>
                 <DialogTitle>Controlled</DialogTitle>
+                <DialogDescription>Dialog description</DialogDescription>
                 <Button data-testid="close-dialog-btn" onClick={() => setOpen(false)}>
                   Close Dialog
                 </Button>
@@ -281,6 +291,7 @@ describe("Dialog Component", () => {
         <Dialog defaultOpen>
           <DialogContent className="custom-dialog" data-testid="dialog-content">
             <DialogTitle>Styled Dialog</DialogTitle>
+            <DialogDescription>Dialog description</DialogDescription>
           </DialogContent>
         </Dialog>
       );
@@ -295,6 +306,7 @@ describe("Dialog Component", () => {
         <Dialog defaultOpen>
           <DialogContent>
             <DialogTitle>Escape Dialog</DialogTitle>
+            <DialogDescription>Dialog description</DialogDescription>
           </DialogContent>
         </Dialog>
       );

@@ -44,6 +44,7 @@ import { getPatient, getPatientFacts, generatePatientSummary } from "@/lib/api";
 const mockGetPatient = getPatient as jest.MockedFunction<typeof getPatient>;
 const mockGetPatientFacts = getPatientFacts as jest.MockedFunction<typeof getPatientFacts>;
 const mockGenerateSummary = generatePatientSummary as jest.MockedFunction<typeof generatePatientSummary>;
+let consoleErrorSpy: jest.SpyInstance;
 
 const mockPatient = {
   id: "patient-uuid-123",
@@ -114,6 +115,11 @@ const mockSummaryResponse = {
 describe("Patient Summary Page", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
   });
 
   describe("Loading State", () => {

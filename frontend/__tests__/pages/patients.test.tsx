@@ -10,7 +10,7 @@
  * - Navigation links
  */
 
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import PatientsPage from '@/app/patients/page';
 
@@ -44,15 +44,24 @@ const { getPatientGraph } = require('@/lib/api') as {
 };
 
 const mockGetPatientGraph = getPatientGraph as jest.Mock;
+let consoleErrorSpy: jest.SpyInstance;
+
+const advanceTimers = async (ms: number) => {
+  await act(async () => {
+    await jest.advanceTimersByTimeAsync(ms);
+  });
+};
 
 describe('Patients Page', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     // Reset timer mocks
     jest.useFakeTimers();
   });
 
   afterEach(() => {
+    consoleErrorSpy.mockRestore();
     jest.useRealTimers();
   });
 
@@ -116,7 +125,7 @@ describe('Patients Page', () => {
       await user.type(input, 'P001');
 
       // Fast-forward debounce timer
-      await jest.advanceTimersByTimeAsync(500);
+      await advanceTimers(500);
 
       await waitFor(() => {
         expect(mockGetPatientGraph).toHaveBeenCalledWith('P001');
@@ -134,7 +143,7 @@ describe('Patients Page', () => {
       await user.clear(input);
 
       // Fast-forward debounce timer
-      await jest.advanceTimersByTimeAsync(500);
+      await advanceTimers(500);
 
       // Should not have been called with empty string
       const calls = mockGetPatientGraph.mock.calls;
@@ -170,7 +179,7 @@ describe('Patients Page', () => {
       await user.type(input, 'P001');
 
       // Fast-forward past debounce
-      await jest.advanceTimersByTimeAsync(500);
+      await advanceTimers(500);
 
       // Loading skeleton should be visible
       // The component uses SkeletonCard which has a specific structure
@@ -198,7 +207,7 @@ describe('Patients Page', () => {
       await user.type(input, 'P001');
 
       // Fast-forward debounce timer
-      await jest.advanceTimersByTimeAsync(500);
+      await advanceTimers(500);
 
       await waitFor(() => {
         expect(screen.getByText(/patient p001/i)).toBeInTheDocument();
@@ -220,7 +229,7 @@ describe('Patients Page', () => {
       const input = screen.getByPlaceholderText(/search by patient id/i);
       await user.type(input, 'P001');
 
-      await jest.advanceTimersByTimeAsync(500);
+      await advanceTimers(500);
 
       await waitFor(() => {
         expect(screen.getByText('15')).toBeInTheDocument();
@@ -243,7 +252,7 @@ describe('Patients Page', () => {
       const input = screen.getByPlaceholderText(/search by patient id/i);
       await user.type(input, 'P001');
 
-      await jest.advanceTimersByTimeAsync(500);
+      await advanceTimers(500);
 
       await waitFor(() => {
         expect(screen.getByText('8')).toBeInTheDocument();
@@ -266,7 +275,7 @@ describe('Patients Page', () => {
       const input = screen.getByPlaceholderText(/search by patient id/i);
       await user.type(input, 'P001');
 
-      await jest.advanceTimersByTimeAsync(500);
+      await advanceTimers(500);
 
       await waitFor(() => {
         expect(screen.getByText('View Knowledge Graph')).toBeInTheDocument();
@@ -288,7 +297,7 @@ describe('Patients Page', () => {
       const input = screen.getByPlaceholderText(/search by patient id/i);
       await user.type(input, 'P001');
 
-      await jest.advanceTimersByTimeAsync(500);
+      await advanceTimers(500);
 
       await waitFor(() => {
         expect(screen.getByText('Timeline')).toBeInTheDocument();
@@ -310,7 +319,7 @@ describe('Patients Page', () => {
       const input = screen.getByPlaceholderText(/search by patient id/i);
       await user.type(input, 'P001');
 
-      await jest.advanceTimersByTimeAsync(500);
+      await advanceTimers(500);
 
       await waitFor(() => {
         expect(screen.getByText('Facts')).toBeInTheDocument();
@@ -328,7 +337,7 @@ describe('Patients Page', () => {
       const input = screen.getByPlaceholderText(/search by patient id/i);
       await user.type(input, 'INVALID');
 
-      await jest.advanceTimersByTimeAsync(500);
+      await advanceTimers(500);
 
       await waitFor(() => {
         expect(screen.getByText(/no patient found/i)).toBeInTheDocument();
@@ -344,7 +353,7 @@ describe('Patients Page', () => {
       const input = screen.getByPlaceholderText(/search by patient id/i);
       await user.type(input, 'P001');
 
-      await jest.advanceTimersByTimeAsync(500);
+      await advanceTimers(500);
 
       await waitFor(() => {
         expect(toast.error).toHaveBeenCalled();
@@ -360,7 +369,7 @@ describe('Patients Page', () => {
       const input = screen.getByPlaceholderText(/search by patient id/i);
       await user.type(input, 'INVALID');
 
-      await jest.advanceTimersByTimeAsync(500);
+      await advanceTimers(500);
 
       await waitFor(() => {
         expect(
@@ -386,7 +395,7 @@ describe('Patients Page', () => {
       const input = screen.getByPlaceholderText(/search by patient id/i);
       await user.type(input, 'P001');
 
-      await jest.advanceTimersByTimeAsync(500);
+      await advanceTimers(500);
 
       await waitFor(() => {
         const graphLink = screen.getByRole('link', { name: /view knowledge graph/i });
@@ -409,7 +418,7 @@ describe('Patients Page', () => {
       const input = screen.getByPlaceholderText(/search by patient id/i);
       await user.type(input, 'P001');
 
-      await jest.advanceTimersByTimeAsync(500);
+      await advanceTimers(500);
 
       await waitFor(() => {
         const timelineLink = screen.getByRole('link', { name: /timeline/i });
@@ -432,7 +441,7 @@ describe('Patients Page', () => {
       const input = screen.getByPlaceholderText(/search by patient id/i);
       await user.type(input, 'P001');
 
-      await jest.advanceTimersByTimeAsync(500);
+      await advanceTimers(500);
 
       await waitFor(() => {
         const factsLink = screen.getByRole('link', { name: /facts/i });
