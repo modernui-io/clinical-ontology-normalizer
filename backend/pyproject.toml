@@ -126,8 +126,10 @@ disallow_untyped_defs = true
 ignore_missing_imports = true
 follow_imports = "skip"
 files = [
+    "app/api/clinical_agent.py",
     "app/api/nlp.py",
     "app/services/clinical_ontology_mapper.py",
+    "app/services/guideline_rag_service.py",
     "app/services/ontology_graph_integration.py",
     "app/services/hybrid_clinical_analyzer.py",
     "app/services/graph_augmented_rag.py",
