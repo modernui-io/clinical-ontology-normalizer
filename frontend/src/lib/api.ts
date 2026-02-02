@@ -2696,6 +2696,27 @@ export interface NLPExtractionCoverage {
   uncovered_tokens?: NLPTokenSpan[];
 }
 
+export interface NLPCoverageGapToken {
+  start: number;
+  end: number;
+  text: string;
+  ontology_category?: string | null;
+}
+
+export interface NLPCoverageGapReport {
+  total_tokens: number;
+  extraction_covered_tokens: number;
+  ontology_entity_tokens: number;
+  overlap_tokens: number;
+  extraction_only_tokens: number;
+  ontology_only_tokens: number;
+  overlap_pct: number;
+  extraction_only_pct: number;
+  ontology_only_pct: number;
+  extraction_only: NLPCoverageGapToken[];
+  ontology_only: NLPCoverageGapToken[];
+}
+
 export interface NLPExtractRequest {
   text: string;
   entity_types?: NLPEntityType[];
@@ -2707,6 +2728,8 @@ export interface NLPExtractRequest {
   normalize_entities?: boolean;
   include_coverage?: boolean;
   include_uncovered_tokens?: boolean;
+  include_gap_report?: boolean;
+  max_gap_tokens?: number;
 }
 
 export interface NLPExtractResponse {
@@ -2719,6 +2742,7 @@ export interface NLPExtractResponse {
   processing_time_ms: number;
   model_used: string;
   coverage?: NLPExtractionCoverage | null;
+  coverage_gap?: NLPCoverageGapReport | null;
 }
 
 export interface NLPBatchExtractRequest {

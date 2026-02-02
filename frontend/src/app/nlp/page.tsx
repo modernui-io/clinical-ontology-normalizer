@@ -76,6 +76,8 @@ import {
   type Document,
   type NLPExtractedEntity,
   type NLPExtractionResult,
+  type NLPCoverageGapReport,
+  type NLPCoverageGapToken,
   type NLPModelInfo,
   type NLPEntityType,
   type NLPAssertionStatus,
@@ -734,6 +736,75 @@ function OntologyStatsPanel({ result }: { result: OntologyMapResponse }) {
           </div>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function CoverageGapTokenPanel({
+  title,
+  description,
+  tokens,
+}: {
+  title: string;
+  description: string;
+  tokens: NLPCoverageGapToken[];
+}) {
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <AlertCircle className="h-4 w-4" />
+          {title} ({tokens.length})
+        </CardTitle>
+        <CardDescription className="text-xs">{description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {tokens.length === 0 ? (
+          <div className="text-sm text-muted-foreground">No gap tokens.</div>
+        ) : (
+          <ScrollArea className="h-[220px]">
+            <div className="flex flex-col gap-2 pr-2">
+              {tokens.map((token, idx) => (
+                <div
+                  key={`${token.start}-${token.end}-${idx}`}
+                  className="flex flex-wrap items-center gap-2"
+                >
+                  <Badge variant="secondary">{token.text}</Badge>
+                  {token.ontology_category && (
+                    <Badge variant="outline" className="text-[10px] uppercase">
+                      {token.ontology_category}
+                    </Badge>
+                  )}
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function CoverageGapPanel({ report }: { report: NLPCoverageGapReport }) {
+  const ontologyDescription = report.ontology_entity_tokens
+    ? `${report.ontology_only_tokens} of ${report.ontology_entity_tokens} ontology entity tokens missed (${report.ontology_only_pct.toFixed(1)}%)`
+    : "No ontology entity tokens detected.";
+  const extractionDescription = report.extraction_covered_tokens
+    ? `${report.extraction_only_tokens} of ${report.extraction_covered_tokens} extracted tokens not in ontology entities (${report.extraction_only_pct.toFixed(1)}%)`
+    : "No extracted tokens detected.";
+
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      <CoverageGapTokenPanel
+        title="Ontology-only tokens"
+        description={ontologyDescription}
+        tokens={report.ontology_only}
+      />
+      <CoverageGapTokenPanel
+        title="Extraction-only tokens"
+        description={extractionDescription}
+        tokens={report.extraction_only}
+      />
     </div>
   );
 }
@@ -1916,6 +1987,7 @@ export default function NLPWorkbenchPage() {
           use_ml_models: useMLModels,
           model_id: useMLModels ? selectedModelId : undefined,
           include_coverage: true,
+          include_gap_report: true,
         });
         setResult(extractionResult);
         toast.success(
@@ -3003,6 +3075,7 @@ export default function NLPWorkbenchPage() {
                 <>
                   {/* Stats */}
                   <StatsPanel result={result} />
+                  {result.coverage_gap && <CoverageGapPanel report={result.coverage_gap} />}
 
                   {/* Highlighted Text */}
                   <Card>

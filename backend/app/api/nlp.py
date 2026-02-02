@@ -173,6 +173,55 @@ class ExtractionCoverageResponse(BaseModel):
     )
 
 
+class CoverageGapTokenResponse(BaseModel):
+    """Token span with ontology category for gap reporting."""
+
+    start: int = Field(..., description="Start character offset")
+    end: int = Field(..., description="End character offset")
+    text: str = Field(..., description="Token text")
+    ontology_category: str | None = Field(
+        None, description="Ontology category for the token"
+    )
+
+
+class CoverageGapReportResponse(BaseModel):
+    """Token-level gap report comparing extraction vs ontology coverage."""
+
+    total_tokens: int = Field(..., description="Total tokens in the document")
+    extraction_covered_tokens: int = Field(
+        ..., description="Tokens covered by extraction spans"
+    )
+    ontology_entity_tokens: int = Field(
+        ..., description="Tokens classified as ontology entities"
+    )
+    overlap_tokens: int = Field(
+        ..., description="Tokens covered by extraction and classified by ontology"
+    )
+    extraction_only_tokens: int = Field(
+        ..., description="Tokens covered by extraction but not ontology entities"
+    )
+    ontology_only_tokens: int = Field(
+        ..., description="Ontology entity tokens not covered by extraction"
+    )
+    overlap_pct: float = Field(
+        ..., description="Percent of ontology entity tokens covered by extraction"
+    )
+    extraction_only_pct: float = Field(
+        ..., description="Percent of extracted tokens not in ontology entities"
+    )
+    ontology_only_pct: float = Field(
+        ..., description="Percent of ontology entity tokens missed by extraction"
+    )
+    extraction_only: list[CoverageGapTokenResponse] = Field(
+        default_factory=list,
+        description="Sample tokens covered by extraction but not ontology entities",
+    )
+    ontology_only: list[CoverageGapTokenResponse] = Field(
+        default_factory=list,
+        description="Sample ontology entity tokens missed by extraction",
+    )
+
+
 class ExtractRequest(BaseModel):
     """Request for entity extraction.
 
@@ -218,6 +267,16 @@ class ExtractRequest(BaseModel):
         default=False,
         description="Include sample of tokens not covered by extracted entities",
     )
+    include_gap_report: bool = Field(
+        default=False,
+        description="Include token-level gap report comparing extraction vs ontology coverage",
+    )
+    max_gap_tokens: int = Field(
+        default=200,
+        ge=0,
+        le=1000,
+        description="Maximum gap tokens to return per list",
+    )
 
 
 class ExtractResponse(BaseModel):
@@ -252,6 +311,9 @@ class ExtractResponse(BaseModel):
     )
     coverage: ExtractionCoverageResponse | None = Field(
         None, description="Token coverage statistics for extracted entities"
+    )
+    coverage_gap: CoverageGapReportResponse | None = Field(
+        None, description="Token-level gap report comparing extraction vs ontology coverage"
     )
 
 
@@ -657,14 +719,15 @@ async def extract_entities(request: ExtractRequest) -> ExtractResponse:
                 session.commit()
                 response_patient_id = request.patient_id
 
+        entity_spans = [
+            (entity.span.start, entity.span.end) for entity in result.entities
+        ]
+
         coverage = None
         if request.include_coverage:
             try:
                 from app.services.nlp_coverage import calculate_token_coverage
 
-                entity_spans = [
-                    (entity.span.start, entity.span.end) for entity in result.entities
-                ]
                 coverage_stats = calculate_token_coverage(
                     request.text,
                     entity_spans,
@@ -687,6 +750,49 @@ async def extract_entities(request: ExtractRequest) -> ExtractResponse:
                 logger.warning(f"Coverage calculation failed: {coverage_err}")
                 coverage = None
 
+        coverage_gap = None
+        if request.include_gap_report:
+            try:
+                from app.services.nlp_coverage import calculate_coverage_gap
+
+                gap_report = calculate_coverage_gap(
+                    request.text,
+                    entity_spans,
+                    max_gap_tokens=request.max_gap_tokens,
+                )
+                coverage_gap = CoverageGapReportResponse(
+                    total_tokens=gap_report.total_tokens,
+                    extraction_covered_tokens=gap_report.extraction_covered_tokens,
+                    ontology_entity_tokens=gap_report.ontology_entity_tokens,
+                    overlap_tokens=gap_report.overlap_tokens,
+                    extraction_only_tokens=gap_report.extraction_only_tokens,
+                    ontology_only_tokens=gap_report.ontology_only_tokens,
+                    overlap_pct=gap_report.overlap_pct,
+                    extraction_only_pct=gap_report.extraction_only_pct,
+                    ontology_only_pct=gap_report.ontology_only_pct,
+                    extraction_only=[
+                        CoverageGapTokenResponse(
+                            start=token.start,
+                            end=token.end,
+                            text=token.text,
+                            ontology_category=token.ontology_category,
+                        )
+                        for token in gap_report.extraction_only
+                    ],
+                    ontology_only=[
+                        CoverageGapTokenResponse(
+                            start=token.start,
+                            end=token.end,
+                            text=token.text,
+                            ontology_category=token.ontology_category,
+                        )
+                        for token in gap_report.ontology_only
+                    ],
+                )
+            except Exception as gap_err:
+                logger.warning(f"Coverage gap calculation failed: {gap_err}")
+                coverage_gap = None
+
         return ExtractResponse(
             request_id=request_id,
             text_length=result.text_length,
@@ -701,6 +807,7 @@ async def extract_entities(request: ExtractRequest) -> ExtractResponse:
             graph_edges_created=graph_edges_created,
             patient_id=response_patient_id,
             coverage=coverage,
+            coverage_gap=coverage_gap,
         )
 
     except Exception as e:
