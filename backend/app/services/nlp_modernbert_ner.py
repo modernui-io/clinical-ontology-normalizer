@@ -60,16 +60,19 @@ class ModernBERTConfig:
     # Primary model - clinical NER model
     # Note: answerdotai/ModernBERT-base is a base LM without NER heads
     # Using clinical NER model until a ModernBERT-based NER model is available
+    # IMPORTANT: samrawal/bert-base-uncased_clinical-ner has 512 token limit
     model_name: str = "samrawal/bert-base-uncased_clinical-ner"
 
-    # Fallback models if primary unavailable
+    # Fallback models if primary unavailable (all have 512 token limit)
     fallback_models: tuple[str, ...] = (
         "alvaroalon2/biobert_diseases_ner",
         "dmis-lab/biobert-base-cased-v1.1",
     )
 
-    # ModernBERT's key advantage: 8192 token context
-    max_sequence_length: int = 8192
+    # Max sequence length - MUST match actual model capability
+    # samrawal/bert-base-uncased_clinical-ner uses BERT with 512 token limit
+    # (When a true ModernBERT NER model becomes available, this can be 8192)
+    max_sequence_length: int = 512
 
     # Batch size for inference
     batch_size: int = 4
