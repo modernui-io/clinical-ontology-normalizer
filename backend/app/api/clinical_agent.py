@@ -288,6 +288,16 @@ class EvidenceSource(BaseModel):
     relevance_score: float
 
 
+class NoteExcerpt(BaseModel):
+    """Recent note excerpt for a patient."""
+
+    note_id: str
+    document_id: str
+    note_type: str
+    note_date: str
+    excerpt: str
+
+
 class HybridQueryResponse(BaseModel):
     """Response from hybrid query."""
 
@@ -770,6 +780,46 @@ async def get_patient_graph(
         edges=edge_responses,
         summary=summary,
     )
+
+
+@router.get(
+    "/notes/{patient_id}",
+    response_model=list[NoteExcerpt],
+    summary="Get recent note excerpts for a patient",
+    description="Return recent clinical note excerpts for display alongside the knowledge graph.",
+)
+async def get_patient_note_excerpts(
+    patient_id: str,
+    limit: int = Query(5, ge=1, le=20),
+    db: AsyncSession = Depends(get_db),
+) -> list[NoteExcerpt]:
+    """Get recent note excerpts for a patient."""
+    stmt = (
+        select(DocumentModel)
+        .where(DocumentModel.patient_id == patient_id)
+        .order_by(DocumentModel.created_at.desc())
+        .limit(limit)
+    )
+    result = await db.execute(stmt)
+    documents = list(result.scalars().all())
+
+    excerpts: list[NoteExcerpt] = []
+    for doc in documents:
+        metadata = doc.extra_metadata or {}
+        note_id = metadata.get("original_note_id", str(doc.id))
+        note_date = metadata.get("note_date") or (doc.created_at.date().isoformat() if doc.created_at else "unknown")
+        excerpt = doc.text[:300] + ("..." if len(doc.text) > 300 else "")
+        excerpts.append(
+            NoteExcerpt(
+                note_id=str(note_id),
+                document_id=str(doc.id),
+                note_type=doc.note_type,
+                note_date=note_date,
+                excerpt=excerpt,
+            )
+        )
+
+    return excerpts
 
 
 @router.post(

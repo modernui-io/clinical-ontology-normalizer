@@ -2862,8 +2862,15 @@ export interface OntologyRelationship {
   confidence: number;
 }
 
+export interface UnknownTokenSpan {
+  start: number;
+  end: number;
+  text: string;
+}
+
 export interface OntologyMapRequest {
   text: string;
+  include_unknown_tokens?: boolean;
 }
 
 export interface OntologyMapResponse {
@@ -2877,6 +2884,7 @@ export interface OntologyMapResponse {
   entities: OntologyEntity[];
   relationships: OntologyRelationship[];
   negated_findings: string[];
+  unknown_tokens: UnknownTokenSpan[];
   processing_time_ms: number;
 }
 
