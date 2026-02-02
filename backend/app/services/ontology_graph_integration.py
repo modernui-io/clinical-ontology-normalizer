@@ -20,7 +20,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, cast
 from uuid import UUID, uuid4
 
 from sqlalchemy.orm import Session
@@ -258,7 +258,7 @@ class OntologyGraphIntegration:
             },
         )
 
-        node_id = self._graph_builder.create_node(node_input)
+        node_id = cast(UUID, self._graph_builder.create_node(node_input))
         self._entity_cache[cache_key] = node_id
         return node_id
 
@@ -292,7 +292,7 @@ class OntologyGraphIntegration:
                 "note_datetime": note_datetime.isoformat(),
             },
         )
-        return self._graph_builder.create_edge(edge_input)
+        return cast(UUID, self._graph_builder.create_edge(edge_input))
 
     def _create_relationship_edge(
         self,

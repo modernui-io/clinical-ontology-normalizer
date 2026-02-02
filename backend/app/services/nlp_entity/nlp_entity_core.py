@@ -98,6 +98,7 @@ class NLPModelInfo:
     description: str
     entity_types: list[EntityType]
     is_available: bool
+    requires_gpu: bool = False
     version: str = "1.0.0"
     metadata: dict = field(default_factory=dict)
 
@@ -281,32 +282,33 @@ class ClinicalNLPEntityService(NormalizerMixin, ExtractorMixin, LinkerMixin):
 
         # Extract by type
         extract_all = entity_types is None
+        entity_type_set = set(entity_types) if entity_types is not None else set()
 
-        if extract_all or EntityType.DIAGNOSIS in entity_types or EntityType.SYMPTOM in entity_types:
+        if extract_all or EntityType.DIAGNOSIS in entity_type_set or EntityType.SYMPTOM in entity_type_set:
             all_entities.extend(self._extract_diagnoses_and_symptoms(text, sections))
 
-        if extract_all or EntityType.MEDICATION in entity_types:
+        if extract_all or EntityType.MEDICATION in entity_type_set:
             all_entities.extend(self._extract_medications(text, sections))
 
-        if extract_all or EntityType.PROCEDURE in entity_types:
+        if extract_all or EntityType.PROCEDURE in entity_type_set:
             all_entities.extend(self._extract_procedures(text, sections))
 
-        if extract_all or EntityType.VITAL_SIGN in entity_types:
+        if extract_all or EntityType.VITAL_SIGN in entity_type_set:
             all_entities.extend(self._extract_vital_signs(text, sections))
 
-        if extract_all or EntityType.LAB_RESULT in entity_types:
+        if extract_all or EntityType.LAB_RESULT in entity_type_set:
             all_entities.extend(self._extract_lab_results(text, sections))
 
-        if extract_all or EntityType.ANATOMICAL_LOCATION in entity_types:
+        if extract_all or EntityType.ANATOMICAL_LOCATION in entity_type_set:
             all_entities.extend(self._extract_anatomical_locations(text, sections))
 
-        if extract_all or EntityType.TEMPORAL in entity_types:
+        if extract_all or EntityType.TEMPORAL in entity_type_set:
             all_entities.extend(self._extract_temporal_expressions(text, sections))
 
-        if extract_all or EntityType.ALLERGY in entity_types:
+        if extract_all or EntityType.ALLERGY in entity_type_set:
             all_entities.extend(self._extract_allergies(text, sections))
 
-        if extract_all or EntityType.SOCIAL_HISTORY in entity_types:
+        if extract_all or EntityType.SOCIAL_HISTORY in entity_type_set:
             all_entities.extend(self._extract_social_history(text, sections))
 
         # Extract from clinical abbreviations dictionary
@@ -408,6 +410,11 @@ def get_nlp_entity_service() -> ClinicalNLPEntityService:
         with _nlp_entity_lock:
             if _nlp_entity_service is None:
                 _nlp_entity_service = ClinicalNLPEntityService()
+                try:
+                    from .nlp_entity_ml_models import register_default_ml_models
+                    register_default_ml_models(_nlp_entity_service)
+                except Exception as exc:
+                    logger.warning(f"Failed to register ML models: {exc}")
     return _nlp_entity_service
 
 

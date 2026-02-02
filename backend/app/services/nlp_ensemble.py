@@ -14,7 +14,7 @@ from __future__ import annotations
 import logging
 import threading
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, cast
 from uuid import UUID
 
 from app.schemas.base import Assertion, Domain, Experiencer, Temporality
@@ -49,8 +49,8 @@ class EnsembleConfig:
 
     # Enable/disable individual extractors
     use_rule_based: bool = True
-    use_ml_ner: bool = True
-    use_modernbert: bool = True  # ModernBERT with 8K context
+    use_ml_ner: bool = False  # Disabled - ClinicalBERT has 512 token limit, use ModernBERT instead
+    use_modernbert: bool = True  # ModernBERT with 8K context (preferred)
     use_value_extraction: bool = True
     use_relation_extraction: bool = True
 
@@ -316,9 +316,9 @@ class EnsembleNLPService(BaseNLPService):
             return []
 
         try:
-            mentions = self._rule_based_service.extract_mentions(
+            mentions = cast(list[ExtractedMention], self._rule_based_service.extract_mentions(
                 text, document_id, note_type
-            )
+            ))
             # Set base confidence
             for m in mentions:
                 if m.confidence < self.config.rule_based_confidence:
@@ -436,7 +436,7 @@ class EnsembleNLPService(BaseNLPService):
             return []
 
         try:
-            return self._relation_service.extract_all(text, mentions)
+            return cast(list[ExtractedRelation], self._relation_service.extract_all(text, mentions))
         except Exception as e:
             logger.warning(f"Relation extraction failed: {e}")
             return []

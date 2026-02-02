@@ -754,7 +754,7 @@ class HybridClinicalAnalyzer:
             if not self._is_clinical_entity(entity.span.text, entity.confidence):
                 filtered_count += 1
                 continue
-            entity_dict = {
+            entity_dict: dict[str, Any] = {
                 "name": entity.span.text,
                 "normalized": entity.span.normalized,
                 "category": entity.category.value,
@@ -766,8 +766,12 @@ class HybridClinicalAnalyzer:
 
             # Add value if present
             if entity.attributes:
-                entity_dict["value"] = entity.attributes.get("value")
-                entity_dict["unit"] = entity.attributes.get("unit")
+                value = entity.attributes.get("value")
+                unit = entity.attributes.get("unit")
+                if value is not None:
+                    entity_dict["value"] = value
+                if unit is not None:
+                    entity_dict["unit"] = unit
 
             if entity.category == OntologyCategory.DIAGNOSIS:
                 context.diagnoses.append(entity_dict)

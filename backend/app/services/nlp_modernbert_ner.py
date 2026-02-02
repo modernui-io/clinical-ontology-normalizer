@@ -23,7 +23,7 @@ import logging
 import re
 import threading
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, cast
 from uuid import UUID
 
 from app.schemas.base import Assertion, Domain, Experiencer, Temporality
@@ -57,13 +57,13 @@ class ModernBERTConfig:
     on most clinical documents.
     """
 
-    # Primary model - fine-tuned clinical NER on ModernBERT
-    # Override with your own fine-tuned model
-    model_name: str = "answerdotai/ModernBERT-base"
+    # Primary model - clinical NER model
+    # Note: answerdotai/ModernBERT-base is a base LM without NER heads
+    # Using clinical NER model until a ModernBERT-based NER model is available
+    model_name: str = "samrawal/bert-base-uncased_clinical-ner"
 
     # Fallback models if primary unavailable
     fallback_models: tuple[str, ...] = (
-        "samrawal/bert-base-uncased_clinical-ner",
         "alvaroalon2/biobert_diseases_ner",
         "dmis-lab/biobert-base-cased-v1.1",
     )
@@ -365,12 +365,19 @@ class ModernBERTNERService(BaseNLPService):
             - entity_group: Entity type
             - score: Confidence score
         """
+        import time
+        start_init = time.perf_counter()
         self._initialize()
+        init_time = (time.perf_counter() - start_init) * 1000
+        logger.info(f"ModernBERT init took {init_time:.0f}ms")
 
         if not self._model_available or self._pipeline is None:
+            logger.warning("ModernBERT model not available")
             return []
 
         try:
+            logger.info(f"ModernBERT extracting from {len(text)} chars on device={self._device}")
+
             # Safety check: if text is long, always chunk
             # ~3 chars per token on average, so 8192 * 3 = ~24,576 chars
             # Use 20,000 chars as safe threshold
@@ -380,15 +387,23 @@ class ModernBERTNERService(BaseNLPService):
 
             # For shorter texts, check token count precisely
             if self._tokenizer is not None:
+                start_tok = time.perf_counter()
                 tokenized = self._tokenizer(text, return_length=True, truncation=False)
                 token_count = tokenized["length"][0] if isinstance(tokenized["length"], list) else tokenized["length"]
+                tok_time = (time.perf_counter() - start_tok) * 1000
+                logger.info(f"Tokenization: {token_count} tokens in {tok_time:.0f}ms")
 
                 if token_count > self.config.max_sequence_length:
                     logger.info(f"Document exceeds {self.config.max_sequence_length} tokens ({token_count}), using chunking")
                     return self._extract_chunked(text)
 
             # Single pass - text is within limits
-            return self._pipeline(text)
+            logger.info("Starting NER pipeline inference...")
+            start_infer = time.perf_counter()
+            result = cast(list[dict[str, Any]], self._pipeline(text))
+            infer_time = (time.perf_counter() - start_infer) * 1000
+            logger.info(f"NER pipeline: {len(result)} entities in {infer_time:.0f}ms")
+            return result
 
         except Exception as e:
             logger.warning(f"Entity extraction failed: {e}")

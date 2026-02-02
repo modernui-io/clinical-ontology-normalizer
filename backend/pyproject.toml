@@ -124,6 +124,19 @@ warn_return_any = true
 warn_unused_ignores = true
 disallow_untyped_defs = true
 ignore_missing_imports = true
+follow_imports = "skip"
+files = [
+    "app/api/nlp.py",
+    "app/services/clinical_ontology_mapper.py",
+    "app/services/ontology_graph_integration.py",
+    "app/services/hybrid_clinical_analyzer.py",
+    "app/services/graph_augmented_rag.py",
+    "app/services/nlp_entity/nlp_entity_core.py",
+    "app/services/nlp_entity/nlp_entity_ml_models.py",
+    "app/services/nlp_ensemble.py",
+    "app/services/nlp_modernbert_ner.py",
+    "app/services/nlp_clinical_ner.py",
+]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

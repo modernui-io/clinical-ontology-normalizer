@@ -113,5 +113,13 @@ Each task should be completed in one iteration with tests passing before checkin
 
 ---
 
+## Phase 13: Mypy Adoption (Incremental)
+
+- [x] 13.1 Establish mypy baseline for core NLP + KG pipeline modules
+- [ ] 13.2 Expand mypy coverage to clinical agent + QA reasoning modules
+- [ ] 13.3 Expand mypy coverage to orchestration, policy, calculators, and remaining services
+
+---
+
 ## Completion Criteria
 All checkboxes must be checked, all tests must pass (`make test`), and all linting must pass (`make lint`) before outputting the completion promise.

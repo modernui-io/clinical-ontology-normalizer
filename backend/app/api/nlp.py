@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import time
 from enum import Enum
+from typing import Any, cast
 from uuid import uuid4
 
 from fastapi import APIRouter, Body, Query
@@ -151,13 +152,17 @@ class SectionSpanResponse(BaseModel):
 
 
 class ExtractRequest(BaseModel):
-    """Request for entity extraction."""
+    """Request for entity extraction.
+
+    Supports large clinical documents up to 500K characters (~100K words).
+    For very large documents, consider using batch extraction or chunking.
+    """
 
     text: str = Field(
         ...,
         min_length=1,
-        max_length=100000,
-        description="Clinical text to process",
+        max_length=500000,  # ~100K words - supports full EHR documents
+        description="Clinical text to process (max 500K characters)",
     )
     entity_types: list[EntityTypeEnum] | None = Field(
         default=None,
@@ -376,49 +381,71 @@ async def extract_entities(request: ExtractRequest) -> ExtractResponse:
 
         # Use Ensemble NLP when use_ml_models is True (combines rule-based + ClinicalBERT + ModernBERT)
         if request.use_ml_models:
-            from app.services.nlp_ensemble import get_ensemble_nlp_service
-            import time
+            requested_model_id = request.model_id or "ensemble_nlp"
+            if requested_model_id == "ensemble_nlp":
+                from app.services.nlp_ensemble import get_ensemble_nlp_service
+                import time
 
-            start_time = time.perf_counter()
-            ensemble_service = get_ensemble_nlp_service()
-            ensemble_result = ensemble_service.extract_all(request.text, document_id=uuid4())
-            processing_time = (time.perf_counter() - start_time) * 1000
+                start_time = time.perf_counter()
+                ensemble_service = get_ensemble_nlp_service()
+                ensemble_result = ensemble_service.extract_all(request.text, document_id=uuid4())
+                processing_time = (time.perf_counter() - start_time) * 1000
 
-            # Map ensemble mentions to ExtractedEntity format
-            domain_to_entity_type = {
-                "condition": EntityType.DIAGNOSIS,
-                "drug": EntityType.MEDICATION,
-                "procedure": EntityType.PROCEDURE,
-                "measurement": EntityType.LAB_RESULT,
-                "observation": EntityType.SYMPTOM,
-                "anatomy": EntityType.ANATOMICAL_LOCATION,
-            }
+                # Map ensemble mentions to ExtractedEntity format
+                domain_to_entity_type = {
+                    "condition": EntityType.DIAGNOSIS,
+                    "drug": EntityType.MEDICATION,
+                    "procedure": EntityType.PROCEDURE,
+                    "measurement": EntityType.LAB_RESULT,
+                    "observation": EntityType.SYMPTOM,
+                    "anatomy": EntityType.ANATOMICAL_LOCATION,
+                }
 
-            ml_entities = []
-            for m in ensemble_result.mentions:
-                entity_type = domain_to_entity_type.get(m.domain_hint, EntityType.DIAGNOSIS)
-                assertion = AssertionStatus.ABSENT if m.is_negated else AssertionStatus.PRESENT
-                if m.is_uncertain:
-                    assertion = AssertionStatus.UNCERTAIN
+                ml_entities = []
+                for m in ensemble_result.mentions:
+                    entity_type = domain_to_entity_type.get(m.domain_hint, EntityType.DIAGNOSIS)
+                    assertion = AssertionStatus.ABSENT if m.is_negated else AssertionStatus.PRESENT
+                    if m.is_uncertain:
+                        assertion = AssertionStatus.UNCERTAIN
 
-                ml_entities.append(ExtractedEntity(
-                    id=str(uuid4()),
-                    entity_type=entity_type,
-                    text=m.text,
-                    normalized_text=m.lexical_variant or m.text,
-                    span=EntitySpan(start=m.start_offset, end=m.end_offset, text=m.text),
-                    section=ClinicalSection.UNKNOWN,
-                    assertion=assertion,
-                    confidence=float(m.confidence),
-                ))
+                    ml_entities.append(ExtractedEntity(
+                        id=str(uuid4()),
+                        entity_type=entity_type,
+                        text=m.text,
+                        normalized_text=m.lexical_variant or m.text,
+                        span=EntitySpan(start=m.start_offset, end=m.end_offset, text=m.text),
+                        section=ClinicalSection.UNKNOWN,
+                        assertion=assertion,
+                        confidence=float(m.confidence),
+                    ))
 
-            result = ExtractionResult(
-                entities=ml_entities,
-                model_id="ensemble_nlp",  # Rule-based + ClinicalBERT + ModernBERT
-                processing_time_ms=round(processing_time, 2),
-                text_length=len(request.text),
-            )
-            service = get_nlp_entity_service()  # For normalization
+                result = ExtractionResult(
+                    entities=ml_entities,
+                    model_id="ensemble_nlp",  # Rule-based + ClinicalBERT + ModernBERT
+                    processing_time_ms=round(processing_time, 2),
+                    text_length=len(request.text),
+                )
+                service = get_nlp_entity_service()  # For normalization
+            else:
+                service = get_nlp_entity_service()
+
+                # Convert API enums to service enums
+                entity_types = None
+                if request.entity_types:
+                    entity_types = [EntityType(et.value) for et in request.entity_types]
+
+                available_models = {m.model_id for m in service.get_available_models()}
+                if requested_model_id not in available_models:
+                    raise InternalError(
+                        message=f"Unknown model_id '{requested_model_id}'",
+                        error_code=ErrorCode.VALIDATION_ERROR,
+                    )
+
+                result = service.extract_entities(
+                    text=request.text,
+                    entity_types=entity_types,
+                    model_id=requested_model_id,
+                )
         else:
             service = get_nlp_entity_service()
 
@@ -739,6 +766,20 @@ async def list_models() -> ModelsResponse:
             for m in models
         ]
 
+        # Add ensemble model as a selectable option
+        if not any(m.model_id == "ensemble_nlp" for m in models_response):
+            models_response.append(
+                NLPModelInfo(
+                    model_id="ensemble_nlp",
+                    name="Ensemble NLP",
+                    description="Rule-based + ClinicalBERT + ModernBERT + value/relation extraction",
+                    entity_types=list(EntityTypeEnum),
+                    is_available=True,
+                    requires_gpu=False,
+                    version="1.0.0",
+                )
+            )
+
         return ModelsResponse(
             models=models_response,
             default_model="rule_based",
@@ -1034,6 +1075,10 @@ class OntologyMapRequest(BaseModel):
         max_length=100000,
         description="Clinical text to process",
     )
+    include_unknown_tokens: bool = Field(
+        default=False,
+        description="Include unclassified token spans in response",
+    )
 
 
 class OntologyEntityResponse(BaseModel):
@@ -1059,6 +1104,14 @@ class OntologyRelationshipResponse(BaseModel):
     confidence: float = Field(..., ge=0, le=1, description="Confidence score")
 
 
+class UnknownTokenResponse(BaseModel):
+    """An unclassified token span."""
+
+    start: int = Field(..., description="Start character offset")
+    end: int = Field(..., description="End character offset")
+    text: str = Field(..., description="Token text")
+
+
 class OntologyMapResponse(BaseModel):
     """Response from ontology mapping."""
 
@@ -1075,6 +1128,9 @@ class OntologyMapResponse(BaseModel):
     )
     negated_findings: list[str] = Field(
         default_factory=list, description="Negated findings"
+    )
+    unknown_tokens: list[UnknownTokenResponse] = Field(
+        default_factory=list, description="Unclassified tokens"
     )
     processing_time_ms: float = Field(..., description="Processing time in milliseconds")
 
@@ -1146,6 +1202,20 @@ async def ontology_map(request: OntologyMapRequest) -> OntologyMapResponse:
 
         stats = result.coverage_stats
 
+        unknown_tokens: list[UnknownTokenResponse] = []
+        if request.include_unknown_tokens:
+            from app.services.clinical_ontology_mapper import OntologyCategory
+
+            for token in result.tokens:
+                if token.category == OntologyCategory.UNKNOWN and token.span.text.strip():
+                    unknown_tokens.append(
+                        UnknownTokenResponse(
+                            start=token.span.start,
+                            end=token.span.end,
+                            text=token.span.text,
+                        )
+                    )
+
         return OntologyMapResponse(
             request_id=str(uuid4()),
             text_length=len(request.text),
@@ -1157,6 +1227,7 @@ async def ontology_map(request: OntologyMapRequest) -> OntologyMapResponse:
             entities=entities,
             relationships=relationships,
             negated_findings=negated_findings,
+            unknown_tokens=unknown_tokens,
             processing_time_ms=round(result.processing_time_ms, 2),
         )
 
@@ -1183,13 +1254,16 @@ class AnalysisTypeEnum(str, Enum):
 
 
 class HybridAnalyzeRequest(BaseModel):
-    """Request for hybrid clinical analysis."""
+    """Request for hybrid clinical analysis.
+
+    Supports large clinical documents up to 500K characters (~100K words).
+    """
 
     text: str = Field(
         ...,
         min_length=1,
-        max_length=100000,
-        description="Clinical text to analyze",
+        max_length=500000,  # ~100K words - supports full EHR documents
+        description="Clinical text to analyze (max 500K characters)",
     )
     analysis_type: AnalysisTypeEnum = Field(
         default=AnalysisTypeEnum.CLINICAL_SUMMARY,
@@ -1362,7 +1436,7 @@ async def hybrid_analyze(request: HybridAnalyzeRequest) -> HybridAnalyzeResponse
     summary="Get NLP service statistics",
     description="Get statistics about the NLP entity extraction service.",
 )
-async def get_service_stats() -> dict:
+async def get_service_stats() -> dict[str, Any]:
     """Get NLP service statistics.
 
     Returns statistics about the service including:
@@ -1377,7 +1451,7 @@ async def get_service_stats() -> dict:
         from app.services.nlp_entity_service import get_nlp_entity_service
 
         service = get_nlp_entity_service()
-        return service.get_stats()
+        return cast(dict[str, Any], service.get_stats())
 
     except Exception as e:
         raise InternalError(
@@ -1392,9 +1466,17 @@ async def get_service_stats() -> dict:
 
 
 class BuildGraphRequest(BaseModel):
-    """Request to build a knowledge graph from clinical text."""
+    """Request to build a knowledge graph from clinical text.
 
-    clinical_text: str = Field(..., description="The clinical note text to process")
+    Supports large clinical documents up to 500K characters (~100K words).
+    """
+
+    clinical_text: str = Field(
+        ...,
+        min_length=1,
+        max_length=500000,  # ~100K words - supports full EHR documents
+        description="The clinical note text to process (max 500K characters)",
+    )
     patient_id: str = Field(..., description="Patient identifier")
     note_id: str | None = Field(None, description="Optional note identifier")
     encounter_id: str | None = Field(None, description="Optional encounter identifier")
@@ -1464,6 +1546,9 @@ async def build_knowledge_graph(request: BuildGraphRequest) -> BuildGraphRespons
         from app.core.database import get_sync_engine
         from app.services.ontology_graph_integration import OntologyGraphIntegration
         from app.services.graph_builder_db import DatabaseGraphBuilderService
+        from app.models import Document as DocumentModel
+        from app.schemas.base import JobStatus
+        from datetime import datetime, timezone
 
         request_id = str(uuid4())
 
@@ -1471,12 +1556,52 @@ async def build_knowledge_graph(request: BuildGraphRequest) -> BuildGraphRespons
             # Use the ontology graph integration service
             integration = OntologyGraphIntegration(session)
 
+            note_id = request.note_id or f"note_{uuid4().hex[:12]}"
+            note_datetime = datetime.now(timezone.utc)
+
+            # Persist document for QA evidence retrieval (dedupe by patient + original_note_id)
+            existing_doc = (
+                session.query(DocumentModel)
+                .filter(DocumentModel.patient_id == request.patient_id)
+                .filter(DocumentModel.extra_metadata["original_note_id"].astext == note_id)
+                .first()
+            )
+            if existing_doc:
+                existing_doc.text = request.clinical_text
+                existing_doc.note_type = "nlp_workbench"
+                existing_doc.status = JobStatus.COMPLETED
+                existing_doc.processed_at = note_datetime
+                existing_doc.extra_metadata = {
+                    **(existing_doc.extra_metadata or {}),
+                    "note_date": note_datetime.date().isoformat(),
+                    "source": "nlp_workbench",
+                    "encounter_id": request.encounter_id,
+                }
+            else:
+                session.add(
+                    DocumentModel(
+                        id=str(uuid4()),
+                        patient_id=request.patient_id,
+                        note_type="nlp_workbench",
+                        text=request.clinical_text,
+                        extra_metadata={
+                            "original_note_id": note_id,
+                            "note_date": note_datetime.date().isoformat(),
+                            "source": "nlp_workbench",
+                            "encounter_id": request.encounter_id,
+                        },
+                        status=JobStatus.COMPLETED,
+                        processed_at=note_datetime,
+                    )
+                )
+
             # Ingest the note and build the graph
             result = integration.ingest_note(
                 note_text=request.clinical_text,
                 patient_id=request.patient_id,
-                note_id=request.note_id,
+                note_id=note_id,
                 encounter_id=request.encounter_id,
+                note_datetime=note_datetime,
             )
 
             # Commit the changes

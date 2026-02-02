@@ -408,7 +408,9 @@ function DataDrivenCalculatorForm({
         )}
 
         {/* Criteria inputs */}
-        {calculator.criteria.map((criterion) => (
+        {calculator.criteria.map((criterion) => {
+          const thresholdValue = formValues[criterion.name];
+          return (
           <div key={criterion.name} className="space-y-2">
             <Label className="flex items-center gap-2">
               {criterion.display_name}
@@ -452,7 +454,11 @@ function DataDrivenCalculatorForm({
             ) : criterion.type === "threshold" ? (
               <Input
                 type="number"
-                value={formValues[criterion.name] ?? ""}
+                value={
+                  typeof thresholdValue === "number" || typeof thresholdValue === "string"
+                    ? thresholdValue
+                    : ""
+                }
                 onChange={(e) =>
                   handleChange(criterion.name, e.target.value ? Number(e.target.value) : "")
                 }
@@ -460,7 +466,8 @@ function DataDrivenCalculatorForm({
               />
             ) : null}
           </div>
-        ))}
+          );
+        })}
       </CardContent>
       <CardFooter className="flex gap-2">
         <Button onClick={handleSubmit} className="flex-1" disabled={isCalculating}>

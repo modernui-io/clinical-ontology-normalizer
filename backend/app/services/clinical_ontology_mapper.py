@@ -187,7 +187,7 @@ class TokenSpan:
     end: int
     normalized: str = ""
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.normalized:
             self.normalized = self.text.lower().strip()
 
@@ -892,7 +892,7 @@ class ClinicalOntologyMapper:
     that every token is classified and relationships are extracted.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the mapper with lexicons and patterns."""
         self.lexicon = ClinicalLexicon()
         self._load_vocabulary_files()
@@ -932,7 +932,8 @@ class ClinicalOntologyMapper:
                     concepts = data.get("concepts", []) if isinstance(data, dict) else data
                     for concept in concepts:
                         if isinstance(concept, dict):
-                            desc = concept.get("concept_name", concept.get("description", "")).lower()
+                            raw_desc = concept.get("concept_name") or concept.get("description") or ""
+                            desc = raw_desc.lower()
                         else:
                             continue
                         if desc:
@@ -956,7 +957,8 @@ class ClinicalOntologyMapper:
                     concepts = data.get("concepts", []) if isinstance(data, dict) else data
                     for concept in concepts:
                         if isinstance(concept, dict):
-                            name = concept.get("component", concept.get("concept_name", "")).lower()
+                            raw_name = concept.get("component") or concept.get("concept_name") or ""
+                            name = raw_name.lower()
                             if name:
                                 self._lab_tests.add(name)
                                 # Add individual words for multi-word tests
@@ -1081,7 +1083,7 @@ class ClinicalOntologyMapper:
         tokens = self._tokenize(text)
 
         # Classify each token
-        classified_tokens = []
+        classified_tokens: list[ClassifiedToken] = []
         for token in tokens:
             classified = self._classify_token(token, text, classified_tokens)
             classified_tokens.append(classified)
