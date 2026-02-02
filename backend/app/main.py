@@ -330,6 +330,48 @@ def prewarm_all_services() -> dict[str, Any]:
     except Exception as e:
         logger.warning(f"Failed to prewarm synthetic_data: {e}")
 
+    # ML NLP Services (Ensemble NLP with ClinicalBERT + ModernBERT)
+    # These take time to load but make subsequent NLP requests much faster
+    logger.info("Pre-loading ML NLP models (this may take a few minutes)...")
+
+    try:
+        from app.services.nlp_clinical_ner import get_clinical_ner_service
+        logger.info("Loading ClinicalBERT NER model...")
+        svc = get_clinical_ner_service()
+        # Force initialization by checking if available
+        if hasattr(svc, '_initialize'):
+            svc._initialize()
+        services_loaded["nlp_clinical_ner"] = "loaded"
+        logger.info("ClinicalBERT NER model loaded successfully")
+    except Exception as e:
+        logger.warning(f"Failed to prewarm nlp_clinical_ner: {e}")
+
+    try:
+        from app.services.nlp_modernbert_ner import get_modernbert_ner_service
+        logger.info("Loading ModernBERT NER model...")
+        svc = get_modernbert_ner_service()
+        # Force initialization
+        if hasattr(svc, '_initialize'):
+            svc._initialize()
+        services_loaded["nlp_modernbert_ner"] = "loaded" if svc.is_available() else "unavailable"
+        logger.info(f"ModernBERT NER model: {'loaded' if svc.is_available() else 'unavailable'}")
+    except Exception as e:
+        logger.warning(f"Failed to prewarm nlp_modernbert_ner: {e}")
+
+    try:
+        from app.services.nlp_ensemble import get_ensemble_nlp_service
+        logger.info("Loading Ensemble NLP service...")
+        svc = get_ensemble_nlp_service()
+        # Force initialization of the ensemble (loads all component services)
+        if hasattr(svc, '_initialize'):
+            svc._initialize()
+        services_loaded["nlp_ensemble"] = "loaded"
+        logger.info("Ensemble NLP service loaded successfully")
+    except Exception as e:
+        logger.warning(f"Failed to prewarm nlp_ensemble: {e}")
+
+    logger.info("ML NLP model pre-loading complete")
+
     total_time_ms = (time.perf_counter() - start_time) * 1000
 
     return {
@@ -382,9 +424,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         f"{vocab_stats['term_count']} terms in {vocab_stats['load_time_ms']}ms"
     )
 
-    # Skip pre-warming at startup - services initialize lazily on first request
-    # This avoids startup hangs when dependent services are unavailable
-    prewarm_stats = {"services_loaded": 0, "total_prewarm_time_ms": 0, "services": {}}
+    # Pre-warm all services including ML NLP models
+    # This makes startup slower but ensures fast response times for all requests
+    logger.info("Pre-warming all services (including ML NLP models)...")
+    prewarm_stats = prewarm_all_services()
+    logger.info(f"Pre-warming complete: {prewarm_stats['services_loaded']} services in {prewarm_stats['total_prewarm_time_ms']:.0f}ms")
     logger.info("Skipping service pre-warming (lazy initialization enabled)")
 
     total_startup_ms = (time.perf_counter() - startup_start) * 1000
