@@ -24,7 +24,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from threading import Lock
-from typing import Any, Callable
+from typing import Any, Callable, cast
 from uuid import uuid4
 
 logger = logging.getLogger(__name__)
@@ -159,7 +159,8 @@ class FormulaLexer:
             char = self.formula[self.pos]
 
             # Numbers (including decimals)
-            if char.isdigit() or (char == "." and self.peek(1) and self.peek(1).isdigit()):
+            next_char = self.peek(1)
+            if char.isdigit() or (char == "." and next_char is not None and next_char.isdigit()):
                 tokens.append(self._read_number())
 
             # Variables ($name)
@@ -425,7 +426,7 @@ class FormulaParser:
 class FormulaEvaluator:
     """Safe evaluator for formula ASTs."""
 
-    OPERATORS: dict[str, Callable] = {
+    OPERATORS: dict[str, Callable[[float, float], float]] = {
         "+": operator.add,
         "-": operator.sub,
         "*": operator.mul,
@@ -433,7 +434,7 @@ class FormulaEvaluator:
         "^": operator.pow,
     }
 
-    COMPARISONS: dict[str, Callable] = {
+    COMPARISONS: dict[str, Callable[[float, float], bool]] = {
         "<": operator.lt,
         ">": operator.gt,
         "<=": operator.le,
@@ -442,7 +443,7 @@ class FormulaEvaluator:
         "!=": operator.ne,
     }
 
-    FUNCTIONS: dict[str, Callable] = {
+    FUNCTIONS: dict[str, Callable[..., float]] = {
         "min": min,
         "max": max,
         "abs": abs,
@@ -468,13 +469,13 @@ class FormulaEvaluator:
         node_type = ast["type"]
 
         if node_type == "number":
-            return ast["value"]
+            return float(ast["value"])
 
         elif node_type == "variable":
             name = ast["name"]
             if name not in self.variables:
                 raise ValueError(f"Unknown variable: ${name}")
-            return self.variables[name]
+            return cast(float | bool, self.variables[name])
 
         elif node_type == "binary":
             left = self.evaluate(ast["left"])
@@ -488,7 +489,7 @@ class FormulaEvaluator:
             if op == "/" and right == 0:
                 raise ValueError("Division by zero")
 
-            return self.OPERATORS[op](left, right)
+            return self.OPERATORS[op](float(left), float(right))
 
         elif node_type == "unary":
             operand = self.evaluate(ast["operand"])
@@ -509,7 +510,7 @@ class FormulaEvaluator:
             if op not in self.COMPARISONS:
                 raise ValueError(f"Unknown comparison operator: {op}")
 
-            return self.COMPARISONS[op](left, right)
+            return self.COMPARISONS[op](float(left), float(right))
 
         elif node_type == "logical":
             op = ast["op"]
@@ -551,11 +552,12 @@ class FormulaEvaluator:
                 raise ValueError("lookup() requires at least 2 arguments: value, table_name")
             value = args[0]
             table_name = args[1] if isinstance(args[1], str) else str(args[1])
-            return self._lookup_value(value, table_name)
+            return self._lookup_value(float(value), table_name)
 
         # Standard math functions
         if func_name in self.FUNCTIONS:
-            return self.FUNCTIONS[func_name](*args)
+            numeric_args = [float(arg) for arg in args]
+            return self.FUNCTIONS[func_name](*numeric_args)
 
         raise ValueError(f"Unknown function: {func_name}")
 
@@ -569,11 +571,11 @@ class FormulaEvaluator:
             min_val = entry.get("min", float("-inf"))
             max_val = entry.get("max", float("inf"))
             if min_val <= value < max_val:
-                return entry.get("value", entry.get("score", 0))
+                return float(entry.get("value", entry.get("score", 0)))
 
         # Return default or last entry
         if table:
-            return table[-1].get("value", table[-1].get("score", 0))
+            return float(table[-1].get("value", table[-1].get("score", 0)))
         return 0
 
 

@@ -676,7 +676,7 @@ async def find_reasoning_paths(request: ReasoningPathRequest) -> dict[str, Any]:
     try:
         # Mock paths for demonstration
         # In production, these would come from graph_analytics_service
-        paths = [
+        paths: list[dict[str, Any]] = [
             {
                 "path_id": "path_001",
                 "hops": 3,
@@ -1087,7 +1087,9 @@ async def list_semantic_groups() -> dict[str, str]:
     """
     from app.services.drknows_benchmark_service import UMLS_SEMANTIC_GROUPS
 
-    return UMLS_SEMANTIC_GROUPS
+    from typing import cast
+
+    return cast(dict[str, str], UMLS_SEMANTIC_GROUPS)
 
 
 @router.get("/relationship-types")

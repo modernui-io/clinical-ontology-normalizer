@@ -121,7 +121,12 @@ async def upload_policy(
 
         # Reload with sections count
         policy = await svc.get_policy(db, policy.id)
-        section_count = len(policy.sections) if policy and policy.sections else 0
+        if not policy:
+            raise HTTPException(
+                status_code=500,
+                detail="Policy uploaded but could not be loaded",
+            )
+        section_count = len(policy.sections) if policy.sections else 0
 
         return PolicyResponse(
             id=str(policy.id),

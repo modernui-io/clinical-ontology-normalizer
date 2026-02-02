@@ -492,14 +492,14 @@ def _determine_kg_health_status(
 
 
 def _safe_component_result(
-    result: ComponentHealth | Exception,
+    result: ComponentHealth | BaseException,
     name: str,
 ) -> ComponentHealth:
     """Convert exception to UNHEALTHY ComponentHealth.
 
     VP-Performance-1: Helper for graceful degradation with asyncio.gather.
     """
-    if isinstance(result, Exception):
+    if isinstance(result, BaseException):
         logger.warning(f"KG health check for {name} raised exception: {result}")
         return ComponentHealth(
             name=name,
@@ -558,7 +558,7 @@ async def get_overall_health() -> dict[str, Any]:
         return_exceptions=True,
     )
     dependencies = [
-        dep_results[0] if not isinstance(dep_results[0], Exception) else
+        dep_results[0] if not isinstance(dep_results[0], BaseException) else
         DependencyHealth(
             name="neo4j",
             type="graph_database",

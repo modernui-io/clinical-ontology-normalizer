@@ -11,7 +11,7 @@ import logging
 import re
 import threading
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, cast
 from uuid import uuid4
 
 from sqlalchemy import select
@@ -279,7 +279,7 @@ class PolicyService:
 
     def _parse_sections(self, content: str) -> list[dict[str, Any]]:
         """Parse policy text into numbered sections."""
-        sections = []
+        sections: list[dict[str, Any]] = []
         # Split on numbered sections or headings
         pattern = r'(?:^|\n)(?:(?:Section\s+)?(\d+(?:\.\d+)*)[.:\s]+|#{1,3}\s+)(.*?)(?=\n(?:(?:Section\s+)?\d+(?:\.\d+)*[.:\s]+|#{1,3}\s+)|\Z)'
         matches = list(re.finditer(pattern, content, re.DOTALL | re.IGNORECASE))
@@ -324,7 +324,7 @@ class PolicyService:
         try:
             from app.services.embedding_service import get_embedding_service
             embed_svc = get_embedding_service()
-            return embed_svc.encode_batch(texts)
+            return cast(list[list[float]], embed_svc.encode_batch(texts))
         except Exception as e:
             logger.warning(f"Embedding computation failed: {e}")
             return []

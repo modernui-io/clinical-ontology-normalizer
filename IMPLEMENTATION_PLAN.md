@@ -117,7 +117,7 @@ Each task should be completed in one iteration with tests passing before checkin
 
 - [x] 13.1 Establish mypy baseline for core NLP + KG pipeline modules
 - [x] 13.2 Expand mypy coverage to clinical agent + QA reasoning modules
-- [ ] 13.3 Expand mypy coverage to orchestration, policy, calculators, and remaining services
+- [x] 13.3 Expand mypy coverage to orchestration, policy, calculators, and remaining services
 
 ---
 
