@@ -121,5 +121,13 @@ Each task should be completed in one iteration with tests passing before checkin
 
 ---
 
+## Phase 14: NLP MVP Extraction Coverage
+
+- [x] 14.1 Add extraction coverage audit metrics and display in NLP workbench
+- [ ] 14.2 Extend coverage metrics into hybrid analyzer outputs
+- [ ] 14.3 Add token-level gap report comparing entity extraction vs ontology coverage
+
+---
+
 ## Completion Criteria
 All checkboxes must be checked, all tests must pass (`make test`), and all linting must pass (`make lint`) before outputting the completion promise.

@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import time
 from enum import Enum
+import logging
 from typing import Any, cast
 from uuid import uuid4
 
@@ -21,6 +22,7 @@ from app.api.errors import ErrorCode, InternalError
 
 
 router = APIRouter(prefix="/nlp", tags=["NLP"])
+logger = logging.getLogger(__name__)
 
 
 # ============================================================================
@@ -151,6 +153,26 @@ class SectionSpanResponse(BaseModel):
     header_text: str | None = Field(None, description="Section header text")
 
 
+class TokenSpanResponse(BaseModel):
+    """A token span in the document."""
+
+    start: int = Field(..., description="Start character offset")
+    end: int = Field(..., description="End character offset")
+    text: str = Field(..., description="Token text")
+
+
+class ExtractionCoverageResponse(BaseModel):
+    """Coverage statistics for extracted entities."""
+
+    total_tokens: int = Field(..., description="Total tokens in the document")
+    covered_tokens: int = Field(..., description="Tokens covered by extracted entities")
+    coverage_pct: float = Field(..., description="Percent of tokens covered by entities")
+    uncovered_tokens: list[TokenSpanResponse] = Field(
+        default_factory=list,
+        description="Sample of tokens not covered by extracted entities",
+    )
+
+
 class ExtractRequest(BaseModel):
     """Request for entity extraction.
 
@@ -188,6 +210,14 @@ class ExtractRequest(BaseModel):
         default=None,
         description="Patient ID for fact/KG creation (required if create_facts=True)",
     )
+    include_coverage: bool = Field(
+        default=False,
+        description="Include token coverage stats for extracted entities",
+    )
+    include_uncovered_tokens: bool = Field(
+        default=False,
+        description="Include sample of tokens not covered by extracted entities",
+    )
 
 
 class ExtractResponse(BaseModel):
@@ -219,6 +249,9 @@ class ExtractResponse(BaseModel):
     )
     patient_id: str | None = Field(
         None, description="Patient ID for created facts/graph (if create_facts=True)"
+    )
+    coverage: ExtractionCoverageResponse | None = Field(
+        None, description="Token coverage statistics for extracted entities"
     )
 
 
@@ -624,6 +657,36 @@ async def extract_entities(request: ExtractRequest) -> ExtractResponse:
                 session.commit()
                 response_patient_id = request.patient_id
 
+        coverage = None
+        if request.include_coverage:
+            try:
+                from app.services.nlp_coverage import calculate_token_coverage
+
+                entity_spans = [
+                    (entity.span.start, entity.span.end) for entity in result.entities
+                ]
+                coverage_stats = calculate_token_coverage(
+                    request.text,
+                    entity_spans,
+                    include_uncovered_tokens=request.include_uncovered_tokens,
+                )
+                coverage = ExtractionCoverageResponse(
+                    total_tokens=coverage_stats.total_tokens,
+                    covered_tokens=coverage_stats.covered_tokens,
+                    coverage_pct=coverage_stats.coverage_pct,
+                    uncovered_tokens=[
+                        TokenSpanResponse(
+                            start=token.start,
+                            end=token.end,
+                            text=token.text,
+                        )
+                        for token in coverage_stats.uncovered_tokens
+                    ],
+                )
+            except Exception as coverage_err:
+                logger.warning(f"Coverage calculation failed: {coverage_err}")
+                coverage = None
+
         return ExtractResponse(
             request_id=request_id,
             text_length=result.text_length,
@@ -637,6 +700,7 @@ async def extract_entities(request: ExtractRequest) -> ExtractResponse:
             graph_nodes_created=graph_nodes_created,
             graph_edges_created=graph_edges_created,
             patient_id=response_patient_id,
+            coverage=coverage,
         )
 
     except Exception as e:

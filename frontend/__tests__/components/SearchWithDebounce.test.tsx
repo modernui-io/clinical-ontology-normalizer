@@ -29,7 +29,7 @@ beforeEach(() => {
 
 afterEach(() => {
   act(() => {
-    jest.runOnlyPendingTimers();
+    jest.runAllTimers();
   });
   jest.clearAllTimers();
   jest.useRealTimers();

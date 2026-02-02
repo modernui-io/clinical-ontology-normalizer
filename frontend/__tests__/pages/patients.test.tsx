@@ -44,7 +44,7 @@ const { getPatientGraph } = require('@/lib/api') as {
 };
 
 const mockGetPatientGraph = getPatientGraph as jest.Mock;
-let consoleErrorSpy: jest.SpyInstance;
+let consoleErrorSpy: ReturnType<typeof jest.spyOn>;
 
 const advanceTimers = async (ms: number) => {
   await act(async () => {

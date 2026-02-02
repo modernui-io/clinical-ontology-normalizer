@@ -1134,6 +1134,10 @@ class ClinicalOntologyMapper:
             note_length=len(text),
         )
 
+    def tokenize_text(self, text: str) -> list[TokenSpan]:
+        """Tokenize text into spans for coverage calculations."""
+        return self._tokenize(text)
+
     def _tokenize(self, text: str) -> list[TokenSpan]:
         """Tokenize text into spans."""
         tokens = []

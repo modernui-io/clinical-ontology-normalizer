@@ -48,6 +48,7 @@ import {
   XCircle,
   Sparkles,
   BarChart3,
+  Target,
   ClipboardList,
   Network,
   ExternalLink,
@@ -566,8 +567,15 @@ function StatsPanel({ result }: { result: NLPExtractionResult }) {
     return sum / result.entities.length;
   }, [result.entities]);
 
+  const coverageLabel = result.coverage
+    ? `${result.coverage.coverage_pct.toFixed(1)}%`
+    : "—";
+  const coverageDetail = result.coverage
+    ? `${result.coverage.covered_tokens}/${result.coverage.total_tokens}`
+    : "Coverage unavailable";
+
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
       <Card>
         <CardContent className="pt-4">
           <div className="flex items-center gap-2">
@@ -605,6 +613,21 @@ function StatsPanel({ result }: { result: NLPExtractionResult }) {
             <div>
               <p className="text-2xl font-bold">{assertionCounts.negated || 0}</p>
               <p className="text-xs text-muted-foreground">Negated</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="pt-4">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-md bg-amber-100">
+              <Target className="h-4 w-4 text-amber-700" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{coverageLabel}</p>
+              <p className="text-xs text-muted-foreground">Token Coverage</p>
+              <p className="text-[10px] text-muted-foreground">{coverageDetail}</p>
             </div>
           </div>
         </CardContent>
@@ -1892,6 +1915,7 @@ export default function NLPWorkbenchPage() {
           entity_types: Array.from(selectedEntityTypes),
           use_ml_models: useMLModels,
           model_id: useMLModels ? selectedModelId : undefined,
+          include_coverage: true,
         });
         setResult(extractionResult);
         toast.success(
