@@ -1720,6 +1720,7 @@ export default function NLPWorkbenchPage() {
   const [useLLM, setUseLLM] = useState(true);
   const [useMLModels, setUseMLModels] = useState(false); // Ensemble NLP (ClinicalBERT + ModernBERT)
   const [useCoverageMode, setUseCoverageMode] = useState(false);
+  const [isRunningPipeline, setIsRunningPipeline] = useState(false);
   const [availableModels, setAvailableModels] = useState<NLPModelInfo[]>([]);
   const [selectedModelId, setSelectedModelId] = useState<string>("ensemble_nlp");
   const [question, setQuestion] = useState("");
@@ -1999,6 +2000,97 @@ export default function NLPWorkbenchPage() {
       toast.error("Failed to extract entities. Please try again.");
     } finally {
       setIsExtracting(false);
+    }
+  };
+
+  const handleRunPipeline = async () => {
+    if (!inputText.trim()) {
+      toast.error("Please enter clinical text to analyze");
+      return;
+    }
+    if (useCoverageMode) {
+      toast.error("Disable Full Coverage mode to run the full pipeline.");
+      return;
+    }
+
+    const runId = Date.now();
+    const patientIdMatch = inputText.match(/\b(?:MRN|Patient\s+ID)[:\s]+([A-Z0-9_]+)/i);
+    const patientId = patientIdMatch ? patientIdMatch[1] : `PIPELINE_${runId}`;
+    const noteId = `pipeline_${runId}`;
+
+    setIsRunningPipeline(true);
+    setIsExtracting(true);
+    setResult(null);
+    setSelectedEntity(null);
+    setOntologyResult(null);
+    setHybridResult(null);
+
+    // Clear old KG data and Q&A history before building new one
+    setKgNodes([]);
+    setKgEdges([]);
+    setKgSummary(null);
+    setKgPatientId("");
+    setQaMessages([]);
+
+    try {
+      const extractionResult = await nlpExtractEntities({
+        text: inputText,
+        detect_negation: true,
+        detect_sections: true,
+        normalize_entities: true,
+        entity_types: Array.from(selectedEntityTypes),
+        use_ml_models: useMLModels,
+        model_id: useMLModels ? selectedModelId : undefined,
+        include_coverage: true,
+        include_gap_report: true,
+      });
+      setResult(extractionResult);
+      toast.success(
+        `Extracted ${extractionResult.entities.length} entities in ${extractionResult.processing_time_ms}ms`
+      );
+      setIsExtracting(false);
+
+      setIsBuildingGraph(true);
+      const response = await fetch("/api/nlp/build-graph", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patient_id: patientId,
+          clinical_text: inputText,
+          note_id: noteId,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        console.error("Build graph failed:", error);
+        toast.error("Failed to build knowledge graph. Check console for details.");
+        return;
+      }
+
+      const buildResult = await response.json();
+      const nodes = buildResult.nodes || [];
+      const edges = buildResult.edges || [];
+      setKgNodes(nodes);
+      setKgEdges(edges);
+      setKgPatientId(patientId);
+      setKgSummary(
+        buildSummaryFromNodes(nodes, patientId, buildResult.node_count, buildResult.edge_count)
+      );
+
+      toast.success(
+        `Pipeline complete: ${buildResult.node_count || nodes.length} nodes, ${buildResult.edge_count || edges.length} edges`
+      );
+      if (nodes.length > 0) {
+        setWorkbenchMode("qa_agent");
+      }
+    } catch (error) {
+      console.error("Pipeline failed:", error);
+      toast.error("Pipeline failed. Please try again.");
+    } finally {
+      setIsExtracting(false);
+      setIsBuildingGraph(false);
+      setIsRunningPipeline(false);
     }
   };
 
@@ -2725,7 +2817,7 @@ export default function NLPWorkbenchPage() {
                 <div className="flex items-center gap-4 p-3 bg-muted rounded-lg">
                   <Button
                     onClick={handleExtract}
-                    disabled={isExtracting || !inputText.trim()}
+                    disabled={isExtracting || isRunningPipeline || !inputText.trim()}
                     size="lg"
                     className="flex-shrink-0"
                   >
@@ -2738,6 +2830,25 @@ export default function NLPWorkbenchPage() {
                       <>
                         <Search className="h-4 w-4 mr-2" />
                         Extract Entities
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    onClick={handleRunPipeline}
+                    disabled={isRunningPipeline || isExtracting || isBuildingGraph || !inputText.trim()}
+                    size="lg"
+                    variant="outline"
+                    className="flex-shrink-0"
+                  >
+                    {isRunningPipeline ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        Running...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        Run Full Pipeline
                       </>
                     )}
                   </Button>
@@ -2865,7 +2976,7 @@ export default function NLPWorkbenchPage() {
                     </div>
                     <Button
                       onClick={handleExtract}
-                      disabled={isExtracting || !inputText.trim()}
+                      disabled={isExtracting || isRunningPipeline || !inputText.trim()}
                     >
                       {isExtracting ? (
                         <>
@@ -2883,7 +2994,7 @@ export default function NLPWorkbenchPage() {
                 ) : (
                   <Button
                     onClick={handleHybridAnalyze}
-                    disabled={isExtracting || !inputText.trim()}
+                    disabled={isExtracting || isRunningPipeline || !inputText.trim()}
                   >
                     {isExtracting ? (
                       <>
@@ -2936,7 +3047,7 @@ export default function NLPWorkbenchPage() {
                   result={result}
                   inputText={inputText}
                   onBuildKnowledgeGraph={handleBuildKnowledgeGraph}
-                  isBuildingGraph={isBuildingGraph}
+                  isBuildingGraph={isBuildingGraph || isRunningPipeline}
                   coverageOnly={useCoverageMode && !result}
                 />
               )}
@@ -3012,7 +3123,7 @@ export default function NLPWorkbenchPage() {
                         </div>
                         <Button
                           onClick={handleBuildKnowledgeGraph}
-                          disabled={isBuildingGraph}
+                          disabled={isBuildingGraph || isRunningPipeline}
                           className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600"
                         >
                           {isBuildingGraph ? (
@@ -3195,7 +3306,7 @@ export default function NLPWorkbenchPage() {
                 <HybridResultPanel
                   result={hybridResult}
                   onBuildKnowledgeGraph={handleBuildKnowledgeGraphFromHybrid}
-                  isBuildingGraph={isBuildingGraph}
+                  isBuildingGraph={isBuildingGraph || isRunningPipeline}
                 />
               </>
             ) : (
