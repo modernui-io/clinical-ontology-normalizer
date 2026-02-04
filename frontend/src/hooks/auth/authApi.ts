@@ -9,7 +9,9 @@ import type { AuthTokens, User, LoginCredentials, RegisterData } from "./AuthCon
 // API Configuration
 // ============================================================================
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+// Browser-side calls should use the Next.js proxy (/api) to reach the backend
+// The proxy rewrites /api/* to backend:8000/api/v1/*
+const API_BASE_URL = typeof window !== "undefined" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000");
 
 // ============================================================================
 // Auth Cookie Helpers
@@ -29,7 +31,7 @@ function clearAuthCookie(): void {
 
 export async function apiLogin(credentials: LoginCredentials): Promise<{ user: User; tokens: AuthTokens }> {
   // Step 1: Login to get tokens
-  const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
+  const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(credentials),
@@ -43,7 +45,7 @@ export async function apiLogin(credentials: LoginCredentials): Promise<{ user: U
   const tokens: AuthTokens = await response.json();
 
   // Step 2: Fetch user info with the new access token
-  const userResponse = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
+  const userResponse = await fetch(`${API_BASE_URL}/api/auth/me`, {
     headers: { Authorization: `Bearer ${tokens.access_token}` },
   });
 
@@ -60,7 +62,7 @@ export async function apiLogin(credentials: LoginCredentials): Promise<{ user: U
 }
 
 export async function apiRegister(data: RegisterData): Promise<{ user: User; tokens: AuthTokens }> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/auth/register`, {
+  const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -74,7 +76,7 @@ export async function apiRegister(data: RegisterData): Promise<{ user: User; tok
   const tokens: AuthTokens = await response.json();
 
   // Fetch user info
-  const userResponse = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
+  const userResponse = await fetch(`${API_BASE_URL}/api/auth/me`, {
     headers: { Authorization: `Bearer ${tokens.access_token}` },
   });
 
@@ -94,7 +96,7 @@ export async function apiLogout(refreshToken: string): Promise<void> {
   // Clear auth cookie
   clearAuthCookie();
 
-  await fetch(`${API_BASE_URL}/api/v1/auth/logout`, {
+  await fetch(`${API_BASE_URL}/api/auth/logout`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ refresh_token: refreshToken }),
@@ -104,7 +106,7 @@ export async function apiLogout(refreshToken: string): Promise<void> {
 }
 
 export async function apiRefreshToken(refreshToken: string): Promise<AuthTokens> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/auth/refresh`, {
+  const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ refresh_token: refreshToken }),
@@ -123,7 +125,7 @@ export async function apiRefreshToken(refreshToken: string): Promise<AuthTokens>
 }
 
 export async function apiGetCurrentUser(accessToken: string): Promise<User> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
+  const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
 
@@ -135,7 +137,7 @@ export async function apiGetCurrentUser(accessToken: string): Promise<User> {
 }
 
 export async function apiUpdateProfile(accessToken: string, data: Partial<User>): Promise<User> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/auth/profile`, {
+  const response = await fetch(`${API_BASE_URL}/api/auth/profile`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -157,7 +159,7 @@ export async function apiChangePassword(
   currentPassword: string,
   newPassword: string
 ): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/auth/change-password`, {
+  const response = await fetch(`${API_BASE_URL}/api/auth/change-password`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -176,7 +178,7 @@ export async function apiChangePassword(
 }
 
 export async function apiForgotPassword(email: string): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/auth/forgot-password`, {
+  const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email }),

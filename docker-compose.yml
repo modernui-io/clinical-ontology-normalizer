@@ -179,7 +179,7 @@ services:
     profiles:
       - migrate
 
-  # Frontend
+  # Frontend (production mode - no source mounts)
   frontend:
     build:
       context: ./frontend
@@ -188,12 +188,10 @@ services:
     depends_on:
       - backend
     environment:
+      BACKEND_URL: http://backend:8000
       NEXT_PUBLIC_API_URL: http://backend:8000
     ports:
       - "3000:3000"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
     restart: unless-stopped
 
 volumes:

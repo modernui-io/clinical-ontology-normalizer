@@ -2800,7 +2800,7 @@ export async function nlpExtractEntities(request: NLPExtractRequest): Promise<NL
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(request),
-    timeout: 60000, // Longer timeout for NLP processing
+    timeout: 600000, // 10 minutes for LLM processing of large documents
   });
 }
 
