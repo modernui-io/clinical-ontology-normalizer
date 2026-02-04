@@ -1207,6 +1207,8 @@ interface KGSummary {
   medications: string[];
   measurements: string[];
   procedures: string[];
+  negated_conditions?: string[];
+  extraction_method?: string;
 }
 
 interface QAMessage {
@@ -2008,6 +2010,18 @@ export default function NLPWorkbenchPage() {
                             ))}
                           </div>
                         </div>
+                        {kgSummary.negated_conditions && kgSummary.negated_conditions.length > 0 && (
+                          <div>
+                            <span className="text-muted-foreground block mb-1">Ruled Out:</span>
+                            <div className="flex flex-wrap gap-1">
+                              {kgSummary.negated_conditions.map((c, i) => (
+                                <Badge key={i} variant="outline" className="text-xs line-through text-gray-500">
+                                  {c.replace("[RULED OUT] ", "")}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                         <div>
                           <span className="text-muted-foreground block mb-1">Medications:</span>
                           <div className="flex flex-wrap gap-1">
@@ -2018,6 +2032,14 @@ export default function NLPWorkbenchPage() {
                             ))}
                           </div>
                         </div>
+                        {kgSummary.extraction_method && (
+                          <div className="text-xs text-muted-foreground mt-2">
+                            <span>Extraction: </span>
+                            <Badge variant="outline" className="text-xs">
+                              {kgSummary.extraction_method}
+                            </Badge>
+                          </div>
+                        )}
                       </>
                     )}
                   </CardContent>

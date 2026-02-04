@@ -162,6 +162,10 @@ class BuildGraphFromEntitiesRequest(BaseModel):
 
     patient_id: str = Field(..., description="Patient identifier")
     entities: list[ExtractedEntity] = Field(..., min_length=1, max_length=5000, description="Pre-extracted entities")
+    extraction_method: str = Field(
+        default="hybrid",
+        description="Method used for extraction: rule_based, llm, hybrid"
+    )
 
     model_config = {
         "json_schema_extra": {
@@ -229,6 +233,8 @@ class KnowledgeGraphSummary(BaseModel):
     medications: list[str]
     measurements: list[str]
     procedures: list[str]
+    negated_conditions: list[str] = Field(default_factory=list, description="Conditions ruled out")
+    extraction_method: str = Field(default="hybrid", description="Method used for extraction")
 
 
 class KGNodeResponse(BaseModel):
@@ -334,6 +340,27 @@ def _node_type_to_edge_type(node_type: NodeType) -> EdgeType:
         NodeType.OBSERVATION: EdgeType.HAS_OBSERVATION,
     }
     return mapping.get(node_type, EdgeType.HAS_OBSERVATION)
+
+
+def _assertion_to_temporality(assertion: str) -> str:
+    """Map assertion status to temporality for bi-temporal tracking.
+
+    Temporality values:
+    - current: Entity is currently present/active
+    - past: Entity was present in the past (historical)
+    - ruled_out: Entity has been ruled out (negated)
+    - uncertain: Entity status is uncertain/possible
+    - hypothetical: Hypothetical/conditional entity
+    """
+    mapping = {
+        "PRESENT": "current",
+        "ABSENT": "ruled_out",
+        "POSSIBLE": "uncertain",
+        "CONDITIONAL": "hypothetical",
+        "HYPOTHETICAL": "hypothetical",
+        "HISTORICAL": "past",
+    }
+    return mapping.get(assertion.upper(), "current")
 
 
 # =============================================================================
@@ -532,7 +559,7 @@ async def build_graph_from_entities(
 
     # Build the knowledge graph directly from provided entities
     kg_summary = await _build_patient_knowledge_graph(
-        db, request.patient_id, request.entities
+        db, request.patient_id, request.entities, request.extraction_method
     )
     await db.commit()
 
@@ -551,8 +578,16 @@ async def _build_patient_knowledge_graph(
     db: AsyncSession,
     patient_id: str,
     entities: list[ExtractedEntity],
+    extraction_method: str = "hybrid",
 ) -> KnowledgeGraphSummary:
-    """Build knowledge graph from extracted entities."""
+    """Build knowledge graph from extracted entities.
+
+    Integrates:
+    - Temporal fields (temporality, recorded_at)
+    - Provenance tracking (extraction_method, source_notes)
+    - Assertion classification (includes negated entities with proper marking)
+    """
+    now = datetime.now(timezone.utc)
 
     # Clear existing graph for this patient
     await db.execute(
@@ -570,16 +605,21 @@ async def _build_patient_knowledge_graph(
         node_type=NodeType.PATIENT,
         label=f"Patient {patient_id}",
         omop_concept_id=None,
-        properties={"created_at": datetime.now(timezone.utc).isoformat()},
+        properties={
+            "created_at": now.isoformat(),
+            "extraction_method": extraction_method,
+        },
     )
     db.add(patient_node)
 
-    # Track unique entities (deduplicate by text + type)
-    seen_entities: dict[str, str] = {}  # (text_lower, type) -> node_id
+    # Track unique entities (deduplicate by text + type + assertion)
+    # Include assertion in key to allow both "HIV present" and "HIV absent" nodes
+    seen_entities: dict[str, str] = {}  # (text_lower, type, assertion) -> node_id
     conditions: list[str] = []
     medications: list[str] = []
     measurements: list[str] = []
     procedures: list[str] = []
+    negated_conditions: list[str] = []
 
     node_count = 1  # Patient node
     edge_count = 0
@@ -589,16 +629,34 @@ async def _build_patient_knowledge_graph(
         if entity.confidence < 0.5:
             continue
 
-        # Skip negated entities for graph (but could include with property)
-        if entity.assertion == "ABSENT":
-            continue
+        # Map assertion to temporality for bi-temporal tracking
+        # PRESENT -> current, ABSENT -> ruled_out, POSSIBLE -> uncertain
+        # HISTORICAL -> past (if we add that assertion type)
+        temporality = _assertion_to_temporality(entity.assertion)
 
-        entity_key = f"{entity.text.lower()}|{entity.entity_type}"
+        # Include assertion in dedup key to track both positive and negative findings
+        entity_key = f"{entity.text.lower()}|{entity.entity_type}|{entity.assertion}"
 
         if entity_key not in seen_entities:
             # Create new node
             node_id = str(uuid4())
             node_type = _domain_to_node_type(entity.entity_type)
+
+            # Build node properties with provenance tracking
+            node_properties = {
+                "assertion": entity.assertion,
+                "confidence": entity.confidence,
+                "source_notes": [entity.note_id],
+                # Provenance fields
+                "extraction_method": extraction_method,
+                "extraction_confidence": entity.confidence,
+                "recorded_at": now.isoformat(),
+            }
+
+            # Add negation-specific metadata if ABSENT
+            if entity.assertion == "ABSENT":
+                node_properties["is_negated"] = True
+                node_properties["negation_type"] = "ruled_out"
 
             entity_node = KGNode(
                 id=node_id,
@@ -606,17 +664,13 @@ async def _build_patient_knowledge_graph(
                 node_type=node_type,
                 label=entity.text,
                 omop_concept_id=entity.omop_concept_id,
-                properties={
-                    "assertion": entity.assertion,
-                    "confidence": entity.confidence,
-                    "source_notes": [entity.note_id],
-                },
+                properties=node_properties,
             )
             db.add(entity_node)
             seen_entities[entity_key] = node_id
             node_count += 1
 
-            # Create edge from patient to entity
+            # Create edge from patient to entity with temporal + provenance
             edge_type = _node_type_to_edge_type(node_type)
             edge = KGEdge(
                 id=str(uuid4()),
@@ -624,14 +678,27 @@ async def _build_patient_knowledge_graph(
                 source_node_id=patient_node_id,
                 target_node_id=node_id,
                 edge_type=edge_type,
-                properties={"first_noted": entity.note_id},
+                # Temporal fields
+                temporality=temporality,
+                recorded_at=now,
+                temporal_confidence=entity.confidence,
+                # Provenance in properties
+                properties={
+                    "first_noted": entity.note_id,
+                    "extraction_method": extraction_method,
+                    "assertion": entity.assertion,
+                    "source_confidence": entity.confidence,
+                },
             )
             db.add(edge)
             edge_count += 1
 
             # Track for summary
             if node_type == NodeType.CONDITION:
-                conditions.append(entity.text)
+                if entity.assertion == "ABSENT":
+                    negated_conditions.append(f"[RULED OUT] {entity.text}")
+                else:
+                    conditions.append(entity.text)
             elif node_type == NodeType.DRUG:
                 medications.append(entity.text)
             elif node_type == NodeType.MEASUREMENT:
@@ -692,6 +759,8 @@ async def _build_patient_knowledge_graph(
         medications=list(set(medications))[:20],
         measurements=list(set(measurements))[:20],
         procedures=list(set(procedures))[:20],
+        negated_conditions=list(set(negated_conditions))[:20],
+        extraction_method=extraction_method,
     )
 
 
