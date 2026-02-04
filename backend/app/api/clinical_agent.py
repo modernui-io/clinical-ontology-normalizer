@@ -117,6 +117,12 @@ class ExtractedEntity(BaseModel):
     assertion: str = Field("PRESENT", description="PRESENT, ABSENT, POSSIBLE")
     omop_concept_id: int | None = Field(None, description="Mapped OMOP concept ID")
     note_id: str = Field("frontend", description="Source note ID")
+    # Negation trigger info (from assertion classifier)
+    negation_trigger: str | None = Field(None, description="Trigger phrase that caused negation")
+    negation_trigger_confidence: float | None = Field(None, ge=0, le=1, description="Confidence of negation trigger")
+    # Temporal info (for bi-temporal tracking)
+    event_date: str | None = Field(None, description="Date when event occurred (ISO format)")
+    document_date: str | None = Field(None, description="Date of source document (ISO format)")
 
     # VP-Data-1: Input validation for entity content
     @field_validator("text")
@@ -361,6 +367,30 @@ def _assertion_to_temporality(assertion: str) -> str:
         "HISTORICAL": "past",
     }
     return mapping.get(assertion.upper(), "current")
+
+
+def _parse_date(date_str: str | None) -> datetime | None:
+    """Parse date string to datetime object.
+
+    Supports common date formats:
+    - ISO 8601: 2024-01-15, 2024-01-15T10:30:00
+    - US format: 01/15/2024, 1/15/2024
+    - Clinical format: 15-Jan-2024, Jan 15, 2024
+    """
+    if not date_str:
+        return None
+
+    from dateutil import parser
+
+    try:
+        parsed = parser.parse(date_str)
+        # Ensure timezone awareness
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return parsed
+    except (ValueError, TypeError):
+        logger.warning(f"Could not parse date: {date_str}")
+        return None
 
 
 # =============================================================================
@@ -615,6 +645,7 @@ async def _build_patient_knowledge_graph(
     # Track unique entities (deduplicate by text + type + assertion)
     # Include assertion in key to allow both "HIV present" and "HIV absent" nodes
     seen_entities: dict[str, str] = {}  # (text_lower, type, assertion) -> node_id
+    entity_event_dates: dict[str, datetime] = {}  # node_id -> event_date (for temporal ordering)
     conditions: list[str] = []
     medications: list[str] = []
     measurements: list[str] = []
@@ -653,6 +684,17 @@ async def _build_patient_knowledge_graph(
                 "recorded_at": now.isoformat(),
             }
 
+            # Add negation trigger info if available (from assertion classifier)
+            if entity.negation_trigger:
+                node_properties["negation_trigger"] = entity.negation_trigger
+                node_properties["negation_trigger_confidence"] = entity.negation_trigger_confidence
+
+            # Add temporal dates if available
+            if entity.event_date:
+                node_properties["event_date"] = entity.event_date
+            if entity.document_date:
+                node_properties["document_date"] = entity.document_date
+
             # Add negation-specific metadata if ABSENT
             if entity.assertion == "ABSENT":
                 node_properties["is_negated"] = True
@@ -672,6 +714,26 @@ async def _build_patient_knowledge_graph(
 
             # Create edge from patient to entity with temporal + provenance
             edge_type = _node_type_to_edge_type(node_type)
+
+            # Parse temporal dates if provided
+            event_date_parsed = _parse_date(entity.event_date) if entity.event_date else None
+            doc_date_parsed = _parse_date(entity.document_date) if entity.document_date else None
+
+            # Track event dates for temporal ordering between entities
+            if event_date_parsed:
+                entity_event_dates[node_id] = event_date_parsed
+
+            # Build edge properties with negation trigger if available
+            edge_properties = {
+                "first_noted": entity.note_id,
+                "extraction_method": extraction_method,
+                "assertion": entity.assertion,
+                "source_confidence": entity.confidence,
+            }
+            if entity.negation_trigger:
+                edge_properties["negation_trigger"] = entity.negation_trigger
+                edge_properties["negation_trigger_confidence"] = entity.negation_trigger_confidence
+
             edge = KGEdge(
                 id=str(uuid4()),
                 patient_id=patient_id,
@@ -682,13 +744,10 @@ async def _build_patient_knowledge_graph(
                 temporality=temporality,
                 recorded_at=now,
                 temporal_confidence=entity.confidence,
+                event_date=event_date_parsed,
+                source_document_date=doc_date_parsed,
                 # Provenance in properties
-                properties={
-                    "first_noted": entity.note_id,
-                    "extraction_method": extraction_method,
-                    "assertion": entity.assertion,
-                    "source_confidence": entity.confidence,
-                },
+                properties=edge_properties,
             )
             db.add(edge)
             edge_count += 1
@@ -739,14 +798,32 @@ async def _build_patient_knowledge_graph(
                     condition_text = condition_key.split("|")[0]
 
                     if any(cp in condition_text.lower() for cp in condition_patterns):
-                        # Create treats relationship
+                        # Determine temporal ordering if both entities have event dates
+                        temporal_order = None
+                        drug_date = entity_event_dates.get(drug_node_id)
+                        condition_date = entity_event_dates.get(condition_node_id)
+
+                        if drug_date and condition_date:
+                            # Drug started AFTER condition was diagnosed
+                            if drug_date > condition_date:
+                                temporal_order = "after"  # Drug follows condition
+                            elif drug_date < condition_date:
+                                temporal_order = "before"  # Drug precedes condition (unusual)
+                            else:
+                                temporal_order = "concurrent"  # Same time
+
+                        # Create treats relationship with temporal ordering
                         treats_edge = KGEdge(
                             id=str(uuid4()),
                             patient_id=patient_id,
                             source_node_id=drug_node_id,
                             target_node_id=condition_node_id,
                             edge_type=EdgeType.DRUG_TREATS,
-                            properties={"inferred": True},
+                            temporal_order=temporal_order,
+                            properties={
+                                "inferred": True,
+                                "temporal_ordering_source": "event_date_comparison" if temporal_order else None,
+                            },
                         )
                         db.add(treats_edge)
                         edge_count += 1
