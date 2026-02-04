@@ -544,7 +544,7 @@ class GraphAugmentedRAGService:
                     historical_state[target.label] = "resolved"
 
         # Detect temporal conflicts (simplified)
-        conflicts: list[str] = []
+        conflicts = []
         # In a real implementation, use temporal_query_service
 
         return TemporalContext(
@@ -709,7 +709,7 @@ class GraphAugmentedRAGService:
                     historical_state[target.label] = "resolved"
 
         # Detect temporal conflicts (simplified)
-        conflicts: list[str] = []
+        conflicts = []
         # In a real implementation, use temporal_query_service
 
         return TemporalContext(

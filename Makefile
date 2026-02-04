@@ -66,7 +66,7 @@ typecheck: typecheck-backend typecheck-frontend
 
 typecheck-backend:
 	@echo "Running backend type checking..."
-	@cd backend && python3 -m mypy || echo "Backend type checking not yet configured"
+	@cd backend && python3 -m mypy app/ || echo "Backend type checking not yet configured"
 
 typecheck-frontend:
 	@echo "Running frontend type checking..."

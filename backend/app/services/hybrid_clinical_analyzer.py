@@ -625,20 +625,8 @@ class HybridClinicalAnalyzer:
         # Extract entities using the unified NLP service
         result = self._nlp_service.extract_entities(text=note_text)
 
-        coverage_pct = 0.0
-        try:
-            from app.services.nlp_coverage import calculate_token_coverage
-
-            coverage_stats = calculate_token_coverage(
-                note_text,
-                [(entity.span.start, entity.span.end) for entity in result.entities],
-            )
-            coverage_pct = coverage_stats.coverage_pct
-        except Exception as coverage_error:
-            logger.warning(f"Failed to calculate token coverage: {coverage_error}")
-
         context = StructuredContext(
-            coverage_pct=coverage_pct,
+            coverage_pct=100.0,  # NLP service processes full text
             entity_count=result.entity_count,
         )
 
@@ -766,7 +754,7 @@ class HybridClinicalAnalyzer:
             if not self._is_clinical_entity(entity.span.text, entity.confidence):
                 filtered_count += 1
                 continue
-            entity_dict: dict[str, Any] = {
+            entity_dict = {
                 "name": entity.span.text,
                 "normalized": entity.span.normalized,
                 "category": entity.category.value,
@@ -778,12 +766,8 @@ class HybridClinicalAnalyzer:
 
             # Add value if present
             if entity.attributes:
-                value = entity.attributes.get("value")
-                unit = entity.attributes.get("unit")
-                if value is not None:
-                    entity_dict["value"] = value
-                if unit is not None:
-                    entity_dict["unit"] = unit
+                entity_dict["value"] = entity.attributes.get("value")
+                entity_dict["unit"] = entity.attributes.get("unit")
 
             if entity.category == OntologyCategory.DIAGNOSIS:
                 context.diagnoses.append(entity_dict)

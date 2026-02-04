@@ -10,7 +10,7 @@
  * - Refresh functionality
  */
 
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import DashboardPage from '@/app/dashboard/page';
 
@@ -215,9 +215,7 @@ describe('Dashboard Page', () => {
       await user.click(refreshButton);
 
       // Fast-forward past the simulated API call
-      await act(async () => {
-        await jest.advanceTimersByTimeAsync(1500);
-      });
+      await jest.advanceTimersByTimeAsync(1500);
 
       await waitFor(() => {
         expect(refreshButton).not.toBeDisabled();

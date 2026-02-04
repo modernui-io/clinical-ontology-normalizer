@@ -97,7 +97,7 @@ class ScoringCriterion:
     """
     name: str
     display_name: str
-    points: float
+    points: int
     description: str = ""
 
 
@@ -117,7 +117,7 @@ class MultiLevelCriterion:
     """
     name: str
     display_name: str
-    levels: list[tuple[str, float, str]]  # [(param_suffix, points, display), ...]
+    levels: list[tuple[str, int, str]]  # [(param_suffix, points, display), ...]
     description: str = ""
 
 
@@ -415,25 +415,22 @@ def _evaluate_threshold(
     threshold: float | tuple[float, float],
 ) -> bool:
     """Evaluate a threshold condition."""
-    if isinstance(threshold, tuple):
-        low, high = threshold
-    else:
-        low = threshold
-        high = threshold
     if operator == "gt":
-        return value > high
+        return value > threshold
     elif operator == "lt":
-        return value < low
+        return value < threshold
     elif operator == "gte":
-        return value >= high
+        return value >= threshold
     elif operator == "lte":
-        return value <= low
+        return value <= threshold
     elif operator == "eq":
-        return value == low
+        return value == threshold
     elif operator == "between":
-        return low <= value <= high
+        if isinstance(threshold, tuple):
+            return threshold[0] <= value <= threshold[1]
     elif operator == "outside":
-        return value < low or value > high
+        if isinstance(threshold, tuple):
+            return value < threshold[0] or value > threshold[1]
     return False
 
 
@@ -457,8 +454,8 @@ def calculate_point_based_score(
     Returns:
         CalculatorResult with score and interpretation
     """
-    score = 0.0
-    components: dict[str, float] = {}
+    score = 0
+    components: dict[str, int] = {}
 
     # 1. Sum points from boolean criteria
     for criterion in definition.criteria:
@@ -5770,7 +5767,7 @@ DUKE_TREADMILL_DEFINITION = CalculatorDefinition(
             ],
         ),
         ThresholdInterpretation(
-            min_score=float("-inf"), max_score=-10,
+            min_score=None, max_score=-10,
             risk_level=RiskLevel.HIGH,
             interpretation="High risk (annual mortality 5.25%)",
             recommendations=[

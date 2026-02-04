@@ -19,16 +19,11 @@ from __future__ import annotations
 
 import time
 from datetime import datetime, timezone
-from typing import Any, cast
+from typing import Any
 from uuid import uuid4
 
 from fastapi import APIRouter, HTTPException, Query, status, Header, Path
 from pydantic import BaseModel, Field
-from app.schemas.calculators import (
-    DataDrivenCalculationResponse,
-    DataDrivenCalculatorDetail,
-    DataDrivenCalculatorListResponse,
-)
 
 router = APIRouter(prefix="/calculators", tags=["Clinical Calculators"])
 
@@ -306,11 +301,6 @@ async def create_calculator(request: CreateCalculatorRequest) -> CreateCalculato
         )
 
         calc = service.get_calculator(calc_id)
-        if not calc:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Calculator created but could not be loaded",
-            )
 
         return CreateCalculatorResponse(
             id=calc_id,
@@ -399,7 +389,7 @@ async def update_calculator(calculator_id: str, request: UpdateCalculatorRequest
     service = get_calculator_builder_service()
 
     # Build updates dict
-    updates: dict[str, Any] = {}
+    updates = {}
     if request.name is not None:
         updates["name"] = request.name
     if request.description is not None:
@@ -431,7 +421,7 @@ async def update_calculator(calculator_id: str, request: UpdateCalculatorRequest
 
     try:
         service.update_calculator(calculator_id, updates)
-        return cast(CalculatorDetails, await get_calculator(calculator_id))
+        return await get_calculator(calculator_id)
 
     except ValueError as e:
         if "not found" in str(e).lower():
@@ -597,7 +587,7 @@ async def list_categories() -> list[str]:
 
     service = get_calculator_builder_service()
     stats = service.get_stats()
-    return cast(list[str], stats.get("categories", []))
+    return stats.get("categories", [])
 
 
 @router.get(
@@ -968,7 +958,7 @@ data_driven_router = APIRouter(prefix="/calculators/definitions", tags=["Data-Dr
 async def list_data_driven_calculators(
     category: str | None = Query(None, description="Filter by category"),
     calc_type: str | None = Query(None, description="Filter by calculator type (criteria, equation, etc.)"),
-) -> DataDrivenCalculatorListResponse:
+):
     """List all data-driven calculators.
 
     Returns summaries of all available data-driven calculators including:
@@ -1000,7 +990,7 @@ async def list_data_driven_calculators(
 )
 async def get_data_driven_calculator(
     calculator_id: str = Path(..., description="Calculator identifier"),
-) -> DataDrivenCalculatorDetail:
+):
     """Get detailed definition of a data-driven calculator.
 
     Returns the complete calculator definition including:
@@ -1097,7 +1087,7 @@ async def get_data_driven_calculator(
 async def calculate_data_driven(
     calculator_id: str = Path(..., description="Calculator identifier"),
     request: dict[str, Any] | None = None,
-) -> DataDrivenCalculationResponse:
+):
     """Execute a data-driven calculator.
 
     Calculates the score using the data-driven engine and returns:

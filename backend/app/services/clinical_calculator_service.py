@@ -22,7 +22,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from threading import Lock
-from typing import Any, Callable, cast
+from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -651,7 +651,7 @@ def calculate_heart_score(input_data: HEARTInput) -> CalculatorResult:
     Reference: Six AJ, et al. Neth Heart J 2008
     """
     score = 0
-    components: dict[str, int | str] = {}
+    components = {}
 
     # History
     if input_data.history == "highly_suspicious":
@@ -736,7 +736,7 @@ def calculate_cha2ds2_vasc(input_data: CHA2DS2VAScInput) -> CalculatorResult:
     Reference: 2019 AHA/ACC/HRS AF Guidelines
     """
     score = 0
-    components: dict[str, float] = {}
+    components = {}
 
     if input_data.chf:
         score += 1
@@ -804,7 +804,7 @@ def calculate_has_bled(input_data: HASBLEDInput) -> CalculatorResult:
     Reference: Pisters R, et al. Chest 2010
     """
     score = 0
-    components: dict[str, int | str] = {}
+    components = {}
 
     if input_data.hypertension:
         score += 1
@@ -1079,7 +1079,7 @@ def calculate_child_pugh(input_data: ChildPughInput) -> CalculatorResult:
     Reference: Pugh RN, et al. Br J Surg 1973
     """
     score = 0
-    components: dict[str, int | str] = {}
+    components = {}
 
     # Bilirubin
     if input_data.bilirubin < 2:
@@ -1398,7 +1398,7 @@ def calculate_wells_pe(input_data: WellsPEInput) -> CalculatorResult:
     Reference: Wells PS, et al. Ann Intern Med 2001
     """
     score = 0.0
-    components: dict[str, float] = {}
+    components = {}
 
     if input_data.clinical_dvt:
         score += 3
@@ -2674,8 +2674,7 @@ class ClinicalCalculatorService:
             raise ValueError(f"Invalid input: {e}")
 
         # Execute calculator
-        calc_fn = cast(Callable[[Any], CalculatorResult], calc_def["function"])
-        return calc_fn(validated_input)
+        return calc_def["function"](validated_input)
 
     def get_favorites(self, user_id: str) -> list[dict[str, Any]]:
         """Get user's favorite calculators.
@@ -2737,7 +2736,7 @@ class ClinicalCalculatorService:
         Returns:
             Dictionary with service statistics.
         """
-        category_counts: dict[str, int] = {}
+        category_counts = {}
         for calc_def in self.CALCULATORS.values():
             cat = calc_def["category"].value
             category_counts[cat] = category_counts.get(cat, 0) + 1
@@ -2851,15 +2850,14 @@ class ClinicalCalculatorService:
             })
 
         # Serialize provenance if available
-        provenance_dict: dict[str, Any] | None = None
+        provenance_dict = None
         if definition.provenance:
             prov = definition.provenance
-            validation_studies: list[dict[str, Any]] = []
             provenance_dict = {
                 "original_citation": None,
                 "evidence_level": prov.evidence_level.value if prov.evidence_level else None,
                 "evidence_summary": prov.evidence_summary,
-                "validation_studies": validation_studies,
+                "validation_studies": [],
                 "overall_validation": prov.overall_validation.value if prov.overall_validation else None,
                 "clinical_pearls": [
                     {"text": p.text, "category": p.category, "source": p.source}
@@ -2898,7 +2896,7 @@ class ClinicalCalculatorService:
             # Serialize validation studies
             for vs in prov.validation_studies:
                 vs_cit = vs.citation
-                validation_studies.append({
+                provenance_dict["validation_studies"].append({
                     "citation": {
                         "title": vs_cit.title,
                         "authors": vs_cit.authors,

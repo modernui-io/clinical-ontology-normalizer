@@ -2683,40 +2683,6 @@ export interface NLPSectionSpan {
   header_text?: string | null;
 }
 
-export interface NLPTokenSpan {
-  start: number;
-  end: number;
-  text: string;
-}
-
-export interface NLPExtractionCoverage {
-  total_tokens: number;
-  covered_tokens: number;
-  coverage_pct: number;
-  uncovered_tokens?: NLPTokenSpan[];
-}
-
-export interface NLPCoverageGapToken {
-  start: number;
-  end: number;
-  text: string;
-  ontology_category?: string | null;
-}
-
-export interface NLPCoverageGapReport {
-  total_tokens: number;
-  extraction_covered_tokens: number;
-  ontology_entity_tokens: number;
-  overlap_tokens: number;
-  extraction_only_tokens: number;
-  ontology_only_tokens: number;
-  overlap_pct: number;
-  extraction_only_pct: number;
-  ontology_only_pct: number;
-  extraction_only: NLPCoverageGapToken[];
-  ontology_only: NLPCoverageGapToken[];
-}
-
 export interface NLPExtractRequest {
   text: string;
   entity_types?: NLPEntityType[];
@@ -2726,12 +2692,6 @@ export interface NLPExtractRequest {
   detect_negation?: boolean;
   detect_sections?: boolean;
   normalize_entities?: boolean;
-  include_coverage?: boolean;
-  include_uncovered_tokens?: boolean;
-  include_gap_report?: boolean;
-  max_gap_tokens?: number;
-  note_id?: string | null;
-  encounter_id?: string | null;
 }
 
 export interface NLPExtractResponse {
@@ -2743,10 +2703,6 @@ export interface NLPExtractResponse {
   entities_by_type: Record<string, number>;
   processing_time_ms: number;
   model_used: string;
-  coverage?: NLPExtractionCoverage | null;
-  coverage_gap?: NLPCoverageGapReport | null;
-  note_id?: string | null;
-  encounter_id?: string | null;
 }
 
 export interface NLPBatchExtractRequest {
@@ -2906,15 +2862,8 @@ export interface OntologyRelationship {
   confidence: number;
 }
 
-export interface UnknownTokenSpan {
-  start: number;
-  end: number;
-  text: string;
-}
-
 export interface OntologyMapRequest {
   text: string;
-  include_unknown_tokens?: boolean;
 }
 
 export interface OntologyMapResponse {
@@ -2928,7 +2877,6 @@ export interface OntologyMapResponse {
   entities: OntologyEntity[];
   relationships: OntologyRelationship[];
   negated_findings: string[];
-  unknown_tokens: UnknownTokenSpan[];
   processing_time_ms: number;
 }
 
@@ -2946,8 +2894,6 @@ export interface HybridAnalyzeRequest {
   text: string;
   analysis_type?: AnalysisType;
   use_llm?: boolean;
-  note_id?: string | null;
-  encounter_id?: string | null;
 }
 
 export interface StructuredContext {
@@ -2975,8 +2921,6 @@ export interface HybridAnalyzeResponse {
   total_time_ms: number;
   llm_model: string | null;
   llm_available: boolean;
-  note_id?: string | null;
-  encounter_id?: string | null;
 }
 
 // ============================================================================

@@ -16,7 +16,7 @@ from typing import Any
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import func, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -161,30 +161,7 @@ class BuildGraphFromEntitiesRequest(BaseModel):
     """Request to build knowledge graph from pre-extracted entities."""
 
     patient_id: str = Field(..., description="Patient identifier")
-    entities: list[ExtractedEntity] = Field(
-        default_factory=list,
-        max_length=5000,
-        description="Pre-extracted entities",
-    )
-    clinical_text: str | None = Field(
-        None,
-        description="Optional raw clinical text to build KG via ontology mapper",
-    )
-    note_id: str | None = Field(
-        None,
-        description="Optional note identifier (used when clinical_text is provided)",
-    )
-    encounter_id: str | None = Field(
-        None,
-        description="Optional encounter identifier (used when clinical_text is provided)",
-    )
-
-    @model_validator(mode="after")
-    def validate_input(self) -> "BuildGraphFromEntitiesRequest":
-        """Ensure either entities or clinical_text is provided."""
-        if not self.entities and not self.clinical_text:
-            raise ValueError("Either entities or clinical_text is required.")
-        return self
+    entities: list[ExtractedEntity] = Field(..., min_length=1, max_length=5000, description="Pre-extracted entities")
 
     model_config = {
         "json_schema_extra": {
@@ -207,8 +184,7 @@ class BuildGraphFromEntitiesRequest(BaseModel):
                         "omop_concept_id": 1305058,
                         "note_id": "frontend"
                     }
-                ],
-                "clinical_text": "Patient presents with sickle cell disease. Taking hydroxyurea."
+                ]
             }
         }
     }
@@ -312,28 +288,6 @@ class EvidenceSource(BaseModel):
     relevance_score: float
 
 
-class NoteExcerpt(BaseModel):
-    """Recent note excerpt for a patient."""
-
-    note_id: str
-    document_id: str
-    note_type: str
-    note_date: str
-    excerpt: str
-
-
-class CalculatorQueryResult(BaseModel):
-    """Result from executing a clinical calculator."""
-
-    calculator_id: str = Field(..., description="Calculator identifier (e.g., 'chadsvasc')")
-    calculator_name: str = Field(..., description="Human-readable calculator name")
-    score: float | None = Field(None, description="Calculated score value")
-    risk_level: str | None = Field(None, description="Risk category (e.g., 'low', 'moderate', 'high')")
-    interpretation: str | None = Field(None, description="Clinical interpretation of the result")
-    inputs_used: dict[str, Any] = Field(default_factory=dict, description="Input values used in calculation")
-    missing_inputs: list[str] = Field(default_factory=list, description="Required inputs that were not available")
-
-
 class HybridQueryResponse(BaseModel):
     """Response from hybrid query."""
 
@@ -351,9 +305,6 @@ class HybridQueryResponse(BaseModel):
     entity_provenance: list[dict] = []
     policy_citations: list[dict] = []
     provenance_url: str | None = None
-    calculator_results: list[CalculatorQueryResult] = Field(
-        default_factory=list, description="Risk calculator results if applicable"
-    )
 
 
 # =============================================================================
@@ -383,93 +334,6 @@ def _node_type_to_edge_type(node_type: NodeType) -> EdgeType:
         NodeType.OBSERVATION: EdgeType.HAS_OBSERVATION,
     }
     return mapping.get(node_type, EdgeType.HAS_OBSERVATION)
-
-
-async def _try_execute_calculator(
-    calc_id: str,
-    measurement_nodes: list,
-) -> CalculatorQueryResult | None:
-    """Try to execute a calculator using available measurement data.
-
-    Args:
-        calc_id: Calculator identifier.
-        measurement_nodes: List of KGNode measurement objects.
-
-    Returns:
-        CalculatorQueryResult if successful, None otherwise.
-    """
-    from app.services.kg_calculator_mapper import (
-        get_calculator_params_for_measurement,
-        get_measurements_for_calculator,
-    )
-
-    # Calculator metadata
-    calc_names = {
-        "chadsvasc": "CHA2DS2-VASc Score",
-        "hasbled": "HAS-BLED Score",
-        "ascvd": "ASCVD 10-Year Risk",
-        "egfr_ckd_epi": "eGFR (CKD-EPI)",
-        "meld": "MELD Score",
-        "wells_dvt": "Wells Score (DVT)",
-        "wells_pe": "Wells Score (PE)",
-        "curb65": "CURB-65 Score",
-    }
-
-    # Build inputs from measurement nodes
-    inputs: dict[str, Any] = {}
-    for node in measurement_nodes:
-        label = node.label.lower()
-        calc_params = get_calculator_params_for_measurement(label)
-
-        if calc_id in calc_params:
-            param_name = calc_params[calc_id]
-            # Try to extract value from properties
-            value = node.properties.get("value") if node.properties else None
-            if value is not None:
-                try:
-                    inputs[param_name] = float(value)
-                except (ValueError, TypeError):
-                    inputs[param_name] = value
-
-    # If we have no inputs, can't execute
-    if not inputs:
-        return None
-
-    # Get required inputs for missing list
-    required = get_measurements_for_calculator(calc_id)
-    missing = [m for m in required[:5] if m.lower() not in [i.lower() for i in inputs.keys()]]
-
-    # Try to execute via calculator registry
-    try:
-        from app.services.calculator_registry import get_calculator_registry
-
-        registry = get_calculator_registry()
-        calculator = registry.get_calculator(calc_id)
-
-        if calculator:
-            result = calculator.calculate(inputs)
-            return CalculatorQueryResult(
-                calculator_id=calc_id,
-                calculator_name=calc_names.get(calc_id, f"Calculator: {calc_id}"),
-                score=result.score,
-                risk_level=result.risk_level,
-                interpretation=result.interpretation,
-                inputs_used=inputs,
-                missing_inputs=missing,
-            )
-    except Exception as e:
-        logger.debug(f"Calculator {calc_id} execution failed: {e}")
-
-    # Return partial result showing what data is available
-    return CalculatorQueryResult(
-        calculator_id=calc_id,
-        calculator_name=calc_names.get(calc_id, f"Calculator: {calc_id}"),
-        score=None,
-        risk_level=None,
-        interpretation=f"Calculator applicable but incomplete data. Available: {list(inputs.keys())}",
-        inputs_used=inputs,
-        missing_inputs=missing,
-    )
 
 
 # =============================================================================
@@ -663,88 +527,8 @@ async def build_graph_from_entities(
 
     This endpoint accepts entities that have already been extracted by the frontend
     NLP service, allowing the richer extraction results to be used for graph building.
-    If clinical_text is provided, the ontology mapper pipeline will be used instead.
     """
     start_time = datetime.now(timezone.utc)
-
-    if request.clinical_text:
-        from sqlalchemy.orm import Session
-        from app.core.database import get_sync_engine
-        from app.models import Document as DocumentModel
-        from app.schemas.base import JobStatus
-        from app.services.graph_builder_db import DatabaseGraphBuilderService
-        from app.services.ontology_graph_integration import OntologyGraphIntegration
-
-        note_id = request.note_id or f"note_{uuid4().hex[:12]}"
-        note_datetime = datetime.now(timezone.utc)
-
-        with Session(get_sync_engine()) as session:
-            integration = OntologyGraphIntegration(session)
-
-            existing_doc = (
-                session.query(DocumentModel)
-                .filter(DocumentModel.patient_id == request.patient_id)
-                .filter(DocumentModel.extra_metadata["original_note_id"].astext == note_id)
-                .first()
-            )
-
-            if existing_doc:
-                existing_doc.text = request.clinical_text
-                existing_doc.note_type = "clinical_agent"
-                existing_doc.status = JobStatus.COMPLETED
-                existing_doc.processed_at = note_datetime
-                existing_doc.extra_metadata = {
-                    **(existing_doc.extra_metadata or {}),
-                    "note_date": note_datetime.date().isoformat(),
-                    "source": "clinical_agent",
-                    "encounter_id": request.encounter_id,
-                }
-            else:
-                session.add(
-                    DocumentModel(
-                        id=str(uuid4()),
-                        patient_id=request.patient_id,
-                        note_type="clinical_agent",
-                        text=request.clinical_text,
-                        extra_metadata={
-                            "original_note_id": note_id,
-                            "note_date": note_datetime.date().isoformat(),
-                            "source": "clinical_agent",
-                            "encounter_id": request.encounter_id,
-                        },
-                        status=JobStatus.COMPLETED,
-                        processed_at=note_datetime,
-                    )
-                )
-
-            result = integration.ingest_note(
-                note_text=request.clinical_text,
-                patient_id=request.patient_id,
-                note_id=note_id,
-                encounter_id=request.encounter_id,
-                note_datetime=note_datetime,
-            )
-
-            session.commit()
-
-            graph_service = DatabaseGraphBuilderService(session)
-            patient_graph = graph_service.get_patient_graph(request.patient_id)
-
-            kg_summary = _summarize_graph_nodes(
-                patient_id=request.patient_id,
-                nodes=patient_graph.nodes,
-                edges=patient_graph.edges,
-            )
-
-            end_time = datetime.now(timezone.utc)
-            processing_time_ms = (end_time - start_time).total_seconds() * 1000
-
-            return BuildGraphResponse(
-                patient_id=request.patient_id,
-                entities_processed=result.entities_mapped,
-                knowledge_graph=kg_summary,
-                processing_time_ms=round(processing_time_ms, 2),
-            )
 
     # Build the knowledge graph directly from provided entities
     kg_summary = await _build_patient_knowledge_graph(
@@ -760,46 +544,6 @@ async def build_graph_from_entities(
         entities_processed=len(request.entities),
         knowledge_graph=kg_summary,
         processing_time_ms=round(processing_time_ms, 2),
-    )
-
-
-def _summarize_graph_nodes(
-    patient_id: str,
-    nodes: list[dict],
-    edges: list[dict],
-) -> KnowledgeGraphSummary:
-    """Build a summary from graph nodes/edges."""
-    conditions = []
-    medications = []
-    measurements = []
-    procedures = []
-
-    for node in nodes:
-        node_type = node.get("node_type")
-        if isinstance(node_type, NodeType):
-            node_type_value = node_type.value
-        elif node_type is None:
-            node_type_value = ""
-        else:
-            node_type_value = str(node_type)
-        label = node.get("label", "")
-        if node_type_value == NodeType.CONDITION.value:
-            conditions.append(label)
-        elif node_type_value == NodeType.DRUG.value:
-            medications.append(label)
-        elif node_type_value == NodeType.MEASUREMENT.value:
-            measurements.append(label)
-        elif node_type_value == NodeType.PROCEDURE.value:
-            procedures.append(label)
-
-    return KnowledgeGraphSummary(
-        patient_id=patient_id,
-        node_count=len(nodes),
-        edge_count=len(edges),
-        conditions=conditions[:20],
-        medications=medications[:20],
-        measurements=measurements[:20],
-        procedures=procedures[:20],
     )
 
 
@@ -852,7 +596,7 @@ async def _build_patient_knowledge_graph(
         entity_key = f"{entity.text.lower()}|{entity.entity_type}"
 
         if entity_key not in seen_entities:
-            # Create new node with provenance
+            # Create new node
             node_id = str(uuid4())
             node_type = _domain_to_node_type(entity.entity_type)
 
@@ -867,15 +611,12 @@ async def _build_patient_knowledge_graph(
                     "confidence": entity.confidence,
                     "source_notes": [entity.note_id],
                 },
-                # Provenance fields - "hybrid" since entities come from frontend NLP
-                extraction_method="hybrid",
-                extraction_confidence=entity.confidence,
             )
             db.add(entity_node)
             seen_entities[entity_key] = node_id
             node_count += 1
 
-            # Create edge from patient to entity with provenance
+            # Create edge from patient to entity
             edge_type = _node_type_to_edge_type(node_type)
             edge = KGEdge(
                 id=str(uuid4()),
@@ -884,9 +625,6 @@ async def _build_patient_knowledge_graph(
                 target_node_id=node_id,
                 edge_type=edge_type,
                 properties={"first_noted": entity.note_id},
-                # Provenance fields
-                extraction_method="hybrid",
-                extraction_confidence=entity.confidence,
             )
             db.add(edge)
             edge_count += 1
@@ -934,7 +672,7 @@ async def _build_patient_knowledge_graph(
                     condition_text = condition_key.split("|")[0]
 
                     if any(cp in condition_text.lower() for cp in condition_patterns):
-                        # Create treats relationship with provenance
+                        # Create treats relationship
                         treats_edge = KGEdge(
                             id=str(uuid4()),
                             patient_id=patient_id,
@@ -942,9 +680,6 @@ async def _build_patient_knowledge_graph(
                             target_node_id=condition_node_id,
                             edge_type=EdgeType.DRUG_TREATS,
                             properties={"inferred": True},
-                            # Provenance - "inferred" since this is rule-based
-                            extraction_method="inferred",
-                            extraction_confidence=0.7,  # Lower confidence for inferred edges
                         )
                         db.add(treats_edge)
                         edge_count += 1
@@ -1035,46 +770,6 @@ async def get_patient_graph(
         edges=edge_responses,
         summary=summary,
     )
-
-
-@router.get(
-    "/notes/{patient_id}",
-    response_model=list[NoteExcerpt],
-    summary="Get recent note excerpts for a patient",
-    description="Return recent clinical note excerpts for display alongside the knowledge graph.",
-)
-async def get_patient_note_excerpts(
-    patient_id: str,
-    limit: int = Query(5, ge=1, le=20),
-    db: AsyncSession = Depends(get_db),
-) -> list[NoteExcerpt]:
-    """Get recent note excerpts for a patient."""
-    stmt = (
-        select(DocumentModel)
-        .where(DocumentModel.patient_id == patient_id)
-        .order_by(DocumentModel.created_at.desc())
-        .limit(limit)
-    )
-    result = await db.execute(stmt)
-    documents = list(result.scalars().all())
-
-    excerpts: list[NoteExcerpt] = []
-    for doc in documents:
-        metadata = doc.extra_metadata or {}
-        note_id = metadata.get("original_note_id", str(doc.id))
-        note_date = metadata.get("note_date") or (doc.created_at.date().isoformat() if doc.created_at else "unknown")
-        excerpt = doc.text[:300] + ("..." if len(doc.text) > 300 else "")
-        excerpts.append(
-            NoteExcerpt(
-                note_id=str(note_id),
-                document_id=str(doc.id),
-                note_type=doc.note_type,
-                note_date=note_date,
-                excerpt=excerpt,
-            )
-        )
-
-    return excerpts
 
 
 @router.post(
@@ -1755,35 +1450,6 @@ Provide a clear, evidence-based answer synthesizing the clinical data, graph rel
     for pc in policy_citations_data:
         sources.append(f"Policy: {pc['policy_name']} — {pc['section_title']}")
 
-    # Detect calculator-related queries and auto-invoke calculators
-    calculator_results: list[CalculatorQueryResult] = []
-    calculator_keywords = ["risk", "score", "calculate", "chadsvasc", "meld", "egfr", "wells"]
-    is_calculator_query = any(kw in question for kw in calculator_keywords)
-
-    if is_calculator_query:
-        try:
-            from app.services.condition_calculator_mapping import get_calculators_for_condition
-
-            # Get conditions from KG nodes
-            condition_nodes = [n for n in nodes if n.node_type == NodeType.CONDITION]
-            measurement_nodes = [n for n in nodes if n.node_type == NodeType.MEASUREMENT]
-
-            # Find applicable calculators
-            applicable_calcs: set[str] = set()
-            for cond_node in condition_nodes:
-                calc_ids = get_calculators_for_condition(cond_node.label)
-                applicable_calcs.update(calc_ids)
-
-            # Try to execute calculators with available data
-            for calc_id in applicable_calcs:
-                calc_result = await _try_execute_calculator(calc_id, measurement_nodes)
-                if calc_result:
-                    calculator_results.append(calc_result)
-
-            logger.info(f"Calculator query detected, found {len(calculator_results)} results")
-        except Exception as e:
-            logger.warning(f"Calculator integration failed: {e}")
-
     # Commit provenance records
     try:
         await db.flush()
@@ -1805,7 +1471,6 @@ Provide a clear, evidence-based answer synthesizing the clinical data, graph rel
         entity_provenance=entity_provenance_data if provenance_depth == "full" else [],
         policy_citations=policy_citations_data,
         provenance_url=f"/api/v1/clinical-agent/provenance/{query_id}",
-        calculator_results=calculator_results,
     )
 
 

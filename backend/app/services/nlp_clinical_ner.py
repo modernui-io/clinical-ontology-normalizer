@@ -14,7 +14,7 @@ import logging
 import re
 import threading
 from dataclasses import dataclass, field
-from typing import Any, cast
+from typing import Any
 from uuid import UUID
 
 from app.schemas.base import Assertion, Domain, Experiencer, Temporality
@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 # - TREATMENT: Medications, procedures, therapies
 # - TEST: Laboratory tests, diagnostic procedures
 # - ANATOMY: Body parts, organs
-ENTITY_TO_DOMAIN: dict[str, str | None] = {
+ENTITY_TO_DOMAIN: dict[str, str] = {
     # Clinical NER model types
     "PROBLEM": Domain.CONDITION.value,
     "DISEASE": Domain.CONDITION.value,
@@ -215,7 +215,7 @@ class ClinicalNERService(BaseNLPService):
             from transformers import AutoModelForTokenClassification, AutoTokenizer, pipeline
             import torch
 
-            device: int | str = 0 if (self.config.use_gpu and torch.cuda.is_available()) else -1
+            device = 0 if (self.config.use_gpu and torch.cuda.is_available()) else -1
             if device == -1 and self.config.use_gpu and torch.backends.mps.is_available():
                 device = "mps"
 
@@ -308,7 +308,7 @@ class ClinicalNERService(BaseNLPService):
 
         return Experiencer.PATIENT
 
-    def _extract_with_transformer(self, text: str) -> list[dict[str, Any]]:
+    def _extract_with_transformer(self, text: str) -> list[dict]:
         """Extract entities using transformer pipeline."""
         if not self._transformer_available or self._transformer_pipeline is None:
             return []
@@ -321,7 +321,7 @@ class ClinicalNERService(BaseNLPService):
             if len(text) > safe_char_limit:
                 return self._extract_chunked(text)
             else:
-                return cast(list[dict[str, Any]], self._transformer_pipeline(text))
+                return self._transformer_pipeline(text)
         except Exception as e:
             logger.warning(f"Transformer extraction failed: {e}")
             # Fallback: try chunking if direct call failed
@@ -332,13 +332,13 @@ class ClinicalNERService(BaseNLPService):
                 logger.error(f"Chunked extraction also failed: {e2}")
                 return []
 
-    def _extract_chunked(self, text: str) -> list[dict[str, Any]]:
+    def _extract_chunked(self, text: str) -> list[dict]:
         """Extract entities from long text using overlapping chunks."""
         # Conservative: ~3 chars per token, use 75% of max to stay well under limit
         chunk_size = int(self.config.max_sequence_length * 3 * 0.75)
         overlap = 100
 
-        all_entities: list[dict[str, Any]] = []
+        all_entities = []
         start = 0
         chunk_num = 0
 
@@ -357,7 +357,7 @@ class ClinicalNERService(BaseNLPService):
             chunk_num += 1
 
             try:
-                entities = cast(list[dict[str, Any]], self._transformer_pipeline(chunk))
+                entities = self._transformer_pipeline(chunk)
                 # Adjust offsets for chunk position
                 for ent in entities:
                     ent["start"] += start
@@ -372,7 +372,7 @@ class ClinicalNERService(BaseNLPService):
         logger.info(f"Processed {chunk_num} chunks, found {len(all_entities)} raw entities")
         return self._deduplicate_entities(all_entities)
 
-    def _deduplicate_entities(self, entities: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    def _deduplicate_entities(self, entities: list[dict]) -> list[dict]:
         """Remove duplicate entities from overlapping chunks."""
         if not entities:
             return []

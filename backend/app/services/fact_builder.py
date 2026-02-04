@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
 from uuid import UUID
 
 from app.schemas.base import Assertion, Domain, Experiencer, Temporality
@@ -33,9 +32,6 @@ class FactInput:
     confidence: float = 1.0
     value: str | None = None
     unit: str | None = None
-    # Event date - extracted from mention context
-    start_date: datetime | None = None
-    end_date: datetime | None = None
 
     @property
     def is_negated(self) -> bool:
@@ -118,7 +114,6 @@ class FactBuilderServiceInterface(ABC):
         temporality: Temporality,
         experiencer: Experiencer,
         confidence: float,
-        event_date: datetime | None = None,
     ) -> FactResult:
         """Create a ClinicalFact from an NLP-extracted mention.
 
@@ -135,7 +130,6 @@ class FactBuilderServiceInterface(ABC):
             temporality: Temporal context.
             experiencer: Who the fact applies to.
             confidence: Confidence score.
-            event_date: When the clinical event occurred (from mention).
 
         Returns:
             FactResult with the created fact ID.
@@ -291,7 +285,6 @@ class BaseFactBuilderService(FactBuilderServiceInterface):
         temporality: Temporality,
         experiencer: Experiencer,
         confidence: float,
-        event_date: datetime | None = None,
     ) -> FactResult:
         """Default implementation using create_fact."""
         fact_input = FactInput(
@@ -303,7 +296,6 @@ class BaseFactBuilderService(FactBuilderServiceInterface):
             temporality=temporality,
             experiencer=experiencer,
             confidence=confidence,
-            start_date=event_date,  # Propagate event_date to start_date
         )
         evidence = [
             EvidenceInput(

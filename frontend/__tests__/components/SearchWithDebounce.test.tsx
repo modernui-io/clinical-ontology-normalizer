@@ -20,22 +20,14 @@ import {
 } from '@/components/SearchWithDebounce';
 import { renderHook } from '@testing-library/react';
 
-const setupUser = () =>
-  userEvent.setup({ delay: null, advanceTimers: jest.advanceTimersByTime });
-
-beforeEach(() => {
-  jest.useFakeTimers();
-});
-
-afterEach(() => {
-  act(() => {
-    jest.runAllTimers();
-  });
-  jest.clearAllTimers();
-  jest.useRealTimers();
-});
+// Mock timers for debounce testing
+jest.useFakeTimers();
 
 describe('SearchWithDebounce', () => {
+  afterEach(() => {
+    jest.clearAllTimers();
+  });
+
   describe('Rendering', () => {
     it('renders search input', () => {
       render(<SearchWithDebounce onSearch={jest.fn()} />);
@@ -79,7 +71,7 @@ describe('SearchWithDebounce', () => {
 
   describe('Input handling', () => {
     it('updates value on input', async () => {
-      const user = setupUser();
+      const user = userEvent.setup({ delay: null });
       render(<SearchWithDebounce onSearch={jest.fn()} />);
 
       const input = screen.getByRole('searchbox');
@@ -90,7 +82,7 @@ describe('SearchWithDebounce', () => {
 
     it('calls onChange immediately when typing', async () => {
       const handleChange = jest.fn();
-      const user = setupUser();
+      const user = userEvent.setup({ delay: null });
 
       render(
         <SearchWithDebounce onSearch={jest.fn()} onChange={handleChange} />
@@ -121,7 +113,7 @@ describe('SearchWithDebounce', () => {
   describe('Debounce behavior', () => {
     it('calls onSearch after debounce delay', async () => {
       const handleSearch = jest.fn();
-      const user = setupUser();
+      const user = userEvent.setup({ delay: null });
 
       render(
         <SearchWithDebounce onSearch={handleSearch} debounceMs={300} />
@@ -145,7 +137,7 @@ describe('SearchWithDebounce', () => {
 
     it('resets debounce timer on new input', async () => {
       const handleSearch = jest.fn();
-      const user = setupUser();
+      const user = userEvent.setup({ delay: null });
 
       render(
         <SearchWithDebounce onSearch={handleSearch} debounceMs={300} />
@@ -183,7 +175,7 @@ describe('SearchWithDebounce', () => {
 
   describe('Clear functionality', () => {
     it('shows clear button when there is value', async () => {
-      const user = setupUser();
+      const user = userEvent.setup({ delay: null });
 
       render(<SearchWithDebounce onSearch={jest.fn()} />);
 
@@ -202,7 +194,7 @@ describe('SearchWithDebounce', () => {
     });
 
     it('clears value when clear button is clicked', async () => {
-      const user = setupUser();
+      const user = userEvent.setup({ delay: null });
 
       render(<SearchWithDebounce onSearch={jest.fn()} />);
 
@@ -217,7 +209,7 @@ describe('SearchWithDebounce', () => {
 
     it('calls onClear when clear button is clicked', async () => {
       const handleClear = jest.fn();
-      const user = setupUser();
+      const user = userEvent.setup({ delay: null });
 
       render(
         <SearchWithDebounce onSearch={jest.fn()} onClear={handleClear} />
@@ -266,7 +258,7 @@ describe('SearchWithDebounce', () => {
     });
 
     it('hides clear button when disabled', async () => {
-      const user = setupUser();
+      const user = userEvent.setup({ delay: null });
 
       const { rerender } = render(
         <SearchWithDebounce onSearch={jest.fn()} value="test" onChange={jest.fn()} />
@@ -312,7 +304,7 @@ describe('SearchWithDebounce', () => {
   describe('Submit on Enter', () => {
     it('calls onSubmit when Enter is pressed', async () => {
       const handleSubmit = jest.fn();
-      const user = setupUser();
+      const user = userEvent.setup({ delay: null });
 
       render(
         <SearchWithDebounce onSearch={jest.fn()} onSubmit={handleSubmit} />

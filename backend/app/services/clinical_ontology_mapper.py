@@ -187,7 +187,7 @@ class TokenSpan:
     end: int
     normalized: str = ""
 
-    def __post_init__(self) -> None:
+    def __post_init__(self):
         if not self.normalized:
             self.normalized = self.text.lower().strip()
 
@@ -892,7 +892,7 @@ class ClinicalOntologyMapper:
     that every token is classified and relationships are extracted.
     """
 
-    def __init__(self) -> None:
+    def __init__(self):
         """Initialize the mapper with lexicons and patterns."""
         self.lexicon = ClinicalLexicon()
         self._load_vocabulary_files()
@@ -932,8 +932,7 @@ class ClinicalOntologyMapper:
                     concepts = data.get("concepts", []) if isinstance(data, dict) else data
                     for concept in concepts:
                         if isinstance(concept, dict):
-                            raw_desc = concept.get("concept_name") or concept.get("description") or ""
-                            desc = raw_desc.lower()
+                            desc = concept.get("concept_name", concept.get("description", "")).lower()
                         else:
                             continue
                         if desc:
@@ -957,8 +956,7 @@ class ClinicalOntologyMapper:
                     concepts = data.get("concepts", []) if isinstance(data, dict) else data
                     for concept in concepts:
                         if isinstance(concept, dict):
-                            raw_name = concept.get("component") or concept.get("concept_name") or ""
-                            name = raw_name.lower()
+                            name = concept.get("component", concept.get("concept_name", "")).lower()
                             if name:
                                 self._lab_tests.add(name)
                                 # Add individual words for multi-word tests
@@ -1083,7 +1081,7 @@ class ClinicalOntologyMapper:
         tokens = self._tokenize(text)
 
         # Classify each token
-        classified_tokens: list[ClassifiedToken] = []
+        classified_tokens = []
         for token in tokens:
             classified = self._classify_token(token, text, classified_tokens)
             classified_tokens.append(classified)
@@ -1133,10 +1131,6 @@ class ClinicalOntologyMapper:
             processing_time_ms=round(processing_time, 2),
             note_length=len(text),
         )
-
-    def tokenize_text(self, text: str) -> list[TokenSpan]:
-        """Tokenize text into spans for coverage calculations."""
-        return self._tokenize(text)
 
     def _tokenize(self, text: str) -> list[TokenSpan]:
         """Tokenize text into spans."""

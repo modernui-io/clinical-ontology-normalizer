@@ -79,6 +79,22 @@ interface Interpretation {
   recommendations: string[];
 }
 
+interface FormulaParameter {
+  name: string;
+  display_name: string;
+  unit: string;
+  min_value: number | null;
+  max_value: number | null;
+  description: string;
+}
+
+interface Formula {
+  formula_text: string;
+  output_unit: string;
+  precision: number;
+  parameters: FormulaParameter[];
+}
+
 interface DataDrivenCalculatorDetail {
   id: string;
   name: string;
@@ -88,6 +104,7 @@ interface DataDrivenCalculatorDetail {
   description: string;
   score_unit: string;
   criteria: Criterion[];
+  formula: Formula | null;
   has_age_scoring: boolean;
   interpretations: Interpretation[];
   references: string[];
@@ -327,21 +344,34 @@ function DataDrivenCalculatorForm({
   const [formValues, setFormValues] = useState<Record<string, boolean | number | string>>({});
   const [age, setAge] = useState<number | "">("");
 
+  // Check if this is an equation-type calculator with formula parameters
+  const isEquationType = calculator.calc_type === "equation" && calculator.formula?.parameters?.length;
+  const parameters = calculator.formula?.parameters || [];
+
   // Initialize form values
   useEffect(() => {
     const defaults: Record<string, boolean | number | string> = {};
-    for (const criterion of calculator.criteria) {
-      if (criterion.type === "boolean") {
-        defaults[criterion.name] = false;
-      } else if (criterion.type === "multi_level" && criterion.levels) {
-        defaults[criterion.name] = "";
-      } else if (criterion.type === "threshold") {
-        defaults[criterion.name] = "";
+
+    if (isEquationType) {
+      // Initialize formula parameters
+      for (const param of parameters) {
+        defaults[param.name] = "";
+      }
+    } else {
+      // Initialize criteria
+      for (const criterion of calculator.criteria) {
+        if (criterion.type === "boolean") {
+          defaults[criterion.name] = false;
+        } else if (criterion.type === "multi_level" && criterion.levels) {
+          defaults[criterion.name] = "";
+        } else if (criterion.type === "threshold") {
+          defaults[criterion.name] = "";
+        }
       }
     }
     setFormValues(defaults);
     setAge("");
-  }, [calculator.id, calculator.criteria]);
+  }, [calculator.id, calculator.criteria, isEquationType, parameters]);
 
   const handleChange = (name: string, value: boolean | number | string) => {
     setFormValues((prev) => ({ ...prev, [name]: value }));
@@ -350,19 +380,33 @@ function DataDrivenCalculatorForm({
   const handleSubmit = () => {
     // Convert form values to API format
     const values: Record<string, boolean | number> = {};
-    for (const criterion of calculator.criteria) {
-      const val = formValues[criterion.name];
-      if (criterion.type === "boolean") {
-        values[criterion.name] = val === true;
-      } else if (criterion.type === "multi_level") {
-        // For multi-level, we need to set the selected level as true
-        if (criterion.levels && typeof val === "string" && val) {
-          for (const level of criterion.levels) {
-            values[`${criterion.name}_${level.suffix}`] = level.suffix === val;
-          }
+
+    if (isEquationType) {
+      // For equation-type, pass formula parameter values
+      for (const param of parameters) {
+        const val = formValues[param.name];
+        if (typeof val === "number") {
+          values[param.name] = val;
+        } else if (typeof val === "string" && val !== "") {
+          values[param.name] = Number(val);
         }
-      } else if (criterion.type === "threshold" && typeof val === "number") {
-        values[criterion.name] = val;
+      }
+    } else {
+      // For criteria-type calculators
+      for (const criterion of calculator.criteria) {
+        const val = formValues[criterion.name];
+        if (criterion.type === "boolean") {
+          values[criterion.name] = val === true;
+        } else if (criterion.type === "multi_level") {
+          // For multi-level, we need to set the selected level as true
+          if (criterion.levels && typeof val === "string" && val) {
+            for (const level of criterion.levels) {
+              values[`${criterion.name}_${level.suffix}`] = level.suffix === val;
+            }
+          }
+        } else if (criterion.type === "threshold" && typeof val === "number") {
+          values[criterion.name] = val;
+        }
       }
     }
     onCalculate(values, age !== "" ? age : undefined);
@@ -370,11 +414,18 @@ function DataDrivenCalculatorForm({
 
   const handleReset = () => {
     const defaults: Record<string, boolean | number | string> = {};
-    for (const criterion of calculator.criteria) {
-      if (criterion.type === "boolean") {
-        defaults[criterion.name] = false;
-      } else {
-        defaults[criterion.name] = "";
+
+    if (isEquationType) {
+      for (const param of parameters) {
+        defaults[param.name] = "";
+      }
+    } else {
+      for (const criterion of calculator.criteria) {
+        if (criterion.type === "boolean") {
+          defaults[criterion.name] = false;
+        } else {
+          defaults[criterion.name] = "";
+        }
       }
     }
     setFormValues(defaults);
@@ -386,6 +437,11 @@ function DataDrivenCalculatorForm({
       <CardHeader>
         <CardTitle>Input Parameters</CardTitle>
         <CardDescription>{calculator.description}</CardDescription>
+        {calculator.formula && (
+          <p className="text-xs text-muted-foreground mt-2 font-mono bg-muted px-2 py-1 rounded">
+            Formula: {calculator.formula.formula_text}
+          </p>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Age input if calculator uses age scoring */}
@@ -407,10 +463,40 @@ function DataDrivenCalculatorForm({
           </div>
         )}
 
-        {/* Criteria inputs */}
-        {calculator.criteria.map((criterion) => {
-          const thresholdValue = formValues[criterion.name];
-          return (
+        {/* Formula parameter inputs for equation-type calculators */}
+        {isEquationType && parameters.map((param) => (
+          <div key={param.name} className="space-y-2">
+            <Label htmlFor={param.name} className="flex items-center gap-2">
+              {param.display_name}
+              <span className="text-red-500">*</span>
+              {param.unit && (
+                <span className="text-xs text-muted-foreground">({param.unit})</span>
+              )}
+            </Label>
+            {param.description && (
+              <p className="text-xs text-muted-foreground">{param.description}</p>
+            )}
+            <Input
+              id={param.name}
+              type="number"
+              step="any"
+              min={param.min_value ?? undefined}
+              max={param.max_value ?? undefined}
+              value={String(typeof formValues[param.name] === "boolean" ? "" : (formValues[param.name] ?? ""))}
+              onChange={(e) =>
+                handleChange(param.name, e.target.value ? Number(e.target.value) : "")
+              }
+              placeholder={
+                param.min_value !== null && param.max_value !== null
+                  ? `${param.min_value} - ${param.max_value}`
+                  : "Enter value"
+              }
+            />
+          </div>
+        ))}
+
+        {/* Criteria inputs for criteria-type calculators */}
+        {!isEquationType && calculator.criteria.map((criterion) => (
           <div key={criterion.name} className="space-y-2">
             <Label className="flex items-center gap-2">
               {criterion.display_name}
@@ -454,11 +540,7 @@ function DataDrivenCalculatorForm({
             ) : criterion.type === "threshold" ? (
               <Input
                 type="number"
-                value={
-                  typeof thresholdValue === "number" || typeof thresholdValue === "string"
-                    ? thresholdValue
-                    : ""
-                }
+                value={String(formValues[criterion.name] ?? "")}
                 onChange={(e) =>
                   handleChange(criterion.name, e.target.value ? Number(e.target.value) : "")
                 }
@@ -466,8 +548,7 @@ function DataDrivenCalculatorForm({
               />
             ) : null}
           </div>
-          );
-        })}
+        ))}
       </CardContent>
       <CardFooter className="flex gap-2">
         <Button onClick={handleSubmit} className="flex-1" disabled={isCalculating}>

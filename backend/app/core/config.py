@@ -125,9 +125,6 @@ class Settings(BaseSettings):
     llm_model: str = "gpt-4o-mini"  # Default model
     llm_max_tokens: int = 4096  # Maximum tokens for completion
 
-    # Startup Behavior
-    prewarm_ml_models: bool = False  # Preload ML NLP models on startup
-
     # Neo4j Configuration (for knowledge graph)
     neo4j_uri: str = "bolt://localhost:7687"
     neo4j_user: str = "neo4j"

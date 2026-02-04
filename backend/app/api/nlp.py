@@ -9,10 +9,9 @@ Provides clinical NLP entity extraction services:
 
 from __future__ import annotations
 
+import logging
 import time
 from enum import Enum
-import logging
-from typing import Any, cast
 from uuid import uuid4
 
 from fastapi import APIRouter, Body, Query
@@ -20,9 +19,10 @@ from pydantic import BaseModel, Field
 
 from app.api.errors import ErrorCode, InternalError
 
+logger = logging.getLogger(__name__)
+
 
 router = APIRouter(prefix="/nlp", tags=["NLP"])
-logger = logging.getLogger(__name__)
 
 
 # ============================================================================
@@ -153,87 +153,14 @@ class SectionSpanResponse(BaseModel):
     header_text: str | None = Field(None, description="Section header text")
 
 
-class TokenSpanResponse(BaseModel):
-    """A token span in the document."""
-
-    start: int = Field(..., description="Start character offset")
-    end: int = Field(..., description="End character offset")
-    text: str = Field(..., description="Token text")
-
-
-class ExtractionCoverageResponse(BaseModel):
-    """Coverage statistics for extracted entities."""
-
-    total_tokens: int = Field(..., description="Total tokens in the document")
-    covered_tokens: int = Field(..., description="Tokens covered by extracted entities")
-    coverage_pct: float = Field(..., description="Percent of tokens covered by entities")
-    uncovered_tokens: list[TokenSpanResponse] = Field(
-        default_factory=list,
-        description="Sample of tokens not covered by extracted entities",
-    )
-
-
-class CoverageGapTokenResponse(BaseModel):
-    """Token span with ontology category for gap reporting."""
-
-    start: int = Field(..., description="Start character offset")
-    end: int = Field(..., description="End character offset")
-    text: str = Field(..., description="Token text")
-    ontology_category: str | None = Field(
-        None, description="Ontology category for the token"
-    )
-
-
-class CoverageGapReportResponse(BaseModel):
-    """Token-level gap report comparing extraction vs ontology coverage."""
-
-    total_tokens: int = Field(..., description="Total tokens in the document")
-    extraction_covered_tokens: int = Field(
-        ..., description="Tokens covered by extraction spans"
-    )
-    ontology_entity_tokens: int = Field(
-        ..., description="Tokens classified as ontology entities"
-    )
-    overlap_tokens: int = Field(
-        ..., description="Tokens covered by extraction and classified by ontology"
-    )
-    extraction_only_tokens: int = Field(
-        ..., description="Tokens covered by extraction but not ontology entities"
-    )
-    ontology_only_tokens: int = Field(
-        ..., description="Ontology entity tokens not covered by extraction"
-    )
-    overlap_pct: float = Field(
-        ..., description="Percent of ontology entity tokens covered by extraction"
-    )
-    extraction_only_pct: float = Field(
-        ..., description="Percent of extracted tokens not in ontology entities"
-    )
-    ontology_only_pct: float = Field(
-        ..., description="Percent of ontology entity tokens missed by extraction"
-    )
-    extraction_only: list[CoverageGapTokenResponse] = Field(
-        default_factory=list,
-        description="Sample tokens covered by extraction but not ontology entities",
-    )
-    ontology_only: list[CoverageGapTokenResponse] = Field(
-        default_factory=list,
-        description="Sample ontology entity tokens missed by extraction",
-    )
-
-
 class ExtractRequest(BaseModel):
-    """Request for entity extraction.
-
-    Supports large clinical documents up to 500K characters (~100K words).
-    For very large documents, consider using batch extraction or chunking.
-    """
+    """Request for entity extraction."""
 
     text: str = Field(
         ...,
         min_length=1,
-        max_length=500000,  # ~100K words - supports full EHR documents
-        description="Clinical text to process (max 500K characters)",
+        max_length=100000,
+        description="Clinical text to process",
     )
     entity_types: list[EntityTypeEnum] | None = Field(
         default=None,
@@ -258,30 +185,6 @@ class ExtractRequest(BaseModel):
     patient_id: str | None = Field(
         default=None,
         description="Patient ID for fact/KG creation (required if create_facts=True)",
-    )
-    include_coverage: bool = Field(
-        default=False,
-        description="Include token coverage stats for extracted entities",
-    )
-    include_uncovered_tokens: bool = Field(
-        default=False,
-        description="Include sample of tokens not covered by extracted entities",
-    )
-    note_id: str | None = Field(
-        None, description="Optional note identifier for provenance"
-    )
-    encounter_id: str | None = Field(
-        None, description="Optional encounter identifier for provenance"
-    )
-    include_gap_report: bool = Field(
-        default=False,
-        description="Include token-level gap report comparing extraction vs ontology coverage",
-    )
-    max_gap_tokens: int = Field(
-        default=200,
-        ge=0,
-        le=1000,
-        description="Maximum gap tokens to return per list",
     )
 
 
@@ -314,18 +217,6 @@ class ExtractResponse(BaseModel):
     )
     patient_id: str | None = Field(
         None, description="Patient ID for created facts/graph (if create_facts=True)"
-    )
-    coverage: ExtractionCoverageResponse | None = Field(
-        None, description="Token coverage statistics for extracted entities"
-    )
-    coverage_gap: CoverageGapReportResponse | None = Field(
-        None, description="Token-level gap report comparing extraction vs ontology coverage"
-    )
-    note_id: str | None = Field(
-        None, description="Note identifier used for provenance"
-    )
-    encounter_id: str | None = Field(
-        None, description="Encounter identifier used for provenance"
     )
 
 
@@ -486,73 +377,119 @@ async def extract_entities(request: ExtractRequest) -> ExtractResponse:
             ClinicalSection,
         )
 
+        # Check if using LLM model (MedGemma via Ollama)
+        if request.model_id == "llm_api":
+            from app.services.nlp_claude_api import get_llm_nlp_service
+            import time
+
+            start_time = time.perf_counter()
+            llm_service = get_llm_nlp_service()
+            if not llm_service.is_available:
+                raise InternalError(
+                    message="LLM service not available. Make sure Ollama is running.",
+                    error_code=ErrorCode.SERVICE_UNAVAILABLE,
+                )
+
+            # Get entity types filter
+            entity_type_strs = None
+            if request.entity_types:
+                entity_type_strs = [et.value for et in request.entity_types]
+
+            llm_entities, _ = llm_service.extract_entities(request.text, entity_type_strs)
+            processing_time = (time.perf_counter() - start_time) * 1000
+
+            # Map LLM entities to ExtractedEntity format
+            llm_entity_type_map = {
+                "diagnosis": EntityType.DIAGNOSIS,
+                "medication": EntityType.MEDICATION,
+                "procedure": EntityType.PROCEDURE,
+                "lab_result": EntityType.LAB_RESULT,
+                "vital_sign": EntityType.VITAL_SIGN,
+                "symptom": EntityType.SYMPTOM,
+                "allergy": EntityType.ALLERGY,
+                "anatomical_location": EntityType.ANATOMICAL_LOCATION,
+                "temporal": EntityType.TEMPORAL,
+                "social_history": EntityType.SOCIAL_HISTORY,
+            }
+            llm_assertion_map = {
+                "present": AssertionStatus.PRESENT,
+                "absent": AssertionStatus.ABSENT,
+                "possible": AssertionStatus.POSSIBLE,
+                "conditional": AssertionStatus.CONDITIONAL,
+                "hypothetical": AssertionStatus.HYPOTHETICAL,
+                "family_history": AssertionStatus.FAMILY_HISTORY,
+            }
+
+            extracted = []
+            for e in llm_entities:
+                entity_type = llm_entity_type_map.get(e.entity_type, EntityType.DIAGNOSIS)
+                assertion = llm_assertion_map.get(e.assertion, AssertionStatus.PRESENT)
+                extracted.append(ExtractedEntity(
+                    id=e.id,
+                    entity_type=entity_type,
+                    text=e.text,
+                    normalized_text=e.normalized_text,
+                    span=EntitySpan(start=e.start, end=e.end, text=e.text),
+                    section=ClinicalSection.UNKNOWN,
+                    assertion=assertion,
+                    confidence=e.confidence,
+                    value=e.value,
+                    unit=e.unit,
+                ))
+
+            result = ExtractionResult(
+                entities=extracted,
+                model_id="llm_api",
+                processing_time_ms=round(processing_time, 2),
+                text_length=len(request.text),
+            )
+            service = get_nlp_entity_service()  # For normalization
+
         # Use Ensemble NLP when use_ml_models is True (combines rule-based + ClinicalBERT + ModernBERT)
-        if request.use_ml_models:
-            requested_model_id = request.model_id or "ensemble_nlp"
-            if requested_model_id == "ensemble_nlp":
-                from app.services.nlp_ensemble import get_ensemble_nlp_service
-                import time
+        elif request.use_ml_models:
+            from app.services.nlp_ensemble import get_ensemble_nlp_service
+            import time
 
-                start_time = time.perf_counter()
-                ensemble_service = get_ensemble_nlp_service()
-                ensemble_result = ensemble_service.extract_all(request.text, document_id=uuid4())
-                processing_time = (time.perf_counter() - start_time) * 1000
+            start_time = time.perf_counter()
+            ensemble_service = get_ensemble_nlp_service()
+            ensemble_result = ensemble_service.extract_all(request.text, document_id=uuid4())
+            processing_time = (time.perf_counter() - start_time) * 1000
 
-                # Map ensemble mentions to ExtractedEntity format
-                domain_to_entity_type = {
-                    "condition": EntityType.DIAGNOSIS,
-                    "drug": EntityType.MEDICATION,
-                    "procedure": EntityType.PROCEDURE,
-                    "measurement": EntityType.LAB_RESULT,
-                    "observation": EntityType.SYMPTOM,
-                    "anatomy": EntityType.ANATOMICAL_LOCATION,
-                }
+            # Map ensemble mentions to ExtractedEntity format
+            domain_to_entity_type = {
+                "condition": EntityType.DIAGNOSIS,
+                "drug": EntityType.MEDICATION,
+                "procedure": EntityType.PROCEDURE,
+                "measurement": EntityType.LAB_RESULT,
+                "observation": EntityType.SYMPTOM,
+                "anatomy": EntityType.ANATOMICAL_LOCATION,
+            }
 
-                ml_entities = []
-                for m in ensemble_result.mentions:
-                    entity_type = domain_to_entity_type.get(m.domain_hint, EntityType.DIAGNOSIS)
-                    assertion = AssertionStatus.ABSENT if m.is_negated else AssertionStatus.PRESENT
-                    if m.is_uncertain:
-                        assertion = AssertionStatus.UNCERTAIN
+            ml_entities = []
+            for m in ensemble_result.mentions:
+                entity_type = domain_to_entity_type.get(m.domain_hint, EntityType.DIAGNOSIS)
+                assertion = AssertionStatus.ABSENT if m.is_negated else AssertionStatus.PRESENT
+                if m.is_uncertain:
+                    assertion = AssertionStatus.UNCERTAIN
 
-                    ml_entities.append(ExtractedEntity(
-                        id=str(uuid4()),
-                        entity_type=entity_type,
-                        text=m.text,
-                        normalized_text=m.lexical_variant or m.text,
-                        span=EntitySpan(start=m.start_offset, end=m.end_offset, text=m.text),
-                        section=ClinicalSection.UNKNOWN,
-                        assertion=assertion,
-                        confidence=float(m.confidence),
-                    ))
+                ml_entities.append(ExtractedEntity(
+                    id=str(uuid4()),
+                    entity_type=entity_type,
+                    text=m.text,
+                    normalized_text=m.lexical_variant or m.text,
+                    span=EntitySpan(start=m.start_offset, end=m.end_offset, text=m.text),
+                    section=ClinicalSection.UNKNOWN,
+                    assertion=assertion,
+                    confidence=float(m.confidence),
+                ))
 
-                result = ExtractionResult(
-                    entities=ml_entities,
-                    model_id="ensemble_nlp",  # Rule-based + ClinicalBERT + ModernBERT
-                    processing_time_ms=round(processing_time, 2),
-                    text_length=len(request.text),
-                )
-                service = get_nlp_entity_service()  # For normalization
-            else:
-                service = get_nlp_entity_service()
-
-                # Convert API enums to service enums
-                entity_types = None
-                if request.entity_types:
-                    entity_types = [EntityType(et.value) for et in request.entity_types]
-
-                available_models = {m.model_id for m in service.get_available_models()}
-                if requested_model_id not in available_models:
-                    raise InternalError(
-                        message=f"Unknown model_id '{requested_model_id}'",
-                        error_code=ErrorCode.VALIDATION_ERROR,
-                    )
-
-                result = service.extract_entities(
-                    text=request.text,
-                    entity_types=entity_types,
-                    model_id=requested_model_id,
-                )
+            result = ExtractionResult(
+                entities=ml_entities,
+                model_id="ensemble_nlp",  # Rule-based + ClinicalBERT + ModernBERT
+                processing_time_ms=round(processing_time, 2),
+                text_length=len(request.text),
+            )
+            service = get_nlp_entity_service()  # For normalization
         else:
             service = get_nlp_entity_service()
 
@@ -731,80 +668,6 @@ async def extract_entities(request: ExtractRequest) -> ExtractResponse:
                 session.commit()
                 response_patient_id = request.patient_id
 
-        entity_spans = [
-            (entity.span.start, entity.span.end) for entity in result.entities
-        ]
-
-        coverage = None
-        if request.include_coverage:
-            try:
-                from app.services.nlp_coverage import calculate_token_coverage
-
-                coverage_stats = calculate_token_coverage(
-                    request.text,
-                    entity_spans,
-                    include_uncovered_tokens=request.include_uncovered_tokens,
-                )
-                coverage = ExtractionCoverageResponse(
-                    total_tokens=coverage_stats.total_tokens,
-                    covered_tokens=coverage_stats.covered_tokens,
-                    coverage_pct=coverage_stats.coverage_pct,
-                    uncovered_tokens=[
-                        TokenSpanResponse(
-                            start=token.start,
-                            end=token.end,
-                            text=token.text,
-                        )
-                        for token in coverage_stats.uncovered_tokens
-                    ],
-                )
-            except Exception as coverage_err:
-                logger.warning(f"Coverage calculation failed: {coverage_err}")
-                coverage = None
-
-        coverage_gap = None
-        if request.include_gap_report:
-            try:
-                from app.services.nlp_coverage import calculate_coverage_gap
-
-                gap_report = calculate_coverage_gap(
-                    request.text,
-                    entity_spans,
-                    max_gap_tokens=request.max_gap_tokens,
-                )
-                coverage_gap = CoverageGapReportResponse(
-                    total_tokens=gap_report.total_tokens,
-                    extraction_covered_tokens=gap_report.extraction_covered_tokens,
-                    ontology_entity_tokens=gap_report.ontology_entity_tokens,
-                    overlap_tokens=gap_report.overlap_tokens,
-                    extraction_only_tokens=gap_report.extraction_only_tokens,
-                    ontology_only_tokens=gap_report.ontology_only_tokens,
-                    overlap_pct=gap_report.overlap_pct,
-                    extraction_only_pct=gap_report.extraction_only_pct,
-                    ontology_only_pct=gap_report.ontology_only_pct,
-                    extraction_only=[
-                        CoverageGapTokenResponse(
-                            start=token.start,
-                            end=token.end,
-                            text=token.text,
-                            ontology_category=token.ontology_category,
-                        )
-                        for token in gap_report.extraction_only
-                    ],
-                    ontology_only=[
-                        CoverageGapTokenResponse(
-                            start=token.start,
-                            end=token.end,
-                            text=token.text,
-                            ontology_category=token.ontology_category,
-                        )
-                        for token in gap_report.ontology_only
-                    ],
-                )
-            except Exception as gap_err:
-                logger.warning(f"Coverage gap calculation failed: {gap_err}")
-                coverage_gap = None
-
         return ExtractResponse(
             request_id=request_id,
             text_length=result.text_length,
@@ -818,10 +681,6 @@ async def extract_entities(request: ExtractRequest) -> ExtractResponse:
             graph_nodes_created=graph_nodes_created,
             graph_edges_created=graph_edges_created,
             patient_id=response_patient_id,
-            coverage=coverage,
-            coverage_gap=coverage_gap,
-            note_id=request.note_id,
-            encounter_id=request.encounter_id,
         )
 
     except Exception as e:
@@ -910,6 +769,62 @@ async def batch_extract_entities(request: BatchExtractRequest) -> BatchExtractRe
 
 
 # ============================================================================
+# Preload Endpoint
+# ============================================================================
+
+
+@router.post(
+    "/preload",
+    summary="Preload LLM model",
+    description="Warm up the LLM model to reduce first extraction latency.",
+)
+async def preload_model() -> dict:
+    """Preload the LLM model into memory.
+
+    This endpoint triggers Ollama to load the model into VRAM/RAM
+    so subsequent extraction requests are faster.
+
+    Returns:
+        Status message with model info.
+    """
+    try:
+        from app.services.nlp_claude_api import get_llm_nlp_service
+        import httpx
+
+        llm_service = get_llm_nlp_service()
+        if not llm_service._ollama_available:
+            return {
+                "status": "skipped",
+                "message": "Ollama not available - no preload needed",
+            }
+
+        # Send a minimal prompt to warm up the model
+        with httpx.Client(timeout=300.0) as client:  # 5 min timeout for loading
+            response = client.post(
+                f"{llm_service.config.ollama_base_url}/api/generate",
+                json={
+                    "model": llm_service.config.ollama_model,
+                    "prompt": "Hello",
+                    "stream": False,
+                    "options": {"num_predict": 1},  # Only generate 1 token
+                },
+            )
+            response.raise_for_status()
+
+        return {
+            "status": "success",
+            "message": f"Model {llm_service.config.ollama_model} loaded and ready",
+            "model": llm_service.config.ollama_model,
+        }
+    except Exception as e:
+        logger.error(f"Preload failed: {e}")
+        return {
+            "status": "error",
+            "message": f"Failed to preload model: {str(e)}",
+        }
+
+
+# ============================================================================
 # Models Endpoint
 # ============================================================================
 
@@ -938,6 +853,7 @@ async def list_models() -> ModelsResponse:
         service = get_nlp_entity_service()
         models = service.get_available_models()
 
+        # Only include rule_based model from service (skip broken ML models)
         models_response = [
             NLPModelInfo(
                 model_id=m.model_id,
@@ -949,17 +865,34 @@ async def list_models() -> ModelsResponse:
                 version=m.version,
             )
             for m in models
+            if m.model_id == "rule_based"
         ]
 
-        # Add ensemble model as a selectable option
-        if not any(m.model_id == "ensemble_nlp" for m in models_response):
+        # Add LLM API model option (Ollama/MedGemma)
+        try:
+            from app.services.nlp_claude_api import get_llm_nlp_service
+            llm_service = get_llm_nlp_service()
+            model_info = llm_service.get_model_info()
             models_response.append(
                 NLPModelInfo(
-                    model_id="ensemble_nlp",
-                    name="Ensemble NLP",
-                    description="Rule-based + ClinicalBERT + ModernBERT + value/relation extraction",
+                    model_id="llm_api",
+                    name=model_info.get("name", "LLM API"),
+                    description=model_info.get("description", "LLM-based clinical NER"),
                     entity_types=list(EntityTypeEnum),
-                    is_available=True,
+                    is_available=model_info.get("is_available", False),
+                    requires_gpu=False,
+                    version="1.0.0",
+                )
+            )
+        except Exception as e:
+            logger.warning(f"LLM API service not available: {e}")
+            models_response.append(
+                NLPModelInfo(
+                    model_id="llm_api",
+                    name="LLM API (MedGemma/Ollama)",
+                    description="LLM-based clinical NER - requires Ollama running locally",
+                    entity_types=list(EntityTypeEnum),
+                    is_available=False,
                     requires_gpu=False,
                     version="1.0.0",
                 )
@@ -1260,10 +1193,6 @@ class OntologyMapRequest(BaseModel):
         max_length=100000,
         description="Clinical text to process",
     )
-    include_unknown_tokens: bool = Field(
-        default=False,
-        description="Include unclassified token spans in response",
-    )
 
 
 class OntologyEntityResponse(BaseModel):
@@ -1289,14 +1218,6 @@ class OntologyRelationshipResponse(BaseModel):
     confidence: float = Field(..., ge=0, le=1, description="Confidence score")
 
 
-class UnknownTokenResponse(BaseModel):
-    """An unclassified token span."""
-
-    start: int = Field(..., description="Start character offset")
-    end: int = Field(..., description="End character offset")
-    text: str = Field(..., description="Token text")
-
-
 class OntologyMapResponse(BaseModel):
     """Response from ontology mapping."""
 
@@ -1313,9 +1234,6 @@ class OntologyMapResponse(BaseModel):
     )
     negated_findings: list[str] = Field(
         default_factory=list, description="Negated findings"
-    )
-    unknown_tokens: list[UnknownTokenResponse] = Field(
-        default_factory=list, description="Unclassified tokens"
     )
     processing_time_ms: float = Field(..., description="Processing time in milliseconds")
 
@@ -1387,20 +1305,6 @@ async def ontology_map(request: OntologyMapRequest) -> OntologyMapResponse:
 
         stats = result.coverage_stats
 
-        unknown_tokens: list[UnknownTokenResponse] = []
-        if request.include_unknown_tokens:
-            from app.services.clinical_ontology_mapper import OntologyCategory
-
-            for token in result.tokens:
-                if token.category == OntologyCategory.UNKNOWN and token.span.text.strip():
-                    unknown_tokens.append(
-                        UnknownTokenResponse(
-                            start=token.span.start,
-                            end=token.span.end,
-                            text=token.span.text,
-                        )
-                    )
-
         return OntologyMapResponse(
             request_id=str(uuid4()),
             text_length=len(request.text),
@@ -1412,7 +1316,6 @@ async def ontology_map(request: OntologyMapRequest) -> OntologyMapResponse:
             entities=entities,
             relationships=relationships,
             negated_findings=negated_findings,
-            unknown_tokens=unknown_tokens,
             processing_time_ms=round(result.processing_time_ms, 2),
         )
 
@@ -1439,16 +1342,13 @@ class AnalysisTypeEnum(str, Enum):
 
 
 class HybridAnalyzeRequest(BaseModel):
-    """Request for hybrid clinical analysis.
-
-    Supports large clinical documents up to 500K characters (~100K words).
-    """
+    """Request for hybrid clinical analysis."""
 
     text: str = Field(
         ...,
         min_length=1,
-        max_length=500000,  # ~100K words - supports full EHR documents
-        description="Clinical text to analyze (max 500K characters)",
+        max_length=100000,
+        description="Clinical text to analyze",
     )
     analysis_type: AnalysisTypeEnum = Field(
         default=AnalysisTypeEnum.CLINICAL_SUMMARY,
@@ -1461,12 +1361,6 @@ class HybridAnalyzeRequest(BaseModel):
     use_llm: bool = Field(
         default=True,
         description="Whether to use LLM for reasoning (if False, returns extraction only)",
-    )
-    note_id: str | None = Field(
-        None, description="Optional note identifier for provenance"
-    )
-    encounter_id: str | None = Field(
-        None, description="Optional encounter identifier for provenance"
     )
 
 
@@ -1503,12 +1397,6 @@ class HybridAnalyzeResponse(BaseModel):
     total_time_ms: float = Field(..., description="Total processing time")
     llm_model: str | None = Field(None, description="LLM model used (if any)")
     llm_available: bool = Field(..., description="Whether LLM was available")
-    note_id: str | None = Field(
-        None, description="Note identifier used for provenance"
-    )
-    encounter_id: str | None = Field(
-        None, description="Encounter identifier used for provenance"
-    )
 
 
 @router.post(
@@ -1614,8 +1502,6 @@ async def hybrid_analyze(request: HybridAnalyzeRequest) -> HybridAnalyzeResponse
             total_time_ms=round(total_time, 2),
             llm_model=llm_model,
             llm_available=llm_available,
-            note_id=request.note_id,
-            encounter_id=request.encounter_id,
         )
 
     except Exception as e:
@@ -1635,7 +1521,7 @@ async def hybrid_analyze(request: HybridAnalyzeRequest) -> HybridAnalyzeResponse
     summary="Get NLP service statistics",
     description="Get statistics about the NLP entity extraction service.",
 )
-async def get_service_stats() -> dict[str, Any]:
+async def get_service_stats() -> dict:
     """Get NLP service statistics.
 
     Returns statistics about the service including:
@@ -1650,7 +1536,7 @@ async def get_service_stats() -> dict[str, Any]:
         from app.services.nlp_entity_service import get_nlp_entity_service
 
         service = get_nlp_entity_service()
-        return cast(dict[str, Any], service.get_stats())
+        return service.get_stats()
 
     except Exception as e:
         raise InternalError(
@@ -1665,17 +1551,9 @@ async def get_service_stats() -> dict[str, Any]:
 
 
 class BuildGraphRequest(BaseModel):
-    """Request to build a knowledge graph from clinical text.
+    """Request to build a knowledge graph from clinical text."""
 
-    Supports large clinical documents up to 500K characters (~100K words).
-    """
-
-    clinical_text: str = Field(
-        ...,
-        min_length=1,
-        max_length=500000,  # ~100K words - supports full EHR documents
-        description="The clinical note text to process (max 500K characters)",
-    )
+    clinical_text: str = Field(..., description="The clinical note text to process")
     patient_id: str = Field(..., description="Patient identifier")
     note_id: str | None = Field(None, description="Optional note identifier")
     encounter_id: str | None = Field(None, description="Optional encounter identifier")
@@ -1745,9 +1623,6 @@ async def build_knowledge_graph(request: BuildGraphRequest) -> BuildGraphRespons
         from app.core.database import get_sync_engine
         from app.services.ontology_graph_integration import OntologyGraphIntegration
         from app.services.graph_builder_db import DatabaseGraphBuilderService
-        from app.models import Document as DocumentModel
-        from app.schemas.base import JobStatus
-        from datetime import datetime, timezone
 
         request_id = str(uuid4())
 
@@ -1755,52 +1630,12 @@ async def build_knowledge_graph(request: BuildGraphRequest) -> BuildGraphRespons
             # Use the ontology graph integration service
             integration = OntologyGraphIntegration(session)
 
-            note_id = request.note_id or f"note_{uuid4().hex[:12]}"
-            note_datetime = datetime.now(timezone.utc)
-
-            # Persist document for QA evidence retrieval (dedupe by patient + original_note_id)
-            existing_doc = (
-                session.query(DocumentModel)
-                .filter(DocumentModel.patient_id == request.patient_id)
-                .filter(DocumentModel.extra_metadata["original_note_id"].astext == note_id)
-                .first()
-            )
-            if existing_doc:
-                existing_doc.text = request.clinical_text
-                existing_doc.note_type = "nlp_workbench"
-                existing_doc.status = JobStatus.COMPLETED
-                existing_doc.processed_at = note_datetime
-                existing_doc.extra_metadata = {
-                    **(existing_doc.extra_metadata or {}),
-                    "note_date": note_datetime.date().isoformat(),
-                    "source": "nlp_workbench",
-                    "encounter_id": request.encounter_id,
-                }
-            else:
-                session.add(
-                    DocumentModel(
-                        id=str(uuid4()),
-                        patient_id=request.patient_id,
-                        note_type="nlp_workbench",
-                        text=request.clinical_text,
-                        extra_metadata={
-                            "original_note_id": note_id,
-                            "note_date": note_datetime.date().isoformat(),
-                            "source": "nlp_workbench",
-                            "encounter_id": request.encounter_id,
-                        },
-                        status=JobStatus.COMPLETED,
-                        processed_at=note_datetime,
-                    )
-                )
-
             # Ingest the note and build the graph
             result = integration.ingest_note(
                 note_text=request.clinical_text,
                 patient_id=request.patient_id,
-                note_id=note_id,
+                note_id=request.note_id,
                 encounter_id=request.encounter_id,
-                note_datetime=note_datetime,
             )
 
             # Commit the changes

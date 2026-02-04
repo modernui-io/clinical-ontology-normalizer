@@ -77,10 +77,6 @@ class ActionType(str, Enum):
     SUMMARIZE = "summarize"
     ANSWER_QUESTION = "answer_question"
 
-    # Calculator actions
-    CALCULATE_RISK = "calculate_risk"
-    IDENTIFY_CALCULATORS = "identify_calculators"
-
 
 @dataclass
 class AgentRequest:
@@ -147,10 +143,6 @@ class AgentResponse:
     analysis: str | None = None
     summary: str | None = None
     answer: str | None = None
-
-    # Calculator results
-    calculator_results: list[dict[str, Any]] = field(default_factory=list)
-    applicable_calculators: list[dict[str, Any]] = field(default_factory=list)
 
     # Metadata
     processing_time_ms: float = 0.0
@@ -270,10 +262,6 @@ class ClinicalIntelligenceAgent:
                 self._handle_summarize(request, response)
             elif request.action == ActionType.ANSWER_QUESTION:
                 self._handle_answer_question(request, response)
-            elif request.action == ActionType.CALCULATE_RISK:
-                self._handle_calculate_risk(request, response)
-            elif request.action == ActionType.IDENTIFY_CALCULATORS:
-                self._handle_identify_calculators(request, response)
             else:
                 response.success = False
                 response.error_message = f"Unknown action: {request.action}"
@@ -617,158 +605,6 @@ class ClinicalIntelligenceAgent:
         )
 
         response.answer = result.analysis
-
-    def _handle_identify_calculators(self, request: AgentRequest, response: AgentResponse) -> None:
-        """Identify applicable calculators based on extracted conditions.
-
-        Extracts conditions from text and returns applicable calculators
-        based on the condition-to-calculator mapping.
-        """
-        from app.services.condition_calculator_mapping import (
-            get_calculators_for_condition,
-            CONDITION_CALCULATOR_MAP,
-        )
-
-        # First extract entities to get conditions
-        self._handle_extract_entities(request, response)
-
-        # Find applicable calculators for each condition
-        all_calculators: dict[str, dict] = {}  # calc_id -> calc_info
-
-        for diagnosis in response.diagnoses:
-            condition_text = diagnosis.get("text", "")
-            calculator_ids = get_calculators_for_condition(condition_text)
-
-            for calc_id in calculator_ids:
-                if calc_id not in all_calculators:
-                    all_calculators[calc_id] = {
-                        "calculator_id": calc_id,
-                        "conditions": [],
-                        "description": self._get_calculator_description(calc_id),
-                    }
-                all_calculators[calc_id]["conditions"].append(condition_text)
-
-        # Convert to list
-        response.applicable_calculators = list(all_calculators.values())
-
-    def _handle_calculate_risk(self, request: AgentRequest, response: AgentResponse) -> None:
-        """Calculate risk scores using available patient data.
-
-        1. Get patient conditions from extracted entities
-        2. Map to applicable calculators
-        3. Gather inputs from measurements
-        4. Execute calculators
-        5. Return results with interpretation
-        """
-        from app.services.condition_calculator_mapping import get_calculators_for_condition
-        from app.services.kg_calculator_mapper import build_calculator_inputs_from_measurements
-
-        # Extract entities and measurements
-        self._handle_extract_entities(request, response)
-        self._handle_extract_measurements(request, response)
-
-        # Find applicable calculators
-        applicable_calcs: set[str] = set()
-        for diagnosis in response.diagnoses:
-            condition_text = diagnosis.get("text", "")
-            calc_ids = get_calculators_for_condition(condition_text)
-            applicable_calcs.update(calc_ids)
-
-        # Convert measurements to format expected by mapper
-        measurement_data = [
-            {"label": m.get("name", ""), "value": m.get("value")}
-            for m in response.measurements
-        ]
-
-        # Try to execute each applicable calculator
-        for calc_id in applicable_calcs:
-            inputs, missing = build_calculator_inputs_from_measurements(
-                calc_id, measurement_data
-            )
-
-            if inputs:
-                # Try to execute the calculator
-                result = self._execute_calculator(calc_id, inputs)
-                if result:
-                    result["calculator_id"] = calc_id
-                    result["inputs_used"] = inputs
-                    result["missing_inputs"] = missing
-                    response.calculator_results.append(result)
-                else:
-                    # Record that calculator was applicable but couldn't execute
-                    response.applicable_calculators.append({
-                        "calculator_id": calc_id,
-                        "status": "incomplete",
-                        "inputs_available": inputs,
-                        "missing_inputs": missing,
-                    })
-            else:
-                # No inputs available for this calculator
-                response.applicable_calculators.append({
-                    "calculator_id": calc_id,
-                    "status": "no_data",
-                    "missing_inputs": self._get_required_inputs(calc_id),
-                })
-
-    def _execute_calculator(self, calc_id: str, inputs: dict) -> dict | None:
-        """Execute a calculator with the given inputs.
-
-        Returns result dict or None if execution fails.
-        """
-        try:
-            from app.services.calculator_registry import get_calculator_registry
-
-            registry = get_calculator_registry()
-            calculator = registry.get_calculator(calc_id)
-
-            if calculator is None:
-                logger.debug(f"Calculator {calc_id} not found in registry")
-                return None
-
-            result = calculator.calculate(inputs)
-            return {
-                "score": result.score,
-                "risk_level": result.risk_level,
-                "interpretation": result.interpretation,
-                "units": result.units,
-            }
-        except Exception as e:
-            logger.debug(f"Failed to execute calculator {calc_id}: {e}")
-            return None
-
-    def _get_calculator_description(self, calc_id: str) -> str:
-        """Get a human-readable description for a calculator."""
-        descriptions = {
-            "chadsvasc": "CHA2DS2-VASc Score for Atrial Fibrillation Stroke Risk",
-            "hasbled": "HAS-BLED Score for Major Bleeding Risk",
-            "ascvd": "ASCVD 10-Year Cardiovascular Risk",
-            "framingham": "Framingham Risk Score",
-            "egfr_ckd_epi": "eGFR (CKD-EPI Equation)",
-            "meld": "MELD Score (Model for End-Stage Liver Disease)",
-            "meld_na": "MELD-Na Score",
-            "child_pugh": "Child-Pugh Score for Cirrhosis",
-            "wells_dvt": "Wells Score for DVT",
-            "wells_pe": "Wells Score for PE",
-            "curb65": "CURB-65 Score for Pneumonia Severity",
-            "sofa": "SOFA Score for Organ Failure",
-            "qsofa": "qSOFA Score for Sepsis",
-            "nyha": "NYHA Heart Failure Classification",
-            "grace": "GRACE Score for ACS",
-            "timi": "TIMI Risk Score",
-        }
-        return descriptions.get(calc_id, f"Clinical Calculator: {calc_id}")
-
-    def _get_required_inputs(self, calc_id: str) -> list[str]:
-        """Get the list of required inputs for a calculator."""
-        required_inputs = {
-            "chadsvasc": ["age", "sex", "chf", "hypertension", "stroke_tia", "vascular_disease", "diabetes"],
-            "hasbled": ["hypertension", "renal_disease", "liver_disease", "stroke", "bleeding", "inr", "age", "drugs_alcohol"],
-            "ascvd": ["age", "sex", "race", "total_cholesterol", "hdl", "systolic_bp", "diabetes", "smoker"],
-            "egfr_ckd_epi": ["creatinine", "age", "sex", "race"],
-            "meld": ["bilirubin", "creatinine", "inr", "dialysis"],
-            "wells_dvt": ["active_cancer", "paralysis", "bedridden", "tenderness", "swelling", "pitting_edema", "collateral_veins", "alternative_diagnosis"],
-        }
-        return required_inputs.get(calc_id, [])
 
     # =========================================================================
     # Convenience methods for common workflows

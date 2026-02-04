@@ -90,7 +90,7 @@ class DatabaseFactBuilderService(BaseFactBuilderService):
                 new_confidence=fact_input.confidence,
             )
 
-        # Create new fact with temporal data
+        # Create new fact
         fact = ClinicalFact(
             patient_id=fact_input.patient_id,
             domain=fact_input.domain,
@@ -102,9 +102,6 @@ class DatabaseFactBuilderService(BaseFactBuilderService):
             confidence=fact_input.confidence,
             value=fact_input.value,
             unit=fact_input.unit,
-            # Temporal data from mention event_date
-            start_date=fact_input.start_date,
-            end_date=fact_input.end_date,
         )
         self._session.add(fact)
         self._session.flush()  # Get the fact ID

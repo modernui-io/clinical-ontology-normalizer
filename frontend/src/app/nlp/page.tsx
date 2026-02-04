@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,13 +15,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -48,13 +41,11 @@ import {
   XCircle,
   Sparkles,
   BarChart3,
-  Target,
   ClipboardList,
   Network,
   ExternalLink,
   Send,
   MessageSquare,
-  Upload,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -69,20 +60,13 @@ import type {
 } from "@/types/provenance";
 import {
   nlpExtractEntities,
-  nlpGetModels,
   nlpOntologyMap,
   nlpHybridAnalyze,
-  getDocument,
-  type Document,
   type NLPExtractedEntity,
   type NLPExtractionResult,
-  type NLPCoverageGapReport,
-  type NLPCoverageGapToken,
-  type NLPModelInfo,
   type NLPEntityType,
   type NLPAssertionStatus,
   type OntologyMapResponse,
-  type UnknownTokenSpan,
   type HybridAnalyzeResponse,
   type AnalysisType,
 } from "@/lib/api";
@@ -177,39 +161,6 @@ const ASSERTION_BADGES: Record<
   hypothetical: { label: "Hypothetical", variant: "outline" },
   family_history: { label: "Family Hx", variant: "outline" },
 };
-
-const DEFAULT_MODEL_ENTITY_TYPES: NLPEntityType[] = [
-  "diagnosis",
-  "medication",
-  "procedure",
-  "lab_result",
-  "vital_sign",
-  "anatomical_location",
-  "temporal",
-  "symptom",
-  "allergy",
-];
-
-const FALLBACK_MODELS: NLPModelInfo[] = [
-  {
-    model_id: "ensemble_nlp",
-    name: "Ensemble NLP",
-    description: "Rule-based + ClinicalBERT + ModernBERT + value/relation extraction",
-    entity_types: DEFAULT_MODEL_ENTITY_TYPES,
-    is_available: true,
-    requires_gpu: false,
-    version: "1.0.0",
-  },
-  {
-    model_id: "rule_based",
-    name: "Rule-Based Extractor",
-    description: "Pattern-based clinical entity extraction using regex and clinical rules",
-    entity_types: DEFAULT_MODEL_ENTITY_TYPES,
-    is_available: true,
-    requires_gpu: false,
-    version: "1.0.0",
-  },
-];
 
 const SAMPLE_NOTES = [
   {
@@ -569,15 +520,8 @@ function StatsPanel({ result }: { result: NLPExtractionResult }) {
     return sum / result.entities.length;
   }, [result.entities]);
 
-  const coverageLabel = result.coverage
-    ? `${result.coverage.coverage_pct.toFixed(1)}%`
-    : "—";
-  const coverageDetail = result.coverage
-    ? `${result.coverage.covered_tokens}/${result.coverage.total_tokens}`
-    : "Coverage unavailable";
-
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <Card>
         <CardContent className="pt-4">
           <div className="flex items-center gap-2">
@@ -615,21 +559,6 @@ function StatsPanel({ result }: { result: NLPExtractionResult }) {
             <div>
               <p className="text-2xl font-bold">{assertionCounts.negated || 0}</p>
               <p className="text-xs text-muted-foreground">Negated</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent className="pt-4">
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-md bg-amber-100">
-              <Target className="h-4 w-4 text-amber-700" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{coverageLabel}</p>
-              <p className="text-xs text-muted-foreground">Token Coverage</p>
-              <p className="text-[10px] text-muted-foreground">{coverageDetail}</p>
             </div>
           </div>
         </CardContent>
@@ -737,155 +666,6 @@ function OntologyStatsPanel({ result }: { result: OntologyMapResponse }) {
         </CardContent>
       </Card>
     </div>
-  );
-}
-
-function CoverageGapTokenPanel({
-  title,
-  description,
-  tokens,
-}: {
-  title: string;
-  description: string;
-  tokens: NLPCoverageGapToken[];
-}) {
-  return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm flex items-center gap-2">
-          <AlertCircle className="h-4 w-4" />
-          {title} ({tokens.length})
-        </CardTitle>
-        <CardDescription className="text-xs">{description}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {tokens.length === 0 ? (
-          <div className="text-sm text-muted-foreground">No gap tokens.</div>
-        ) : (
-          <ScrollArea className="h-[220px]">
-            <div className="flex flex-col gap-2 pr-2">
-              {tokens.map((token, idx) => (
-                <div
-                  key={`${token.start}-${token.end}-${idx}`}
-                  className="flex flex-wrap items-center gap-2"
-                >
-                  <Badge variant="secondary">{token.text}</Badge>
-                  {token.ontology_category && (
-                    <Badge variant="outline" className="text-[10px] uppercase">
-                      {token.ontology_category}
-                    </Badge>
-                  )}
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-function CoverageGapPanel({ report }: { report: NLPCoverageGapReport }) {
-  const ontologyDescription = report.ontology_entity_tokens
-    ? `${report.ontology_only_tokens} of ${report.ontology_entity_tokens} ontology entity tokens missed (${report.ontology_only_pct.toFixed(1)}%)`
-    : "No ontology entity tokens detected.";
-  const extractionDescription = report.extraction_covered_tokens
-    ? `${report.extraction_only_tokens} of ${report.extraction_covered_tokens} extracted tokens not in ontology entities (${report.extraction_only_pct.toFixed(1)}%)`
-    : "No extracted tokens detected.";
-
-  return (
-    <div className="grid gap-4 md:grid-cols-2">
-      <CoverageGapTokenPanel
-        title="Ontology-only tokens"
-        description={ontologyDescription}
-        tokens={report.ontology_only}
-      />
-      <CoverageGapTokenPanel
-        title="Extraction-only tokens"
-        description={extractionDescription}
-        tokens={report.extraction_only}
-      />
-    </div>
-  );
-}
-
-function UnknownTokensPanel({ tokens }: { tokens: UnknownTokenSpan[] }) {
-  return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm flex items-center gap-2">
-          <AlertCircle className="h-4 w-4" />
-          Unclassified Tokens ({tokens.length})
-        </CardTitle>
-        <CardDescription className="text-xs">
-          Tokens not classified by the ontology mapper (coverage gaps).
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {tokens.length === 0 ? (
-          <div className="text-sm text-muted-foreground">No unclassified tokens.</div>
-        ) : (
-          <ScrollArea className="h-[220px]">
-            <div className="flex flex-wrap gap-2 pr-2">
-              {tokens.map((token, idx) => (
-                <Badge key={`${token.start}-${token.end}-${idx}`} variant="secondary">
-                  {token.text}
-                </Badge>
-              ))}
-            </div>
-          </ScrollArea>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-function OntologyEntityList({ result }: { result: OntologyMapResponse }) {
-  return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm flex items-center gap-2">
-          <Brain className="h-4 w-4" />
-          Ontology Entities ({result.entity_count})
-        </CardTitle>
-        <CardDescription className="text-xs">
-          Deterministic entities from ontology mapping.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {result.entities.length === 0 ? (
-          <div className="text-sm text-muted-foreground">No entities found.</div>
-        ) : (
-          <ScrollArea className="h-[220px]">
-            <div className="space-y-2 pr-2">
-              {result.entities.map((entity, idx) => (
-                <div
-                  key={`${entity.text}-${entity.category}-${idx}`}
-                  className="flex items-center justify-between rounded-md border px-3 py-2"
-                >
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium">{entity.text}</span>
-                    {entity.normalized && entity.normalized !== entity.text && (
-                      <span className="text-xs text-muted-foreground">{entity.normalized}</span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {entity.negated && (
-                      <Badge variant="destructive" className="text-[10px] uppercase">
-                        Negated
-                      </Badge>
-                    )}
-                    <Badge variant="secondary" className="text-[10px] uppercase">
-                      {entity.category}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
-        )}
-      </CardContent>
-    </Card>
   );
 }
 
@@ -1198,7 +978,7 @@ function HybridResultPanel({
               <div>
                 <p className="text-sm font-medium">Build Knowledge Graph</p>
                 <p className="text-xs text-muted-foreground">
-                  Create a patient knowledge graph from the clinical note for Q&A
+                  Create a patient knowledge graph from the extracted entities for Q&A
                 </p>
               </div>
               <Button
@@ -1226,160 +1006,22 @@ function HybridResultPanel({
   );
 }
 
-function EvidencePanel({
-  evidence,
-}: {
-  evidence: Array<{
-    note_id: string;
-    note_type: string;
-    note_date: string;
-    excerpt: string;
-    relevance_score: number;
-  }>;
-}) {
-  if (evidence.length === 0) return null;
-
-  return (
-    <div className="space-y-2">
-      <p className="text-xs font-medium text-muted-foreground px-1">
-        Evidence ({evidence.length})
-      </p>
-      <div className="space-y-2">
-        {evidence.map((ev, idx) => (
-          <Card key={`${ev.note_id}-${idx}`} className="border-muted">
-            <CardContent className="pt-4 space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="text-xs text-muted-foreground">
-                  {ev.note_type} • {ev.note_date}
-                </div>
-                <Badge variant="secondary" className="text-[10px]">
-                  {Math.round(ev.relevance_score * 100)}% relevance
-                </Badge>
-              </div>
-              <p className="text-sm whitespace-pre-wrap">{ev.excerpt}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function GraphPathsPanel({
-  paths,
-}: {
-  paths: Array<{
-    path_type?: string;
-    nodes?: string[];
-    edges?: string[];
-    confidence?: number;
-  }>;
-}) {
-  if (paths.length === 0) return null;
-
-  return (
-    <div className="space-y-2">
-      <p className="text-xs font-medium text-muted-foreground px-1">
-        Graph Paths ({paths.length})
-      </p>
-      <div className="space-y-2">
-        {paths.map((path, idx) => {
-          const nodes = path.nodes || [];
-          const edges = path.edges || [];
-          const parts: string[] = [];
-          nodes.forEach((node, i) => {
-            parts.push(node);
-            if (edges[i]) {
-              parts.push(`--${edges[i]}-->`);
-            }
-          });
-          return (
-            <Card key={`path-${idx}`} className="border-muted">
-              <CardContent className="pt-4 space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="text-xs text-muted-foreground">
-                    {path.path_type || "path"}
-                  </div>
-                  {path.confidence != null && (
-                    <Badge variant="secondary" className="text-[10px]">
-                      {Math.round(path.confidence * 100)}% confidence
-                    </Badge>
-                  )}
-                </div>
-                <p className="text-xs font-mono whitespace-pre-wrap text-muted-foreground">
-                  {parts.join(" ")}
-                </p>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function EntityProvenancePanel({
-  entities,
-}: {
-  entities: Array<{
-    text: string;
-    entity_type: string;
-    confidence: number;
-    note_id: string;
-  }>;
-}) {
-  if (entities.length === 0) return null;
-
-  return (
-    <div className="space-y-2">
-      <p className="text-xs font-medium text-muted-foreground px-1">
-        Entity Provenance ({entities.length})
-      </p>
-      <div className="space-y-2">
-        {entities.map((entity, idx) => (
-          <Card key={`${entity.text}-${idx}`} className="border-muted">
-            <CardContent className="pt-4 space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">{entity.text}</span>
-                <Badge variant="secondary" className="text-[10px] uppercase">
-                  {entity.entity_type}
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>Note: {entity.note_id}</span>
-                <span>{Math.round(entity.confidence * 100)}% confidence</span>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function ExportPanel({
   result,
   inputText,
   onBuildKnowledgeGraph,
   isBuildingGraph,
-  coverageOnly,
 }: {
-  result: NLPExtractionResult | null;
+  result: NLPExtractionResult;
   inputText: string;
   onBuildKnowledgeGraph: () => void;
   isBuildingGraph: boolean;
-  coverageOnly?: boolean;
 }) {
   const [exporting, setExporting] = useState(false);
-  const hasEntities = !!result && result.entities.length > 0;
 
   const exportAsJSON = () => {
     setExporting(true);
     try {
-      if (!result) {
-        toast.error("No extraction result to export");
-        return;
-      }
       const exportData = {
         text: inputText,
         extraction_result: result,
@@ -1403,10 +1045,6 @@ function ExportPanel({
   const exportAsFHIR = () => {
     setExporting(true);
     try {
-      if (!result) {
-        toast.error("No extraction result to export");
-        return;
-      }
       // Convert to FHIR-like format
       const fhirBundle = {
         resourceType: "Bundle",
@@ -1479,7 +1117,7 @@ function ExportPanel({
             variant="outline"
             size="sm"
             onClick={exportAsJSON}
-            disabled={exporting || !hasEntities}
+            disabled={exporting}
           >
             {exporting ? (
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -1492,7 +1130,7 @@ function ExportPanel({
             variant="outline"
             size="sm"
             onClick={exportAsFHIR}
-            disabled={exporting || !hasEntities}
+            disabled={exporting}
           >
             {exporting ? (
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -1507,11 +1145,11 @@ function ExportPanel({
 
         <div className="space-y-2">
           <p className="text-xs text-muted-foreground">
-            Build a patient knowledge graph from the clinical note (ontology mapping)
+            Build a patient knowledge graph from the extracted entities
           </p>
           <Button
             onClick={onBuildKnowledgeGraph}
-            disabled={isBuildingGraph}
+            disabled={isBuildingGraph || result.entities.length === 0}
             className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600"
           >
             {isBuildingGraph ? (
@@ -1526,11 +1164,6 @@ function ExportPanel({
               </>
             )}
           </Button>
-          {coverageOnly && (
-            <p className="text-[11px] text-muted-foreground">
-              Full coverage mode uses the ontology mapper. Exports are disabled without entity extraction.
-            </p>
-          )}
         </div>
       </CardContent>
     </Card>
@@ -1576,52 +1209,6 @@ interface KGSummary {
   procedures: string[];
 }
 
-interface NoteExcerpt {
-  note_id: string;
-  document_id: string;
-  note_type: string;
-  note_date: string;
-  excerpt: string;
-}
-
-function buildSummaryFromNodes(nodes: KGNode[], patientId: string, nodeCount?: number, edgeCount?: number): KGSummary {
-  const conditions = new Set<string>();
-  const medications = new Set<string>();
-  const measurements = new Set<string>();
-  const procedures = new Set<string>();
-
-  nodes.forEach((node) => {
-    const label = node.label?.trim();
-    if (!label) return;
-    switch (node.node_type) {
-      case "condition":
-        conditions.add(label);
-        break;
-      case "drug":
-        medications.add(label);
-        break;
-      case "measurement":
-        measurements.add(label);
-        break;
-      case "procedure":
-        procedures.add(label);
-        break;
-      default:
-        break;
-    }
-  });
-
-  return {
-    patient_id: patientId,
-    node_count: nodeCount ?? nodes.length,
-    edge_count: edgeCount ?? 0,
-    conditions: Array.from(conditions).slice(0, 20),
-    medications: Array.from(medications).slice(0, 20),
-    measurements: Array.from(measurements).slice(0, 20),
-    procedures: Array.from(procedures).slice(0, 20),
-  };
-}
-
 interface QAMessage {
   id: string;
   role: "user" | "assistant";
@@ -1634,91 +1221,7 @@ interface QAMessage {
   reasoning_chain?: ReasoningStep[];
   query_id?: string;
   sources?: string[];
-  evidence?: Array<{
-    note_id: string;
-    note_type: string;
-    note_date: string;
-    excerpt: string;
-    relevance_score: number;
-  }>;
-  knowledge_graph_paths?: Array<{
-    path_type?: string;
-    nodes?: string[];
-    edges?: string[];
-    confidence?: number;
-  }>;
-  entity_provenance?: Array<{
-    text: string;
-    entity_type: string;
-    confidence: number;
-    note_id: string;
-  }>;
-  provenance_url?: string;
 }
-
-interface ProvenanceTrace {
-  id: string;
-  step_order: number;
-  step_type: string;
-  input_summary?: string;
-  output_summary?: string;
-  confidence_contribution?: number;
-  duration_ms?: number;
-  metadata?: Record<string, unknown> | null;
-  created_at?: string | null;
-}
-
-interface QueryProvenanceResponse {
-  query_id: string;
-  reasoning_traces: ProvenanceTrace[];
-  total_steps: number;
-  total_duration_ms: number;
-}
-
-interface ProvenanceChainStep {
-  step_order: number;
-  step_type: string;
-  input_summary?: string;
-  output_summary?: string;
-  confidence_contribution?: number;
-  duration_ms?: number;
-  metadata?: Record<string, unknown> | null;
-  entities?: string[];
-  guideline_provenance?: Array<{
-    section_id: string;
-    relevance_score?: number;
-    evidence_grade?: string;
-    recommendation_level?: string;
-  }>;
-}
-
-interface ProvenanceChainResponse {
-  query_id: string;
-  patient_id?: string | null;
-  steps: ProvenanceChainStep[];
-  total_steps: number;
-  total_duration_ms: number;
-  total_confidence: number;
-}
-
-const hashText = (text: string) => {
-  let hash = 5381;
-  for (let i = 0; i < text.length; i += 1) {
-    hash = ((hash << 5) + hash) ^ text.charCodeAt(i);
-  }
-  return (hash >>> 0).toString(36);
-};
-
-const deriveContextIds = (text: string) => {
-  const trimmed = text.trim();
-  const patientIdMatch = trimmed.match(/\b(?:MRN|Patient\s+ID)[:\s]+([A-Z0-9_]+)/i);
-  const baseId = hashText(trimmed || "empty");
-  return {
-    patientId: patientIdMatch ? patientIdMatch[1] : `NLP_${baseId}`,
-    noteId: `note_${baseId}`,
-    encounterId: `enc_${baseId}`,
-  };
-};
 
 export default function NLPWorkbenchPage() {
   const router = useRouter();
@@ -1738,11 +1241,27 @@ export default function NLPWorkbenchPage() {
   const [analysisType, setAnalysisType] = useState<AnalysisType>("clinical_summary");
   const [useLLM, setUseLLM] = useState(true);
   const [useMLModels, setUseMLModels] = useState(false); // Ensemble NLP (ClinicalBERT + ModernBERT)
-  const [useCoverageMode, setUseCoverageMode] = useState(false);
-  const [isRunningPipeline, setIsRunningPipeline] = useState(false);
-  const [availableModels, setAvailableModels] = useState<NLPModelInfo[]>([]);
-  const [selectedModelId, setSelectedModelId] = useState<string>("ensemble_nlp");
+  const [selectedModelId, setSelectedModelId] = useState<string>("rule_based");
+  const [availableModels, setAvailableModels] = useState<Array<{model_id: string; name: string; description: string; is_available: boolean}>>([]);
+  const [isPreloading, setIsPreloading] = useState(false);
+  const [modelPreloaded, setModelPreloaded] = useState(false);
   const [question, setQuestion] = useState("");
+
+  // Fetch available models on mount
+  useEffect(() => {
+    const fetchModels = async () => {
+      try {
+        const response = await fetch("/api/nlp/models");
+        if (response.ok) {
+          const data = await response.json();
+          setAvailableModels(data.models || []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch models:", err);
+      }
+    };
+    fetchModels();
+  }, []);
 
   // Knowledge graph state
   const [isBuildingGraph, setIsBuildingGraph] = useState(false);
@@ -1750,27 +1269,11 @@ export default function NLPWorkbenchPage() {
   const [kgEdges, setKgEdges] = useState<KGEdge[]>([]);
   const [kgSummary, setKgSummary] = useState<KGSummary | null>(null);
   const [kgPatientId, setKgPatientId] = useState<string>("");
-  const [kgNotes, setKgNotes] = useState<NoteExcerpt[]>([]);
-  const [notesLoading, setNotesLoading] = useState(false);
-  const [noteDialogOpen, setNoteDialogOpen] = useState(false);
-  const [noteDialogNote, setNoteDialogNote] = useState<NoteExcerpt | null>(null);
-  const [noteDialogDocument, setNoteDialogDocument] = useState<Document | null>(null);
-  const [noteDialogLoading, setNoteDialogLoading] = useState(false);
-  const [noteDialogError, setNoteDialogError] = useState<string | null>(null);
 
   // Q&A Agent state
   const [qaMessages, setQaMessages] = useState<QAMessage[]>([]);
   const [qaInput, setQaInput] = useState("");
   const [isQuerying, setIsQuerying] = useState(false);
-  const [provenanceDialogOpen, setProvenanceDialogOpen] = useState(false);
-  const [provenanceQueryId, setProvenanceQueryId] = useState<string | null>(null);
-  const [provenanceSummary, setProvenanceSummary] = useState<QueryProvenanceResponse | null>(null);
-  const [provenanceChain, setProvenanceChain] = useState<ProvenanceChainResponse | null>(null);
-  const [provenanceLoading, setProvenanceLoading] = useState(false);
-  const [provenanceError, setProvenanceError] = useState<string | null>(null);
-
-  // File upload ref
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Calculate entity counts
   const entityCounts = useMemo(() => {
@@ -1793,179 +1296,6 @@ export default function NLPWorkbenchPage() {
     return counts;
   }, [result]);
 
-  const modelOptions = availableModels.length > 0 ? availableModels : FALLBACK_MODELS;
-
-  useEffect(() => {
-    if (useCoverageMode && useMLModels) {
-      setUseMLModels(false);
-    }
-    if (useCoverageMode) {
-      setResult(null);
-      setOntologyResult(null);
-    }
-  }, [useCoverageMode, useMLModels]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const loadModels = async () => {
-      try {
-        const response = await nlpGetModels();
-        if (cancelled) return;
-
-        const byId = new Map<string, NLPModelInfo>();
-        for (const model of response.models || []) {
-          byId.set(model.model_id, model);
-        }
-
-        const models = byId.size > 0 ? Array.from(byId.values()) : FALLBACK_MODELS;
-        setAvailableModels(models);
-
-        if (models.length > 0) {
-          const preferred =
-            models.find((m) => m.model_id === "ensemble_nlp") ||
-            models.find((m) => m.model_id === response.default_model) ||
-            models[0];
-          setSelectedModelId((prev) =>
-            models.some((m) => m.model_id === prev) ? prev : preferred.model_id
-          );
-        }
-      } catch (error) {
-        if (cancelled) return;
-        setAvailableModels(FALLBACK_MODELS);
-        setSelectedModelId((prev) => (prev ? prev : "ensemble_nlp"));
-      }
-    };
-
-    loadModels();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    const loadNotes = async () => {
-      if (!kgPatientId || workbenchMode !== "knowledge_graph") {
-        return;
-      }
-      setNotesLoading(true);
-      try {
-        const response = await fetch(`/api/clinical-agent/notes/${kgPatientId}?limit=5`);
-        if (!response.ok) {
-          setKgNotes([]);
-          return;
-        }
-        const data = await response.json();
-        setKgNotes(Array.isArray(data) ? data : []);
-      } catch (error) {
-        console.error("Failed to load note excerpts:", error);
-        setKgNotes([]);
-      } finally {
-        setNotesLoading(false);
-      }
-    };
-
-    loadNotes();
-  }, [kgPatientId, workbenchMode]);
-
-  const handleNoteDialogChange = (open: boolean) => {
-    setNoteDialogOpen(open);
-    if (!open) {
-      setNoteDialogNote(null);
-      setNoteDialogDocument(null);
-      setNoteDialogError(null);
-      setNoteDialogLoading(false);
-    }
-  };
-
-  const openNoteDialog = async (note: NoteExcerpt) => {
-    setNoteDialogNote(note);
-    setNoteDialogDocument(null);
-    setNoteDialogError(null);
-    setNoteDialogOpen(true);
-
-    if (!note.document_id) {
-      setNoteDialogError("Document ID not available for this note.");
-      return;
-    }
-
-    setNoteDialogLoading(true);
-    try {
-      const document = await getDocument(note.document_id);
-      setNoteDialogDocument(document);
-    } catch (error) {
-      console.error("Failed to load full note:", error);
-      setNoteDialogError("Failed to load full note.");
-      toast.error("Failed to load full note");
-    } finally {
-      setNoteDialogLoading(false);
-    }
-  };
-
-  const handleProvenanceDialogChange = (open: boolean) => {
-    setProvenanceDialogOpen(open);
-    if (!open) {
-      setProvenanceQueryId(null);
-      setProvenanceSummary(null);
-      setProvenanceChain(null);
-      setProvenanceError(null);
-      setProvenanceLoading(false);
-    }
-  };
-
-  const openProvenanceDialog = async (queryId: string) => {
-    setProvenanceQueryId(queryId);
-    setProvenanceSummary(null);
-    setProvenanceChain(null);
-    setProvenanceError(null);
-    setProvenanceDialogOpen(true);
-    setProvenanceLoading(true);
-
-    try {
-      const [summaryResult, chainResult] = await Promise.allSettled([
-        fetch(`/api/clinical-agent/provenance/${queryId}`),
-        fetch(`/api/clinical-agent/provenance-chain/${queryId}`),
-      ]);
-
-      let summaryError: string | null = null;
-      let chainError: string | null = null;
-
-      if (summaryResult.status === "fulfilled") {
-        if (summaryResult.value.ok) {
-          const summary = await summaryResult.value.json();
-          setProvenanceSummary(summary);
-        } else {
-          summaryError = await summaryResult.value.text();
-        }
-      } else {
-        summaryError = summaryResult.reason?.message || "Failed to load provenance summary.";
-      }
-
-      if (chainResult.status === "fulfilled") {
-        if (chainResult.value.ok) {
-          const chain = await chainResult.value.json();
-          setProvenanceChain(chain);
-        } else {
-          chainError = await chainResult.value.text();
-        }
-      } else {
-        chainError = chainResult.reason?.message || "Failed to load provenance chain.";
-      }
-
-      if (summaryError && chainError) {
-        setProvenanceError(summaryError || chainError);
-      } else if (summaryError || chainError) {
-        console.warn("Partial provenance load:", { summaryError, chainError });
-      }
-    } catch (error) {
-      console.error("Failed to load provenance:", error);
-      setProvenanceError("Failed to load provenance.");
-      toast.error("Failed to load provenance");
-    } finally {
-      setProvenanceLoading(false);
-    }
-  };
-
   // Filter entities by selected types and active tab
   const filteredEntities = useMemo(() => {
     if (!result) return [];
@@ -1982,75 +1312,9 @@ export default function NLPWorkbenchPage() {
       return;
     }
 
-    const context = deriveContextIds(inputText);
-
     setIsExtracting(true);
     setResult(null);
     setSelectedEntity(null);
-    setOntologyResult(null);
-
-    try {
-      if (useCoverageMode) {
-        const coverageResult = await nlpOntologyMap({
-          text: inputText,
-          include_unknown_tokens: true,
-        });
-        setOntologyResult(coverageResult);
-        toast.success(
-          `Coverage ${coverageResult.coverage_pct.toFixed(1)}% in ${coverageResult.processing_time_ms.toFixed(1)}ms`
-        );
-      } else {
-        const extractionResult = await nlpExtractEntities({
-          text: inputText,
-          detect_negation: true,
-          detect_sections: true,
-          normalize_entities: true,
-          entity_types: Array.from(selectedEntityTypes),
-          use_ml_models: useMLModels,
-          model_id: useMLModels ? selectedModelId : undefined,
-          include_coverage: true,
-          include_gap_report: true,
-          note_id: context.noteId,
-          encounter_id: context.encounterId,
-        });
-        setResult(extractionResult);
-        toast.success(
-          `Extracted ${extractionResult.entities.length} entities in ${extractionResult.processing_time_ms}ms`
-        );
-      }
-    } catch (error) {
-      console.error("Extraction failed:", error);
-      toast.error("Failed to extract entities. Please try again.");
-    } finally {
-      setIsExtracting(false);
-    }
-  };
-
-  const handleRunPipeline = async () => {
-    if (!inputText.trim()) {
-      toast.error("Please enter clinical text to analyze");
-      return;
-    }
-    if (useCoverageMode) {
-      toast.error("Disable Full Coverage mode to run the full pipeline.");
-      return;
-    }
-
-    const context = deriveContextIds(inputText);
-
-    setIsRunningPipeline(true);
-    setIsExtracting(true);
-    setResult(null);
-    setSelectedEntity(null);
-    setOntologyResult(null);
-    setHybridResult(null);
-
-    // Clear old KG data and Q&A history before building new one
-    setKgNodes([]);
-    setKgEdges([]);
-    setKgSummary(null);
-    setKgPatientId("");
-    setQaMessages([]);
 
     try {
       const extractionResult = await nlpExtractEntities({
@@ -2060,60 +1324,18 @@ export default function NLPWorkbenchPage() {
         normalize_entities: true,
         entity_types: Array.from(selectedEntityTypes),
         use_ml_models: useMLModels,
-        model_id: useMLModels ? selectedModelId : undefined,
-        include_coverage: true,
-        include_gap_report: true,
-        note_id: context.noteId,
-        encounter_id: context.encounterId,
+        model_id: selectedModelId !== "rule_based" ? selectedModelId : undefined,
       });
       setResult(extractionResult);
+      const modelName = availableModels.find(m => m.model_id === selectedModelId)?.name || selectedModelId;
       toast.success(
-        `Extracted ${extractionResult.entities.length} entities in ${extractionResult.processing_time_ms}ms`
+        `Extracted ${extractionResult.entities.length} entities using ${modelName} in ${extractionResult.processing_time_ms.toFixed(0)}ms`
       );
-      setIsExtracting(false);
-
-      setIsBuildingGraph(true);
-      const response = await fetch("/api/nlp/build-graph", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          patient_id: context.patientId,
-          clinical_text: inputText,
-          note_id: context.noteId,
-          encounter_id: context.encounterId,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.text();
-        console.error("Build graph failed:", error);
-        toast.error("Failed to build knowledge graph. Check console for details.");
-        return;
-      }
-
-      const buildResult = await response.json();
-      const nodes = buildResult.nodes || [];
-      const edges = buildResult.edges || [];
-      setKgNodes(nodes);
-      setKgEdges(edges);
-      setKgPatientId(context.patientId);
-      setKgSummary(
-        buildSummaryFromNodes(nodes, context.patientId, buildResult.node_count, buildResult.edge_count)
-      );
-
-      toast.success(
-        `Pipeline complete: ${buildResult.node_count || nodes.length} nodes, ${buildResult.edge_count || edges.length} edges`
-      );
-      if (nodes.length > 0) {
-        setWorkbenchMode("qa_agent");
-      }
     } catch (error) {
-      console.error("Pipeline failed:", error);
-      toast.error("Pipeline failed. Please try again.");
+      console.error("Extraction failed:", error);
+      toast.error("Failed to extract entities. Please try again.");
     } finally {
       setIsExtracting(false);
-      setIsBuildingGraph(false);
-      setIsRunningPipeline(false);
     }
   };
 
@@ -2122,8 +1344,6 @@ export default function NLPWorkbenchPage() {
       toast.error("Please enter clinical text to analyze");
       return;
     }
-
-    const context = deriveContextIds(inputText);
 
     setIsExtracting(true);
     setHybridResult(null);
@@ -2139,8 +1359,6 @@ export default function NLPWorkbenchPage() {
         text: inputText,
         analysis_type: analysisType,
         use_llm: useLLM,
-        note_id: context.noteId,
-        encounter_id: context.encounterId,
       });
       setHybridResult(hybridRes);
 
@@ -2160,55 +1378,6 @@ export default function NLPWorkbenchPage() {
     setInputText(sampleText);
     setResult(null);
     setSelectedEntity(null);
-    setOntologyResult(null);
-  };
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Check file size (limit to 5MB for reasonable text files)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("File too large", {
-        description: "Please upload a file smaller than 5MB.",
-      });
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const text = e.target?.result as string;
-      if (text) {
-        // Check text length (backend supports up to 500K characters)
-        if (text.length > 500000) {
-          toast.error("Text too long", {
-            description: `File contains ${text.length.toLocaleString()} characters. Maximum is 500,000.`,
-          });
-          return;
-        }
-        setInputText(text);
-        setResult(null);
-        setSelectedEntity(null);
-        setOntologyResult(null);
-        setHybridResult(null);
-        setKgNodes([]);
-        setKgEdges([]);
-        setKgSummary(null);
-        setQaMessages([]);
-        toast.success("File loaded", {
-          description: `Loaded ${text.length.toLocaleString()} characters from ${file.name}`,
-        });
-      }
-    };
-    reader.onerror = () => {
-      toast.error("Failed to read file", {
-        description: "Please try again with a different file.",
-      });
-    };
-    reader.readAsText(file);
-
-    // Reset the input so the same file can be selected again
-    event.target.value = "";
   };
 
   const handleToggleEntityType = (type: NLPEntityType) => {
@@ -2232,8 +1401,8 @@ export default function NLPWorkbenchPage() {
   };
 
   const handleBuildKnowledgeGraph = async () => {
-    if (!inputText.trim()) {
-      toast.error("No clinical text to build knowledge graph from");
+    if (!inputText.trim() || !result || result.entities.length === 0) {
+      toast.error("No entities to build knowledge graph from");
       return;
     }
 
@@ -2247,20 +1416,43 @@ export default function NLPWorkbenchPage() {
     setQaMessages([]); // Clear Q&A history for new patient
 
     try {
-      const context = deriveContextIds(inputText);
+      // Generate a patient ID based on timestamp if not extractable from text
+      const patientIdMatch = inputText.match(/\b(?:MRN|Patient\s+ID)[:\s]+([A-Z0-9_]+)/i);
+      const patientId = patientIdMatch ? patientIdMatch[1] : `NLP_${Date.now()}`;
 
-      console.log("Building KG for patient:", context.patientId);
-      console.log("Sending clinical text to backend");
+      console.log("Building KG for patient:", patientId);
+      console.log("Sending", result.entities.length, "entities to backend");
 
-      // Use ontology-based KG build for full coverage
-      const response = await fetch("/api/nlp/build-graph", {
+      // Map frontend entities to backend format
+      // Map entity types from frontend format to backend expected format
+      const entityTypeMap: Record<string, string> = {
+        diagnosis: "CONDITION",
+        medication: "DRUG",
+        procedure: "PROCEDURE",
+        lab_result: "MEASUREMENT",
+        vital_sign: "MEASUREMENT",
+        symptom: "CONDITION",
+        anatomical_location: "OBSERVATION",
+        temporal: "OBSERVATION",
+        allergy: "CONDITION",
+      };
+
+      const entities = result.entities.map((e) => ({
+        text: e.text,
+        entity_type: entityTypeMap[e.entity_type] || "OBSERVATION",
+        confidence: e.confidence,
+        assertion: e.assertion === "present" ? "PRESENT" : e.assertion === "absent" ? "ABSENT" : "POSSIBLE",
+        omop_concept_id: e.normalized_codes?.[0]?.code ? parseInt(e.normalized_codes[0].code) : null,
+        note_id: "frontend_extraction",
+      }));
+
+      // Use the new /build-graph endpoint that accepts pre-extracted entities
+      const response = await fetch("/api/clinical-agent/build-graph", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          patient_id: context.patientId,
-          clinical_text: inputText,
-          note_id: context.noteId,
-          encounter_id: context.encounterId,
+          patient_id: patientId,
+          entities: entities,
         }),
       });
 
@@ -2268,22 +1460,32 @@ export default function NLPWorkbenchPage() {
         const buildResult = await response.json();
         console.log("Build graph result:", buildResult);
 
-        const nodes = buildResult.nodes || [];
-        const edges = buildResult.edges || [];
-        setKgNodes(nodes);
-        setKgEdges(edges);
-        setKgPatientId(context.patientId);
-        setKgSummary(
-          buildSummaryFromNodes(nodes, context.patientId, buildResult.node_count, buildResult.edge_count)
-        );
+        // Store the summary from the build response
+        if (buildResult.knowledge_graph) {
+          setKgSummary(buildResult.knowledge_graph);
+        }
 
-        toast.success(
-          `Knowledge graph built: ${buildResult.node_count || nodes.length} nodes, ${buildResult.edge_count || edges.length} edges`
-        );
+        // Fetch the full graph data with nodes and edges
+        const graphResponse = await fetch(`/api/clinical-agent/graph/${patientId}`);
+        console.log("Graph response status:", graphResponse.status);
 
-        // Only switch to Knowledge Graph tab if we have data
-        if (nodes.length > 0) {
+        if (graphResponse.ok) {
+          const graphData = await graphResponse.json();
+          console.log("Graph data:", graphData);
+          setKgNodes(graphData.nodes || []);
+          setKgEdges(graphData.edges || []);
+          setKgPatientId(patientId);
+
+          toast.success(
+            `Knowledge graph built: ${buildResult.entities_processed} entities processed, ${graphData.nodes?.length || 0} unique nodes`
+          );
+
+          // Only switch to Knowledge Graph tab if we have data
           setWorkbenchMode("knowledge_graph");
+        } else {
+          const graphError = await graphResponse.text();
+          console.error("Graph fetch failed:", graphError);
+          toast.error(`Failed to load knowledge graph: ${graphResponse.status}`);
         }
       } else {
         const error = await response.text();
@@ -2305,6 +1507,110 @@ export default function NLPWorkbenchPage() {
       return;
     }
 
+    const ctx = hybridResult.structured_context;
+
+    // Convert structured context to entity format
+    const entities: Array<{
+      text: string;
+      entity_type: string;
+      confidence: number;
+      assertion: string;
+      omop_concept_id: number | null;
+      note_id: string;
+    }> = [];
+
+    // Add diagnoses as CONDITIONS
+    ctx.diagnoses.forEach((d) => {
+      entities.push({
+        text: d.name,
+        entity_type: "CONDITION",
+        confidence: 0.9,
+        assertion: d.negated ? "ABSENT" : "PRESENT",
+        omop_concept_id: d.code ? parseInt(d.code) || null : null,
+        note_id: "hybrid_extraction",
+      });
+    });
+
+    // Add medications as DRUGs
+    ctx.medications.forEach((m) => {
+      const text = m.dose ? `${m.name} ${m.dose}` : m.name;
+      entities.push({
+        text,
+        entity_type: "DRUG",
+        confidence: 0.9,
+        assertion: "PRESENT",
+        omop_concept_id: null,
+        note_id: "hybrid_extraction",
+      });
+    });
+
+    // Add labs as MEASUREMENTs
+    ctx.labs.forEach((l) => {
+      const text = l.value ? `${l.name}: ${l.value}${l.unit || ""}` : l.name;
+      entities.push({
+        text,
+        entity_type: "MEASUREMENT",
+        confidence: 0.9,
+        assertion: "PRESENT",
+        omop_concept_id: null,
+        note_id: "hybrid_extraction",
+      });
+    });
+
+    // Add vitals as MEASUREMENTs
+    ctx.vitals.forEach((v) => {
+      const text = v.value ? `${v.name}: ${v.value}` : v.name;
+      entities.push({
+        text,
+        entity_type: "MEASUREMENT",
+        confidence: 0.9,
+        assertion: "PRESENT",
+        omop_concept_id: null,
+        note_id: "hybrid_extraction",
+      });
+    });
+
+    // Add symptoms as CONDITIONs
+    ctx.symptoms.forEach((s) => {
+      entities.push({
+        text: s.name,
+        entity_type: "CONDITION",
+        confidence: 0.85,
+        assertion: s.negated ? "ABSENT" : "PRESENT",
+        omop_concept_id: null,
+        note_id: "hybrid_extraction",
+      });
+    });
+
+    // Add procedures as PROCEDUREs
+    ctx.procedures.forEach((p) => {
+      entities.push({
+        text: p.name,
+        entity_type: "PROCEDURE",
+        confidence: 0.9,
+        assertion: "PRESENT",
+        omop_concept_id: null,
+        note_id: "hybrid_extraction",
+      });
+    });
+
+    // Add findings as OBSERVATIONs
+    ctx.findings.forEach((f) => {
+      entities.push({
+        text: f.name,
+        entity_type: "OBSERVATION",
+        confidence: 0.85,
+        assertion: f.negated ? "ABSENT" : "PRESENT",
+        omop_concept_id: null,
+        note_id: "hybrid_extraction",
+      });
+    });
+
+    if (entities.length === 0) {
+      toast.error("No entities found in hybrid analysis to build graph from");
+      return;
+    }
+
     setIsBuildingGraph(true);
 
     // Clear old KG data and Q&A history before building new one
@@ -2315,20 +1621,20 @@ export default function NLPWorkbenchPage() {
     setQaMessages([]);
 
     try {
-      const context = deriveContextIds(inputText);
+      // Generate a patient ID based on timestamp if not extractable from text
+      const patientIdMatch = inputText.match(/\b(?:MRN|Patient\s+ID)[:\s]+([A-Z0-9_]+)/i);
+      const patientId = patientIdMatch ? patientIdMatch[1] : `HYBRID_${Date.now()}`;
 
-      console.log("Building KG from hybrid for patient:", context.patientId);
-      console.log("Sending clinical text to backend");
+      console.log("Building KG from hybrid for patient:", patientId);
+      console.log("Sending", entities.length, "entities to backend");
 
-      // Use ontology-based KG build for full coverage
-      const response = await fetch("/api/nlp/build-graph", {
+      // Use the /build-graph endpoint
+      const response = await fetch("/api/clinical-agent/build-graph", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          patient_id: context.patientId,
-          clinical_text: inputText,
-          note_id: context.noteId,
-          encounter_id: context.encounterId,
+          patient_id: patientId,
+          entities: entities,
         }),
       });
 
@@ -2336,22 +1642,31 @@ export default function NLPWorkbenchPage() {
         const buildResult = await response.json();
         console.log("Build graph result:", buildResult);
 
-        const nodes = buildResult.nodes || [];
-        const edges = buildResult.edges || [];
-        setKgNodes(nodes);
-        setKgEdges(edges);
-        setKgPatientId(context.patientId);
-        setKgSummary(
-          buildSummaryFromNodes(nodes, context.patientId, buildResult.node_count, buildResult.edge_count)
-        );
+        if (buildResult.knowledge_graph) {
+          setKgSummary(buildResult.knowledge_graph);
+        }
 
-        toast.success(
-          `Knowledge graph built: ${buildResult.node_count || nodes.length} nodes, ${buildResult.edge_count || edges.length} edges`
-        );
+        // Fetch the full graph data with nodes and edges
+        const graphResponse = await fetch(`/api/clinical-agent/graph/${patientId}`);
+        console.log("Graph response status:", graphResponse.status);
 
-        // Switch to Knowledge Graph tab
-        if (nodes.length > 0) {
+        if (graphResponse.ok) {
+          const graphData = await graphResponse.json();
+          console.log("Graph data:", graphData);
+          setKgNodes(graphData.nodes || []);
+          setKgEdges(graphData.edges || []);
+          setKgPatientId(patientId);
+
+          toast.success(
+            `Knowledge graph built: ${buildResult.entities_processed} entities processed, ${graphData.nodes?.length || 0} unique nodes`
+          );
+
+          // Switch to Knowledge Graph tab
           setWorkbenchMode("knowledge_graph");
+        } else {
+          const graphError = await graphResponse.text();
+          console.error("Graph fetch failed:", graphError);
+          toast.error(`Failed to load knowledge graph: ${graphResponse.status}`);
         }
       } else {
         const error = await response.text();
@@ -2392,23 +1707,19 @@ export default function NLPWorkbenchPage() {
 
       if (response.ok) {
         const result = await response.json();
-          const assistantMessage: QAMessage = {
-            id: `msg_${Date.now()}_response`,
-            role: "assistant",
-            content: result.answer,
-            timestamp: new Date(),
-            confidence: result.confidence,
-            entities_used: result.entities_found?.map((e: { text: string }) => e.text) || [],
-            guideline_citations: result.guideline_citations || [],
-            policy_citations: result.policy_citations || [],
-            reasoning_chain: result.reasoning_chain || [],
-            query_id: result.query_id,
-            sources: result.sources || [],
-            evidence: result.evidence || [],
-            knowledge_graph_paths: result.knowledge_graph_paths || [],
-            entity_provenance: result.entity_provenance || [],
-            provenance_url: result.provenance_url,
-          };
+        const assistantMessage: QAMessage = {
+          id: `msg_${Date.now()}_response`,
+          role: "assistant",
+          content: result.answer,
+          timestamp: new Date(),
+          confidence: result.confidence,
+          entities_used: result.entities_found?.map((e: { text: string }) => e.text) || [],
+          guideline_citations: result.guideline_citations || [],
+          policy_citations: result.policy_citations || [],
+          reasoning_chain: result.reasoning_chain || [],
+          query_id: result.query_id,
+          sources: result.sources || [],
+        };
         setQaMessages((prev) => [...prev, assistantMessage]);
       } else {
         toast.error("Failed to get answer. Please try again.");
@@ -2477,114 +1788,69 @@ export default function NLPWorkbenchPage() {
 
       {/* Knowledge Graph View - Full Width with Advanced Component */}
       {workbenchMode === "knowledge_graph" && (
-        <div className="space-y-4">
-          <Card className="overflow-hidden">
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <Network className="h-5 w-5" />
-                    Patient Knowledge Graph
-                    {kgSummary && (
-                      <Badge variant="secondary">
-                        {kgSummary.node_count} nodes, {kgSummary.edge_count} edges
-                      </Badge>
-                    )}
-                  </CardTitle>
-                  <CardDescription>
-                    Interactive D3.js visualization with filtering, multiple layouts, and provenance
-                  </CardDescription>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setWorkbenchMode("qa_agent")}
-                >
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Ask Questions
-                </Button>
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Network className="h-5 w-5" />
+                  Patient Knowledge Graph
+                  {kgSummary && (
+                    <Badge variant="secondary">
+                      {kgSummary.node_count} nodes, {kgSummary.edge_count} edges
+                    </Badge>
+                  )}
+                </CardTitle>
+                <CardDescription>
+                  Interactive D3.js visualization with filtering, multiple layouts, and provenance
+                </CardDescription>
               </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              {/* Advanced KnowledgeGraph Component - Full featured visualization */}
-              <div className="h-[700px]">
-                <KnowledgeGraph
-                  nodes={kgNodes.map(n => ({
-                    id: n.id,
-                    patient_id: kgPatientId,
-                    node_type: n.node_type,
-                    label: n.label,
-                    omop_concept_id: n.omop_concept_id,
-                    properties: n.properties || {},
-                    created_at: new Date().toISOString(),
-                  }))}
-                  edges={kgEdges.map(e => ({
-                    id: e.id,
-                    patient_id: kgPatientId,
-                    source_node_id: e.source_node_id,
-                    target_node_id: e.target_node_id,
-                    edge_type: e.edge_type,
-                    fact_id: null,
-                    properties: e.properties || {},
-                    event_date: e.event_date || null,
-                    valid_from: null,
-                    valid_to: null,
-                    recorded_at: null,
-                    source_document_date: null,
-                    temporality: e.temporality || null,
-                    temporal_order: null,
-                    temporal_confidence: e.temporal_confidence || null,
-                    created_at: new Date().toISOString(),
-                  }))}
-                  patientId={kgPatientId}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Recent Notes</CardTitle>
-              <CardDescription>
-                Evidence excerpts for this patient.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {notesLoading ? (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Loading notes...
-                </div>
-              ) : kgNotes.length === 0 ? (
-                <div className="text-sm text-muted-foreground">
-                  No notes available.
-                </div>
-              ) : (
-                <ScrollArea className="h-[200px]">
-                  <div className="space-y-3 pr-2">
-                    {kgNotes.map((note, idx) => (
-                      <div key={`${note.note_id}-${idx}`} className="rounded-md border p-3 space-y-1">
-                        <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
-                          <span>{note.note_type} • {note.note_date}</span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 px-2 text-xs"
-                            onClick={() => openNoteDialog(note)}
-                          >
-                            <FileText className="h-3 w-3 mr-1" />
-                            Full note
-                          </Button>
-                        </div>
-                        <div className="text-sm whitespace-pre-wrap">{note.excerpt}</div>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setWorkbenchMode("qa_agent")}
+              >
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Ask Questions
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            {/* Advanced KnowledgeGraph Component - Full featured visualization */}
+            <div className="h-[700px]">
+              <KnowledgeGraph
+                nodes={kgNodes.map(n => ({
+                  id: n.id,
+                  patient_id: kgPatientId,
+                  node_type: n.node_type,
+                  label: n.label,
+                  omop_concept_id: n.omop_concept_id,
+                  properties: n.properties || {},
+                  created_at: new Date().toISOString(),
+                }))}
+                edges={kgEdges.map(e => ({
+                  id: e.id,
+                  patient_id: kgPatientId,
+                  source_node_id: e.source_node_id,
+                  target_node_id: e.target_node_id,
+                  edge_type: e.edge_type,
+                  fact_id: null,
+                  properties: e.properties || {},
+                  event_date: e.event_date || null,
+                  valid_from: null,
+                  valid_to: null,
+                  recorded_at: null,
+                  source_document_date: null,
+                  temporality: e.temporality || null,
+                  temporal_order: null,
+                  temporal_confidence: e.temporal_confidence || null,
+                  created_at: new Date().toISOString(),
+                }))}
+                patientId={kgPatientId}
+              />
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Q&A Agent View - Full Width */}
@@ -2642,17 +1908,6 @@ export default function NLPWorkbenchPage() {
                                       {msg.sources.length} sources
                                     </Badge>
                                   )}
-                                  {msg.query_id && (
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="h-6 px-2 text-xs"
-                                      onClick={() => openProvenanceDialog(msg.query_id!)}
-                                    >
-                                      <ClipboardList className="h-3 w-3 mr-1" />
-                                      Provenance
-                                    </Button>
-                                  )}
                                 </div>
                                 <p className="whitespace-pre-wrap text-sm">{msg.content}</p>
                               </div>
@@ -2667,21 +1922,6 @@ export default function NLPWorkbenchPage() {
                                     <GuidelineCitationCard key={idx} citation={gc} />
                                   ))}
                                 </div>
-                              )}
-
-                              {/* Evidence */}
-                              {msg.evidence && msg.evidence.length > 0 && (
-                                <EvidencePanel evidence={msg.evidence} />
-                              )}
-
-                              {/* Graph Paths */}
-                              {msg.knowledge_graph_paths && msg.knowledge_graph_paths.length > 0 && (
-                                <GraphPathsPanel paths={msg.knowledge_graph_paths} />
-                              )}
-
-                              {/* Entity Provenance */}
-                              {msg.entity_provenance && msg.entity_provenance.length > 0 && (
-                                <EntityProvenancePanel entities={msg.entity_provenance} />
                               )}
 
                               {/* Policy Citations */}
@@ -2845,10 +2085,10 @@ export default function NLPWorkbenchPage() {
             <CardContent className="space-y-4">
               {/* Extract Button - Prominent at top */}
               {workbenchMode === "extraction" && (
-                <div className="flex items-center gap-4 p-3 bg-muted rounded-lg">
+                <div className="flex flex-wrap items-center gap-4 p-3 bg-muted rounded-lg">
                   <Button
                     onClick={handleExtract}
-                    disabled={isExtracting || isRunningPipeline || !inputText.trim()}
+                    disabled={isExtracting || !inputText.trim()}
                     size="lg"
                     className="flex-shrink-0"
                   >
@@ -2864,86 +2104,81 @@ export default function NLPWorkbenchPage() {
                       </>
                     )}
                   </Button>
-                  <Button
-                    onClick={handleRunPipeline}
-                    disabled={isRunningPipeline || isExtracting || isBuildingGraph || !inputText.trim()}
-                    size="lg"
-                    variant="outline"
-                    className="flex-shrink-0"
-                  >
-                    {isRunningPipeline ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        Running...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="h-4 w-4 mr-2" />
-                        Run Full Pipeline
-                      </>
-                    )}
-                  </Button>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="useMLModelsTop"
-                      checked={useMLModels}
-                      onChange={(e) => setUseMLModels(e.target.checked)}
-                      disabled={useCoverageMode}
-                      className="rounded"
-                    />
-                    <label htmlFor="useMLModelsTop" className="text-sm">
-                      Use ML Models (Ensemble NLP)
-                    </label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="useCoverageModeTop"
-                      checked={useCoverageMode}
-                      onChange={(e) => setUseCoverageMode(e.target.checked)}
-                      className="rounded"
-                    />
-                    <label htmlFor="useCoverageModeTop" className="text-sm">
-                      Full Coverage (Ontology Mapper)
-                    </label>
-                  </div>
-                </div>
-              )}
 
-              {workbenchMode === "extraction" && useMLModels && !useCoverageMode && (
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className="text-sm text-muted-foreground">Model</span>
-                  <Select value={selectedModelId} onValueChange={setSelectedModelId}>
-                    <SelectTrigger className="w-[260px]">
-                      <SelectValue placeholder="Select model..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {modelOptions.map((model) => (
-                        <SelectItem key={model.model_id} value={model.model_id}>
-                          {model.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {/* Model Selector */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">Model:</span>
+                    <Select value={selectedModelId} onValueChange={setSelectedModelId}>
+                      <SelectTrigger className="w-[200px]">
+                        <SelectValue placeholder="Select model..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableModels.map((model) => (
+                          <SelectItem
+                            key={model.model_id}
+                            value={model.model_id}
+                            disabled={!model.is_available}
+                          >
+                            {model.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Preload button for LLM */}
+                  {selectedModelId === "llm_api" && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={isPreloading || modelPreloaded}
+                      onClick={async () => {
+                        setIsPreloading(true);
+                        try {
+                          const response = await fetch("/api/nlp/preload", { method: "POST" });
+                          const data = await response.json();
+                          if (data.status === "success") {
+                            setModelPreloaded(true);
+                            toast.success("Model loaded and ready!");
+                          } else {
+                            toast.error(data.message || "Preload failed");
+                          }
+                        } catch (err) {
+                          toast.error("Failed to preload model");
+                        } finally {
+                          setIsPreloading(false);
+                        }
+                      }}
+                    >
+                      {isPreloading ? (
+                        <>
+                          <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                          Loading...
+                        </>
+                      ) : modelPreloaded ? (
+                        <>
+                          <Check className="h-3 w-3 mr-1" />
+                          Ready
+                        </>
+                      ) : (
+                        "Preload Model"
+                      )}
+                    </Button>
+                  )}
+
+                  {/* Model description */}
                   <span className="text-xs text-muted-foreground">
-                    {modelOptions.find((m) => m.model_id === selectedModelId)?.description ||
-                      "Select an extraction model"}
+                    {availableModels.find(m => m.model_id === selectedModelId)?.description || ""}
                   </span>
                 </div>
               )}
 
-              <div className="relative">
-                <Textarea
-                  placeholder="Enter clinical text here or upload a file (supports up to 500K characters)..."
-                  value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
-                  className="min-h-[250px] font-mono text-sm"
-                />
-                <div className="absolute bottom-2 right-2 text-xs text-muted-foreground bg-background/80 px-1 rounded">
-                  {inputText.length.toLocaleString()} / 500,000 chars
-                </div>
-              </div>
+              <Textarea
+                placeholder="Enter clinical text here..."
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                className="min-h-[250px] font-mono text-sm"
+              />
 
               <div className="flex items-center justify-between">
                 <div className="flex gap-2">
@@ -2962,20 +2197,6 @@ export default function NLPWorkbenchPage() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleFileUpload}
-                    accept=".txt,.md,.csv,.json,.xml,.html"
-                    className="hidden"
-                  />
-                  <Button
-                    variant="outline"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <Upload className="h-4 w-4 mr-2" />
-                    Upload File
-                  </Button>
                 </div>
 
                 {workbenchMode === "extraction" ? (
@@ -2986,28 +2207,15 @@ export default function NLPWorkbenchPage() {
                         id="useMLModels"
                         checked={useMLModels}
                         onChange={(e) => setUseMLModels(e.target.checked)}
-                        disabled={useCoverageMode}
                         className="rounded"
                       />
                       <label htmlFor="useMLModels" className="text-sm whitespace-nowrap">
                         Use ML Models (Ensemble)
                       </label>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        id="useCoverageMode"
-                        checked={useCoverageMode}
-                        onChange={(e) => setUseCoverageMode(e.target.checked)}
-                        className="rounded"
-                      />
-                      <label htmlFor="useCoverageMode" className="text-sm whitespace-nowrap">
-                        Full Coverage
-                      </label>
-                    </div>
                     <Button
                       onClick={handleExtract}
-                      disabled={isExtracting || isRunningPipeline || !inputText.trim()}
+                      disabled={isExtracting || !inputText.trim()}
                     >
                       {isExtracting ? (
                         <>
@@ -3025,7 +2233,7 @@ export default function NLPWorkbenchPage() {
                 ) : (
                   <Button
                     onClick={handleHybridAnalyze}
-                    disabled={isExtracting || isRunningPipeline || !inputText.trim()}
+                    disabled={isExtracting || !inputText.trim()}
                   >
                     {isExtracting ? (
                       <>
@@ -3047,39 +2255,37 @@ export default function NLPWorkbenchPage() {
           {/* Mode-specific options */}
           {workbenchMode === "extraction" ? (
             <>
-              {!useCoverageMode && (
-                <Card>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm">Entity Type Filter</CardTitle>
-                      <div className="flex gap-2">
-                        <Button variant="ghost" size="sm" onClick={handleSelectAllTypes}>
-                          Select All
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={handleClearTypes}>
-                          Clear
-                        </Button>
-                      </div>
+              {/* Entity Type Filter */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm">Entity Type Filter</CardTitle>
+                    <div className="flex gap-2">
+                      <Button variant="ghost" size="sm" onClick={handleSelectAllTypes}>
+                        Select All
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={handleClearTypes}>
+                        Clear
+                      </Button>
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <EntityTypeFilter
-                      selectedTypes={selectedEntityTypes}
-                      onToggle={handleToggleEntityType}
-                      entityCounts={entityCounts}
-                    />
-                  </CardContent>
-                </Card>
-              )}
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <EntityTypeFilter
+                    selectedTypes={selectedEntityTypes}
+                    onToggle={handleToggleEntityType}
+                    entityCounts={entityCounts}
+                  />
+                </CardContent>
+              </Card>
 
               {/* Export Panel */}
-              {(result || (useCoverageMode && ontologyResult)) && (
+              {result && (
                 <ExportPanel
                   result={result}
                   inputText={inputText}
                   onBuildKnowledgeGraph={handleBuildKnowledgeGraph}
-                  isBuildingGraph={isBuildingGraph || isRunningPipeline}
-                  coverageOnly={useCoverageMode && !result}
+                  isBuildingGraph={isBuildingGraph}
                 />
               )}
             </>
@@ -3139,192 +2345,117 @@ export default function NLPWorkbenchPage() {
         {/* Results Panel */}
         <div className="space-y-4">
           {workbenchMode === "extraction" ? (
-            useCoverageMode ? (
-              ontologyResult ? (
-                <>
-                  <OntologyStatsPanel result={ontologyResult} />
-                  <Card className="border-indigo-200 bg-indigo-50/30">
-                    <CardContent className="pt-4">
-                      <div className="flex items-center justify-between gap-4">
-                        <div>
-                          <p className="text-sm font-medium">Build Knowledge Graph</p>
-                          <p className="text-xs text-muted-foreground">
-                            Use the ontology mapper output to build the patient graph.
-                          </p>
-                        </div>
-                        <Button
-                          onClick={handleBuildKnowledgeGraph}
-                          disabled={isBuildingGraph || isRunningPipeline}
-                          className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600"
-                        >
-                          {isBuildingGraph ? (
-                            <>
-                              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                              Building...
-                            </>
+            // Entity Extraction Results
+            result ? (
+              <>
+                {/* Stats */}
+                <StatsPanel result={result} />
+
+                {/* Highlighted Text */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Search className="h-4 w-4" />
+                      Annotated Text
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ScrollArea className="h-[250px] rounded-md border p-4">
+                      <HighlightedText
+                        text={inputText}
+                        entities={result.entities}
+                        selectedEntityTypes={selectedEntityTypes}
+                        onEntityClick={setSelectedEntity}
+                      />
+                    </ScrollArea>
+                  </CardContent>
+                </Card>
+
+                {/* Entity List with Tabs */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Activity className="h-4 w-4" />
+                      Extracted Entities ({filteredEntities.length})
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Tabs value={activeTab} onValueChange={setActiveTab}>
+                      <TabsList className="flex flex-wrap h-auto gap-1 mb-4">
+                        <TabsTrigger value="all" className="text-xs">
+                          All ({result.entities.length})
+                        </TabsTrigger>
+                        {(Object.keys(ENTITY_TYPE_CONFIG) as NLPEntityType[]).map((type) => {
+                          const count = entityCounts[type];
+                          if (count === 0) return null;
+                          const config = ENTITY_TYPE_CONFIG[type];
+                          return (
+                            <TabsTrigger key={type} value={type} className="text-xs gap-1">
+                              {config.icon}
+                              {config.label} ({count})
+                            </TabsTrigger>
+                          );
+                        })}
+                      </TabsList>
+
+                      <ScrollArea className="h-[400px]">
+                        <div className="space-y-2 pr-4">
+                          {filteredEntities.length === 0 ? (
+                            <div className="text-center py-8 text-muted-foreground">
+                              <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                              <p>No entities found for selected filters</p>
+                            </div>
                           ) : (
-                            <>
-                              <Network className="h-4 w-4 mr-2" />
-                              Build Graph
-                            </>
+                            filteredEntities.map((entity, idx) => (
+                              <EntityCard
+                                key={`${entity.text}-${entity.span.start}-${idx}`}
+                                entity={entity}
+                                isSelected={selectedEntity === entity}
+                                onClick={() => setSelectedEntity(entity)}
+                              />
+                            ))
                           )}
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <UnknownTokensPanel tokens={ontologyResult.unknown_tokens || []} />
-                    <OntologyEntityList result={ontologyResult} />
-                  </div>
-                </>
-              ) : (
-                <Card>
-                  <CardContent className="py-16">
-                    <div className="text-center space-y-4">
-                      <div className="flex justify-center">
-                        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted">
-                          <Brain className="h-10 w-10 text-muted-foreground" />
                         </div>
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-medium">Full Coverage Mode</h3>
-                        <p className="text-muted-foreground max-w-md mx-auto">
-                          Run the ontology mapper to see token coverage and unclassified spans.
-                        </p>
-                      </div>
-                      <div className="flex flex-col items-center gap-2">
-                        <p className="text-sm text-muted-foreground">Try a sample:</p>
-                        <div className="flex gap-2">
-                          {SAMPLE_NOTES.map((sample) => (
-                            <Button
-                              key={sample.id}
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleLoadSample(sample.text)}
-                            >
-                              {sample.title}
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )
-            ) : (
-              // Entity Extraction Results
-              result ? (
-                <>
-                  {/* Stats */}
-                  <StatsPanel result={result} />
-                  {result.coverage_gap && <CoverageGapPanel report={result.coverage_gap} />}
-
-                  {/* Highlighted Text */}
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-sm flex items-center gap-2">
-                        <Search className="h-4 w-4" />
-                        Annotated Text
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ScrollArea className="h-[250px] rounded-md border p-4">
-                        <HighlightedText
-                          text={inputText}
-                          entities={result.entities}
-                          selectedEntityTypes={selectedEntityTypes}
-                          onEntityClick={setSelectedEntity}
-                        />
                       </ScrollArea>
-                    </CardContent>
-                  </Card>
-
-                  {/* Entity List with Tabs */}
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-sm flex items-center gap-2">
-                        <Activity className="h-4 w-4" />
-                        Extracted Entities ({filteredEntities.length})
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <Tabs value={activeTab} onValueChange={setActiveTab}>
-                        <TabsList className="flex flex-wrap h-auto gap-1 mb-4">
-                          <TabsTrigger value="all" className="text-xs">
-                            All ({result.entities.length})
-                          </TabsTrigger>
-                          {(Object.keys(ENTITY_TYPE_CONFIG) as NLPEntityType[]).map((type) => {
-                            const count = entityCounts[type];
-                            if (count === 0) return null;
-                            const config = ENTITY_TYPE_CONFIG[type];
-                            return (
-                              <TabsTrigger key={type} value={type} className="text-xs gap-1">
-                                {config.icon}
-                                {config.label} ({count})
-                              </TabsTrigger>
-                            );
-                          })}
-                        </TabsList>
-
-                        <ScrollArea className="h-[400px]">
-                          <div className="space-y-2 pr-4">
-                            {filteredEntities.length === 0 ? (
-                              <div className="text-center py-8 text-muted-foreground">
-                                <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                                <p>No entities found for selected filters</p>
-                              </div>
-                            ) : (
-                              filteredEntities.map((entity, idx) => (
-                                <EntityCard
-                                  key={`${entity.text}-${entity.span.start}-${idx}`}
-                                  entity={entity}
-                                  isSelected={selectedEntity === entity}
-                                  onClick={() => setSelectedEntity(entity)}
-                                />
-                              ))
-                            )}
-                          </div>
-                        </ScrollArea>
-                      </Tabs>
-                    </CardContent>
-                  </Card>
-                </>
-              ) : (
-                <Card>
-                  <CardContent className="py-16">
-                    <div className="text-center space-y-4">
-                      <div className="flex justify-center">
-                        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted">
-                          <Brain className="h-10 w-10 text-muted-foreground" />
-                        </div>
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-medium">Ready to Extract</h3>
-                        <p className="text-muted-foreground max-w-md mx-auto">
-                          Enter clinical text or load a sample note, then click
-                          &quot;Extract Entities&quot; to identify diagnoses, medications,
-                          procedures, and more.
-                        </p>
-                      </div>
-                      <div className="flex flex-col items-center gap-2">
-                        <p className="text-sm text-muted-foreground">Try a sample:</p>
-                        <div className="flex gap-2">
-                          {SAMPLE_NOTES.map((sample) => (
-                            <Button
-                              key={sample.id}
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleLoadSample(sample.text)}
-                            >
-                              {sample.title}
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
+                    </Tabs>
                   </CardContent>
                 </Card>
-              )
+              </>
+            ) : (
+              <Card>
+                <CardContent className="py-16">
+                  <div className="text-center space-y-4">
+                    <div className="flex justify-center">
+                      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted">
+                        <Brain className="h-10 w-10 text-muted-foreground" />
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-medium">Ready to Extract</h3>
+                      <p className="text-muted-foreground max-w-md mx-auto">
+                        Enter clinical text or load a sample note, then click
+                        &quot;Extract Entities&quot; to identify diagnoses, medications,
+                        procedures, and more.
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-center gap-2">
+                      <p className="text-sm text-muted-foreground">Try a sample:</p>
+                      <div className="flex gap-2">
+                        {SAMPLE_NOTES.map((sample) => (
+                          <Button
+                            key={sample.id}
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleLoadSample(sample.text)}
+                          >
+                            {sample.title}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             )
           ) : (
             // Hybrid Analyzer Results
@@ -3337,7 +2468,7 @@ export default function NLPWorkbenchPage() {
                 <HybridResultPanel
                   result={hybridResult}
                   onBuildKnowledgeGraph={handleBuildKnowledgeGraphFromHybrid}
-                  isBuildingGraph={isBuildingGraph || isRunningPipeline}
+                  isBuildingGraph={isBuildingGraph}
                 />
               </>
             ) : (
@@ -3401,165 +2532,7 @@ export default function NLPWorkbenchPage() {
         </div>
       </div>
       )}
-      <Dialog open={noteDialogOpen} onOpenChange={handleNoteDialogChange}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Full Clinical Note</DialogTitle>
-            <DialogDescription>
-              {noteDialogNote
-                ? `${noteDialogNote.note_type} • ${noteDialogNote.note_date} • ${noteDialogNote.note_id}`
-                : "Clinical note text"}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            {noteDialogLoading ? (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Loading full note...
-              </div>
-            ) : noteDialogError ? (
-              <div className="text-sm text-red-600">{noteDialogError}</div>
-            ) : (
-              <ScrollArea className="max-h-[60vh] rounded-md border p-4">
-                <div className="whitespace-pre-wrap text-sm">
-                  {noteDialogDocument?.text || noteDialogNote?.excerpt || "No content available."}
-                </div>
-              </ScrollArea>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-      <Dialog open={provenanceDialogOpen} onOpenChange={handleProvenanceDialogChange}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>Query Provenance</DialogTitle>
-            <DialogDescription>
-              {provenanceQueryId ? `Query ${provenanceQueryId}` : "Reasoning traces and evidence"}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            {provenanceLoading ? (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Loading provenance...
-              </div>
-            ) : provenanceError ? (
-              <div className="text-sm text-red-600">{provenanceError}</div>
-            ) : (
-              <>
-                <div className="grid gap-3 sm:grid-cols-3">
-                  <Card>
-                    <CardContent className="pt-4">
-                      <div className="text-xs text-muted-foreground">Total steps</div>
-                      <div className="text-lg font-semibold">
-                        {provenanceSummary?.total_steps ?? provenanceChain?.total_steps ?? 0}
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="pt-4">
-                      <div className="text-xs text-muted-foreground">Total duration</div>
-                      <div className="text-lg font-semibold">
-                        {provenanceSummary?.total_duration_ms ?? provenanceChain?.total_duration_ms ?? 0} ms
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="pt-4">
-                      <div className="text-xs text-muted-foreground">Total confidence</div>
-                      <div className="text-lg font-semibold">
-                        {provenanceChain?.total_confidence ?? "—"}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {provenanceSummary && (
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm">Reasoning Traces</CardTitle>
-                      <CardDescription>Step-level summaries and timings.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <ScrollArea className="max-h-[260px] pr-2">
-                        <div className="space-y-2">
-                          {provenanceSummary.reasoning_traces.map((trace) => (
-                            <div key={trace.id} className="rounded-md border p-3 space-y-1">
-                              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                <span>Step {trace.step_order} • {trace.step_type}</span>
-                                <span>{trace.duration_ms != null ? `${trace.duration_ms.toFixed(1)} ms` : "—"}</span>
-                              </div>
-                              {trace.input_summary && (
-                                <div className="text-sm">
-                                  <span className="font-medium">Input:</span> {trace.input_summary}
-                                </div>
-                              )}
-                              {trace.output_summary && (
-                                <div className="text-sm">
-                                  <span className="font-medium">Output:</span> {trace.output_summary}
-                                </div>
-                              )}
-                              {trace.confidence_contribution != null && (
-                                <div className="text-xs text-muted-foreground">
-                                  Confidence contribution: {trace.confidence_contribution}
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </ScrollArea>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {provenanceChain && (
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm">Provenance Chain</CardTitle>
-                      <CardDescription>Entities and guideline evidence linked to each step.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <ScrollArea className="max-h-[260px] pr-2">
-                        <div className="space-y-2">
-                          {provenanceChain.steps.map((step, idx) => (
-                            <div key={`${step.step_type}-${idx}`} className="rounded-md border p-3 space-y-1">
-                              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                <span>Step {step.step_order} • {step.step_type}</span>
-                                <span>{step.duration_ms != null ? `${step.duration_ms.toFixed(1)} ms` : "—"}</span>
-                              </div>
-                              {step.input_summary && (
-                                <div className="text-sm">
-                                  <span className="font-medium">Input:</span> {step.input_summary}
-                                </div>
-                              )}
-                              {step.output_summary && (
-                                <div className="text-sm">
-                                  <span className="font-medium">Output:</span> {step.output_summary}
-                                </div>
-                              )}
-                              {step.entities && step.entities.length > 0 && (
-                                <div className="text-xs text-muted-foreground">
-                                  Entities: {step.entities.slice(0, 12).join(", ")}
-                                  {step.entities.length > 12 ? ` (+${step.entities.length - 12} more)` : ""}
-                                </div>
-                              )}
-                              {step.guideline_provenance && step.guideline_provenance.length > 0 && (
-                                <div className="text-xs text-muted-foreground">
-                                  Guideline citations: {step.guideline_provenance.length}
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </ScrollArea>
-                    </CardContent>
-                  </Card>
-                )}
-              </>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
+

@@ -113,29 +113,5 @@ Each task should be completed in one iteration with tests passing before checkin
 
 ---
 
-## Phase 13: Mypy Adoption (Incremental)
-
-- [x] 13.1 Establish mypy baseline for core NLP + KG pipeline modules
-- [x] 13.2 Expand mypy coverage to clinical agent + QA reasoning modules
-- [x] 13.3 Expand mypy coverage to orchestration, policy, calculators, and remaining services
-
----
-
-## Phase 14: NLP MVP Extraction Coverage
-
-- [x] 14.1 Add extraction coverage audit metrics and display in NLP workbench
-- [x] 14.2 Extend coverage metrics into hybrid analyzer outputs
-- [x] 14.3 Add token-level gap report comparing entity extraction vs ontology coverage
-
----
-
-## Phase 15: Pipeline Unification
-
-- [x] 15.1 Route clinical-agent build-graph to ontology integration when raw text is provided
-- [x] 15.2 Add one-click Workbench flow (Extract → Build KG → QA) with shared patient_id
-- [x] 15.3 Standardize note_id/encounter_id provenance across extraction → KG → QA
-
----
-
 ## Completion Criteria
 All checkboxes must be checked, all tests must pass (`make test`), and all linting must pass (`make lint`) before outputting the completion promise.
