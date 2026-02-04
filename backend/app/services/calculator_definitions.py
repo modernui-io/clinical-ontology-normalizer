@@ -532,6 +532,341 @@ def calculate_point_based_score(
     )
 
 
+def calculate_equation_score(
+    definition: "CalculatorDefinition",
+    values: dict[str, float | int],
+) -> CalculatorResult:
+    """Calculate score for an equation-based calculator using its formula.
+
+    Executes the formula defined in the calculator definition with the provided
+    parameter values.
+
+    Args:
+        definition: Calculator definition with formula and interpretations
+        values: Dict mapping parameter names to numeric values
+
+    Returns:
+        CalculatorResult with calculated score and interpretation
+
+    Raises:
+        ValueError: If required parameters are missing or formula not defined
+    """
+    if definition.formula is None:
+        raise ValueError(f"Calculator {definition.id} has no formula defined")
+
+    # Validate required parameters
+    components: dict[str, Any] = {}
+    missing_params = []
+    for param in definition.formula.parameters:
+        if param.name not in values:
+            if param.required:
+                missing_params.append(param.display_name)
+        else:
+            val = values[param.name]
+            components[param.display_name] = f"{val} {param.unit}".strip()
+            # Validate min/max if specified
+            if param.min_value is not None and val < param.min_value:
+                raise ValueError(
+                    f"{param.display_name} ({val}) is below minimum ({param.min_value})"
+                )
+            if param.max_value is not None and val > param.max_value:
+                raise ValueError(
+                    f"{param.display_name} ({val}) is above maximum ({param.max_value})"
+                )
+
+    if missing_params:
+        raise ValueError(f"Missing required parameters: {', '.join(missing_params)}")
+
+    # Execute the formula based on calculator ID
+    # Each equation calculator has its own formula implementation
+    score = _execute_formula(definition.id, values)
+
+    # Round to specified precision
+    score = round(score, definition.formula.precision)
+
+    # Find matching interpretation
+    interpretation = None
+    for interp in definition.interpretations:
+        if interp.min_score <= score:
+            if interp.max_score is None or score < interp.max_score:
+                interpretation = interp
+                break
+
+    if interpretation is None:
+        # Fallback if no interpretation matches
+        interpretation = ThresholdInterpretation(
+            min_score=float("-inf"),
+            max_score=None,
+            risk_level=RiskLevel.MODERATE,
+            interpretation=f"Result: {score} {definition.formula.output_unit}",
+            recommendations=["Consult clinical guidelines"],
+        )
+
+    return CalculatorResult(
+        calculator_name=definition.name,
+        score=score,
+        score_unit=definition.score_unit,
+        risk_level=interpretation.risk_level,
+        interpretation=interpretation.interpretation,
+        recommendations=interpretation.recommendations,
+        components=components,
+        references=definition.references,
+    )
+
+
+def _execute_formula(calculator_id: str, values: dict[str, float | int]) -> float:
+    """Execute the formula for a specific calculator.
+
+    This is a registry of all equation-type calculator formulas.
+
+    Args:
+        calculator_id: Calculator identifier
+        values: Parameter values
+
+    Returns:
+        Calculated score
+
+    Raises:
+        ValueError: If calculator formula not implemented
+    """
+    import math
+
+    # Sodium Correction Rate: (Na2 - Na1) / Hours
+    if calculator_id == "sodium_correction_rate":
+        na_initial = values.get("sodium_initial", 0)
+        na_current = values.get("sodium_current", 0)
+        hours = values.get("hours", 1)
+        if hours <= 0:
+            raise ValueError("Hours must be greater than 0")
+        return (na_current - na_initial) / hours
+
+    # Albumin-Corrected Anion Gap: AG + 2.5 x (4.0 - Albumin)
+    elif calculator_id == "corrected_ag":
+        ag = values.get("anion_gap", 0)
+        albumin = values.get("albumin", 4.0)
+        return ag + 2.5 * (4.0 - albumin)
+
+    # Ideal Body Weight (Devine): Males: 50 + 2.3*(height[in]-60); Females: 45.5 + 2.3*(height[in]-60)
+    elif calculator_id == "ideal_body_weight":
+        height_cm = values.get("height", 170)
+        female = values.get("female", 0)
+        height_in = height_cm / 2.54
+        if female:
+            return 45.5 + 2.3 * (height_in - 60)
+        else:
+            return 50 + 2.3 * (height_in - 60)
+
+    # Adjusted Body Weight: IBW + 0.4 * (Actual - IBW)
+    elif calculator_id == "adjusted_body_weight":
+        ibw = values.get("ibw", 70)
+        actual_weight = values.get("actual_weight", 70)
+        return ibw + 0.4 * (actual_weight - ibw)
+
+    # BSA (Du Bois): 0.007184 × height^0.725 × weight^0.425
+    elif calculator_id == "bsa_dubois":
+        height_cm = values.get("height", 170)
+        weight_kg = values.get("weight", 70)
+        return 0.007184 * (height_cm ** 0.725) * (weight_kg ** 0.425)
+
+    # BSA (Mosteller): sqrt((height * weight) / 3600)
+    elif calculator_id == "bsa_mosteller":
+        height_cm = values.get("height", 170)
+        weight_kg = values.get("weight", 70)
+        return math.sqrt((height_cm * weight_kg) / 3600)
+
+    # Lean Body Weight (Boer): Males: 0.407W + 0.267H - 19.2; Females: 0.252W + 0.473H - 48.3
+    elif calculator_id == "lbw":
+        height_cm = values.get("height", 170)
+        weight_kg = values.get("weight", 70)
+        female = values.get("female", 0)
+        if female:
+            return 0.252 * weight_kg + 0.473 * height_cm - 48.3
+        else:
+            return 0.407 * weight_kg + 0.267 * height_cm - 19.2
+
+    # IV Fluid Rate: Volume / Time
+    elif calculator_id == "iv_fluid_rate":
+        volume_ml = values.get("volume", 1000)
+        hours = values.get("hours", 8)
+        if hours <= 0:
+            raise ValueError("Hours must be greater than 0")
+        return volume_ml / hours
+
+    # Delta Gap: (AG - 12) - (24 - HCO3)
+    elif calculator_id == "delta_gap":
+        ag = values.get("anion_gap", 12)
+        hco3 = values.get("bicarbonate", 24)
+        return (ag - 12) - (24 - hco3)
+
+    # Osmolal Gap: Measured - Calculated
+    elif calculator_id == "osmolal_gap":
+        measured = values.get("measured_osm", 290)
+        calculated = values.get("calculated_osm", 290)
+        return measured - calculated
+
+    # Winter's Formula: Expected pCO2 = 1.5 * HCO3 + 8 ± 2
+    elif calculator_id == "winters_formula":
+        hco3 = values.get("bicarbonate", 24)
+        return 1.5 * hco3 + 8
+
+    # Bicarbonate Deficit: 0.5 * weight * (24 - HCO3)
+    elif calculator_id == "bicarb_deficit":
+        weight_kg = values.get("weight", 70)
+        hco3 = values.get("bicarbonate", 24)
+        return 0.5 * weight_kg * (24 - hco3)
+
+    # Free Water Deficit: TBW * (Na/140 - 1)
+    elif calculator_id == "free_water_deficit":
+        weight_kg = values.get("weight", 70)
+        sodium = values.get("sodium", 145)
+        female = values.get("female", 0)
+        age = values.get("age", 50)
+        # TBW estimation: 0.6 for young males, 0.5 for females/elderly
+        if female or age >= 65:
+            tbw_factor = 0.5
+        else:
+            tbw_factor = 0.6
+        tbw = weight_kg * tbw_factor
+        return tbw * (sodium / 140 - 1)
+
+    # MELD Score: 3.78×ln(bilirubin) + 11.2×ln(INR) + 9.57×ln(creatinine) + 6.43
+    elif calculator_id == "meld":
+        bilirubin = max(values.get("bilirubin", 1.0), 1.0)
+        inr = max(values.get("inr", 1.0), 1.0)
+        creatinine = max(min(values.get("creatinine", 1.0), 4.0), 1.0)
+        on_dialysis = values.get("on_dialysis", 0)
+        if on_dialysis:
+            creatinine = 4.0
+        score = (
+            3.78 * math.log(bilirubin)
+            + 11.2 * math.log(inr)
+            + 9.57 * math.log(creatinine)
+            + 6.43
+        )
+        return max(6, min(40, score))
+
+    # MELD-Na: MELD + 1.32×(137-Na) - 0.033×MELD×(137-Na)
+    elif calculator_id == "meld_na":
+        bilirubin = max(values.get("bilirubin", 1.0), 1.0)
+        inr = max(values.get("inr", 1.0), 1.0)
+        creatinine = max(min(values.get("creatinine", 1.0), 4.0), 1.0)
+        sodium = max(min(values.get("sodium", 137), 137), 125)
+        on_dialysis = values.get("on_dialysis", 0)
+        if on_dialysis:
+            creatinine = 4.0
+        meld = (
+            3.78 * math.log(bilirubin)
+            + 11.2 * math.log(inr)
+            + 9.57 * math.log(creatinine)
+            + 6.43
+        )
+        meld = max(6, min(40, meld))
+        meld_na = meld + 1.32 * (137 - sodium) - 0.033 * meld * (137 - sodium)
+        return max(6, min(40, meld_na))
+
+    # CKD-EPI eGFR 2021 (race-free)
+    elif calculator_id == "egfr_ckdepi" or calculator_id == "ckd_epi_2021":
+        creatinine = values.get("creatinine", 1.0)
+        age = values.get("age", 50)
+        female = values.get("female", 0)
+        # CKD-EPI 2021 race-free equation
+        if female:
+            if creatinine <= 0.7:
+                return 142 * ((creatinine / 0.7) ** -0.241) * (0.9938 ** age) * 1.012
+            else:
+                return 142 * ((creatinine / 0.7) ** -1.2) * (0.9938 ** age) * 1.012
+        else:
+            if creatinine <= 0.9:
+                return 142 * ((creatinine / 0.9) ** -0.302) * (0.9938 ** age)
+            else:
+                return 142 * ((creatinine / 0.9) ** -1.2) * (0.9938 ** age)
+
+    # BMI: weight / (height/100)^2
+    elif calculator_id == "bmi":
+        weight_kg = values.get("weight", 70)
+        height_cm = values.get("height", 170)
+        height_m = height_cm / 100
+        return weight_kg / (height_m ** 2)
+
+    # Creatinine Clearance (Cockcroft-Gault)
+    elif calculator_id == "crcl" or calculator_id == "cockcroft_gault":
+        creatinine = values.get("creatinine", 1.0)
+        age = values.get("age", 50)
+        weight = values.get("weight", 70)
+        female = values.get("female", 0)
+        crcl = ((140 - age) * weight) / (72 * creatinine)
+        if female:
+            crcl *= 0.85
+        return crcl
+
+    # Corrected Calcium: Ca + 0.8 * (4.0 - Albumin)
+    elif calculator_id == "corrected_calcium":
+        calcium = values.get("calcium", 9.0)
+        albumin = values.get("albumin", 4.0)
+        return calcium + 0.8 * (4.0 - albumin)
+
+    # A-a Gradient: (FiO2 * (Patm - PH2O) - PaCO2/0.8) - PaO2
+    elif calculator_id == "aa_gradient":
+        fio2 = values.get("fio2", 0.21)
+        paco2 = values.get("paco2", 40)
+        pao2 = values.get("pao2", 100)
+        patm = 760  # mmHg at sea level
+        ph2o = 47  # mmHg at 37°C
+        pao2_expected = fio2 * (patm - ph2o) - paco2 / 0.8
+        return pao2_expected - pao2
+
+    # MAP: (SBP + 2*DBP) / 3
+    elif calculator_id == "map":
+        sbp = values.get("sbp", 120)
+        dbp = values.get("dbp", 80)
+        return (sbp + 2 * dbp) / 3
+
+    # Absolute Neutrophil Count: WBC * (% Neutrophils + % Bands) / 100
+    elif calculator_id == "anc":
+        wbc = values.get("wbc", 7.0)
+        neutrophils = values.get("neutrophils", 60)
+        bands = values.get("bands", 0)
+        return wbc * (neutrophils + bands) / 100
+
+    # Transferrin Saturation: (Iron / TIBC) * 100
+    elif calculator_id == "transferrin_saturation":
+        iron = values.get("iron", 100)
+        tibc = values.get("tibc", 300)
+        return (iron / tibc) * 100
+
+    # LDL Calculated (Friedewald): TC - HDL - (TG/5)
+    elif calculator_id == "ldl_calculated":
+        tc = values.get("total_cholesterol", 200)
+        hdl = values.get("hdl", 50)
+        tg = values.get("triglycerides", 150)
+        if tg > 400:
+            raise ValueError("Friedewald formula not valid for TG > 400 mg/dL")
+        return tc - hdl - (tg / 5)
+
+    # Non-HDL Cholesterol: TC - HDL
+    elif calculator_id == "non_hdl":
+        tc = values.get("total_cholesterol", 200)
+        hdl = values.get("hdl", 50)
+        return tc - hdl
+
+    # QTc (Bazett): QT / sqrt(RR)
+    elif calculator_id == "qtc_bazett":
+        qt = values.get("qt", 400)
+        hr = values.get("heart_rate", 60)
+        rr = 60 / hr  # RR interval in seconds
+        return qt / math.sqrt(rr)
+
+    # QTc (Fridericia): QT / (RR^(1/3))
+    elif calculator_id == "qtc_fridericia":
+        qt = values.get("qt", 400)
+        hr = values.get("heart_rate", 60)
+        rr = 60 / hr
+        return qt / (rr ** (1/3))
+
+    else:
+        raise ValueError(f"Formula not implemented for calculator: {calculator_id}")
+
+
 # ============================================================================
 # Calculator Definitions Registry
 # ============================================================================

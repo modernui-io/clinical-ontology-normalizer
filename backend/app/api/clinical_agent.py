@@ -1410,6 +1410,93 @@ Knowledge Graph Summary ({len(nodes)} nodes):
     except Exception as e:
         logger.warning(f"Failed to record orchestrator provenance: {e}")
 
+    # =============================================================================
+    # Clinical Calculator Integration: Run applicable calculators
+    # =============================================================================
+    calculator_start = time.perf_counter()
+    calculator_context = ""
+    calculator_results_data: list[dict] = []
+    try:
+        from app.services.calculator_reasoning_service import get_calculator_reasoning_service
+
+        calc_service = get_calculator_reasoning_service()
+
+        # Build measurement list from KG nodes
+        patient_measurements = []
+        for node in nodes:
+            if node.node_type == NodeType.MEASUREMENT:
+                measurement = {
+                    "label": node.label,
+                    "value": node.properties.get("value", "") if node.properties else "",
+                    "unit": node.properties.get("unit", "") if node.properties else "",
+                }
+                patient_measurements.append(measurement)
+
+        # Build demographics from KG (if available)
+        patient_demographics = {}
+        for node in nodes:
+            if node.node_type == NodeType.PATIENT and node.properties:
+                if "age" in node.properties:
+                    patient_demographics["age"] = node.properties["age"]
+                if "sex" in node.properties:
+                    patient_demographics["sex"] = node.properties["sex"]
+
+        # Run applicable calculators
+        calculator_results = calc_service.run_applicable_calculators(
+            conditions=conditions,
+            measurements=patient_measurements,
+            demographics=patient_demographics,
+            clinical_question=request.question,
+            min_relevance=1.5,
+            min_data_completeness=0.3,
+            max_calculators=5,
+        )
+
+        if calculator_results:
+            calculator_context = calc_service.generate_calculator_context_for_llm(calculator_results)
+            calculator_results_data = calculator_results
+
+            logger.info(
+                f"Calculator reasoning: ran {len(calculator_results)} calculators for patient {patient_id}"
+            )
+
+    except Exception as e:
+        logger.warning(f"Calculator reasoning failed, proceeding without: {e}")
+
+    calculator_duration = (time.perf_counter() - calculator_start) * 1000
+
+    # Record CALCULATOR_REASONING reasoning trace
+    if calculator_results_data:
+        try:
+            step_order += 1
+            await provenance_svc.create_reasoning_trace(
+                session=db,
+                query_id=query_id,
+                step_order=step_order,
+                step_type="calculator_reasoning",
+                patient_id=patient_id,
+                input_summary=f"Query: '{request.question}', {len(patient_measurements)} measurements",
+                output_summary=f"Ran {len(calculator_results_data)} clinical calculators",
+                duration_ms=round(calculator_duration, 2),
+                metadata={
+                    "calculators_run": [c["calculator_id"] for c in calculator_results_data],
+                    "scores": {c["calculator_id"]: c["score"] for c in calculator_results_data},
+                    "risk_levels": {c["calculator_id"]: c.get("risk_level") for c in calculator_results_data},
+                },
+            )
+            reasoning_chain.append({
+                "step": step_order,
+                "type": "calculator_reasoning",
+                "summary": f"Ran {len(calculator_results_data)} clinical calculators",
+                "duration_ms": round(calculator_duration, 2),
+                "details": {
+                    "calculators": [c["calculator_id"] for c in calculator_results_data],
+                    "scores": {c["calculator_id"]: c["score"] for c in calculator_results_data},
+                },
+            })
+        except Exception as e:
+            logger.warning(f"Failed to record calculator provenance: {e}")
+
     # Use LLM to generate answer
     llm_start = time.perf_counter()
     try:
@@ -1420,26 +1507,30 @@ Knowledge Graph Summary ({len(nodes)} nodes):
         system_prompt = """You are a clinical decision support assistant analyzing a patient's electronic health record data.
 You have access to a knowledge graph built from the patient's clinical notes, including multi-hop relationship paths.
 You also have input from a multi-disciplinary clinical team (Diagnostic, Treatment, Safety, Evidence specialists).
+You can use clinical calculators (risk scores, physiologic equations) to quantify patient risk and status.
 
 Guidelines:
-- Answer questions based ONLY on the provided clinical data, graph evidence, guideline references, and agent consensus
+- Answer questions based ONLY on the provided clinical data, graph evidence, guideline references, calculator results, and agent consensus
 - Be specific and cite relevant entities from the knowledge graph
 - When graph evidence paths are provided, use them to explain relationships between clinical entities
 - When clinical guideline references are provided, incorporate them into your answer using [Guideline N] citation format
 - When institutional policy references are provided, incorporate them using [Policy N] citation format
+- When clinical calculator results are provided, use them to quantify risk levels and support recommendations
 - When agent consensus is provided, synthesize their recommendations and note any dissenting concerns
 - Distinguish between patient-specific data (from the knowledge graph) and general recommendations (from guidelines)
 - If agents have conflicting views, acknowledge the disagreement and explain the reasoning
 - If the data is insufficient, say so clearly
 - Use clinical terminology appropriately
 - Keep answers concise but thorough (2-4 sentences for simple questions, more for complex ones)
-- Never fabricate information not present in the data, guidelines, or agent consensus"""
+- Never fabricate information not present in the data, guidelines, calculators, or agent consensus"""
 
         # Include graph RAG context if available (multi-hop traversal paths and temporal context)
         full_context = clinical_context
         if graph_context:
             full_context += "\n\n" + graph_context
         full_context += guideline_context + consensus_context
+        if calculator_context:
+            full_context += "\n\n" + calculator_context
 
         user_prompt = f"""{full_context}
 
@@ -1450,6 +1541,8 @@ Provide a clear, evidence-based answer synthesizing the clinical data, graph rel
             user_prompt += " Reference relevant guidelines using [Guideline N] citations where applicable."
         if policy_citations_data:
             user_prompt += " Reference relevant policies using [Policy N] citations where applicable."
+        if calculator_results_data:
+            user_prompt += " Include relevant calculator scores and risk levels in your assessment."
         if consensus_context:
             user_prompt += " Note any significant agent consensus or dissenting opinions."
 
@@ -1476,6 +1569,8 @@ Provide a clear, evidence-based answer synthesizing the clinical data, graph rel
             if r.get("consensus_level") in ("unanimous", "strong")
         )
         confidence = min(0.95, confidence + strong_consensus_count * 0.04)
+        # Boost confidence for calculator results
+        confidence = min(0.95, confidence + len(calculator_results_data) * 0.03)
 
         guideline_info = f", {len(guideline_citations_data)} guideline references" if guideline_citations_data else ""
         graph_rag_info = f", {len(graph_paths_data)} graph paths" if graph_paths_data else ""
@@ -1484,9 +1579,10 @@ Provide a clear, evidence-based answer synthesizing the clinical data, graph rel
             f"({strong_consensus_count} strong/unanimous)"
             if consensus_results else ""
         )
+        calculator_info = f", {len(calculator_results_data)} calculators" if calculator_results_data else ""
         reasoning = (
             f"Answered using {model_used} with {len(nodes)} KG nodes, "
-            f"{len(evidence_sources)} evidence sources{graph_rag_info}{guideline_info}{orchestrator_info}. "
+            f"{len(evidence_sources)} evidence sources{graph_rag_info}{guideline_info}{calculator_info}{orchestrator_info}. "
             f"Latency: {response.latency_ms:.0f}ms, "
             f"Tokens: {response.token_usage.total_tokens}"
         )

@@ -195,6 +195,34 @@ class DataDrivenCalculatorListResponse(BaseModel):
 
 
 # =============================================================================
+# Formula Parameter Schema (for equation-type calculators)
+# =============================================================================
+
+
+class FormulaParameterSchema(BaseModel):
+    """Parameter definition for equation-based calculators."""
+
+    name: str = Field(..., description="Parameter identifier")
+    display_name: str = Field(..., description="Human-readable name")
+    unit: str = Field(default="", description="Unit of measurement")
+    min_value: float | None = Field(None, description="Minimum allowed value")
+    max_value: float | None = Field(None, description="Maximum allowed value")
+    description: str = Field(default="", description="Clinical description")
+
+
+class FormulaSchema(BaseModel):
+    """Formula definition for equation-type calculators."""
+
+    formula_text: str = Field(..., description="Human-readable formula description")
+    output_unit: str = Field(..., description="Unit of the calculated result")
+    precision: int = Field(default=1, description="Decimal places for output")
+    parameters: list[FormulaParameterSchema] = Field(
+        default_factory=list,
+        description="Input parameters for the formula",
+    )
+
+
+# =============================================================================
 # Detail Response
 # =============================================================================
 
@@ -212,6 +240,10 @@ class DataDrivenCalculatorDetail(BaseModel):
     criteria: list[dict[str, Any]] = Field(
         default_factory=list,
         description="All criteria (boolean, multi_level, threshold)",
+    )
+    formula: FormulaSchema | None = Field(
+        None,
+        description="Formula definition for equation-type calculators",
     )
     has_age_scoring: bool = Field(default=False, description="Whether age-based scoring applies")
     interpretations: list[InterpretationSchema] = Field(

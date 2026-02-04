@@ -1062,6 +1062,28 @@ async def get_data_driven_calculator(
             mdcalc_url=prov.get("mdcalc_url"),
         )
 
+    # Build formula schema for equation-type calculators
+    from app.schemas.calculators import FormulaSchema, FormulaParameterSchema
+    formula_schema = None
+    if calc.get("formula"):
+        formula = calc["formula"]
+        formula_schema = FormulaSchema(
+            formula_text=formula["formula_text"],
+            output_unit=formula["output_unit"],
+            precision=formula.get("precision", 1),
+            parameters=[
+                FormulaParameterSchema(
+                    name=p["name"],
+                    display_name=p["display_name"],
+                    unit=p.get("unit", ""),
+                    min_value=p.get("min_value"),
+                    max_value=p.get("max_value"),
+                    description=p.get("description", ""),
+                )
+                for p in formula.get("parameters", [])
+            ],
+        )
+
     return DataDrivenCalculatorDetail(
         id=calc["id"],
         name=calc["name"],
@@ -1071,6 +1093,7 @@ async def get_data_driven_calculator(
         description=calc.get("description", ""),
         score_unit=calc.get("score_unit", "points"),
         criteria=calc.get("criteria", []),
+        formula=formula_schema,
         has_age_scoring=calc.get("has_age_scoring", False),
         interpretations=interpretations,
         references=calc.get("references", []),
@@ -1155,6 +1178,149 @@ async def calculate_data_driven(
             warnings=result.warnings,
         )
 
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+
+
+# =============================================================================
+# Knowledge Graph Integration Endpoints
+# =============================================================================
+
+
+@data_driven_router.post(
+    "/patient/{patient_id}/calculate/{calculator_id}",
+    summary="Calculate for patient using KG data",
+    description="Execute a calculator for a patient, auto-populating inputs from the Knowledge Graph.",
+)
+async def calculate_for_patient(
+    patient_id: str = Path(..., description="Patient identifier"),
+    calculator_id: str = Path(..., description="Calculator identifier"),
+    additional_inputs: dict[str, Any] | None = None,
+):
+    """Execute a calculator for a patient using KG data.
+
+    This endpoint:
+    1. Fetches patient measurements, demographics, and conditions from the KG
+    2. Maps KG data to calculator input parameters
+    3. Executes the calculation
+    4. Returns result with source attribution
+
+    Additional inputs can be provided to override or supplement KG data.
+    """
+    from app.services.calculator_kg_integration import get_calculator_kg_integration
+
+    try:
+        integration = get_calculator_kg_integration()
+        result = integration.calculate_for_patient(
+            calculator_id,
+            patient_id,
+            additional_inputs,
+        )
+        return result
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error calculating for patient: {str(e)}",
+        )
+
+
+@data_driven_router.get(
+    "/patient/{patient_id}/suggestions",
+    summary="Suggest calculators for patient",
+    description="Get calculator suggestions based on patient conditions and available data.",
+)
+async def suggest_calculators_for_patient(
+    patient_id: str = Path(..., description="Patient identifier"),
+    limit: int = Query(10, ge=1, le=50, description="Maximum suggestions"),
+):
+    """Suggest relevant calculators for a patient.
+
+    Returns calculators ranked by relevance based on:
+    - Patient conditions matching calculator categories
+    - Available measurements that feed calculator inputs
+    - Age-appropriate calculators
+    """
+    from app.services.calculator_kg_integration import get_calculator_kg_integration
+
+    try:
+        integration = get_calculator_kg_integration()
+        suggestions = integration.suggest_calculators_for_patient(patient_id, limit)
+        return {
+            "patient_id": patient_id,
+            "suggestions": suggestions,
+            "total_suggestions": len(suggestions),
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error suggesting calculators: {str(e)}",
+        )
+
+
+@data_driven_router.get(
+    "/patient/{patient_id}/context/{calculator_id}",
+    summary="Get calculator context for patient",
+    description="Get full calculator context with patient data for clinical reasoning.",
+)
+async def get_calculator_context_for_patient(
+    patient_id: str = Path(..., description="Patient identifier"),
+    calculator_id: str = Path(..., description="Calculator identifier"),
+):
+    """Get calculator context with patient data for clinical reasoning agents.
+
+    Returns:
+    - Calculator definition and requirements
+    - Patient data available for inputs
+    - Missing inputs that need to be provided
+    - Interpretation guidelines
+    """
+    from app.services.calculator_kg_integration import get_calculator_kg_integration
+
+    try:
+        integration = get_calculator_kg_integration()
+        context = integration.get_calculator_context_for_agent(
+            calculator_id, patient_id
+        )
+        return context
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error getting calculator context: {str(e)}",
+        )
+
+
+@data_driven_router.get(
+    "/agent/context/{calculator_id}",
+    summary="Get calculator context for agent",
+    description="Get calculator context for clinical reasoning agents (no patient).",
+)
+async def get_calculator_context_for_agent(
+    calculator_id: str = Path(..., description="Calculator identifier"),
+):
+    """Get calculator context for clinical reasoning agents.
+
+    Returns full calculator definition and requirements without patient data.
+    Useful for agents to understand how to use a calculator.
+    """
+    from app.services.calculator_kg_integration import get_calculator_kg_integration
+
+    try:
+        integration = get_calculator_kg_integration()
+        context = integration.get_calculator_context_for_agent(calculator_id)
+        return context
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

@@ -30,6 +30,7 @@ from app.services.calculator_definitions import (
     CALCULATOR_DEFINITIONS,
     CalculatorType,
     calculate_point_based_score,
+    calculate_equation_score,
     get_calculator_definition,
 )
 from app.services.calculator_definitions import (
@@ -2776,14 +2777,18 @@ class ClinicalCalculatorService:
         if definition is None:
             raise ValueError(f"Data-driven calculator not found: {calculator_id}")
 
-        if definition.calc_type != CalculatorType.CRITERIA:
+        # Handle different calculator types
+        if definition.calc_type == CalculatorType.CRITERIA:
+            # Use the generic point-based calculation for criteria-type
+            dd_result = calculate_point_based_score(definition, values, age)
+        elif definition.calc_type == CalculatorType.EQUATION:
+            # Use equation-based calculation for formula-type
+            dd_result = calculate_equation_score(definition, values)
+        else:
             raise ValueError(
                 f"Calculator {calculator_id} is type {definition.calc_type.value}, "
-                f"use specific formula function instead"
+                f"which is not yet supported"
             )
-
-        # Use the generic point-based calculation
-        dd_result = calculate_point_based_score(definition, values, age)
 
         # Convert to service's CalculatorResult format
         return CalculatorResult(
@@ -2926,6 +2931,26 @@ class ClinicalCalculatorService:
                     "excluded_populations": ug.excluded_populations,
                 }
 
+        # Build formula schema if present (for equation-type calculators)
+        formula_dict = None
+        if definition.formula:
+            formula_dict = {
+                "formula_text": definition.formula.formula_text,
+                "output_unit": definition.formula.output_unit,
+                "precision": definition.formula.precision,
+                "parameters": [
+                    {
+                        "name": param.name,
+                        "display_name": param.display_name,
+                        "unit": param.unit,
+                        "min_value": param.min_value,
+                        "max_value": param.max_value,
+                        "description": param.description or "",
+                    }
+                    for param in definition.formula.parameters
+                ],
+            }
+
         return {
             "id": definition.id,
             "name": definition.name,
@@ -2935,6 +2960,7 @@ class ClinicalCalculatorService:
             "calc_type": definition.calc_type.value,
             "score_unit": definition.score_unit,
             "criteria": criteria_schema,
+            "formula": formula_dict,
             "has_age_scoring": definition.age_scoring is not None,
             "interpretations": [
                 {
