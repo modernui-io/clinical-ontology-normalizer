@@ -44,6 +44,8 @@ out/
 # Database
 *.db
 *.sqlite3
+dump.rdb
+*.rdb
 
 # Logs
 *.log
