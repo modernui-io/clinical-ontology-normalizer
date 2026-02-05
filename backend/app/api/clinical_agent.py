@@ -789,6 +789,8 @@ async def _build_patient_knowledge_graph(
     seen_entities: dict[str, str] = {}  # (text_lower, type, assertion) -> node_id
     entity_event_dates: dict[str, datetime] = {}  # node_id -> event_date (for temporal ordering)
     entity_concept_ids: dict[int, str] = {}  # omop_concept_id -> node_id (for OMOP relationships)
+    note_nodes: dict[str, str] = {}  # note_key -> node_id (for provenance edges)
+    date_nodes: dict[str, str] = {}  # date_key -> node_id (for temporal edges)
     conditions: list[str] = []
     medications: list[str] = []
     measurements: list[str] = []
@@ -926,6 +928,67 @@ async def _build_patient_knowledge_graph(
             )
             db.add(edge)
             edge_count += 1
+
+            # Create provenance edge: Entity -> EXTRACTED_FROM -> Note
+            if entity.note_id:
+                note_key = f"note:{entity.note_id}"
+                if note_key not in note_nodes:
+                    # Create the note node
+                    note_node = KGNode(
+                        id=str(uuid4()),
+                        patient_id=patient_id,
+                        node_type=NodeType.CLINICAL_NOTE,
+                        label=f"Note {entity.note_id}",
+                        properties={
+                            "note_id": entity.note_id,
+                            "document_date": entity.document_date,
+                        },
+                    )
+                    db.add(note_node)
+                    note_nodes[note_key] = note_node.id
+                    node_count += 1
+
+                # Create EXTRACTED_FROM edge
+                provenance_edge = KGEdge(
+                    id=str(uuid4()),
+                    patient_id=patient_id,
+                    source_node_id=node_id,
+                    target_node_id=note_nodes[note_key],
+                    edge_type=EdgeType.EXTRACTED_FROM,
+                    properties={"extraction_method": extraction_method},
+                )
+                db.add(provenance_edge)
+                edge_count += 1
+
+            # Create temporal edge: Entity -> OCCURRED_ON -> Date
+            if event_date_parsed:
+                date_str = event_date_parsed.strftime("%Y-%m-%d")
+                date_key = f"date:{date_str}"
+                if date_key not in date_nodes:
+                    # Create the date node
+                    date_node = KGNode(
+                        id=str(uuid4()),
+                        patient_id=patient_id,
+                        node_type=NodeType.DATE,
+                        label=date_str,
+                        properties={"date": date_str, "year": event_date_parsed.year},
+                    )
+                    db.add(date_node)
+                    date_nodes[date_key] = date_node.id
+                    node_count += 1
+
+                # Create OCCURRED_ON edge
+                temporal_edge = KGEdge(
+                    id=str(uuid4()),
+                    patient_id=patient_id,
+                    source_node_id=node_id,
+                    target_node_id=date_nodes[date_key],
+                    edge_type=EdgeType.OCCURRED_ON,
+                    event_date=event_date_parsed,
+                    properties={"date": date_str},
+                )
+                db.add(temporal_edge)
+                edge_count += 1
 
             # Track for summary
             if node_type == NodeType.CONDITION:

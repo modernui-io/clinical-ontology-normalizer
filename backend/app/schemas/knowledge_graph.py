@@ -18,6 +18,10 @@ class NodeType(str, Enum):
     MEASUREMENT = "measurement"
     PROCEDURE = "procedure"
     OBSERVATION = "observation"
+    # Provenance nodes
+    CLINICAL_NOTE = "clinical_note"
+    # Temporal nodes
+    DATE = "date"
 
 
 class EdgeType(str, Enum):
@@ -39,6 +43,12 @@ class EdgeType(str, Enum):
     MAY_CAUSE = "may_cause"  # Drug -> Side effect relationship
     CONTRAINDICATED_WITH = "contraindicated_with"  # Drug -> Drug/Condition contraindication
     DRUG_INTERACTION = "drug_interaction"  # Drug -> Drug interaction (OMOP)
+
+    # Provenance edges (Entity -> Note)
+    EXTRACTED_FROM = "extracted_from"  # Entity was extracted from this clinical note
+
+    # Temporal edges (Entity -> Date)
+    OCCURRED_ON = "occurred_on"  # Entity occurred/was recorded on this date
 
 
 class TemporalOrder(str, Enum):

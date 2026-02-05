@@ -139,12 +139,43 @@ class CalculatorReasoningService:
                 relevance_score += 3.0
                 reasons.append(f"Category match: {definition.category.value}")
 
-            # Condition-based relevance
+            # Condition-based relevance - bidirectional fuzzy matching
+            calc_name_lower = definition.name.lower()
+            calc_desc_lower = definition.description.lower()
+            calc_text = f"{calc_name_lower} {calc_desc_lower}"
+
+            condition_matched = False
             for condition in conditions_lower:
-                # Check if calculator name/description mentions the condition
-                if condition in definition.name.lower() or condition in definition.description.lower():
-                    relevance_score += 2.0
+                # Direct: patient condition appears in calculator name/description
+                if condition in calc_text:
+                    relevance_score += 2.5
                     reasons.append(f"Condition match: {condition}")
+                    condition_matched = True
+                    break
+
+                # Reverse: calculator keywords appear in patient condition
+                # E.g., patient has "atrial fibrillation" -> CHA2DS2-VASc should match
+                for keyword in ["atrial fibrillation", "afib", "heart failure", "chf",
+                                "diabetes", "hypertension", "stroke", "tia", "renal",
+                                "kidney", "liver", "cirrhosis", "sepsis", "pneumonia",
+                                "pe", "dvt", "anemia", "cancer", "malignancy"]:
+                    if keyword in condition and keyword in calc_text:
+                        relevance_score += 2.0
+                        reasons.append(f"Keyword match: {keyword}")
+                        condition_matched = True
+                        break
+                if condition_matched:
+                    break
+
+                # Word-level overlap for multi-word conditions
+                condition_words = set(condition.split())
+                calc_words = set(calc_name_lower.split())
+                common_words = condition_words & calc_words
+                significant_common = [w for w in common_words if len(w) > 3]
+                if significant_common:
+                    relevance_score += 1.5
+                    reasons.append(f"Word match: {', '.join(significant_common)}")
+                    condition_matched = True
                     break
 
             # Data availability scoring
@@ -276,31 +307,87 @@ class CalculatorReasoningService:
         conditions: list[str],
         inputs: dict[str, Any],
     ) -> dict[str, Any]:
-        """Map patient conditions to calculator criteria."""
+        """Map patient conditions to calculator criteria.
+
+        Uses expanded keyword matching with common medical terminology variants,
+        abbreviations, and related diagnoses to improve matching accuracy.
+        """
         condition_keywords = {
-            "diabetes": ["diabetes", "dm", "type 2 diabetes", "type 1 diabetes", "diabetic"],
-            "hypertension": ["hypertension", "htn", "high blood pressure", "elevated bp"],
-            "congestive_heart_failure": ["heart failure", "chf", "hf", "cardiomyopathy", "lvef reduced"],
-            "stroke_tia_thromboembolism": ["stroke", "tia", "transient ischemic", "cva", "thromboembolism"],
-            "vascular_disease": ["coronary artery disease", "cad", "mi", "myocardial infarction", "pad", "peripheral arterial", "aortic plaque"],
-            "renal_disease": ["chronic kidney disease", "ckd", "renal failure", "esrd", "aki"],
-            "liver_disease": ["cirrhosis", "liver disease", "hepatic", "hepatitis"],
-            "confusion": ["delirium", "altered mental status", "confusion", "encephalopathy"],
-            "malignancy": ["cancer", "malignancy", "carcinoma", "tumor", "neoplasm", "oncology"],
-            "copd": ["copd", "chronic obstructive", "emphysema"],
-            "immobility": ["immobil", "bedbound", "paralysis", "paresis"],
-            "recent_surgery": ["surgery", "postoperative", "post-op"],
+            # Metabolic/Endocrine
+            "diabetes": ["diabetes", "dm", "type 2 diabetes", "type 1 diabetes", "diabetic",
+                        "diabetes mellitus", "t2dm", "t1dm", "dm2", "dm1", "niddm", "iddm",
+                        "hyperglycemia", "glucose intolerance", "pre-diabetes", "prediabetes"],
+            # Cardiovascular
+            "hypertension": ["hypertension", "htn", "high blood pressure", "elevated bp",
+                            "essential hypertension", "hypertensive", "bp elevation",
+                            "systolic hypertension", "diastolic hypertension"],
+            "congestive_heart_failure": ["heart failure", "chf", "hf", "cardiomyopathy",
+                                        "lvef reduced", "hfref", "hfpef", "systolic dysfunction",
+                                        "diastolic dysfunction", "cardiac failure", "decompensated heart",
+                                        "congestive heart failure", "left ventricular failure"],
+            "stroke_tia_thromboembolism": ["stroke", "tia", "transient ischemic", "cva",
+                                          "thromboembolism", "cerebrovascular accident",
+                                          "ischemic stroke", "hemorrhagic stroke",
+                                          "systemic embolism", "embolism", "cerebral infarct",
+                                          "brain attack", "mini-stroke"],
+            "vascular_disease": ["coronary artery disease", "cad", "mi", "myocardial infarction",
+                                "pad", "peripheral arterial", "aortic plaque", "atherosclerosis",
+                                "atherosclerotic", "ascvd", "pvd", "peripheral vascular",
+                                "coronary disease", "heart attack", "angina", "ischemic heart",
+                                "carotid stenosis", "aortic aneurysm"],
+            "atrial_fibrillation": ["atrial fibrillation", "afib", "a-fib", "af", "atrial flutter",
+                                    "a fib", "auricular fibrillation", "irregular heartbeat"],
+            # Renal
+            "renal_disease": ["chronic kidney disease", "ckd", "renal failure", "esrd", "aki",
+                             "kidney disease", "kidney failure", "renal insufficiency",
+                             "nephropathy", "diabetic nephropathy", "renal impairment",
+                             "reduced gfr", "stage 3 ckd", "stage 4 ckd", "stage 5 ckd"],
+            # Hepatic
+            "liver_disease": ["cirrhosis", "liver disease", "hepatic", "hepatitis",
+                             "liver failure", "hepatopathy", "chronic liver", "liver cirrhosis",
+                             "alcoholic liver", "nafld", "nash", "hepatic failure",
+                             "portal hypertension", "varices"],
+            # Neurological
+            "confusion": ["delirium", "altered mental status", "confusion", "encephalopathy",
+                         "cognitive impairment", "dementia", "alzheimer", "mental confusion",
+                         "disorientation", "impaired cognition"],
+            # Oncology
+            "malignancy": ["cancer", "malignancy", "carcinoma", "tumor", "neoplasm", "oncology",
+                          "metastatic", "metastasis", "adenocarcinoma", "sarcoma", "lymphoma",
+                          "leukemia", "myeloma", "malignant"],
+            # Pulmonary
+            "copd": ["copd", "chronic obstructive", "emphysema", "chronic bronchitis",
+                    "obstructive lung disease", "pulmonary disease"],
+            "respiratory_failure": ["respiratory failure", "hypoxia", "hypoxemia",
+                                   "respiratory distress", "ards", "acute respiratory"],
+            # Other
+            "immobility": ["immobil", "bedbound", "paralysis", "paresis", "wheelchair",
+                          "bedridden", "non-ambulatory", "limited mobility"],
+            "recent_surgery": ["surgery", "postoperative", "post-op", "surgical", "operation",
+                              "post surgical", "operative"],
+            "sepsis": ["sepsis", "septic", "bacteremia", "infection", "systemic infection",
+                       "septic shock", "sirs"],
+            "anemia": ["anemia", "low hemoglobin", "low hgb", "iron deficiency", "blood loss"],
+            "bleeding": ["bleeding", "hemorrhage", "bleed", "blood loss", "gi bleed",
+                        "gastrointestinal bleeding", "coagulopathy"],
         }
 
         conditions_lower = [c.lower() for c in conditions]
 
         for criterion in definition.criteria:
             criterion_name = criterion.name.lower()
-            keywords = condition_keywords.get(criterion_name, [criterion_name])
+            # Handle underscore vs space variants
+            criterion_variants = [criterion_name, criterion_name.replace("_", " ")]
+            keywords = condition_keywords.get(criterion_name, criterion_variants)
 
             for condition in conditions_lower:
                 for keyword in keywords:
-                    if keyword in condition:
+                    if keyword in condition or condition in keyword:
+                        inputs[criterion.name] = True
+                        break
+                # Also check if criterion name itself matches
+                for variant in criterion_variants:
+                    if variant in condition:
                         inputs[criterion.name] = True
                         break
 

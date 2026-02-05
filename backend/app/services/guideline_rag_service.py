@@ -353,31 +353,105 @@ class GuidelineRAGService:
                     f"Topic match: {', '.join(sorted(topic_matches))}"
                 )
 
-            # Condition match: up to +0.15 (scaled by overlap count)
+            # Condition match: up to +0.25 (scaled by match quality)
+            # First check exact matches
             condition_overlap = conditions & section_conditions
+            partial_condition_matches: set[str] = set()
+
+            # Then check partial/fuzzy matches for conditions not exactly matched
+            # E.g., patient "type 2 diabetes mellitus" should match guideline "diabetes"
+            if not condition_overlap:
+                for pc in conditions:
+                    for sc in section_conditions:
+                        # Skip if already matched exactly
+                        if pc == sc:
+                            continue
+                        # Check if guideline condition is substring of patient condition
+                        # or patient condition is substring of guideline condition
+                        if sc in pc or pc in sc:
+                            partial_condition_matches.add(f"{pc}~{sc}")
+                        # Also check word-level overlap (e.g., "diabetes" word in both)
+                        pc_words = set(pc.split())
+                        sc_words = set(sc.split())
+                        common_words = pc_words & sc_words
+                        # If they share a meaningful word (length > 3), consider it a match
+                        if any(len(w) > 3 for w in common_words):
+                            partial_condition_matches.add(f"{pc}~{sc}")
+
             if condition_overlap:
-                cond_score = min(0.15, len(condition_overlap) * 0.05)
+                # Exact match gets higher score
+                cond_score = min(0.20, len(condition_overlap) * 0.07)
                 scored[idx] += cond_score
                 reasons[idx].append(
                     f"Condition match: {', '.join(sorted(condition_overlap))}"
                 )
+            elif partial_condition_matches:
+                # Partial matches get slightly lower score
+                cond_score = min(0.15, len(partial_condition_matches) * 0.05)
+                scored[idx] += cond_score
+                # Format the partial matches for display
+                match_display = [m.split('~')[1] for m in partial_condition_matches]
+                reasons[idx].append(
+                    f"Partial condition match: {', '.join(sorted(set(match_display)))}"
+                )
 
-            # Medication match: up to +0.10 (scaled by overlap count)
+            # Medication match: up to +0.12 (scaled by match quality)
             medication_overlap = medications & section_medications
+            partial_medication_matches: set[str] = set()
+
+            if not medication_overlap:
+                for pm in medications:
+                    for sm in section_medications:
+                        if pm == sm:
+                            continue
+                        # Check substring matches (e.g., "metformin" in "metformin hcl")
+                        if sm in pm or pm in sm:
+                            partial_medication_matches.add(f"{pm}~{sm}")
+
             if medication_overlap:
-                med_score = min(0.10, len(medication_overlap) * 0.03)
+                med_score = min(0.12, len(medication_overlap) * 0.04)
                 scored[idx] += med_score
                 reasons[idx].append(
                     f"Medication match: {', '.join(sorted(medication_overlap))}"
                 )
+            elif partial_medication_matches:
+                med_score = min(0.08, len(partial_medication_matches) * 0.03)
+                scored[idx] += med_score
+                match_display = [m.split('~')[1] for m in partial_medication_matches]
+                reasons[idx].append(
+                    f"Partial medication match: {', '.join(sorted(set(match_display)))}"
+                )
 
-            # Measurement match: up to +0.10 (scaled by overlap count)
+            # Measurement match: up to +0.12 (scaled by match quality)
             measurement_overlap = measurements & section_measurements
+            partial_measurement_matches: set[str] = set()
+
+            if not measurement_overlap:
+                for pm in measurements:
+                    for sm in section_measurements:
+                        if pm == sm:
+                            continue
+                        # Check substring matches (e.g., "a1c" in "hemoglobin a1c")
+                        if sm in pm or pm in sm:
+                            partial_measurement_matches.add(f"{pm}~{sm}")
+                        # Word overlap check
+                        pm_words = set(pm.split())
+                        sm_words = set(sm.split())
+                        if pm_words & sm_words:
+                            partial_measurement_matches.add(f"{pm}~{sm}")
+
             if measurement_overlap:
-                meas_score = min(0.10, len(measurement_overlap) * 0.03)
+                meas_score = min(0.12, len(measurement_overlap) * 0.04)
                 scored[idx] += meas_score
                 reasons[idx].append(
                     f"Measurement match: {', '.join(sorted(measurement_overlap))}"
+                )
+            elif partial_measurement_matches:
+                meas_score = min(0.08, len(partial_measurement_matches) * 0.03)
+                scored[idx] += meas_score
+                match_display = [m.split('~')[1] for m in partial_measurement_matches]
+                reasons[idx].append(
+                    f"Partial measurement match: {', '.join(sorted(set(match_display)))}"
                 )
 
         # Filter, sort, and return
