@@ -140,7 +140,7 @@ class Settings(BaseSettings):
     # Ontology Feature Flags (Phase 2-4 rollout)
     enable_concept_mapping: bool = False  # Phase 2: Map entities to OMOP concept_ids
     use_ontology_edges: bool = False  # Phase 3: Use OMOP relationships for edges
-    enable_temporal_extraction: bool = False  # Phase 4: Extract dates from text
+    enable_temporal_extraction: bool = True  # Phase 4: Extract dates from text
 
     # FHIR Configuration (VP-Round51: Centralized from fhir.py)
     # Comma-separated list of allowed FHIR servers for SSRF prevention

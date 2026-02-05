@@ -130,7 +130,7 @@ services:
       # Ontology Feature Flags (Phase 2-4)
       ENABLE_CONCEPT_MAPPING: ${ENABLE_CONCEPT_MAPPING:-true}
       USE_ONTOLOGY_EDGES: ${USE_ONTOLOGY_EDGES:-true}
-      ENABLE_TEMPORAL_EXTRACTION: ${ENABLE_TEMPORAL_EXTRACTION:-false}
+      ENABLE_TEMPORAL_EXTRACTION: ${ENABLE_TEMPORAL_EXTRACTION:-true}
     ports:
       - "8080:8000"
     volumes:

@@ -38,6 +38,7 @@ from app.services.multi_agent_orchestrator import (
 from app.services.nlp_rule_based import RuleBasedNLPService
 from app.services.provenance_db_service import get_provenance_db_service
 from app.services.concept_lookup import lookup_concept_cached
+from app.services.temporal_extractor import TemporalExtractor, extract_entity_dates
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -543,11 +544,45 @@ async def bulk_import_documents(
         try:
             mentions = nlp_service.extract_mentions(note.text, doc_id)
 
+            # Phase 4: Extract temporal expressions if enabled
+            entity_dates: dict[str, datetime] = {}
+            if settings.enable_temporal_extraction and mentions:
+                try:
+                    # Parse document date if available
+                    doc_date = None
+                    if note.date:
+                        try:
+                            doc_date = datetime.strptime(note.date, "%Y-%m-%d")
+                        except ValueError:
+                            pass
+
+                    # Build entity list for temporal binding
+                    entity_info = [
+                        {
+                            "text": m.text,
+                            "start": m.start_offset,
+                            "end": m.end_offset,
+                        }
+                        for m in mentions
+                    ]
+
+                    # Extract dates and bind to entities
+                    entity_dates = extract_entity_dates(note.text, entity_info, doc_date)
+                    if entity_dates:
+                        logger.debug(f"Extracted {len(entity_dates)} temporal bindings for note {note.note_id}")
+                except Exception as te:
+                    logger.warning(f"Temporal extraction failed for note {note.note_id}: {te}")
+
             note_entities: list[ExtractedEntity] = []
             for mention in mentions:
                 # Map domain_hint to entity_type (Condition, Drug, etc.)
                 domain = getattr(mention, 'domain_hint', None) or 'OBSERVATION'
                 entity_type = domain.upper() if domain else 'OBSERVATION'
+
+                # Get extracted date for this entity if available
+                event_date_str = None
+                if mention.text in entity_dates:
+                    event_date_str = entity_dates[mention.text].isoformat()
 
                 entity = ExtractedEntity(
                     text=mention.text,
@@ -556,6 +591,8 @@ async def bulk_import_documents(
                     assertion=str(getattr(mention, 'assertion', 'PRESENT')),
                     omop_concept_id=getattr(mention, 'omop_concept_id', None),
                     note_id=note.note_id,
+                    event_date=event_date_str,
+                    document_date=note.date,
                 )
                 note_entities.append(entity)
                 all_entities.append(entity)
@@ -1199,17 +1236,42 @@ async def _build_patient_knowledge_graph(
             # Avoid duplicate edges (check if already created by treatment_map)
             edge_key = f"{source_node_id}:{target_node_id}:{edge_type}"
 
-            # Create OMOP-derived relationship edge
+            # Calculate temporal ordering if both entities have event dates
+            temporal_order = None
+            source_date = entity_event_dates.get(source_node_id)
+            target_date = entity_event_dates.get(target_node_id)
+
+            if source_date and target_date:
+                # For drug_treats: drug started AFTER condition = "after"
+                # For condition_treated_by: condition before drug = "before"
+                if edge_type == EdgeType.DRUG_TREATS:
+                    if source_date > target_date:
+                        temporal_order = "after"  # Drug follows condition
+                    elif source_date < target_date:
+                        temporal_order = "before"  # Drug precedes condition (unusual)
+                    else:
+                        temporal_order = "concurrent"
+                elif edge_type == EdgeType.CONDITION_TREATED_BY:
+                    if target_date > source_date:
+                        temporal_order = "after"  # Treatment follows condition
+                    elif target_date < source_date:
+                        temporal_order = "before"
+                    else:
+                        temporal_order = "concurrent"
+
+            # Create OMOP-derived relationship edge with temporal ordering
             omop_edge = KGEdge(
                 id=str(uuid4()),
                 patient_id=patient_id,
                 source_node_id=source_node_id,
                 target_node_id=target_node_id,
                 edge_type=edge_type,
+                temporal_order=temporal_order,
                 properties={
                     "source": "omop_concept_relationship",
                     "relationship_id": rel_type,
                     "inferred": True,
+                    "temporal_ordering_source": "event_date_comparison" if temporal_order else None,
                 },
             )
             db.add(omop_edge)
