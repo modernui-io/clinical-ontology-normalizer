@@ -23,13 +23,21 @@ class NodeType(str, Enum):
 class EdgeType(str, Enum):
     """Types of edges in the knowledge graph."""
 
+    # Patient -> Entity edges
     HAS_CONDITION = "has_condition"
     TAKES_DRUG = "takes_drug"
     HAS_MEASUREMENT = "has_measurement"
     HAS_PROCEDURE = "has_procedure"
     HAS_OBSERVATION = "has_observation"
+
+    # Entity -> Entity edges (clinical relationships)
     CONDITION_TREATED_BY = "condition_treated_by"
     DRUG_TREATS = "drug_treats"
+    SYMPTOM_OF = "symptom_of"  # Symptom -> Condition relationship
+    MONITORS = "monitors"  # Measurement -> Condition relationship
+    RELATED_TO = "related_to"  # Generic entity relationship
+    MAY_CAUSE = "may_cause"  # Drug -> Side effect relationship
+    CONTRAINDICATED_WITH = "contraindicated_with"  # Drug -> Drug/Condition contraindication
 
 
 class TemporalOrder(str, Enum):

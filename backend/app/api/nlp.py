@@ -26,6 +26,87 @@ router = APIRouter(prefix="/nlp", tags=["NLP"])
 
 
 # ============================================================================
+# Document Chunking for Large Documents
+# ============================================================================
+
+# Threshold for chunking (10KB)
+CHUNK_THRESHOLD_BYTES = 10000
+
+
+def chunk_clinical_document(text: str, max_chunk_size: int = 8000) -> list[str]:
+    """Split large clinical documents into chunks by note boundaries.
+
+    Looks for common note delimiters:
+    - "NOTE 01", "NOTE 02", etc.
+    - "======" separators
+    - "---" separators
+    - Date headers like "2025-03-04"
+
+    Args:
+        text: The full clinical document text
+        max_chunk_size: Maximum characters per chunk
+
+    Returns:
+        List of text chunks
+    """
+    import re
+
+    # If small enough, return as single chunk
+    if len(text) <= max_chunk_size:
+        return [text]
+
+    # Try to split by note boundaries
+    # Pattern matches "NOTE XX" or "========" separators
+    note_pattern = re.compile(
+        r'(?=={5,}[\s\n]*NOTE\s+\d+|'  # ===== NOTE 01
+        r'(?:^|\n)NOTE\s+\d+\s*[-–—]|'  # NOTE 01 -
+        r'(?:^|\n)={10,}|'  # ========== (10+ equals)
+        r'(?:^|\n)-{10,})',  # ---------- (10+ dashes)
+        re.IGNORECASE | re.MULTILINE
+    )
+
+    # Find all note boundaries
+    boundaries = [0]
+    for match in note_pattern.finditer(text):
+        boundaries.append(match.start())
+    boundaries.append(len(text))
+
+    # Create chunks from boundaries
+    chunks = []
+    current_chunk = ""
+
+    for i in range(len(boundaries) - 1):
+        segment = text[boundaries[i]:boundaries[i + 1]]
+
+        # If adding this segment exceeds max size, save current and start new
+        if len(current_chunk) + len(segment) > max_chunk_size and current_chunk:
+            chunks.append(current_chunk.strip())
+            current_chunk = segment
+        else:
+            current_chunk += segment
+
+    # Don't forget the last chunk
+    if current_chunk.strip():
+        chunks.append(current_chunk.strip())
+
+    # If we couldn't split by notes, fall back to simple character split
+    if len(chunks) <= 1 and len(text) > max_chunk_size:
+        chunks = []
+        for i in range(0, len(text), max_chunk_size):
+            # Try to break at sentence boundary
+            end = min(i + max_chunk_size, len(text))
+            if end < len(text):
+                # Look for sentence end near boundary
+                last_period = text.rfind('.', i + max_chunk_size - 500, end)
+                if last_period > i:
+                    end = last_period + 1
+            chunks.append(text[i:end].strip())
+
+    logger.info(f"Split document ({len(text)} chars) into {len(chunks)} chunks")
+    return chunks
+
+
+# ============================================================================
 # Enums (matching service enums for API layer)
 # ============================================================================
 
@@ -205,6 +286,10 @@ class ExtractResponse(BaseModel):
     )
     processing_time_ms: float = Field(..., description="Processing time in milliseconds")
     model_used: str = Field(..., description="Model used for extraction")
+    # Chunking info (for large documents)
+    chunks_processed: int | None = Field(
+        None, description="Number of chunks processed (if document was split)"
+    )
     # Optional fact/graph creation stats (populated when create_facts=True)
     facts_created: int | None = Field(
         None, description="Number of ClinicalFacts created (if create_facts=True)"
@@ -376,6 +461,58 @@ async def extract_entities(request: ExtractRequest) -> ExtractResponse:
             AssertionStatus,
             ClinicalSection,
         )
+
+        # ====================================================================
+        # Auto-chunking for large documents
+        # ====================================================================
+        if len(request.text) > CHUNK_THRESHOLD_BYTES:
+            logger.info(f"Large document detected ({len(request.text)} bytes), using chunking")
+            chunks = chunk_clinical_document(request.text)
+
+            if len(chunks) > 1:
+                # Process each chunk and merge results
+                all_entities: list[ExtractedEntityResponse] = []
+                all_sections: list[SectionSpanResponse] = []
+                total_processing_time = 0.0
+                request_id = f"req-{uuid4().hex[:12]}"
+
+                for i, chunk in enumerate(chunks):
+                    logger.info(f"Processing chunk {i+1}/{len(chunks)} ({len(chunk)} chars)")
+                    # Create sub-request for this chunk
+                    from copy import deepcopy
+                    chunk_request = deepcopy(request)
+                    chunk_request.text = chunk
+
+                    # Recursive call for chunk (will not re-chunk since chunk is smaller)
+                    chunk_response = await extract_entities(chunk_request)
+
+                    # Merge entities (adjust offsets for chunks after first)
+                    # Note: offsets are relative to chunk, not original doc
+                    all_entities.extend(chunk_response.entities)
+                    all_sections.extend(chunk_response.sections)
+                    total_processing_time += chunk_response.processing_time_ms
+
+                # Return merged results
+                entities_by_type: dict[str, int] = {}
+                for entity in all_entities:
+                    et = entity.entity_type.value
+                    entities_by_type[et] = entities_by_type.get(et, 0) + 1
+
+                return ExtractResponse(
+                    request_id=request_id,
+                    text_length=len(request.text),
+                    entities=all_entities,
+                    sections=all_sections,
+                    entity_count=len(all_entities),
+                    entities_by_type=entities_by_type,
+                    processing_time_ms=round(total_processing_time, 2),
+                    model_used=request.model_id or "rule_based",
+                    chunks_processed=len(chunks),
+                )
+
+        # ====================================================================
+        # Standard extraction (single document or chunk)
+        # ====================================================================
 
         # Check if using LLM model (MedGemma via Ollama)
         if request.model_id == "llm_api":

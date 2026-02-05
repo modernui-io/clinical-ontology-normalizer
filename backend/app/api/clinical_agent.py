@@ -26,6 +26,7 @@ from app.models.clinical_fact import ClinicalFact
 from app.models.knowledge_graph import KGEdge, KGNode
 from app.models.mention import Mention as MentionModel
 from app.models.provenance import ReasoningStepType
+from app.models.vocabulary import ConceptRelationship
 from app.schemas.base import Domain, JobStatus
 from app.schemas.knowledge_graph import EdgeType, NodeType
 from app.services.graph_augmented_rag import GraphAugmentedRAGService
@@ -257,10 +258,14 @@ class KGEdgeResponse(BaseModel):
     """Knowledge graph edge for API response."""
 
     id: str
-    source_id: str
-    target_id: str
+    source_node_id: str  # Match frontend expected field name
+    target_node_id: str  # Match frontend expected field name
     edge_type: str
     properties: dict
+    # Temporal fields
+    temporality: str | None = None
+    temporal_order: str | None = None
+    event_date: str | None = None
 
 
 class PatientGraphResponse(BaseModel):
@@ -391,6 +396,85 @@ def _parse_date(date_str: str | None) -> datetime | None:
     except (ValueError, TypeError):
         logger.warning(f"Could not parse date: {date_str}")
         return None
+
+
+# OMOP relationship types that create entity-to-entity edges
+OMOP_CLINICAL_RELATIONSHIPS = {
+    # Drug-Condition relationships
+    "May treat": EdgeType.DRUG_TREATS,
+    "Treats of": EdgeType.DRUG_TREATS,
+    "Indication of": EdgeType.DRUG_TREATS,
+    # Drug-Drug relationships (can expand EdgeType if needed)
+    "Ingredient of": None,  # Skip ingredient relationships for now
+    "Tradename of": None,
+    "Has tradename": None,
+    # Hierarchical relationships
+    "Is a": None,  # Skip hierarchy for entity edges
+    "Subsumes": None,
+    # Mapping relationships (skip - used for vocabulary mapping)
+    "Maps to": None,
+    "Mapped from": None,
+}
+
+
+async def _query_omop_relationships(
+    db: AsyncSession,
+    entity_concept_ids: dict[int, str],  # omop_concept_id -> node_id
+) -> list[tuple[str, str, str, str]]:
+    """Query OMOP ConceptRelationship table for relationships between entities.
+
+    Args:
+        db: Database session
+        entity_concept_ids: Mapping of OMOP concept IDs to node IDs
+
+    Returns:
+        List of (source_node_id, target_node_id, relationship_type, edge_type) tuples
+    """
+    if len(entity_concept_ids) < 2:
+        return []
+
+    concept_ids = list(entity_concept_ids.keys())
+    relationships = []
+
+    try:
+        # Query relationships where both concepts are in our entity set
+        from sqlalchemy import and_, or_
+
+        result = await db.execute(
+            select(ConceptRelationship).where(
+                and_(
+                    ConceptRelationship.concept_id_1.in_(concept_ids),
+                    ConceptRelationship.concept_id_2.in_(concept_ids),
+                    ConceptRelationship.invalid_reason.is_(None),  # Only valid relationships
+                )
+            )
+        )
+        omop_rels = result.scalars().all()
+
+        for rel in omop_rels:
+            rel_type = rel.relationship_id
+
+            # Check if this is a clinical relationship we want to create edges for
+            if rel_type in OMOP_CLINICAL_RELATIONSHIPS:
+                edge_type = OMOP_CLINICAL_RELATIONSHIPS[rel_type]
+                if edge_type is not None:
+                    source_node = entity_concept_ids.get(rel.concept_id_1)
+                    target_node = entity_concept_ids.get(rel.concept_id_2)
+
+                    if source_node and target_node:
+                        relationships.append((
+                            source_node,
+                            target_node,
+                            rel_type,
+                            edge_type,
+                        ))
+
+        logger.info(f"Found {len(relationships)} OMOP relationships between {len(concept_ids)} entities")
+
+    except Exception as e:
+        logger.warning(f"Failed to query OMOP relationships: {e}")
+
+    return relationships
 
 
 # =============================================================================
@@ -646,6 +730,7 @@ async def _build_patient_knowledge_graph(
     # Include assertion in key to allow both "HIV present" and "HIV absent" nodes
     seen_entities: dict[str, str] = {}  # (text_lower, type, assertion) -> node_id
     entity_event_dates: dict[str, datetime] = {}  # node_id -> event_date (for temporal ordering)
+    entity_concept_ids: dict[int, str] = {}  # omop_concept_id -> node_id (for OMOP relationships)
     conditions: list[str] = []
     medications: list[str] = []
     measurements: list[str] = []
@@ -712,6 +797,10 @@ async def _build_patient_knowledge_graph(
             seen_entities[entity_key] = node_id
             node_count += 1
 
+            # Track OMOP concept ID for relationship lookup
+            if entity.omop_concept_id:
+                entity_concept_ids[entity.omop_concept_id] = node_id
+
             # Create edge from patient to entity with temporal + provenance
             edge_type = _node_type_to_edge_type(node_type)
 
@@ -776,18 +865,111 @@ async def _build_patient_knowledge_graph(
             continue
         drug_text = drug_key.split("|")[0]
 
-        # Simple matching: metformin -> diabetes, lisinopril -> hypertension
+        # Expanded drug -> condition treatment mappings
         treatment_map = {
-            "metformin": ["diabetes", "dm", "dm2", "type 2 diabetes"],
-            "lisinopril": ["hypertension", "htn", "high blood pressure"],
-            "atorvastatin": ["hyperlipidemia", "cholesterol"],
-            "aspirin": ["coronary", "cad", "mi", "heart"],
-            "furosemide": ["heart failure", "chf", "edema", "hfref"],
-            "carvedilol": ["heart failure", "chf", "hfref"],
-            "apixaban": ["afib", "atrial fibrillation", "dvt", "pe"],
-            "warfarin": ["afib", "atrial fibrillation", "dvt"],
-            "amlodipine": ["hypertension", "htn"],
-            "insulin": ["diabetes", "dm", "dm2"],
+            # Diabetes medications
+            "metformin": ["diabetes", "dm", "dm2", "type 2 diabetes", "hyperglycemia"],
+            "insulin": ["diabetes", "dm", "dm2", "type 1 diabetes", "hyperglycemia"],
+            "glipizide": ["diabetes", "dm", "dm2", "type 2 diabetes"],
+            "sitagliptin": ["diabetes", "dm", "dm2", "type 2 diabetes"],
+            "empagliflozin": ["diabetes", "dm", "dm2", "type 2 diabetes", "heart failure"],
+            # Cardiovascular medications
+            "lisinopril": ["hypertension", "htn", "high blood pressure", "heart failure", "chf"],
+            "amlodipine": ["hypertension", "htn", "high blood pressure"],
+            "losartan": ["hypertension", "htn", "high blood pressure"],
+            "metoprolol": ["hypertension", "htn", "heart failure", "afib", "atrial fibrillation"],
+            "carvedilol": ["heart failure", "chf", "hfref", "hypertension"],
+            "furosemide": ["heart failure", "chf", "edema", "hfref", "fluid overload"],
+            "spironolactone": ["heart failure", "chf", "hfref", "ascites"],
+            # Anticoagulants
+            "aspirin": ["coronary", "cad", "mi", "heart", "stroke", "cardiovascular"],
+            "apixaban": ["afib", "atrial fibrillation", "dvt", "pe", "pulmonary embolism"],
+            "warfarin": ["afib", "atrial fibrillation", "dvt", "pe", "mechanical valve"],
+            "rivaroxaban": ["afib", "atrial fibrillation", "dvt", "pe"],
+            # Lipid medications
+            "atorvastatin": ["hyperlipidemia", "cholesterol", "high cholesterol", "dyslipidemia", "cad"],
+            "rosuvastatin": ["hyperlipidemia", "cholesterol", "high cholesterol", "dyslipidemia"],
+            "simvastatin": ["hyperlipidemia", "cholesterol", "high cholesterol", "dyslipidemia"],
+            # HIV medications
+            "biktarvy": ["hiv", "aids", "human immunodeficiency virus"],
+            "descovy": ["hiv", "aids", "prep", "human immunodeficiency virus"],
+            "truvada": ["hiv", "aids", "prep", "human immunodeficiency virus"],
+            "dovato": ["hiv", "aids", "human immunodeficiency virus"],
+            "genvoya": ["hiv", "aids", "human immunodeficiency virus"],
+            "triumeq": ["hiv", "aids", "human immunodeficiency virus"],
+            # Pain medications
+            "gabapentin": ["neuropathy", "nerve pain", "neuropathic pain", "seizure", "epilepsy"],
+            "pregabalin": ["neuropathy", "nerve pain", "neuropathic pain", "fibromyalgia"],
+            "acetaminophen": ["pain", "fever", "headache"],
+            "ibuprofen": ["pain", "inflammation", "arthritis", "fever"],
+            "tramadol": ["pain", "chronic pain"],
+            # Respiratory medications
+            "albuterol": ["asthma", "copd", "wheezing", "bronchospasm"],
+            "fluticasone": ["asthma", "copd", "allergic rhinitis"],
+            "montelukast": ["asthma", "allergic rhinitis", "allergies"],
+            # GI medications
+            "omeprazole": ["gerd", "acid reflux", "peptic ulcer", "gastritis"],
+            "pantoprazole": ["gerd", "acid reflux", "peptic ulcer", "gastritis"],
+            # Psychiatric medications
+            "sertraline": ["depression", "anxiety", "ptsd", "ocd"],
+            "fluoxetine": ["depression", "anxiety", "ocd", "panic disorder"],
+            "escitalopram": ["depression", "anxiety", "gad"],
+            "bupropion": ["depression", "smoking cessation"],
+            "quetiapine": ["bipolar", "schizophrenia", "depression"],
+            # Antibiotics - oral
+            "amoxicillin": ["infection", "bacterial infection", "pneumonia", "sinusitis"],
+            "azithromycin": ["infection", "bacterial infection", "pneumonia", "bronchitis"],
+            "ciprofloxacin": ["infection", "uti", "urinary tract infection"],
+            "doxycycline": ["infection", "bacterial infection", "acne", "rosacea"],
+            "levofloxacin": ["infection", "pneumonia", "uti", "sinusitis"],
+            "metronidazole": ["infection", "c diff", "bacterial vaginosis", "h pylori"],
+            # Antibiotics - IV/Hospital
+            "tmp-smx": ["infection", "uti", "pcp", "pneumocystis", "pneumonia", "mrsa"],
+            "bactrim": ["infection", "uti", "pcp", "pneumocystis", "pneumonia", "mrsa"],
+            "sulfamethoxazole": ["infection", "uti", "pcp", "pneumocystis", "pneumonia"],
+            "vancomycin": ["infection", "mrsa", "c diff", "endocarditis", "osteomyelitis", "sepsis"],
+            "vanc": ["infection", "mrsa", "c diff", "endocarditis", "osteomyelitis", "sepsis"],
+            "linezolid": ["infection", "mrsa", "vre", "pneumonia", "skin infection"],
+            "daptomycin": ["infection", "mrsa", "vre", "bacteremia", "endocarditis", "skin infection"],
+            "ceftriaxone": ["infection", "pneumonia", "meningitis", "gonorrhea", "sepsis"],
+            "cefepime": ["infection", "pneumonia", "febrile neutropenia", "sepsis", "uti"],
+            "piperacillin": ["infection", "pneumonia", "sepsis", "intraabdominal"],
+            "meropenem": ["infection", "sepsis", "pneumonia", "meningitis", "intraabdominal"],
+            "cefazolin": ["infection", "skin infection", "surgical prophylaxis"],
+            "ampicillin": ["infection", "endocarditis", "meningitis", "listeria"],
+            "gentamicin": ["infection", "endocarditis", "sepsis", "uti"],
+            "tobramycin": ["infection", "pneumonia", "cystic fibrosis", "sepsis"],
+            "micafungin": ["fungal infection", "candida", "candidemia"],
+            "fluconazole": ["fungal infection", "candida", "thrush", "cryptococcus"],
+            "acyclovir": ["herpes", "hsv", "vzv", "shingles", "viral infection"],
+            # Sedatives/Pain - Hospital
+            "fentanyl": ["pain", "sedation", "anesthesia"],
+            "hydromorphone": ["pain", "severe pain"],
+            "morphine": ["pain", "severe pain", "dyspnea"],
+            "oxycodone": ["pain", "chronic pain"],
+            "ketamine": ["pain", "sedation", "anesthesia"],
+            "propofol": ["sedation", "anesthesia"],
+            "midazolam": ["sedation", "anxiety", "seizure"],
+            "lorazepam": ["anxiety", "sedation", "seizure", "alcohol withdrawal"],
+            "haloperidol": ["agitation", "delirium", "psychosis"],
+            "olanzapine": ["agitation", "schizophrenia", "bipolar"],
+            # Other hospital drugs
+            "heparin": ["anticoagulation", "dvt", "pe", "afib", "vte prophylaxis"],
+            "enoxaparin": ["anticoagulation", "dvt", "pe", "vte prophylaxis"],
+            "insulin": ["diabetes", "hyperglycemia", "dka", "hhs"],
+            "norepinephrine": ["septic shock", "hypotension", "shock"],
+            "vasopressin": ["septic shock", "hypotension", "shock", "diabetes insipidus"],
+            "dobutamine": ["cardiogenic shock", "heart failure"],
+            "dopamine": ["shock", "hypotension", "bradycardia"],
+            "epinephrine": ["anaphylaxis", "cardiac arrest", "asthma", "shock"],
+            "naloxone": ["opioid overdose", "opioid reversal"],
+            "flumazenil": ["benzodiazepine overdose", "sedation reversal"],
+            "pantoprazole": ["gerd", "stress ulcer prophylaxis", "gi bleed"],
+            "famotidine": ["gerd", "stress ulcer prophylaxis"],
+            "ondansetron": ["nausea", "vomiting", "chemotherapy"],
+            "metoclopramide": ["nausea", "gastroparesis", "ileus"],
+            "lactulose": ["hepatic encephalopathy", "constipation"],
+            "albumin": ["hypoalbuminemia", "ascites", "spontaneous bacterial peritonitis"],
         }
 
         for drug_pattern, condition_patterns in treatment_map.items():
@@ -827,6 +1009,171 @@ async def _build_patient_knowledge_graph(
                         )
                         db.add(treats_edge)
                         edge_count += 1
+
+    # Create symptom -> condition associations
+    # This helps connect symptoms (extracted as CONDITIONS) to their likely diagnoses
+    symptom_condition_map = {
+        # Pain symptoms
+        "muscle pain": ["myalgia", "fibromyalgia", "statin", "rhabdomyolysis", "polymyalgia"],
+        "joint pain": ["arthritis", "rheumatoid", "osteoarthritis", "gout", "lupus"],
+        "chest pain": ["angina", "coronary", "cad", "mi", "heart attack", "gerd", "costochondritis"],
+        "headache": ["migraine", "tension headache", "hypertension", "intracranial"],
+        "back pain": ["degenerative disc", "herniated", "spinal stenosis", "sciatica"],
+        "abdominal pain": ["gastritis", "peptic ulcer", "appendicitis", "pancreatitis", "gerd"],
+        # Respiratory symptoms
+        "shortness of breath": ["heart failure", "chf", "copd", "asthma", "pneumonia", "pulmonary"],
+        "dyspnea": ["heart failure", "chf", "copd", "asthma", "pulmonary embolism"],
+        "cough": ["pneumonia", "bronchitis", "copd", "asthma", "heart failure", "gerd"],
+        "wheezing": ["asthma", "copd", "bronchitis", "allergic"],
+        # Cardiovascular symptoms
+        "palpitations": ["afib", "atrial fibrillation", "arrhythmia", "anxiety"],
+        "edema": ["heart failure", "chf", "kidney", "renal", "venous insufficiency"],
+        "syncope": ["arrhythmia", "hypotension", "vasovagal", "cardiac"],
+        # GI symptoms
+        "nausea": ["gastritis", "gerd", "gastroparesis", "pregnancy", "medication side effect"],
+        "vomiting": ["gastroenteritis", "obstruction", "gastroparesis", "pregnancy"],
+        "diarrhea": ["gastroenteritis", "ibd", "crohn", "colitis", "c diff"],
+        "constipation": ["ibs", "hypothyroid", "medication side effect", "obstruction"],
+        # Neurological symptoms
+        "dizziness": ["vertigo", "bppv", "hypotension", "anemia", "stroke"],
+        "fatigue": ["anemia", "hypothyroid", "depression", "heart failure", "diabetes"],
+        "weakness": ["anemia", "neuropathy", "stroke", "myasthenia", "ms"],
+        "numbness": ["neuropathy", "stroke", "ms", "diabetes", "carpal tunnel"],
+        "tingling": ["neuropathy", "diabetes", "b12 deficiency", "carpal tunnel"],
+        # Constitutional symptoms
+        "fever": ["infection", "sepsis", "pneumonia", "uti", "viral"],
+        "weight loss": ["cancer", "diabetes", "hyperthyroid", "depression", "hiv"],
+        "weight gain": ["hypothyroid", "heart failure", "cushing", "medication"],
+        "night sweats": ["infection", "tb", "lymphoma", "menopause", "hyperthyroid"],
+        # Mental health symptoms
+        "anxiety": ["gad", "panic disorder", "ptsd", "depression"],
+        "insomnia": ["anxiety", "depression", "sleep apnea", "restless leg"],
+        "depression": ["mdd", "bipolar", "adjustment disorder"],
+    }
+
+    # Find symptom-condition relationships within existing entities
+    for symptom_pattern, condition_patterns in symptom_condition_map.items():
+        # Look for the symptom in conditions (symptoms are often extracted as conditions)
+        for entity_key, symptom_node_id in seen_entities.items():
+            if "|CONDITION" not in entity_key:
+                continue
+            entity_text = entity_key.split("|")[0]
+
+            if symptom_pattern in entity_text.lower():
+                # Found a symptom, look for associated conditions
+                for condition_key, condition_node_id in seen_entities.items():
+                    if condition_key == entity_key:  # Skip self
+                        continue
+                    if "|CONDITION" not in condition_key:
+                        continue
+                    condition_text = condition_key.split("|")[0]
+
+                    if any(cp in condition_text.lower() for cp in condition_patterns):
+                        # Create symptom_of relationship
+                        symptom_edge = KGEdge(
+                            id=str(uuid4()),
+                            patient_id=patient_id,
+                            source_node_id=symptom_node_id,
+                            target_node_id=condition_node_id,
+                            edge_type=EdgeType.SYMPTOM_OF,
+                            properties={
+                                "inferred": True,
+                                "source": "symptom_condition_mapping",
+                            },
+                        )
+                        db.add(symptom_edge)
+                        edge_count += 1
+
+    # Create measurement -> condition associations
+    measurement_condition_map = {
+        "blood pressure": ["hypertension", "htn", "hypotension"],
+        "bp": ["hypertension", "htn", "hypotension"],
+        "glucose": ["diabetes", "dm", "hyperglycemia", "hypoglycemia"],
+        "blood sugar": ["diabetes", "dm", "hyperglycemia", "hypoglycemia"],
+        "a1c": ["diabetes", "dm"],
+        "hemoglobin a1c": ["diabetes", "dm"],
+        "cholesterol": ["hyperlipidemia", "dyslipidemia", "high cholesterol"],
+        "ldl": ["hyperlipidemia", "dyslipidemia", "cad"],
+        "hdl": ["hyperlipidemia", "dyslipidemia"],
+        "triglycerides": ["hyperlipidemia", "dyslipidemia"],
+        "creatinine": ["kidney disease", "ckd", "renal", "aki"],
+        "gfr": ["kidney disease", "ckd", "renal"],
+        "bun": ["kidney disease", "ckd", "renal", "dehydration"],
+        "hemoglobin": ["anemia", "bleeding", "polycythemia"],
+        "hematocrit": ["anemia", "dehydration", "polycythemia"],
+        "platelets": ["thrombocytopenia", "thrombocytosis", "bleeding"],
+        "wbc": ["infection", "leukemia", "leukopenia"],
+        "inr": ["anticoagulation", "warfarin", "bleeding"],
+        "potassium": ["hyperkalemia", "hypokalemia", "arrhythmia"],
+        "sodium": ["hyponatremia", "hypernatremia", "dehydration"],
+        "tsh": ["hypothyroid", "hyperthyroid", "thyroid"],
+        "bmi": ["obesity", "overweight", "underweight"],
+        "weight": ["obesity", "weight loss", "weight gain"],
+        "oxygen saturation": ["hypoxia", "respiratory failure", "copd", "pneumonia"],
+        "o2 sat": ["hypoxia", "respiratory failure", "copd", "pneumonia"],
+        "viral load": ["hiv", "hepatitis"],
+        "cd4": ["hiv", "aids", "immunodeficiency"],
+        "ejection fraction": ["heart failure", "cardiomyopathy", "chf"],
+        "ef": ["heart failure", "cardiomyopathy", "chf"],
+    }
+
+    for measurement_pattern, condition_patterns in measurement_condition_map.items():
+        for entity_key, measurement_node_id in seen_entities.items():
+            if "|MEASUREMENT" not in entity_key:
+                continue
+            entity_text = entity_key.split("|")[0]
+
+            if measurement_pattern in entity_text.lower():
+                for condition_key, condition_node_id in seen_entities.items():
+                    if "|CONDITION" not in condition_key:
+                        continue
+                    condition_text = condition_key.split("|")[0]
+
+                    if any(cp in condition_text.lower() for cp in condition_patterns):
+                        # Create monitors relationship (measurement monitors condition)
+                        monitors_edge = KGEdge(
+                            id=str(uuid4()),
+                            patient_id=patient_id,
+                            source_node_id=measurement_node_id,
+                            target_node_id=condition_node_id,
+                            edge_type=EdgeType.MONITORS,
+                            properties={
+                                "inferred": True,
+                                "source": "measurement_condition_mapping",
+                            },
+                        )
+                        db.add(monitors_edge)
+                        edge_count += 1
+
+    # Query OMOP relationships between entities with concept IDs
+    # This creates entity-to-entity edges based on OMOP concept_relationship table
+    if entity_concept_ids:
+        omop_relationships = await _query_omop_relationships(db, entity_concept_ids)
+
+        for source_node_id, target_node_id, rel_type, edge_type in omop_relationships:
+            # Avoid duplicate edges (check if already created by treatment_map)
+            edge_key = f"{source_node_id}:{target_node_id}:{edge_type}"
+
+            # Create OMOP-derived relationship edge
+            omop_edge = KGEdge(
+                id=str(uuid4()),
+                patient_id=patient_id,
+                source_node_id=source_node_id,
+                target_node_id=target_node_id,
+                edge_type=edge_type,
+                properties={
+                    "source": "omop_concept_relationship",
+                    "relationship_id": rel_type,
+                    "inferred": True,
+                },
+            )
+            db.add(omop_edge)
+            edge_count += 1
+
+        if omop_relationships:
+            logger.info(
+                f"Created {len(omop_relationships)} entity-to-entity edges from OMOP relationships"
+            )
 
     return KnowledgeGraphSummary(
         patient_id=patient_id,
@@ -886,10 +1233,13 @@ async def get_patient_graph(
     edge_responses = [
         KGEdgeResponse(
             id=str(e.id),
-            source_id=str(e.source_node_id),
-            target_id=str(e.target_node_id),
+            source_node_id=str(e.source_node_id),
+            target_node_id=str(e.target_node_id),
             edge_type=e.edge_type.value if hasattr(e.edge_type, 'value') else str(e.edge_type),
             properties=e.properties or {},
+            temporality=e.temporality if hasattr(e, 'temporality') else None,
+            temporal_order=e.temporal_order if hasattr(e, 'temporal_order') else None,
+            event_date=e.event_date.isoformat() if hasattr(e, 'event_date') and e.event_date else None,
         )
         for e in edges
     ]
@@ -1854,6 +2204,25 @@ async def get_fact_lineage(
 
     provenance_svc = get_provenance_db_service()
     chain = await provenance_svc.get_provenance_chain(db, "kg_node", node_id)
+
+    # If no explicit provenance records, create one from node.properties
+    if not chain.get("provenance_records") and node.properties:
+        props = node.properties
+        # Build provenance record from node properties
+        fallback_record = {
+            "extraction_method": props.get("extraction_method", "unknown"),
+            "confidence_score": props.get("extraction_confidence") or props.get("confidence"),
+            "confidence_level": "high" if (props.get("extraction_confidence") or props.get("confidence", 0)) >= 0.8 else "medium",
+            "extracted_text": node.label,
+            "recorded_at": props.get("recorded_at"),
+            "source_notes": props.get("source_notes", []),
+            "assertion": props.get("assertion"),
+            "negation_trigger": props.get("negation_trigger"),
+            "negation_trigger_confidence": props.get("negation_trigger_confidence"),
+        }
+        # Remove None values
+        fallback_record = {k: v for k, v in fallback_record.items() if v is not None}
+        chain["provenance_records"] = [fallback_record]
 
     # Enrich with source document info
     for record in chain.get("provenance_records", []):
