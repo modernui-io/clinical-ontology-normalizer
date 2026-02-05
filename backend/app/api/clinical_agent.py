@@ -401,19 +401,25 @@ def _parse_date(date_str: str | None) -> datetime | None:
 
 
 # OMOP relationship types that create entity-to-entity edges
+# Maps OMOP relationship_id to EdgeType (None = skip this relationship)
 OMOP_CLINICAL_RELATIONSHIPS = {
-    # Drug-Condition relationships
+    # Drug-Condition treatment relationships (67K+ loaded)
     "May treat": EdgeType.DRUG_TREATS,
+    "May be treated by": EdgeType.CONDITION_TREATED_BY,
     "Treats of": EdgeType.DRUG_TREATS,
     "Indication of": EdgeType.DRUG_TREATS,
-    # Drug-Drug relationships (can expand EdgeType if needed)
-    "Ingredient of": None,  # Skip ingredient relationships for now
+    # Contraindication relationships (41K+ loaded)
+    "CI to": EdgeType.CONTRAINDICATED_WITH,
+    "CI by": EdgeType.CONTRAINDICATED_WITH,
+    # Drug-Drug interaction relationships (22K+ loaded)
+    "Has drug-drug inter": EdgeType.DRUG_INTERACTION,
+    "Drug-drug inter for": EdgeType.DRUG_INTERACTION,
+    # Skip these relationships for entity edges
+    "Ingredient of": None,
     "Tradename of": None,
     "Has tradename": None,
-    # Hierarchical relationships
-    "Is a": None,  # Skip hierarchy for entity edges
+    "Is a": None,
     "Subsumes": None,
-    # Mapping relationships (skip - used for vocabulary mapping)
     "Maps to": None,
     "Mapped from": None,
 }
@@ -894,14 +900,18 @@ async def _build_patient_knowledge_graph(
             pass
 
     # Create treatment relationships (Drug -> treats -> Condition)
-    # This is a simplified heuristic - in production use clinical knowledge
-    for drug_key, drug_node_id in seen_entities.items():
-        if "|DRUG" not in drug_key:
-            continue
-        drug_text = drug_key.split("|")[0]
+    # Phase 3: When USE_ONTOLOGY_EDGES=true, skip hardcoded mappings (OMOP relationships used instead)
+    # When USE_ONTOLOGY_EDGES=false, use hardcoded heuristics as fallback
+    hardcoded_edge_count = 0
+    if not settings.use_ontology_edges:
+        logger.info("Using hardcoded treatment mappings (USE_ONTOLOGY_EDGES=false)")
+        for drug_key, drug_node_id in seen_entities.items():
+            if "|DRUG" not in drug_key:
+                continue
+            drug_text = drug_key.split("|")[0]
 
-        # Expanded drug -> condition treatment mappings
-        treatment_map = {
+            # Expanded drug -> condition treatment mappings
+            treatment_map = {
             # Diabetes medications
             "metformin": ["diabetes", "dm", "dm2", "type 2 diabetes", "hyperglycemia"],
             "insulin": ["diabetes", "dm", "dm2", "type 1 diabetes", "hyperglycemia"],

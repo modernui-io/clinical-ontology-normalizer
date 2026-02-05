@@ -38,6 +38,7 @@ class EdgeType(str, Enum):
     RELATED_TO = "related_to"  # Generic entity relationship
     MAY_CAUSE = "may_cause"  # Drug -> Side effect relationship
     CONTRAINDICATED_WITH = "contraindicated_with"  # Drug -> Drug/Condition contraindication
+    DRUG_INTERACTION = "drug_interaction"  # Drug -> Drug interaction (OMOP)
 
 
 class TemporalOrder(str, Enum):
