@@ -131,13 +131,22 @@ async def load_relationships(
 
 async def _insert_relationships_batch(session: AsyncSession, batch: list[dict]) -> None:
     """Insert a batch of relationships."""
+    # Simplify batch to only include columns that exist in the table
+    simplified_batch = [
+        {
+            "concept_id_1": r["concept_id_1"],
+            "concept_id_2": r["concept_id_2"],
+            "relationship_id": r["relationship_id"],
+        }
+        for r in batch
+    ]
     await session.execute(
         text("""
-            INSERT INTO concept_relationships (id, concept_id_1, concept_id_2, relationship_id, valid_start_date, valid_end_date, invalid_reason)
-            VALUES (gen_random_uuid(), :concept_id_1, :concept_id_2, :relationship_id, :valid_start_date, :valid_end_date, :invalid_reason)
+            INSERT INTO concept_relationships (id, concept_id_1, concept_id_2, relationship_id)
+            VALUES (gen_random_uuid(), :concept_id_1, :concept_id_2, :relationship_id)
             ON CONFLICT DO NOTHING
         """),
-        batch
+        simplified_batch
     )
 
 

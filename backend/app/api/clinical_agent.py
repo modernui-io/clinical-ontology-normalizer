@@ -37,6 +37,8 @@ from app.services.multi_agent_orchestrator import (
 )
 from app.services.nlp_rule_based import RuleBasedNLPService
 from app.services.provenance_db_service import get_provenance_db_service
+from app.services.concept_lookup import lookup_concept_cached
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -440,26 +442,31 @@ async def _query_omop_relationships(
         # Query relationships where both concepts are in our entity set
         from sqlalchemy import and_, or_
 
+        # Select only columns that exist in the table
         result = await db.execute(
-            select(ConceptRelationship).where(
+            select(
+                ConceptRelationship.concept_id_1,
+                ConceptRelationship.concept_id_2,
+                ConceptRelationship.relationship_id,
+            ).where(
                 and_(
                     ConceptRelationship.concept_id_1.in_(concept_ids),
                     ConceptRelationship.concept_id_2.in_(concept_ids),
-                    ConceptRelationship.invalid_reason.is_(None),  # Only valid relationships
+                    # Note: Table doesn't have invalid_reason column, all loaded relationships are valid
                 )
             )
         )
-        omop_rels = result.scalars().all()
+        rows = result.fetchall()
 
-        for rel in omop_rels:
-            rel_type = rel.relationship_id
+        for row in rows:
+            concept_id_1, concept_id_2, rel_type = row[0], row[1], row[2]
 
             # Check if this is a clinical relationship we want to create edges for
             if rel_type in OMOP_CLINICAL_RELATIONSHIPS:
                 edge_type = OMOP_CLINICAL_RELATIONSHIPS[rel_type]
                 if edge_type is not None:
-                    source_node = entity_concept_ids.get(rel.concept_id_1)
-                    target_node = entity_concept_ids.get(rel.concept_id_2)
+                    source_node = entity_concept_ids.get(concept_id_1)
+                    target_node = entity_concept_ids.get(concept_id_2)
 
                     if source_node and target_node:
                         relationships.append((
@@ -744,6 +751,34 @@ async def _build_patient_knowledge_graph(
         # Skip low confidence entities
         if entity.confidence < 0.5:
             continue
+
+        # Phase 2: Map entity to OMOP concept_id if enabled
+        if settings.enable_concept_mapping and not entity.omop_concept_id:
+            try:
+                # Map entity_type to domain for lookup
+                domain = entity.entity_type.upper()
+                if domain == "CONDITION":
+                    domain = "Condition"
+                elif domain in ("DRUG", "MEDICATION"):
+                    domain = "Drug"
+                elif domain in ("MEASUREMENT", "LAB"):
+                    domain = "Measurement"
+                elif domain == "PROCEDURE":
+                    domain = "Procedure"
+                else:
+                    domain = None
+
+                # Use savepoint for concept lookup so failures don't affect main transaction
+                async with db.begin_nested():
+                    concept_match = await lookup_concept_cached(db, entity.text, domain)
+                    if concept_match:
+                        entity.omop_concept_id = concept_match.concept_id
+                        logger.debug(
+                            f"Mapped '{entity.text}' -> concept_id {concept_match.concept_id} "
+                            f"({concept_match.concept_name}, {concept_match.vocabulary_id})"
+                        )
+            except Exception as e:
+                logger.warning(f"Concept lookup failed for '{entity.text}': {e}")
 
         # Map assertion to temporality for bi-temporal tracking
         # PRESENT -> current, ABSENT -> ruled_out, POSSIBLE -> uncertain

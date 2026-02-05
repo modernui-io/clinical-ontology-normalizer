@@ -127,6 +127,10 @@ services:
       API_KEY: ${API_KEY:-dev-api-key-change-in-production}
       CON_API_KEYS: ${CON_API_KEYS:-}
       USE_DB_VOCABULARY: ${USE_DB_VOCABULARY:-false}
+      # Ontology Feature Flags (Phase 2-4)
+      ENABLE_CONCEPT_MAPPING: ${ENABLE_CONCEPT_MAPPING:-true}
+      USE_ONTOLOGY_EDGES: ${USE_ONTOLOGY_EDGES:-false}
+      ENABLE_TEMPORAL_EXTRACTION: ${ENABLE_TEMPORAL_EXTRACTION:-false}
     ports:
       - "8080:8000"
     volumes:
