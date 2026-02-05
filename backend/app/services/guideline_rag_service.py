@@ -4,6 +4,10 @@ Loads clinical guideline sections from a fixture file, embeds them using
 EmbeddingService, and provides semantic search with keyword boosting based
 on patient context (conditions, medications, measurements).
 
+Now enhanced with OMOP hierarchy support via Neo4j - patient condition
+"Type 2 diabetes mellitus" will match guidelines for "diabetes" via
+IS_A relationship traversal.
+
 This module uses a singleton pattern consistent with VocabularyService
 and LLMService.
 """
@@ -19,6 +23,39 @@ from threading import Lock
 from typing import ClassVar
 
 logger = logging.getLogger(__name__)
+
+
+def _expand_conditions_with_hierarchy(conditions: set[str]) -> set[str]:
+    """Expand patient conditions using OMOP hierarchy.
+
+    Patient with "type 2 diabetes mellitus" will also match against
+    "diabetes mellitus", "disorder of glucose metabolism", etc.
+    """
+    if not conditions:
+        return conditions
+
+    expanded = set(conditions)
+
+    try:
+        from app.services.omop_hierarchy_service import get_omop_hierarchy_service
+
+        hierarchy = get_omop_hierarchy_service()
+        if hierarchy.is_available:
+            for condition in conditions:
+                # Get ancestor names for this condition
+                ancestor_names = hierarchy.expand_condition_names(
+                    condition, max_distance=3
+                )
+                expanded.update(ancestor_names)
+                if ancestor_names - {condition.lower()}:
+                    logger.debug(
+                        f"Hierarchy expanded '{condition}' to include: "
+                        f"{ancestor_names - {condition.lower()}}"
+                    )
+    except Exception as e:
+        logger.warning(f"Hierarchy expansion failed, using original conditions: {e}")
+
+    return expanded
 
 # Singleton instance and lock for thread-safe initialization
 _guideline_rag_instance: "GuidelineRAGService | None" = None
@@ -192,7 +229,9 @@ class GuidelineRAGService:
         if not self._sections:
             return []
 
-        conditions = {c.lower() for c in (patient_conditions or [])}
+        # Expand conditions using OMOP hierarchy
+        raw_conditions = {c.lower() for c in (patient_conditions or [])}
+        conditions = _expand_conditions_with_hierarchy(raw_conditions)
         medications = {m.lower() for m in (patient_medications or [])}
         measurements = {m.lower() for m in (patient_measurements or [])}
 
