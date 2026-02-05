@@ -33,7 +33,7 @@ router = APIRouter(prefix="/nlp", tags=["NLP"])
 CHUNK_THRESHOLD_BYTES = 10000
 
 
-def chunk_clinical_document(text: str, max_chunk_size: int = 8000) -> list[str]:
+def chunk_clinical_document(text: str, max_chunk_size: int = 8000) -> list[tuple[str, int]]:
     """Split large clinical documents into chunks by note boundaries.
 
     Looks for common note delimiters:
@@ -47,13 +47,13 @@ def chunk_clinical_document(text: str, max_chunk_size: int = 8000) -> list[str]:
         max_chunk_size: Maximum characters per chunk
 
     Returns:
-        List of text chunks
+        List of tuples: (chunk_text, offset_in_original_document)
     """
     import re
 
-    # If small enough, return as single chunk
+    # If small enough, return as single chunk with offset 0
     if len(text) <= max_chunk_size:
-        return [text]
+        return [(text, 0)]
 
     # Try to split by note boundaries
     # Pattern matches "NOTE XX" or "========" separators
@@ -71,23 +71,29 @@ def chunk_clinical_document(text: str, max_chunk_size: int = 8000) -> list[str]:
         boundaries.append(match.start())
     boundaries.append(len(text))
 
-    # Create chunks from boundaries
-    chunks = []
+    # Create chunks from boundaries, tracking offsets
+    chunks: list[tuple[str, int]] = []
     current_chunk = ""
+    current_offset = 0
 
     for i in range(len(boundaries) - 1):
-        segment = text[boundaries[i]:boundaries[i + 1]]
+        segment_start = boundaries[i]
+        segment_end = boundaries[i + 1]
+        segment = text[segment_start:segment_end]
 
         # If adding this segment exceeds max size, save current and start new
         if len(current_chunk) + len(segment) > max_chunk_size and current_chunk:
-            chunks.append(current_chunk.strip())
+            chunks.append((current_chunk, current_offset))
             current_chunk = segment
+            current_offset = segment_start
         else:
+            if not current_chunk:
+                current_offset = segment_start
             current_chunk += segment
 
     # Don't forget the last chunk
-    if current_chunk.strip():
-        chunks.append(current_chunk.strip())
+    if current_chunk:
+        chunks.append((current_chunk, current_offset))
 
     # If we couldn't split by notes, fall back to simple character split
     if len(chunks) <= 1 and len(text) > max_chunk_size:
@@ -100,7 +106,7 @@ def chunk_clinical_document(text: str, max_chunk_size: int = 8000) -> list[str]:
                 last_period = text.rfind('.', i + max_chunk_size - 500, end)
                 if last_period > i:
                     end = last_period + 1
-            chunks.append(text[i:end].strip())
+            chunks.append((text[i:end], i))
 
     logger.info(f"Split document ({len(text)} chars) into {len(chunks)} chunks")
     return chunks
@@ -467,27 +473,35 @@ async def extract_entities(request: ExtractRequest) -> ExtractResponse:
         # ====================================================================
         if len(request.text) > CHUNK_THRESHOLD_BYTES:
             logger.info(f"Large document detected ({len(request.text)} bytes), using chunking")
-            chunks = chunk_clinical_document(request.text)
+            chunks_with_offsets = chunk_clinical_document(request.text)
 
-            if len(chunks) > 1:
+            if len(chunks_with_offsets) > 1:
                 # Process each chunk and merge results
                 all_entities: list[ExtractedEntityResponse] = []
                 all_sections: list[SectionSpanResponse] = []
                 total_processing_time = 0.0
                 request_id = f"req-{uuid4().hex[:12]}"
 
-                for i, chunk in enumerate(chunks):
-                    logger.info(f"Processing chunk {i+1}/{len(chunks)} ({len(chunk)} chars)")
+                for i, (chunk_text, chunk_offset) in enumerate(chunks_with_offsets):
+                    logger.info(f"Processing chunk {i+1}/{len(chunks_with_offsets)} ({len(chunk_text)} chars, offset {chunk_offset})")
                     # Create sub-request for this chunk
                     from copy import deepcopy
                     chunk_request = deepcopy(request)
-                    chunk_request.text = chunk
+                    chunk_request.text = chunk_text
 
                     # Recursive call for chunk (will not re-chunk since chunk is smaller)
                     chunk_response = await extract_entities(chunk_request)
 
-                    # Merge entities (adjust offsets for chunks after first)
-                    # Note: offsets are relative to chunk, not original doc
+                    # Adjust entity offsets to be relative to original document
+                    for entity in chunk_response.entities:
+                        entity.span.start += chunk_offset
+                        entity.span.end += chunk_offset
+
+                    # Adjust section offsets similarly
+                    for section in chunk_response.sections:
+                        section.start += chunk_offset
+                        section.end += chunk_offset
+
                     all_entities.extend(chunk_response.entities)
                     all_sections.extend(chunk_response.sections)
                     total_processing_time += chunk_response.processing_time_ms
@@ -507,7 +521,7 @@ async def extract_entities(request: ExtractRequest) -> ExtractResponse:
                     entities_by_type=entities_by_type,
                     processing_time_ms=round(total_processing_time, 2),
                     model_used=request.model_id or "rule_based",
-                    chunks_processed=len(chunks),
+                    chunks_processed=len(chunks_with_offsets),
                 )
 
         # ====================================================================
