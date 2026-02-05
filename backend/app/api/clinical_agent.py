@@ -401,6 +401,62 @@ def _parse_date(date_str: str | None) -> datetime | None:
         return None
 
 
+def _normalize_measurement_text(text: str) -> str:
+    """Normalize measurement text for concept lookup.
+
+    Extracts the lab/measurement name from text that may include values.
+    Examples:
+        "BUN 26 mg/dL: 26mg/dL" -> "BUN"
+        "HbA1c 6.1%: 6.1%" -> "HbA1c"
+        "Glucose 112 mg/dL" -> "Glucose"
+        "eGFR 50 mL/min" -> "eGFR"
+        "WBC 8.2 K/uL" -> "WBC"
+    """
+    import re
+
+    # Common lab name patterns to extract
+    # Pattern: starts with letters/numbers, ends before first number with unit
+    # e.g., "BUN 26" -> "BUN", "HbA1c 6.1%" -> "HbA1c"
+
+    # First, try to extract just the lab name (before colon if present)
+    if ":" in text:
+        text = text.split(":")[0].strip()
+
+    # Remove trailing values: number followed by optional unit
+    # Matches patterns like "26 mg/dL", "6.1%", "50 mL/min", "8.2 K/uL"
+    cleaned = re.sub(r"\s+[\d.,]+\s*[%a-zA-Z/]*\s*$", "", text).strip()
+
+    # If we removed everything, return the first word
+    if not cleaned:
+        cleaned = text.split()[0] if text.split() else text
+
+    # Common abbreviation mappings for better matching
+    lab_mappings = {
+        "a1c": "Hemoglobin A1c",
+        "hba1c": "Hemoglobin A1c",
+        "hgb": "Hemoglobin",
+        "wbc": "Leukocytes",
+        "plt": "Platelet count",
+        "bun": "Blood urea nitrogen",
+        "cr": "Creatinine",
+        "egfr": "Glomerular filtration rate",
+        "na": "Sodium",
+        "k": "Potassium",
+        "cl": "Chloride",
+        "co2": "Carbon dioxide",
+        "aptt": "Activated partial thromboplastin time",
+        "inr": "INR",
+        "pt": "Prothrombin time",
+    }
+
+    # Check if the cleaned text matches a common abbreviation
+    lower_cleaned = cleaned.lower()
+    if lower_cleaned in lab_mappings:
+        return lab_mappings[lower_cleaned]
+
+    return cleaned
+
+
 # OMOP relationship types that create entity-to-entity edges
 # Maps OMOP relationship_id to EdgeType (None = skip this relationship)
 OMOP_CLINICAL_RELATIONSHIPS = {
@@ -821,9 +877,15 @@ async def _build_patient_knowledge_graph(
                 else:
                     domain = None
 
+                # Normalize text for concept lookup
+                # For measurements, extract just the lab name (e.g., "BUN 26 mg/dL" -> "BUN")
+                lookup_text = entity.text
+                if domain == "Measurement":
+                    lookup_text = _normalize_measurement_text(entity.text)
+
                 # Use savepoint for concept lookup so failures don't affect main transaction
                 async with db.begin_nested():
-                    concept_match = await lookup_concept_cached(db, entity.text, domain)
+                    concept_match = await lookup_concept_cached(db, lookup_text, domain)
                     if concept_match:
                         entity.omop_concept_id = concept_match.concept_id
                         logger.debug(
@@ -973,7 +1035,7 @@ async def _build_patient_knowledge_graph(
                         patient_id=patient_id,
                         node_type=NodeType.DATE,
                         label=date_str,
-                        properties={"date": date_str, "year": event_date_parsed.year},
+                        properties={"date": date_str, "year": temporal_date.year},
                     )
                     db.add(date_node)
                     date_nodes[date_key] = date_node.id
