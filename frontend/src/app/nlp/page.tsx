@@ -1377,7 +1377,9 @@ export default function NLPWorkbenchPage() {
   };
 
   const handleLoadSample = (sampleText: string) => {
-    setInputText(sampleText);
+    // Normalize line endings to prevent offset drift in highlighting
+    const normalizedText = sampleText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    setInputText(normalizedText);
     setResult(null);
     setSelectedEntity(null);
   };
@@ -2004,7 +2006,7 @@ export default function NLPWorkbenchPage() {
                           <span className="text-muted-foreground block mb-1">Conditions:</span>
                           <div className="flex flex-wrap gap-1">
                             {kgSummary.conditions.map((c, i) => (
-                              <Badge key={i} variant="destructive" className="text-xs">
+                              <Badge key={i} className="bg-blue-500 text-white text-xs">
                                 {c}
                               </Badge>
                             ))}
@@ -2026,7 +2028,7 @@ export default function NLPWorkbenchPage() {
                           <span className="text-muted-foreground block mb-1">Medications:</span>
                           <div className="flex flex-wrap gap-1">
                             {kgSummary.medications.map((m, i) => (
-                              <Badge key={i} className="bg-blue-500 text-xs">
+                              <Badge key={i} className="bg-green-500 text-white text-xs">
                                 {m}
                               </Badge>
                             ))}
@@ -2198,7 +2200,11 @@ export default function NLPWorkbenchPage() {
               <Textarea
                 placeholder="Enter clinical text here..."
                 value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
+                onChange={(e) => {
+                  // Normalize line endings to prevent offset drift in highlighting
+                  const normalizedText = e.target.value.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+                  setInputText(normalizedText);
+                }}
                 className="min-h-[250px] font-mono text-sm"
               />
 

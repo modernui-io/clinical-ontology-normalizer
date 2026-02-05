@@ -128,9 +128,13 @@ services:
       CON_API_KEYS: ${CON_API_KEYS:-}
       USE_DB_VOCABULARY: ${USE_DB_VOCABULARY:-false}
       # Ontology Feature Flags (Phase 2-4)
-      ENABLE_CONCEPT_MAPPING: ${ENABLE_CONCEPT_MAPPING:-true}
+      ENABLE_CONCEPT_MAPPING: ${ENABLE_CONCEPT_MAPPING:-false}
       USE_ONTOLOGY_EDGES: ${USE_ONTOLOGY_EDGES:-true}
       ENABLE_TEMPORAL_EXTRACTION: ${ENABLE_TEMPORAL_EXTRACTION:-true}
+      # LLM Configuration for Q&A Agent
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      LLM_PROVIDER: ${LLM_PROVIDER:-anthropic}
+      LLM_MODEL: ${LLM_MODEL:-claude-opus-4-5-20251101}
     ports:
       - "8080:8000"
     volumes:

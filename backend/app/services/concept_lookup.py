@@ -85,10 +85,12 @@ async def lookup_concept(
     if match:
         return match
 
-    # 3. Try fuzzy match with trigram similarity
-    match = await _fuzzy_match(db, normalized_text, domain)
-    if match:
-        return match
+    # 3. Skip fuzzy match - pg_trgm extension not enabled
+    # Fuzzy matching disabled to prevent transaction corruption
+    # TODO: Enable pg_trgm extension in PostgreSQL to re-enable fuzzy matching
+    # match = await _fuzzy_match(db, normalized_text, domain)
+    # if match:
+    #     return match
 
     return None
 
@@ -162,7 +164,7 @@ async def _exact_match(
 
 async def _fuzzy_match(
     db: AsyncSession,
-    text: str,
+    search_text: str,
     domain: str | None,
     min_similarity: float = 0.6,
 ) -> ConceptMatch | None:
@@ -178,9 +180,9 @@ async def _fuzzy_match(
 
         query_text = f"""
             SELECT concept_id, concept_name, vocabulary_id, concept_class_id,
-                   domain_id, similarity(concept_name, :text) as sim
+                   domain_id, similarity(concept_name, :search_text) as sim
             FROM concepts
-            WHERE similarity(concept_name, :text) > :min_sim
+            WHERE similarity(concept_name, :search_text) > :min_sim
             {domain_filter}
             ORDER BY sim DESC
             LIMIT 20
@@ -188,7 +190,7 @@ async def _fuzzy_match(
 
         result = await db.execute(
             text(query_text),
-            {"text": text, "min_sim": min_similarity}
+            {"search_text": search_text, "min_sim": min_similarity}
         )
         rows = result.fetchall()
 

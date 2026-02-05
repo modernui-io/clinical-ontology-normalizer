@@ -721,11 +721,19 @@ async def build_graph_from_entities(
     """
     start_time = datetime.now(timezone.utc)
 
-    # Build the knowledge graph directly from provided entities
-    kg_summary = await _build_patient_knowledge_graph(
-        db, request.patient_id, request.entities, request.extraction_method
-    )
-    await db.commit()
+    try:
+        # Build the knowledge graph directly from provided entities
+        kg_summary = await _build_patient_knowledge_graph(
+            db, request.patient_id, request.entities, request.extraction_method
+        )
+        await db.commit()
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Failed to build graph for patient {request.patient_id}: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to build knowledge graph: {str(e)}"
+        )
 
     end_time = datetime.now(timezone.utc)
     processing_time_ms = (end_time - start_time).total_seconds() * 1000
@@ -1637,11 +1645,45 @@ Knowledge Graph Summary ({len(nodes)} nodes):
             min_score=0.3,
         )
         # Merge: topic results first, then patient results (deduplicated)
+        # Filter to only include guidelines relevant to patient's conditions
+        patient_conditions_lower = {c.lower() for c in conditions}
+        patient_medications_lower = {m.lower() for m in medications}
+
         seen_ids: set[str] = set()
         citations = []
         for c in topic_citations + patient_citations:
             if c.section.section_id not in seen_ids:
                 seen_ids.add(c.section.section_id)
+
+                # Relevance filter: guideline must apply to at least one
+                # of the patient's conditions or medications
+                section_conditions = {cond.lower() for cond in c.section.applies_to_conditions}
+                section_medications = {med.lower() for med in c.section.applies_to_medications}
+
+                # Check for any overlap with patient's conditions or medications
+                has_condition_match = bool(patient_conditions_lower & section_conditions)
+                has_medication_match = bool(patient_medications_lower & section_medications)
+
+                # Also check for partial matches (e.g., "diabetes" in "diabetes mellitus type 2")
+                has_partial_condition_match = any(
+                    any(pc in sc or sc in pc for sc in section_conditions)
+                    for pc in patient_conditions_lower
+                ) if not has_condition_match else False
+
+                has_partial_medication_match = any(
+                    any(pm in sm or sm in pm for sm in section_medications)
+                    for pm in patient_medications_lower
+                ) if not has_medication_match else False
+
+                # Skip guidelines that don't apply to this patient
+                if not (has_condition_match or has_medication_match or
+                        has_partial_condition_match or has_partial_medication_match):
+                    logger.debug(
+                        f"Filtered out irrelevant guideline: {c.section.guideline} "
+                        f"(applies_to: {c.section.applies_to_conditions})"
+                    )
+                    continue
+
                 citations.append(c)
             if len(citations) >= 5:
                 break
