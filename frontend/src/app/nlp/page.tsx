@@ -1448,6 +1448,8 @@ export default function NLPWorkbenchPage() {
         assertion: e.assertion === "present" ? "PRESENT" : e.assertion === "absent" ? "ABSENT" : "POSSIBLE",
         omop_concept_id: e.normalized_codes?.[0]?.code ? parseInt(e.normalized_codes[0].code) : null,
         note_id: "frontend_extraction",
+        // Add document_date for temporal tracking (use current date as default)
+        document_date: new Date().toISOString().split('T')[0],
       }));
 
       // Use the new /build-graph endpoint that accepts pre-extracted entities
@@ -1514,6 +1516,8 @@ export default function NLPWorkbenchPage() {
     const ctx = hybridResult.structured_context;
 
     // Convert structured context to entity format
+    // Use current date for temporal tracking
+    const documentDate = new Date().toISOString().split('T')[0];
     const entities: Array<{
       text: string;
       entity_type: string;
@@ -1521,6 +1525,7 @@ export default function NLPWorkbenchPage() {
       assertion: string;
       omop_concept_id: number | null;
       note_id: string;
+      document_date: string;
     }> = [];
 
     // Add diagnoses as CONDITIONS
@@ -1532,6 +1537,7 @@ export default function NLPWorkbenchPage() {
         assertion: d.negated ? "ABSENT" : "PRESENT",
         omop_concept_id: d.code ? parseInt(d.code) || null : null,
         note_id: "hybrid_extraction",
+        document_date: documentDate,
       });
     });
 
@@ -1545,6 +1551,7 @@ export default function NLPWorkbenchPage() {
         assertion: "PRESENT",
         omop_concept_id: null,
         note_id: "hybrid_extraction",
+        document_date: documentDate,
       });
     });
 
@@ -1558,6 +1565,7 @@ export default function NLPWorkbenchPage() {
         assertion: "PRESENT",
         omop_concept_id: null,
         note_id: "hybrid_extraction",
+        document_date: documentDate,
       });
     });
 
@@ -1571,6 +1579,7 @@ export default function NLPWorkbenchPage() {
         assertion: "PRESENT",
         omop_concept_id: null,
         note_id: "hybrid_extraction",
+        document_date: documentDate,
       });
     });
 
@@ -1583,6 +1592,7 @@ export default function NLPWorkbenchPage() {
         assertion: s.negated ? "ABSENT" : "PRESENT",
         omop_concept_id: null,
         note_id: "hybrid_extraction",
+        document_date: documentDate,
       });
     });
 
@@ -1595,6 +1605,7 @@ export default function NLPWorkbenchPage() {
         assertion: "PRESENT",
         omop_concept_id: null,
         note_id: "hybrid_extraction",
+        document_date: documentDate,
       });
     });
 
@@ -1607,6 +1618,7 @@ export default function NLPWorkbenchPage() {
         assertion: f.negated ? "ABSENT" : "PRESENT",
         omop_concept_id: null,
         note_id: "hybrid_extraction",
+        document_date: documentDate,
       });
     });
 

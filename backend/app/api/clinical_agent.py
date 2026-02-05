@@ -961,8 +961,10 @@ async def _build_patient_knowledge_graph(
                 edge_count += 1
 
             # Create temporal edge: Entity -> OCCURRED_ON -> Date
-            if event_date_parsed:
-                date_str = event_date_parsed.strftime("%Y-%m-%d")
+            # Use event_date if available, otherwise fall back to document_date
+            temporal_date = event_date_parsed or doc_date_parsed
+            if temporal_date:
+                date_str = temporal_date.strftime("%Y-%m-%d")
                 date_key = f"date:{date_str}"
                 if date_key not in date_nodes:
                     # Create the date node
@@ -984,8 +986,11 @@ async def _build_patient_knowledge_graph(
                     source_node_id=node_id,
                     target_node_id=date_nodes[date_key],
                     edge_type=EdgeType.OCCURRED_ON,
-                    event_date=event_date_parsed,
-                    properties={"date": date_str},
+                    event_date=temporal_date,
+                    properties={
+                        "date": date_str,
+                        "date_source": "event_date" if event_date_parsed else "document_date",
+                    },
                 )
                 db.add(temporal_edge)
                 edge_count += 1
