@@ -1,0 +1,28 @@
+# Large generated artifacts that blow up context
+codebase_kg.json
+agent_context_health_graph.md
+agent_bundles/
+kg_export/
+
+# Dependencies
+backend/.venv/
+frontend/node_modules/
+frontend/.next/
+
+# Cache and build artifacts
+__pycache__/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+.playwright-mcp/
+
+# Large fixtures
+backend/fixtures/
+fixtures/
+backend/data/athena_vocab/
+backend/generated_clinical_notes.json
+backend/tests/benchmark_report.json
+
+# FHIR MCP subproject
+fhir-mcp/
