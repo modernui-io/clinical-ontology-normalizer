@@ -22,7 +22,6 @@ logger = logging.getLogger(__name__)
 _INSECURE_DEFAULTS = {
     "change-this-in-production-use-env-var",
     "dev-api-key-change-in-production",
-    "clinical123",
     "password",
     "secret",
     "changeme",
@@ -141,6 +140,10 @@ class Settings(BaseSettings):
     enable_concept_mapping: bool = False  # Phase 2: Map entities to OMOP concept_ids
     use_ontology_edges: bool = False  # Phase 3: Use OMOP relationships for edges
     enable_temporal_extraction: bool = True  # Phase 4: Extract dates from text
+
+    # Narrative Extraction Feature Flags
+    enable_narrative_extraction: bool = True  # Extract clinical narratives (admission, course, discharge)
+    narrative_extraction_model: str = "claude"  # Model to use: "claude" or "openai"
 
     # FHIR Configuration (VP-Round51: Centralized from fhir.py)
     # Comma-separated list of allowed FHIR servers for SSRF prevention

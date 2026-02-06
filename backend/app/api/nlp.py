@@ -175,6 +175,7 @@ class NormalizationVocabularyEnum(str, Enum):
     ICD10_PCS = "ICD-10-PCS"
     CPT = "CPT"
     NDC = "NDC"
+    OMOP = "OMOP"
 
 
 # ============================================================================
@@ -1513,6 +1514,10 @@ class HybridAnalyzeRequest(BaseModel):
         default=True,
         description="Whether to use LLM for reasoning (if False, returns extraction only)",
     )
+    extract_narrative: bool = Field(
+        default=False,
+        description="Whether to extract clinical narrative (admission, course, discharge)",
+    )
 
 
 class StructuredContextResponse(BaseModel):
@@ -1534,6 +1539,17 @@ class StructuredContextResponse(BaseModel):
     )
 
 
+class NarrativeResponse(BaseModel):
+    """Clinical narrative extraction results."""
+
+    admission_reason: dict | None = Field(None, description="Admission reason with linked conditions (most recent episode)")
+    hospital_course: dict | None = Field(None, description="Hospital course with key events (most recent episode)")
+    discharge_plan: dict | None = Field(None, description="Discharge plan with follow-up (most recent episode)")
+    episodes: list[dict] = Field(default_factory=list, description="All clinical episodes/encounters found")
+    extraction_confidence: float = Field(0.0, description="Confidence in extraction")
+    extraction_method: str = Field("llm", description="Method used for extraction")
+
+
 class HybridAnalyzeResponse(BaseModel):
     """Response from hybrid clinical analysis."""
 
@@ -1548,6 +1564,7 @@ class HybridAnalyzeResponse(BaseModel):
     total_time_ms: float = Field(..., description="Total processing time")
     llm_model: str | None = Field(None, description="LLM model used (if any)")
     llm_available: bool = Field(..., description="Whether LLM was available")
+    narrative: NarrativeResponse | None = Field(None, description="Clinical narrative extraction (if requested)")
 
 
 @router.post(
@@ -1615,6 +1632,45 @@ async def hybrid_analyze(request: HybridAnalyzeRequest) -> HybridAnalyzeResponse
         llm_time = None
         llm_model = None
         llm_available = False
+        narrative_response = None
+
+        # Extract clinical narrative if requested
+        if request.extract_narrative:
+            try:
+                from app.services.narrative_extractor import get_narrative_extractor
+                from app.core.config import settings
+
+                if settings.enable_narrative_extraction:
+                    narrative_extractor = get_narrative_extractor()
+                    if narrative_extractor.is_available:
+                        # Build entities list for grounding
+                        entities_for_narrative = []
+                        for d in context.diagnoses:
+                            entities_for_narrative.append({"text": d.get("name", ""), "entity_type": "condition", "assertion": "present"})
+                        for m in context.medications:
+                            entities_for_narrative.append({"text": m.get("name", ""), "entity_type": "medication", "assertion": "present"})
+                        for s in context.symptoms:
+                            entities_for_narrative.append({"text": s.get("name", ""), "entity_type": "symptom", "assertion": s.get("assertion", "present")})
+                        for nf in context.negated_findings:
+                            entities_for_narrative.append({"text": nf, "entity_type": "condition", "assertion": "absent"})
+                        for p in context.procedures:
+                            entities_for_narrative.append({"text": p.get("name", ""), "entity_type": "procedure", "assertion": "present"})
+
+                        narrative = narrative_extractor.extract_narrative(
+                            text=request.text,
+                            entities=entities_for_narrative,
+                        )
+
+                        narrative_response = NarrativeResponse(
+                            admission_reason=narrative.admission_reason.to_dict() if narrative.admission_reason else None,
+                            hospital_course=narrative.hospital_course.to_dict() if narrative.hospital_course else None,
+                            discharge_plan=narrative.discharge_plan.to_dict() if narrative.discharge_plan else None,
+                            episodes=[e.to_dict() for e in narrative.episodes],
+                            extraction_confidence=narrative.extraction_confidence,
+                            extraction_method=narrative.extraction_method,
+                        )
+            except Exception as narr_error:
+                logger.warning(f"Narrative extraction failed: {narr_error}")
 
         # Try LLM analysis if requested
         if request.use_llm:
@@ -1653,6 +1709,7 @@ async def hybrid_analyze(request: HybridAnalyzeRequest) -> HybridAnalyzeResponse
             total_time_ms=round(total_time, 2),
             llm_model=llm_model,
             llm_available=llm_available,
+            narrative=narrative_response,
         )
 
     except Exception as e:

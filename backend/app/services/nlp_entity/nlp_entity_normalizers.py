@@ -83,6 +83,7 @@ class NormalizationVocabulary(str, Enum):
     ICD10_PCS = "ICD-10-PCS"
     CPT = "CPT"
     NDC = "NDC"
+    OMOP = "OMOP"
 
 
 # ============================================================================

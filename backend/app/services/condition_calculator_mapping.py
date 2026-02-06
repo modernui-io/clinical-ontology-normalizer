@@ -3,10 +3,17 @@
 This module defines which clinical risk calculators are appropriate for
 which conditions. Used to automatically suggest calculators based on
 patient conditions from the knowledge graph.
+
+Now enhanced with OMOP hierarchy support via Neo4j - patient condition
+"Type 2 diabetes mellitus" will match calculators for "diabetes" via
+IS_A relationship traversal.
 """
 
 from __future__ import annotations
 
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Condition-to-calculator mapping
 # Keys are normalized condition names (lowercase)
@@ -103,26 +110,60 @@ CONDITION_CALCULATOR_MAP: dict[str, list[str]] = {
 }
 
 
-def get_calculators_for_condition(condition_name: str) -> list[str]:
+def get_calculators_for_condition(
+    condition_name: str,
+    use_hierarchy: bool = True,
+) -> list[str]:
     """Get applicable calculators for a given condition.
+
+    Uses OMOP hierarchy via Neo4j when available to find calculators
+    that apply to ancestor conditions. For example, patient with
+    "Type 2 diabetes mellitus" will match calculators for "diabetes".
 
     Args:
         condition_name: The condition name to look up.
+        use_hierarchy: Whether to use Neo4j hierarchy expansion.
 
     Returns:
         List of calculator IDs applicable to this condition.
     """
     normalized = condition_name.lower().strip()
+    matches: list[str] = []
 
-    # Direct lookup
+    # Direct lookup first (fastest)
     if normalized in CONDITION_CALCULATOR_MAP:
-        return CONDITION_CALCULATOR_MAP[normalized]
+        matches.extend(CONDITION_CALCULATOR_MAP[normalized])
 
-    # Fuzzy matching - check if condition contains any key
-    matches = []
-    for key, calculators in CONDITION_CALCULATOR_MAP.items():
-        if key in normalized or normalized in key:
-            matches.extend(calculators)
+    # If no direct match and hierarchy enabled, use OMOP hierarchy
+    if not matches and use_hierarchy:
+        try:
+            from app.services.omop_hierarchy_service import get_omop_hierarchy_service
+
+            hierarchy = get_omop_hierarchy_service()
+            if hierarchy.is_available:
+                # Expand condition to include ancestors
+                expanded_names = hierarchy.expand_condition_names(
+                    normalized, max_distance=3
+                )
+
+                # Check each expanded name against our map
+                for exp_name in expanded_names:
+                    if exp_name in CONDITION_CALCULATOR_MAP:
+                        for calc in CONDITION_CALCULATOR_MAP[exp_name]:
+                            if calc not in matches:
+                                matches.append(calc)
+                        logger.debug(
+                            f"Hierarchy match: '{normalized}' -> '{exp_name}' "
+                            f"-> {CONDITION_CALCULATOR_MAP[exp_name]}"
+                        )
+        except Exception as e:
+            logger.warning(f"Hierarchy lookup failed, falling back to string: {e}")
+
+    # Fallback: Fuzzy string matching
+    if not matches:
+        for key, calculators in CONDITION_CALCULATOR_MAP.items():
+            if key in normalized or normalized in key:
+                matches.extend(calculators)
 
     # Deduplicate while preserving order
     seen = set()
@@ -133,6 +174,93 @@ def get_calculators_for_condition(condition_name: str) -> list[str]:
             result.append(calc)
 
     return result
+
+
+def get_calculators_for_condition_with_hierarchy(
+    condition_name: str,
+    concept_id: int | None = None,
+) -> tuple[list[str], list[dict]]:
+    """Get calculators with detailed hierarchy match info.
+
+    Args:
+        condition_name: The condition name to look up.
+        concept_id: Optional OMOP concept ID for precise matching.
+
+    Returns:
+        Tuple of (calculator_ids, match_details)
+    """
+    normalized = condition_name.lower().strip()
+    matches: list[str] = []
+    match_details: list[dict] = []
+
+    # Direct lookup
+    if normalized in CONDITION_CALCULATOR_MAP:
+        calcs = CONDITION_CALCULATOR_MAP[normalized]
+        matches.extend(calcs)
+        match_details.append({
+            "match_type": "exact",
+            "matched_condition": normalized,
+            "calculators": calcs,
+            "distance": 0,
+        })
+        return matches, match_details
+
+    # Try hierarchy matching
+    try:
+        from app.services.omop_hierarchy_service import get_omop_hierarchy_service
+
+        hierarchy = get_omop_hierarchy_service()
+        if hierarchy.is_available:
+            # Get ancestors with distances
+            condition_to_lookup = concept_id if concept_id else condition_name
+            concepts = (
+                [hierarchy.get_concept_by_id(concept_id)]
+                if concept_id
+                else hierarchy.find_concepts_by_name(
+                    condition_name, domain_ids=["Condition"], limit=1
+                )
+            )
+
+            if concepts and concepts[0]:
+                ancestors = hierarchy.get_ancestors(
+                    concepts[0].concept_id,
+                    max_distance=3,
+                    include_self=True,
+                )
+
+                for ancestor, distance in ancestors:
+                    ancestor_name = ancestor.name.lower()
+                    if ancestor_name in CONDITION_CALCULATOR_MAP:
+                        calcs = CONDITION_CALCULATOR_MAP[ancestor_name]
+                        for calc in calcs:
+                            if calc not in matches:
+                                matches.append(calc)
+                        match_details.append({
+                            "match_type": "exact" if distance == 0 else "hierarchy",
+                            "matched_condition": ancestor_name,
+                            "matched_concept_id": ancestor.concept_id,
+                            "calculators": calcs,
+                            "distance": distance,
+                        })
+
+    except Exception as e:
+        logger.warning(f"Hierarchy lookup failed: {e}")
+
+    # Fallback to string matching if no hierarchy matches
+    if not matches:
+        for key, calculators in CONDITION_CALCULATOR_MAP.items():
+            if key in normalized or normalized in key:
+                for calc in calculators:
+                    if calc not in matches:
+                        matches.append(calc)
+                match_details.append({
+                    "match_type": "fuzzy",
+                    "matched_condition": key,
+                    "calculators": calculators,
+                    "distance": -1,  # Indicates string match, not hierarchy
+                })
+
+    return matches, match_details
 
 
 def get_conditions_for_calculator(calculator_id: str) -> list[str]:

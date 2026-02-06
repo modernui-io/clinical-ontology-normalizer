@@ -252,6 +252,7 @@ class CalculatorKGIntegration:
         """Map patient conditions to calculator criteria.
 
         This maps diagnoses to boolean criteria like 'diabetes', 'hypertension', etc.
+        Now enhanced with OMOP hierarchy for semantic matching.
         """
         definition = get_calculator_definition(calculator_id)
         if definition is None or definition.calc_type != CalculatorType.CRITERIA:
@@ -274,12 +275,25 @@ class CalculatorKGIntegration:
         # Get condition names in lowercase
         condition_names = [c.get("name", "").lower() for c in conditions if c.get("name")]
 
-        # Check each criterion against conditions
+        # Expand condition names using OMOP hierarchy
+        expanded_condition_names = set(condition_names)
+        try:
+            from app.services.omop_hierarchy_service import get_omop_hierarchy_service
+
+            hierarchy = get_omop_hierarchy_service()
+            if hierarchy.is_available:
+                for cond_name in condition_names:
+                    ancestors = hierarchy.expand_condition_names(cond_name, max_distance=3)
+                    expanded_condition_names.update(ancestors)
+        except Exception as e:
+            logger.warning(f"Hierarchy expansion failed in criteria mapping: {e}")
+
+        # Check each criterion against conditions (including expanded ancestors)
         for criterion in definition.criteria:
             criterion_name = criterion.name.lower()
             keywords = condition_keywords.get(criterion_name, [criterion_name])
 
-            for condition_name in condition_names:
+            for condition_name in expanded_condition_names:
                 for keyword in keywords:
                     if keyword in condition_name:
                         inputs[criterion.name] = True

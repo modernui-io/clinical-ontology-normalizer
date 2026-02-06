@@ -518,51 +518,18 @@ class LinkerMixin:
         abbrev = self._clinical_abbreviations.get(search_text)
         if abbrev:
             omop_id = abbrev.get("omop_concept_id")
-            domain = abbrev.get("domain", "")
             if omop_id:
-                # Map domain to appropriate vocabulary
-                if domain == "Drug" and NormalizationVocabulary.RXNORM in vocabularies:
-                    codes.append(
-                        NormalizedCode(
-                            code=str(omop_id),
-                            display=abbrev.get("name", normalized_text),
-                            system=NormalizationVocabulary.RXNORM,
-                            confidence=0.95,
-                            is_preferred=True,
-                        )
+                codes.append(
+                    NormalizedCode(
+                        code=str(omop_id),
+                        display=abbrev.get("name", normalized_text),
+                        system=NormalizationVocabulary.OMOP,
+                        confidence=0.95,
+                        is_preferred=False,
                     )
-                elif domain in ("Condition", "Observation") and NormalizationVocabulary.SNOMED_CT in vocabularies:
-                    codes.append(
-                        NormalizedCode(
-                            code=str(omop_id),
-                            display=abbrev.get("name", normalized_text),
-                            system=NormalizationVocabulary.SNOMED_CT,
-                            confidence=0.95,
-                            is_preferred=True,
-                        )
-                    )
-                elif domain == "Measurement" and NormalizationVocabulary.LOINC in vocabularies:
-                    codes.append(
-                        NormalizedCode(
-                            code=str(omop_id),
-                            display=abbrev.get("name", normalized_text),
-                            system=NormalizationVocabulary.LOINC,
-                            confidence=0.95,
-                            is_preferred=True,
-                        )
-                    )
-                elif domain == "Procedure" and NormalizationVocabulary.CPT in vocabularies:
-                    codes.append(
-                        NormalizedCode(
-                            code=str(omop_id),
-                            display=abbrev.get("name", normalized_text),
-                            system=NormalizationVocabulary.CPT,
-                            confidence=0.95,
-                            is_preferred=True,
-                        )
-                    )
+                )
 
-        # Try static CLINICAL_CODE_MAPPINGS first for exact matches (curated, high-quality)
+        # Try static CLINICAL_CODE_MAPPINGS for exact matches (curated, high-quality)
         static_codes = self._fallback_static_lookup(normalized_text, vocabularies)
         if static_codes:
             codes.extend(static_codes)

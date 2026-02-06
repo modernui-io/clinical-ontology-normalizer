@@ -22,6 +22,12 @@ class NodeType(str, Enum):
     CLINICAL_NOTE = "clinical_note"
     # Temporal nodes
     DATE = "date"
+    # Narrative nodes (clinical course tracking)
+    ADMISSION = "admission"
+    CLINICAL_EVENT = "clinical_event"
+    HOSPITAL_COURSE = "hospital_course"
+    DISCHARGE = "discharge"
+    EPISODE = "episode"
 
 
 class EdgeType(str, Enum):
@@ -49,6 +55,16 @@ class EdgeType(str, Enum):
 
     # Temporal edges (Entity -> Date)
     OCCURRED_ON = "occurred_on"  # Entity occurred/was recorded on this date
+
+    # Narrative edges (clinical course relationships)
+    ADMITTED_FOR = "admitted_for"  # Admission -> Condition (reason for admission)
+    HAS_EPISODE = "has_episode"  # Patient -> Episode (hospitalization episode)
+    PART_OF_EPISODE = "part_of_episode"  # Event/Node -> Episode (belongs to episode)
+    PRECEDES = "precedes"  # Event -> Event (temporal ordering)
+    FOLLOWS = "follows"  # Event -> Event (temporal ordering, inverse of PRECEDES)
+    CAUSED_BY = "caused_by"  # Event -> Event/Condition (causal relationship)
+    RESULTED_IN = "resulted_in"  # Event/Condition -> Event/Condition (causal outcome)
+    DISCHARGED_WITH = "discharged_with"  # Discharge -> Condition/Plan (discharge outcome)
 
 
 class TemporalOrder(str, Enum):

@@ -2637,7 +2637,8 @@ export type NLPVocabulary =
   | "ICD-10-CM"
   | "ICD-10-PCS"
   | "CPT"
-  | "NDC";
+  | "NDC"
+  | "OMOP";
 
 export interface NLPEntitySpan {
   start: number;
@@ -2894,6 +2895,66 @@ export interface HybridAnalyzeRequest {
   text: string;
   analysis_type?: AnalysisType;
   use_llm?: boolean;
+  extract_narrative?: boolean;
+}
+
+// Narrative extraction types
+export interface AdmissionReason {
+  primary_problem: string;
+  contributing_factors: string[];
+  presenting_symptoms: string[];
+  linked_condition_texts: string[];
+  admission_date: string | null;
+  admission_source: string | null;
+}
+
+export interface ClinicalEvent {
+  event_text: string;
+  event_type: string;
+  event_date: string | null;
+  relative_day: number | null;
+  caused_by: string | null;
+  resulted_in: string | null;
+  linked_entity_texts: string[];
+  severity: string | null;
+}
+
+export interface HospitalCourse {
+  summary: string;
+  key_events: ClinicalEvent[];
+  interventions: string[];
+  complications: string[];
+  response_to_treatment: string | null;
+  length_of_stay_days: number | null;
+}
+
+export interface DischargePlan {
+  disposition: string;
+  discharge_date: string | null;
+  follow_up_appointments: string[];
+  discharge_medications: string[];
+  activity_restrictions: string[];
+  diet_instructions: string | null;
+  wound_care: string | null;
+  return_precautions: string[];
+  pending_results: string[];
+}
+
+export interface ClinicalEpisode {
+  episode_label: string;
+  episode_date: string | null;
+  admission_reason: AdmissionReason | null;
+  hospital_course: HospitalCourse | null;
+  discharge_plan: DischargePlan | null;
+}
+
+export interface NarrativeResponse {
+  admission_reason: AdmissionReason | null;
+  hospital_course: HospitalCourse | null;
+  discharge_plan: DischargePlan | null;
+  episodes: ClinicalEpisode[];
+  extraction_confidence: number;
+  extraction_method: string;
 }
 
 export interface StructuredContext {
@@ -2921,6 +2982,7 @@ export interface HybridAnalyzeResponse {
   total_time_ms: number;
   llm_model: string | null;
   llm_available: boolean;
+  narrative: NarrativeResponse | null;
 }
 
 // ============================================================================

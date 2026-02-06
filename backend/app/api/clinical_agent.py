@@ -482,6 +482,104 @@ OMOP_CLINICAL_RELATIONSHIPS = {
 }
 
 
+def _get_narrative_context(nodes: list) -> str:
+    """Extract narrative context from knowledge graph nodes for LLM.
+
+    Looks for narrative node types (ADMISSION, HOSPITAL_COURSE, CLINICAL_EVENT,
+    DISCHARGE, EPISODE) and formats them for inclusion in LLM prompts.
+
+    Args:
+        nodes: List of KGNode objects from the knowledge graph
+
+    Returns:
+        Formatted string with narrative context, or empty string if no narrative nodes
+    """
+    narrative_parts = []
+
+    # Find admission node
+    admission_nodes = [n for n in nodes if n.node_type == NodeType.ADMISSION]
+    for admission in admission_nodes:
+        props = admission.properties or {}
+        primary_problem = props.get("primary_problem", admission.label)
+        contributing = props.get("contributing_factors", [])
+        symptoms = props.get("presenting_symptoms", [])
+        admission_date = props.get("admission_date", "unknown date")
+
+        narrative_parts.append(f"ADMISSION ({admission_date}):")
+        narrative_parts.append(f"  Primary reason: {primary_problem}")
+        if contributing:
+            narrative_parts.append(f"  Contributing factors: {', '.join(contributing)}")
+        if symptoms:
+            narrative_parts.append(f"  Presenting symptoms: {', '.join(symptoms)}")
+
+    # Find hospital course node
+    course_nodes = [n for n in nodes if n.node_type == NodeType.HOSPITAL_COURSE]
+    for course in course_nodes:
+        props = course.properties or {}
+        summary = props.get("summary", "")
+        interventions = props.get("interventions", [])
+        complications = props.get("complications", [])
+        response = props.get("response_to_treatment", "")
+        los = props.get("length_of_stay_days")
+
+        narrative_parts.append("\nHOSPITAL COURSE:")
+        if summary:
+            narrative_parts.append(f"  Summary: {summary}")
+        if interventions:
+            narrative_parts.append(f"  Interventions: {', '.join(interventions)}")
+        if complications:
+            narrative_parts.append(f"  Complications: {', '.join(complications)}")
+        if response:
+            narrative_parts.append(f"  Response to treatment: {response}")
+        if los:
+            narrative_parts.append(f"  Length of stay: {los} days")
+
+    # Find clinical events (sorted by relative_day if available)
+    event_nodes = [n for n in nodes if n.node_type == NodeType.CLINICAL_EVENT]
+    event_nodes_sorted = sorted(
+        event_nodes,
+        key=lambda x: (x.properties or {}).get("relative_day") or 999
+    )
+    if event_nodes_sorted:
+        narrative_parts.append("\nKEY EVENTS:")
+        for event in event_nodes_sorted:
+            props = event.properties or {}
+            event_text = event.label
+            event_type = props.get("event_type", "event")
+            day = props.get("relative_day")
+            severity = props.get("severity", "")
+
+            day_str = f"Day {day}: " if day else ""
+            severity_str = f" ({severity})" if severity else ""
+            narrative_parts.append(f"  {day_str}[{event_type}] {event_text}{severity_str}")
+
+    # Find discharge node
+    discharge_nodes = [n for n in nodes if n.node_type == NodeType.DISCHARGE]
+    for discharge in discharge_nodes:
+        props = discharge.properties or {}
+        disposition = props.get("disposition", "")
+        discharge_date = props.get("discharge_date", "")
+        follow_up = props.get("follow_up_appointments", [])
+        restrictions = props.get("activity_restrictions", [])
+        precautions = props.get("return_precautions", [])
+
+        narrative_parts.append("\nDISCHARGE:")
+        if disposition:
+            narrative_parts.append(f"  Disposition: {disposition}")
+        if discharge_date:
+            narrative_parts.append(f"  Date: {discharge_date}")
+        if follow_up:
+            narrative_parts.append(f"  Follow-up: {', '.join(follow_up)}")
+        if restrictions:
+            narrative_parts.append(f"  Activity restrictions: {', '.join(restrictions)}")
+        if precautions:
+            narrative_parts.append(f"  Return if: {', '.join(precautions)}")
+
+    if narrative_parts:
+        return "Clinical Narrative:\n" + "\n".join(narrative_parts)
+    return ""
+
+
 async def _query_omop_relationships(
     db: AsyncSession,
     entity_concept_ids: dict[int, str],  # omop_concept_id -> node_id
@@ -802,11 +900,295 @@ async def build_graph_from_entities(
     )
 
 
+async def _create_narrative_nodes(
+    db: AsyncSession,
+    patient_id: str,
+    patient_node_id: str,
+    narrative: dict,
+    seen_entities: dict[str, str],
+    now: datetime,
+) -> dict:
+    """Create narrative nodes and edges from extracted clinical narrative.
+
+    Creates:
+    - Episode node (container for the hospitalization)
+    - Admission node with ADMITTED_FOR edges to conditions
+    - Clinical event nodes with PRECEDES/FOLLOWS temporal edges
+    - Hospital course node
+    - Discharge node with DISCHARGED_WITH edges
+
+    Returns:
+        Dict with node_count and edge_count created
+    """
+    node_count = 0
+    edge_count = 0
+
+    # Create episode node (container for the hospitalization)
+    episode_node_id = str(uuid4())
+    episode_node = KGNode(
+        id=episode_node_id,
+        patient_id=patient_id,
+        node_type=NodeType.EPISODE,
+        label="Hospitalization Episode",
+        properties={
+            "created_at": now.isoformat(),
+            "narrative_source": True,
+        },
+    )
+    db.add(episode_node)
+    node_count += 1
+
+    # Link episode to patient
+    episode_edge = KGEdge(
+        id=str(uuid4()),
+        patient_id=patient_id,
+        source_node_id=patient_node_id,
+        target_node_id=episode_node_id,
+        edge_type=EdgeType.HAS_EPISODE,
+        properties={"narrative_source": True},
+    )
+    db.add(episode_edge)
+    edge_count += 1
+
+    # Create admission node if admission reason is provided
+    admission_node_id = None
+    if admission_reason := narrative.get("admission_reason"):
+        admission_node_id = str(uuid4())
+        admission_node = KGNode(
+            id=admission_node_id,
+            patient_id=patient_id,
+            node_type=NodeType.ADMISSION,
+            label=admission_reason.get("primary_problem", "Admission"),
+            properties={
+                "primary_problem": admission_reason.get("primary_problem"),
+                "contributing_factors": admission_reason.get("contributing_factors", []),
+                "presenting_symptoms": admission_reason.get("presenting_symptoms", []),
+                "admission_date": admission_reason.get("admission_date"),
+                "admission_source": admission_reason.get("admission_source"),
+                "narrative_source": True,
+            },
+        )
+        db.add(admission_node)
+        node_count += 1
+
+        # Link admission to episode
+        admission_episode_edge = KGEdge(
+            id=str(uuid4()),
+            patient_id=patient_id,
+            source_node_id=admission_node_id,
+            target_node_id=episode_node_id,
+            edge_type=EdgeType.PART_OF_EPISODE,
+            properties={"narrative_source": True},
+        )
+        db.add(admission_episode_edge)
+        edge_count += 1
+
+        # Create ADMITTED_FOR edges to linked conditions
+        for condition_text in admission_reason.get("linked_condition_texts", []):
+            condition_text_lower = condition_text.lower()
+            # Find matching condition node
+            for entity_key, entity_node_id in seen_entities.items():
+                if "|CONDITION" in entity_key and condition_text_lower in entity_key.lower():
+                    admitted_for_edge = KGEdge(
+                        id=str(uuid4()),
+                        patient_id=patient_id,
+                        source_node_id=admission_node_id,
+                        target_node_id=entity_node_id,
+                        edge_type=EdgeType.ADMITTED_FOR,
+                        properties={"linked_text": condition_text, "narrative_source": True},
+                    )
+                    db.add(admitted_for_edge)
+                    edge_count += 1
+                    break
+
+    # Create hospital course node and clinical events
+    prev_event_node_id = admission_node_id  # For temporal ordering
+    if hospital_course := narrative.get("hospital_course"):
+        # Create hospital course summary node
+        course_node_id = str(uuid4())
+        course_node = KGNode(
+            id=course_node_id,
+            patient_id=patient_id,
+            node_type=NodeType.HOSPITAL_COURSE,
+            label="Hospital Course",
+            properties={
+                "summary": hospital_course.get("summary"),
+                "interventions": hospital_course.get("interventions", []),
+                "complications": hospital_course.get("complications", []),
+                "response_to_treatment": hospital_course.get("response_to_treatment"),
+                "length_of_stay_days": hospital_course.get("length_of_stay_days"),
+                "narrative_source": True,
+            },
+        )
+        db.add(course_node)
+        node_count += 1
+
+        # Link course to episode
+        course_episode_edge = KGEdge(
+            id=str(uuid4()),
+            patient_id=patient_id,
+            source_node_id=course_node_id,
+            target_node_id=episode_node_id,
+            edge_type=EdgeType.PART_OF_EPISODE,
+            properties={"narrative_source": True},
+        )
+        db.add(course_episode_edge)
+        edge_count += 1
+
+        # Create clinical event nodes with temporal ordering
+        for event_data in hospital_course.get("key_events", []):
+            event_node_id = str(uuid4())
+            event_node = KGNode(
+                id=event_node_id,
+                patient_id=patient_id,
+                node_type=NodeType.CLINICAL_EVENT,
+                label=event_data.get("event_text", "Clinical Event"),
+                properties={
+                    "event_type": event_data.get("event_type"),
+                    "event_date": event_data.get("event_date"),
+                    "relative_day": event_data.get("relative_day"),
+                    "severity": event_data.get("severity"),
+                    "narrative_source": True,
+                },
+            )
+            db.add(event_node)
+            node_count += 1
+
+            # Link event to episode
+            event_episode_edge = KGEdge(
+                id=str(uuid4()),
+                patient_id=patient_id,
+                source_node_id=event_node_id,
+                target_node_id=episode_node_id,
+                edge_type=EdgeType.PART_OF_EPISODE,
+                properties={"narrative_source": True},
+            )
+            db.add(event_episode_edge)
+            edge_count += 1
+
+            # Create PRECEDES/FOLLOWS temporal edges
+            if prev_event_node_id:
+                precedes_edge = KGEdge(
+                    id=str(uuid4()),
+                    patient_id=patient_id,
+                    source_node_id=prev_event_node_id,
+                    target_node_id=event_node_id,
+                    edge_type=EdgeType.PRECEDES,
+                    properties={"temporal_ordering": True, "narrative_source": True},
+                )
+                db.add(precedes_edge)
+                edge_count += 1
+
+            # Create CAUSED_BY edge if specified
+            if caused_by := event_data.get("caused_by"):
+                # Try to find the causing event/condition in existing entities
+                for entity_key, entity_node_id in seen_entities.items():
+                    if caused_by.lower() in entity_key.lower():
+                        caused_by_edge = KGEdge(
+                            id=str(uuid4()),
+                            patient_id=patient_id,
+                            source_node_id=event_node_id,
+                            target_node_id=entity_node_id,
+                            edge_type=EdgeType.CAUSED_BY,
+                            properties={"cause_text": caused_by, "narrative_source": True},
+                        )
+                        db.add(caused_by_edge)
+                        edge_count += 1
+                        break
+
+            # Create RESULTED_IN edge if specified
+            if resulted_in := event_data.get("resulted_in"):
+                for entity_key, entity_node_id in seen_entities.items():
+                    if resulted_in.lower() in entity_key.lower():
+                        resulted_in_edge = KGEdge(
+                            id=str(uuid4()),
+                            patient_id=patient_id,
+                            source_node_id=event_node_id,
+                            target_node_id=entity_node_id,
+                            edge_type=EdgeType.RESULTED_IN,
+                            properties={"result_text": resulted_in, "narrative_source": True},
+                        )
+                        db.add(resulted_in_edge)
+                        edge_count += 1
+                        break
+
+            prev_event_node_id = event_node_id
+
+    # Create discharge node if discharge plan is provided
+    if discharge_plan := narrative.get("discharge_plan"):
+        discharge_node_id = str(uuid4())
+        discharge_node = KGNode(
+            id=discharge_node_id,
+            patient_id=patient_id,
+            node_type=NodeType.DISCHARGE,
+            label=f"Discharge: {discharge_plan.get('disposition', 'Unknown')}",
+            properties={
+                "disposition": discharge_plan.get("disposition"),
+                "discharge_date": discharge_plan.get("discharge_date"),
+                "follow_up_appointments": discharge_plan.get("follow_up_appointments", []),
+                "activity_restrictions": discharge_plan.get("activity_restrictions", []),
+                "diet_instructions": discharge_plan.get("diet_instructions"),
+                "wound_care": discharge_plan.get("wound_care"),
+                "return_precautions": discharge_plan.get("return_precautions", []),
+                "pending_results": discharge_plan.get("pending_results", []),
+                "narrative_source": True,
+            },
+        )
+        db.add(discharge_node)
+        node_count += 1
+
+        # Link discharge to episode
+        discharge_episode_edge = KGEdge(
+            id=str(uuid4()),
+            patient_id=patient_id,
+            source_node_id=discharge_node_id,
+            target_node_id=episode_node_id,
+            edge_type=EdgeType.PART_OF_EPISODE,
+            properties={"narrative_source": True},
+        )
+        db.add(discharge_episode_edge)
+        edge_count += 1
+
+        # Create PRECEDES edge from last event to discharge
+        if prev_event_node_id:
+            discharge_precedes_edge = KGEdge(
+                id=str(uuid4()),
+                patient_id=patient_id,
+                source_node_id=prev_event_node_id,
+                target_node_id=discharge_node_id,
+                edge_type=EdgeType.PRECEDES,
+                properties={"temporal_ordering": True, "narrative_source": True},
+            )
+            db.add(discharge_precedes_edge)
+            edge_count += 1
+
+        # Create DISCHARGED_WITH edges to discharge medications
+        for med_text in discharge_plan.get("discharge_medications", []):
+            med_text_lower = med_text.lower()
+            for entity_key, entity_node_id in seen_entities.items():
+                if "|DRUG" in entity_key and med_text_lower in entity_key.lower():
+                    discharged_with_edge = KGEdge(
+                        id=str(uuid4()),
+                        patient_id=patient_id,
+                        source_node_id=discharge_node_id,
+                        target_node_id=entity_node_id,
+                        edge_type=EdgeType.DISCHARGED_WITH,
+                        properties={"medication_text": med_text, "narrative_source": True},
+                    )
+                    db.add(discharged_with_edge)
+                    edge_count += 1
+                    break
+
+    logger.info(f"Created {node_count} narrative nodes and {edge_count} narrative edges")
+    return {"node_count": node_count, "edge_count": edge_count}
+
+
 async def _build_patient_knowledge_graph(
     db: AsyncSession,
     patient_id: str,
     entities: list[ExtractedEntity],
     extraction_method: str = "hybrid",
+    narrative: dict | None = None,
 ) -> KnowledgeGraphSummary:
     """Build knowledge graph from extracted entities.
 
@@ -814,6 +1196,7 @@ async def _build_patient_knowledge_graph(
     - Temporal fields (temporality, recorded_at)
     - Provenance tracking (extraction_method, source_notes)
     - Assertion classification (includes negated entities with proper marking)
+    - Clinical narrative nodes (admission, course, events, discharge)
     """
     now = datetime.now(timezone.utc)
 
@@ -1420,6 +1803,19 @@ async def _build_patient_knowledge_graph(
                 f"Created {len(omop_relationships)} entity-to-entity edges from OMOP relationships"
             )
 
+    # Create narrative nodes and edges if narrative data is provided
+    if narrative:
+        narrative_node_ids = await _create_narrative_nodes(
+            db=db,
+            patient_id=patient_id,
+            patient_node_id=patient_node_id,
+            narrative=narrative,
+            seen_entities=seen_entities,
+            now=now,
+        )
+        node_count += narrative_node_ids.get("node_count", 0)
+        edge_count += narrative_node_ids.get("edge_count", 0)
+
     return KnowledgeGraphSummary(
         patient_id=patient_id,
         node_count=node_count,
@@ -1571,6 +1967,11 @@ async def hybrid_query(
         "condition": ["diagnosis", "condition", "disease", "problem", "have", "has"],
         "lab": ["lab", "test", "result", "level", "value"],
         "vital": ["vital", "blood pressure", "heart rate", "temperature"],
+        # Narrative-related queries
+        "admission": ["admitted", "admission", "why was", "reason for", "came in", "presented"],
+        "course": ["hospital course", "happened during", "hospitalization", "what happened", "timeline", "events"],
+        "discharge": ["discharge", "going home", "follow up", "follow-up", "disposition"],
+        "causal": ["caused", "led to", "resulted in", "because of", "due to", "after the"],
     }
 
     query_type = "general"
@@ -1579,6 +1980,9 @@ async def hybrid_query(
             query_type = qtype
             break
 
+    # Check for narrative-related query
+    is_narrative_query = query_type in ["admission", "course", "discharge", "causal"]
+
     # Filter nodes by query type
     target_node_types = {
         "medication": [NodeType.DRUG],
@@ -1586,6 +1990,11 @@ async def hybrid_query(
         "lab": [NodeType.MEASUREMENT],
         "vital": [NodeType.MEASUREMENT],
         "general": [NodeType.CONDITION, NodeType.DRUG, NodeType.MEASUREMENT, NodeType.PROCEDURE],
+        # Narrative node types
+        "admission": [NodeType.ADMISSION, NodeType.CONDITION],
+        "course": [NodeType.HOSPITAL_COURSE, NodeType.CLINICAL_EVENT, NodeType.EPISODE],
+        "discharge": [NodeType.DISCHARGE],
+        "causal": [NodeType.CLINICAL_EVENT, NodeType.CONDITION, NodeType.PROCEDURE],
     }
 
     matching_nodes = [
@@ -1743,6 +2152,11 @@ Knowledge Graph Summary ({len(nodes)} nodes):
 - Medications ({len(medications)}): {', '.join(medications[:30]) if medications else 'None recorded'}
 - Measurements ({len(measurements)}): {', '.join(measurements[:30]) if measurements else 'None recorded'}
 - Procedures ({len(procedures)}): {', '.join(procedures[:30]) if procedures else 'None recorded'}"""
+
+    # Add narrative context if this is a narrative-related query or narrative nodes exist
+    narrative_context = _get_narrative_context(nodes) if is_narrative_query else ""
+    if narrative_context:
+        clinical_context += f"\n\n{narrative_context}"
 
     # Add document evidence if available
     if evidence_sources:

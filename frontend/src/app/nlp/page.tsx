@@ -506,12 +506,12 @@ function EntityTypeFilter({
 }
 
 function StatsPanel({ result }: { result: NLPExtractionResult }) {
-  const assertionCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    result.entities.forEach((e) => {
-      counts[e.assertion] = (counts[e.assertion] || 0) + 1;
-    });
-    return counts;
+  const affirmedCount = useMemo(() => {
+    return result.entities.filter((e) => e.assertion === "present").length;
+  }, [result.entities]);
+
+  const negatedCount = useMemo(() => {
+    return result.entities.filter((e) => e.assertion === "absent").length;
   }, [result.entities]);
 
   const avgConfidence = useMemo(() => {
@@ -543,7 +543,7 @@ function StatsPanel({ result }: { result: NLPExtractionResult }) {
               <CheckCircle className="h-4 w-4 text-green-700" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{assertionCounts.affirmed || 0}</p>
+              <p className="text-2xl font-bold">{affirmedCount}</p>
               <p className="text-xs text-muted-foreground">Affirmed</p>
             </div>
           </div>
@@ -557,7 +557,7 @@ function StatsPanel({ result }: { result: NLPExtractionResult }) {
               <XCircle className="h-4 w-4 text-red-700" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{assertionCounts.negated || 0}</p>
+              <p className="text-2xl font-bold">{negatedCount}</p>
               <p className="text-xs text-muted-foreground">Negated</p>
             </div>
           </div>
@@ -775,17 +775,19 @@ function HybridResultPanel({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="prose prose-sm max-w-none whitespace-pre-wrap text-gray-700">
-              {ctx.human_readable_summary.split('\n').map((line, i) => {
-                if (line.startsWith('**') && line.endsWith('**')) {
-                  return <p key={i} className="font-semibold text-gray-900 mt-3 first:mt-0">{line.replace(/\*\*/g, '')}</p>;
-                }
-                if (line.trim().startsWith('•')) {
-                  return <p key={i} className="ml-2 text-sm">{line}</p>;
-                }
-                return line ? <p key={i} className="text-sm">{line}</p> : null;
-              })}
-            </div>
+            <ScrollArea className="h-[400px]">
+              <div className="prose prose-sm max-w-none whitespace-pre-wrap text-gray-700">
+                {ctx.human_readable_summary.split('\n').map((line, i) => {
+                  if (line.startsWith('**') && line.endsWith('**')) {
+                    return <p key={i} className="font-semibold text-gray-900 mt-3 first:mt-0">{line.replace(/\*\*/g, '')}</p>;
+                  }
+                  if (line.trim().startsWith('•')) {
+                    return <p key={i} className="ml-2 text-sm">{line}</p>;
+                  }
+                  return line ? <p key={i} className="text-sm">{line}</p> : null;
+                })}
+              </div>
+            </ScrollArea>
           </CardContent>
         </Card>
       )}
@@ -969,6 +971,277 @@ function HybridResultPanel({
           </ScrollArea>
         </CardContent>
       </Card>
+
+      {/* Clinical Narrative */}
+      {result.narrative && (
+        <Card className="border-purple-200 bg-purple-50/30">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <FileText className="h-4 w-4 text-purple-700" />
+              Clinical Narrative
+              <Badge variant="outline" className="ml-2 text-xs">
+                {Math.round(result.narrative.extraction_confidence * 100)}% confident
+              </Badge>
+              {result.narrative.episodes && result.narrative.episodes.length > 0 && (
+                <Badge variant="secondary" className="ml-1 text-xs">
+                  {result.narrative.episodes.length} episode{result.narrative.episodes.length !== 1 ? 's' : ''}
+                </Badge>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-[500px]">
+              <div className="space-y-6">
+                {/* Multi-episode display */}
+                {result.narrative.episodes && result.narrative.episodes.length > 0 ? (
+                  result.narrative.episodes.map((episode, epIdx) => (
+                    <div key={epIdx} className="space-y-3">
+                      {/* Episode header */}
+                      <div className="flex items-center gap-2 pb-1 border-b border-purple-200">
+                        <Badge className="bg-purple-600 text-white text-xs">
+                          Episode {epIdx + 1}
+                        </Badge>
+                        <span className="text-sm font-semibold text-purple-900">{episode.episode_label}</span>
+                        {episode.episode_date && (
+                          <span className="text-xs text-muted-foreground ml-auto">{episode.episode_date}</span>
+                        )}
+                      </div>
+
+                      {/* Admission Reason */}
+                      {episode.admission_reason && (
+                        <div className="border-l-4 border-blue-400 pl-3">
+                          <h4 className="font-medium text-sm text-blue-700 mb-2">Admission Reason</h4>
+                          <p className="text-sm font-medium">{episode.admission_reason.primary_problem}</p>
+                          {episode.admission_reason.contributing_factors && episode.admission_reason.contributing_factors.length > 0 && (
+                            <div className="mt-2">
+                              <span className="text-xs text-muted-foreground">Contributing factors: </span>
+                              <span className="text-xs">{episode.admission_reason.contributing_factors.join(", ")}</span>
+                            </div>
+                          )}
+                          {episode.admission_reason.presenting_symptoms && episode.admission_reason.presenting_symptoms.length > 0 && (
+                            <div className="mt-1">
+                              <span className="text-xs text-muted-foreground">Presenting symptoms: </span>
+                              <span className="text-xs">{episode.admission_reason.presenting_symptoms.join(", ")}</span>
+                            </div>
+                          )}
+                          {episode.admission_reason.admission_date && (
+                            <p className="text-xs text-muted-foreground mt-1">Date: {episode.admission_reason.admission_date}</p>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Hospital Course */}
+                      {episode.hospital_course && (
+                        <div className="border-l-4 border-amber-400 pl-3">
+                          <h4 className="font-medium text-sm text-amber-700 mb-2">Hospital Course</h4>
+                          <p className="text-sm">{episode.hospital_course.summary}</p>
+
+                          {episode.hospital_course.key_events && episode.hospital_course.key_events.length > 0 && (
+                            <div className="mt-3">
+                              <p className="text-xs text-muted-foreground mb-1">Key Events:</p>
+                              <div className="space-y-1 ml-2">
+                                {episode.hospital_course.key_events.map((event: any, i: number) => (
+                                  <div key={i} className="text-xs flex items-start gap-2">
+                                    <span className="text-muted-foreground">{event.relative_day ? `Day ${event.relative_day}:` : "\u2022"}</span>
+                                    <span>
+                                      <Badge variant="outline" className="text-xs mr-1">{event.event_type}</Badge>
+                                      {event.event_text}
+                                      {event.severity && <span className="text-muted-foreground"> ({event.severity})</span>}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {episode.hospital_course.interventions && episode.hospital_course.interventions.length > 0 && (
+                            <div className="mt-2">
+                              <span className="text-xs text-muted-foreground">Interventions: </span>
+                              <span className="text-xs">{episode.hospital_course.interventions.join(", ")}</span>
+                            </div>
+                          )}
+
+                          {episode.hospital_course.complications && episode.hospital_course.complications.length > 0 && (
+                            <div className="mt-1">
+                              <span className="text-xs text-muted-foreground">Complications: </span>
+                              <span className="text-xs text-red-600">{episode.hospital_course.complications.join(", ")}</span>
+                            </div>
+                          )}
+
+                          {episode.hospital_course.response_to_treatment && (
+                            <div className="mt-1">
+                              <span className="text-xs text-muted-foreground">Response: </span>
+                              <span className="text-xs">{episode.hospital_course.response_to_treatment}</span>
+                            </div>
+                          )}
+
+                          {episode.hospital_course.length_of_stay_days && (
+                            <p className="text-xs text-muted-foreground mt-1">Length of stay: {episode.hospital_course.length_of_stay_days} days</p>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Discharge Plan */}
+                      {episode.discharge_plan && (
+                        <div className="border-l-4 border-green-400 pl-3">
+                          <h4 className="font-medium text-sm text-green-700 mb-2">Discharge Plan</h4>
+                          <p className="text-sm font-medium">Disposition: {episode.discharge_plan.disposition}</p>
+
+                          {episode.discharge_plan.follow_up_appointments && episode.discharge_plan.follow_up_appointments.length > 0 && (
+                            <div className="mt-2">
+                              <span className="text-xs text-muted-foreground">Follow-up: </span>
+                              <span className="text-xs">{episode.discharge_plan.follow_up_appointments.join(", ")}</span>
+                            </div>
+                          )}
+
+                          {episode.discharge_plan.discharge_medications && episode.discharge_plan.discharge_medications.length > 0 && (
+                            <div className="mt-1">
+                              <span className="text-xs text-muted-foreground">Medications: </span>
+                              <span className="text-xs">{episode.discharge_plan.discharge_medications.join(", ")}</span>
+                            </div>
+                          )}
+
+                          {episode.discharge_plan.activity_restrictions && episode.discharge_plan.activity_restrictions.length > 0 && (
+                            <div className="mt-1">
+                              <span className="text-xs text-muted-foreground">Activity restrictions: </span>
+                              <span className="text-xs">{episode.discharge_plan.activity_restrictions.join(", ")}</span>
+                            </div>
+                          )}
+
+                          {episode.discharge_plan.return_precautions && episode.discharge_plan.return_precautions.length > 0 && (
+                            <div className="mt-1">
+                              <span className="text-xs text-muted-foreground">Return if: </span>
+                              <span className="text-xs text-red-600">{episode.discharge_plan.return_precautions.join(", ")}</span>
+                            </div>
+                          )}
+
+                          {episode.discharge_plan.discharge_date && (
+                            <p className="text-xs text-muted-foreground mt-1">Date: {episode.discharge_plan.discharge_date}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  /* Fallback: single narrative display for backward compatibility */
+                  <div className="space-y-4">
+                    {result.narrative.admission_reason && (
+                      <div className="border-l-4 border-blue-400 pl-3">
+                        <h4 className="font-medium text-sm text-blue-700 mb-2">Admission Reason</h4>
+                        <p className="text-sm font-medium">{result.narrative.admission_reason.primary_problem}</p>
+                        {result.narrative.admission_reason.contributing_factors.length > 0 && (
+                          <div className="mt-2">
+                            <span className="text-xs text-muted-foreground">Contributing factors: </span>
+                            <span className="text-xs">{result.narrative.admission_reason.contributing_factors.join(", ")}</span>
+                          </div>
+                        )}
+                        {result.narrative.admission_reason.presenting_symptoms.length > 0 && (
+                          <div className="mt-1">
+                            <span className="text-xs text-muted-foreground">Presenting symptoms: </span>
+                            <span className="text-xs">{result.narrative.admission_reason.presenting_symptoms.join(", ")}</span>
+                          </div>
+                        )}
+                        {result.narrative.admission_reason.admission_date && (
+                          <p className="text-xs text-muted-foreground mt-1">Date: {result.narrative.admission_reason.admission_date}</p>
+                        )}
+                      </div>
+                    )}
+
+                    {result.narrative.hospital_course && (
+                      <div className="border-l-4 border-amber-400 pl-3">
+                        <h4 className="font-medium text-sm text-amber-700 mb-2">Hospital Course</h4>
+                        <p className="text-sm">{result.narrative.hospital_course.summary}</p>
+
+                        {result.narrative.hospital_course.key_events.length > 0 && (
+                          <div className="mt-3">
+                            <p className="text-xs text-muted-foreground mb-1">Key Events:</p>
+                            <div className="space-y-1 ml-2">
+                              {result.narrative.hospital_course.key_events.map((event, i) => (
+                                <div key={i} className="text-xs flex items-start gap-2">
+                                  <span className="text-muted-foreground">{event.relative_day ? `Day ${event.relative_day}:` : "\u2022"}</span>
+                                  <span>
+                                    <Badge variant="outline" className="text-xs mr-1">{event.event_type}</Badge>
+                                    {event.event_text}
+                                    {event.severity && <span className="text-muted-foreground"> ({event.severity})</span>}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {result.narrative.hospital_course.interventions.length > 0 && (
+                          <div className="mt-2">
+                            <span className="text-xs text-muted-foreground">Interventions: </span>
+                            <span className="text-xs">{result.narrative.hospital_course.interventions.join(", ")}</span>
+                          </div>
+                        )}
+
+                        {result.narrative.hospital_course.complications.length > 0 && (
+                          <div className="mt-1">
+                            <span className="text-xs text-muted-foreground">Complications: </span>
+                            <span className="text-xs text-red-600">{result.narrative.hospital_course.complications.join(", ")}</span>
+                          </div>
+                        )}
+
+                        {result.narrative.hospital_course.response_to_treatment && (
+                          <div className="mt-1">
+                            <span className="text-xs text-muted-foreground">Response: </span>
+                            <span className="text-xs">{result.narrative.hospital_course.response_to_treatment}</span>
+                          </div>
+                        )}
+
+                        {result.narrative.hospital_course.length_of_stay_days && (
+                          <p className="text-xs text-muted-foreground mt-1">Length of stay: {result.narrative.hospital_course.length_of_stay_days} days</p>
+                        )}
+                      </div>
+                    )}
+
+                    {result.narrative.discharge_plan && (
+                      <div className="border-l-4 border-green-400 pl-3">
+                        <h4 className="font-medium text-sm text-green-700 mb-2">Discharge Plan</h4>
+                        <p className="text-sm font-medium">Disposition: {result.narrative.discharge_plan.disposition}</p>
+
+                        {result.narrative.discharge_plan.follow_up_appointments.length > 0 && (
+                          <div className="mt-2">
+                            <span className="text-xs text-muted-foreground">Follow-up: </span>
+                            <span className="text-xs">{result.narrative.discharge_plan.follow_up_appointments.join(", ")}</span>
+                          </div>
+                        )}
+
+                        {result.narrative.discharge_plan.discharge_medications.length > 0 && (
+                          <div className="mt-1">
+                            <span className="text-xs text-muted-foreground">Medications: </span>
+                            <span className="text-xs">{result.narrative.discharge_plan.discharge_medications.join(", ")}</span>
+                          </div>
+                        )}
+
+                        {result.narrative.discharge_plan.activity_restrictions.length > 0 && (
+                          <div className="mt-1">
+                            <span className="text-xs text-muted-foreground">Activity restrictions: </span>
+                            <span className="text-xs">{result.narrative.discharge_plan.activity_restrictions.join(", ")}</span>
+                          </div>
+                        )}
+
+                        {result.narrative.discharge_plan.return_precautions.length > 0 && (
+                          <div className="mt-1">
+                            <span className="text-xs text-muted-foreground">Return if: </span>
+                            <span className="text-xs text-red-600">{result.narrative.discharge_plan.return_precautions.join(", ")}</span>
+                          </div>
+                        )}
+
+                        {result.narrative.discharge_plan.discharge_date && (
+                          <p className="text-xs text-muted-foreground mt-1">Date: {result.narrative.discharge_plan.discharge_date}</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Build Knowledge Graph Button */}
       {onBuildKnowledgeGraph && (
@@ -1242,6 +1515,7 @@ export default function NLPWorkbenchPage() {
   const [ontologyResult, setOntologyResult] = useState<OntologyMapResponse | null>(null);
   const [analysisType, setAnalysisType] = useState<AnalysisType>("clinical_summary");
   const [useLLM, setUseLLM] = useState(true);
+  const [extractNarrative, setExtractNarrative] = useState(false);
   const [useMLModels, setUseMLModels] = useState(false); // Ensemble NLP (ClinicalBERT + ModernBERT)
   const [selectedModelId, setSelectedModelId] = useState<string>("rule_based");
   const [availableModels, setAvailableModels] = useState<Array<{model_id: string; name: string; description: string; is_available: boolean}>>([]);
@@ -1361,6 +1635,7 @@ export default function NLPWorkbenchPage() {
         text: inputText,
         analysis_type: analysisType,
         use_llm: useLLM,
+        extract_narrative: extractNarrative,
       });
       setHybridResult(hybridRes);
 
@@ -2368,6 +2643,19 @@ export default function NLPWorkbenchPage() {
                     />
                     <label htmlFor="useLLM" className="text-sm">
                       Use LLM for reasoning (if available)
+                    </label>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="extractNarrative"
+                      checked={extractNarrative}
+                      onChange={(e) => setExtractNarrative(e.target.checked)}
+                      className="rounded"
+                    />
+                    <label htmlFor="extractNarrative" className="text-sm">
+                      Extract Clinical Narrative (admission, course, discharge)
                     </label>
                   </div>
 
