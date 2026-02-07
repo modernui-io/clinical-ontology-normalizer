@@ -374,8 +374,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Startup - Initialize database
     if settings.debug:
         logger.info("Initializing database connection (debug mode)")
-        await init_db()
-        logger.info("Database connection established")
+        try:
+            await init_db()
+            logger.info("Database connection established")
+        except Exception as e:
+            logger.warning(f"Database init (create_all) skipped — tables may already exist: {e}")
 
     # Preload vocabulary service (singleton) for fast NLP extraction
     logger.info("Preloading vocabulary service...")
