@@ -123,6 +123,19 @@ export const queryKeys = {
     enrollments: (id: string, params?: { status?: string }) =>
       [...queryKeys.trials.detail(id), "enrollments", params] as const,
   },
+
+  // Metriport HIE Integration
+  metriport: {
+    all: ["metriport"] as const,
+    status: () => [...queryKeys.metriport.all, "status"] as const,
+    patients: (facilityId?: string) =>
+      [...queryKeys.metriport.all, "patients", facilityId] as const,
+    patient: (patientId: string) =>
+      [...queryKeys.metriport.all, "patient", patientId] as const,
+    documents: (patientId: string) =>
+      [...queryKeys.metriport.all, "documents", patientId] as const,
+    facilities: () => [...queryKeys.metriport.all, "facilities"] as const,
+  },
 } as const;
 
 // ============================================================================
@@ -406,6 +419,13 @@ export const invalidationHelpers = {
    */
   invalidateTrials: (client: QueryClient) => {
     return client.invalidateQueries({ queryKey: queryKeys.trials.all });
+  },
+
+  /**
+   * Invalidate all Metriport-related queries
+   */
+  invalidateMetriport: (client: QueryClient) => {
+    return client.invalidateQueries({ queryKey: queryKeys.metriport.all });
   },
 
   /**

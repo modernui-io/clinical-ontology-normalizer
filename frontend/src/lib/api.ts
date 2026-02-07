@@ -3400,3 +3400,97 @@ export async function getTrialEnrollments(
 export async function getTrialStats(): Promise<Record<string, unknown>> {
   return fetchWithRetry<Record<string, unknown>>(`${API_BASE_URL}/trials/stats`);
 }
+
+// ============================================================================
+// Metriport Integration
+// ============================================================================
+
+export interface MetriportStatus {
+  configured: boolean;
+  api_key_set: boolean;
+  webhook_key_set: boolean;
+  facility_id_set: boolean;
+  base_url: string;
+  organization: Record<string, unknown> | null;
+  facilities: Record<string, unknown>[] | null;
+}
+
+export interface MetriportQueryResponse {
+  status: string;
+  message: string;
+  data: Record<string, unknown> | null;
+}
+
+export interface MetriportPatientCreate {
+  firstName: string;
+  lastName: string;
+  dob: string;
+  genderAtBirth: string;
+  address: {
+    addressLine1: string;
+    addressLine2?: string;
+    city: string;
+    state: string;
+    zip: string;
+    country?: string;
+  }[];
+  contact?: {
+    phone?: string;
+    email?: string;
+  };
+  externalId?: string;
+  facility_id?: string;
+}
+
+export async function getMetriportStatus(): Promise<MetriportStatus> {
+  return fetchWithRetry<MetriportStatus>(`${API_BASE_URL}/metriport/status`);
+}
+
+export async function getMetriportPatients(facilityId?: string): Promise<MetriportQueryResponse> {
+  const qs = facilityId ? `?facility_id=${facilityId}` : "";
+  return fetchWithRetry<MetriportQueryResponse>(`${API_BASE_URL}/metriport/patients${qs}`);
+}
+
+export async function createMetriportPatient(data: MetriportPatientCreate): Promise<MetriportQueryResponse> {
+  return fetchWithRetry<MetriportQueryResponse>(`${API_BASE_URL}/metriport/patients`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+}
+
+export async function startDocumentQuery(patientId: string, facilityId?: string): Promise<MetriportQueryResponse> {
+  return fetchWithRetry<MetriportQueryResponse>(`${API_BASE_URL}/metriport/documents/query`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ patient_id: patientId, facility_id: facilityId }),
+  });
+}
+
+export async function getMetriportDocuments(patientId: string, facilityId?: string): Promise<MetriportQueryResponse> {
+  const qs = facilityId ? `?facility_id=${facilityId}` : "";
+  return fetchWithRetry<MetriportQueryResponse>(`${API_BASE_URL}/metriport/documents/${patientId}${qs}`);
+}
+
+export async function startConsolidatedQuery(
+  patientId: string,
+  resources?: string[],
+): Promise<MetriportQueryResponse> {
+  return fetchWithRetry<MetriportQueryResponse>(`${API_BASE_URL}/metriport/consolidated/query`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ patient_id: patientId, resources }),
+  });
+}
+
+export async function onboardMetriportPatient(data: MetriportPatientCreate): Promise<MetriportQueryResponse> {
+  return fetchWithRetry<MetriportQueryResponse>(`${API_BASE_URL}/metriport/onboard`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getMetriportFacilities(): Promise<MetriportQueryResponse> {
+  return fetchWithRetry<MetriportQueryResponse>(`${API_BASE_URL}/metriport/facilities`);
+}

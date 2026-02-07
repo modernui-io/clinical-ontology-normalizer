@@ -82,6 +82,7 @@ const navSections: NavSection[] = [
     title: "Clinical Trials",
     items: [
       { title: "Trials", href: "/trials", icon: ClipboardList },
+      { title: "HIE Integration", href: "/metriport", icon: Network },
     ],
   },
   {

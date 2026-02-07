@@ -87,6 +87,18 @@ export {
   useTrialStats,
 } from "./useTrials";
 
+// Metriport HIE Integration hooks
+export {
+  useMetriportStatus,
+  useMetriportPatients,
+  useMetriportDocuments,
+  useMetriportFacilities,
+  useCreateMetriportPatient,
+  useOnboardMetriportPatient,
+  useStartDocumentQuery,
+  useStartConsolidatedQuery,
+} from "./useMetriport";
+
 // Search hooks (placeholder for future implementation)
 // export {} from "./useSearch";
 
