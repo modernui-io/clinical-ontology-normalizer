@@ -73,8 +73,9 @@ const getNotificationIcon = (type: Notification["type"]) => {
 
 // Pages that should not show the header
 const AUTH_PAGES = ["/login", "/register", "/forgot-password"];
+const FULL_BLEED_PAGES = ["/"];
 const isAuthPage = (pathname: string) => {
-  return AUTH_PAGES.includes(pathname) || pathname.startsWith("/smart/");
+  return AUTH_PAGES.includes(pathname) || FULL_BLEED_PAGES.includes(pathname) || pathname.startsWith("/smart/");
 };
 
 export function Header({ className }: HeaderProps) {
