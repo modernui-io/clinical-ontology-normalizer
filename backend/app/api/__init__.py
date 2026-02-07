@@ -147,6 +147,7 @@ from app.api.data_sources import router as data_sources_router
 from app.api.phenotypes import router as phenotypes_router
 from app.api.pipelines import router as pipelines_router
 from app.api.feedback import router as feedback_router
+from app.api.trials import router as trials_router
 
 __all__ = [
     # Routers
@@ -231,6 +232,7 @@ __all__ = [
     "phenotypes_router",
     "pipelines_router",
     "feedback_router",
+    "trials_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",

@@ -84,6 +84,13 @@ from app.models.provenance import (
     ReasoningStepType,
     ReasoningTrace,
 )
+from app.models.trial import (
+    EnrollmentStatus,
+    Trial,
+    TrialEnrollment,
+    TrialPhase,
+    TrialStatus,
+)
 from app.models.vocabulary import Concept, ConceptRelationship, ConceptStatus, ConceptSynonym
 
 __all__ = [
@@ -152,4 +159,10 @@ __all__ = [
     "ExtractionMethodDB",
     "ConfidenceLevelDB",
     "ReasoningStepType",
+    # Trial Models
+    "Trial",
+    "TrialEnrollment",
+    "TrialPhase",
+    "TrialStatus",
+    "EnrollmentStatus",
 ]

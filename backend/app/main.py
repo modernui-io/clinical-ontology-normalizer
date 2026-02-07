@@ -99,6 +99,7 @@ from app.api import (
     phenotypes_router,
     pipelines_router,
     feedback_router,
+    trials_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -709,6 +710,7 @@ api_v1_router.include_router(data_sources_router)
 api_v1_router.include_router(phenotypes_router)
 api_v1_router.include_router(pipelines_router)
 api_v1_router.include_router(feedback_router)
+api_v1_router.include_router(trials_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)

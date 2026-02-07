@@ -77,6 +77,16 @@ export {
   useHealthCheck,
 } from "./useAdmin";
 
+// Clinical Trials hooks
+export {
+  useTrials,
+  useTrial,
+  useTrialDashboard,
+  useTrialScreening,
+  useTrialEnrollments,
+  useTrialStats,
+} from "./useTrials";
+
 // Search hooks (placeholder for future implementation)
 // export {} from "./useSearch";
 

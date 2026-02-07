@@ -79,6 +79,12 @@ const navSections: NavSection[] = [
     ],
   },
   {
+    title: "Clinical Trials",
+    items: [
+      { title: "Trials", href: "/trials", icon: ClipboardList },
+    ],
+  },
+  {
     title: "Analytics",
     items: [
       { title: "Risk Dashboard", href: "/analytics/risks", icon: AlertTriangle },

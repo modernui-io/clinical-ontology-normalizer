@@ -126,6 +126,19 @@ from app.schemas.mention import (
     MentionConceptCandidateCreate,
     MentionCreate,
 )
+from app.schemas.trial import (
+    EnrollmentCreate,
+    EnrollmentResponse,
+    EnrollmentUpdate,
+    PatientEligibility,
+    ScreeningRequest,
+    ScreeningResponse,
+    TrialCreate,
+    TrialDashboard,
+    TrialResponse,
+    TrialSummary,
+    TrialUpdate,
+)
 from app.schemas.response import (
     APIResponse,
     ErrorDetail as APIErrorDetail,
@@ -251,4 +264,16 @@ __all__ = [
     "PaginatedAPIResponse",
     "PaginationMeta",
     "ResponseMeta",
+    # Trial schemas
+    "TrialCreate",
+    "TrialUpdate",
+    "TrialResponse",
+    "TrialSummary",
+    "TrialDashboard",
+    "EnrollmentCreate",
+    "EnrollmentUpdate",
+    "EnrollmentResponse",
+    "PatientEligibility",
+    "ScreeningRequest",
+    "ScreeningResponse",
 ]
