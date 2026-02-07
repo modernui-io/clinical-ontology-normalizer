@@ -100,6 +100,7 @@ from app.api import (
     pipelines_router,
     feedback_router,
     trials_router,
+    metriport_api_router,
     metriport_webhook_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
@@ -712,6 +713,7 @@ api_v1_router.include_router(phenotypes_router)
 api_v1_router.include_router(pipelines_router)
 api_v1_router.include_router(feedback_router)
 api_v1_router.include_router(trials_router)
+api_v1_router.include_router(metriport_api_router)
 api_v1_router.include_router(metriport_webhook_router)
 
 # Mount versioned API router

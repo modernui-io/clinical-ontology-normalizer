@@ -151,6 +151,12 @@ class Settings(BaseSettings):
     allowed_fhir_servers: str = ""
     allow_localhost_fhir: bool = True  # Allow localhost in development
 
+    # Metriport Integration
+    metriport_api_key: str | None = None  # Metriport Medical API key
+    metriport_webhook_key: str | None = None  # Webhook signing key for HMAC verification
+    metriport_base_url: str = "https://api.sandbox.metriport.com"  # Sandbox by default
+    metriport_facility_id: str | None = None  # Metriport facility UUID
+
     # ETL Configuration (VP-Round60)
     # Encryption key for storing data source credentials
     # IMPORTANT: Set this in production - otherwise each restart generates new key
