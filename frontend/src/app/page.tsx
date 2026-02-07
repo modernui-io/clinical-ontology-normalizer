@@ -2,6 +2,7 @@
 
 import { useRef, useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   motion,
@@ -541,6 +542,7 @@ function TiltCard({
 // HERO SECTION
 // ============================================================================
 function HeroSection() {
+  const router = useRouter();
   const heroRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -692,6 +694,18 @@ function HeroSection() {
                 Platform Dashboard
               </Button>
             </Link>
+            <Button
+              size="lg"
+              onClick={() => {
+                document.cookie = "has_auth=true; path=/; max-age=86400";
+                router.push("/dashboard");
+              }}
+              className="bg-transparent border-2 border-[#D50057]/40 text-[#D50057] hover:bg-[#D50057]/10 hover:border-[#D50057]/60 px-8 rounded-xl h-12 transition-all duration-300 font-semibold shadow-[0_0_30px_-8px_rgba(213,0,87,0.25)] hover:shadow-[0_0_40px_-4px_rgba(213,0,87,0.35)]"
+              style={FONT_DISPLAY}
+            >
+              <Sparkles className="mr-2 h-4 w-4" />
+              Try Demo
+            </Button>
           </motion.div>
         </motion.div>
 
@@ -992,18 +1006,24 @@ function TherapeuticPipelineSection() {
 // ============================================================================
 // LIVE ENROLLMENT PIPELINE (with animated pulse dots)
 // ============================================================================
+// Pipeline counts derived from seed_demo_data.py enrollment records:
+//   Screened = all 18 enrollments entered the pipeline
+//   Eligible = ELIGIBLE(3) + ENROLLED(3) + ACTIVE(3) + COMPLETED(1) = 10
+//   Enrolled = ENROLLED(3) + ACTIVE(3) + COMPLETED(1) = 7
+//   Active   = ACTIVE(3) + COMPLETED(1) = 4
+//   Completed = COMPLETED(1) = 1
 const pipelineSteps = [
-  { label: "Screened", count: 415, pct: 100, color: "#64748B" },
-  { label: "Eligible", count: 287, pct: 69, color: "#045AA9" },
-  { label: "Consented", count: 198, pct: 48, color: "#14B8A6" },
-  { label: "Enrolled", count: 133, pct: 32, color: "#10B981" },
-  { label: "Active", count: 89, pct: 21, color: "#059669" },
+  { label: "Screened", count: 18, pct: 100, color: "#64748B" },
+  { label: "Eligible", count: 10, pct: 56, color: "#045AA9" },
+  { label: "Enrolled", count: 7, pct: 39, color: "#14B8A6" },
+  { label: "Active", count: 4, pct: 22, color: "#10B981" },
+  { label: "Completed", count: 1, pct: 6, color: "#059669" },
 ];
 
 const conversionMetrics = [
-  { rate: 69.2, label: "Screen-to-Eligible", color: "#045AA9" },
-  { rate: 69.0, label: "Eligible-to-Consent", color: "#14B8A6" },
-  { rate: 67.2, label: "Consent-to-Enrolled", color: "#10B981" },
+  { rate: 55.6, label: "Screen-to-Eligible", color: "#045AA9" },  // 10/18
+  { rate: 70.0, label: "Eligible-to-Enrolled", color: "#14B8A6" }, // 7/10
+  { rate: 57.1, label: "Enrolled-to-Active", color: "#10B981" },   // 4/7
 ];
 
 function PulseDot({ color, delay }: { color: string; delay: number }) {
@@ -1671,6 +1691,7 @@ function ComplianceSection() {
 // CTA
 // ============================================================================
 function CTASection() {
+  const router = useRouter();
   return (
     <section
       className="relative py-28 px-6 overflow-hidden"
@@ -1732,6 +1753,18 @@ function CTASection() {
               View Dashboard
             </Button>
           </Link>
+          <Button
+            size="lg"
+            onClick={() => {
+              document.cookie = "has_auth=true; path=/; max-age=86400";
+              router.push("/dashboard");
+            }}
+            className="bg-transparent border-2 border-[#D50057]/40 text-[#D50057] hover:bg-[#D50057]/10 hover:border-[#D50057]/60 px-8 rounded-xl h-12 transition-all duration-300 font-semibold shadow-[0_0_30px_-8px_rgba(213,0,87,0.25)] hover:shadow-[0_0_40px_-4px_rgba(213,0,87,0.35)]"
+            style={FONT_DISPLAY}
+          >
+            <Sparkles className="mr-2 h-4 w-4" />
+            Try Demo
+          </Button>
         </div>
       </Reveal>
     </section>
