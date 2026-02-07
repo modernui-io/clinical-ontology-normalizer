@@ -177,7 +177,9 @@ async def _process_consolidated_data(
                     f"{result.get('conditions', 0)} conditions, "
                     f"{result.get('medications', 0)} medications, "
                     f"{result.get('observations', 0)} observations, "
-                    f"{result.get('procedures', 0)} procedures"
+                    f"{result.get('procedures', 0)} procedures, "
+                    f"{result.get('clinical_notes', 0)} clinical notes, "
+                    f"{result.get('diagnostic_reports', 0)} diagnostic reports"
                 )
             else:
                 logger.error(

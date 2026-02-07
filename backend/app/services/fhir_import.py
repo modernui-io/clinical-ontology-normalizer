@@ -2,17 +2,19 @@
 
 from __future__ import annotations
 
+import base64
 import logging
 from datetime import datetime
 from typing import Any, Self
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.clinical_fact import ClinicalFact, FactEvidence
+from app.models.document import Document as DocumentModel
 from app.models.knowledge_graph import KGEdge, KGNode
-from app.schemas.base import Assertion, Domain, Experiencer, Temporality
+from app.schemas.base import Assertion, Domain, Experiencer, JobStatus, Temporality
 from app.schemas.clinical_fact import EvidenceType
 from app.schemas.knowledge_graph import EdgeType, NodeType
 
@@ -254,6 +256,8 @@ class FHIRImportService:
             "allergies": 0,
             "observations": 0,
             "procedures": 0,
+            "clinical_notes": 0,
+            "diagnostic_reports": 0,
             "nodes": 1,
             "edges": 0,
             "skipped_resource_types": [],
@@ -267,6 +271,8 @@ class FHIRImportService:
             "AllergyIntolerance": ("allergies", self._import_allergy),
             "Observation": ("observations", self._import_observation),
             "Procedure": ("procedures", self._import_procedure),
+            "DocumentReference": ("clinical_notes", self._import_document_reference),
+            "DiagnosticReport": ("diagnostic_reports", self._import_diagnostic_report),
         }
 
         for rtype, resources in resources_by_type.items():
@@ -283,9 +289,12 @@ class FHIRImportService:
                     fact, node, edge = await handler(
                         session, patient_id, patient_node.id, resource
                     )
-                    if fact:
+                    # Count if either a fact or node was created
+                    if fact or node:
                         stats[stat_key] += 1
+                    if node:
                         stats["nodes"] += 1
+                    if edge:
                         stats["edges"] += 1
                 except Exception as e:
                     logger.warning(
@@ -900,3 +909,437 @@ class FHIRImportService:
         session.add(edge)
 
         return fact, node, edge
+
+    def _extract_document_reference_text(
+        self, doc_ref: dict[str, Any]
+    ) -> tuple[str | None, str | None]:
+        """Extract text content from a FHIR DocumentReference.
+
+        Handles multiple attachment formats:
+        1. data (base64-encoded inline content)
+        2. Plain text content type with data
+        3. C-CDA XML (extracts text sections)
+
+        Args:
+            doc_ref: FHIR DocumentReference resource
+
+        Returns:
+            Tuple of (extracted_text, mime_type)
+        """
+        for content_entry in doc_ref.get("content", []):
+            attachment = content_entry.get("attachment", {})
+            content_type = attachment.get("contentType", "")
+            data = attachment.get("data")
+
+            if not data:
+                continue
+
+            try:
+                decoded = base64.b64decode(data).decode("utf-8", errors="replace")
+            except Exception:
+                continue
+
+            # Plain text — use directly
+            if "text/plain" in content_type:
+                return decoded.strip(), content_type
+
+            # C-CDA XML — extract text sections
+            if "xml" in content_type or "cda" in content_type.lower():
+                text = self._extract_text_from_ccda(decoded)
+                if text:
+                    return text, content_type
+
+            # HTML — strip tags for raw text
+            if "html" in content_type:
+                import re
+                text = re.sub(r"<[^>]+>", " ", decoded)
+                text = re.sub(r"\s+", " ", text).strip()
+                if text:
+                    return text, content_type
+
+            # Fallback: if it looks like text, use it
+            if decoded and not decoded.startswith(("%PDF", "\x89PNG", "\xff\xd8")):
+                return decoded.strip(), content_type
+
+        return None, None
+
+    def _extract_text_from_ccda(self, xml_content: str) -> str | None:
+        """Extract narrative text from C-CDA XML sections.
+
+        C-CDA documents contain <text> elements within each section
+        that hold the human-readable clinical narrative.
+
+        Args:
+            xml_content: Raw C-CDA XML string
+
+        Returns:
+            Concatenated section text or None
+        """
+        import re
+
+        # Extract text from <text>...</text> blocks in sections
+        text_blocks = re.findall(
+            r"<text[^>]*>(.*?)</text>",
+            xml_content,
+            re.DOTALL | re.IGNORECASE,
+        )
+        if not text_blocks:
+            return None
+
+        sections = []
+        for block in text_blocks:
+            # Strip XML/HTML tags
+            clean = re.sub(r"<[^>]+>", " ", block)
+            clean = re.sub(r"\s+", " ", clean).strip()
+            if clean and len(clean) > 20:  # Skip trivially short sections
+                sections.append(clean)
+
+        return "\n\n".join(sections) if sections else None
+
+    def _determine_note_type(self, doc_ref: dict[str, Any]) -> str:
+        """Determine the clinical note type from a DocumentReference.
+
+        Uses the type CodeableConcept and category to classify the note.
+
+        Args:
+            doc_ref: FHIR DocumentReference resource
+
+        Returns:
+            Note type string (e.g., 'progress_note', 'discharge_summary')
+        """
+        # Check type CodeableConcept
+        type_concept = doc_ref.get("type", {})
+        codings = type_concept.get("coding", [])
+        for coding in codings:
+            code = coding.get("code", "")
+            display = (coding.get("display") or "").lower()
+
+            # LOINC document type codes
+            loinc_map = {
+                "18842-5": "discharge_summary",
+                "11506-3": "progress_note",
+                "34117-2": "history_and_physical",
+                "11488-4": "consultation_note",
+                "28570-0": "procedure_note",
+                "11502-2": "lab_report",
+                "18748-4": "radiology_report",
+                "34133-9": "clinical_summary",  # CCD
+                "34111-5": "emergency_note",
+                "57133-1": "referral_note",
+            }
+            if code in loinc_map:
+                return loinc_map[code]
+
+            # Fallback: match on display text
+            if "discharge" in display:
+                return "discharge_summary"
+            if "progress" in display:
+                return "progress_note"
+            if "history" in display or "h&p" in display:
+                return "history_and_physical"
+            if "consult" in display:
+                return "consultation_note"
+            if "operative" in display or "procedure" in display:
+                return "procedure_note"
+            if "radiology" in display or "imaging" in display:
+                return "radiology_report"
+            if "pathology" in display or "lab" in display:
+                return "lab_report"
+
+        # Check category
+        for cat in doc_ref.get("category", []):
+            for coding in cat.get("coding", []):
+                code = coding.get("code", "")
+                if code == "clinical-note":
+                    return "clinical_note"
+
+        return "clinical_note"
+
+    async def _import_document_reference(
+        self,
+        session: AsyncSession,
+        patient_id: str,
+        patient_node_id: UUID,
+        doc_ref: dict[str, Any],
+    ) -> tuple[ClinicalFact | None, KGNode | None, KGEdge | None]:
+        """Import a FHIR DocumentReference as a clinical note.
+
+        Extracts text from the DocumentReference attachment (base64 data,
+        C-CDA XML, or plain text), creates a Document record for NLP
+        processing, and adds a clinical_note node to the knowledge graph.
+
+        Args:
+            session: Database session
+            patient_id: Internal patient ID
+            patient_node_id: Patient KG node UUID
+            doc_ref: FHIR DocumentReference resource
+
+        Returns:
+            Tuple of (fact, node, edge) or (None, None, None) if no text
+        """
+        # Skip non-current documents
+        doc_status = doc_ref.get("status", "current")
+        if doc_status == "entered-in-error":
+            return None, None, None
+
+        # Extract text content
+        text, mime_type = self._extract_document_reference_text(doc_ref)
+        if not text or len(text.strip()) < 30:
+            logger.debug(
+                f"Skipping DocumentReference {doc_ref.get('id', '?')}: "
+                f"no extractable text (mime={mime_type})"
+            )
+            return None, None, None
+
+        note_type = self._determine_note_type(doc_ref)
+        doc_date = self._parse_fhir_datetime(
+            doc_ref.get("date") or doc_ref.get("context", {}).get("period", {}).get("start")
+        )
+
+        # Get description for display
+        description = doc_ref.get("description") or f"Clinical note ({note_type})"
+
+        # Create Document record for NLP pipeline
+        job_id = uuid4()
+        db_document = DocumentModel(
+            patient_id=patient_id,
+            note_type=note_type,
+            text=text,
+            extra_metadata={
+                "source": "metriport_hie",
+                "fhir_id": doc_ref.get("id"),
+                "mime_type": mime_type,
+                "description": description,
+                "doc_status": doc_status,
+            },
+            status=JobStatus.QUEUED,
+            job_id=job_id,
+        )
+        session.add(db_document)
+        await session.flush()
+
+        # Queue NLP processing
+        try:
+            from app.core.queue import QUEUE_NAMES, enqueue_job
+            from app.jobs import process_document
+
+            enqueue_job(
+                process_document,
+                str(db_document.id),
+                queue_name=QUEUE_NAMES["document"],
+                job_id=job_id,
+            )
+            logger.info(
+                f"Queued NLP processing for HIE note {db_document.id} "
+                f"(type={note_type}, {len(text)} chars)"
+            )
+        except Exception as e:
+            logger.warning(f"Could not queue NLP job for HIE note: {e}")
+
+        # Create KG node for the clinical note
+        node = KGNode(
+            patient_id=patient_id,
+            node_type=NodeType.CLINICAL_NOTE,
+            label=description[:200],
+            properties={
+                "fhir_id": doc_ref.get("id"),
+                "note_type": note_type,
+                "mime_type": mime_type,
+                "document_id": str(db_document.id),
+                "char_count": len(text),
+                "date": doc_date.isoformat() if doc_date else None,
+            },
+        )
+        session.add(node)
+        await session.flush()
+
+        # Create edge from patient to clinical note
+        edge = KGEdge(
+            patient_id=patient_id,
+            source_node_id=patient_node_id,
+            target_node_id=node.id,
+            edge_type=EdgeType.EXTRACTED_FROM,
+            properties={
+                "note_type": note_type,
+                "date": doc_date.isoformat() if doc_date else None,
+            },
+        )
+        session.add(edge)
+
+        logger.info(
+            f"Imported DocumentReference {doc_ref.get('id', '?')} as "
+            f"{note_type} ({len(text)} chars) -> document {db_document.id}"
+        )
+
+        # Return None for fact since the NLP pipeline will create facts
+        return None, node, edge
+
+    async def _import_diagnostic_report(
+        self,
+        session: AsyncSession,
+        patient_id: str,
+        patient_node_id: UUID,
+        report: dict[str, Any],
+    ) -> tuple[ClinicalFact | None, KGNode | None, KGEdge | None]:
+        """Import a FHIR DiagnosticReport as a clinical note and/or observations.
+
+        DiagnosticReports contain:
+        1. presentedForm: Attachments (PDF, text) with full report
+        2. conclusion: Short text conclusion
+        3. conclusionCode: Coded conclusions
+        4. result: References to Observation resources (already handled)
+
+        This handler extracts the narrative text and feeds it through
+        the NLP pipeline for mention extraction.
+
+        Args:
+            session: Database session
+            patient_id: Internal patient ID
+            patient_node_id: Patient KG node UUID
+            report: FHIR DiagnosticReport resource
+
+        Returns:
+            Tuple of (fact, node, edge) or (None, None, None)
+        """
+        report_status = report.get("status", "final")
+        if report_status in ("entered-in-error", "cancelled"):
+            return None, None, None
+
+        # Extract text — prefer presentedForm, fall back to conclusion
+        text = None
+        mime_type = None
+
+        # Try presentedForm attachments first
+        for form in report.get("presentedForm", []):
+            data = form.get("data")
+            content_type = form.get("contentType", "")
+            if data:
+                try:
+                    decoded = base64.b64decode(data).decode("utf-8", errors="replace")
+                    if "text/plain" in content_type:
+                        text = decoded.strip()
+                        mime_type = content_type
+                        break
+                    if "xml" in content_type:
+                        text = self._extract_text_from_ccda(decoded)
+                        mime_type = content_type
+                        if text:
+                            break
+                    # HTML
+                    if "html" in content_type:
+                        import re
+                        text = re.sub(r"<[^>]+>", " ", decoded)
+                        text = re.sub(r"\s+", " ", text).strip()
+                        mime_type = content_type
+                        if text:
+                            break
+                except Exception:
+                    continue
+
+        # Fall back to conclusion text
+        if not text:
+            conclusion = report.get("conclusion")
+            if conclusion and len(conclusion.strip()) >= 20:
+                text = conclusion.strip()
+                mime_type = "text/plain"
+
+        if not text or len(text.strip()) < 20:
+            return None, None, None
+
+        # Determine note type from category
+        code_concept = report.get("code", {})
+        code, display, system = self._get_code_from_codeable_concept(code_concept)
+        report_display = display or "Diagnostic Report"
+
+        # Map category to note type
+        note_type = "diagnostic_report"
+        for cat in report.get("category", []):
+            for coding in cat.get("coding", []):
+                cat_display = (coding.get("display") or "").lower()
+                if "radiology" in cat_display or "imaging" in cat_display:
+                    note_type = "radiology_report"
+                elif "pathology" in cat_display:
+                    note_type = "pathology_report"
+                elif "laboratory" in cat_display or "lab" in cat_display:
+                    note_type = "lab_report"
+
+        effective = self._parse_fhir_datetime(
+            report.get("effectiveDateTime")
+            or report.get("effectivePeriod", {}).get("start")
+        )
+
+        # Create Document record for NLP pipeline
+        job_id = uuid4()
+        db_document = DocumentModel(
+            patient_id=patient_id,
+            note_type=note_type,
+            text=text,
+            extra_metadata={
+                "source": "metriport_hie",
+                "fhir_id": report.get("id"),
+                "fhir_resource_type": "DiagnosticReport",
+                "mime_type": mime_type,
+                "report_name": report_display,
+                "report_status": report_status,
+            },
+            status=JobStatus.QUEUED,
+            job_id=job_id,
+        )
+        session.add(db_document)
+        await session.flush()
+
+        # Queue NLP processing
+        try:
+            from app.core.queue import QUEUE_NAMES, enqueue_job
+            from app.jobs import process_document
+
+            enqueue_job(
+                process_document,
+                str(db_document.id),
+                queue_name=QUEUE_NAMES["document"],
+                job_id=job_id,
+            )
+            logger.info(
+                f"Queued NLP processing for DiagnosticReport {db_document.id} "
+                f"(type={note_type}, {len(text)} chars)"
+            )
+        except Exception as e:
+            logger.warning(f"Could not queue NLP job for DiagnosticReport: {e}")
+
+        # Create KG node
+        node = KGNode(
+            patient_id=patient_id,
+            node_type=NodeType.CLINICAL_NOTE,
+            omop_concept_id=int(code) if code and code.isdigit() else None,
+            label=report_display[:200],
+            properties={
+                "fhir_id": report.get("id"),
+                "fhir_resource_type": "DiagnosticReport",
+                "note_type": note_type,
+                "document_id": str(db_document.id),
+                "char_count": len(text),
+                "date": effective.isoformat() if effective else None,
+            },
+        )
+        session.add(node)
+        await session.flush()
+
+        # Create edge from patient to report note
+        edge = KGEdge(
+            patient_id=patient_id,
+            source_node_id=patient_node_id,
+            target_node_id=node.id,
+            edge_type=EdgeType.EXTRACTED_FROM,
+            properties={
+                "note_type": note_type,
+                "date": effective.isoformat() if effective else None,
+            },
+        )
+        session.add(edge)
+
+        logger.info(
+            f"Imported DiagnosticReport {report.get('id', '?')} as "
+            f"{note_type} ({len(text)} chars) -> document {db_document.id}"
+        )
+
+        return None, node, edge
