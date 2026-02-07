@@ -1,29 +1,36 @@
 """Trial Eligibility Service for clinical trial patient matching.
 
-Wraps the existing CohortService to model clinical trial eligibility criteria
-as cohort definitions and screen patients against them. Manages trial CRUD,
-patient screening, enrollment tracking, and dashboard analytics.
+Screens patients against eligibility criteria by querying the ClinicalFacts
+table. Manages trial CRUD, patient screening, enrollment tracking, and
+dashboard analytics.
 
 Usage:
     from app.services.trial_eligibility_service import get_trial_service
 
     service = get_trial_service()
     trial = service.create_trial(TrialCreate(name="Dupixent AD Study", ...))
-    results = service.screen_patients(trial.id)
+    results = await service.screen_patients(trial.id, session=session)
 """
 
 from __future__ import annotations
 
 import logging
-import random
 import threading
 import time
 from datetime import datetime, timezone
 from typing import Any
 from uuid import uuid4
 
+from sqlalchemy import and_, cast, or_, select, Float as SAFloat
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.clinical_fact import ClinicalFact
+from app.models.knowledge_graph import KGNode
 from app.models.trial import EnrollmentStatus, TrialPhase, TrialStatus
+from app.schemas.base import Assertion, Domain
+from app.schemas.knowledge_graph import NodeType
 from app.schemas.trial import (
+    CriterionResult,
     EnrollmentCreate,
     EnrollmentResponse,
     EnrollmentUpdate,
@@ -35,21 +42,6 @@ from app.schemas.trial import (
     TrialResponse,
     TrialSummary,
     TrialUpdate,
-)
-from app.services.cohort_service import (
-    AgeRange,
-    AnyCriterion,
-    CodeEntry,
-    CohortDefinition,
-    CohortDefinitionCreate,
-    ConditionCriterion,
-    CriteriaGroup,
-    DemographicCriterion,
-    DrugCriterion,
-    LogicOperator,
-    MeasurementCriterion,
-    ProcedureCriterion,
-    get_cohort_service,
 )
 
 logger = logging.getLogger(__name__)
@@ -189,13 +181,13 @@ class _EnrollmentRecord:
 class TrialEligibilityService:
     """Service for clinical trial management and patient eligibility screening.
 
-    Wraps CohortService to leverage existing cohort definition and execution
-    logic for trial eligibility matching.
+    Queries the clinical_facts and kg_nodes tables directly for eligibility
+    screening. Trial metadata is stored in-memory; patient screening uses
+    real database queries.
     """
 
     def __init__(self):
         self._trials: dict[str, _TrialRecord] = {}
-        self._cohort_service = get_cohort_service()
         self._init_demo_trials()
 
     # ==========================================================================
@@ -365,150 +357,114 @@ class TrialEligibilityService:
 
         for trial_create in demo_trials:
             trial_id = str(uuid4())
-            inclusion_cohort = self._build_cohort_from_criteria(
-                f"[Trial] {trial_create.name} - Inclusion",
-                trial_create.inclusion_criteria,
-            )
-            exclusion_cohort = self._build_cohort_from_criteria(
-                f"[Trial] {trial_create.name} - Exclusion",
-                trial_create.exclusion_criteria,
-            )
-
             record = _TrialRecord(
                 id=trial_id,
                 create=trial_create,
-                inclusion_cohort_id=inclusion_cohort.id if inclusion_cohort else None,
-                exclusion_cohort_id=exclusion_cohort.id if exclusion_cohort else None,
             )
-
-            # Seed some mock enrollments
-            self._seed_mock_enrollments(record)
             self._trials[trial_id] = record
 
         logger.info(f"Initialized {len(demo_trials)} demo trials")
 
-    def _seed_mock_enrollments(self, trial: _TrialRecord):
-        """Seed realistic mock enrollment data for a trial."""
-        statuses_weights = [
-            (EnrollmentStatus.CANDIDATE, 40),
-            (EnrollmentStatus.SCREENED, 15),
-            (EnrollmentStatus.ELIGIBLE, 10),
-            (EnrollmentStatus.ENROLLED, 15),
-            (EnrollmentStatus.ACTIVE, 10),
-            (EnrollmentStatus.SCREEN_FAILED, 5),
-            (EnrollmentStatus.WITHDRAWN, 3),
-            (EnrollmentStatus.COMPLETED, 2),
-        ]
-        statuses = [s for s, _ in statuses_weights]
-        weights = [w for _, w in statuses_weights]
+    # ==========================================================================
+    # Criterion SQL helpers
+    # ==========================================================================
 
-        num_enrollments = min(trial.enrollment_target * 3, 200)
-        for i in range(num_enrollments):
-            status = random.choices(statuses, weights=weights, k=1)[0]
-            enrollment_id = str(uuid4())
-            patient_id = f"P{1000 + i:05d}"
-
-            record = _EnrollmentRecord(
-                id=enrollment_id,
-                trial_id=trial.id,
-                create=EnrollmentCreate(patient_id=patient_id),
-            )
-            record.enrollment_status = status
-            record.match_score = round(random.uniform(0.4, 1.0), 3)
-            record.screening_date = datetime.now(timezone.utc)
-
-            if status in (EnrollmentStatus.ENROLLED, EnrollmentStatus.ACTIVE, EnrollmentStatus.COMPLETED):
-                record.enrollment_date = datetime.now(timezone.utc)
-
-            if status == EnrollmentStatus.WITHDRAWN:
-                record.withdrawal_date = datetime.now(timezone.utc)
-                record.withdrawal_reason = random.choice([
-                    "Patient declined to continue",
-                    "Adverse event",
-                    "Lost to follow-up",
-                    "Protocol deviation",
-                ])
-
-            trial.enrollments[patient_id] = record
-
-    def _build_cohort_from_criteria(
+    def _criterion_patient_query(
         self,
-        name: str,
-        criteria_dict: dict | None,
-    ) -> CohortDefinition | None:
-        """Convert trial criteria JSON into a CohortDefinition via CohortService."""
-        if not criteria_dict or not criteria_dict.get("criteria"):
+        criterion: dict,
+    ) -> select | None:
+        """Build a SELECT DISTINCT patient_id query for a single criterion.
+
+        Returns None for demographic criteria (handled separately via KGNode)
+        or unknown criterion types.
+        """
+        ctype = criterion.get("criterion_type")
+        codes = criterion.get("codes", [])
+        display_terms = [c["display"] for c in codes if c.get("display")]
+
+        if not display_terms and ctype != "demographic":
             return None
 
-        parsed_criteria: list[AnyCriterion] = []
-        for c in criteria_dict["criteria"]:
-            criterion = self._parse_criterion(c)
-            if criterion:
-                parsed_criteria.append(criterion)
-
-        if not parsed_criteria:
-            return None
-
-        root_op = LogicOperator(criteria_dict.get("root_operator", "AND"))
-        create = CohortDefinitionCreate(
-            name=name,
-            criteria=parsed_criteria,
-            root_operator=root_op,
-            tags=["trial-eligibility"],
-        )
-        return self._cohort_service.create_cohort(create, created_by="trial_service")
-
-    def _parse_criterion(self, c: dict) -> AnyCriterion | None:
-        """Parse a criterion dict into a typed CohortCriterion."""
-        ctype = c.get("criterion_type")
-        codes = [CodeEntry(**code) for code in c.get("codes", [])]
-        negated = c.get("negated", False)
+        domain_map = {
+            "condition": Domain.CONDITION,
+            "drug": Domain.DRUG,
+            "measurement": Domain.MEASUREMENT,
+            "procedure": Domain.PROCEDURE,
+            "observation": Domain.OBSERVATION,
+        }
 
         if ctype == "demographic":
-            age_range = None
-            if c.get("age_range"):
-                age_range = AgeRange(**c["age_range"])
-            return DemographicCriterion(
-                name=c.get("name"),
-                age_range=age_range,
-                negated=negated,
-            )
-        elif ctype == "condition":
-            return ConditionCriterion(
-                name=c.get("name"),
-                codes=codes,
-                code_system=c.get("code_system", "ICD10CM"),
-                negated=negated,
-            )
-        elif ctype == "drug":
-            return DrugCriterion(
-                name=c.get("name"),
-                codes=codes,
-                code_system=c.get("code_system", "RxNorm"),
-                negated=negated,
-            )
-        elif ctype == "procedure":
-            return ProcedureCriterion(
-                name=c.get("name"),
-                codes=codes,
-                code_system=c.get("code_system", "CPT"),
-                negated=negated,
-            )
-        elif ctype == "measurement":
-            from app.services.cohort_service import NumericRange
-            value_range = None
-            if c.get("value_range"):
-                value_range = NumericRange(**c["value_range"])
-            return MeasurementCriterion(
-                name=c.get("name"),
-                codes=codes,
-                code_system=c.get("code_system", "LOINC"),
-                value_range=value_range,
-                negated=negated,
-            )
+            # Demographic filtering is done separately against KGNode
+            return None
 
-        logger.warning(f"Unknown criterion type: {ctype}")
-        return None
+        domain = domain_map.get(ctype)
+        if domain is None:
+            logger.warning(f"Unknown criterion type: {ctype}")
+            return None
+
+        like_clauses = [ClinicalFact.concept_name.ilike(f"%{term}%") for term in display_terms]
+
+        filters = [
+            ClinicalFact.domain == domain,
+            ClinicalFact.assertion == Assertion.PRESENT,
+            or_(*like_clauses),
+        ]
+
+        # Measurement value range filtering
+        if ctype == "measurement" and criterion.get("value_range"):
+            vr = criterion["value_range"]
+            if vr.get("min_value") is not None:
+                filters.append(cast(ClinicalFact.value, SAFloat) >= vr["min_value"])
+            if vr.get("max_value") is not None:
+                filters.append(cast(ClinicalFact.value, SAFloat) <= vr["max_value"])
+
+        return select(ClinicalFact.patient_id).where(and_(*filters)).distinct()
+
+    async def _get_demographic_patient_ids(
+        self,
+        criterion: dict,
+        session: AsyncSession,
+    ) -> set[str]:
+        """Query KGNode for patients matching demographic criteria (age range)."""
+        age_range = criterion.get("age_range")
+        if not age_range:
+            # No constraint means everyone matches
+            stmt = select(KGNode.patient_id).where(
+                KGNode.node_type == NodeType.PATIENT,
+                KGNode.deleted_at.is_(None),
+            ).distinct()
+            result = await session.execute(stmt)
+            return set(result.scalars().all())
+
+        # Get all patient nodes and filter by birth_date in properties JSON
+        stmt = select(KGNode.patient_id, KGNode.properties).where(
+            KGNode.node_type == NodeType.PATIENT,
+            KGNode.deleted_at.is_(None),
+        )
+        result = await session.execute(stmt)
+        rows = result.all()
+
+        now = datetime.now(timezone.utc)
+        matching = set()
+        min_age = age_range.get("min_age")
+        max_age = age_range.get("max_age")
+
+        for patient_id, props in rows:
+            birth_date_str = (props or {}).get("birth_date")
+            if not birth_date_str:
+                continue
+            try:
+                birth_date = datetime.fromisoformat(birth_date_str)
+                age = (now - birth_date).days / 365.25
+                if min_age is not None and age < min_age:
+                    continue
+                if max_age is not None and age > max_age:
+                    continue
+                matching.add(patient_id)
+            except (ValueError, TypeError):
+                continue
+
+        return matching
 
     # ==========================================================================
     # Trial CRUD
@@ -518,20 +474,9 @@ class TrialEligibilityService:
         """Create a new clinical trial."""
         trial_id = str(uuid4())
 
-        inclusion_cohort = self._build_cohort_from_criteria(
-            f"[Trial] {create.name} - Inclusion",
-            create.inclusion_criteria,
-        )
-        exclusion_cohort = self._build_cohort_from_criteria(
-            f"[Trial] {create.name} - Exclusion",
-            create.exclusion_criteria,
-        )
-
         record = _TrialRecord(
             id=trial_id,
             create=create,
-            inclusion_cohort_id=inclusion_cohort.id if inclusion_cohort else None,
-            exclusion_cohort_id=exclusion_cohort.id if exclusion_cohort else None,
         )
         self._trials[trial_id] = record
 
@@ -589,20 +534,10 @@ class TrialEligibilityService:
             if value is not None:
                 setattr(record, field, value)
 
-        # Rebuild cohorts if criteria changed
         if update.inclusion_criteria is not None:
             record.inclusion_criteria = update.inclusion_criteria
-            cohort = self._build_cohort_from_criteria(
-                f"[Trial] {record.name} - Inclusion", update.inclusion_criteria
-            )
-            record.inclusion_cohort_id = cohort.id if cohort else None
-
         if update.exclusion_criteria is not None:
             record.exclusion_criteria = update.exclusion_criteria
-            cohort = self._build_cohort_from_criteria(
-                f"[Trial] {record.name} - Exclusion", update.exclusion_criteria
-            )
-            record.exclusion_cohort_id = cohort.id if cohort else None
 
         logger.info(f"Updated trial: {trial_id}")
         return record.to_response()
@@ -619,15 +554,18 @@ class TrialEligibilityService:
     # Patient Screening
     # ==========================================================================
 
-    def screen_patients(
+    async def screen_patients(
         self,
         trial_id: str,
         request: ScreeningRequest | None = None,
+        *,
+        session: AsyncSession,
     ) -> ScreeningResponse | None:
         """Screen patients against trial eligibility criteria.
 
-        Uses the CohortService to execute inclusion criteria, then filters
-        against exclusion criteria. Returns scored candidates.
+        Queries the clinical_facts table for each inclusion/exclusion criterion,
+        intersects inclusion results (AND logic), subtracts exclusion matches,
+        and returns scored candidates.
         """
         record = self._trials.get(trial_id)
         if not record:
@@ -635,36 +573,73 @@ class TrialEligibilityService:
 
         start_time = time.perf_counter()
 
-        # Get inclusion cohort count (how many match inclusion criteria)
-        inclusion_count = 0
-        if record.inclusion_cohort_id:
-            count_result = self._cohort_service.get_patient_count(record.inclusion_cohort_id)
-            if count_result:
-                inclusion_count = count_result.count
+        inclusion_criteria = record.inclusion_criteria or {}
+        inclusion_list = inclusion_criteria.get("criteria", [])
+        exclusion_criteria = record.exclusion_criteria or {}
+        exclusion_list = exclusion_criteria.get("criteria", [])
 
-        # Get exclusion count (how many would be excluded)
-        exclusion_count = 0
-        if record.exclusion_cohort_id:
-            count_result = self._cohort_service.get_patient_count(record.exclusion_cohort_id)
-            if count_result:
-                exclusion_count = count_result.count
+        # --- Gather all patients in the DB as the screening universe ---
+        all_patients_stmt = select(ClinicalFact.patient_id).distinct()
+        all_result = await session.execute(all_patients_stmt)
+        all_patient_ids: set[str] = set(all_result.scalars().all())
 
-        # Calculate eligible (inclusion minus exclusion overlap)
-        eligible_count = max(0, inclusion_count - int(exclusion_count * 0.3))
-        total_screened = inclusion_count + int(inclusion_count * 1.5)
+        # If request specifies patient_ids, restrict universe
+        if request and request.patient_ids:
+            all_patient_ids = all_patient_ids & set(request.patient_ids)
 
-        # Generate mock candidate list
+        total_screened = len(all_patient_ids)
+
+        # --- Inclusion: intersect matching patient sets (AND logic) ---
+        inclusion_sets: list[set[str]] = []
+        for criterion in inclusion_list:
+            ctype = criterion.get("criterion_type")
+            if ctype == "demographic":
+                matching = await self._get_demographic_patient_ids(criterion, session)
+                inclusion_sets.append(matching & all_patient_ids)
+            else:
+                stmt = self._criterion_patient_query(criterion)
+                if stmt is not None:
+                    result = await session.execute(stmt)
+                    matching = set(result.scalars().all())
+                    inclusion_sets.append(matching & all_patient_ids)
+
+        if inclusion_sets:
+            included_patients = inclusion_sets[0]
+            for s in inclusion_sets[1:]:
+                included_patients = included_patients & s
+        else:
+            included_patients = all_patient_ids
+
+        # --- Exclusion: union matching patient sets, then subtract ---
+        excluded_patients: set[str] = set()
+        exclusion_breakdown: dict[str, int] = {}
+        for criterion in exclusion_list:
+            name = criterion.get("name", criterion.get("criterion_type", "Unknown"))
+            ctype = criterion.get("criterion_type")
+
+            if ctype == "demographic":
+                matching = await self._get_demographic_patient_ids(criterion, session)
+            else:
+                stmt = self._criterion_patient_query(criterion)
+                if stmt is not None:
+                    result = await session.execute(stmt)
+                    matching = set(result.scalars().all())
+                else:
+                    matching = set()
+
+            overlap = matching & included_patients
+            exclusion_breakdown[name] = len(overlap)
+            excluded_patients |= overlap
+
+        eligible_patients = included_patients - excluded_patients
+        eligible_count = len(eligible_patients)
+
+        # --- Build candidate list with per-criterion detail ---
         limit = request.limit if request else 100
         min_score = request.min_match_score if request else 0.0
-        candidates = self._generate_mock_candidates(
-            record, eligible_count, limit, min_score
+        candidates = await self._build_real_candidates(
+            record, eligible_patients, included_patients, session, limit, min_score,
         )
-
-        # Demographics summary
-        demographics = self._cohort_service.get_demographics(record.inclusion_cohort_id) if record.inclusion_cohort_id else None
-
-        # Exclusion breakdown
-        exclusion_breakdown = self._build_exclusion_breakdown(record)
 
         enrollment_rate = (eligible_count / total_screened * 100) if total_screened > 0 else 0.0
 
@@ -684,44 +659,212 @@ class TrialEligibilityService:
             enrollment_target=record.enrollment_target,
             enrollment_rate=round(enrollment_rate, 2),
             candidates=candidates,
-            demographics_summary=demographics.model_dump() if demographics else None,
+            demographics_summary=None,
             exclusion_breakdown=exclusion_breakdown,
         )
 
-    def check_patient_eligibility(
+    # Weight map for criterion types used in weighted score calculation.
+    _CRITERION_WEIGHT: dict[str, float] = {
+        "condition": 1.0,
+        "measurement": 0.8,
+        "demographic": 0.5,
+    }
+
+    async def _evaluate_criterion(
+        self,
+        criterion: dict,
+        patient_id: str,
+        session: AsyncSession,
+        *,
+        is_exclusion: bool = False,
+    ) -> CriterionResult:
+        """Evaluate a single criterion for a patient with evidence tracking.
+
+        Returns a CriterionResult with fact-level audit data, confidence
+        scores, and a weighted importance value.
+        """
+        name = criterion.get("name", criterion.get("criterion_type", "Unknown"))
+        ctype = criterion.get("criterion_type", "unknown")
+        weight = self._CRITERION_WEIGHT.get(ctype, 1.0)
+
+        # --- Demographic criteria (no ClinicalFact, uses KGNode) ---
+        if ctype == "demographic":
+            matching = await self._get_demographic_patient_ids(criterion, session)
+            matched = patient_id in matching
+            return CriterionResult(
+                criterion_name=name,
+                criterion_type=ctype,
+                status="PASS" if matched else "UNKNOWN",
+                evidence_fact_ids=[],
+                confidence=1.0 if matched else 0.0,
+                details=f"Demographic {'matched' if matched else 'not matched or missing data'}",
+                weight=weight,
+            )
+
+        # --- Non-demographic: query ClinicalFact with id + confidence ---
+        codes = criterion.get("codes", [])
+        display_terms = [c["display"] for c in codes if c.get("display")]
+        if not display_terms:
+            return CriterionResult(
+                criterion_name=name,
+                criterion_type=ctype,
+                status="UNKNOWN",
+                evidence_fact_ids=[],
+                confidence=0.0,
+                details="No display terms available for criterion",
+                weight=weight,
+            )
+
+        domain_map = {
+            "condition": Domain.CONDITION,
+            "drug": Domain.DRUG,
+            "measurement": Domain.MEASUREMENT,
+            "procedure": Domain.PROCEDURE,
+            "observation": Domain.OBSERVATION,
+        }
+        domain = domain_map.get(ctype)
+        if domain is None:
+            return CriterionResult(
+                criterion_name=name,
+                criterion_type=ctype,
+                status="UNKNOWN",
+                evidence_fact_ids=[],
+                confidence=0.0,
+                details=f"Unsupported criterion type: {ctype}",
+                weight=weight,
+            )
+
+        like_clauses = [ClinicalFact.concept_name.ilike(f"%{term}%") for term in display_terms]
+        filters = [
+            ClinicalFact.patient_id == patient_id,
+            ClinicalFact.domain == domain,
+            ClinicalFact.assertion == Assertion.PRESENT,
+            or_(*like_clauses),
+        ]
+
+        # Measurement value range filtering
+        if ctype == "measurement" and criterion.get("value_range"):
+            vr = criterion["value_range"]
+            if vr.get("min_value") is not None:
+                filters.append(cast(ClinicalFact.value, SAFloat) >= vr["min_value"])
+            if vr.get("max_value") is not None:
+                filters.append(cast(ClinicalFact.value, SAFloat) <= vr["max_value"])
+
+        stmt = select(ClinicalFact.id, ClinicalFact.confidence).where(and_(*filters))
+        result = await session.execute(stmt)
+        facts = result.all()
+
+        if not facts:
+            return CriterionResult(
+                criterion_name=name,
+                criterion_type=ctype,
+                status="UNKNOWN",
+                evidence_fact_ids=[],
+                confidence=0.0,
+                details="No matching clinical facts found",
+                weight=weight,
+            )
+
+        max_confidence = max(f.confidence for f in facts)
+        fact_ids = [str(f.id) for f in facts]
+
+        if max_confidence > 0.7:
+            status = "PASS" if not is_exclusion else "FAIL"
+            details = f"Matched {len(facts)} fact(s), max confidence {max_confidence:.2f}"
+        elif max_confidence > 0.3:
+            status = "POSSIBLE_MATCH"
+            details = f"Low-confidence match ({max_confidence:.2f}), {len(facts)} fact(s)"
+        else:
+            status = "UNKNOWN"
+            details = f"Very low confidence ({max_confidence:.2f}), treating as unknown"
+
+        return CriterionResult(
+            criterion_name=name,
+            criterion_type=ctype,
+            status=status,
+            evidence_fact_ids=fact_ids,
+            confidence=round(max_confidence, 4),
+            details=details,
+            weight=weight,
+        )
+
+    async def check_patient_eligibility(
         self,
         trial_id: str,
         patient_id: str,
+        *,
+        session: AsyncSession,
     ) -> PatientEligibility | None:
-        """Check a single patient's eligibility for a trial."""
+        """Check a single patient's eligibility for a trial.
+
+        Queries the clinical_facts table for each criterion, collects
+        evidence fact IDs and confidence scores, and returns a weighted
+        match score with a full per-criterion audit trail.
+        """
         record = self._trials.get(trial_id)
         if not record:
             return None
 
-        # Parse inclusion criteria for display
+        screening_ts = datetime.now(timezone.utc)
+
         inclusion_criteria = record.inclusion_criteria or {}
         inclusion_list = inclusion_criteria.get("criteria", [])
         exclusion_criteria = record.exclusion_criteria or {}
         exclusion_list = exclusion_criteria.get("criteria", [])
 
-        # Mock eligibility check against patient's clinical facts
-        inclusion_met = []
-        for c in inclusion_list:
-            name = c.get("name", c.get("criterion_type", "Unknown"))
-            # In production, this would query the patient's ClinicalFacts
-            if random.random() > 0.15:
-                inclusion_met.append(name)
+        inclusion_met: list[str] = []
+        missing_data: list[str] = []
+        criteria_details: list[CriterionResult] = []
 
-        exclusion_triggered = []
-        for c in exclusion_list:
-            name = c.get("name", c.get("criterion_type", "Unknown"))
-            if random.random() < 0.1:
-                exclusion_triggered.append(name)
+        # --- Evaluate inclusion criteria ---
+        for criterion in inclusion_list:
+            cr = await self._evaluate_criterion(criterion, patient_id, session)
+            criteria_details.append(cr)
 
-        eligible = len(inclusion_met) == len(inclusion_list) and len(exclusion_triggered) == 0
-        score = len(inclusion_met) / max(len(inclusion_list), 1)
+            if cr.status == "PASS":
+                inclusion_met.append(cr.criterion_name)
+            elif cr.status == "POSSIBLE_MATCH":
+                # Possible matches are noted but do not count as met
+                missing_data.append(cr.criterion_name)
+            else:
+                missing_data.append(cr.criterion_name)
+
+        # --- Evaluate exclusion criteria ---
+        exclusion_triggered: list[str] = []
+        for criterion in exclusion_list:
+            cr = await self._evaluate_criterion(
+                criterion, patient_id, session, is_exclusion=True,
+            )
+            criteria_details.append(cr)
+
+            if cr.status == "FAIL":
+                # Exclusion criterion matched with high confidence
+                exclusion_triggered.append(cr.criterion_name)
+
+        # --- Weighted match score ---
+        # Only count evaluable criteria (not UNKNOWN) in the denominator
+        evaluable_weight = 0.0
+        met_weight = 0.0
+        evaluable_count = 0
+        for cr in criteria_details:
+            if cr.status in ("PASS", "FAIL", "POSSIBLE_MATCH"):
+                evaluable_weight += cr.weight
+                evaluable_count += 1
+                if cr.status == "PASS":
+                    met_weight += cr.weight
+
+        if evaluable_weight > 0:
+            score = met_weight / evaluable_weight
+        else:
+            score = 0.0
+
+        # Any exclusion triggered drops score to zero
         if exclusion_triggered:
             score = 0.0
+
+        eligible = (
+            len(inclusion_met) == len(inclusion_list) and len(exclusion_triggered) == 0
+        )
 
         return PatientEligibility(
             patient_id=patient_id,
@@ -731,80 +874,113 @@ class TrialEligibilityService:
             inclusion_total=len(inclusion_list),
             exclusion_triggered=exclusion_triggered,
             exclusion_total=len(exclusion_list),
-            missing_data=[
-                c.get("name", "Unknown")
-                for c in inclusion_list
-                if c.get("name") not in inclusion_met
-            ],
+            missing_data=missing_data,
+            criteria_details=criteria_details,
+            evaluable_criteria=evaluable_count,
+            screening_timestamp=screening_ts,
         )
 
-    def _generate_mock_candidates(
+    async def _build_real_candidates(
         self,
         trial: _TrialRecord,
-        eligible_count: int,
+        eligible_patients: set[str],
+        included_patients: set[str],
+        session: AsyncSession,
         limit: int,
         min_score: float,
     ) -> list[PatientEligibility]:
-        """Generate mock candidate list for screening results."""
+        """Build candidate list from real query results.
+
+        For eligible patients, all inclusion criteria are met and no exclusion
+        criteria are triggered. For patients in included_patients but not
+        eligible, they met inclusion but triggered an exclusion.
+        """
         inclusion_criteria = trial.inclusion_criteria or {}
         inclusion_list = inclusion_criteria.get("criteria", [])
         exclusion_criteria = trial.exclusion_criteria or {}
         exclusion_list = exclusion_criteria.get("criteria", [])
 
-        candidates = []
-        for i in range(min(limit, eligible_count)):
-            patient_id = f"P{2000 + i:05d}"
+        all_inclusion_names = [
+            c.get("name", c.get("criterion_type", "Unknown"))
+            for c in inclusion_list
+        ]
 
-            # Most candidates meet all inclusion
-            inclusion_met = [
-                c.get("name", c.get("criterion_type"))
-                for c in inclusion_list
-            ]
-            score = round(random.uniform(0.7, 1.0), 3)
+        candidates: list[PatientEligibility] = []
+        for patient_id in sorted(eligible_patients):
+            if len(candidates) >= limit:
+                break
 
-            # Some have missing data
-            missing = []
-            if random.random() < 0.2:
-                dropped = inclusion_met.pop() if inclusion_met else None
-                if dropped:
-                    missing.append(dropped)
-                    score = round(score * 0.8, 3)
-
+            score = 1.0  # All inclusion met, no exclusion triggered
             if score >= min_score:
                 candidates.append(PatientEligibility(
                     patient_id=patient_id,
-                    eligible=len(missing) == 0,
-                    match_score=score,
-                    inclusion_met=inclusion_met,
+                    eligible=True,
+                    match_score=round(score, 3),
+                    inclusion_met=list(all_inclusion_names),
                     inclusion_total=len(inclusion_list),
                     exclusion_triggered=[],
                     exclusion_total=len(exclusion_list),
-                    missing_data=missing,
+                    missing_data=[],
                 ))
 
         candidates.sort(key=lambda c: c.match_score, reverse=True)
         return candidates
 
-    def _build_exclusion_breakdown(self, trial: _TrialRecord) -> dict:
-        """Build a breakdown of why patients were excluded."""
-        exclusion_criteria = trial.exclusion_criteria or {}
-        exclusion_list = exclusion_criteria.get("criteria", [])
+    # ==========================================================================
+    # Auto-Screening
+    # ==========================================================================
 
-        breakdown = {}
-        for c in exclusion_list:
-            name = c.get("name", c.get("criterion_type", "Unknown"))
-            breakdown[name] = random.randint(10, 200)
-
-        return breakdown
+    async def auto_screen_patient(
+        self,
+        patient_id: str,
+        *,
+        session: AsyncSession,
+    ) -> list[dict[str, Any]]:
+        """Auto-screen a patient against all active trials after FHIR import."""
+        results = []
+        for trial_id, record in self._trials.items():
+            if record.status != TrialStatus.RECRUITING:
+                continue
+            eligibility = await self.check_patient_eligibility(
+                trial_id, patient_id, session=session
+            )
+            if not eligibility:
+                continue
+            result: dict[str, Any] = {
+                "trial_id": trial_id,
+                "trial_name": record.name,
+                "eligible": eligibility.eligible,
+                "match_score": eligibility.match_score,
+            }
+            # If eligible with score > 0.5, create CANDIDATE enrollment
+            if eligibility.eligible and eligibility.match_score > 0.5:
+                existing = record.enrollments.get(patient_id)
+                if not existing:
+                    enrollment = await self.enroll_patient(
+                        trial_id,
+                        EnrollmentCreate(patient_id=patient_id),
+                        session=session,
+                    )
+                    if enrollment:
+                        result["enrollment_id"] = str(enrollment.id)
+                        result["enrollment_status"] = "candidate"
+            results.append(result)
+            logger.info(
+                f"Auto-screen: patient {patient_id} vs {record.name}: "
+                f"eligible={eligibility.eligible}, score={eligibility.match_score}"
+            )
+        return results
 
     # ==========================================================================
     # Enrollment Management
     # ==========================================================================
 
-    def enroll_patient(
+    async def enroll_patient(
         self,
         trial_id: str,
         create: EnrollmentCreate,
+        *,
+        session: AsyncSession,
     ) -> EnrollmentResponse | None:
         """Add a patient to a trial's enrollment pipeline."""
         record = self._trials.get(trial_id)
@@ -819,7 +995,9 @@ class TrialEligibilityService:
         )
 
         # Check eligibility and set score
-        eligibility = self.check_patient_eligibility(trial_id, create.patient_id)
+        eligibility = await self.check_patient_eligibility(
+            trial_id, create.patient_id, session=session
+        )
         if eligibility:
             enrollment.match_score = eligibility.match_score
             enrollment.criteria_met = {"met": eligibility.inclusion_met}

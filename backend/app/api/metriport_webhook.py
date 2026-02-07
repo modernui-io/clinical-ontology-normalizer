@@ -181,6 +181,22 @@ async def _process_consolidated_data(
                     f"{result.get('clinical_notes', 0)} clinical notes, "
                     f"{result.get('diagnostic_reports', 0)} diagnostic reports"
                 )
+
+                # Auto-screen patient against active trials
+                try:
+                    from app.services.trial_eligibility_service import get_trial_service
+
+                    trial_service = get_trial_service()
+                    screen_results = await trial_service.auto_screen_patient(
+                        internal_id, session=session
+                    )
+                    matched_trials = [r for r in screen_results if r.get("eligible")]
+                    logger.info(
+                        f"Auto-screening for {internal_id}: "
+                        f"{len(matched_trials)}/{len(screen_results)} trial(s) matched"
+                    )
+                except Exception as e:
+                    logger.error(f"Auto-screening failed for {internal_id}: {e}")
             else:
                 logger.error(
                     f"Metriport import failed for {internal_id}: {result.get('error')}"

@@ -22,9 +22,11 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.database import get_db
 from app.models.trial import EnrollmentStatus, TrialStatus
 from app.schemas.trial import (
     EnrollmentCreate,
@@ -190,10 +192,11 @@ async def delete_trial(trial_id: str) -> None:
 async def screen_patients(
     trial_id: str,
     request: ScreeningRequest | None = None,
+    session: AsyncSession = Depends(get_db),
 ) -> ScreeningResponse:
     """Screen patients against trial eligibility criteria."""
     service = get_trial_service()
-    result = service.screen_patients(trial_id, request)
+    result = await service.screen_patients(trial_id, request, session=session)
     if not result:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -211,10 +214,13 @@ async def screen_patients(
 async def check_patient_eligibility(
     trial_id: str,
     patient_id: str,
+    session: AsyncSession = Depends(get_db),
 ) -> PatientEligibility:
     """Check if a specific patient is eligible for a trial."""
     service = get_trial_service()
-    result = service.check_patient_eligibility(trial_id, patient_id)
+    result = await service.check_patient_eligibility(
+        trial_id, patient_id, session=session
+    )
     if not result:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -238,10 +244,11 @@ async def check_patient_eligibility(
 async def enroll_patient(
     trial_id: str,
     create: EnrollmentCreate,
+    session: AsyncSession = Depends(get_db),
 ) -> EnrollmentResponse:
     """Enroll a patient in a trial."""
     service = get_trial_service()
-    result = service.enroll_patient(trial_id, create)
+    result = await service.enroll_patient(trial_id, create, session=session)
     if not result:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

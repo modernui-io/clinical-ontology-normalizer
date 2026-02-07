@@ -147,6 +147,23 @@ class EnrollmentResponse(BaseModel):
 # Screening / matching schemas
 # ---------------------------------------------------------------------------
 
+class CriterionResult(BaseModel):
+    """Detailed result for a single eligibility criterion.
+
+    Provides an audit trail entry for regulatory compliance, capturing
+    which ClinicalFacts were evaluated, the confidence of the match,
+    and whether the criterion was met.
+    """
+
+    criterion_name: str = Field(..., description="Human-readable criterion name")
+    criterion_type: str = Field(..., description="Type: condition, measurement, demographic")
+    status: str = Field(..., description="PASS, FAIL, UNKNOWN, or POSSIBLE_MATCH")
+    evidence_fact_ids: list[str] = Field(default_factory=list, description="ClinicalFact IDs supporting this result")
+    confidence: float = Field(default=1.0, ge=0.0, le=1.0, description="Max confidence from matching facts")
+    details: str = Field(default="", description="Human-readable explanation")
+    weight: float = Field(default=1.0, ge=0.0, description="Criterion importance weight for scoring")
+
+
 class PatientEligibility(BaseModel):
     """Result of checking a single patient against trial criteria."""
 
@@ -158,6 +175,9 @@ class PatientEligibility(BaseModel):
     exclusion_triggered: list[str] = Field(default_factory=list, description="Exclusion criteria triggered")
     exclusion_total: int = Field(default=0, description="Total exclusion criteria")
     missing_data: list[str] = Field(default_factory=list, description="Criteria with insufficient data")
+    criteria_details: list[CriterionResult] = Field(default_factory=list, description="Per-criterion audit trail")
+    evaluable_criteria: int = Field(default=0, description="Criteria with enough data to evaluate")
+    screening_timestamp: datetime | None = Field(default=None, description="When this screening was performed")
 
 
 class ScreeningRequest(BaseModel):
