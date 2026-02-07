@@ -167,6 +167,199 @@ class FHIRImportService:
         # Default based on resource type will be set by caller
         return Domain.CONDITION
 
+    async def import_bundle(
+        self,
+        session: AsyncSession,
+        bundle: dict[str, Any],
+        internal_patient_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Import a FHIR R4 Bundle directly (no FHIR server needed).
+
+        Extracts Patient, Condition, MedicationRequest, AllergyIntolerance,
+        Observation, and Procedure resources from the Bundle entries and
+        creates ClinicalFacts and KG nodes/edges.
+
+        Args:
+            session: Database session
+            bundle: FHIR R4 Bundle dict
+            internal_patient_id: Optional override for patient ID
+
+        Returns:
+            Import summary with counts
+        """
+        resource_type = bundle.get("resourceType")
+        if resource_type != "Bundle":
+            return {"success": False, "error": f"Expected Bundle, got {resource_type}"}
+
+        entries = bundle.get("entry", [])
+        if not entries:
+            return {"success": False, "error": "Bundle contains no entries"}
+
+        # Group resources by type
+        resources_by_type: dict[str, list[dict[str, Any]]] = {}
+        patient_resource: dict[str, Any] | None = None
+
+        for entry in entries:
+            resource = entry.get("resource")
+            if not resource:
+                continue
+            rtype = resource.get("resourceType")
+            if not rtype:
+                continue
+            if rtype == "Patient":
+                patient_resource = resource
+            resources_by_type.setdefault(rtype, []).append(resource)
+
+        if not patient_resource:
+            return {"success": False, "error": "Bundle contains no Patient resource"}
+
+        fhir_patient_id = patient_resource.get("id", "unknown")
+        patient_id = internal_patient_id or f"fhir-{fhir_patient_id}"
+        logger.info(
+            f"Importing FHIR Bundle for patient {fhir_patient_id} as {patient_id} "
+            f"({len(entries)} entries, {len(resources_by_type)} resource types)"
+        )
+
+        # Clear existing data for this patient
+        from sqlalchemy import delete
+
+        await session.execute(delete(KGEdge).where(KGEdge.patient_id == patient_id))
+        await session.execute(delete(KGNode).where(KGNode.patient_id == patient_id))
+        await session.execute(
+            delete(ClinicalFact).where(ClinicalFact.patient_id == patient_id)
+        )
+        await session.flush()
+
+        # Create patient node
+        patient_name = self._extract_patient_name(patient_resource)
+        patient_node = KGNode(
+            patient_id=patient_id,
+            node_type=NodeType.PATIENT,
+            label=patient_name,
+            properties={
+                "fhir_id": fhir_patient_id,
+                "gender": patient_resource.get("gender"),
+                "birth_date": patient_resource.get("birthDate"),
+                "mrn": self._extract_identifier(patient_resource),
+            },
+        )
+        session.add(patient_node)
+        await session.flush()
+
+        stats = {
+            "patient_id": patient_id,
+            "patient_name": patient_name,
+            "conditions": 0,
+            "medications": 0,
+            "allergies": 0,
+            "observations": 0,
+            "procedures": 0,
+            "nodes": 1,
+            "edges": 0,
+            "skipped_resource_types": [],
+        }
+
+        # Dispatch each resource type to its handler
+        handler_map = {
+            "Condition": ("conditions", self._import_condition),
+            "MedicationRequest": ("medications", self._import_medication),
+            "MedicationStatement": ("medications", self._import_medication_statement),
+            "AllergyIntolerance": ("allergies", self._import_allergy),
+            "Observation": ("observations", self._import_observation),
+            "Procedure": ("procedures", self._import_procedure),
+        }
+
+        for rtype, resources in resources_by_type.items():
+            if rtype == "Patient":
+                continue
+            if rtype not in handler_map:
+                if rtype not in stats["skipped_resource_types"]:
+                    stats["skipped_resource_types"].append(rtype)
+                continue
+
+            stat_key, handler = handler_map[rtype]
+            for resource in resources:
+                try:
+                    fact, node, edge = await handler(
+                        session, patient_id, patient_node.id, resource
+                    )
+                    if fact:
+                        stats[stat_key] += 1
+                        stats["nodes"] += 1
+                        stats["edges"] += 1
+                except Exception as e:
+                    logger.warning(
+                        f"Failed to import {rtype} resource "
+                        f"{resource.get('id', '?')}: {e}"
+                    )
+
+        await session.commit()
+        logger.info(f"Bundle import complete for patient {patient_id}: {stats}")
+        return {"success": True, **stats}
+
+    async def _import_medication_statement(
+        self,
+        session: AsyncSession,
+        patient_id: str,
+        patient_node_id: UUID,
+        med_statement: dict[str, Any],
+    ) -> tuple[ClinicalFact | None, KGNode | None, KGEdge | None]:
+        """Import a FHIR MedicationStatement (same structure as MedicationRequest)."""
+        # MedicationStatement uses medicationCodeableConcept like MedicationRequest
+        med_concept = med_statement.get("medicationCodeableConcept", {})
+        code, display, system = self._get_code_from_codeable_concept(med_concept)
+
+        if not display:
+            return None, None, None
+
+        status = med_statement.get("status", "active")
+        assertion = Assertion.PRESENT if status == "active" else Assertion.ABSENT
+        effective = self._parse_fhir_datetime(
+            med_statement.get("effectiveDateTime")
+            or med_statement.get("effectivePeriod", {}).get("start")
+            or med_statement.get("dateAsserted")
+        )
+
+        fact = ClinicalFact(
+            patient_id=patient_id,
+            domain=Domain.DRUG,
+            omop_concept_id=int(code) if code and code.isdigit() else 0,
+            concept_name=display,
+            assertion=assertion,
+            temporality=Temporality.CURRENT,
+            experiencer=Experiencer.PATIENT,
+            confidence=1.0,
+            start_date=effective,
+        )
+        session.add(fact)
+        await session.flush()
+
+        node = KGNode(
+            patient_id=patient_id,
+            node_type=NodeType.DRUG,
+            omop_concept_id=int(code) if code and code.isdigit() else None,
+            label=display,
+            properties={
+                "fhir_id": med_statement.get("id"),
+                "rxnorm_code": code,
+                "status": status,
+            },
+        )
+        session.add(node)
+        await session.flush()
+
+        edge = KGEdge(
+            patient_id=patient_id,
+            source_node_id=patient_node_id,
+            target_node_id=node.id,
+            edge_type=EdgeType.TAKES_DRUG,
+            fact_id=fact.id,
+            properties={"status": status},
+        )
+        session.add(edge)
+
+        return fact, node, edge
+
     async def import_patient(
         self,
         session: AsyncSession,
