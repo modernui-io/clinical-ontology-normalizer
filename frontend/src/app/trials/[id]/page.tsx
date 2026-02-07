@@ -319,11 +319,11 @@ export default function TrialDetailPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {trial.inclusion_criteria.length === 0 ? (
+              {(trial.inclusion_criteria?.criteria ?? []).length === 0 ? (
                 <p className="text-muted-foreground">No inclusion criteria defined</p>
               ) : (
                 <div className="space-y-3">
-                  {trial.inclusion_criteria.map((criterion, idx) => (
+                  {(trial.inclusion_criteria?.criteria ?? []).map((criterion, idx) => (
                     <div
                       key={idx}
                       className="flex items-start gap-3 rounded-lg border border-green-200 bg-green-50 p-3 dark:border-green-900 dark:bg-green-950"
@@ -331,7 +331,7 @@ export default function TrialDetailPage() {
                       <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
                       <div className="text-sm">
                         <span className="font-medium capitalize">
-                          {(criterion as Record<string, unknown>).type as string}:
+                          {((criterion as Record<string, unknown>).criterion_type as string || (criterion as Record<string, unknown>).type as string || "criteria")}:
                         </span>{" "}
                         {formatCriterion(criterion as Record<string, unknown>)}
                       </div>
@@ -353,11 +353,11 @@ export default function TrialDetailPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {trial.exclusion_criteria.length === 0 ? (
+              {(trial.exclusion_criteria?.criteria ?? []).length === 0 ? (
                 <p className="text-muted-foreground">No exclusion criteria defined</p>
               ) : (
                 <div className="space-y-3">
-                  {trial.exclusion_criteria.map((criterion, idx) => (
+                  {(trial.exclusion_criteria?.criteria ?? []).map((criterion, idx) => (
                     <div
                       key={idx}
                       className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-900 dark:bg-red-950"
@@ -365,7 +365,7 @@ export default function TrialDetailPage() {
                       <XCircle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
                       <div className="text-sm">
                         <span className="font-medium capitalize">
-                          {(criterion as Record<string, unknown>).type as string}:
+                          {((criterion as Record<string, unknown>).criterion_type as string || (criterion as Record<string, unknown>).type as string || "criteria")}:
                         </span>{" "}
                         {formatCriterion(criterion as Record<string, unknown>)}
                       </div>
@@ -592,17 +592,17 @@ export default function TrialDetailPage() {
                           </TableCell>
                           <TableCell>
                             <span className="text-green-600 font-medium">
-                              {enrollment.criteria_met.length}
+                              {(enrollment.criteria_met ?? []).length}
                             </span>
                           </TableCell>
                           <TableCell>
-                            <span className={enrollment.criteria_failed.length > 0 ? "text-red-600 font-medium" : "text-muted-foreground"}>
-                              {enrollment.criteria_failed.length}
+                            <span className={(enrollment.criteria_failed ?? []).length > 0 ? "text-red-600 font-medium" : "text-muted-foreground"}>
+                              {(enrollment.criteria_failed ?? []).length}
                             </span>
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground">
-                            {enrollment.screened_at
-                              ? new Date(enrollment.screened_at).toLocaleDateString()
+                            {enrollment.screening_date
+                              ? new Date(enrollment.screening_date).toLocaleDateString()
                               : "-"}
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
@@ -623,42 +623,55 @@ export default function TrialDetailPage() {
 }
 
 function formatCriterion(criterion: Record<string, unknown>): string {
-  const type = criterion.type as string;
+  const type = (criterion.criterion_type || criterion.type) as string;
+  const name = criterion.name as string | undefined;
 
   switch (type) {
     case "demographic": {
       const parts: string[] = [];
+      if (name) parts.push(name);
       const ageRange = criterion.age_range as Record<string, number> | undefined;
       if (ageRange) {
-        parts.push(`Age ${ageRange.min_age}-${ageRange.max_age}`);
+        if (ageRange.min_age && ageRange.max_age) {
+          parts.push(`Age ${ageRange.min_age}-${ageRange.max_age}`);
+        } else if (ageRange.min_age) {
+          parts.push(`Age >= ${ageRange.min_age}`);
+        } else if (ageRange.max_age) {
+          parts.push(`Age <= ${ageRange.max_age}`);
+        }
       }
       const gender = criterion.gender as string[] | undefined;
       if (gender && gender.length > 0) {
         parts.push(`Gender: ${gender.join(", ")}`);
       }
-      return parts.join("; ") || "Demographics filter";
+      return parts.join(" - ") || "Demographics filter";
     }
     case "condition": {
+      const parts: string[] = [];
+      if (name) parts.push(name);
       const codes = criterion.codes as Array<Record<string, string>> | undefined;
       if (codes && codes.length > 0) {
-        return codes.map((c) => `${c.code} (${c.system || "ICD10CM"})`).join(", ");
+        parts.push(codes.map((c) => `${c.display || c.code}`).join(", "));
       }
-      return "Condition criteria";
+      return parts.join(": ") || "Condition criteria";
     }
     case "drug":
     case "drug_exposure": {
+      const parts: string[] = [];
+      if (name) parts.push(name);
       const codes = criterion.codes as Array<Record<string, string>> | undefined;
       if (codes && codes.length > 0) {
-        return codes.map((c) => `${c.code} (${c.system || "RxNorm"})`).join(", ");
+        parts.push(codes.map((c) => `${c.display || c.code}`).join(", "));
       }
-      return "Drug exposure criteria";
+      return parts.join(": ") || "Drug exposure criteria";
     }
     case "measurement": {
+      const parts: string[] = [];
+      if (name) parts.push(name);
       const codes = criterion.codes as Array<Record<string, string>> | undefined;
       const valueRange = criterion.value_range as Record<string, number> | undefined;
-      const parts: string[] = [];
       if (codes && codes.length > 0) {
-        parts.push(codes.map((c) => c.code).join(", "));
+        parts.push(codes.map((c) => c.display || c.code).join(", "));
       }
       if (valueRange) {
         if (valueRange.min_value !== undefined && valueRange.max_value !== undefined) {
@@ -671,16 +684,20 @@ function formatCriterion(criterion: Record<string, unknown>): string {
       }
       const unit = criterion.unit as string | undefined;
       if (unit) parts.push(unit);
+      const codeSystem = criterion.code_system as string | undefined;
+      if (codeSystem) parts.push(`(${codeSystem})`);
       return parts.join(" ") || "Measurement criteria";
     }
     case "procedure": {
+      const parts: string[] = [];
+      if (name) parts.push(name);
       const codes = criterion.codes as Array<Record<string, string>> | undefined;
       if (codes && codes.length > 0) {
-        return codes.map((c) => `${c.code} (${c.system || "CPT"})`).join(", ");
+        parts.push(codes.map((c) => `${c.display || c.code}`).join(", "));
       }
-      return "Procedure criteria";
+      return parts.join(": ") || "Procedure criteria";
     }
     default:
-      return JSON.stringify(criterion);
+      return name || JSON.stringify(criterion);
   }
 }

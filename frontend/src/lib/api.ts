@@ -3242,7 +3242,7 @@ export interface TrialSummary {
   therapeutic_area: string | null;
   enrollment_target: number;
   enrolled_count: number;
-  site_count: number;
+  enrollment_progress: number;
   created_at: string;
 }
 
@@ -3257,8 +3257,8 @@ export interface TrialResponse {
   description: string | null;
   therapeutic_area: string | null;
   indication_codes: string[];
-  inclusion_criteria: Record<string, unknown>[];
-  exclusion_criteria: Record<string, unknown>[];
+  inclusion_criteria: { criteria: Record<string, unknown>[] };
+  exclusion_criteria: { criteria: Record<string, unknown>[] };
   enrollment_target: number;
   enrolled_count: number;
   site_count: number;
@@ -3299,15 +3299,18 @@ export interface ScreeningResponse {
 }
 
 export interface EnrollmentResponse {
+  id: string;
   trial_id: string;
   patient_id: string;
   enrollment_status: string;
   match_score: number | null;
-  criteria_met: string[];
-  criteria_failed: string[];
-  screened_at: string | null;
-  enrolled_at: string | null;
-  withdrawn_at: string | null;
+  criteria_met: string[] | null;
+  criteria_failed: string[] | null;
+  screening_date: string | null;
+  enrollment_date: string | null;
+  withdrawal_date: string | null;
+  withdrawal_reason: string | null;
+  site_id: string | null;
   notes: string | null;
   created_at: string;
 }

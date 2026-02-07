@@ -106,7 +106,7 @@ export default function TrialsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {(stats as Record<string, unknown>)?.recruiting as number ?? 0}
+              {((stats as Record<string, unknown>)?.trials_by_status as Record<string, number>)?.recruiting ?? 0}
             </div>
           </CardContent>
         </Card>
@@ -117,19 +117,24 @@ export default function TrialsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
-              {(stats as Record<string, unknown>)?.total_enrolled as number ?? 0}
+              {(stats as Record<string, unknown>)?.total_enrolled_patients as number ?? 0}
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Screened</CardTitle>
+            <CardTitle className="text-sm font-medium">Avg Enrollment</CardTitle>
             <Activity className="h-4 w-4 text-purple-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-purple-600">
-              {(stats as Record<string, unknown>)?.total_screened as number ?? 0}
+              {(() => {
+                const totalTrials = (stats as Record<string, unknown>)?.total_trials as number ?? 0;
+                const totalEnrolled = (stats as Record<string, unknown>)?.total_enrolled_patients as number ?? 0;
+                return totalTrials > 0 ? Math.round(totalEnrolled / totalTrials) : 0;
+              })()}
             </div>
+            <p className="text-xs text-muted-foreground mt-1">patients per trial</p>
           </CardContent>
         </Card>
       </div>
