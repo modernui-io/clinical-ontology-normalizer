@@ -124,7 +124,12 @@ from app.api import (
     etl_validation_router,
     fhir_validation_router,
     validation_study_router,
+    experiments_router,
     gold_standard_router,
+    observability_router,
+    secret_rotation_router,
+    data_governance_router,
+    quality_management_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -792,6 +797,11 @@ api_v1_router.include_router(diversity_analytics_router)
 api_v1_router.include_router(criteria_fidelity_router)
 api_v1_router.include_router(validation_study_router)
 api_v1_router.include_router(gold_standard_router)
+api_v1_router.include_router(observability_router)
+api_v1_router.include_router(secret_rotation_router)
+api_v1_router.include_router(experiments_router)
+api_v1_router.include_router(data_governance_router)
+api_v1_router.include_router(quality_management_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)

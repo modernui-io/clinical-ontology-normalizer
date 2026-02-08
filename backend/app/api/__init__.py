@@ -172,7 +172,12 @@ from app.api.criteria_fidelity import router as criteria_fidelity_router
 from app.api.etl_validation import router as etl_validation_router
 from app.api.fhir_validation import router as fhir_validation_router
 from app.api.validation_study import router as validation_study_router
+from app.api.experiments import router as experiments_router
 from app.api.gold_standard import router as gold_standard_router
+from app.api.observability import router as observability_router
+from app.api.secret_rotation import router as secret_rotation_router
+from app.api.data_governance import router as data_governance_router
+from app.api.quality_management import router as quality_management_router
 
 __all__ = [
     # Routers
@@ -282,7 +287,12 @@ __all__ = [
     "etl_validation_router",
     "fhir_validation_router",
     "validation_study_router",
+    "experiments_router",
     "gold_standard_router",
+    "observability_router",
+    "secret_rotation_router",
+    "data_governance_router",
+    "quality_management_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",
