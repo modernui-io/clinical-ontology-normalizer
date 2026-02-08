@@ -129,7 +129,12 @@ from app.api import (
     observability_router,
     secret_rotation_router,
     data_governance_router,
+    drift_detection_router,
+    fairness_audit_router,
     quality_management_router,
+    infrastructure_router,
+    soc2_compliance_router,
+    scalability_audit_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -801,7 +806,12 @@ api_v1_router.include_router(observability_router)
 api_v1_router.include_router(secret_rotation_router)
 api_v1_router.include_router(experiments_router)
 api_v1_router.include_router(data_governance_router)
+api_v1_router.include_router(drift_detection_router)
+api_v1_router.include_router(fairness_audit_router)
 api_v1_router.include_router(quality_management_router)
+api_v1_router.include_router(infrastructure_router)
+api_v1_router.include_router(soc2_compliance_router)
+api_v1_router.include_router(scalability_audit_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)

@@ -177,7 +177,12 @@ from app.api.gold_standard import router as gold_standard_router
 from app.api.observability import router as observability_router
 from app.api.secret_rotation import router as secret_rotation_router
 from app.api.data_governance import router as data_governance_router
+from app.api.drift_detection import router as drift_detection_router
+from app.api.fairness_audit import router as fairness_audit_router
 from app.api.quality_management import router as quality_management_router
+from app.api.infrastructure import router as infrastructure_router
+from app.api.soc2_compliance import router as soc2_compliance_router
+from app.api.scalability_audit import router as scalability_audit_router
 
 __all__ = [
     # Routers
@@ -292,7 +297,12 @@ __all__ = [
     "observability_router",
     "secret_rotation_router",
     "data_governance_router",
+    "drift_detection_router",
+    "fairness_audit_router",
     "quality_management_router",
+    "infrastructure_router",
+    "soc2_compliance_router",
+    "scalability_audit_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",
