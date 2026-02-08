@@ -192,7 +192,12 @@ from app.api.traceability import router as traceability_router
 from app.api.autoscaling import router as autoscaling_router
 from app.api.security_hardening import router as security_hardening_router
 from app.api.integration_roadmap import router as integration_roadmap_router
+from app.api.api_versioning import router as api_versioning_router
 from app.api.change_control import router as change_control_router
+from app.api.network_segmentation import router as network_segmentation_router
+from app.api.business_continuity import router as business_continuity_router
+from app.api.patient_engagement import router as patient_engagement_router
+from app.api.feature_store import router as feature_store_router
 
 __all__ = [
     # Routers
@@ -322,7 +327,12 @@ __all__ = [
     "autoscaling_router",
     "security_hardening_router",
     "integration_roadmap_router",
+    "api_versioning_router",
     "change_control_router",
+    "network_segmentation_router",
+    "patient_engagement_router",
+    "business_continuity_router",
+    "feature_store_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",

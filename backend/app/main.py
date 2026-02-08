@@ -145,6 +145,11 @@ from app.api import (
     security_hardening_router,
     integration_roadmap_router,
     change_control_router,
+    network_segmentation_router,
+    api_versioning_router,
+    patient_engagement_router,
+    business_continuity_router,
+    feature_store_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -832,6 +837,11 @@ api_v1_router.include_router(autoscaling_router)
 api_v1_router.include_router(security_hardening_router)
 api_v1_router.include_router(integration_roadmap_router)
 api_v1_router.include_router(change_control_router)
+api_v1_router.include_router(network_segmentation_router)
+api_v1_router.include_router(api_versioning_router)
+api_v1_router.include_router(patient_engagement_router)
+api_v1_router.include_router(feature_store_router)
+api_v1_router.include_router(business_continuity_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)
