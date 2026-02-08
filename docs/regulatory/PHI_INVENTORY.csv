@@ -1,0 +1,62 @@
+field_name,phi_category,hipaa_identifier_number,data_model,table_name,column_name,encrypted_at_rest,encrypted_in_transit,access_control,retention_days,de_identification_method
+patient_name,Name,1,KGNode,kg_nodes,label,yes,yes,patients:read,2555,remove
+patient_name_properties,Name,1,KGNode,kg_nodes,properties->fhir_id,yes,yes,patients:read,2555,remove
+user_name,Name,1,User,users,name,yes,yes,admin:manage_users,2555,remove
+user_email,Email Address,6,User,users,email,yes,yes,admin:manage_users,2555,remove
+fhir_patient_name,Name,1,StructuredResource,structured_resources,payload->name,yes,yes,patients:read,2555,remove
+fhir_patient_address,Geographic Data,2,StructuredResource,structured_resources,payload->address,yes,yes,patients:read,2555,truncate_zip_3
+fhir_patient_address_line,Geographic Data,2,StructuredResource,structured_resources,payload->address->line,yes,yes,patients:read,2555,remove
+fhir_patient_address_city,Geographic Data,2,StructuredResource,structured_resources,payload->address->city,yes,yes,patients:read,2555,remove
+fhir_patient_address_state,Geographic Data,2,StructuredResource,structured_resources,payload->address->state,yes,yes,patients:read,2555,remove
+fhir_patient_address_zip,Geographic Data,2,StructuredResource,structured_resources,payload->address->postalCode,yes,yes,patients:read,2555,truncate_zip_3
+birth_date,Dates,3,KGNode,kg_nodes,properties->birth_date,yes,yes,patients:read,2555,generalize_to_year
+fhir_patient_birth_date,Dates,3,StructuredResource,structured_resources,payload->birthDate,yes,yes,patients:read,2555,generalize_to_year
+clinical_fact_start_date,Dates,3,ClinicalFact,clinical_facts,start_date,yes,yes,patients:read,2555,date_shift
+clinical_fact_end_date,Dates,3,ClinicalFact,clinical_facts,end_date,yes,yes,patients:read,2555,date_shift
+kg_edge_event_date,Dates,3,KGEdge,kg_edges,event_date,yes,yes,patients:read,2555,date_shift
+kg_edge_valid_from,Dates,3,KGEdge,kg_edges,valid_from,yes,yes,patients:read,2555,date_shift
+kg_edge_valid_to,Dates,3,KGEdge,kg_edges,valid_to,yes,yes,patients:read,2555,date_shift
+kg_edge_recorded_at,Dates,3,KGEdge,kg_edges,recorded_at,yes,yes,patients:read,2555,date_shift
+kg_edge_source_document_date,Dates,3,KGEdge,kg_edges,source_document_date,yes,yes,patients:read,2555,date_shift
+enrollment_screening_date,Dates,3,TrialEnrollment,trial_enrollments,screening_date,yes,yes,patients:read,5475,date_shift
+enrollment_enrollment_date,Dates,3,TrialEnrollment,trial_enrollments,enrollment_date,yes,yes,patients:read,5475,date_shift
+enrollment_withdrawal_date,Dates,3,TrialEnrollment,trial_enrollments,withdrawal_date,yes,yes,patients:read,5475,date_shift
+document_processed_at,Dates,3,Document,documents,processed_at,yes,yes,documents:read,2555,date_shift
+fhir_patient_phone,Phone Number,4,StructuredResource,structured_resources,payload->telecom[phone],yes,yes,patients:read,2555,remove
+fhir_patient_fax,Fax Number,5,StructuredResource,structured_resources,payload->telecom[fax],yes,yes,patients:read,2555,remove
+fhir_patient_email,Email Address,6,StructuredResource,structured_resources,payload->telecom[email],yes,yes,patients:read,2555,remove
+fhir_patient_ssn,SSN,7,StructuredResource,structured_resources,payload->identifier[SSN],yes,yes,patients:read,2555,remove
+document_text_ssn,SSN,7,Document,documents,text (embedded),yes,yes,documents:read,2555,nlp_redaction
+patient_mrn,MRN,8,KGNode,kg_nodes,properties->mrn,yes,yes,patients:read,2555,pseudonymize_hmac
+fhir_patient_mrn,MRN,8,StructuredResource,structured_resources,payload->identifier[MRN],yes,yes,patients:read,2555,pseudonymize_hmac
+document_text_mrn,MRN,8,Document,documents,text (embedded),yes,yes,documents:read,2555,nlp_redaction
+fhir_coverage_beneficiary,Health Plan Beneficiary Number,9,StructuredResource,structured_resources,payload->identifier[coverage],yes,yes,patients:read,2555,remove
+fhir_account_number,Account Number,10,StructuredResource,structured_resources,payload->identifier[account],yes,yes,billing:read,2555,remove
+fhir_practitioner_license,Certificate/License Number,11,StructuredResource,structured_resources,payload->identifier[license],yes,yes,patients:read,2555,remove
+document_text_vehicle_id,Vehicle Identifier,12,Document,documents,text (embedded),yes,yes,documents:read,2555,nlp_redaction
+fhir_device_identifier,Device Identifier,13,StructuredResource,structured_resources,payload->identifier[device],yes,yes,patients:read,2555,remove
+fhir_resource_url,URL,14,StructuredResource,structured_resources,payload->fullUrl,yes,yes,patients:read,2555,remove
+attachment_url,URL,14,StructuredResource,structured_resources,payload->content->attachment->url,yes,yes,patients:read,2555,remove
+audit_ip_address,IP Address,15,AuditLog,audit_logs,ip_address,yes,yes,admin:read,2555,remove
+refresh_token_ip,IP Address,15,RefreshToken,refresh_tokens,ip_address,yes,yes,system,90,remove
+document_patient_id,Unique Identifier,18,Document,documents,patient_id,yes,yes,documents:read,2555,pseudonymize_hmac
+clinical_fact_patient_id,Unique Identifier,18,ClinicalFact,clinical_facts,patient_id,yes,yes,patients:read,2555,pseudonymize_hmac
+kg_node_patient_id,Unique Identifier,18,KGNode,kg_nodes,patient_id,yes,yes,patients:read,2555,pseudonymize_hmac
+kg_edge_patient_id,Unique Identifier,18,KGEdge,kg_edges,patient_id,yes,yes,patients:read,2555,pseudonymize_hmac
+enrollment_patient_id,Unique Identifier,18,TrialEnrollment,trial_enrollments,patient_id,yes,yes,patients:read,5475,pseudonymize_hmac
+clinical_value_patient_id,Unique Identifier,18,ClinicalValue,clinical_values,patient_id,yes,yes,patients:read,2555,pseudonymize_hmac
+audit_patient_id,Unique Identifier,18,AuditLog,audit_logs,patient_id,yes,yes,admin:read,2555,pseudonymize_hmac
+provenance_patient_id,Unique Identifier,18,ProvenanceRecord,provenance_records,patient_id,yes,yes,patients:read,2555,pseudonymize_hmac
+reasoning_trace_patient_id,Unique Identifier,18,ReasoningTrace,reasoning_traces,patient_id,yes,yes,patients:read,2555,pseudonymize_hmac
+structured_resource_patient_id,Unique Identifier,18,StructuredResource,structured_resources,patient_id,yes,yes,patients:read,2555,pseudonymize_hmac
+document_free_text,Clinical Note (multiple PHI types),1|3|7|8,Document,documents,text,yes,yes,documents:read,2555,nlp_redaction
+mention_text_span,Clinical Text Span,1|3|7|8,Mention,mentions,text,yes,yes,documents:read,2555,nlp_redaction
+mention_lexical_variant,Clinical Text Span,1|3|7|8,Mention,mentions,lexical_variant,yes,yes,documents:read,2555,nlp_redaction
+clinical_value_text,Clinical Text Span,1|3|7|8,ClinicalValue,clinical_values,text,yes,yes,patients:read,2555,nlp_redaction
+provenance_extracted_text,Clinical Text Span,1|3|7|8,ProvenanceRecord,provenance_records,extracted_text,yes,yes,patients:read,2555,nlp_redaction
+enrollment_notes,Clinical Notes,1|3,TrialEnrollment,trial_enrollments,notes,yes,yes,patients:read,5475,nlp_redaction
+enrollment_withdrawal_reason,Clinical Notes,1|3,TrialEnrollment,trial_enrollments,withdrawal_reason,yes,yes,patients:read,5475,nlp_redaction
+fhir_patient_gender,Demographics,18,StructuredResource,structured_resources,payload->gender,yes,yes,patients:read,2555,retain
+kg_node_gender,Demographics,18,KGNode,kg_nodes,properties->gender,yes,yes,patients:read,2555,retain
+audit_user_id,Unique Identifier,18,AuditLog,audit_logs,user_id,yes,yes,admin:read,2555,pseudonymize_hmac
+audit_session_id,Unique Identifier,18,AuditLog,audit_logs,session_id,yes,yes,admin:read,2555,remove

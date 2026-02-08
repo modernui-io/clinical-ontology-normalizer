@@ -109,6 +109,7 @@ from app.api import (
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
 from app.api.middleware.rate_limit import RateLimitMiddleware
+from app.api.middleware.sli_collector import SLICollectorMiddleware, sli_router
 from app.core.config import settings
 from app.core.database import close_db, init_db
 from app.core.logging_config import setup_logging
@@ -624,6 +625,9 @@ app.add_middleware(AuditMiddleware)
 # 4. Metrics middleware - collects request metrics for Prometheus
 app.add_middleware(MetricsMiddleware)
 
+# 4b. SLI collector middleware - VPE-4: per-endpoint SLI metrics for SLA monitoring
+app.add_middleware(SLICollectorMiddleware)
+
 # 5. Rate limit middleware - enforces rate limits per endpoint
 app.add_middleware(RateLimitMiddleware)
 
@@ -755,6 +759,8 @@ app.include_router(api_v1_router)
 # Include observability routers (health and metrics have their own /api/v1 prefixes)
 app.include_router(health_router)
 app.include_router(metrics_router)
+# VPE-4: SLI metrics endpoints (/metrics/sli, /metrics/sli/summary)
+app.include_router(sli_router)
 
 
 # ============================================================================

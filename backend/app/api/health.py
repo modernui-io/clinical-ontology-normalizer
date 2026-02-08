@@ -760,6 +760,212 @@ async def deep_health_check(response: Response) -> DeepHealthResponse:
 
 
 @router.get(
+    "/detailed",
+    summary="Detailed health check with per-component SLI data",
+    description=(
+        "Returns detailed health status for every infrastructure component "
+        "including PostgreSQL, Redis, Neo4j, NLP service, disk space, and memory usage. "
+        "Designed for SLA monitoring dashboards."
+    ),
+    responses={
+        200: {"description": "System is healthy or degraded"},
+        503: {"description": "System is unhealthy"},
+    },
+)
+async def detailed_health_check(response: Response) -> dict[str, Any]:
+    """Detailed health check endpoint for SLA monitoring.
+
+    VPE-4: Enhanced health check that returns per-component status with
+    latency measurements, suitable for SLI collection and SLA verification.
+
+    Components checked:
+    - PostgreSQL: connection + query latency
+    - Redis: ping + latency
+    - Neo4j: connection check (if configured)
+    - NLP service: availability check
+    - Disk space: threshold check
+    - Memory usage: threshold check
+
+    Returns structured JSON for SLA dashboards.
+    """
+    overall_start = time.perf_counter()
+    components: dict[str, Any] = {}
+
+    # --- PostgreSQL ---
+    db_start = time.perf_counter()
+    try:
+        from sqlalchemy import text
+        from app.core.database import async_session_maker
+
+        async with async_session_maker() as session:
+            await asyncio.wait_for(
+                session.execute(text("SELECT 1")),
+                timeout=HEALTH_CHECK_TIMEOUT,
+            )
+        db_latency = (time.perf_counter() - db_start) * 1000
+        components["postgresql"] = {
+            "status": "up",
+            "latency_ms": round(db_latency, 2),
+        }
+    except Exception as e:
+        db_latency = (time.perf_counter() - db_start) * 1000
+        components["postgresql"] = {
+            "status": "down",
+            "latency_ms": round(db_latency, 2),
+            "error": str(e),
+        }
+
+    # --- Redis ---
+    redis_start = time.perf_counter()
+    try:
+        from app.core.redis import get_redis
+
+        redis_client = get_redis()
+        result = await asyncio.wait_for(
+            asyncio.to_thread(redis_client.ping),
+            timeout=HEALTH_CHECK_TIMEOUT,
+        )
+        redis_latency = (time.perf_counter() - redis_start) * 1000
+        components["redis"] = {
+            "status": "up" if result else "down",
+            "latency_ms": round(redis_latency, 2),
+        }
+    except Exception as e:
+        redis_latency = (time.perf_counter() - redis_start) * 1000
+        components["redis"] = {
+            "status": "down",
+            "latency_ms": round(redis_latency, 2),
+            "error": str(e),
+        }
+
+    # --- Neo4j (optional) ---
+    neo4j_start = time.perf_counter()
+    try:
+        from app.services.graph_database_service import get_graph_database_service
+
+        graph_service = get_graph_database_service()
+        health_result = await asyncio.wait_for(
+            asyncio.to_thread(graph_service.health_check),
+            timeout=HEALTH_CHECK_TIMEOUT,
+        )
+        neo4j_latency = (time.perf_counter() - neo4j_start) * 1000
+        is_up = health_result.status.value in ("connected", "mock_mode")
+        components["neo4j"] = {
+            "status": "up" if is_up else "down",
+            "latency_ms": round(neo4j_latency, 2),
+            "mode": health_result.status.value,
+        }
+        if not is_up and health_result.error_message:
+            components["neo4j"]["error"] = health_result.error_message
+    except Exception as e:
+        neo4j_latency = (time.perf_counter() - neo4j_start) * 1000
+        components["neo4j"] = {
+            "status": "down",
+            "latency_ms": round(neo4j_latency, 2),
+            "error": str(e),
+        }
+
+    # --- NLP Service ---
+    nlp_start = time.perf_counter()
+    try:
+        from app.services.vocabulary import get_vocabulary_service
+
+        vocab = get_vocabulary_service()
+        stats = vocab.get_stats()
+        nlp_latency = (time.perf_counter() - nlp_start) * 1000
+        is_loaded = stats.get("concept_count", 0) > 0
+        components["nlp_service"] = {
+            "status": "up" if is_loaded else "degraded",
+            "latency_ms": round(nlp_latency, 2),
+            "concept_count": stats.get("concept_count", 0),
+            "term_count": stats.get("term_count", 0),
+        }
+    except Exception as e:
+        nlp_latency = (time.perf_counter() - nlp_start) * 1000
+        components["nlp_service"] = {
+            "status": "down",
+            "latency_ms": round(nlp_latency, 2),
+            "error": str(e),
+        }
+
+    # --- Disk Space ---
+    try:
+        import shutil
+
+        usage = shutil.disk_usage("/")
+        total_gb = usage.total / (1024 ** 3)
+        free_gb = usage.free / (1024 ** 3)
+        used_pct = ((usage.total - usage.free) / usage.total) * 100
+        disk_status = "up"
+        if used_pct > 90:
+            disk_status = "critical"
+        elif used_pct > 80:
+            disk_status = "warning"
+        components["disk_space"] = {
+            "status": disk_status,
+            "total_gb": round(total_gb, 2),
+            "free_gb": round(free_gb, 2),
+            "used_percent": round(used_pct, 1),
+        }
+    except Exception as e:
+        components["disk_space"] = {
+            "status": "unknown",
+            "error": str(e),
+        }
+
+    # --- Memory Usage ---
+    try:
+        import psutil
+
+        mem = psutil.virtual_memory()
+        mem_status = "up"
+        if mem.percent > 95:
+            mem_status = "critical"
+        elif mem.percent > 85:
+            mem_status = "warning"
+        components["memory"] = {
+            "status": mem_status,
+            "total_mb": round(mem.total / (1024 * 1024), 2),
+            "available_mb": round(mem.available / (1024 * 1024), 2),
+            "used_percent": round(mem.percent, 1),
+        }
+    except ImportError:
+        components["memory"] = {
+            "status": "unknown",
+            "error": "psutil not installed",
+        }
+    except Exception as e:
+        components["memory"] = {
+            "status": "unknown",
+            "error": str(e),
+        }
+
+    # --- Determine overall status ---
+    statuses = [c.get("status", "unknown") for c in components.values()]
+    if components.get("postgresql", {}).get("status") == "down":
+        overall = "unhealthy"
+    elif "down" in statuses or "critical" in statuses:
+        overall = "degraded"
+    elif "warning" in statuses:
+        overall = "degraded"
+    else:
+        overall = "healthy"
+
+    total_latency = (time.perf_counter() - overall_start) * 1000
+
+    if overall == "unhealthy":
+        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+
+    return {
+        "status": overall,
+        "components": components,
+        "latency_ms": round(total_latency, 2),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "uptime_seconds": get_uptime_seconds(),
+    }
+
+
+@router.get(
     "/cache",
     summary="Get terminology cache statistics",
     description="Returns hit/miss rates and sizes for all terminology caches.",

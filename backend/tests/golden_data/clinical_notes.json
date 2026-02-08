@@ -1,0 +1,555 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "description": "Golden dataset for NLP pipeline regression testing (CTO-3)",
+    "created": "2026-02-08",
+    "note_count": 30,
+    "categories": ["oncology", "cardiology", "endocrinology", "dermatology", "ophthalmology", "general", "pulmonology", "nephrology", "neurology", "rheumatology"],
+    "domains_covered": ["CONDITION", "MEDICATION", "PROCEDURE", "OBSERVATION", "LAB"],
+    "assertion_types_covered": ["PRESENT", "ABSENT", "HYPOTHETICAL", "FAMILY_HISTORY", "POSSIBLE"]
+  },
+  "notes": [
+    {
+      "note_id": "GN-001",
+      "category": "cardiology",
+      "description": "Heart failure patient with standard medication list and negated chest pain",
+      "text": "Assessment: 72-year-old male with heart failure with reduced ejection fraction. Ejection fraction: 35%. Patient denies chest pain and shortness of breath. Currently on carvedilol 25mg twice daily, furosemide 40mg daily, and lisinopril 10mg daily. BNP: 450 pg/mL. Labs show creatinine: 1.4 mg/dL. No evidence of pulmonary edema on chest X-ray.",
+      "expected_mentions": [
+        {"text": "heart failure with reduced ejection fraction", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Heart failure with reduced ejection fraction"},
+        {"text": "chest pain", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Chest pain"},
+        {"text": "shortness of breath", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Dyspnea"},
+        {"text": "carvedilol", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Carvedilol"},
+        {"text": "furosemide", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Furosemide"},
+        {"text": "lisinopril", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Lisinopril"},
+        {"text": "pulmonary edema", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Pulmonary edema"},
+        {"text": "Ejection Fraction", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Ejection Fraction"},
+        {"text": "BNP", "domain": "LAB", "assertion": "PRESENT", "concept_name": "BNP"},
+        {"text": "Creatinine", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Creatinine"}
+      ]
+    },
+    {
+      "note_id": "GN-002",
+      "category": "endocrinology",
+      "description": "Type 2 diabetes with lab values and medication adjustments",
+      "text": "HPI: 58-year-old female with type 2 diabetes mellitus presents for routine follow-up. HbA1c: 7.2%. Fasting glucose: 142 mg/dL. Currently taking metformin 1000mg twice daily and empagliflozin 25mg daily. Creatinine: 0.9 mg/dL. eGFR: 78 mL/min. Patient reports occasional dizziness. No nausea or vomiting. Blood pressure: 132/84 mmHg.",
+      "expected_mentions": [
+        {"text": "type 2 diabetes mellitus", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Type 2 diabetes mellitus"},
+        {"text": "metformin", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Metformin"},
+        {"text": "empagliflozin", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Empagliflozin"},
+        {"text": "dizziness", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Dizziness"},
+        {"text": "nausea", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Nausea"},
+        {"text": "vomiting", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Vomiting"},
+        {"text": "HbA1c", "domain": "LAB", "assertion": "PRESENT", "concept_name": "HbA1c"},
+        {"text": "Fasting Glucose", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Fasting Glucose"},
+        {"text": "Creatinine", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Creatinine"},
+        {"text": "eGFR", "domain": "LAB", "assertion": "PRESENT", "concept_name": "eGFR"},
+        {"text": "Blood Pressure", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Blood Pressure"}
+      ]
+    },
+    {
+      "note_id": "GN-003",
+      "category": "oncology",
+      "description": "Oncology note with negated metastasis and family history",
+      "text": "Assessment: 65-year-old male with stage IIB non-small cell lung cancer status post right upper lobectomy. PET/CT shows no evidence of metastasis. Family history significant for mother had breast cancer at age 55 and father had coronary artery disease. Currently on immunotherapy. Denies fever, cough, or dyspnea. Hemoglobin: 11.2 g/dL. WBC: 5.4 K/uL. Platelets: 198 K/uL.",
+      "expected_mentions": [
+        {"text": "breast cancer", "domain": "CONDITION", "assertion": "FAMILY_HISTORY", "concept_name": "Breast cancer"},
+        {"text": "coronary artery disease", "domain": "CONDITION", "assertion": "FAMILY_HISTORY", "concept_name": "Coronary artery disease"},
+        {"text": "fever", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Fever"},
+        {"text": "cough", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Cough"},
+        {"text": "dyspnea", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Dyspnea"},
+        {"text": "Hemoglobin", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Hemoglobin"},
+        {"text": "WBC", "domain": "LAB", "assertion": "PRESENT", "concept_name": "WBC"},
+        {"text": "Platelets", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Platelets"}
+      ]
+    },
+    {
+      "note_id": "GN-004",
+      "category": "general",
+      "description": "Hypothetical and conditional statements",
+      "text": "Plan: If symptoms worsen, consider starting prednisone 40mg daily taper. Risk of developing pneumonia given immunosuppressed state. Screening for depression recommended. Patient should return to clinic in 2 weeks. If fever develops, evaluate for possible sepsis. Currently taking acetaminophen 500mg as needed for headache.",
+      "expected_mentions": [
+        {"text": "prednisone", "domain": "MEDICATION", "assertion": "HYPOTHETICAL", "concept_name": "Prednisone"},
+        {"text": "pneumonia", "domain": "CONDITION", "assertion": "HYPOTHETICAL", "concept_name": "Pneumonia"},
+        {"text": "depression", "domain": "CONDITION", "assertion": "HYPOTHETICAL", "concept_name": "Depression"},
+        {"text": "sepsis", "domain": "CONDITION", "assertion": "HYPOTHETICAL", "concept_name": "Sepsis"},
+        {"text": "acetaminophen", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Acetaminophen"},
+        {"text": "headache", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Headache"},
+        {"text": "fever", "domain": "CONDITION", "assertion": "HYPOTHETICAL", "concept_name": "Fever"}
+      ]
+    },
+    {
+      "note_id": "GN-005",
+      "category": "cardiology",
+      "description": "Atrial fibrillation with comprehensive medication list",
+      "text": "Assessment: 68-year-old female with atrial fibrillation, hypertension, and hyperlipidemia. Heart rate: 78 bpm. Blood pressure: 128/76 mmHg. Currently on apixaban 5mg twice daily, metoprolol 50mg daily, amlodipine 5mg daily, and atorvastatin 40mg daily. No edema. Denies palpitations. INR: 2.1. Potassium: 4.2 mmol/L. Creatinine: 1.0 mg/dL.",
+      "expected_mentions": [
+        {"text": "atrial fibrillation", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Atrial fibrillation"},
+        {"text": "hypertension", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Hypertension"},
+        {"text": "hyperlipidemia", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Hyperlipidemia"},
+        {"text": "apixaban", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Apixaban"},
+        {"text": "metoprolol", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Metoprolol"},
+        {"text": "amlodipine", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Amlodipine"},
+        {"text": "atorvastatin", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Atorvastatin"},
+        {"text": "edema", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Edema"},
+        {"text": "palpitations", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Palpitations"},
+        {"text": "Heart Rate", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Heart Rate"},
+        {"text": "Blood Pressure", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Blood Pressure"},
+        {"text": "INR", "domain": "LAB", "assertion": "PRESENT", "concept_name": "INR"},
+        {"text": "Potassium", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Potassium"},
+        {"text": "Creatinine", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Creatinine"}
+      ]
+    },
+    {
+      "note_id": "GN-006",
+      "category": "dermatology",
+      "description": "Atopic dermatitis trial-relevant note with negated conditions",
+      "text": "HPI: 34-year-old female with moderate-to-severe atopic dermatitis affecting bilateral upper extremities and trunk. No evidence of cellulitis or urticaria. Denies fever. Previously treated with topical corticosteroids without adequate response. Currently applying fluticasone cream. Considering dupilumab if symptoms persist. Family history of asthma in brother.",
+      "expected_mentions": [
+        {"text": "cellulitis", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Cellulitis"},
+        {"text": "urticaria", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Urticaria"},
+        {"text": "fever", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Fever"},
+        {"text": "fluticasone", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Fluticasone"},
+        {"text": "asthma", "domain": "CONDITION", "assertion": "FAMILY_HISTORY", "concept_name": "Asthma"}
+      ]
+    },
+    {
+      "note_id": "GN-007",
+      "category": "ophthalmology",
+      "description": "Diabetic macular edema (DME) trial-relevant note",
+      "text": "Assessment: 62-year-old male with type 2 diabetes mellitus and diabetic macular edema (DME) of the right eye. Visual acuity 20/60 OD. HbA1c: 8.1%. Currently receiving intravitreal injections. Blood pressure: 140/88 mmHg. Creatinine: 1.2 mg/dL. eGFR: 62 mL/min. No proliferative diabetic retinopathy. Takes metformin 1000mg and insulin glargine 20 units at bedtime.",
+      "expected_mentions": [
+        {"text": "type 2 diabetes mellitus", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Type 2 diabetes mellitus"},
+        {"text": "metformin", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Metformin"},
+        {"text": "insulin glargine", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Insulin glargine"},
+        {"text": "HbA1c", "domain": "LAB", "assertion": "PRESENT", "concept_name": "HbA1c"},
+        {"text": "Blood Pressure", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Blood Pressure"},
+        {"text": "Creatinine", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Creatinine"},
+        {"text": "eGFR", "domain": "LAB", "assertion": "PRESENT", "concept_name": "eGFR"}
+      ]
+    },
+    {
+      "note_id": "GN-008",
+      "category": "oncology",
+      "description": "CSCC trial-relevant note with procedure history",
+      "text": "Assessment: 71-year-old male with locally advanced cutaneous squamous cell carcinoma (CSCC) of the left temple. Prior surgical excision with positive margins. No evidence of distant metastasis on imaging. Considering immunotherapy with cemiplimab. Labs: Hemoglobin: 13.1 g/dL, WBC: 7.2 K/uL, Creatinine: 0.8 mg/dL, ALT: 22 U/L. Patient denies fever or weight loss. No history of organ transplant.",
+      "expected_mentions": [
+        {"text": "fever", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Fever"},
+        {"text": "Hemoglobin", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Hemoglobin"},
+        {"text": "WBC", "domain": "LAB", "assertion": "PRESENT", "concept_name": "WBC"},
+        {"text": "Creatinine", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Creatinine"},
+        {"text": "ALT", "domain": "LAB", "assertion": "PRESENT", "concept_name": "ALT"}
+      ]
+    },
+    {
+      "note_id": "GN-009",
+      "category": "pulmonology",
+      "description": "COPD exacerbation with comprehensive vitals and medications",
+      "text": "Assessment: 66-year-old female with acute exacerbation of chronic obstructive pulmonary disease. SpO2: 91% on room air. Respiratory rate: 24/min. Heart rate: 102 bpm. Blood pressure: 148/92 mmHg. Temperature: 38.2 C. Started on prednisone 40mg, azithromycin 500mg, and albuterol nebulizer treatments. Chest X-ray shows no pneumonia. WBC: 11.2 K/uL.",
+      "expected_mentions": [
+        {"text": "chronic obstructive pulmonary disease", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "COPD"},
+        {"text": "prednisone", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Prednisone"},
+        {"text": "azithromycin", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Azithromycin"},
+        {"text": "albuterol", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Albuterol"},
+        {"text": "pneumonia", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Pneumonia"},
+        {"text": "SpO2", "domain": "LAB", "assertion": "PRESENT", "concept_name": "SpO2"},
+        {"text": "Respiratory Rate", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Respiratory Rate"},
+        {"text": "Heart Rate", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Heart Rate"},
+        {"text": "Blood Pressure", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Blood Pressure"},
+        {"text": "Temperature", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Temperature"},
+        {"text": "WBC", "domain": "LAB", "assertion": "PRESENT", "concept_name": "WBC"}
+      ]
+    },
+    {
+      "note_id": "GN-010",
+      "category": "nephrology",
+      "description": "Chronic kidney disease with electrolyte panel",
+      "text": "Assessment: 70-year-old male with chronic kidney disease stage 3B and hypertension. Creatinine: 2.1 mg/dL. eGFR: 32 mL/min. BUN: 38 mg/dL. Potassium: 5.3 mmol/L. Sodium: 138 mmol/L. Bicarbonate: 20 mmol/L. Hemoglobin: 10.8 g/dL. No hyperkalemia symptoms. Denies nausea. Currently on losartan 50mg, furosemide 20mg, and alendronate 70mg weekly.",
+      "expected_mentions": [
+        {"text": "chronic kidney disease", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Chronic kidney disease"},
+        {"text": "hypertension", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Hypertension"},
+        {"text": "nausea", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Nausea"},
+        {"text": "losartan", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Losartan"},
+        {"text": "furosemide", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Furosemide"},
+        {"text": "alendronate", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Alendronate"},
+        {"text": "Creatinine", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Creatinine"},
+        {"text": "eGFR", "domain": "LAB", "assertion": "PRESENT", "concept_name": "eGFR"},
+        {"text": "BUN", "domain": "LAB", "assertion": "PRESENT", "concept_name": "BUN"},
+        {"text": "Potassium", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Potassium"},
+        {"text": "Sodium", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Sodium"},
+        {"text": "Bicarbonate", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Bicarbonate"},
+        {"text": "Hemoglobin", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Hemoglobin"}
+      ]
+    },
+    {
+      "note_id": "GN-011",
+      "category": "cardiology",
+      "description": "Acute coronary syndrome with multiple negations",
+      "text": "Assessment: 55-year-old male presents with acute myocardial infarction. Troponin: 2.4 ng/mL. EKG shows ST elevation. No evidence of heart failure. Denies nausea, vomiting, or diarrhea. No prior history of coronary artery disease. Started on aspirin 325mg, clopidogrel 75mg, and heparin drip. Blood pressure: 108/72 mmHg. Heart rate: 92 bpm.",
+      "expected_mentions": [
+        {"text": "acute myocardial infarction", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Acute myocardial infarction"},
+        {"text": "heart failure", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Heart failure"},
+        {"text": "nausea", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Nausea"},
+        {"text": "vomiting", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Vomiting"},
+        {"text": "diarrhea", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Diarrhea"},
+        {"text": "coronary artery disease", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Coronary artery disease"},
+        {"text": "aspirin", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Aspirin"},
+        {"text": "clopidogrel", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Clopidogrel"},
+        {"text": "heparin", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Heparin"},
+        {"text": "Troponin", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Troponin"},
+        {"text": "Blood Pressure", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Blood Pressure"},
+        {"text": "Heart Rate", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Heart Rate"}
+      ]
+    },
+    {
+      "note_id": "GN-012",
+      "category": "general",
+      "description": "Multi-system review with negations in review of systems",
+      "text": "Review of Systems: Patient denies chest pain, shortness of breath, abdominal pain, headache, and fever. Reports fatigue and occasional dizziness. No constipation or diarrhea. No syncope. Past medical history includes hypertension and obesity. Medications: lisinopril 20mg daily, hydrochlorothiazide 25mg daily.",
+      "expected_mentions": [
+        {"text": "chest pain", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Chest pain"},
+        {"text": "shortness of breath", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Dyspnea"},
+        {"text": "abdominal pain", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Abdominal pain"},
+        {"text": "headache", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Headache"},
+        {"text": "fever", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Fever"},
+        {"text": "fatigue", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Fatigue"},
+        {"text": "dizziness", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Dizziness"},
+        {"text": "constipation", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Constipation"},
+        {"text": "diarrhea", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Diarrhea"},
+        {"text": "syncope", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Syncope"},
+        {"text": "hypertension", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Hypertension"},
+        {"text": "obesity", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Obesity"},
+        {"text": "lisinopril", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Lisinopril"},
+        {"text": "hydrochlorothiazide", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Hydrochlorothiazide"}
+      ]
+    },
+    {
+      "note_id": "GN-013",
+      "category": "neurology",
+      "description": "Stroke workup with uncertain diagnosis",
+      "text": "Assessment: 60-year-old female with possible transient ischemic attack versus migraine. CT head negative for hemorrhage. MRI pending. Probable carotid stenosis on ultrasound. Blood pressure: 162/98 mmHg. Heart rate: 76 bpm. Started on aspirin 81mg. Glucose: 110 mg/dL. Suspected atrial fibrillation on telemetry. No seizure activity. NIHSS: 2.",
+      "expected_mentions": [
+        {"text": "transient ischemic attack", "domain": "CONDITION", "assertion": "POSSIBLE", "concept_name": "Transient ischemic attack"},
+        {"text": "migraine", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Migraine"},
+        {"text": "aspirin", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Aspirin"},
+        {"text": "atrial fibrillation", "domain": "CONDITION", "assertion": "POSSIBLE", "concept_name": "Atrial fibrillation"},
+        {"text": "Blood Pressure", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Blood Pressure"},
+        {"text": "Heart Rate", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Heart Rate"},
+        {"text": "Glucose", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Glucose"},
+        {"text": "NIHSS", "domain": "LAB", "assertion": "PRESENT", "concept_name": "NIHSS"}
+      ]
+    },
+    {
+      "note_id": "GN-014",
+      "category": "endocrinology",
+      "description": "Type 1 diabetes with comprehensive lab panel",
+      "text": "HPI: 28-year-old male with type 1 diabetes mellitus on insulin pump therapy. HbA1c: 6.8%. Fasting glucose: 118 mg/dL. TSH normal. No diabetic ketoacidosis symptoms. Denies nausea, vomiting, or abdominal pain. Takes insulin lispro via pump. Creatinine: 0.7 mg/dL. eGFR: >90 mL/min. LDL: 102 mg/dL. HDL: 55 mg/dL. Triglycerides: 128 mg/dL.",
+      "expected_mentions": [
+        {"text": "type 1 diabetes mellitus", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Type 1 diabetes mellitus"},
+        {"text": "nausea", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Nausea"},
+        {"text": "vomiting", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Vomiting"},
+        {"text": "abdominal pain", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Abdominal pain"},
+        {"text": "insulin lispro", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Insulin lispro"},
+        {"text": "HbA1c", "domain": "LAB", "assertion": "PRESENT", "concept_name": "HbA1c"},
+        {"text": "Fasting Glucose", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Fasting Glucose"},
+        {"text": "Creatinine", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Creatinine"},
+        {"text": "eGFR", "domain": "LAB", "assertion": "PRESENT", "concept_name": "eGFR"},
+        {"text": "LDL", "domain": "LAB", "assertion": "PRESENT", "concept_name": "LDL"},
+        {"text": "HDL", "domain": "LAB", "assertion": "PRESENT", "concept_name": "HDL"},
+        {"text": "Triglycerides", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Triglycerides"}
+      ]
+    },
+    {
+      "note_id": "GN-015",
+      "category": "general",
+      "description": "Family history section with multiple relatives",
+      "text": "Family History: Mother had breast cancer diagnosed at age 52 and type 2 diabetes mellitus. Father had coronary artery disease and died of acute myocardial infarction at age 64. Sister has asthma and hypothyroidism. Brother diagnosed with depression. No family history of stroke or epilepsy.",
+      "expected_mentions": [
+        {"text": "type 2 diabetes mellitus", "domain": "CONDITION", "assertion": "FAMILY_HISTORY", "concept_name": "Type 2 diabetes mellitus"},
+        {"text": "coronary artery disease", "domain": "CONDITION", "assertion": "FAMILY_HISTORY", "concept_name": "Coronary artery disease"},
+        {"text": "acute myocardial infarction", "domain": "CONDITION", "assertion": "FAMILY_HISTORY", "concept_name": "Acute myocardial infarction"},
+        {"text": "asthma", "domain": "CONDITION", "assertion": "FAMILY_HISTORY", "concept_name": "Asthma"},
+        {"text": "hypothyroidism", "domain": "CONDITION", "assertion": "FAMILY_HISTORY", "concept_name": "Hypothyroidism"},
+        {"text": "depression", "domain": "CONDITION", "assertion": "FAMILY_HISTORY", "concept_name": "Depression"},
+        {"text": "stroke", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Stroke"},
+        {"text": "epilepsy", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Epilepsy"}
+      ]
+    },
+    {
+      "note_id": "GN-016",
+      "category": "general",
+      "description": "Medication reconciliation with brand and generic names",
+      "text": "Medications: Lipitor (atorvastatin) 40mg daily, Lasix (furosemide) 40mg daily, Coreg (carvedilol) 12.5mg twice daily, Prilosec (omeprazole) 20mg daily, Tylenol (acetaminophen) 500mg as needed, Benadryl (diphenhydramine) 25mg at bedtime. Patient reports taking all medications as prescribed. No adverse drug reactions reported.",
+      "expected_mentions": [
+        {"text": "atorvastatin", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Atorvastatin"},
+        {"text": "furosemide", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Furosemide"},
+        {"text": "carvedilol", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Carvedilol"},
+        {"text": "omeprazole", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Omeprazole"},
+        {"text": "acetaminophen", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Acetaminophen"},
+        {"text": "diphenhydramine", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Diphenhydramine"}
+      ]
+    },
+    {
+      "note_id": "GN-017",
+      "category": "cardiology",
+      "description": "Heart failure with preserved EF and complex medication list",
+      "text": "Assessment: 75-year-old female with heart failure with preserved ejection fraction, atrial fibrillation, and chronic kidney disease. Ejection fraction: 55%. BNP: 320 pg/mL. Creatinine: 1.6 mg/dL. eGFR: 38 mL/min. Currently on spironolactone 25mg, metoprolol 100mg, warfarin 5mg, and furosemide 80mg daily. No pulmonary edema. Denies dyspnea at rest. INR: 2.5.",
+      "expected_mentions": [
+        {"text": "heart failure with preserved ejection fraction", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Heart failure with preserved ejection fraction"},
+        {"text": "atrial fibrillation", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Atrial fibrillation"},
+        {"text": "chronic kidney disease", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Chronic kidney disease"},
+        {"text": "pulmonary edema", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Pulmonary edema"},
+        {"text": "dyspnea", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Dyspnea"},
+        {"text": "spironolactone", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Spironolactone"},
+        {"text": "metoprolol", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Metoprolol"},
+        {"text": "warfarin", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Warfarin"},
+        {"text": "furosemide", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Furosemide"},
+        {"text": "Ejection Fraction", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Ejection Fraction"},
+        {"text": "BNP", "domain": "LAB", "assertion": "PRESENT", "concept_name": "BNP"},
+        {"text": "Creatinine", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Creatinine"},
+        {"text": "eGFR", "domain": "LAB", "assertion": "PRESENT", "concept_name": "eGFR"},
+        {"text": "INR", "domain": "LAB", "assertion": "PRESENT", "concept_name": "INR"}
+      ]
+    },
+    {
+      "note_id": "GN-018",
+      "category": "general",
+      "description": "Emergency department note with multiple findings",
+      "text": "HPI: 45-year-old female presents to ED with chest pain and palpitations. Denies shortness of breath, fever, or syncope. No prior history of heart failure or coronary artery disease. Temperature: 37.1 C. Blood pressure: 118/74 mmHg. Heart rate: 112 bpm. SpO2: 98%. Troponin: <0.01 ng/mL. EKG shows sinus tachycardia. Possible costochondritis. Started on ibuprofen 600mg.",
+      "expected_mentions": [
+        {"text": "chest pain", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Chest pain"},
+        {"text": "palpitations", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Palpitations"},
+        {"text": "shortness of breath", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Dyspnea"},
+        {"text": "fever", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Fever"},
+        {"text": "syncope", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Syncope"},
+        {"text": "heart failure", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Heart failure"},
+        {"text": "coronary artery disease", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Coronary artery disease"},
+        {"text": "costochondritis", "domain": "CONDITION", "assertion": "POSSIBLE", "concept_name": "Costochondritis"},
+        {"text": "ibuprofen", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Ibuprofen"},
+        {"text": "Temperature", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Temperature"},
+        {"text": "Blood Pressure", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Blood Pressure"},
+        {"text": "Heart Rate", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Heart Rate"},
+        {"text": "SpO2", "domain": "LAB", "assertion": "PRESENT", "concept_name": "SpO2"},
+        {"text": "Troponin", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Troponin"}
+      ]
+    },
+    {
+      "note_id": "GN-019",
+      "category": "general",
+      "description": "Psychiatry consultation with medication list",
+      "text": "Assessment: 38-year-old male with major depressive disorder and generalized anxiety disorder. Denies suicidal ideation. No psychosis. Reports difficulty sleeping. Currently on sertraline 100mg daily, trazodone 50mg at bedtime, and lorazepam 0.5mg as needed. Considering augmentation with bupropion if no improvement. Family history of depression in mother.",
+      "expected_mentions": [
+        {"text": "major depressive disorder", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Major depressive disorder"},
+        {"text": "generalized anxiety disorder", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Generalized anxiety disorder"},
+        {"text": "sertraline", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Sertraline"},
+        {"text": "trazodone", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Trazodone"},
+        {"text": "lorazepam", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Lorazepam"},
+        {"text": "bupropion", "domain": "MEDICATION", "assertion": "HYPOTHETICAL", "concept_name": "Bupropion"},
+        {"text": "depression", "domain": "CONDITION", "assertion": "FAMILY_HISTORY", "concept_name": "Depression"}
+      ]
+    },
+    {
+      "note_id": "GN-020",
+      "category": "general",
+      "description": "Infectious disease with lab values and antibiotic therapy",
+      "text": "Assessment: 52-year-old male admitted with community-acquired pneumonia and sepsis. Temperature: 39.1 C. Heart rate: 118 bpm. Blood pressure: 92/58 mmHg. SpO2: 89% on room air. WBC: 18.4 K/uL. Lactate: 3.2 mmol/L. Procalcitonin: 4.8 ng/mL. Started on ceftriaxone 2g IV and azithromycin 500mg IV. No pleural effusion on imaging.",
+      "expected_mentions": [
+        {"text": "community-acquired pneumonia", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Community-acquired pneumonia"},
+        {"text": "sepsis", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Sepsis"},
+        {"text": "pleural effusion", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Pleural effusion"},
+        {"text": "ceftriaxone", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Ceftriaxone"},
+        {"text": "azithromycin", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Azithromycin"},
+        {"text": "Temperature", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Temperature"},
+        {"text": "Heart Rate", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Heart Rate"},
+        {"text": "Blood Pressure", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Blood Pressure"},
+        {"text": "SpO2", "domain": "LAB", "assertion": "PRESENT", "concept_name": "SpO2"},
+        {"text": "WBC", "domain": "LAB", "assertion": "PRESENT", "concept_name": "WBC"},
+        {"text": "Lactate", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Lactate"},
+        {"text": "Procalcitonin", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Procalcitonin"}
+      ]
+    },
+    {
+      "note_id": "GN-021",
+      "category": "rheumatology",
+      "description": "Autoimmune condition with lab work",
+      "text": "Assessment: 42-year-old female with suspected systemic lupus erythematosus. Reports fatigue, joint pain, and skin rash. ESR: 48 mm/hr. CRP: 12.5 mg/L. No renal involvement. Creatinine: 0.8 mg/dL. Hemoglobin: 11.5 g/dL. WBC: 3.8 K/uL. Platelet count: 132 K/uL. Started on hydroxychloroquine and prednisone 10mg daily. No evidence of deep vein thrombosis.",
+      "expected_mentions": [
+        {"text": "fatigue", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Fatigue"},
+        {"text": "deep vein thrombosis", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Deep vein thrombosis"},
+        {"text": "prednisone", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Prednisone"},
+        {"text": "ESR", "domain": "LAB", "assertion": "PRESENT", "concept_name": "ESR"},
+        {"text": "CRP", "domain": "LAB", "assertion": "PRESENT", "concept_name": "CRP"},
+        {"text": "Creatinine", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Creatinine"},
+        {"text": "Hemoglobin", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Hemoglobin"},
+        {"text": "WBC", "domain": "LAB", "assertion": "PRESENT", "concept_name": "WBC"},
+        {"text": "Platelets", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Platelets"}
+      ]
+    },
+    {
+      "note_id": "GN-022",
+      "category": "general",
+      "description": "Discharge summary with medication changes",
+      "text": "Discharge Diagnosis: Acute decompensated heart failure, atrial fibrillation with rapid ventricular response, type 2 diabetes mellitus, and chronic kidney disease stage 3A. Hospital course: Patient presented with acute decompensated heart failure. Treated with IV furosemide with good diuresis. BNP improved from 1200 to 450 pg/mL. Ejection fraction: 30%. Discharge medications: carvedilol 25mg, furosemide 60mg, lisinopril 10mg, apixaban 5mg, metformin 500mg. INR: 2.3. Creatinine: 1.5 mg/dL.",
+      "expected_mentions": [
+        {"text": "acute decompensated heart failure", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Acute decompensated heart failure"},
+        {"text": "atrial fibrillation", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Atrial fibrillation"},
+        {"text": "type 2 diabetes mellitus", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Type 2 diabetes mellitus"},
+        {"text": "chronic kidney disease", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Chronic kidney disease"},
+        {"text": "carvedilol", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Carvedilol"},
+        {"text": "furosemide", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Furosemide"},
+        {"text": "lisinopril", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Lisinopril"},
+        {"text": "apixaban", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Apixaban"},
+        {"text": "metformin", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Metformin"},
+        {"text": "BNP", "domain": "LAB", "assertion": "PRESENT", "concept_name": "BNP"},
+        {"text": "Ejection Fraction", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Ejection Fraction"},
+        {"text": "INR", "domain": "LAB", "assertion": "PRESENT", "concept_name": "INR"},
+        {"text": "Creatinine", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Creatinine"}
+      ]
+    },
+    {
+      "note_id": "GN-023",
+      "category": "general",
+      "description": "GI consultation with multiple negations and procedure",
+      "text": "Assessment: 48-year-old male with gastroesophageal reflux disease and dysphagia. Endoscopy showed no esophageal stricture or Barrett esophagus. No evidence of gastric ulcer. Denies nausea, vomiting, or abdominal pain. Negative for H. pylori. Currently on pantoprazole 40mg twice daily and famotidine 20mg at bedtime. BMI: 32.4 kg/m2.",
+      "expected_mentions": [
+        {"text": "gastroesophageal reflux disease", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "GERD"},
+        {"text": "dysphagia", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Dysphagia"},
+        {"text": "nausea", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Nausea"},
+        {"text": "vomiting", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Vomiting"},
+        {"text": "abdominal pain", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Abdominal pain"},
+        {"text": "pantoprazole", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Pantoprazole"},
+        {"text": "famotidine", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Famotidine"},
+        {"text": "BMI", "domain": "LAB", "assertion": "PRESENT", "concept_name": "BMI"}
+      ]
+    },
+    {
+      "note_id": "GN-024",
+      "category": "pulmonology",
+      "description": "Asthma exacerbation with respiratory medications",
+      "text": "Assessment: 32-year-old female with moderate persistent asthma presenting with acute exacerbation. SpO2: 94% on room air. Respiratory rate: 22/min. Heart rate: 98 bpm. No pneumonia on chest X-ray. Denies fever. Started on albuterol nebulizer and ipratropium. Continued on fluticasone inhaler and montelukast 10mg daily. No evidence of pneumothorax.",
+      "expected_mentions": [
+        {"text": "asthma", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Asthma"},
+        {"text": "pneumonia", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Pneumonia"},
+        {"text": "fever", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Fever"},
+        {"text": "albuterol", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Albuterol"},
+        {"text": "ipratropium", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Ipratropium"},
+        {"text": "fluticasone", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Fluticasone"},
+        {"text": "montelukast", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Montelukast"},
+        {"text": "SpO2", "domain": "LAB", "assertion": "PRESENT", "concept_name": "SpO2"},
+        {"text": "Respiratory Rate", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Respiratory Rate"},
+        {"text": "Heart Rate", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Heart Rate"}
+      ]
+    },
+    {
+      "note_id": "GN-025",
+      "category": "endocrinology",
+      "description": "Thyroid disorder with medication management",
+      "text": "Assessment: 55-year-old female with hypothyroidism on levothyroxine 100mcg daily. Labs show TSH normal. No symptoms of hyperthyroidism. Denies palpitations, tremor, or weight loss. Also has osteoporosis, taking alendronate 70mg weekly and calcium supplementation. BMI: 28.1 kg/m2. Blood pressure: 124/78 mmHg. Family history of mother with hypothyroidism.",
+      "expected_mentions": [
+        {"text": "hypothyroidism", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Hypothyroidism"},
+        {"text": "palpitations", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Palpitations"},
+        {"text": "osteoporosis", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Osteoporosis"},
+        {"text": "levothyroxine", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Levothyroxine"},
+        {"text": "alendronate", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Alendronate"},
+        {"text": "hypothyroidism", "domain": "CONDITION", "assertion": "FAMILY_HISTORY", "concept_name": "Hypothyroidism"},
+        {"text": "BMI", "domain": "LAB", "assertion": "PRESENT", "concept_name": "BMI"},
+        {"text": "Blood Pressure", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Blood Pressure"}
+      ]
+    },
+    {
+      "note_id": "GN-026",
+      "category": "cardiology",
+      "description": "Deep vein thrombosis with anticoagulation",
+      "text": "Assessment: 49-year-old male with acute deep vein thrombosis of the left lower extremity. No evidence of pulmonary embolism on CT angiography. Denies chest pain, shortness of breath. Heart rate: 82 bpm. Blood pressure: 130/82 mmHg. SpO2: 99%. Started on rivaroxaban 15mg twice daily. Creatinine: 0.9 mg/dL. No history of prior DVT or PE.",
+      "expected_mentions": [
+        {"text": "deep vein thrombosis", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Deep vein thrombosis"},
+        {"text": "pulmonary embolism", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Pulmonary embolism"},
+        {"text": "chest pain", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Chest pain"},
+        {"text": "shortness of breath", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Dyspnea"},
+        {"text": "rivaroxaban", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Rivaroxaban"},
+        {"text": "Heart Rate", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Heart Rate"},
+        {"text": "Blood Pressure", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Blood Pressure"},
+        {"text": "SpO2", "domain": "LAB", "assertion": "PRESENT", "concept_name": "SpO2"},
+        {"text": "Creatinine", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Creatinine"}
+      ]
+    },
+    {
+      "note_id": "GN-027",
+      "category": "general",
+      "description": "Urinary tract infection with antibiotic therapy",
+      "text": "Assessment: 35-year-old female with urinary tract infection. Denies fever or flank pain. No evidence of pyelonephritis. Started on trimethoprim-sulfamethoxazole for 3 days. Allergic to penicillin. Currently takes sertraline 50mg for anxiety. Temperature: 37.0 C. Heart rate: 74 bpm. Blood pressure: 116/72 mmHg. WBC: 9.8 K/uL. Creatinine: 0.6 mg/dL.",
+      "expected_mentions": [
+        {"text": "urinary tract infection", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "UTI"},
+        {"text": "fever", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Fever"},
+        {"text": "trimethoprim-sulfamethoxazole", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Trimethoprim-sulfamethoxazole"},
+        {"text": "sertraline", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Sertraline"},
+        {"text": "anxiety", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Anxiety"},
+        {"text": "Temperature", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Temperature"},
+        {"text": "Heart Rate", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Heart Rate"},
+        {"text": "Blood Pressure", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Blood Pressure"},
+        {"text": "WBC", "domain": "LAB", "assertion": "PRESENT", "concept_name": "WBC"},
+        {"text": "Creatinine", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Creatinine"}
+      ]
+    },
+    {
+      "note_id": "GN-028",
+      "category": "cardiology",
+      "description": "Abbreviation-heavy cardiology note",
+      "text": "Assessment: 73-year-old male with CHF, AFib, HTN, CKD stage 3, and hyperlipidemia. EF: 25%. BNP: 890 pg/mL. Currently on metoprolol, lisinopril, furosemide, apixaban, and atorvastatin. Denies chest pain or dyspnea. HR: 68 bpm. BP: 118/72 mmHg. Creatinine: 1.8 mg/dL. Potassium: 4.6 mmol/L.",
+      "expected_mentions": [
+        {"text": "hyperlipidemia", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Hyperlipidemia"},
+        {"text": "chest pain", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Chest pain"},
+        {"text": "dyspnea", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Dyspnea"},
+        {"text": "metoprolol", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Metoprolol"},
+        {"text": "lisinopril", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Lisinopril"},
+        {"text": "furosemide", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Furosemide"},
+        {"text": "apixaban", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Apixaban"},
+        {"text": "atorvastatin", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Atorvastatin"},
+        {"text": "BNP", "domain": "LAB", "assertion": "PRESENT", "concept_name": "BNP"},
+        {"text": "Creatinine", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Creatinine"},
+        {"text": "Potassium", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Potassium"}
+      ]
+    },
+    {
+      "note_id": "GN-029",
+      "category": "general",
+      "description": "Uncertainty and differential diagnosis note",
+      "text": "Assessment: 40-year-old female presents with chest pain. Differential diagnosis includes costochondritis, gastroesophageal reflux disease, and possible pulmonary embolism. Cannot rule out acute coronary syndrome. Suspected anxiety contributing to symptoms. Troponin: <0.01 ng/mL. D-dimer pending. Blood pressure: 122/78 mmHg. Heart rate: 88 bpm. Started on pantoprazole 40mg.",
+      "expected_mentions": [
+        {"text": "chest pain", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Chest pain"},
+        {"text": "costochondritis", "domain": "CONDITION", "assertion": "POSSIBLE", "concept_name": "Costochondritis"},
+        {"text": "gastroesophageal reflux disease", "domain": "CONDITION", "assertion": "POSSIBLE", "concept_name": "GERD"},
+        {"text": "pulmonary embolism", "domain": "CONDITION", "assertion": "POSSIBLE", "concept_name": "Pulmonary embolism"},
+        {"text": "anxiety", "domain": "CONDITION", "assertion": "POSSIBLE", "concept_name": "Anxiety"},
+        {"text": "pantoprazole", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Pantoprazole"},
+        {"text": "Troponin", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Troponin"},
+        {"text": "Blood Pressure", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Blood Pressure"},
+        {"text": "Heart Rate", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Heart Rate"}
+      ]
+    },
+    {
+      "note_id": "GN-030",
+      "category": "general",
+      "description": "Comprehensive progress note with mixed assertions",
+      "text": "Progress Note: 63-year-old male with diabetes mellitus, hypertension, coronary artery disease status post stent placement, and benign prostatic hyperplasia. Hemoglobin: 14.2 g/dL. HbA1c: 6.9%. Blood pressure: 134/82 mmHg. Creatinine: 1.1 mg/dL. LDL: 78 mg/dL. Medications: metformin 1000mg, lisinopril 20mg, aspirin 81mg, atorvastatin 80mg, tamsulosin 0.4mg. No chest pain. Denies edema. Family history of father with diabetes mellitus.",
+      "expected_mentions": [
+        {"text": "diabetes mellitus", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Diabetes mellitus"},
+        {"text": "hypertension", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Hypertension"},
+        {"text": "coronary artery disease", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "Coronary artery disease"},
+        {"text": "benign prostatic hyperplasia", "domain": "CONDITION", "assertion": "PRESENT", "concept_name": "BPH"},
+        {"text": "chest pain", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Chest pain"},
+        {"text": "edema", "domain": "CONDITION", "assertion": "ABSENT", "concept_name": "Edema"},
+        {"text": "diabetes mellitus", "domain": "CONDITION", "assertion": "FAMILY_HISTORY", "concept_name": "Diabetes mellitus"},
+        {"text": "metformin", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Metformin"},
+        {"text": "lisinopril", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Lisinopril"},
+        {"text": "aspirin", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Aspirin"},
+        {"text": "atorvastatin", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Atorvastatin"},
+        {"text": "tamsulosin", "domain": "MEDICATION", "assertion": "PRESENT", "concept_name": "Tamsulosin"},
+        {"text": "Hemoglobin", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Hemoglobin"},
+        {"text": "HbA1c", "domain": "LAB", "assertion": "PRESENT", "concept_name": "HbA1c"},
+        {"text": "Blood Pressure", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Blood Pressure"},
+        {"text": "Creatinine", "domain": "LAB", "assertion": "PRESENT", "concept_name": "Creatinine"},
+        {"text": "LDL", "domain": "LAB", "assertion": "PRESENT", "concept_name": "LDL"}
+      ]
+    }
+  ]
+}
