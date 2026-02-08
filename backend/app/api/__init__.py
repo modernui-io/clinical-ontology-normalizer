@@ -197,7 +197,12 @@ from app.api.change_control import router as change_control_router
 from app.api.network_segmentation import router as network_segmentation_router
 from app.api.business_continuity import router as business_continuity_router
 from app.api.patient_engagement import router as patient_engagement_router
+from app.api.cost_modeling import router as cost_modeling_router
 from app.api.feature_store import router as feature_store_router
+from app.api.vendor_management import router as vendor_management_router
+from app.api.vulnerability_management import router as vulnerability_management_router
+from app.api.privacy_impact import router as privacy_impact_router
+from app.api.protocol_deviations import router as protocol_deviations_router
 
 __all__ = [
     # Routers
@@ -332,7 +337,12 @@ __all__ = [
     "network_segmentation_router",
     "patient_engagement_router",
     "business_continuity_router",
+    "cost_modeling_router",
     "feature_store_router",
+    "vendor_management_router",
+    "vulnerability_management_router",
+    "privacy_impact_router",
+    "protocol_deviations_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",
