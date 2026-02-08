@@ -30,6 +30,7 @@ from app.models.trial import EnrollmentStatus, Trial, TrialEnrollment, TrialPhas
 from app.schemas.base import Assertion, Domain
 from app.schemas.knowledge_graph import NodeType
 from app.schemas.trial import (
+    CDS_DISCLAIMER,
     CriterionResult,
     EnrollmentCreate,
     EnrollmentResponse,
@@ -788,6 +789,8 @@ class TrialEligibilityService:
             candidates=candidates,
             demographics_summary=None,
             exclusion_breakdown=exclusion_breakdown,
+            requires_clinician_review=True,
+            cds_disclaimer=CDS_DISCLAIMER,
         )
 
     # Weight map for criterion types used in weighted score calculation.
@@ -1006,6 +1009,8 @@ class TrialEligibilityService:
             criteria_details=criteria_details,
             evaluable_criteria=evaluable_count,
             screening_timestamp=screening_ts,
+            requires_clinician_review=True,
+            review_disclaimer=CDS_DISCLAIMER,
         )
 
     async def _build_real_candidates(
@@ -1049,6 +1054,8 @@ class TrialEligibilityService:
                     exclusion_triggered=[],
                     exclusion_total=len(exclusion_list),
                     missing_data=[],
+                    requires_clinician_review=True,
+                    review_disclaimer=CDS_DISCLAIMER,
                 ))
 
         candidates.sort(key=lambda c: c.match_score, reverse=True)

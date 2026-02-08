@@ -117,6 +117,9 @@ class Settings(BaseSettings):
     jwt_access_token_expire_minutes: int = 30
     auth_bypass_dev: bool = False  # Dev bypass for testing without auth
 
+    # API Maturity Gating (CTO-2)
+    block_scaffold_endpoints: bool = False  # Block SCAFFOLD-tier endpoints (enable in production)
+
     # LLM Configuration
     openai_api_key: str | None = None
     anthropic_api_key: str | None = None

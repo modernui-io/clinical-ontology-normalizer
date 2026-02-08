@@ -11,6 +11,18 @@ from app.models.trial import EnrollmentStatus, TrialPhase, TrialStatus
 
 
 # ---------------------------------------------------------------------------
+# CDS Disclaimer (Cures Act Criterion 4 compliance)
+# ---------------------------------------------------------------------------
+
+CDS_DISCLAIMER = (
+    "This screening result is intended as clinical decision support only. "
+    "A qualified healthcare professional must independently verify all "
+    "eligibility determinations before any enrollment actions. This system "
+    "does not make autonomous clinical decisions."
+)
+
+
+# ---------------------------------------------------------------------------
 # Trial schemas
 # ---------------------------------------------------------------------------
 
@@ -178,6 +190,14 @@ class PatientEligibility(BaseModel):
     criteria_details: list[CriterionResult] = Field(default_factory=list, description="Per-criterion audit trail")
     evaluable_criteria: int = Field(default=0, description="Criteria with enough data to evaluate")
     screening_timestamp: datetime | None = Field(default=None, description="When this screening was performed")
+    requires_clinician_review: bool = Field(
+        default=True,
+        description="All eligibility results require independent clinician review (Cures Act Criterion 4)",
+    )
+    review_disclaimer: str = Field(
+        default=CDS_DISCLAIMER,
+        description="CDS disclaimer text for regulatory compliance",
+    )
 
 
 class ScreeningRequest(BaseModel):
@@ -215,6 +235,14 @@ class ScreeningResponse(BaseModel):
     exclusion_breakdown: dict | None = Field(
         None,
         description="Count of patients excluded by each criterion",
+    )
+    requires_clinician_review: bool = Field(
+        default=True,
+        description="All screening results require independent clinician review (Cures Act Criterion 4)",
+    )
+    cds_disclaimer: str = Field(
+        default=CDS_DISCLAIMER,
+        description="CDS disclaimer text for regulatory compliance",
     )
 
 

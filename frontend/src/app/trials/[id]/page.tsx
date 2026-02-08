@@ -39,6 +39,7 @@ import {
   AlertCircle,
   Play,
   BarChart3,
+  ShieldAlert,
 } from "lucide-react";
 
 const statusColors: Record<string, string> = {
@@ -308,6 +309,23 @@ export default function TrialDetailPage() {
 
         {/* Eligibility Criteria Tab */}
         <TabsContent value="eligibility" className="space-y-4">
+          {/* CDS Disclaimer Banner - Cures Act Criterion 4 */}
+          <div
+            role="alert"
+            className="flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 p-4 dark:border-amber-700 dark:bg-amber-950"
+          >
+            <ShieldAlert className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+            <div>
+              <h4 className="text-sm font-semibold text-amber-800 dark:text-amber-200">
+                Clinician Review Required
+              </h4>
+              <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                All eligibility determinations require independent review by a qualified
+                healthcare professional before any clinical action.
+              </p>
+            </div>
+          </div>
+
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -381,6 +399,22 @@ export default function TrialDetailPage() {
         <TabsContent value="candidates" className="space-y-4">
           {screening.data ? (
             <>
+              {/* CDS Disclaimer Banner - Cures Act Criterion 4 */}
+              <div
+                role="alert"
+                className="flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 p-4 dark:border-amber-700 dark:bg-amber-950"
+              >
+                <ShieldAlert className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h4 className="text-sm font-semibold text-amber-800 dark:text-amber-200">
+                    Clinician Review Required
+                  </h4>
+                  <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                    {screening.data.cds_disclaimer}
+                  </p>
+                </div>
+              </div>
+
               <div className="grid gap-4 md:grid-cols-3">
                 <Card>
                   <CardHeader className="pb-2">

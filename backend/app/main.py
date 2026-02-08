@@ -611,7 +611,11 @@ app.add_middleware(ErrorHandlerMiddleware)
 # 6. Security headers middleware - adds OWASP security headers (VP-Security)
 app.add_middleware(SecurityHeadersMiddleware)
 
-# 7. CORS middleware - handles cross-origin requests
+# 7. API Maturity Gate middleware - labels tiers and blocks scaffold in production (CTO-2)
+from app.api.middleware.maturity_gate import MaturityGateMiddleware
+app.add_middleware(MaturityGateMiddleware)
+
+# 8. CORS middleware - handles cross-origin requests
 # VP-Security-3: CORS origins loaded from environment (settings.cors_origins)
 _cors_origins = settings.cors_origins_list
 if not _cors_origins and settings.is_production:
@@ -633,6 +637,7 @@ app.add_middleware(
         "X-RateLimit-Limit",
         "X-RateLimit-Remaining",
         "X-RateLimit-Reset",
+        "X-API-Maturity",
     ],  # Allow frontend to read these headers
 )
 

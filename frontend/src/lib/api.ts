@@ -3289,6 +3289,8 @@ export interface PatientEligibility {
   inclusion_met: string[];
   exclusion_triggered: string[];
   missing_data: string[];
+  requires_clinician_review: boolean;
+  review_disclaimer: string;
 }
 
 export interface ScreeningResponse {
@@ -3302,6 +3304,8 @@ export interface ScreeningResponse {
   candidates: PatientEligibility[];
   demographics_summary: Record<string, unknown> | null;
   exclusion_breakdown: Record<string, number> | null;
+  requires_clinician_review: boolean;
+  cds_disclaimer: string;
 }
 
 export interface EnrollmentResponse {
