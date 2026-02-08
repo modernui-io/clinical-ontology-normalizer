@@ -139,7 +139,12 @@ from app.api import (
     scalability_audit_router,
     hitrust_compliance_router,
     data_classification_router,
+    referral_network_router,
     traceability_router,
+    autoscaling_router,
+    security_hardening_router,
+    integration_roadmap_router,
+    change_control_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -821,7 +826,12 @@ api_v1_router.include_router(rfp_management_router)
 api_v1_router.include_router(scalability_audit_router)
 api_v1_router.include_router(hitrust_compliance_router)
 api_v1_router.include_router(data_classification_router)
+api_v1_router.include_router(referral_network_router)
 api_v1_router.include_router(traceability_router)
+api_v1_router.include_router(autoscaling_router)
+api_v1_router.include_router(security_hardening_router)
+api_v1_router.include_router(integration_roadmap_router)
+api_v1_router.include_router(change_control_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)

@@ -187,7 +187,12 @@ from app.api.rfp_management import router as rfp_management_router
 from app.api.scalability_audit import router as scalability_audit_router
 from app.api.hitrust_compliance import router as hitrust_compliance_router
 from app.api.data_classification import router as data_classification_router
+from app.api.referral_network import router as referral_network_router
 from app.api.traceability import router as traceability_router
+from app.api.autoscaling import router as autoscaling_router
+from app.api.security_hardening import router as security_hardening_router
+from app.api.integration_roadmap import router as integration_roadmap_router
+from app.api.change_control import router as change_control_router
 
 __all__ = [
     # Routers
@@ -312,7 +317,12 @@ __all__ = [
     "scalability_audit_router",
     "hitrust_compliance_router",
     "data_classification_router",
+    "referral_network_router",
     "traceability_router",
+    "autoscaling_router",
+    "security_hardening_router",
+    "integration_roadmap_router",
+    "change_control_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",
