@@ -233,6 +233,7 @@ class TrialEligibilityService:
                             "name": "Active cancer",
                             "codes": [
                                 {"code": "C80.1", "display": "Malignant neoplasm, unspecified"},
+                                {"code": "C80", "display": "malignant"},
                             ],
                             "code_system": "ICD10CM",
                             "negated": True,
@@ -455,6 +456,8 @@ class TrialEligibilityService:
                 continue
             try:
                 birth_date = datetime.fromisoformat(birth_date_str)
+                if birth_date.tzinfo is None:
+                    birth_date = birth_date.replace(tzinfo=timezone.utc)
                 age = (now - birth_date).days / 365.25
                 if min_age is not None and age < min_age:
                     continue
