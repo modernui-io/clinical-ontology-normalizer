@@ -151,8 +151,10 @@ from app.api.pipelines import router as pipelines_router
 from app.api.feedback import router as feedback_router
 from app.api.lineage import router as lineage_router
 from app.api.trials import router as trials_router
+from app.api.mapping_quality import router as mapping_quality_router
 from app.api.metriport_api import router as metriport_api_router
 from app.api.metriport_webhook import router as metriport_webhook_router
+from app.api.incidents import router as incidents_router
 
 __all__ = [
     # Routers
@@ -240,9 +242,11 @@ __all__ = [
     "pipelines_router",
     "feedback_router",
     "trials_router",
+    "mapping_quality_router",
     "metriport_api_router",
     "metriport_webhook_router",
     "lineage_router",
+    "incidents_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",

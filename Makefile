@@ -1,4 +1,4 @@
-.PHONY: test lint typecheck dev dev-backend dev-worker clean help docker-up docker-down docker-build docker-logs docker-dev docker-migrate kg kg-export kg-check kg-lint skills-install agent-bundle agent-bundle-filtered agent-bundles
+.PHONY: test lint typecheck dev dev-backend dev-worker clean help docker-up docker-down docker-build docker-logs docker-dev docker-migrate kg kg-export kg-check kg-lint skills-install agent-bundle agent-bundle-filtered agent-bundles dev-check dep-graph endpoint-inventory
 
 # Default target
 help:
@@ -22,6 +22,11 @@ help:
 	@echo "  agent-bundle  Build an agent context bundle (agent_context_bundle.md)"
 	@echo "  agent-bundle-filtered  Build a filtered agent bundle (health + graph)"
 	@echo "  agent-bundles  Build common domain bundles into agent_bundles/"
+	@echo ""
+	@echo "Developer tools (CTO-7):"
+	@echo "  dev-check          Validate development environment setup"
+	@echo "  dep-graph          Generate service dependency graph"
+	@echo "  endpoint-inventory Catalog all API endpoints"
 	@echo ""
 	@echo "Docker targets:"
 	@echo "  docker-build  Build Docker images"
@@ -140,6 +145,22 @@ agent-bundles:
 	@python3 scripts/prepare_agent_context.py --query graph --query kg --query neo4j --out agent_bundles/agent_context_graph.md
 	@python3 scripts/prepare_agent_context.py --query billing --query icd10 --query cpt --query hcc --out agent_bundles/agent_context_billing.md
 	@python3 scripts/prepare_agent_context.py --query etl --query export --query omop --query fhir --out agent_bundles/agent_context_etl.md
+
+# =============================================================================
+# Developer tools (CTO-7)
+# =============================================================================
+
+# Validate development environment setup
+dev-check:
+	@python3 backend/scripts/dev_setup_check.py
+
+# Generate service dependency graph (Mermaid + JSON + summary)
+dep-graph:
+	@python3 backend/scripts/service_dependency_graph.py
+
+# Catalog all API endpoints (Markdown + CSV + JSON)
+endpoint-inventory:
+	@python3 backend/scripts/endpoint_inventory.py
 
 # =============================================================================
 # Docker targets

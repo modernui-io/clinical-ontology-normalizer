@@ -13,10 +13,11 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.permissions import Permission, PermissionChecker
 from app.schemas.lineage import DataLineageRecordResponse, LineageSummary
 from app.services import lineage_service
 
@@ -31,7 +32,9 @@ router = APIRouter(prefix="/lineage", tags=["lineage"])
 )
 async def get_fact_lineage(
     fact_id: UUID,
+    request: Request,
     db: AsyncSession = Depends(get_db),
+    _perm: None = Depends(PermissionChecker([Permission.READ_LINEAGE])),
 ) -> list[DataLineageRecordResponse]:
     """Get lineage records for a specific ClinicalFact."""
     records = await lineage_service.get_fact_lineage(db, fact_id)
@@ -46,7 +49,9 @@ async def get_fact_lineage(
 )
 async def get_patient_lineage(
     patient_id: str,
+    request: Request,
     db: AsyncSession = Depends(get_db),
+    _perm: None = Depends(PermissionChecker([Permission.READ_LINEAGE])),
 ) -> list[DataLineageRecordResponse]:
     """Get all lineage records for a patient's ClinicalFacts."""
     records = await lineage_service.get_patient_lineage(db, patient_id)
@@ -61,7 +66,9 @@ async def get_patient_lineage(
 )
 async def get_patient_lineage_summary(
     patient_id: str,
+    request: Request,
     db: AsyncSession = Depends(get_db),
+    _perm: None = Depends(PermissionChecker([Permission.READ_LINEAGE])),
 ) -> LineageSummary:
     """Get aggregated lineage statistics for a patient."""
     return await lineage_service.get_lineage_summary(db, patient_id)

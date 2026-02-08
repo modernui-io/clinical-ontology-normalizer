@@ -102,9 +102,11 @@ from app.api import (
     pipelines_router,
     feedback_router,
     trials_router,
+    mapping_quality_router,
     metriport_api_router,
     metriport_webhook_router,
     lineage_router,
+    incidents_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -736,6 +738,7 @@ api_v1_router.include_router(prediction_audit_router)
 api_v1_router.include_router(pipeline_scheduling_router)
 api_v1_router.include_router(data_completeness_router)
 api_v1_router.include_router(data_consistency_router)
+api_v1_router.include_router(mapping_quality_router)
 api_v1_router.include_router(model_registry_router)
 api_v1_router.include_router(clinical_agent_router)
 api_v1_router.include_router(guidelines_router)
@@ -752,6 +755,7 @@ api_v1_router.include_router(trials_router)
 api_v1_router.include_router(metriport_api_router)
 api_v1_router.include_router(metriport_webhook_router)
 api_v1_router.include_router(lineage_router)
+api_v1_router.include_router(incidents_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)

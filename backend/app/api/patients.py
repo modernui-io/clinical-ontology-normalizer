@@ -18,6 +18,7 @@ from app.api.errors import ErrorCode, NotFoundError
 from app.api.middleware.auth_middleware import CurrentUser, get_current_user
 from app.core.audit import log_data_access, AuditAction
 from app.core.database import get_sync_engine
+from app.core.permissions import Permission, PermissionChecker
 from app.models.clinical_fact import ClinicalFact as ClinicalFactModel
 from app.models.knowledge_graph import KGNode, KGEdge
 from app.schemas import ClinicalFact
@@ -67,9 +68,11 @@ class PatientListResponse(BaseModel):
     description="Browse all patients that have clinical data, with summary info.",
 )
 def list_patients(
+    request: Request,
     page: Annotated[int, Query(ge=1, description="Page number")] = 1,
     page_size: Annotated[int, Query(ge=1, le=200, description="Items per page")] = 50,
     current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_PATIENTS])),
 ) -> PatientListResponse:
     """Return a paginated list of patients with summary information.
 
@@ -195,7 +198,9 @@ def list_patients(
 )
 def get_patient_graph(
     patient_id: str,
+    request: Request,
     current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_PATIENTS])),
 ) -> PatientGraph:
     """Get the complete knowledge graph for a patient.
 
@@ -323,7 +328,9 @@ def get_patient_graph(
 )
 def build_patient_graph(
     patient_id: str,
+    request: Request,
     current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.WRITE_PATIENTS])),
 ) -> PatientGraph:
     """Build the knowledge graph for a patient from clinical facts.
 
@@ -399,11 +406,13 @@ def build_patient_graph(
 )
 def get_patient_facts(
     patient_id: str,
+    request: Request,
     domain: Annotated[Domain | None, Query(description="Filter by domain")] = None,
     assertion: Annotated[Assertion | None, Query(description="Filter by assertion")] = None,
     limit: Annotated[int, Query(ge=1, le=1000, description="Max facts to return")] = 100,
     offset: Annotated[int, Query(ge=0, description="Offset for pagination")] = 0,
     current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_CLINICAL_FACTS])),
 ) -> list[ClinicalFact]:
     """Get clinical facts for a patient.
 

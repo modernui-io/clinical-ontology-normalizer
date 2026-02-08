@@ -25,11 +25,12 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.permissions import Permission, PermissionChecker
 from app.models.trial import EnrollmentStatus, TrialStatus
 from app.schemas.trial import (
     EnrollmentCreate,
@@ -87,6 +88,7 @@ class EnrollmentListResponse(BaseModel):
     description="Get a paginated list of clinical trials with optional filtering.",
 )
 async def list_trials(
+    request: Request,
     status: TrialStatus | None = Query(None, description="Filter by trial status"),
     sponsor: str | None = Query(None, description="Filter by sponsor name"),
     therapeutic_area: str | None = Query(None, description="Filter by therapeutic area"),
@@ -94,6 +96,7 @@ async def list_trials(
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     session: AsyncSession = Depends(get_db),
+    _perm: None = Depends(PermissionChecker([Permission.READ_TRIALS])),
 ) -> TrialListResponse:
     """List all clinical trials."""
     service = get_trial_service()
@@ -116,7 +119,11 @@ async def list_trials(
     summary="Create a clinical trial",
     description="Create a new clinical trial with inclusion/exclusion criteria.",
 )
-async def create_trial(create: TrialCreate) -> TrialResponse:
+async def create_trial(
+    request: Request,
+    create: TrialCreate,
+    _perm: None = Depends(PermissionChecker([Permission.WRITE_TRIALS])),
+) -> TrialResponse:
     """Create a new clinical trial."""
     service = get_trial_service()
     trial = service.create_trial(create)
@@ -129,7 +136,11 @@ async def create_trial(create: TrialCreate) -> TrialResponse:
     summary="Get trial service statistics",
     description="Get aggregate statistics across all trials.",
 )
-async def get_trial_stats(session: AsyncSession = Depends(get_db)) -> dict:
+async def get_trial_stats(
+    request: Request,
+    session: AsyncSession = Depends(get_db),
+    _perm: None = Depends(PermissionChecker([Permission.READ_TRIALS])),
+) -> dict:
     """Get trial service statistics."""
     service = get_trial_service()
     return await service.get_stats(session=session)
@@ -141,7 +152,12 @@ async def get_trial_stats(session: AsyncSession = Depends(get_db)) -> dict:
     summary="Get trial details",
     description="Get full details of a clinical trial including criteria and enrollment status.",
 )
-async def get_trial(trial_id: str, session: AsyncSession = Depends(get_db)) -> TrialResponse:
+async def get_trial(
+    trial_id: str,
+    request: Request,
+    session: AsyncSession = Depends(get_db),
+    _perm: None = Depends(PermissionChecker([Permission.READ_TRIALS])),
+) -> TrialResponse:
     """Get a trial by ID."""
     service = get_trial_service()
     trial = await service.get_trial(trial_id, session=session)
@@ -159,7 +175,12 @@ async def get_trial(trial_id: str, session: AsyncSession = Depends(get_db)) -> T
     summary="Update a clinical trial",
     description="Update trial metadata or eligibility criteria.",
 )
-async def update_trial(trial_id: str, update: TrialUpdate) -> TrialResponse:
+async def update_trial(
+    trial_id: str,
+    request: Request,
+    update: TrialUpdate,
+    _perm: None = Depends(PermissionChecker([Permission.WRITE_TRIALS])),
+) -> TrialResponse:
     """Update an existing trial."""
     service = get_trial_service()
     trial = service.update_trial(trial_id, update)
@@ -176,7 +197,11 @@ async def update_trial(trial_id: str, update: TrialUpdate) -> TrialResponse:
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete a clinical trial",
 )
-async def delete_trial(trial_id: str) -> None:
+async def delete_trial(
+    trial_id: str,
+    request: Request,
+    _perm: None = Depends(PermissionChecker([Permission.WRITE_TRIALS])),
+) -> None:
     """Delete a trial."""
     service = get_trial_service()
     if not service.delete_trial(trial_id):
@@ -199,12 +224,14 @@ async def delete_trial(trial_id: str) -> None:
 )
 async def screen_patients(
     trial_id: str,
-    request: ScreeningRequest | None = None,
+    request: Request,
+    screening_request: ScreeningRequest | None = None,
     session: AsyncSession = Depends(get_db),
+    _perm: None = Depends(PermissionChecker([Permission.SCREEN_PATIENTS])),
 ) -> ScreeningResponse:
     """Screen patients against trial eligibility criteria."""
     service = get_trial_service()
-    result = await service.screen_patients(trial_id, request, session=session)
+    result = await service.screen_patients(trial_id, screening_request, session=session)
     if not result:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -222,7 +249,9 @@ async def screen_patients(
 async def check_patient_eligibility(
     trial_id: str,
     patient_id: str,
+    request: Request,
     session: AsyncSession = Depends(get_db),
+    _perm: None = Depends(PermissionChecker([Permission.SCREEN_PATIENTS])),
 ) -> PatientEligibility:
     """Check if a specific patient is eligible for a trial."""
     service = get_trial_service()
@@ -255,7 +284,9 @@ async def check_patient_eligibility(
 async def get_match_explanation(
     trial_id: str,
     patient_id: str,
+    request: Request,
     session: AsyncSession = Depends(get_db),
+    _perm: None = Depends(PermissionChecker([Permission.SCREEN_PATIENTS])),
 ) -> PatientEligibility:
     """Get per-match explainability for a patient-trial pair.
 
@@ -293,8 +324,10 @@ async def get_match_explanation(
 )
 async def enroll_patient(
     trial_id: str,
+    request: Request,
     create: EnrollmentCreate,
     session: AsyncSession = Depends(get_db),
+    _perm: None = Depends(PermissionChecker([Permission.WRITE_TRIALS])),
 ) -> EnrollmentResponse:
     """Enroll a patient in a trial."""
     service = get_trial_service()
@@ -316,7 +349,9 @@ async def enroll_patient(
 async def update_enrollment(
     trial_id: str,
     patient_id: str,
+    request: Request,
     update: EnrollmentUpdate,
+    _perm: None = Depends(PermissionChecker([Permission.WRITE_TRIALS])),
 ) -> EnrollmentResponse:
     """Update a patient's enrollment."""
     service = get_trial_service()
@@ -337,9 +372,11 @@ async def update_enrollment(
 )
 async def list_enrollments(
     trial_id: str,
+    request: Request,
     status: EnrollmentStatus | None = Query(None, description="Filter by enrollment status"),
     offset: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
+    _perm: None = Depends(PermissionChecker([Permission.READ_TRIALS])),
 ) -> EnrollmentListResponse:
     """List enrollments for a trial."""
     service = get_trial_service()
@@ -370,8 +407,10 @@ async def list_enrollments(
 async def flag_false_negative(
     trial_id: str,
     patient_id: str,
+    request: Request,
     body: FNFlagCreate,
     session: AsyncSession = Depends(get_db),
+    _perm: None = Depends(PermissionChecker([Permission.SCREEN_PATIENTS])),
 ) -> FNFlag:
     """Flag a patient as a potential false negative for a trial."""
     # Verify trial exists
@@ -409,7 +448,9 @@ async def flag_false_negative(
 )
 async def get_fn_report(
     trial_id: str,
+    request: Request,
     session: AsyncSession = Depends(get_db),
+    _perm: None = Depends(PermissionChecker([Permission.READ_ANALYTICS])),
 ) -> FNReport:
     """Get the false-negative monitoring report for a trial."""
     # Verify trial exists
@@ -436,7 +477,12 @@ async def get_fn_report(
     summary="Get trial enrollment dashboard",
     description="Get enrollment progress and status breakdown for a trial.",
 )
-async def get_trial_dashboard(trial_id: str, session: AsyncSession = Depends(get_db)) -> TrialDashboard:
+async def get_trial_dashboard(
+    trial_id: str,
+    request: Request,
+    session: AsyncSession = Depends(get_db),
+    _perm: None = Depends(PermissionChecker([Permission.READ_ANALYTICS])),
+) -> TrialDashboard:
     """Get enrollment dashboard for a trial."""
     service = get_trial_service()
     result = await service.get_dashboard(trial_id, session=session)
