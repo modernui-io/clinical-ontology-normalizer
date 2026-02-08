@@ -97,6 +97,7 @@ from app.api import (
     vocabulary_router,
     data_sources_router,
     phenotypes_router,
+    pipeline_version_router,
     pipelines_router,
     feedback_router,
     trials_router,
@@ -728,6 +729,7 @@ api_v1_router.include_router(auth_router)
 api_v1_router.include_router(users_router)
 api_v1_router.include_router(data_sources_router)
 api_v1_router.include_router(phenotypes_router)
+api_v1_router.include_router(pipeline_version_router)
 api_v1_router.include_router(pipelines_router)
 api_v1_router.include_router(feedback_router)
 api_v1_router.include_router(trials_router)

@@ -15,6 +15,7 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.pipeline_version import get_current_pipeline_version
 from app.models.clinical_fact import ClinicalFact, FactEvidence
 from app.schemas.base import Assertion, Domain
 from app.services.fact_builder import (
@@ -91,6 +92,8 @@ class DatabaseFactBuilderService(BaseFactBuilderService):
             )
 
         # Create new fact
+        # CSO-1: Stamp every new ClinicalFact with the current pipeline version
+        pipeline_info = get_current_pipeline_version()
         fact = ClinicalFact(
             patient_id=fact_input.patient_id,
             domain=fact_input.domain,
@@ -102,6 +105,7 @@ class DatabaseFactBuilderService(BaseFactBuilderService):
             confidence=fact_input.confidence,
             value=fact_input.value,
             unit=fact_input.unit,
+            pipeline_version=pipeline_info.version_string,
         )
         self._session.add(fact)
         self._session.flush()  # Get the fact ID

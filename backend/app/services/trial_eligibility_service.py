@@ -24,6 +24,7 @@ from uuid import uuid4
 from sqlalchemy import and_, cast, or_, select, Float as SAFloat
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.audit import AuditAction, log_audit
 from app.models.clinical_fact import ClinicalFact
 from app.models.knowledge_graph import KGNode
 from app.models.trial import EnrollmentStatus, Trial, TrialEnrollment, TrialPhase, TrialStatus
@@ -47,6 +48,11 @@ from app.schemas.trial import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Dedicated logger for patient-safety events.  These messages are emitted at
+# WARNING level to ensure they surface in monitoring dashboards and log
+# aggregation even when the default log level is INFO.
+safety_logger = logging.getLogger("patient_safety")
 
 
 # ==============================================================================
@@ -851,6 +857,52 @@ class TrialEligibilityService:
             matching = await self._get_demographic_patient_ids(criterion, session)
             matched = patient_id in matching
 
+            # Fetch patient properties for evidence summary (VP-Product-2)
+            demo_props_stmt = select(KGNode.properties).where(
+                KGNode.patient_id == patient_id,
+                KGNode.node_type == NodeType.PATIENT,
+                KGNode.deleted_at.is_(None),
+            ).limit(1)
+            demo_props_result = await session.execute(demo_props_stmt)
+            demo_props = demo_props_result.scalar_one_or_none()
+
+            # Build demographic evidence summary
+            demo_summary: str | None = None
+            demo_conf_explanation: str | None = None
+            if demo_props:
+                birth_date_str = (demo_props or {}).get("birth_date")
+                gender = (demo_props or {}).get("gender", "Unknown")
+                if birth_date_str:
+                    try:
+                        bd = datetime.fromisoformat(birth_date_str)
+                        if bd.tzinfo is None:
+                            bd = bd.replace(tzinfo=timezone.utc)
+                        age = int((datetime.now(timezone.utc) - bd).days / 365.25)
+                        age_range = criterion.get("age_range", {})
+                        min_age = age_range.get("min_age")
+                        max_age = age_range.get("max_age")
+                        range_str = ""
+                        if min_age is not None and max_age is not None:
+                            range_str = f" (required: {min_age}-{max_age})"
+                        elif min_age is not None:
+                            range_str = f" (required: >= {min_age})"
+                        elif max_age is not None:
+                            range_str = f" (required: <= {max_age})"
+                        if matched:
+                            demo_summary = (
+                                f"Patient is {age} years old (DOB: {bd.strftime('%Y-%m-%d')}), "
+                                f"gender: {gender}. Meets demographic requirements{range_str}."
+                            )
+                        else:
+                            demo_summary = (
+                                f"Patient is {age} years old (DOB: {bd.strftime('%Y-%m-%d')}), "
+                                f"gender: {gender}. Does not meet demographic requirements{range_str}."
+                            )
+                        demo_conf_explanation = "High confidence: demographic data from patient record"
+                    except (ValueError, TypeError):
+                        demo_summary = f"Patient gender: {gender}. Birth date could not be parsed."
+                        demo_conf_explanation = "Unable to compute age from birth date"
+
             if matched:
                 return CriterionResult(
                     criterion_name=name,
@@ -860,28 +912,13 @@ class TrialEligibilityService:
                     confidence=1.0,
                     details="Demographic matched",
                     weight=weight,
+                    evidence_summary=demo_summary or "Patient meets demographic requirements",
+                    confidence_explanation=demo_conf_explanation or "High confidence: demographic data from patient record",
                 )
 
-            # Check whether the patient has a KGNode at all (has demographic data)
-            patient_check_stmt = select(KGNode.patient_id).where(
-                KGNode.patient_id == patient_id,
-                KGNode.node_type == NodeType.PATIENT,
-                KGNode.deleted_at.is_(None),
-            ).limit(1)
-            patient_check_result = await session.execute(patient_check_stmt)
-            has_patient_node = patient_check_result.scalar_one_or_none() is not None
-
-            if has_patient_node:
-                # Patient node exists but doesn't match criteria (e.g., age out of range,
-                # or birth_date missing). Check if birth_date is present to distinguish.
-                props_stmt = select(KGNode.properties).where(
-                    KGNode.patient_id == patient_id,
-                    KGNode.node_type == NodeType.PATIENT,
-                    KGNode.deleted_at.is_(None),
-                ).limit(1)
-                props_result = await session.execute(props_stmt)
-                props = props_result.scalar_one_or_none()
-                has_birth_date = bool(props and (props or {}).get("birth_date"))
+            if demo_props:
+                birth_date_str = (demo_props or {}).get("birth_date")
+                has_birth_date = bool(birth_date_str)
 
                 if has_birth_date:
                     # Has demographic data but doesn't meet criterion
@@ -893,6 +930,8 @@ class TrialEligibilityService:
                         confidence=1.0,
                         details="Demographic data exists but criterion not satisfied",
                         weight=weight,
+                        evidence_summary=demo_summary or f"Patient does not meet demographic requirements for '{name}'",
+                        confidence_explanation=demo_conf_explanation or "High confidence: demographic data from patient record does not satisfy criterion",
                     )
 
             # No demographic data available
@@ -905,6 +944,8 @@ class TrialEligibilityService:
                 details="No demographic data available for this patient",
                 weight=weight,
                 missing_domain=domain_label,
+                evidence_summary="Insufficient demographic data to evaluate this criterion",
+                confidence_explanation="Unable to evaluate: missing birth date or demographic information",
             )
 
         # --- Non-demographic: query ClinicalFact with id + confidence ---
@@ -958,7 +999,16 @@ class TrialEligibilityService:
             if vr.get("max_value") is not None:
                 filters.append(cast(ClinicalFact.value, SAFloat) <= vr["max_value"])
 
-        stmt = select(ClinicalFact.id, ClinicalFact.confidence).where(and_(*filters))
+        # Fetch fact details for evidence summaries (VP-Product-2)
+        stmt = select(
+            ClinicalFact.id,
+            ClinicalFact.confidence,
+            ClinicalFact.concept_name,
+            ClinicalFact.value,
+            ClinicalFact.unit,
+            ClinicalFact.start_date,
+            ClinicalFact.omop_concept_id,
+        ).where(and_(*filters))
         result = await session.execute(stmt)
         facts = result.all()
 
@@ -982,6 +1032,14 @@ class TrialEligibilityService:
                     confidence=0.0,
                     details=f"Patient has {domain.value} data but no match for this criterion",
                     weight=weight,
+                    evidence_summary=(
+                        f"Patient has {domain.value} data, but no match found for "
+                        f"'{name}'"
+                    ),
+                    confidence_explanation=(
+                        "Criterion not satisfied: data exists in the domain but "
+                        "does not match required codes or values"
+                    ),
                 )
             else:
                 return CriterionResult(
@@ -993,20 +1051,85 @@ class TrialEligibilityService:
                     details=f"No {domain.value} data available for this patient",
                     weight=weight,
                     missing_domain=domain_label,
+                    evidence_summary=(
+                        f"No {domain.value} data available for this patient "
+                        f"to evaluate '{name}'"
+                    ),
+                    confidence_explanation=(
+                        "Unable to evaluate: no data in the relevant clinical domain"
+                    ),
                 )
 
         max_confidence = max(f.confidence for f in facts)
         fact_ids = [str(f.id) for f in facts]
 
+        # Determine whether this is a safety-critical hard block.
+        # An exclusion criterion matched with high confidence (>0.7) and
+        # assertion=PRESENT means the patient has a contraindication.
+        # This is a HARD STOP -- no automated override is permitted.
+        is_safety_block = is_exclusion and max_confidence > 0.7
+
         if max_confidence > 0.7:
             status = "PASS" if not is_exclusion else "FAIL"
             details = f"Matched {len(facts)} fact(s), max confidence {max_confidence:.2f}"
+            if is_safety_block:
+                details = (
+                    f"SAFETY BLOCK: Exclusion criterion matched with high confidence "
+                    f"({max_confidence:.2f}). Patient has a contraindication for this "
+                    f"trial. This is a hard stop -- no automated override permitted. "
+                    f"Matched {len(facts)} fact(s)."
+                )
         elif max_confidence > 0.3:
             status = "POSSIBLE_MATCH"
             details = f"Low-confidence match ({max_confidence:.2f}), {len(facts)} fact(s)"
         else:
             status = "UNKNOWN"
             details = f"Very low confidence ({max_confidence:.2f}), treating as unknown"
+
+        # --- Build evidence summary (VP-Product-2) ---
+        evidence_parts: list[str] = []
+        for f in facts[:3]:  # Limit to top 3 for readability
+            concept = f.concept_name
+            omop_id = f.omop_concept_id
+            code_info = f" (OMOP:{omop_id})" if omop_id else ""
+            date_str = f.start_date.strftime("%Y-%m-%d") if f.start_date else "date unknown"
+            if ctype == "measurement" and f.value:
+                unit_str = f" {f.unit}" if f.unit else ""
+                evidence_parts.append(f"{concept}: {f.value}{unit_str} (recorded {date_str})")
+            else:
+                evidence_parts.append(f"{concept}{code_info}, recorded {date_str}")
+
+        evidence_text = "; ".join(evidence_parts)
+        if len(facts) > 3:
+            evidence_text += f" (+{len(facts) - 3} more)"
+
+        status_verb_map = {
+            "PASS": "is satisfied",
+            "FAIL": "is triggered (exclusion matched)",
+            "POSSIBLE_MATCH": "has a possible match (needs review)",
+            "UNKNOWN": "cannot be evaluated",
+        }
+        status_verb = status_verb_map.get(status, status.lower())
+        evidence_summary = f"Patient has {evidence_text}. Criterion '{name}' {status_verb}."
+
+        # --- Build confidence explanation ---
+        conf_level = "High" if max_confidence >= 0.8 else "Medium" if max_confidence >= 0.6 else "Low"
+        type_labels = {
+            "condition": "diagnosis code",
+            "measurement": "lab result",
+            "drug": "medication record",
+            "procedure": "procedure record",
+            "observation": "clinical observation",
+        }
+        type_label = type_labels.get(ctype, "clinical record")
+        best_fact = facts[0]
+        conf_concept = best_fact.concept_name
+        if best_fact.omop_concept_id:
+            conf_concept += f" (OMOP:{best_fact.omop_concept_id})"
+        confidence_explanation = (
+            f"{conf_level} confidence ({max_confidence:.0%}): "
+            f"{type_label} match on {conf_concept}"
+        )
 
         return CriterionResult(
             criterion_name=name,
@@ -1016,6 +1139,9 @@ class TrialEligibilityService:
             confidence=round(max_confidence, 4),
             details=details,
             weight=weight,
+            safety_block=is_safety_block,
+            evidence_summary=evidence_summary,
+            confidence_explanation=confidence_explanation,
         )
 
     def _compute_data_completeness(
@@ -1119,6 +1245,7 @@ class TrialEligibilityService:
 
         # --- Evaluate exclusion criteria ---
         exclusion_triggered: list[str] = []
+        safety_blocked_reasons: list[str] = []
         for criterion in exclusion_list:
             cr = await self._evaluate_criterion(
                 criterion, patient_id, session, is_exclusion=True,
@@ -1128,6 +1255,33 @@ class TrialEligibilityService:
             if cr.status == "FAIL":
                 # Exclusion criterion matched with high confidence
                 exclusion_triggered.append(cr.criterion_name)
+
+            # CMO-5: Patient Safety Guardrails -- hard stop enforcement.
+            # When safety_block is True, this is a contraindication that
+            # MUST prevent the patient from being considered eligible.
+            # There is no automated override path.
+            if cr.safety_block:
+                reason = (
+                    f"Exclusion criterion '{cr.criterion_name}' matched with "
+                    f"confidence {cr.confidence:.2f} -- patient has a "
+                    f"contraindication (evidence: {len(cr.evidence_fact_ids)} "
+                    f"fact(s)). HARD STOP: no automated override permitted."
+                )
+                safety_blocked_reasons.append(reason)
+
+        is_safety_blocked = len(safety_blocked_reasons) > 0
+
+        # --- Log safety block events prominently ---
+        if is_safety_blocked:
+            self._log_safety_block(
+                patient_id=patient_id,
+                trial_id=trial_id,
+                trial_name=record.name,
+                safety_blocked_reasons=safety_blocked_reasons,
+                exclusion_details=[
+                    cr for cr in criteria_details if cr.safety_block
+                ],
+            )
 
         # --- Weighted match score ---
         # Count evaluable criteria (not UNKNOWN) in the denominator.
@@ -1151,9 +1305,22 @@ class TrialEligibilityService:
         if exclusion_triggered:
             score = 0.0
 
+        # CMO-5: Safety block forces score to 0.0 unconditionally.
+        # This is a belt-and-suspenders check on top of the exclusion_triggered
+        # logic above.  Even if a future code path somehow bypasses exclusion
+        # tracking, the safety block still forces the score to zero.
+        if is_safety_blocked:
+            score = 0.0
+
         eligible = (
             len(inclusion_met) == len(inclusion_list) and len(exclusion_triggered) == 0
         )
+
+        # CMO-5: Safety block forces ineligible unconditionally.
+        # This is the HARD STOP: no matter what the inclusion criteria say,
+        # a safety-blocked patient is NEVER eligible.
+        if is_safety_blocked:
+            eligible = False
 
         # --- Compute data completeness score ---
         data_completeness = self._compute_data_completeness(criteria_details)
@@ -1173,6 +1340,74 @@ class TrialEligibilityService:
             requires_clinician_review=True,
             review_disclaimer=CDS_DISCLAIMER,
             data_completeness=data_completeness,
+            safety_blocked=is_safety_blocked,
+            safety_blocked_reasons=safety_blocked_reasons,
+        )
+
+    def _log_safety_block(
+        self,
+        *,
+        patient_id: str,
+        trial_id: str,
+        trial_name: str,
+        safety_blocked_reasons: list[str],
+        exclusion_details: list[CriterionResult],
+    ) -> None:
+        """Log a SafetyBlockEvent when a patient is blocked from a trial.
+
+        CMO-5: Patient Safety Guardrails.
+
+        This method emits structured log records to both the dedicated
+        patient_safety logger (WARNING level) and the audit trail.  Safety
+        block events are the most critical patient-safety signal in the
+        screening pipeline and MUST be visible in monitoring dashboards.
+        """
+        block_summary = (
+            f"SAFETY BLOCK: Patient {patient_id} blocked from trial "
+            f"'{trial_name}' ({trial_id}). "
+            f"{len(safety_blocked_reasons)} exclusion criterion/criteria triggered hard stop."
+        )
+
+        # Structured detail for each blocking criterion
+        criterion_audit: list[dict[str, Any]] = []
+        for cr in exclusion_details:
+            criterion_audit.append({
+                "criterion_name": cr.criterion_name,
+                "criterion_type": cr.criterion_type,
+                "confidence": cr.confidence,
+                "evidence_fact_ids": cr.evidence_fact_ids,
+                "details": cr.details,
+            })
+
+        # --- Emit to dedicated patient_safety logger at WARNING level ---
+        safety_logger.warning(
+            block_summary,
+            extra={
+                "event_type": "SafetyBlockEvent",
+                "patient_id": patient_id,
+                "trial_id": trial_id,
+                "trial_name": trial_name,
+                "safety_blocked_reasons": safety_blocked_reasons,
+                "blocking_criteria": criterion_audit,
+            },
+        )
+
+        # --- Emit to the standard service logger ---
+        logger.warning(block_summary)
+
+        # --- Emit to the audit trail ---
+        log_audit(
+            action=AuditAction.READ,
+            resource_type="safety_block",
+            resource_id=trial_id,
+            patient_id=patient_id,
+            details={
+                "event_type": "SafetyBlockEvent",
+                "trial_name": trial_name,
+                "safety_blocked_reasons": safety_blocked_reasons,
+                "blocking_criteria": criterion_audit,
+            },
+            success=True,
         )
 
     async def _build_real_candidates(
@@ -1246,7 +1481,12 @@ class TrialEligibilityService:
         *,
         session: AsyncSession,
     ) -> list[dict[str, Any]]:
-        """Auto-screen a patient against all active trials after FHIR import."""
+        """Auto-screen a patient against all active trials after FHIR import.
+
+        CMO-5: If check_patient_eligibility sets safety_blocked=True, the
+        patient is NEVER enrolled as a CANDIDATE, regardless of inclusion
+        score.  The safety block is logged and included in the result dict.
+        """
         await self._ensure_loaded(session)
         results = []
         for trial_id, record in self._trials.items():
@@ -1262,9 +1502,20 @@ class TrialEligibilityService:
                 "trial_name": record.name,
                 "eligible": eligibility.eligible,
                 "match_score": eligibility.match_score,
+                "safety_blocked": eligibility.safety_blocked,
             }
-            # If eligible with score > 0.5, create CANDIDATE enrollment
-            if eligibility.eligible and eligibility.match_score > 0.5:
+
+            # CMO-5: Safety block prevents auto-enrollment.
+            # This is a HARD STOP -- no automated override path.
+            if eligibility.safety_blocked:
+                result["safety_blocked_reasons"] = eligibility.safety_blocked_reasons
+                logger.warning(
+                    f"Auto-screen: patient {patient_id} SAFETY BLOCKED from "
+                    f"trial '{record.name}' ({trial_id}). "
+                    f"Enrollment prevented by hard stop."
+                )
+            elif eligibility.eligible and eligibility.match_score > 0.5:
+                # Only create CANDIDATE enrollment when NOT safety-blocked
                 existing = record.enrollments.get(patient_id)
                 if not existing:
                     enrollment = await self.enroll_patient(
@@ -1275,10 +1526,12 @@ class TrialEligibilityService:
                     if enrollment:
                         result["enrollment_id"] = str(enrollment.id)
                         result["enrollment_status"] = "candidate"
+
             results.append(result)
             logger.info(
                 f"Auto-screen: patient {patient_id} vs {record.name}: "
-                f"eligible={eligibility.eligible}, score={eligibility.match_score}"
+                f"eligible={eligibility.eligible}, score={eligibility.match_score}, "
+                f"safety_blocked={eligibility.safety_blocked}"
             )
         return results
 

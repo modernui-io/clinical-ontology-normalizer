@@ -3282,15 +3282,48 @@ export interface TrialListResponse {
   limit: number;
 }
 
+export interface CriterionResultDetail {
+  criterion_name: string;
+  criterion_type: string;
+  status: string; // PASS, NOT_MET, FAIL, UNKNOWN, POSSIBLE_MATCH
+  evidence_fact_ids: string[];
+  confidence: number;
+  details: string;
+  weight: number;
+  missing_domain: string | null;
+  evidence_summary: string | null;
+  source_documents: string[];
+  confidence_explanation: string | null;
+  safety_block: boolean;
+}
+
+export interface DataCompletenessScore {
+  overall_completeness: number;
+  evaluable_criteria: number;
+  total_criteria: number;
+  unknown_criteria: number;
+  not_met_criteria: number;
+  missing_domains: string[];
+  recommendation: string | null;
+}
+
 export interface PatientEligibility {
   patient_id: string;
   eligible: boolean;
   match_score: number;
   inclusion_met: string[];
+  inclusion_total: number;
   exclusion_triggered: string[];
+  exclusion_total: number;
   missing_data: string[];
+  criteria_details: CriterionResultDetail[];
+  evaluable_criteria: number;
+  screening_timestamp: string | null;
   requires_clinician_review: boolean;
   review_disclaimer: string;
+  data_completeness: DataCompletenessScore | null;
+  safety_blocked: boolean;
+  safety_blocked_reasons: string[];
 }
 
 export interface ScreeningResponse {
@@ -3409,6 +3442,16 @@ export async function getTrialEnrollments(
 // Get trial stats
 export async function getTrialStats(): Promise<Record<string, unknown>> {
   return fetchWithRetry<Record<string, unknown>>(`${API_BASE_URL}/trials/stats`);
+}
+
+// Get per-match explainability for a patient-trial pair (VP-Product-2)
+export async function getMatchExplanation(
+  trialId: string,
+  patientId: string
+): Promise<PatientEligibility> {
+  return fetchWithRetry<PatientEligibility>(
+    `${API_BASE_URL}/trials/${trialId}/matches/${patientId}/explanation`
+  );
 }
 
 // ============================================================================

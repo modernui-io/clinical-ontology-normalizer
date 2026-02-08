@@ -145,6 +145,7 @@ from app.api.vocabulary import router as vocabulary_router
 from app.api.smart_server import router as smart_server_router
 from app.api.data_sources import router as data_sources_router
 from app.api.phenotypes import router as phenotypes_router
+from app.api.pipeline_version import router as pipeline_version_router
 from app.api.pipelines import router as pipelines_router
 from app.api.feedback import router as feedback_router
 from app.api.trials import router as trials_router
@@ -232,6 +233,7 @@ __all__ = [
     "smart_server_router",
     "data_sources_router",
     "phenotypes_router",
+    "pipeline_version_router",
     "pipelines_router",
     "feedback_router",
     "trials_router",

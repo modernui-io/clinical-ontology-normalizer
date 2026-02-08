@@ -11,6 +11,7 @@ from uuid import UUID, uuid4
 import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.pipeline_version import get_current_pipeline_version
 from app.models.clinical_fact import ClinicalFact, FactEvidence
 from app.models.document import Document as DocumentModel
 from app.models.knowledge_graph import KGEdge, KGNode
@@ -43,6 +44,8 @@ class FHIRImportService:
         """
         self.fhir_base_url = fhir_base_url
         self.client = httpx.AsyncClient(timeout=30.0)
+        # CSO-1: Cache pipeline version string for stamping ClinicalFacts
+        self._pipeline_version = get_current_pipeline_version().version_string
 
     async def close(self) -> None:
         """Close the HTTP client."""
@@ -343,6 +346,7 @@ class FHIRImportService:
             experiencer=Experiencer.PATIENT,
             confidence=1.0,
             start_date=effective,
+            pipeline_version=self._pipeline_version,
         )
         session.add(fact)
         await session.flush()
@@ -558,6 +562,7 @@ class FHIRImportService:
             experiencer=Experiencer.PATIENT,
             confidence=1.0,
             start_date=onset,
+            pipeline_version=self._pipeline_version,
         )
         session.add(fact)
         await session.flush()
@@ -629,6 +634,7 @@ class FHIRImportService:
             experiencer=Experiencer.PATIENT,
             confidence=1.0,
             start_date=authored,
+            pipeline_version=self._pipeline_version,
         )
         session.add(fact)
         await session.flush()
@@ -714,6 +720,7 @@ class FHIRImportService:
             experiencer=Experiencer.PATIENT,
             confidence=1.0,
             start_date=recorded,
+            pipeline_version=self._pipeline_version,
         )
         session.add(fact)
         await session.flush()
@@ -803,6 +810,7 @@ class FHIRImportService:
             value=str(value) if value is not None else None,
             unit=unit,
             start_date=effective,
+            pipeline_version=self._pipeline_version,
         )
         session.add(fact)
         await session.flush()
@@ -881,6 +889,7 @@ class FHIRImportService:
             experiencer=Experiencer.PATIENT,
             confidence=1.0,
             start_date=performed,
+            pipeline_version=self._pipeline_version,
         )
         session.add(fact)
         await session.flush()
@@ -998,6 +1007,7 @@ class FHIRImportService:
             confidence=1.0,
             start_date=period_start,
             end_date=period_end,
+            pipeline_version=self._pipeline_version,
         )
         session.add(fact)
         await session.flush()
@@ -1125,6 +1135,7 @@ class FHIRImportService:
             value=str(dose_value) if dose_value is not None else None,
             unit=dose_unit,
             start_date=occurrence,
+            pipeline_version=self._pipeline_version,
         )
         session.add(fact)
         await session.flush()

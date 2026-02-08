@@ -16,12 +16,14 @@ import {
   getTrialDashboard,
   getTrialEnrollments,
   getTrialStats,
+  getMatchExplanation,
   type TrialListResponse,
   type TrialResponse,
   type ScreeningResponse,
   type TrialDashboard,
   type EnrollmentListResponse,
   type TrialListParams,
+  type PatientEligibility,
 } from "@/lib/api";
 
 import { queryKeys, queryConfigs } from "@/lib/query-client";
@@ -94,6 +96,24 @@ export function useTrialStats(
     queryKey: [...queryKeys.trials.all, "stats"],
     queryFn: () => getTrialStats(),
     staleTime: queryConfigs.static.staleTime,
+    ...options,
+  });
+}
+
+/**
+ * Fetch per-match explainability for a patient-trial pair (VP-Product-2).
+ * Returns enriched eligibility with evidence summaries, source documents,
+ * and confidence explanations for each criterion.
+ */
+export function useMatchExplanation(
+  trialId: string,
+  patientId: string | null,
+  options?: Omit<UseQueryOptions<PatientEligibility>, "queryKey" | "queryFn">
+) {
+  return useQuery({
+    queryKey: [...queryKeys.trials.detail(trialId), "explanation", patientId],
+    queryFn: () => getMatchExplanation(trialId, patientId!),
+    enabled: !!trialId && !!patientId,
     ...options,
   });
 }

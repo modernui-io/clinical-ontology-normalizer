@@ -11,6 +11,7 @@ Endpoints:
     DELETE /api/v1/trials/{id}       - Delete a trial
     POST /api/v1/trials/{id}/screen  - Screen patients for eligibility
     GET  /api/v1/trials/{id}/check/{patient_id} - Check single patient eligibility
+    GET  /api/v1/trials/{id}/matches/{patient_id}/explanation - Per-match explainability
     POST /api/v1/trials/{id}/enroll  - Enroll a patient
     PUT  /api/v1/trials/{id}/enrollments/{patient_id} - Update enrollment
     GET  /api/v1/trials/{id}/enrollments - List enrollments
@@ -41,6 +42,7 @@ from app.schemas.trial import (
     TrialSummary,
     TrialUpdate,
 )
+from app.services.match_explanation_service import MatchExplanationService
 from app.services.trial_eligibility_service import get_trial_service
 
 logger = logging.getLogger(__name__)
@@ -229,6 +231,48 @@ async def check_patient_eligibility(
             detail=f"Trial {trial_id} not found",
         )
     return result
+
+
+# ==============================================================================
+# Per-Match Explainability (VP-Product-2)
+# ==============================================================================
+
+
+@router.get(
+    "/{trial_id}/matches/{patient_id}/explanation",
+    response_model=PatientEligibility,
+    summary="Get per-match explainability for a patient-trial pair",
+    description=(
+        "Returns eligibility results enriched with per-criterion evidence summaries, "
+        "source document references, and confidence explanations. "
+        "Pharma RFP Tier 2 requirement."
+    ),
+)
+async def get_match_explanation(
+    trial_id: str,
+    patient_id: str,
+    session: AsyncSession = Depends(get_db),
+) -> PatientEligibility:
+    """Get per-match explainability for a patient-trial pair.
+
+    Runs eligibility check and enriches each criterion result with:
+    - evidence_summary: Plain-language explanation of why the criterion passed/failed
+    - source_documents: Document IDs where the evidence was found
+    - confidence_explanation: Why this confidence level was assigned
+    """
+    trial_service = get_trial_service()
+    eligibility = await trial_service.check_patient_eligibility(
+        trial_id, patient_id, session=session
+    )
+    if not eligibility:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Trial {trial_id} not found",
+        )
+
+    explanation_service = MatchExplanationService()
+    enriched = await explanation_service.enrich_eligibility(eligibility, session)
+    return enriched
 
 
 # ==============================================================================

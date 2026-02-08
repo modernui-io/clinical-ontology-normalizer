@@ -186,6 +186,36 @@ class CriterionResult(BaseModel):
         description="Data domain that is missing when status is UNKNOWN (e.g., 'lab_results', 'conditions')",
     )
 
+    # --- Per-Match Explainability Fields (VP-Product-2) ---
+    evidence_summary: str | None = Field(
+        default=None,
+        description=(
+            "Plain-language explanation of why this criterion passed/failed. "
+            "E.g., 'Patient has HbA1c of 7.2% (recorded 2025-12-15), within required range of 6-11%'"
+        ),
+    )
+    source_documents: list[str] = Field(
+        default_factory=list,
+        description="Document IDs where the evidence was found (via FactEvidence chain)",
+    )
+    confidence_explanation: str | None = Field(
+        default=None,
+        description=(
+            "Why this confidence level was assigned. "
+            "E.g., 'High confidence: exact ICD-10 code match E11.311'"
+        ),
+    )
+
+    safety_block: bool = Field(
+        default=False,
+        description=(
+            "True when an exclusion criterion is matched with high confidence "
+            "(confidence > 0.7 and assertion=PRESENT). A safety block is a HARD STOP: "
+            "the patient MUST be marked ineligible with no automated override path. "
+            "This is a patient-safety-critical field."
+        ),
+    )
+
 
 class DataCompletenessScore(BaseModel):
     """Scores how complete a patient's data is relative to trial criteria.
@@ -247,6 +277,23 @@ class PatientEligibility(BaseModel):
     data_completeness: DataCompletenessScore | None = Field(
         default=None,
         description="Data completeness score showing how much patient data is available for evaluation",
+    )
+    safety_blocked: bool = Field(
+        default=False,
+        description=(
+            "True when ANY exclusion criterion has safety_block=True. "
+            "When safety_blocked is True, the patient MUST be ineligible "
+            "and match_score MUST be 0.0. There is NO automated override "
+            "path for a safety block -- this is a hard stop for patient safety."
+        ),
+    )
+    safety_blocked_reasons: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Human-readable list of exclusion criteria that triggered the safety block. "
+            "Each entry identifies which contraindication was matched and at what confidence. "
+            "Empty when safety_blocked is False."
+        ),
     )
 
 

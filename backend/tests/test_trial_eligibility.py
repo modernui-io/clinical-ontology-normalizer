@@ -2057,3 +2057,512 @@ class TestDataCompletenessScore:
         assert candidate is not None
         assert candidate.data_completeness is not None
         assert candidate.data_completeness.overall_completeness == 1.0
+
+
+# =============================================================================
+# Tests: CMO-5 Patient Safety Guardrails
+# =============================================================================
+
+
+class TestSafetyBlockOnExclusion:
+    """CMO-5: Exclusion criteria must be enforced with HARD STOPS.
+
+    When a patient matches an exclusion criterion with high confidence
+    (confidence > 0.7 and assertion=PRESENT), the CriterionResult must
+    have safety_block=True and the PatientEligibility must have
+    safety_blocked=True, match_score=0.0, and eligible=False.
+
+    There is NO automated override path for safety blocks.
+    """
+
+    @pytest.mark.asyncio
+    async def test_exclusion_match_sets_safety_block_on_criterion(
+        self, service: TrialEligibilityService, session: AsyncSession
+    ):
+        """CriterionResult.safety_block must be True when an exclusion
+        criterion is matched with high confidence."""
+        trial_id = _register_trial(service, _ad_trial_create())
+
+        birth = (datetime.now(timezone.utc) - timedelta(days=45 * 365)).isoformat()
+        await _insert_patient_node(session, patient_id="P-SB-1", birth_date=birth)
+
+        await _insert_fact(
+            session,
+            patient_id="P-SB-1",
+            domain=Domain.CONDITION,
+            concept_name="Atopic dermatitis, unspecified",
+        )
+        # High-confidence exclusion match: active cancer
+        await _insert_fact(
+            session,
+            patient_id="P-SB-1",
+            domain=Domain.CONDITION,
+            concept_name="Malignant neoplasm, unspecified",
+            confidence=0.95,
+        )
+
+        result = await service.check_patient_eligibility(
+            trial_id, "P-SB-1", session=session
+        )
+        assert result is not None
+
+        # Find the exclusion criterion result
+        excl_cr = next(
+            (cr for cr in result.criteria_details if cr.criterion_name == "Active cancer"),
+            None,
+        )
+        assert excl_cr is not None
+        assert excl_cr.safety_block is True
+        assert excl_cr.status == "FAIL"
+        assert excl_cr.confidence > 0.7
+
+    @pytest.mark.asyncio
+    async def test_safety_blocked_forces_ineligible(
+        self, service: TrialEligibilityService, session: AsyncSession
+    ):
+        """When safety_blocked=True, eligible MUST be False regardless of
+        inclusion criteria."""
+        trial_id = _register_trial(service, _ad_trial_create())
+
+        birth = (datetime.now(timezone.utc) - timedelta(days=45 * 365)).isoformat()
+        await _insert_patient_node(session, patient_id="P-SB-2", birth_date=birth)
+
+        # Patient meets ALL inclusion criteria
+        await _insert_fact(
+            session,
+            patient_id="P-SB-2",
+            domain=Domain.CONDITION,
+            concept_name="Atopic dermatitis, unspecified",
+        )
+        # But also has a contraindication
+        await _insert_fact(
+            session,
+            patient_id="P-SB-2",
+            domain=Domain.CONDITION,
+            concept_name="Malignant neoplasm, unspecified",
+            confidence=0.95,
+        )
+
+        result = await service.check_patient_eligibility(
+            trial_id, "P-SB-2", session=session
+        )
+        assert result is not None
+        assert result.safety_blocked is True
+        assert result.eligible is False  # HARD STOP
+
+    @pytest.mark.asyncio
+    async def test_safety_blocked_forces_score_zero(
+        self, service: TrialEligibilityService, session: AsyncSession
+    ):
+        """When safety_blocked=True, match_score MUST be 0.0."""
+        trial_id = _register_trial(service, _ad_trial_create())
+
+        birth = (datetime.now(timezone.utc) - timedelta(days=45 * 365)).isoformat()
+        await _insert_patient_node(session, patient_id="P-SB-3", birth_date=birth)
+
+        await _insert_fact(
+            session,
+            patient_id="P-SB-3",
+            domain=Domain.CONDITION,
+            concept_name="Atopic dermatitis, unspecified",
+        )
+        await _insert_fact(
+            session,
+            patient_id="P-SB-3",
+            domain=Domain.CONDITION,
+            concept_name="Malignant neoplasm, unspecified",
+            confidence=0.95,
+        )
+
+        result = await service.check_patient_eligibility(
+            trial_id, "P-SB-3", session=session
+        )
+        assert result is not None
+        assert result.safety_blocked is True
+        assert result.match_score == 0.0
+
+    @pytest.mark.asyncio
+    async def test_safety_blocked_reasons_populated(
+        self, service: TrialEligibilityService, session: AsyncSession
+    ):
+        """safety_blocked_reasons must list every exclusion criterion that
+        triggered the safety block."""
+        trial_id = _register_trial(service, _ad_trial_create())
+
+        birth = (datetime.now(timezone.utc) - timedelta(days=45 * 365)).isoformat()
+        await _insert_patient_node(session, patient_id="P-SB-4", birth_date=birth)
+
+        await _insert_fact(
+            session,
+            patient_id="P-SB-4",
+            domain=Domain.CONDITION,
+            concept_name="Atopic dermatitis, unspecified",
+        )
+        await _insert_fact(
+            session,
+            patient_id="P-SB-4",
+            domain=Domain.CONDITION,
+            concept_name="Malignant neoplasm, unspecified",
+            confidence=0.95,
+        )
+
+        result = await service.check_patient_eligibility(
+            trial_id, "P-SB-4", session=session
+        )
+        assert result is not None
+        assert result.safety_blocked is True
+        assert len(result.safety_blocked_reasons) >= 1
+        # The reason should mention the criterion name
+        assert any("Active cancer" in reason for reason in result.safety_blocked_reasons)
+
+    @pytest.mark.asyncio
+    async def test_no_safety_block_when_exclusion_not_matched(
+        self, service: TrialEligibilityService, session: AsyncSession
+    ):
+        """When no exclusion criteria match, safety_blocked must be False."""
+        trial_id = _register_trial(service, _ad_trial_create())
+
+        birth = (datetime.now(timezone.utc) - timedelta(days=45 * 365)).isoformat()
+        await _insert_patient_node(session, patient_id="P-SB-5", birth_date=birth)
+
+        await _insert_fact(
+            session,
+            patient_id="P-SB-5",
+            domain=Domain.CONDITION,
+            concept_name="Atopic dermatitis, unspecified",
+        )
+        # No cancer fact -> no exclusion triggered
+
+        result = await service.check_patient_eligibility(
+            trial_id, "P-SB-5", session=session
+        )
+        assert result is not None
+        assert result.safety_blocked is False
+        assert result.safety_blocked_reasons == []
+        assert result.eligible is True
+
+    @pytest.mark.asyncio
+    async def test_no_safety_block_for_low_confidence_exclusion(
+        self, service: TrialEligibilityService, session: AsyncSession
+    ):
+        """Exclusion match with confidence <= 0.7 should NOT trigger safety block."""
+        trial_id = _register_trial(service, _ad_trial_create())
+
+        birth = (datetime.now(timezone.utc) - timedelta(days=45 * 365)).isoformat()
+        await _insert_patient_node(session, patient_id="P-SB-6", birth_date=birth)
+
+        await _insert_fact(
+            session,
+            patient_id="P-SB-6",
+            domain=Domain.CONDITION,
+            concept_name="Atopic dermatitis, unspecified",
+        )
+        # Low-confidence cancer fact -> should NOT trigger hard stop
+        await _insert_fact(
+            session,
+            patient_id="P-SB-6",
+            domain=Domain.CONDITION,
+            concept_name="Malignant neoplasm, unspecified",
+            confidence=0.5,
+        )
+
+        result = await service.check_patient_eligibility(
+            trial_id, "P-SB-6", session=session
+        )
+        assert result is not None
+        assert result.safety_blocked is False
+
+        # The criterion should be POSSIBLE_MATCH, not FAIL
+        excl_cr = next(
+            (cr for cr in result.criteria_details if cr.criterion_name == "Active cancer"),
+            None,
+        )
+        assert excl_cr is not None
+        assert excl_cr.safety_block is False
+        assert excl_cr.status == "POSSIBLE_MATCH"
+
+    @pytest.mark.asyncio
+    async def test_inclusion_criteria_do_not_trigger_safety_block(
+        self, service: TrialEligibilityService, session: AsyncSession
+    ):
+        """Only exclusion criteria can trigger safety_block. Inclusion criteria
+        with PASS status should never have safety_block=True."""
+        trial_id = _register_trial(service, _simple_condition_trial())
+
+        await _insert_fact(
+            session,
+            patient_id="P-SB-7",
+            domain=Domain.CONDITION,
+            concept_name="Essential hypertension",
+            confidence=0.95,
+        )
+
+        result = await service.check_patient_eligibility(
+            trial_id, "P-SB-7", session=session
+        )
+        assert result is not None
+        for cr in result.criteria_details:
+            assert cr.safety_block is False
+
+    @pytest.mark.asyncio
+    async def test_negated_exclusion_does_not_trigger_safety_block(
+        self, service: TrialEligibilityService, session: AsyncSession
+    ):
+        """An exclusion fact with assertion=ABSENT (patient denies cancer)
+        should NOT trigger safety_block -- only PRESENT assertions count."""
+        trial_id = _register_trial(service, _ad_trial_create())
+
+        birth = (datetime.now(timezone.utc) - timedelta(days=45 * 365)).isoformat()
+        await _insert_patient_node(session, patient_id="P-SB-8", birth_date=birth)
+
+        await _insert_fact(
+            session,
+            patient_id="P-SB-8",
+            domain=Domain.CONDITION,
+            concept_name="Atopic dermatitis, unspecified",
+        )
+        # Cancer fact with ABSENT assertion -- "patient denies cancer"
+        await _insert_fact(
+            session,
+            patient_id="P-SB-8",
+            domain=Domain.CONDITION,
+            concept_name="Malignant neoplasm, unspecified",
+            assertion=Assertion.ABSENT,
+            confidence=0.95,
+        )
+
+        result = await service.check_patient_eligibility(
+            trial_id, "P-SB-8", session=session
+        )
+        assert result is not None
+        assert result.safety_blocked is False
+        assert result.eligible is True
+
+
+class TestSafetyBlockMultipleExclusions:
+    """CMO-5: Multiple exclusion criteria can independently trigger safety blocks."""
+
+    @pytest.mark.asyncio
+    async def test_multiple_exclusion_criteria_all_blocked(
+        self, service: TrialEligibilityService, session: AsyncSession
+    ):
+        """Patient matching multiple exclusion criteria should have all
+        reasons listed in safety_blocked_reasons."""
+        # Create a trial with TWO exclusion criteria
+        trial_create = TrialCreate(
+            name="Multi-Exclusion Trial",
+            sponsor="Test",
+            phase=TrialPhase.PHASE_3,
+            status=TrialStatus.RECRUITING,
+            therapeutic_area="Dermatology",
+            inclusion_criteria={
+                "criteria": [
+                    {
+                        "criterion_type": "demographic",
+                        "name": "Adult patients",
+                        "age_range": {"min_age": 18, "max_age": 75},
+                    },
+                    {
+                        "criterion_type": "condition",
+                        "name": "Atopic Dermatitis",
+                        "codes": [
+                            {"code": "L20.9", "display": "Atopic dermatitis, unspecified"},
+                        ],
+                        "code_system": "ICD10CM",
+                    },
+                ],
+                "root_operator": "AND",
+            },
+            exclusion_criteria={
+                "criteria": [
+                    {
+                        "criterion_type": "condition",
+                        "name": "Active cancer",
+                        "codes": [
+                            {"code": "C80.1", "display": "Malignant neoplasm, unspecified"},
+                        ],
+                        "code_system": "ICD10CM",
+                        "negated": True,
+                    },
+                    {
+                        "criterion_type": "condition",
+                        "name": "Active tuberculosis",
+                        "codes": [
+                            {"code": "A15", "display": "Respiratory tuberculosis"},
+                        ],
+                        "code_system": "ICD10CM",
+                        "negated": True,
+                    },
+                ],
+                "root_operator": "AND",
+            },
+            enrollment_target=600,
+            site_count=250,
+        )
+        trial_id = _register_trial(service, trial_create)
+
+        birth = (datetime.now(timezone.utc) - timedelta(days=45 * 365)).isoformat()
+        await _insert_patient_node(session, patient_id="P-SB-MULTI", birth_date=birth)
+
+        await _insert_fact(
+            session,
+            patient_id="P-SB-MULTI",
+            domain=Domain.CONDITION,
+            concept_name="Atopic dermatitis, unspecified",
+        )
+        # Both exclusion conditions present
+        await _insert_fact(
+            session,
+            patient_id="P-SB-MULTI",
+            domain=Domain.CONDITION,
+            concept_name="Malignant neoplasm, unspecified",
+            confidence=0.95,
+        )
+        await _insert_fact(
+            session,
+            patient_id="P-SB-MULTI",
+            domain=Domain.CONDITION,
+            concept_name="Respiratory tuberculosis",
+            confidence=0.90,
+        )
+
+        result = await service.check_patient_eligibility(
+            trial_id, "P-SB-MULTI", session=session
+        )
+        assert result is not None
+        assert result.safety_blocked is True
+        assert result.eligible is False
+        assert result.match_score == 0.0
+        # Both exclusion criteria should appear in reasons
+        assert len(result.safety_blocked_reasons) == 2
+        reason_text = " ".join(result.safety_blocked_reasons)
+        assert "Active cancer" in reason_text
+        assert "Active tuberculosis" in reason_text
+
+
+class TestSafetyBlockAutoScreening:
+    """CMO-5: Auto-screening must never enroll a safety-blocked patient."""
+
+    @pytest.mark.asyncio
+    async def test_auto_screen_does_not_enroll_safety_blocked_patient(
+        self, service: TrialEligibilityService, session: AsyncSession
+    ):
+        """auto_screen_patient must NOT create enrollment when safety_blocked."""
+        birth = (datetime.now(timezone.utc) - timedelta(days=45 * 365)).isoformat()
+        await _insert_patient_node(session, patient_id="P-ASB-1", birth_date=birth)
+
+        # Patient meets AD trial inclusion criteria
+        await _insert_fact(
+            session,
+            patient_id="P-ASB-1",
+            domain=Domain.CONDITION,
+            concept_name="Atopic dermatitis, unspecified",
+        )
+        # But has a contraindication
+        await _insert_fact(
+            session,
+            patient_id="P-ASB-1",
+            domain=Domain.CONDITION,
+            concept_name="Malignant neoplasm, unspecified",
+            confidence=0.95,
+        )
+
+        results = await service.auto_screen_patient(
+            "P-ASB-1", session=session
+        )
+
+        # Find the result for the AD trial
+        ad_result = next(
+            (r for r in results if "Dupixent" in r.get("trial_name", "")
+             or "LIBERTY" in r.get("trial_name", "")),
+            None,
+        )
+        assert ad_result is not None
+        assert ad_result["safety_blocked"] is True
+        assert ad_result["eligible"] is False
+        # No enrollment should have been created
+        assert "enrollment_id" not in ad_result
+        assert "enrollment_status" not in ad_result
+
+    @pytest.mark.asyncio
+    async def test_auto_screen_does_not_block_safe_patient(
+        self, service: TrialEligibilityService, session: AsyncSession
+    ):
+        """auto_screen_patient should NOT safety-block a patient who has
+        no exclusion matches.  Whether enrollment is created depends on
+        the match score threshold (>0.5), but safety_blocked must be False."""
+        birth = (datetime.now(timezone.utc) - timedelta(days=45 * 365)).isoformat()
+        await _insert_patient_node(session, patient_id="P-ASB-2", birth_date=birth)
+
+        # Patient meets AD trial inclusion criteria, no exclusions
+        await _insert_fact(
+            session,
+            patient_id="P-ASB-2",
+            domain=Domain.CONDITION,
+            concept_name="Atopic dermatitis, unspecified",
+        )
+
+        results = await service.auto_screen_patient(
+            "P-ASB-2", session=session
+        )
+
+        ad_result = next(
+            (r for r in results if "Dupixent" in r.get("trial_name", "")
+             or "LIBERTY" in r.get("trial_name", "")),
+            None,
+        )
+        assert ad_result is not None
+        assert ad_result["safety_blocked"] is False
+        assert ad_result["eligible"] is True
+        # No safety block reasons should exist
+        assert "safety_blocked_reasons" not in ad_result
+
+
+class TestSafetyBlockMeasurementExclusion:
+    """CMO-5: Measurement-based exclusions also trigger safety blocks."""
+
+    @pytest.mark.asyncio
+    async def test_measurement_exclusion_triggers_safety_block(
+        self, service: TrialEligibilityService, session: AsyncSession
+    ):
+        """DME trial: HbA1c >= 12% exclusion should trigger safety_block."""
+        trial_id = _register_trial(service, _dme_trial_create())
+
+        birth = (datetime.now(timezone.utc) - timedelta(days=55 * 365)).isoformat()
+        await _insert_patient_node(session, patient_id="P-SB-MEAS", birth_date=birth)
+
+        await _insert_fact(
+            session,
+            patient_id="P-SB-MEAS",
+            domain=Domain.CONDITION,
+            concept_name="Retinal edema",
+        )
+        await _insert_fact(
+            session,
+            patient_id="P-SB-MEAS",
+            domain=Domain.CONDITION,
+            concept_name="Type 2 diabetes mellitus",
+        )
+        # HbA1c = 14.5 -> should trigger exclusion AND safety block
+        await _insert_fact(
+            session,
+            patient_id="P-SB-MEAS",
+            domain=Domain.MEASUREMENT,
+            concept_name="Hemoglobin A1c",
+            value="14.5",
+            unit="%",
+            confidence=0.95,
+        )
+
+        result = await service.check_patient_eligibility(
+            trial_id, "P-SB-MEAS", session=session
+        )
+        assert result is not None
+        assert result.safety_blocked is True
+        assert result.eligible is False
+        assert result.match_score == 0.0
+        assert len(result.safety_blocked_reasons) >= 1
+        assert any(
+            "Uncontrolled diabetes" in reason
+            for reason in result.safety_blocked_reasons
+        )

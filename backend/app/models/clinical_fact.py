@@ -87,6 +87,15 @@ class ClinicalFact(SoftDeleteMixin, Base):
         DateTime(timezone=True),
         nullable=True,
     )
+    # CSO-1: Pipeline version that produced this fact for reproducibility.
+    # Nullable for backward compatibility with facts created before
+    # version tracking was introduced.
+    pipeline_version: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+        index=True,
+    )
+
     # Vector embedding for semantic search (384 dimensions for MiniLM)
     embedding: Mapped[list[float] | None] = mapped_column(
         ARRAY(Float),

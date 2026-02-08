@@ -85,6 +85,7 @@ export {
   useTrialScreening,
   useTrialEnrollments,
   useTrialStats,
+  useMatchExplanation,
 } from "./useTrials";
 
 // Metriport HIE Integration hooks

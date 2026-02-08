@@ -40,7 +40,9 @@ import {
   Play,
   BarChart3,
   ShieldAlert,
+  Search,
 } from "lucide-react";
+import { MatchExplanation } from "@/components/trials/MatchExplanation";
 
 const statusColors: Record<string, string> = {
   recruiting: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
@@ -72,6 +74,7 @@ export default function TrialDetailPage() {
   const params = useParams();
   const trialId = params.id as string;
   const [activeTab, setActiveTab] = useState("overview");
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
 
   const { data: trial, isLoading: trialLoading } = useTrial(trialId);
   const { data: dashboard } = useTrialDashboard(trialId);
@@ -450,7 +453,8 @@ export default function TrialDetailPage() {
                 <CardHeader>
                   <CardTitle>Eligible Candidates</CardTitle>
                   <CardDescription>
-                    {screening.data.candidates.length} patients match eligibility criteria
+                    {screening.data.candidates.length} patients match eligibility criteria.
+                    Click &quot;Explain&quot; to view per-criterion evidence breakdown.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -463,11 +467,19 @@ export default function TrialDetailPage() {
                           <TableHead>Criteria Met</TableHead>
                           <TableHead>Exclusions</TableHead>
                           <TableHead>Missing Data</TableHead>
+                          <TableHead className="text-right">Evidence</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {screening.data.candidates.map((candidate) => (
-                          <TableRow key={candidate.patient_id}>
+                          <TableRow
+                            key={candidate.patient_id}
+                            className={
+                              selectedPatientId === candidate.patient_id
+                                ? "bg-blue-50 dark:bg-blue-950"
+                                : "cursor-pointer hover:bg-muted/50"
+                            }
+                          >
                             <TableCell className="font-mono">
                               {candidate.patient_id}
                             </TableCell>
@@ -512,6 +524,22 @@ export default function TrialDetailPage() {
                                 <span className="text-sm text-muted-foreground">None</span>
                               )}
                             </TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                variant={selectedPatientId === candidate.patient_id ? "default" : "outline"}
+                                size="sm"
+                                onClick={() =>
+                                  setSelectedPatientId(
+                                    selectedPatientId === candidate.patient_id
+                                      ? null
+                                      : candidate.patient_id
+                                  )
+                                }
+                              >
+                                <Search className="h-3.5 w-3.5 mr-1" />
+                                {selectedPatientId === candidate.patient_id ? "Hide" : "Explain"}
+                              </Button>
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
@@ -519,6 +547,15 @@ export default function TrialDetailPage() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Per-Match Explanation Panel (VP-Product-2) */}
+              {selectedPatientId && (
+                <MatchExplanation
+                  trialId={trialId}
+                  patientId={selectedPatientId}
+                  onClose={() => setSelectedPatientId(null)}
+                />
+              )}
 
               {/* Exclusion Breakdown */}
               {screening.data.exclusion_breakdown &&
