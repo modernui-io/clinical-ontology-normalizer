@@ -208,6 +208,11 @@ from app.api.protocol_deviations import router as protocol_deviations_router
 from app.api.revenue_analytics import router as revenue_analytics_router
 from app.api.consent_preferences import router as consent_preferences_router
 from app.api.disaster_recovery import router as disaster_recovery_router
+from app.api.workforce_planning import router as workforce_planning_router
+from app.api.access_review import router as access_review_router
+from app.api.model_governance import router as model_governance_router
+from app.api.site_performance import router as site_performance_router
+from app.api.regulatory_submissions import router as regulatory_submissions_router
 
 __all__ = [
     # Routers
@@ -353,6 +358,11 @@ __all__ = [
     "revenue_analytics_router",
     "consent_preferences_router",
     "disaster_recovery_router",
+    "workforce_planning_router",
+    "access_review_router",
+    "model_governance_router",
+    "site_performance_router",
+    "regulatory_submissions_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",

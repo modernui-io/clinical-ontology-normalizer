@@ -160,6 +160,11 @@ from app.api import (
     revenue_analytics_router,
     consent_preferences_router,
     disaster_recovery_router,
+    workforce_planning_router,
+    access_review_router,
+    model_governance_router,
+    site_performance_router,
+    regulatory_submissions_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -862,6 +867,11 @@ api_v1_router.include_router(protocol_deviations_router)
 api_v1_router.include_router(revenue_analytics_router)
 api_v1_router.include_router(consent_preferences_router)
 api_v1_router.include_router(disaster_recovery_router)
+api_v1_router.include_router(workforce_planning_router)
+api_v1_router.include_router(access_review_router)
+api_v1_router.include_router(model_governance_router)
+api_v1_router.include_router(site_performance_router)
+api_v1_router.include_router(regulatory_submissions_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)
