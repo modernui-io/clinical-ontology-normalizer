@@ -82,6 +82,10 @@ const navSections: NavSection[] = [
     title: "Clinical Trials",
     items: [
       { title: "Trials", href: "/trials", icon: ClipboardList },
+      { title: "Sites", href: "/sites", icon: Server },
+      { title: "Bulk Screening", href: "/trials/bulk-screen", icon: Shield },
+      { title: "ROI Dashboard", href: "/roi-dashboard", icon: BarChart3 },
+      { title: "Dual Enrollment", href: "/trials/dual-enrollment", icon: GitBranch },
       { title: "HIE Integration", href: "/metriport", icon: Network },
     ],
   },

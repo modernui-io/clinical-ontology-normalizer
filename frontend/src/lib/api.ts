@@ -3455,6 +3455,153 @@ export async function getMatchExplanation(
 }
 
 // ============================================================================
+// Dual Enrollment Detection
+// ============================================================================
+
+export interface DualEnrollmentRequest {
+  trial_id?: string | null;
+  min_match_score?: number;
+}
+
+export interface CurrentEnrollmentInfo {
+  trial_id: string;
+  trial_name: string;
+  nct_number: string | null;
+  enrollment_status: string;
+  match_score: number | null;
+}
+
+export interface AdditionalTrialMatch {
+  trial_id: string;
+  trial_name: string;
+  nct_number: string | null;
+  eligible: boolean;
+  match_score: number;
+  key_criteria_met: string[];
+  exclusion_triggered: string[];
+  safety_blocked: boolean;
+}
+
+export interface DualEnrollmentCandidate {
+  patient_id: string;
+  current_enrollments: CurrentEnrollmentInfo[];
+  additional_matches: AdditionalTrialMatch[];
+  total_additional_matches: number;
+}
+
+export interface DualEnrollmentSummary {
+  total_enrolled_patients_checked: number;
+  total_patients_with_additional_matches: number;
+  total_additional_matches: number;
+  trials_checked: number;
+  screening_duration_ms: number;
+}
+
+export interface DualEnrollmentResponse {
+  summary: DualEnrollmentSummary;
+  candidates: DualEnrollmentCandidate[];
+  requires_clinician_review: boolean;
+  cds_disclaimer: string;
+}
+
+// Find patients eligible for multiple trials
+export async function findDualEnrollmentCandidates(
+  request?: DualEnrollmentRequest
+): Promise<DualEnrollmentResponse> {
+  return fetchWithRetry<DualEnrollmentResponse>(
+    `${API_BASE_URL}/trials/dual-enrollment-candidates`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request ?? {}),
+    }
+  );
+}
+
+// ============================================================================
+// Sites
+// ============================================================================
+
+export interface SiteResponse {
+  id: string;
+  name: string;
+  site_code: string | null;
+  organization: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  country: string | null;
+  created_at: string;
+}
+
+export interface SiteListResponse {
+  sites: SiteResponse[];
+  total: number;
+  offset: number;
+  limit: number;
+}
+
+export interface SitePatient {
+  patient_id: string;
+  patient_name: string | null;
+  site_id: string;
+}
+
+export interface SitePatientListResponse {
+  patients: SitePatient[];
+  total: number;
+  site_id: string;
+  site_name: string;
+}
+
+export interface SiteTrialMatch {
+  trial_id: string;
+  trial_name: string;
+  matched_patients: number;
+  matched_patient_ids: string[];
+}
+
+export interface SiteScreeningSummary {
+  site_id: string;
+  site_name: string;
+  total_patients: number;
+  patients_screened: number;
+  patients_matched: number;
+  trial_matches: SiteTrialMatch[];
+}
+
+export interface SiteListParams {
+  search?: string;
+  offset?: number;
+  limit?: number;
+}
+
+// List sites
+export async function getSites(params?: SiteListParams): Promise<SiteListResponse> {
+  const query = new URLSearchParams();
+  if (params?.search) query.set("search", params.search);
+  if (params?.offset !== undefined) query.set("offset", String(params.offset));
+  if (params?.limit !== undefined) query.set("limit", String(params.limit));
+  const qs = query.toString();
+  return fetchWithRetry<SiteListResponse>(`${API_BASE_URL}/sites${qs ? `?${qs}` : ""}`);
+}
+
+// Get site details
+export async function getSite(siteId: string): Promise<SiteResponse> {
+  return fetchWithRetry<SiteResponse>(`${API_BASE_URL}/sites/${siteId}`);
+}
+
+// Get patients at a site
+export async function getSitePatients(siteId: string): Promise<SitePatientListResponse> {
+  return fetchWithRetry<SitePatientListResponse>(`${API_BASE_URL}/sites/${siteId}/patients`);
+}
+
+// Get site screening summary
+export async function getSiteScreeningSummary(siteId: string): Promise<SiteScreeningSummary> {
+  return fetchWithRetry<SiteScreeningSummary>(`${API_BASE_URL}/sites/${siteId}/screening-summary`);
+}
+
+// ============================================================================
 // Metriport Integration
 // ============================================================================
 
@@ -3546,4 +3693,210 @@ export async function onboardMetriportPatient(data: MetriportPatientCreate): Pro
 
 export async function getMetriportFacilities(): Promise<MetriportQueryResponse> {
   return fetchWithRetry<MetriportQueryResponse>(`${API_BASE_URL}/metriport/facilities`);
+}
+
+// ============================================================================
+// ROI Dashboard
+// ============================================================================
+
+export interface ROISummaryParams {
+  trial_id?: string;
+  conversion_rate?: number;
+  screening_cost_per_patient?: number;
+  estimated_value_per_enrollment?: number;
+  time_bucket?: "day" | "week";
+}
+
+export interface ScreeningOverview {
+  total_screenings: number;
+  total_patients_screened: number;
+  unique_trials_screened: number;
+  total_eligible: number;
+  total_ineligible: number;
+  total_unknown: number;
+  overall_pass_rate: number;
+}
+
+export interface TrialEligibilitySummary {
+  trial_id: string;
+  trial_name: string | null;
+  total_screened: number;
+  eligible_count: number;
+  ineligible_count: number;
+  unknown_count: number;
+  pass_rate: number;
+}
+
+export interface SiteTrialBreakdown {
+  site_id: string;
+  site_name: string | null;
+  trial_id: string;
+  trial_name: string | null;
+  eligible_count: number;
+}
+
+export interface DualEnrollmentCandidate {
+  patient_id: string;
+  eligible_trial_ids: string[];
+  eligible_trial_names: string[];
+  trial_count: number;
+}
+
+export interface TimeSeriesBucket {
+  period: string;
+  screenings: number;
+  eligible: number;
+  match_rate: number;
+}
+
+export interface ProjectedEnrollment {
+  eligible_patients: number;
+  conversion_rate: number;
+  projected_enrollments: number;
+}
+
+export interface CostAnalysis {
+  patients_screened: number;
+  screening_cost_per_patient: number;
+  total_screening_cost: number;
+  projected_enrollments: number;
+  estimated_value_per_enrollment: number;
+  projected_enrollment_value: number;
+  roi_ratio: number | null;
+}
+
+export interface ROISummaryResponse {
+  generated_at: string;
+  screening_overview: ScreeningOverview;
+  eligibility_by_trial: TrialEligibilitySummary[];
+  site_breakdown: SiteTrialBreakdown[];
+  dual_enrollment_candidates: DualEnrollmentCandidate[];
+  dual_enrollment_count: number;
+  projected_enrollment: ProjectedEnrollment;
+  cost_analysis: CostAnalysis;
+  time_series: TimeSeriesBucket[];
+}
+
+export async function getROISummary(params?: ROISummaryParams): Promise<ROISummaryResponse> {
+  const query = new URLSearchParams();
+  if (params?.trial_id) query.set("trial_id", params.trial_id);
+  if (params?.conversion_rate !== undefined) query.set("conversion_rate", String(params.conversion_rate));
+  if (params?.screening_cost_per_patient !== undefined) query.set("screening_cost_per_patient", String(params.screening_cost_per_patient));
+  if (params?.estimated_value_per_enrollment !== undefined) query.set("estimated_value_per_enrollment", String(params.estimated_value_per_enrollment));
+  if (params?.time_bucket) query.set("time_bucket", params.time_bucket);
+  const qs = query.toString();
+  return fetchWithRetry<ROISummaryResponse>(`${API_BASE_URL}/dashboard/roi-summary${qs ? `?${qs}` : ""}`);
+}
+
+// ============================================================================
+// Bulk Screening
+// ============================================================================
+
+export interface BulkScreeningRequest {
+  patient_ids: string[];
+  trial_ids: string[];
+  min_match_score?: number;
+  include_details?: boolean;
+}
+
+export interface BulkPatientResult {
+  patient_id: string;
+  eligible: boolean;
+  match_score: number;
+  inclusion_met: string[];
+  inclusion_total: number;
+  exclusion_triggered: string[];
+  exclusion_total: number;
+  missing_data: string[];
+  safety_blocked: boolean;
+  criteria_details: CriterionResultDetail[] | null;
+}
+
+export interface BulkTrialResult {
+  trial_id: string;
+  trial_name: string;
+  nct_number: string | null;
+  total_screened: number;
+  eligible_count: number;
+  ineligible_count: number;
+  pass_rate: number;
+  candidates: BulkPatientResult[];
+}
+
+export interface BulkScreeningSummary {
+  total_patients: number;
+  total_trials: number;
+  total_pairs_screened: number;
+  total_eligible: number;
+  overall_pass_rate: number;
+  screening_duration_ms: number;
+  trials_not_found: string[];
+}
+
+export interface BulkScreeningResponse {
+  summary: BulkScreeningSummary;
+  results: BulkTrialResult[];
+  requires_clinician_review: boolean;
+  cds_disclaimer: string;
+}
+
+export interface ScreeningResultItem {
+  id: string;
+  patient_id: string;
+  trial_id: string;
+  trial_name: string | null;
+  screening_date: string;
+  overall_status: string;
+  match_score: number | null;
+  inclusion_met: number | null;
+  inclusion_total: number | null;
+  exclusion_triggered: number | null;
+  exclusion_total: number | null;
+  criterion_results: Record<string, unknown> | null;
+  safety_blocked: boolean | null;
+  triggered_by: string;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface ScreeningResultListResponse {
+  results: ScreeningResultItem[];
+  total: number;
+  offset: number;
+  limit: number;
+}
+
+export interface ScreeningResultListParams {
+  patient_id?: string;
+  trial_id?: string;
+  status?: string;
+  triggered_by?: string;
+  offset?: number;
+  limit?: number;
+}
+
+export async function runBulkScreening(
+  body: BulkScreeningRequest
+): Promise<BulkScreeningResponse> {
+  return fetchWithRetry<BulkScreeningResponse>(`${API_BASE_URL}/trials/bulk-screen`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+export async function getScreeningResults(
+  params?: ScreeningResultListParams
+): Promise<ScreeningResultListResponse> {
+  const query = new URLSearchParams();
+  if (params?.patient_id) query.set("patient_id", params.patient_id);
+  if (params?.trial_id) query.set("trial_id", params.trial_id);
+  if (params?.status) query.set("overall_status", params.status);
+  if (params?.triggered_by) query.set("triggered_by", params.triggered_by);
+  if (params?.offset !== undefined) query.set("offset", String(params.offset));
+  if (params?.limit !== undefined) query.set("limit", String(params.limit));
+  const qs = query.toString();
+  return fetchWithRetry<ScreeningResultListResponse>(
+    `${API_BASE_URL}/screening-results${qs ? `?${qs}` : ""}`
+  );
 }

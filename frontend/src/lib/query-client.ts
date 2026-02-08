@@ -102,6 +102,8 @@ export const queryKeys = {
   dashboard: {
     all: ["dashboard"] as const,
     stats: () => [...queryKeys.dashboard.all, "stats"] as const,
+    roiSummary: (params?: Record<string, unknown>) =>
+      [...queryKeys.dashboard.all, "roi-summary", params] as const,
   },
 
   // Health
@@ -122,6 +124,28 @@ export const queryKeys = {
     screening: (id: string) => [...queryKeys.trials.detail(id), "screening"] as const,
     enrollments: (id: string, params?: { status?: string }) =>
       [...queryKeys.trials.detail(id), "enrollments", params] as const,
+    dualEnrollment: (params?: { trial_id?: string | null; min_match_score?: number }) =>
+      [...queryKeys.trials.all, "dual-enrollment", params] as const,
+  },
+
+  // Bulk Screening Results
+  screening: {
+    all: ["screening"] as const,
+    lists: () => [...queryKeys.screening.all, "list"] as const,
+    list: (params?: { patient_id?: string; trial_id?: string; status?: string; triggered_by?: string; offset?: number; limit?: number }) =>
+      [...queryKeys.screening.lists(), params] as const,
+  },
+
+  // Sites
+  sites: {
+    all: ["sites"] as const,
+    lists: () => [...queryKeys.sites.all, "list"] as const,
+    list: (params?: { search?: string; offset?: number; limit?: number }) =>
+      [...queryKeys.sites.lists(), params] as const,
+    details: () => [...queryKeys.sites.all, "detail"] as const,
+    detail: (id: string) => [...queryKeys.sites.details(), id] as const,
+    patients: (id: string) => [...queryKeys.sites.detail(id), "patients"] as const,
+    screening: (id: string) => [...queryKeys.sites.detail(id), "screening"] as const,
   },
 
   // Metriport HIE Integration

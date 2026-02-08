@@ -88,6 +88,23 @@ export {
   useMatchExplanation,
 } from "./useTrials";
 
+// Dual Enrollment hooks
+export { useDualEnrollmentCandidates } from "./useDualEnrollment";
+
+// ROI Dashboard hooks
+export { useROISummary } from "./useROIDashboard";
+
+// Bulk Screening hooks
+export { useBulkScreening, useScreeningResults } from "./useScreening";
+
+// Sites hooks
+export {
+  useSites,
+  useSite,
+  useSitePatients,
+  useSiteScreeningSummary,
+} from "./useSites";
+
 // Metriport HIE Integration hooks
 export {
   useMetriportStatus,
