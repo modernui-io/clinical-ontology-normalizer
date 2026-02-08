@@ -202,7 +202,12 @@ from app.api.feature_store import router as feature_store_router
 from app.api.vendor_management import router as vendor_management_router
 from app.api.vulnerability_management import router as vulnerability_management_router
 from app.api.privacy_impact import router as privacy_impact_router
+from app.api.pentest_management import router as pentest_management_router
+from app.api.performance_benchmarks import router as performance_benchmarks_router
 from app.api.protocol_deviations import router as protocol_deviations_router
+from app.api.revenue_analytics import router as revenue_analytics_router
+from app.api.consent_preferences import router as consent_preferences_router
+from app.api.disaster_recovery import router as disaster_recovery_router
 
 __all__ = [
     # Routers
@@ -342,7 +347,12 @@ __all__ = [
     "vendor_management_router",
     "vulnerability_management_router",
     "privacy_impact_router",
+    "pentest_management_router",
+    "performance_benchmarks_router",
     "protocol_deviations_router",
+    "revenue_analytics_router",
+    "consent_preferences_router",
+    "disaster_recovery_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",

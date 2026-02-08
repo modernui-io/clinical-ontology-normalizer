@@ -153,8 +153,13 @@ from app.api import (
     feature_store_router,
     vendor_management_router,
     vulnerability_management_router,
+    pentest_management_router,
+    performance_benchmarks_router,
     privacy_impact_router,
     protocol_deviations_router,
+    revenue_analytics_router,
+    consent_preferences_router,
+    disaster_recovery_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -851,7 +856,12 @@ api_v1_router.include_router(business_continuity_router)
 api_v1_router.include_router(vendor_management_router)
 api_v1_router.include_router(vulnerability_management_router)
 api_v1_router.include_router(privacy_impact_router)
+api_v1_router.include_router(pentest_management_router)
+api_v1_router.include_router(performance_benchmarks_router)
 api_v1_router.include_router(protocol_deviations_router)
+api_v1_router.include_router(revenue_analytics_router)
+api_v1_router.include_router(consent_preferences_router)
+api_v1_router.include_router(disaster_recovery_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)
