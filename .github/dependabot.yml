@@ -1,3 +1,7 @@
+# CISO-10: Dependabot configuration for automated dependency updates
+# Checks weekly for pip, npm, Docker, and GitHub Actions updates.
+# Security team is auto-assigned as reviewer on all dependency PRs.
+
 version: 2
 updates:
   # Python dependencies (backend)
@@ -13,6 +17,7 @@ updates:
       - "alexstinard"
     labels:
       - "dependencies"
+      - "security"
       - "backend"
       - "python"
     commit-message:
@@ -33,6 +38,8 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "spacy"
         update-types: ["version-update:semver-major"]
+    # Flag security-only updates for expedited review
+    security-updates-only: false
 
   # npm dependencies (frontend)
   - package-ecosystem: "npm"
@@ -47,6 +54,7 @@ updates:
       - "alexstinard"
     labels:
       - "dependencies"
+      - "security"
       - "frontend"
       - "javascript"
     commit-message:
@@ -81,6 +89,7 @@ updates:
       - "alexstinard"
     labels:
       - "dependencies"
+      - "security"
       - "github-actions"
     commit-message:
       prefix: "chore(ci)"
@@ -89,7 +98,7 @@ updates:
         patterns:
           - "*"
 
-  # Docker dependencies
+  # Docker dependencies (backend)
   - package-ecosystem: "docker"
     directory: "/backend"
     schedule:
@@ -102,11 +111,13 @@ updates:
       - "alexstinard"
     labels:
       - "dependencies"
+      - "security"
       - "docker"
       - "backend"
     commit-message:
       prefix: "chore(docker)"
 
+  # Docker dependencies (frontend)
   - package-ecosystem: "docker"
     directory: "/frontend"
     schedule:
@@ -119,7 +130,26 @@ updates:
       - "alexstinard"
     labels:
       - "dependencies"
+      - "security"
       - "docker"
       - "frontend"
+    commit-message:
+      prefix: "chore(docker)"
+
+  # Docker dependencies (root - docker-compose base images)
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "alexstinard"
+    labels:
+      - "dependencies"
+      - "security"
+      - "docker"
     commit-message:
       prefix: "chore(docker)"

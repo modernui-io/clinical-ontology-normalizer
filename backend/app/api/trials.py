@@ -15,6 +15,8 @@ Endpoints:
     POST /api/v1/trials/{id}/enroll  - Enroll a patient
     PUT  /api/v1/trials/{id}/enrollments/{patient_id} - Update enrollment
     GET  /api/v1/trials/{id}/enrollments - List enrollments
+    POST /api/v1/trials/{id}/patients/{patient_id}/flag-fn - Flag false negative (CMO-6)
+    GET  /api/v1/trials/{id}/fn-report - FN monitoring report (CMO-6)
     GET  /api/v1/trials/{id}/dashboard - Enrollment dashboard
     GET  /api/v1/trials/stats        - Service statistics
 """
@@ -42,6 +44,8 @@ from app.schemas.trial import (
     TrialSummary,
     TrialUpdate,
 )
+from app.schemas.fn_monitoring import FNFlagCreate, FNFlag, FNReport
+from app.services.fn_monitoring_service import get_fn_monitoring_service
 from app.services.match_explanation_service import MatchExplanationService
 from app.services.trial_eligibility_service import get_trial_service
 
@@ -345,6 +349,80 @@ async def list_enrollments(
     return EnrollmentListResponse(
         enrollments=enrollments, total=total, offset=offset, limit=limit
     )
+
+
+# ==============================================================================
+# False Negative Monitoring (CMO-6)
+# ==============================================================================
+
+
+@router.post(
+    "/{trial_id}/patients/{patient_id}/flag-fn",
+    response_model=FNFlag,
+    status_code=status.HTTP_201_CREATED,
+    summary="Flag a potential false negative",
+    description=(
+        "A clinician flags a patient as potentially eligible despite the system "
+        "marking them ineligible. This is a monitoring action -- it does NOT "
+        "change the screening result. CMO-6: False Negative Monitoring."
+    ),
+)
+async def flag_false_negative(
+    trial_id: str,
+    patient_id: str,
+    body: FNFlagCreate,
+    session: AsyncSession = Depends(get_db),
+) -> FNFlag:
+    """Flag a patient as a potential false negative for a trial."""
+    # Verify trial exists
+    trial_service = get_trial_service()
+    trial = await trial_service.get_trial(trial_id, session=session)
+    if not trial:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Trial {trial_id} not found",
+        )
+
+    fn_service = get_fn_monitoring_service()
+    flag = fn_service.flag_potential_false_negative(
+        trial_id=trial_id,
+        patient_id=patient_id,
+        reason=body.reason,
+        flagged_by=body.flagged_by,
+    )
+    logger.info(
+        "FN flag created: trial=%s patient=%s by=%s",
+        trial_id, patient_id, body.flagged_by,
+    )
+    return flag
+
+
+@router.get(
+    "/{trial_id}/fn-report",
+    response_model=FNReport,
+    summary="Get false negative monitoring report",
+    description=(
+        "Aggregated report of screening outcomes and potential false negatives "
+        "for a trial. Includes FN rate, top miss reasons, and data completeness "
+        "gaps. CMO-6: False Negative Monitoring."
+    ),
+)
+async def get_fn_report(
+    trial_id: str,
+    session: AsyncSession = Depends(get_db),
+) -> FNReport:
+    """Get the false-negative monitoring report for a trial."""
+    # Verify trial exists
+    trial_service = get_trial_service()
+    trial = await trial_service.get_trial(trial_id, session=session)
+    if not trial:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Trial {trial_id} not found",
+        )
+
+    fn_service = get_fn_monitoring_service()
+    return fn_service.get_fn_report(trial_id)
 
 
 # ==============================================================================

@@ -91,6 +91,7 @@ from app.models.trial import (
     TrialPhase,
     TrialStatus,
 )
+from app.models.data_lineage import DataLineageRecord, SourceType as LineageSourceType
 from app.models.vocabulary import Concept, ConceptRelationship, ConceptStatus, ConceptSynonym
 
 __all__ = [
@@ -165,4 +166,7 @@ __all__ = [
     "TrialPhase",
     "TrialStatus",
     "EnrollmentStatus",
+    # Data Lineage Models (CDO-1)
+    "DataLineageRecord",
+    "LineageSourceType",
 ]

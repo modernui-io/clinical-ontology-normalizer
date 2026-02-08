@@ -25,6 +25,7 @@ from sqlalchemy import and_, cast, or_, select, Float as SAFloat
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.audit import AuditAction, log_audit
+from app.services.fn_monitoring_service import get_fn_monitoring_service
 from app.models.clinical_fact import ClinicalFact
 from app.models.knowledge_graph import KGNode
 from app.models.trial import EnrollmentStatus, Trial, TrialEnrollment, TrialPhase, TrialStatus
@@ -1325,7 +1326,7 @@ class TrialEligibilityService:
         # --- Compute data completeness score ---
         data_completeness = self._compute_data_completeness(criteria_details)
 
-        return PatientEligibility(
+        result = PatientEligibility(
             patient_id=patient_id,
             eligible=eligible,
             match_score=round(score, 3),
@@ -1343,6 +1344,22 @@ class TrialEligibilityService:
             safety_blocked=is_safety_blocked,
             safety_blocked_reasons=safety_blocked_reasons,
         )
+
+        # CMO-6: Record screening outcome for false-negative monitoring.
+        # This is purely observational -- it does NOT change the result.
+        try:
+            fn_service = get_fn_monitoring_service()
+            fn_service.record_screening_result(trial_id, patient_id, result)
+        except Exception:
+            # FN monitoring must never break the screening pipeline.
+            logger.warning(
+                "Failed to record screening result for FN monitoring "
+                "(trial=%s, patient=%s)",
+                trial_id, patient_id,
+                exc_info=True,
+            )
+
+        return result
 
     def _log_safety_block(
         self,

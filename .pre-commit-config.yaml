@@ -1,0 +1,87 @@
+# CISO-10: Pre-commit hooks for Clinical Ontology Normalizer
+# Install: pip install pre-commit && pre-commit install
+# Run manually: pre-commit run --all-files
+#
+# Security hooks: detect-secrets (prevent committing secrets), bandit (SAST)
+# Quality hooks: ruff (linting + formatting), mypy (type checking)
+
+repos:
+  # ── Secret Detection ──────────────────────────
+  # Prevents accidental commits of API keys, passwords, tokens, etc.
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args:
+          - "--baseline"
+          - ".secrets.baseline"
+        exclude: |
+          (?x)^(
+            .*\.lock|
+            .*package-lock\.json|
+            .*\.min\.js|
+            .*\.min\.css
+          )$
+
+  # ── Security Scanning (SAST) ──────────────────
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.8
+    hooks:
+      - id: bandit
+        args:
+          - "-r"
+          - "backend/app"
+          - "--severity-level"
+          - "medium"
+          - "--confidence-level"
+          - "medium"
+          - "--quiet"
+        additional_dependencies: ["bandit[toml]"]
+        pass_filenames: false
+
+  # ── Code Formatting & Linting ─────────────────
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.4
+    hooks:
+      - id: ruff
+        args: [--fix]
+        files: ^backend/
+      - id: ruff-format
+        files: ^backend/
+
+  # ── Type Checking ─────────────────────────────
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.10.0
+    hooks:
+      - id: mypy
+        args: [--config-file=backend/pyproject.toml]
+        files: ^backend/app/
+        additional_dependencies:
+          - pydantic>=2.5.0
+          - fastapi>=0.109.0
+          - sqlalchemy>=2.0.0
+          - types-redis
+        # Exclude test files for faster checks
+        exclude: ^backend/tests/
+
+  # ── General File Hygiene ──────────────────────
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-added-large-files
+        args: ["--maxkb=1000"]
+      - id: check-merge-conflict
+      - id: detect-private-key
+      - id: no-commit-to-branch
+        args: ["--branch", "main", "--branch", "master"]
+
+# CI configuration (for pre-commit.ci service)
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit hooks
+  autoupdate_commit_msg: "[pre-commit.ci] pre-commit autoupdate"
+  skip: [mypy, bandit]  # These run in CI with full deps

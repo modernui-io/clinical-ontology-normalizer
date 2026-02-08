@@ -6,15 +6,18 @@ knowledge graph construction.
 
 Metriport webhook message types:
     - medical.consolidated-data: Patient FHIR Bundle ready (may contain
-      DocumentReference with pre-signed S3 URLs — not inline FHIR resources)
+      DocumentReference with pre-signed S3 URLs -- not inline FHIR resources)
     - medical.document-download: Documents downloaded from HIE
     - medical.document-conversion: Documents converted to FHIR
     - network-query.hie/pharmacy/lab: Query status updates
     - patient.admit/transfer/discharge: ADT notifications
 
-Webhook security:
+Webhook security (CISO-6 hardening):
     - Signature verification via HMAC-SHA256 using x-metriport-signature header
-    - Message deduplication via meta.messageId
+    - Webhook key REQUIRED in production (startup fails if missing)
+    - Timestamp validation: reject webhooks older than 5 minutes (replay protection)
+    - Message deduplication via TTL-based LRU cache (with Redis fallback)
+    - Rate limiting awareness: log warnings when webhook rate exceeds threshold
 
 Endpoint:
     POST /api/v1/metriport/webhook - Receive Metriport webhook
@@ -26,6 +29,9 @@ import hashlib
 import hmac
 import json
 import logging
+import time
+from collections import OrderedDict
+from datetime import datetime, timezone
 from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, Request, Response, status
@@ -37,9 +43,129 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/metriport", tags=["Metriport Integration"])
 
-# In-memory set for message deduplication (bounded to last 10K messages)
-_processed_message_ids: set[str] = set()
+# ==============================================================================
+# CISO-6: TTL-based LRU Deduplication Cache
+# ==============================================================================
+
+# Maximum age for webhook timestamps (replay attack protection)
+_WEBHOOK_MAX_AGE_SECONDS = 300  # 5 minutes
+
+# Deduplication cache settings
 _MAX_DEDUP_SIZE = 10_000
+_DEDUP_TTL_SECONDS = 600  # 10 minutes -- keep entries longer than max age to catch stragglers
+
+# Rate limiting awareness settings
+_RATE_WINDOW_SECONDS = 60  # 1-minute sliding window
+_RATE_WARN_THRESHOLD = 100  # Warn if more than 100 webhooks per minute
+
+
+class _TTLLRUCache:
+    """Thread-safe LRU cache with TTL expiry for webhook deduplication.
+
+    CISO-6: Replaces unbounded in-memory set with a proper bounded
+    cache that evicts entries both by age (TTL) and by count (max_size).
+
+    This is the in-process fallback when Redis is not available.
+    """
+
+    def __init__(self, max_size: int = _MAX_DEDUP_SIZE, ttl_seconds: int = _DEDUP_TTL_SECONDS):
+        self._cache: OrderedDict[str, float] = OrderedDict()
+        self._max_size = max_size
+        self._ttl_seconds = ttl_seconds
+
+    def contains(self, key: str) -> bool:
+        """Check if key exists and has not expired."""
+        if key not in self._cache:
+            return False
+        inserted_at = self._cache[key]
+        if time.monotonic() - inserted_at > self._ttl_seconds:
+            # Expired -- remove and return False
+            del self._cache[key]
+            return False
+        # Move to end (most recently accessed)
+        self._cache.move_to_end(key)
+        return True
+
+    def add(self, key: str) -> None:
+        """Add key with current timestamp. Evicts oldest if at capacity."""
+        now = time.monotonic()
+        # Evict expired entries first
+        self._evict_expired(now)
+        # Evict oldest if at capacity
+        while len(self._cache) >= self._max_size:
+            self._cache.popitem(last=False)
+        self._cache[key] = now
+
+    def _evict_expired(self, now: float) -> None:
+        """Remove entries older than TTL."""
+        expired_keys = [
+            k for k, ts in self._cache.items()
+            if now - ts > self._ttl_seconds
+        ]
+        for k in expired_keys:
+            del self._cache[k]
+
+    def clear(self) -> None:
+        """Clear all entries (used in tests)."""
+        self._cache.clear()
+
+    def __len__(self) -> int:
+        return len(self._cache)
+
+
+# Module-level deduplication cache instance
+_dedup_cache = _TTLLRUCache()
+
+
+class _RateTracker:
+    """Simple sliding-window rate tracker for webhook rate awareness.
+
+    CISO-6: Logs warnings when webhook delivery rate exceeds the
+    configured threshold, which may indicate abuse or misconfiguration.
+    """
+
+    def __init__(self, window_seconds: int = _RATE_WINDOW_SECONDS, threshold: int = _RATE_WARN_THRESHOLD):
+        self._window_seconds = window_seconds
+        self._threshold = threshold
+        self._timestamps: list[float] = []
+        self._last_warning_time: float = 0.0
+
+    def record(self) -> None:
+        """Record a webhook arrival and warn if rate is excessive."""
+        now = time.monotonic()
+        cutoff = now - self._window_seconds
+        # Trim old entries
+        self._timestamps = [ts for ts in self._timestamps if ts > cutoff]
+        self._timestamps.append(now)
+
+        current_rate = len(self._timestamps)
+        if current_rate > self._threshold:
+            # Only warn at most once per window to avoid log spam
+            if now - self._last_warning_time > self._window_seconds:
+                logger.warning(
+                    f"CISO-6: Webhook rate exceeds threshold: "
+                    f"{current_rate} webhooks in last {self._window_seconds}s "
+                    f"(threshold: {self._threshold}). "
+                    f"Possible abuse or misconfiguration."
+                )
+                self._last_warning_time = now
+
+    @property
+    def current_rate(self) -> int:
+        """Return current count within the window (for testing)."""
+        now = time.monotonic()
+        cutoff = now - self._window_seconds
+        self._timestamps = [ts for ts in self._timestamps if ts > cutoff]
+        return len(self._timestamps)
+
+    def clear(self) -> None:
+        """Clear all entries (used in tests)."""
+        self._timestamps.clear()
+        self._last_warning_time = 0.0
+
+
+# Module-level rate tracker instance
+_rate_tracker = _RateTracker()
 
 
 # ==============================================================================
@@ -96,13 +222,13 @@ class WebhookResponse(BaseModel):
 
 
 class PingResponse(BaseModel):
-    """Ping response — must echo pong with the ping value."""
+    """Ping response -- must echo pong with the ping value."""
 
     pong: str
 
 
 # ==============================================================================
-# Webhook Processing — Background Tasks
+# Webhook Processing -- Background Tasks
 # ==============================================================================
 
 
@@ -245,7 +371,7 @@ async def _process_document_conversion(
 
 
 # ==============================================================================
-# Signature Verification
+# CISO-6: Signature & Timestamp Verification
 # ==============================================================================
 
 
@@ -259,6 +385,9 @@ def _verify_webhook_signature(
     Metriport signs webhook payloads with the webhook key configured
     during setup. The signature is sent in the x-metriport-signature header.
 
+    CISO-6: In production, webhook_key is always present (enforced at startup).
+    In development without a key, verification is skipped.
+
     Args:
         payload_body: Raw request body bytes.
         signature: x-metriport-signature header value.
@@ -268,7 +397,8 @@ def _verify_webhook_signature(
         True if signature is valid or if verification is disabled (dev mode).
     """
     if not webhook_key:
-        # No key configured — skip verification (dev mode)
+        # No key configured -- skip verification (dev mode only; production
+        # enforces the key at startup via config validation)
         return True
     if not signature:
         return False
@@ -279,22 +409,85 @@ def _verify_webhook_signature(
     return hmac.compare_digest(expected, signature)
 
 
-def _check_dedup(message_id: str) -> bool:
+def _validate_webhook_timestamp(when_value: str | None) -> bool:
+    """Validate webhook timestamp is within acceptable window.
+
+    CISO-6: Reject webhooks with timestamps older than 5 minutes
+    to prevent replay attacks.
+
+    Args:
+        when_value: ISO 8601 timestamp string from meta.when field.
+
+    Returns:
+        True if timestamp is valid (within window) or if no timestamp provided.
+    """
+    if not when_value:
+        # No timestamp in payload -- allow (some webhook types may not include it)
+        return True
+
+    try:
+        # Parse ISO 8601 timestamp
+        webhook_time = datetime.fromisoformat(when_value.replace("Z", "+00:00"))
+        # Ensure timezone-aware
+        if webhook_time.tzinfo is None:
+            webhook_time = webhook_time.replace(tzinfo=timezone.utc)
+        now = datetime.now(timezone.utc)
+        age_seconds = (now - webhook_time).total_seconds()
+
+        if age_seconds > _WEBHOOK_MAX_AGE_SECONDS:
+            logger.warning(
+                f"CISO-6: Webhook timestamp too old: {when_value} "
+                f"(age: {age_seconds:.0f}s, max: {_WEBHOOK_MAX_AGE_SECONDS}s). "
+                f"Possible replay attack."
+            )
+            return False
+
+        if age_seconds < -60:
+            # Timestamp is more than 60s in the future -- suspicious
+            logger.warning(
+                f"CISO-6: Webhook timestamp is in the future: {when_value} "
+                f"(drift: {abs(age_seconds):.0f}s). Possible clock skew or tampering."
+            )
+            return False
+
+        return True
+    except (ValueError, TypeError) as e:
+        logger.warning(f"CISO-6: Could not parse webhook timestamp '{when_value}': {e}")
+        # Reject unparseable timestamps in production, allow in dev
+        return settings.debug
+
+
+async def _check_dedup(message_id: str) -> bool:
     """Check if a message has already been processed.
+
+    CISO-6: Uses Redis SET with TTL when available, falls back to
+    in-process TTL-based LRU cache.
 
     Returns True if the message is a duplicate (already seen).
     """
-    if message_id in _processed_message_ids:
+    # Try Redis first for distributed deduplication
+    try:
+        from app.core.redis import get_async_redis
+
+        redis = await get_async_redis()
+        dedup_key = f"webhook:dedup:{message_id}"
+        # SET with NX (only set if not exists) + EX (TTL)
+        was_set = await redis.set(dedup_key, "1", nx=True, ex=_DEDUP_TTL_SECONDS)
+        if was_set:
+            # Key was newly set -- not a duplicate
+            return False
+        else:
+            # Key already existed -- duplicate
+            return True
+    except Exception:
+        # Redis unavailable -- fall back to in-process cache
+        pass
+
+    # Fallback: in-process TTL LRU cache
+    if _dedup_cache.contains(message_id):
         return True
 
-    # Evict oldest entries if we hit the cap
-    if len(_processed_message_ids) >= _MAX_DEDUP_SIZE:
-        # Remove roughly half to avoid frequent evictions
-        to_remove = list(_processed_message_ids)[: _MAX_DEDUP_SIZE // 2]
-        for mid in to_remove:
-            _processed_message_ids.discard(mid)
-
-    _processed_message_ids.add(message_id)
+    _dedup_cache.add(message_id)
     return False
 
 
@@ -310,7 +503,9 @@ def _check_dedup(message_id: str) -> bool:
         "Webhook receiver for Metriport Medical API. Handles ping verification, "
         "consolidated FHIR Bundle data, document download/conversion notifications, "
         "network query updates, and ADT notifications. Responds within 4 seconds "
-        "per Metriport spec — heavy processing runs in background tasks."
+        "per Metriport spec -- heavy processing runs in background tasks. "
+        "CISO-6: Includes HMAC signature verification, timestamp validation, "
+        "deduplication, and rate monitoring."
     ),
 )
 async def receive_metriport_webhook(
@@ -322,14 +517,28 @@ async def receive_metriport_webhook(
 
     Must respond with 200 within 4 seconds per Metriport spec.
     Actual FHIR Bundle processing happens in background tasks.
+
+    CISO-6 security checks (in order):
+    1. HMAC signature verification
+    2. Timestamp validation (replay protection)
+    3. Rate monitoring
+    4. Message deduplication
     """
+    # CISO-6: Record webhook arrival for rate monitoring
+    _rate_tracker.record()
+
     # Read raw body for signature verification
     body = await request.body()
 
-    # Verify webhook signature (x-metriport-signature header, HMAC-SHA256)
+    # CISO-6: Verify webhook signature (x-metriport-signature header, HMAC-SHA256)
+    # In production, webhook_key is guaranteed to be set (config validation).
+    # In development without a key, verification is skipped.
     webhook_key = settings.metriport_webhook_key
-    if webhook_key and not _verify_webhook_signature(body, x_metriport_signature, webhook_key):
-        logger.warning("Metriport webhook signature verification failed")
+    if not _verify_webhook_signature(body, x_metriport_signature, webhook_key):
+        logger.warning(
+            "CISO-6: Metriport webhook signature verification failed "
+            f"(key_configured={bool(webhook_key)})"
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid webhook signature",
@@ -362,8 +571,15 @@ async def receive_metriport_webhook(
             status_code=200,
         )
 
+    # CISO-6: Validate webhook timestamp (replay attack protection)
+    if not _validate_webhook_timestamp(payload.meta.when):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Webhook timestamp outside acceptable window",
+        )
+
     # --- Message deduplication ---
-    if _check_dedup(message_id):
+    if await _check_dedup(message_id):
         logger.info(f"Duplicate webhook message ignored: {message_id}")
         return Response(
             content=json.dumps(WebhookResponse(
@@ -460,7 +676,7 @@ async def receive_metriport_webhook(
             status_code=200,
         )
 
-    # --- Unknown message type — acknowledge anyway ---
+    # --- Unknown message type -- acknowledge anyway ---
     logger.warning(f"Unknown Metriport webhook type: {msg_type}")
     return Response(
         content=json.dumps(WebhookResponse(

@@ -18,6 +18,8 @@ from app.models.knowledge_graph import KGEdge, KGNode
 from app.schemas.base import Assertion, Domain, Experiencer, JobStatus, Temporality
 from app.schemas.clinical_fact import EvidenceType
 from app.schemas.knowledge_graph import EdgeType, NodeType
+from app.services.lineage_service import record_lineage
+from app.models.data_lineage import SourceType
 
 logger = logging.getLogger(__name__)
 
@@ -59,6 +61,49 @@ class FHIRImportService:
     async def __aexit__(self, exc_type: type | None, exc_val: Exception | None, exc_tb: Any) -> None:
         """Exit async context manager, ensuring client is closed."""
         await self.close()
+
+    async def _record_fhir_lineage(
+        self,
+        session: AsyncSession,
+        fact: ClinicalFact,
+        resource: dict[str, Any],
+        resource_type: str,
+    ) -> None:
+        """Record lineage for a ClinicalFact created from a FHIR resource.
+
+        CDO-1: This is a lightweight call that appends a single row to the
+        data_lineage table. It does not block or slow down the import pipeline.
+
+        Args:
+            session: Database session
+            fact: The ClinicalFact that was just created
+            resource: The FHIR resource dict
+            resource_type: FHIR resource type (e.g., "Condition", "Observation")
+        """
+        try:
+            await record_lineage(
+                session=session,
+                fact_id=fact.id,
+                source_type=SourceType.FHIR_IMPORT,
+                source_resource_type=resource_type,
+                source_resource_id=resource.get("id"),
+                extraction_method="fhir_direct_mapping",
+                extraction_confidence=1.0,
+                transformation_chain=[
+                    {
+                        "step": "fhir_bundle_import",
+                        "resource_type": resource_type,
+                        "resource_id": resource.get("id"),
+                        "pipeline_version": self._pipeline_version,
+                    }
+                ],
+            )
+        except Exception as e:
+            # Lineage recording should never break the import pipeline
+            logger.warning(
+                f"Failed to record lineage for fact {fact.id} from "
+                f"{resource_type}/{resource.get('id', '?')}: {e}"
+            )
 
     async def fetch_patient(self, patient_id: str) -> dict[str, Any] | None:
         """Fetch a patient resource from FHIR.
@@ -351,6 +396,9 @@ class FHIRImportService:
         session.add(fact)
         await session.flush()
 
+        # CDO-1: Record lineage for this fact
+        await self._record_fhir_lineage(session, fact, med_statement, "MedicationStatement")
+
         node = KGNode(
             patient_id=patient_id,
             node_type=NodeType.DRUG,
@@ -567,6 +615,9 @@ class FHIRImportService:
         session.add(fact)
         await session.flush()
 
+        # CDO-1: Record lineage for this fact
+        await self._record_fhir_lineage(session, fact, condition, "Condition")
+
         # Create KG node
         node = KGNode(
             patient_id=patient_id,
@@ -638,6 +689,9 @@ class FHIRImportService:
         )
         session.add(fact)
         await session.flush()
+
+        # CDO-1: Record lineage for this fact
+        await self._record_fhir_lineage(session, fact, med_request, "MedicationRequest")
 
         # Create KG node
         node = KGNode(
@@ -724,6 +778,9 @@ class FHIRImportService:
         )
         session.add(fact)
         await session.flush()
+
+        # CDO-1: Record lineage for this fact
+        await self._record_fhir_lineage(session, fact, allergy, "AllergyIntolerance")
 
         # Create KG node
         node = KGNode(
@@ -815,6 +872,9 @@ class FHIRImportService:
         session.add(fact)
         await session.flush()
 
+        # CDO-1: Record lineage for this fact
+        await self._record_fhir_lineage(session, fact, observation, "Observation")
+
         # Create KG node
         node = KGNode(
             patient_id=patient_id,
@@ -893,6 +953,9 @@ class FHIRImportService:
         )
         session.add(fact)
         await session.flush()
+
+        # CDO-1: Record lineage for this fact
+        await self._record_fhir_lineage(session, fact, procedure, "Procedure")
 
         # Create KG node
         node = KGNode(
@@ -1011,6 +1074,9 @@ class FHIRImportService:
         )
         session.add(fact)
         await session.flush()
+
+        # CDO-1: Record lineage for this fact
+        await self._record_fhir_lineage(session, fact, encounter, "Encounter")
 
         # Create KG node -- use ADMISSION node type (closest to visit/encounter)
         node = KGNode(
@@ -1139,6 +1205,9 @@ class FHIRImportService:
         )
         session.add(fact)
         await session.flush()
+
+        # CDO-1: Record lineage for this fact
+        await self._record_fhir_lineage(session, fact, immunization, "Immunization")
 
         # Create KG node
         node = KGNode(

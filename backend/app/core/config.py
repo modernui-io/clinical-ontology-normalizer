@@ -47,6 +47,7 @@ class Settings(BaseSettings):
     app_name: str = "Clinical Ontology Normalizer"
     debug: bool = False
     environment: str = "development"  # development, staging, production
+    log_level: str = "INFO"  # CTO-6: DEBUG, INFO, WARNING, ERROR, CRITICAL
 
     # Database
     database_url: str = "postgresql+asyncpg://postgres@localhost:5432/clinical_ontology"
@@ -206,6 +207,9 @@ class Settings(BaseSettings):
                 missing.append("JWT_SECRET_KEY")
             if not self.api_key:
                 missing.append("API_KEY")
+            # CISO-6: Webhook signing key required in production
+            if not self.metriport_webhook_key:
+                missing.append("METRIPORT_WEBHOOK_KEY")
             if missing:
                 raise ValueError(
                     f"Production environment requires these credentials: {', '.join(missing)}. "
