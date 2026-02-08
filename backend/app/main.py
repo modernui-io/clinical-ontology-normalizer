@@ -20,6 +20,7 @@ from app.api import (
     RequestIdMiddleware,
     SecurityHeadersMiddleware,
     agent_router,
+    agent_chat_router,
     ai_audit_router,
     ai_coding_router,
     assistant_router,
@@ -103,16 +104,22 @@ from app.api import (
     trials_router,
     metriport_api_router,
     metriport_webhook_router,
+    lineage_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
 from app.api.middleware.rate_limit import RateLimitMiddleware
 from app.core.config import settings
 from app.core.database import close_db, init_db
+from app.core.logging_config import setup_logging
 from app.core.queue import clear_queues
 from app.core.redis import close_redis
 from app.services.smart_fhir import close_smart_client
 from app.services.vocabulary import get_vocabulary_service, preload_vocabulary
+
+# CTO-6: Configure structured logging before any logger is used.
+# In production this emits JSON; in debug mode it emits colored text.
+setup_logging()
 
 logger = logging.getLogger(__name__)
 
@@ -607,26 +614,30 @@ register_all_exception_handlers(app)
 # 1. Request ID middleware - adds X-Request-ID header for request tracing
 app.add_middleware(RequestIdMiddleware)
 
-# 2. Audit middleware - HIPAA-compliant request logging (logs all PHI access)
+# 2. Request logging middleware - structured access log for every request (CTO-6)
+from app.api.middleware.request_logging import RequestLoggingMiddleware
+app.add_middleware(RequestLoggingMiddleware)
+
+# 3. Audit middleware - HIPAA-compliant request logging (logs all PHI access)
 app.add_middleware(AuditMiddleware)
 
-# 3. Metrics middleware - collects request metrics for Prometheus
+# 4. Metrics middleware - collects request metrics for Prometheus
 app.add_middleware(MetricsMiddleware)
 
-# 4. Rate limit middleware - enforces rate limits per endpoint
+# 5. Rate limit middleware - enforces rate limits per endpoint
 app.add_middleware(RateLimitMiddleware)
 
-# 5. Error handler middleware - catches exceptions and returns standardized responses
+# 6. Error handler middleware - catches exceptions and returns standardized responses
 app.add_middleware(ErrorHandlerMiddleware)
 
-# 6. Security headers middleware - adds OWASP security headers (VP-Security)
+# 7. Security headers middleware - adds OWASP security headers (VP-Security)
 app.add_middleware(SecurityHeadersMiddleware)
 
-# 7. API Maturity Gate middleware - labels tiers and blocks scaffold in production (CTO-2)
+# 8. API Maturity Gate middleware - labels tiers and blocks scaffold in production (CTO-2)
 from app.api.middleware.maturity_gate import MaturityGateMiddleware
 app.add_middleware(MaturityGateMiddleware)
 
-# 8. CORS middleware - handles cross-origin requests
+# 9. CORS middleware - handles cross-origin requests
 # VP-Security-3: CORS origins loaded from environment (settings.cors_origins)
 _cors_origins = settings.cors_origins_list
 if not _cors_origins and settings.is_production:
@@ -654,6 +665,7 @@ app.add_middleware(
 
 # Include routers under versioned API router
 api_v1_router.include_router(agent_router)
+api_v1_router.include_router(agent_chat_router)
 api_v1_router.include_router(ai_audit_router)
 api_v1_router.include_router(ai_coding_router)
 api_v1_router.include_router(assistant_router)
@@ -735,6 +747,7 @@ api_v1_router.include_router(feedback_router)
 api_v1_router.include_router(trials_router)
 api_v1_router.include_router(metriport_api_router)
 api_v1_router.include_router(metriport_webhook_router)
+api_v1_router.include_router(lineage_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)

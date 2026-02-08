@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from app.api.agent import router as agent_router
+from app.api.agent_chat import router as agent_chat_router
 from app.api.ai_audit import router as ai_audit_router
 from app.api.ai_coding import router as ai_coding_router
 from app.api.assistant import router as assistant_router
@@ -148,6 +149,7 @@ from app.api.phenotypes import router as phenotypes_router
 from app.api.pipeline_version import router as pipeline_version_router
 from app.api.pipelines import router as pipelines_router
 from app.api.feedback import router as feedback_router
+from app.api.lineage import router as lineage_router
 from app.api.trials import router as trials_router
 from app.api.metriport_api import router as metriport_api_router
 from app.api.metriport_webhook import router as metriport_webhook_router
@@ -155,6 +157,7 @@ from app.api.metriport_webhook import router as metriport_webhook_router
 __all__ = [
     # Routers
     "agent_router",
+    "agent_chat_router",
     "ai_audit_router",
     "ai_coding_router",
     "assistant_router",
@@ -239,6 +242,7 @@ __all__ = [
     "trials_router",
     "metriport_api_router",
     "metriport_webhook_router",
+    "lineage_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",
