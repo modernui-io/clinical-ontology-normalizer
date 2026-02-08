@@ -49,7 +49,7 @@ class Settings(BaseSettings):
     environment: str = "development"  # development, staging, production
 
     # Database
-    database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/clinical_ontology"
+    database_url: str = "postgresql+asyncpg://postgres@localhost:5432/clinical_ontology"
 
     # For sync operations (alembic migrations)
     @property
