@@ -1,7 +1,10 @@
 """SQLAlchemy models for HIPAA-compliant audit trail logging.
 
 Provides comprehensive audit logging for all PHI access and data operations,
-supporting HIPAA compliance requirements for healthcare data handling.
+supporting HIPAA and 21 CFR Part 11 compliance requirements:
+- Immutable records (database trigger prevents UPDATE/DELETE)
+- Tamper-evident hash chain (SHA-256 linking each record to its predecessor)
+- Structured fields for actor, resource, and patient tracking
 
 Models:
 - AuditLog: Individual audit trail entries for all data access/modification
@@ -198,6 +201,25 @@ class AuditLog(Base):
         nullable=True,
     )
 
+    # CISO-8 / CLO-2.5: Actor role for RBAC audit correlation
+    actor_role: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+        index=True,
+    )
+
+    # CISO-8 / CLO-2.5: Tamper-evident hash chain (21 CFR Part 11)
+    # Each record stores SHA-256(previous_hash + canonical_record_data)
+    record_hash: Mapped[str | None] = mapped_column(
+        String(64),  # SHA-256 hex digest length
+        nullable=True,
+        index=True,
+    )
+    previous_hash: Mapped[str | None] = mapped_column(
+        String(64),
+        nullable=True,
+    )
+
     # Composite indexes for common query patterns
     __table_args__ = (
         Index("ix_audit_logs_user_timestamp", "user_id", "timestamp"),
@@ -211,7 +233,8 @@ class AuditLog(Base):
         return (
             f"<AuditLog(id={self.id}, timestamp={self.timestamp}, "
             f"user_id={self.user_id}, action={self.action}, "
-            f"resource_type={self.resource_type}, phi_accessed={self.phi_accessed})>"
+            f"resource_type={self.resource_type}, phi_accessed={self.phi_accessed}, "
+            f"record_hash={self.record_hash[:8] + '...' if self.record_hash else None})>"
         )
 
 

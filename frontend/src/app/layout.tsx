@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { Providers } from "@/components/Providers";
 import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
+import { MainContent } from "@/components/MainContent";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -36,9 +37,7 @@ export default function RootLayout({
             <Sidebar />
             <div className="flex flex-1 flex-col lg:pl-0">
               <Header />
-              <main className="flex-1 overflow-auto bg-muted/30">
-                {children}
-              </main>
+              <MainContent>{children}</MainContent>
             </div>
           </div>
           <Toaster />

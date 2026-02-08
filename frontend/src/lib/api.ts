@@ -44,7 +44,7 @@ export interface Document {
   text: string;
   metadata: Record<string, unknown>;
   status: string;
-  job_id: string;
+  job_id: string | null;
   created_at: string;
   processed_at: string | null;
 }
@@ -71,9 +71,15 @@ export interface JobListResponse {
 export interface Patient {
   id: string;
   external_id: string;
+  name: string;
+  gender: string;
+  birth_date: string;
   created_at: string;
   document_count: number;
   fact_count: number;
+  node_count: number;
+  conditions: string[];
+  medications: string[];
 }
 
 export interface PatientListResponse {
@@ -3226,4 +3232,275 @@ export async function searchCodes(
     limit: limit.toString(),
   });
   return fetchWithRetry<AICodingSearchResponse>(`${API_BASE_URL}/ai-coding/search?${params.toString()}`);
+}
+
+// ============================================================================
+// Clinical Trials
+// ============================================================================
+
+export interface TrialSummary {
+  id: string;
+  name: string;
+  nct_number: string | null;
+  sponsor: string;
+  phase: string;
+  status: string;
+  therapeutic_area: string | null;
+  enrollment_target: number;
+  enrolled_count: number;
+  enrollment_progress: number;
+  created_at: string;
+}
+
+export interface TrialResponse {
+  id: string;
+  name: string;
+  nct_number: string | null;
+  protocol_id: string | null;
+  sponsor: string;
+  phase: string;
+  status: string;
+  description: string | null;
+  therapeutic_area: string | null;
+  indication_codes: string[];
+  inclusion_criteria: { criteria: Record<string, unknown>[] };
+  exclusion_criteria: { criteria: Record<string, unknown>[] };
+  enrollment_target: number;
+  enrolled_count: number;
+  site_count: number;
+  start_date: string | null;
+  end_date: string | null;
+  inclusion_cohort_id: string | null;
+  exclusion_cohort_id: string | null;
+  created_at: string;
+}
+
+export interface TrialListResponse {
+  trials: TrialSummary[];
+  total: number;
+  offset: number;
+  limit: number;
+}
+
+export interface PatientEligibility {
+  patient_id: string;
+  eligible: boolean;
+  match_score: number;
+  inclusion_met: string[];
+  exclusion_triggered: string[];
+  missing_data: string[];
+  requires_clinician_review: boolean;
+  review_disclaimer: string;
+}
+
+export interface ScreeningResponse {
+  trial_id: string;
+  trial_name: string;
+  total_patients_screened: number;
+  eligible_count: number;
+  ineligible_count: number;
+  enrollment_target: number;
+  enrollment_rate: number;
+  candidates: PatientEligibility[];
+  demographics_summary: Record<string, unknown> | null;
+  exclusion_breakdown: Record<string, number> | null;
+  requires_clinician_review: boolean;
+  cds_disclaimer: string;
+}
+
+export interface EnrollmentResponse {
+  id: string;
+  trial_id: string;
+  patient_id: string;
+  enrollment_status: string;
+  match_score: number | null;
+  criteria_met: string[] | null;
+  criteria_failed: string[] | null;
+  screening_date: string | null;
+  enrollment_date: string | null;
+  withdrawal_date: string | null;
+  withdrawal_reason: string | null;
+  site_id: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface EnrollmentListResponse {
+  enrollments: EnrollmentResponse[];
+  total: number;
+  offset: number;
+  limit: number;
+}
+
+export interface TrialDashboard {
+  trial_id: string;
+  trial_name: string;
+  status: string;
+  phase: string;
+  enrollment_target: number;
+  total_candidates: number;
+  total_screened: number;
+  total_eligible: number;
+  total_enrolled: number;
+  total_active: number;
+  total_completed: number;
+  total_withdrawn: number;
+  total_screen_failed: number;
+  enrollment_progress: number;
+  site_count: number;
+}
+
+export interface TrialListParams {
+  status?: string;
+  sponsor?: string;
+  therapeutic_area?: string;
+  search?: string;
+  offset?: number;
+  limit?: number;
+}
+
+// List trials
+export async function getTrials(params?: TrialListParams): Promise<TrialListResponse> {
+  const query = new URLSearchParams();
+  if (params?.status) query.set("status", params.status);
+  if (params?.sponsor) query.set("sponsor", params.sponsor);
+  if (params?.therapeutic_area) query.set("therapeutic_area", params.therapeutic_area);
+  if (params?.search) query.set("search", params.search);
+  if (params?.offset !== undefined) query.set("offset", String(params.offset));
+  if (params?.limit !== undefined) query.set("limit", String(params.limit));
+  const qs = query.toString();
+  return fetchWithRetry<TrialListResponse>(`${API_BASE_URL}/trials${qs ? `?${qs}` : ""}`);
+}
+
+// Get trial details
+export async function getTrial(trialId: string): Promise<TrialResponse> {
+  return fetchWithRetry<TrialResponse>(`${API_BASE_URL}/trials/${trialId}`);
+}
+
+// Screen patients for a trial
+export async function screenTrialPatients(trialId: string): Promise<ScreeningResponse> {
+  return fetchWithRetry<ScreeningResponse>(`${API_BASE_URL}/trials/${trialId}/screen`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({}),
+  });
+}
+
+// Get trial dashboard
+export async function getTrialDashboard(trialId: string): Promise<TrialDashboard> {
+  return fetchWithRetry<TrialDashboard>(`${API_BASE_URL}/trials/${trialId}/dashboard`);
+}
+
+// Get trial enrollments
+export async function getTrialEnrollments(
+  trialId: string,
+  params?: { status?: string; offset?: number; limit?: number }
+): Promise<EnrollmentListResponse> {
+  const query = new URLSearchParams();
+  if (params?.status) query.set("status", params.status);
+  if (params?.offset !== undefined) query.set("offset", String(params.offset));
+  if (params?.limit !== undefined) query.set("limit", String(params.limit));
+  const qs = query.toString();
+  return fetchWithRetry<EnrollmentListResponse>(
+    `${API_BASE_URL}/trials/${trialId}/enrollments${qs ? `?${qs}` : ""}`
+  );
+}
+
+// Get trial stats
+export async function getTrialStats(): Promise<Record<string, unknown>> {
+  return fetchWithRetry<Record<string, unknown>>(`${API_BASE_URL}/trials/stats`);
+}
+
+// ============================================================================
+// Metriport Integration
+// ============================================================================
+
+export interface MetriportStatus {
+  configured: boolean;
+  api_key_set: boolean;
+  webhook_key_set: boolean;
+  facility_id_set: boolean;
+  base_url: string;
+  organization: Record<string, unknown> | null;
+  facilities: Record<string, unknown>[] | null;
+}
+
+export interface MetriportQueryResponse {
+  status: string;
+  message: string;
+  data: Record<string, unknown> | null;
+}
+
+export interface MetriportPatientCreate {
+  firstName: string;
+  lastName: string;
+  dob: string;
+  genderAtBirth: string;
+  address: {
+    addressLine1: string;
+    addressLine2?: string;
+    city: string;
+    state: string;
+    zip: string;
+    country?: string;
+  }[];
+  contact?: {
+    phone?: string;
+    email?: string;
+  };
+  externalId?: string;
+  facility_id?: string;
+}
+
+export async function getMetriportStatus(): Promise<MetriportStatus> {
+  return fetchWithRetry<MetriportStatus>(`${API_BASE_URL}/metriport/status`);
+}
+
+export async function getMetriportPatients(facilityId?: string): Promise<MetriportQueryResponse> {
+  const qs = facilityId ? `?facility_id=${facilityId}` : "";
+  return fetchWithRetry<MetriportQueryResponse>(`${API_BASE_URL}/metriport/patients${qs}`);
+}
+
+export async function createMetriportPatient(data: MetriportPatientCreate): Promise<MetriportQueryResponse> {
+  return fetchWithRetry<MetriportQueryResponse>(`${API_BASE_URL}/metriport/patients`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+}
+
+export async function startDocumentQuery(patientId: string, facilityId?: string): Promise<MetriportQueryResponse> {
+  return fetchWithRetry<MetriportQueryResponse>(`${API_BASE_URL}/metriport/documents/query`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ patient_id: patientId, facility_id: facilityId }),
+  });
+}
+
+export async function getMetriportDocuments(patientId: string, facilityId?: string): Promise<MetriportQueryResponse> {
+  const qs = facilityId ? `?facility_id=${facilityId}` : "";
+  return fetchWithRetry<MetriportQueryResponse>(`${API_BASE_URL}/metriport/documents/${patientId}${qs}`);
+}
+
+export async function startConsolidatedQuery(
+  patientId: string,
+  resources?: string[],
+): Promise<MetriportQueryResponse> {
+  return fetchWithRetry<MetriportQueryResponse>(`${API_BASE_URL}/metriport/consolidated/query`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ patient_id: patientId, resources }),
+  });
+}
+
+export async function onboardMetriportPatient(data: MetriportPatientCreate): Promise<MetriportQueryResponse> {
+  return fetchWithRetry<MetriportQueryResponse>(`${API_BASE_URL}/metriport/onboard`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getMetriportFacilities(): Promise<MetriportQueryResponse> {
+  return fetchWithRetry<MetriportQueryResponse>(`${API_BASE_URL}/metriport/facilities`);
 }

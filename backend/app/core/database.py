@@ -1,6 +1,28 @@
 """Database configuration and session management.
 
 VP-DevOps-3: Added request context logging for database exceptions.
+
+Migration Strategy (VPE-3):
+    Schema changes MUST go through Alembic migrations. The migration chain
+    lives in backend/alembic/versions/ and is validated by
+    backend/scripts/check_migrations.py.
+
+    - Production / Staging: ONLY Alembic manages schema. The init_db()
+      function (which calls Base.metadata.create_all) is never invoked.
+      Deployments run `alembic upgrade head` via the migrations service
+      defined in docker-compose.yml.
+
+    - Development: init_db() may be called when settings.debug is True
+      as a convenience to bootstrap a fresh database without running
+      migrations. This is acceptable for local development but should
+      NOT be relied upon for schema correctness -- always author an
+      Alembic migration for any model change.
+
+    - Testing: Tests use create_all() via conftest.py fixtures to spin
+      up ephemeral schemas. This is independent of the Alembic chain.
+
+    To validate the migration chain:
+        python backend/scripts/check_migrations.py
 """
 
 from __future__ import annotations
@@ -226,10 +248,29 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 
 async def init_db() -> None:
-    """Initialize database tables.
+    """Initialize database tables using SQLAlchemy create_all.
 
-    For development only - use Alembic migrations in production.
+    VPE-3 Migration Safety:
+        This function bypasses Alembic and creates tables directly from
+        ORM model definitions. It must NEVER run in production or staging
+        because it can cause schema drift (tables exist but are not tracked
+        in the alembic_version table, and column changes are not applied).
+
+        Allowed environments:
+            - development (settings.debug == True and environment != production/staging)
+            - testing (TESTING env var or pytest context)
+
+        In production and staging, schema is managed exclusively by
+        Alembic migrations (alembic upgrade head).
     """
+    if settings.environment.lower() in ("production", "staging"):
+        logger.warning(
+            "init_db() called in %s environment -- skipping create_all. "
+            "Use Alembic migrations instead: 'alembic upgrade head'",
+            settings.environment,
+        )
+        return
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 

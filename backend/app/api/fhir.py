@@ -210,6 +210,74 @@ async def import_fhir_patient(
         await service.close()
 
 
+class FHIRBundleImportRequest(BaseModel):
+    """Request to import a FHIR R4 Bundle directly."""
+
+    bundle: dict[str, Any] = Field(
+        ..., description="FHIR R4 Bundle JSON (transaction, collection, or document)"
+    )
+    internal_patient_id: str | None = Field(
+        None, description="Optional internal patient ID (defaults to fhir-{id})"
+    )
+
+
+class FHIRBundleImportResponse(BaseModel):
+    """Response from FHIR Bundle import."""
+
+    success: bool
+    patient_id: str | None = None
+    patient_name: str | None = None
+    conditions: int = 0
+    medications: int = 0
+    allergies: int = 0
+    observations: int = 0
+    procedures: int = 0
+    nodes: int = 0
+    edges: int = 0
+    skipped_resource_types: list[str] = Field(default_factory=list)
+    error: str | None = None
+
+
+@router.post(
+    "/bundle",
+    response_model=FHIRBundleImportResponse,
+    summary="Import a FHIR R4 Bundle",
+    description=(
+        "Import a FHIR R4 Bundle directly without needing a FHIR server. "
+        "Accepts Bundle JSON (from Metriport, HIE, or any FHIR source) and "
+        "extracts Patient, Condition, MedicationRequest, MedicationStatement, "
+        "AllergyIntolerance, Observation, and Procedure resources into "
+        "ClinicalFacts and the knowledge graph."
+    ),
+)
+async def import_fhir_bundle(
+    request: FHIRBundleImportRequest,
+    session: AsyncSession = Depends(get_db),
+) -> FHIRBundleImportResponse:
+    """Import a FHIR R4 Bundle into the knowledge graph."""
+    bundle = request.bundle
+    bundle_type = bundle.get("type", "unknown")
+    entry_count = len(bundle.get("entry", []))
+    logger.info(f"Starting FHIR Bundle import: type={bundle_type}, entries={entry_count}")
+
+    service = FHIRImportService()
+    try:
+        result = await service.import_bundle(
+            session=session,
+            bundle=bundle,
+            internal_patient_id=request.internal_patient_id,
+        )
+        return FHIRBundleImportResponse(**result)
+    except Exception as e:
+        raise log_and_raise_internal_error(
+            exception=e,
+            endpoint="/fhir/bundle",
+            user_message="FHIR Bundle import failed",
+        )
+    finally:
+        await service.close()
+
+
 @router.get("/patients/{fhir_patient_id}")
 async def get_fhir_patient(
     fhir_patient_id: str,

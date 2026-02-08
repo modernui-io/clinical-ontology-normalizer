@@ -31,6 +31,162 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/patients", tags=["Patients"])
 
 
+# ---------------------------------------------------------------------------
+# Pydantic response models for patient listing
+# ---------------------------------------------------------------------------
+
+from pydantic import BaseModel, Field
+
+
+class PatientSummary(BaseModel):
+    """Summary info for a single patient in the browse list."""
+    id: str = Field(..., description="Patient ID")
+    external_id: str = Field("", description="External / MRN identifier")
+    name: str = Field("", description="Patient display name")
+    gender: str = Field("", description="Gender")
+    birth_date: str = Field("", description="Date of birth")
+    created_at: str = Field("", description="When the patient record was created")
+    fact_count: int = Field(0, description="Number of clinical facts")
+    node_count: int = Field(0, description="Number of KG nodes")
+    conditions: list[str] = Field(default_factory=list, description="Top condition labels")
+    medications: list[str] = Field(default_factory=list, description="Top medication labels")
+
+
+class PatientListResponse(BaseModel):
+    """Paginated list of patients."""
+    patients: list[PatientSummary] = Field(default_factory=list)
+    total: int = 0
+    page: int = 1
+    page_size: int = 50
+
+
+@router.get(
+    "",
+    response_model=PatientListResponse,
+    summary="List all patients",
+    description="Browse all patients that have clinical data, with summary info.",
+)
+def list_patients(
+    page: Annotated[int, Query(ge=1, description="Page number")] = 1,
+    page_size: Annotated[int, Query(ge=1, le=200, description="Items per page")] = 50,
+    current_user: CurrentUser = Depends(get_current_user),
+) -> PatientListResponse:
+    """Return a paginated list of patients with summary information.
+
+    Queries kg_nodes for patient nodes and enriches with fact counts and
+    top conditions/medications.
+    """
+    log_data_access(
+        resource_type="patient_list",
+        resource_id="*",
+        patient_id="*",
+        user_id=current_user.id,
+        action=AuditAction.READ,
+    )
+
+    with Session(get_sync_engine()) as session:
+        # ---- total distinct patients ----
+        total_q = (
+            select(func.count(func.distinct(KGNode.patient_id)))
+            .where(KGNode.node_type == NodeType.PATIENT.value)
+            .where(KGNode.deleted_at.is_(None))
+        )
+        total: int = session.execute(total_q).scalar() or 0
+
+        # ---- patient nodes (paginated) ----
+        offset = (page - 1) * page_size
+        patient_nodes_q = (
+            select(KGNode)
+            .where(KGNode.node_type == NodeType.PATIENT.value)
+            .where(KGNode.deleted_at.is_(None))
+            .order_by(KGNode.patient_id)
+            .offset(offset)
+            .limit(page_size)
+        )
+        patient_nodes = session.execute(patient_nodes_q).scalars().all()
+
+        patient_ids = [n.patient_id for n in patient_nodes]
+
+        if not patient_ids:
+            return PatientListResponse(patients=[], total=total, page=page, page_size=page_size)
+
+        # ---- fact counts per patient ----
+        fact_counts_q = (
+            select(
+                ClinicalFactModel.patient_id,
+                func.count(ClinicalFactModel.id).label("cnt"),
+            )
+            .where(ClinicalFactModel.patient_id.in_(patient_ids))
+            .group_by(ClinicalFactModel.patient_id)
+        )
+        fact_counts = {row.patient_id: row.cnt for row in session.execute(fact_counts_q)}
+
+        # ---- node counts per patient ----
+        node_counts_q = (
+            select(
+                KGNode.patient_id,
+                func.count(KGNode.id).label("cnt"),
+            )
+            .where(KGNode.patient_id.in_(patient_ids))
+            .where(KGNode.deleted_at.is_(None))
+            .group_by(KGNode.patient_id)
+        )
+        node_counts = {row.patient_id: row.cnt for row in session.execute(node_counts_q)}
+
+        # ---- condition labels per patient (top 5) ----
+        condition_nodes_q = (
+            select(KGNode.patient_id, KGNode.label)
+            .where(KGNode.patient_id.in_(patient_ids))
+            .where(KGNode.node_type == NodeType.CONDITION.value)
+            .where(KGNode.deleted_at.is_(None))
+        )
+        conditions_map: dict[str, list[str]] = {}
+        for row in session.execute(condition_nodes_q):
+            conditions_map.setdefault(row.patient_id, []).append(row.label)
+        # Limit to 5
+        for pid in conditions_map:
+            conditions_map[pid] = conditions_map[pid][:5]
+
+        # ---- drug labels per patient (top 5) ----
+        drug_nodes_q = (
+            select(KGNode.patient_id, KGNode.label)
+            .where(KGNode.patient_id.in_(patient_ids))
+            .where(KGNode.node_type == NodeType.DRUG.value)
+            .where(KGNode.deleted_at.is_(None))
+        )
+        drugs_map: dict[str, list[str]] = {}
+        for row in session.execute(drug_nodes_q):
+            drugs_map.setdefault(row.patient_id, []).append(row.label)
+        for pid in drugs_map:
+            drugs_map[pid] = drugs_map[pid][:5]
+
+        # ---- build summaries ----
+        summaries: list[PatientSummary] = []
+        for pn in patient_nodes:
+            props = pn.properties or {}
+            summaries.append(
+                PatientSummary(
+                    id=pn.patient_id,
+                    external_id=props.get("mrn", props.get("fhir_id", "")),
+                    name=pn.label,
+                    gender=props.get("gender", ""),
+                    birth_date=props.get("birth_date", ""),
+                    created_at=pn.created_at.isoformat() if pn.created_at else "",
+                    fact_count=fact_counts.get(pn.patient_id, 0),
+                    node_count=node_counts.get(pn.patient_id, 0),
+                    conditions=conditions_map.get(pn.patient_id, []),
+                    medications=drugs_map.get(pn.patient_id, []),
+                )
+            )
+
+        return PatientListResponse(
+            patients=summaries,
+            total=total,
+            page=page,
+            page_size=page_size,
+        )
+
+
 @router.get(
     "/{patient_id}/graph",
     response_model=PatientGraph,

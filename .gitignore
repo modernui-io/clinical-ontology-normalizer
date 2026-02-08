@@ -40,6 +40,12 @@ out/
 .env
 .env.local
 .env.*.local
+backend/.env
+
+# TLS certificates (never commit private keys)
+nginx/ssl/*.pem
+nginx/ssl/*.key
+nginx/ssl/*.crt
 
 # Database
 *.db

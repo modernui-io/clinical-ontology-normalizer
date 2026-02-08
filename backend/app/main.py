@@ -99,6 +99,9 @@ from app.api import (
     phenotypes_router,
     pipelines_router,
     feedback_router,
+    trials_router,
+    metriport_api_router,
+    metriport_webhook_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -368,11 +371,24 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     from app.api.health import set_app_start_time
     set_app_start_time(time.time())
 
-    # Startup - Initialize database
-    if settings.debug:
-        logger.info("Initializing database connection (debug mode)")
-        await init_db()
-        logger.info("Database connection established")
+    # Startup - Initialize database (development only)
+    # VPE-3: In production/staging, schema is managed exclusively by Alembic.
+    # init_db() calls create_all() which bypasses migration tracking.
+    # The guard inside init_db() will also refuse to run in production/staging.
+    if settings.debug and settings.environment.lower() not in ("production", "staging"):
+        logger.info("Initializing database via create_all (debug mode, non-production)")
+        try:
+            await init_db()
+            logger.info("Database tables initialized via create_all")
+        except Exception as e:
+            logger.warning(f"Database init (create_all) skipped — tables may already exist: {e}")
+    else:
+        logger.info(
+            "Skipping create_all — schema managed by Alembic migrations "
+            "(environment=%s, debug=%s)",
+            settings.environment,
+            settings.debug,
+        )
 
     # Preload vocabulary service (singleton) for fast NLP extraction
     logger.info("Preloading vocabulary service...")
@@ -605,7 +621,11 @@ app.add_middleware(ErrorHandlerMiddleware)
 # 6. Security headers middleware - adds OWASP security headers (VP-Security)
 app.add_middleware(SecurityHeadersMiddleware)
 
-# 7. CORS middleware - handles cross-origin requests
+# 7. API Maturity Gate middleware - labels tiers and blocks scaffold in production (CTO-2)
+from app.api.middleware.maturity_gate import MaturityGateMiddleware
+app.add_middleware(MaturityGateMiddleware)
+
+# 8. CORS middleware - handles cross-origin requests
 # VP-Security-3: CORS origins loaded from environment (settings.cors_origins)
 _cors_origins = settings.cors_origins_list
 if not _cors_origins and settings.is_production:
@@ -627,6 +647,7 @@ app.add_middleware(
         "X-RateLimit-Limit",
         "X-RateLimit-Remaining",
         "X-RateLimit-Reset",
+        "X-API-Maturity",
     ],  # Allow frontend to read these headers
 )
 
@@ -709,6 +730,9 @@ api_v1_router.include_router(data_sources_router)
 api_v1_router.include_router(phenotypes_router)
 api_v1_router.include_router(pipelines_router)
 api_v1_router.include_router(feedback_router)
+api_v1_router.include_router(trials_router)
+api_v1_router.include_router(metriport_api_router)
+api_v1_router.include_router(metriport_webhook_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)

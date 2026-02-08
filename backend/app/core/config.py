@@ -49,7 +49,7 @@ class Settings(BaseSettings):
     environment: str = "development"  # development, staging, production
 
     # Database
-    database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/clinical_ontology"
+    database_url: str = "postgresql+asyncpg://postgres@localhost:5432/clinical_ontology"
 
     # For sync operations (alembic migrations)
     @property
@@ -117,6 +117,9 @@ class Settings(BaseSettings):
     jwt_access_token_expire_minutes: int = 30
     auth_bypass_dev: bool = False  # Dev bypass for testing without auth
 
+    # API Maturity Gating (CTO-2)
+    block_scaffold_endpoints: bool = False  # Block SCAFFOLD-tier endpoints (enable in production)
+
     # LLM Configuration
     openai_api_key: str | None = None
     anthropic_api_key: str | None = None
@@ -150,6 +153,12 @@ class Settings(BaseSettings):
     # If not set, all public URLs are allowed (with private IP blocking)
     allowed_fhir_servers: str = ""
     allow_localhost_fhir: bool = True  # Allow localhost in development
+
+    # Metriport Integration
+    metriport_api_key: str | None = None  # Metriport Medical API key
+    metriport_webhook_key: str | None = None  # Webhook signing key for HMAC verification
+    metriport_base_url: str = "https://api.sandbox.metriport.com"  # Sandbox by default
+    metriport_facility_id: str | None = None  # Metriport facility UUID
 
     # ETL Configuration (VP-Round60)
     # Encryption key for storing data source credentials

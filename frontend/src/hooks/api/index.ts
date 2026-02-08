@@ -77,6 +77,28 @@ export {
   useHealthCheck,
 } from "./useAdmin";
 
+// Clinical Trials hooks
+export {
+  useTrials,
+  useTrial,
+  useTrialDashboard,
+  useTrialScreening,
+  useTrialEnrollments,
+  useTrialStats,
+} from "./useTrials";
+
+// Metriport HIE Integration hooks
+export {
+  useMetriportStatus,
+  useMetriportPatients,
+  useMetriportDocuments,
+  useMetriportFacilities,
+  useCreateMetriportPatient,
+  useOnboardMetriportPatient,
+  useStartDocumentQuery,
+  useStartConsolidatedQuery,
+} from "./useMetriport";
+
 // Search hooks (placeholder for future implementation)
 // export {} from "./useSearch";
 

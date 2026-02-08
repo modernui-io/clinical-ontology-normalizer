@@ -52,6 +52,11 @@ export function ConnectionStatus({
 
   const config = statusConfig[status];
 
+  // Don't show disconnected state — avoids jarring red dot when backend isn't running
+  if (status === "disconnected") {
+    return null;
+  }
+
   return (
     <div
       className={cn("flex items-center gap-2", className)}
