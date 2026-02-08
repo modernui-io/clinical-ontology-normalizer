@@ -1,0 +1,263 @@
+{
+  "metadata": {
+    "name": "nlp-extraction-gold",
+    "domain": "nlp_extraction",
+    "description": "Gold standard dataset for NLP mention extraction evaluation. 50 annotated clinical sentences covering conditions, medications, procedures, labs, and assertion types.",
+    "version": "1.0.0",
+    "sentence_count": 50,
+    "domains_covered": ["CONDITION", "MEDICATION", "PROCEDURE", "LAB"],
+    "assertion_types": ["PRESENT", "ABSENT", "HYPOTHETICAL", "FAMILY_HISTORY", "POSSIBLE"]
+  },
+  "annotations": [
+    {
+      "input_data": {"text": "Patient has been diagnosed with chronic obstructive pulmonary disease.", "sentence_id": "NE-001"},
+      "expected_output": {"mentions": [{"text": "chronic obstructive pulmonary disease", "domain": "CONDITION", "assertion": "PRESENT"}]},
+      "annotator_id": "annotator-1"
+    },
+    {
+      "input_data": {"text": "Currently taking lisinopril 20mg daily for blood pressure management.", "sentence_id": "NE-002"},
+      "expected_output": {"mentions": [{"text": "lisinopril", "domain": "MEDICATION", "assertion": "PRESENT"}]},
+      "annotator_id": "annotator-1"
+    },
+    {
+      "input_data": {"text": "Patient denies any chest pain or palpitations.", "sentence_id": "NE-003"},
+      "expected_output": {"mentions": [{"text": "chest pain", "domain": "CONDITION", "assertion": "ABSENT"}, {"text": "palpitations", "domain": "CONDITION", "assertion": "ABSENT"}]},
+      "annotator_id": "annotator-1"
+    },
+    {
+      "input_data": {"text": "Hemoglobin A1c: 7.8%, indicating suboptimal glycemic control.", "sentence_id": "NE-004"},
+      "expected_output": {"mentions": [{"text": "Hemoglobin A1c", "domain": "LAB", "assertion": "PRESENT"}]},
+      "annotator_id": "annotator-1"
+    },
+    {
+      "input_data": {"text": "Underwent coronary artery bypass grafting in 2019.", "sentence_id": "NE-005"},
+      "expected_output": {"mentions": [{"text": "coronary artery bypass grafting", "domain": "PROCEDURE", "assertion": "PRESENT"}]},
+      "annotator_id": "annotator-1"
+    },
+    {
+      "input_data": {"text": "Mother had breast cancer at age 47.", "sentence_id": "NE-006"},
+      "expected_output": {"mentions": [{"text": "breast cancer", "domain": "CONDITION", "assertion": "FAMILY_HISTORY"}]},
+      "annotator_id": "annotator-1"
+    },
+    {
+      "input_data": {"text": "If symptoms persist, may consider starting methotrexate.", "sentence_id": "NE-007"},
+      "expected_output": {"mentions": [{"text": "methotrexate", "domain": "MEDICATION", "assertion": "HYPOTHETICAL"}]},
+      "annotator_id": "annotator-1"
+    },
+    {
+      "input_data": {"text": "Possible early-stage Parkinson disease based on tremor pattern.", "sentence_id": "NE-008"},
+      "expected_output": {"mentions": [{"text": "Parkinson disease", "domain": "CONDITION", "assertion": "POSSIBLE"}]},
+      "annotator_id": "annotator-1"
+    },
+    {
+      "input_data": {"text": "No evidence of deep vein thrombosis on ultrasound.", "sentence_id": "NE-009"},
+      "expected_output": {"mentions": [{"text": "deep vein thrombosis", "domain": "CONDITION", "assertion": "ABSENT"}]},
+      "annotator_id": "annotator-1"
+    },
+    {
+      "input_data": {"text": "Started on metformin 500mg twice daily.", "sentence_id": "NE-010"},
+      "expected_output": {"mentions": [{"text": "metformin", "domain": "MEDICATION", "assertion": "PRESENT"}]},
+      "annotator_id": "annotator-1"
+    },
+    {
+      "input_data": {"text": "Creatinine level is 2.3 mg/dL, up from 1.8 last month.", "sentence_id": "NE-011"},
+      "expected_output": {"mentions": [{"text": "Creatinine", "domain": "LAB", "assertion": "PRESENT"}]},
+      "annotator_id": "annotator-1"
+    },
+    {
+      "input_data": {"text": "Scheduled for right total knee arthroplasty next week.", "sentence_id": "NE-012"},
+      "expected_output": {"mentions": [{"text": "total knee arthroplasty", "domain": "PROCEDURE", "assertion": "HYPOTHETICAL"}]},
+      "annotator_id": "annotator-1"
+    },
+    {
+      "input_data": {"text": "Father died of myocardial infarction at age 58.", "sentence_id": "NE-013"},
+      "expected_output": {"mentions": [{"text": "myocardial infarction", "domain": "CONDITION", "assertion": "FAMILY_HISTORY"}]},
+      "annotator_id": "annotator-1"
+    },
+    {
+      "input_data": {"text": "Patient has well-controlled type 2 diabetes and hypertension.", "sentence_id": "NE-014"},
+      "expected_output": {"mentions": [{"text": "type 2 diabetes", "domain": "CONDITION", "assertion": "PRESENT"}, {"text": "hypertension", "domain": "CONDITION", "assertion": "PRESENT"}]},
+      "annotator_id": "annotator-1"
+    },
+    {
+      "input_data": {"text": "Denies fever, chills, or night sweats.", "sentence_id": "NE-015"},
+      "expected_output": {"mentions": [{"text": "fever", "domain": "CONDITION", "assertion": "ABSENT"}, {"text": "chills", "domain": "CONDITION", "assertion": "ABSENT"}, {"text": "night sweats", "domain": "CONDITION", "assertion": "ABSENT"}]},
+      "annotator_id": "annotator-1"
+    },
+    {
+      "input_data": {"text": "Platelet count: 142 K/uL.", "sentence_id": "NE-016"},
+      "expected_output": {"mentions": [{"text": "Platelet count", "domain": "LAB", "assertion": "PRESENT"}]},
+      "annotator_id": "annotator-2"
+    },
+    {
+      "input_data": {"text": "Completed 6 cycles of carboplatin and paclitaxel.", "sentence_id": "NE-017"},
+      "expected_output": {"mentions": [{"text": "carboplatin", "domain": "MEDICATION", "assertion": "PRESENT"}, {"text": "paclitaxel", "domain": "MEDICATION", "assertion": "PRESENT"}]},
+      "annotator_id": "annotator-2"
+    },
+    {
+      "input_data": {"text": "Suspected pneumonia based on imaging findings.", "sentence_id": "NE-018"},
+      "expected_output": {"mentions": [{"text": "pneumonia", "domain": "CONDITION", "assertion": "POSSIBLE"}]},
+      "annotator_id": "annotator-2"
+    },
+    {
+      "input_data": {"text": "No history of seizures or epilepsy.", "sentence_id": "NE-019"},
+      "expected_output": {"mentions": [{"text": "seizures", "domain": "CONDITION", "assertion": "ABSENT"}, {"text": "epilepsy", "domain": "CONDITION", "assertion": "ABSENT"}]},
+      "annotator_id": "annotator-2"
+    },
+    {
+      "input_data": {"text": "Takes amlodipine 10mg and hydrochlorothiazide 25mg daily.", "sentence_id": "NE-020"},
+      "expected_output": {"mentions": [{"text": "amlodipine", "domain": "MEDICATION", "assertion": "PRESENT"}, {"text": "hydrochlorothiazide", "domain": "MEDICATION", "assertion": "PRESENT"}]},
+      "annotator_id": "annotator-2"
+    },
+    {
+      "input_data": {"text": "TSH: 6.2 mIU/L, consistent with subclinical hypothyroidism.", "sentence_id": "NE-021"},
+      "expected_output": {"mentions": [{"text": "TSH", "domain": "LAB", "assertion": "PRESENT"}, {"text": "subclinical hypothyroidism", "domain": "CONDITION", "assertion": "PRESENT"}]},
+      "annotator_id": "annotator-2"
+    },
+    {
+      "input_data": {"text": "Underwent appendectomy at age 12 without complications.", "sentence_id": "NE-022"},
+      "expected_output": {"mentions": [{"text": "appendectomy", "domain": "PROCEDURE", "assertion": "PRESENT"}]},
+      "annotator_id": "annotator-2"
+    },
+    {
+      "input_data": {"text": "Sister has lupus and rheumatoid arthritis.", "sentence_id": "NE-023"},
+      "expected_output": {"mentions": [{"text": "lupus", "domain": "CONDITION", "assertion": "FAMILY_HISTORY"}, {"text": "rheumatoid arthritis", "domain": "CONDITION", "assertion": "FAMILY_HISTORY"}]},
+      "annotator_id": "annotator-2"
+    },
+    {
+      "input_data": {"text": "If HbA1c remains above 8, will add insulin glargine.", "sentence_id": "NE-024"},
+      "expected_output": {"mentions": [{"text": "insulin glargine", "domain": "MEDICATION", "assertion": "HYPOTHETICAL"}]},
+      "annotator_id": "annotator-2"
+    },
+    {
+      "input_data": {"text": "Cannot rule out acute coronary syndrome.", "sentence_id": "NE-025"},
+      "expected_output": {"mentions": [{"text": "acute coronary syndrome", "domain": "CONDITION", "assertion": "POSSIBLE"}]},
+      "annotator_id": "annotator-2"
+    },
+    {
+      "input_data": {"text": "BNP: 890 pg/mL, consistent with heart failure.", "sentence_id": "NE-026"},
+      "expected_output": {"mentions": [{"text": "BNP", "domain": "LAB", "assertion": "PRESENT"}, {"text": "heart failure", "domain": "CONDITION", "assertion": "PRESENT"}]},
+      "annotator_id": "annotator-2"
+    },
+    {
+      "input_data": {"text": "Colonoscopy performed showing no polyps.", "sentence_id": "NE-027"},
+      "expected_output": {"mentions": [{"text": "Colonoscopy", "domain": "PROCEDURE", "assertion": "PRESENT"}]},
+      "annotator_id": "annotator-2"
+    },
+    {
+      "input_data": {"text": "Patient is on warfarin 5mg with therapeutic INR.", "sentence_id": "NE-028"},
+      "expected_output": {"mentions": [{"text": "warfarin", "domain": "MEDICATION", "assertion": "PRESENT"}, {"text": "INR", "domain": "LAB", "assertion": "PRESENT"}]},
+      "annotator_id": "annotator-2"
+    },
+    {
+      "input_data": {"text": "No wheezing or stridor on examination.", "sentence_id": "NE-029"},
+      "expected_output": {"mentions": [{"text": "wheezing", "domain": "CONDITION", "assertion": "ABSENT"}, {"text": "stridor", "domain": "CONDITION", "assertion": "ABSENT"}]},
+      "annotator_id": "annotator-2"
+    },
+    {
+      "input_data": {"text": "Reports chronic low back pain rated 6/10.", "sentence_id": "NE-030"},
+      "expected_output": {"mentions": [{"text": "chronic low back pain", "domain": "CONDITION", "assertion": "PRESENT"}]},
+      "annotator_id": "annotator-2"
+    },
+    {
+      "input_data": {"text": "WBC: 12.4 K/uL with left shift.", "sentence_id": "NE-031"},
+      "expected_output": {"mentions": [{"text": "WBC", "domain": "LAB", "assertion": "PRESENT"}]},
+      "annotator_id": "annotator-1"
+    },
+    {
+      "input_data": {"text": "Status post carotid endarterectomy two years ago.", "sentence_id": "NE-032"},
+      "expected_output": {"mentions": [{"text": "carotid endarterectomy", "domain": "PROCEDURE", "assertion": "PRESENT"}]},
+      "annotator_id": "annotator-1"
+    },
+    {
+      "input_data": {"text": "Brother diagnosed with colon cancer at age 50.", "sentence_id": "NE-033"},
+      "expected_output": {"mentions": [{"text": "colon cancer", "domain": "CONDITION", "assertion": "FAMILY_HISTORY"}]},
+      "annotator_id": "annotator-1"
+    },
+    {
+      "input_data": {"text": "May need to start dialysis if kidney function continues to decline.", "sentence_id": "NE-034"},
+      "expected_output": {"mentions": [{"text": "dialysis", "domain": "PROCEDURE", "assertion": "HYPOTHETICAL"}]},
+      "annotator_id": "annotator-1"
+    },
+    {
+      "input_data": {"text": "Probable bacterial endocarditis given positive blood cultures.", "sentence_id": "NE-035"},
+      "expected_output": {"mentions": [{"text": "bacterial endocarditis", "domain": "CONDITION", "assertion": "POSSIBLE"}]},
+      "annotator_id": "annotator-1"
+    },
+    {
+      "input_data": {"text": "Currently on gabapentin 300mg TID for neuropathic pain.", "sentence_id": "NE-036"},
+      "expected_output": {"mentions": [{"text": "gabapentin", "domain": "MEDICATION", "assertion": "PRESENT"}, {"text": "neuropathic pain", "domain": "CONDITION", "assertion": "PRESENT"}]},
+      "annotator_id": "annotator-1"
+    },
+    {
+      "input_data": {"text": "Albumin: 2.8 g/dL, prealbumin: 12 mg/dL.", "sentence_id": "NE-037"},
+      "expected_output": {"mentions": [{"text": "Albumin", "domain": "LAB", "assertion": "PRESENT"}, {"text": "prealbumin", "domain": "LAB", "assertion": "PRESENT"}]},
+      "annotator_id": "annotator-1"
+    },
+    {
+      "input_data": {"text": "Denies hematuria, dysuria, or urinary frequency.", "sentence_id": "NE-038"},
+      "expected_output": {"mentions": [{"text": "hematuria", "domain": "CONDITION", "assertion": "ABSENT"}, {"text": "dysuria", "domain": "CONDITION", "assertion": "ABSENT"}, {"text": "urinary frequency", "domain": "CONDITION", "assertion": "ABSENT"}]},
+      "annotator_id": "annotator-1"
+    },
+    {
+      "input_data": {"text": "Prescribed doxycycline 100mg BID for 10 days.", "sentence_id": "NE-039"},
+      "expected_output": {"mentions": [{"text": "doxycycline", "domain": "MEDICATION", "assertion": "PRESENT"}]},
+      "annotator_id": "annotator-1"
+    },
+    {
+      "input_data": {"text": "Chest CT reveals bilateral pleural effusions.", "sentence_id": "NE-040"},
+      "expected_output": {"mentions": [{"text": "pleural effusions", "domain": "CONDITION", "assertion": "PRESENT"}]},
+      "annotator_id": "annotator-1"
+    },
+    {
+      "input_data": {"text": "LDL cholesterol: 162 mg/dL, HDL: 38 mg/dL.", "sentence_id": "NE-041"},
+      "expected_output": {"mentions": [{"text": "LDL cholesterol", "domain": "LAB", "assertion": "PRESENT"}, {"text": "HDL", "domain": "LAB", "assertion": "PRESENT"}]},
+      "annotator_id": "annotator-2"
+    },
+    {
+      "input_data": {"text": "Patient underwent right hemicolectomy for cecal mass.", "sentence_id": "NE-042"},
+      "expected_output": {"mentions": [{"text": "right hemicolectomy", "domain": "PROCEDURE", "assertion": "PRESENT"}]},
+      "annotator_id": "annotator-2"
+    },
+    {
+      "input_data": {"text": "Grandmother had Alzheimer disease.", "sentence_id": "NE-043"},
+      "expected_output": {"mentions": [{"text": "Alzheimer disease", "domain": "CONDITION", "assertion": "FAMILY_HISTORY"}]},
+      "annotator_id": "annotator-2"
+    },
+    {
+      "input_data": {"text": "Consider adding spironolactone if potassium remains stable.", "sentence_id": "NE-044"},
+      "expected_output": {"mentions": [{"text": "spironolactone", "domain": "MEDICATION", "assertion": "HYPOTHETICAL"}]},
+      "annotator_id": "annotator-2"
+    },
+    {
+      "input_data": {"text": "Differential includes multiple sclerosis versus neuromyelitis optica.", "sentence_id": "NE-045"},
+      "expected_output": {"mentions": [{"text": "multiple sclerosis", "domain": "CONDITION", "assertion": "POSSIBLE"}, {"text": "neuromyelitis optica", "domain": "CONDITION", "assertion": "POSSIBLE"}]},
+      "annotator_id": "annotator-2"
+    },
+    {
+      "input_data": {"text": "Taking omeprazole 40mg daily for GERD.", "sentence_id": "NE-046"},
+      "expected_output": {"mentions": [{"text": "omeprazole", "domain": "MEDICATION", "assertion": "PRESENT"}, {"text": "GERD", "domain": "CONDITION", "assertion": "PRESENT"}]},
+      "annotator_id": "annotator-2"
+    },
+    {
+      "input_data": {"text": "D-dimer: 2.4 mcg/mL, elevated.", "sentence_id": "NE-047"},
+      "expected_output": {"mentions": [{"text": "D-dimer", "domain": "LAB", "assertion": "PRESENT"}]},
+      "annotator_id": "annotator-2"
+    },
+    {
+      "input_data": {"text": "No signs of peritonitis on abdominal exam.", "sentence_id": "NE-048"},
+      "expected_output": {"mentions": [{"text": "peritonitis", "domain": "CONDITION", "assertion": "ABSENT"}]},
+      "annotator_id": "annotator-2"
+    },
+    {
+      "input_data": {"text": "Bronchoscopy with bronchoalveolar lavage performed.", "sentence_id": "NE-049"},
+      "expected_output": {"mentions": [{"text": "Bronchoscopy", "domain": "PROCEDURE", "assertion": "PRESENT"}, {"text": "bronchoalveolar lavage", "domain": "PROCEDURE", "assertion": "PRESENT"}]},
+      "annotator_id": "annotator-1"
+    },
+    {
+      "input_data": {"text": "Ferritin: 18 ng/mL, iron: 32 mcg/dL, TIBC: 420 mcg/dL.", "sentence_id": "NE-050"},
+      "expected_output": {"mentions": [{"text": "Ferritin", "domain": "LAB", "assertion": "PRESENT"}, {"text": "iron", "domain": "LAB", "assertion": "PRESENT"}, {"text": "TIBC", "domain": "LAB", "assertion": "PRESENT"}]},
+      "annotator_id": "annotator-1"
+    }
+  ]
+}

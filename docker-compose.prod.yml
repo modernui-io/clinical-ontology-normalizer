@@ -7,13 +7,21 @@ version: '3.8'
 # - No volume mounts for source code (uses built images)
 # - Optimized resource limits
 # - Production logging
-# - Enhanced security settings
+# - Enhanced security settings (HIPAA-compliant container hardening)
 # - Multi-stage builds for smaller images
 
 services:
   # PostgreSQL Database - Production
   postgres:
-    image: postgres:15
+    image: postgres:16-alpine
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp
+      - /run/postgresql
     deploy:
       resources:
         limits:
@@ -31,6 +39,12 @@ services:
       options:
         max-size: "100m"
         max-file: "5"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     command:
       - "postgres"
       - "-c"
@@ -61,6 +75,13 @@ services:
   # Redis Cache - Production
   redis:
     image: redis:7-alpine
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp
     deploy:
       resources:
         limits:
@@ -75,10 +96,19 @@ services:
       options:
         max-size: "50m"
         max-file: "3"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # Neo4j Graph Database - Production
   neo4j:
     image: neo4j:5
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     deploy:
       resources:
         limits:
@@ -98,9 +128,19 @@ services:
       options:
         max-size: "100m"
         max-file: "5"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:7474"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
   # Zookeeper - Production
   zookeeper:
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     deploy:
       resources:
         limits:
@@ -114,9 +154,18 @@ services:
       options:
         max-size: "50m"
         max-file: "3"
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # Kafka - Production
   kafka:
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     deploy:
       resources:
         limits:
@@ -142,12 +191,25 @@ services:
       options:
         max-size: "100m"
         max-file: "5"
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
   # Backend API - Production
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile.prod
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp
     deploy:
       resources:
         limits:
@@ -175,6 +237,12 @@ services:
       options:
         max-size: "100m"
         max-file: "10"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
 
   # RQ Worker - Production
@@ -182,6 +250,13 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile.prod
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp
     deploy:
       resources:
         limits:
@@ -205,6 +280,12 @@ services:
       options:
         max-size: "50m"
         max-file: "5"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   # Frontend - Production
   frontend:
@@ -213,6 +294,13 @@ services:
       dockerfile: Dockerfile.prod
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://backend:8000}
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp
     deploy:
       resources:
         limits:
@@ -231,11 +319,28 @@ services:
       options:
         max-size: "50m"
         max-file: "5"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
   # Nginx Reverse Proxy - Production only
   nginx:
     image: nginx:alpine
     container_name: con-nginx
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    tmpfs:
+      - /tmp
+      - /var/cache/nginx
+      - /var/run
     depends_on:
       - backend
       - frontend

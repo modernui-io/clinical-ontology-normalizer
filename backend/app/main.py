@@ -121,7 +121,10 @@ from app.api import (
     screen_failure_analytics_router,
     diversity_analytics_router,
     criteria_fidelity_router,
+    etl_validation_router,
     fhir_validation_router,
+    validation_study_router,
+    gold_standard_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -782,10 +785,13 @@ api_v1_router.include_router(roi_dashboard_router)
 api_v1_router.include_router(terminology_governance_router)
 api_v1_router.include_router(cohort_phenotypes_router)
 api_v1_router.include_router(data_quality_dqd_router)
+api_v1_router.include_router(etl_validation_router)
 api_v1_router.include_router(consent_router)
 api_v1_router.include_router(screen_failure_analytics_router)
 api_v1_router.include_router(diversity_analytics_router)
 api_v1_router.include_router(criteria_fidelity_router)
+api_v1_router.include_router(validation_study_router)
+api_v1_router.include_router(gold_standard_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)

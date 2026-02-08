@@ -169,7 +169,10 @@ from app.api.data_quality_dqd import router as data_quality_dqd_router
 from app.api.screen_failure_analytics import router as screen_failure_analytics_router
 from app.api.diversity_analytics import router as diversity_analytics_router
 from app.api.criteria_fidelity import router as criteria_fidelity_router
+from app.api.etl_validation import router as etl_validation_router
 from app.api.fhir_validation import router as fhir_validation_router
+from app.api.validation_study import router as validation_study_router
+from app.api.gold_standard import router as gold_standard_router
 
 __all__ = [
     # Routers
@@ -276,7 +279,10 @@ __all__ = [
     "screen_failure_analytics_router",
     "diversity_analytics_router",
     "criteria_fidelity_router",
+    "etl_validation_router",
     "fhir_validation_router",
+    "validation_study_router",
+    "gold_standard_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",
