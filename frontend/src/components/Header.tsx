@@ -16,7 +16,6 @@ import {
   User,
   Moon,
   Sun,
-  Wifi,
   Check,
   CheckCheck,
   AlertTriangle,
@@ -216,15 +215,8 @@ export function Header({ className }: HeaderProps) {
 
       {/* Right side - Actions */}
       <div className="flex items-center gap-2" role="toolbar" aria-label="Header actions">
-        {/* WebSocket Connection Status */}
-        <div
-          className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50"
-          role="status"
-          aria-label="Connection status"
-        >
-          <Wifi className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
-          <Notifications showConnectionStatus showConnectionLabel={false} />
-        </div>
+        {/* WebSocket Connection Status — hidden when backend unavailable */}
+        <Notifications showConnectionStatus showConnectionLabel={false} />
 
         {/* Dark mode toggle */}
         <Button
