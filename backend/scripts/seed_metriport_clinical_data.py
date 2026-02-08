@@ -85,7 +85,7 @@ CLINICAL_FACTS: list[dict[str, Any]] = [
         "patient_id": ANDREAS_BROWN_ID,
         "domain": Domain.CONDITION,
         "omop_concept_id": 4174977,
-        "concept_name": "Diabetic macular edema",
+        "concept_name": "Type 2 DM with diabetic retinopathy with macular edema",
         "assertion": Assertion.PRESENT,
         "temporality": Temporality.CURRENT,
         "confidence": 0.97,
@@ -132,7 +132,7 @@ CLINICAL_FACTS: list[dict[str, Any]] = [
         "patient_id": KYLA_BROWN_ID,
         "domain": Domain.CONDITION,
         "omop_concept_id": 4299544,
-        "concept_name": "Atopic dermatitis",
+        "concept_name": "Atopic dermatitis, unspecified",
         "assertion": Assertion.PRESENT,
         "temporality": Temporality.CURRENT,
         "confidence": 0.98,
@@ -317,8 +317,8 @@ CLINICAL_NOTES: list[dict[str, Any]] = [
                 "text": "diabetic macular edema",
                 "section": "HPI",
                 "omop_id": 4174977,
-                "concept_name": "Diabetic macular edema",
-                "concept_code": "H35.81",
+                "concept_name": "Type 2 DM with diabetic retinopathy with macular edema",
+                "concept_code": "E11.311",
                 "vocab": "ICD10CM",
                 "domain": Domain.CONDITION,
             },
@@ -407,7 +407,7 @@ CLINICAL_NOTES: list[dict[str, Any]] = [
                 "text": "atopic dermatitis",
                 "section": "HPI",
                 "omop_id": 4299544,
-                "concept_name": "Atopic dermatitis",
+                "concept_name": "Atopic dermatitis, unspecified",
                 "concept_code": "L20.9",
                 "vocab": "ICD10CM",
                 "domain": Domain.CONDITION,
@@ -479,7 +479,7 @@ async def check_existing_data() -> bool:
             select(ClinicalFact.id)
             .where(
                 ClinicalFact.patient_id == ANDREAS_BROWN_ID,
-                ClinicalFact.concept_name == "Diabetic macular edema",
+                ClinicalFact.concept_name == "Type 2 DM with diabetic retinopathy with macular edema",
             )
             .limit(1)
         )
