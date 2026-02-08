@@ -116,6 +116,7 @@ from app.api.quality_measures import router as quality_measures_router
 from app.api.terminology import router as terminology_router
 from app.api.timeline import router as timeline_router
 from app.api.valuesets import router as valuesets_router
+from app.api.valuesets import clinical_router as clinical_valuesets_router
 from app.api.visualizations import router as visualizations_router
 from app.api.streaming import router as streaming_router
 from app.api.synthetic import router as synthetic_router
@@ -165,6 +166,10 @@ from app.api.terminology_governance import router as terminology_governance_rout
 from app.api.cohort_phenotypes import router as cohort_phenotypes_router
 from app.api.consent import router as consent_router
 from app.api.data_quality_dqd import router as data_quality_dqd_router
+from app.api.screen_failure_analytics import router as screen_failure_analytics_router
+from app.api.diversity_analytics import router as diversity_analytics_router
+from app.api.criteria_fidelity import router as criteria_fidelity_router
+from app.api.fhir_validation import router as fhir_validation_router
 
 __all__ = [
     # Routers
@@ -216,6 +221,7 @@ __all__ = [
     "timeline_router",
     "users_router",
     "valuesets_router",
+    "clinical_valuesets_router",
     "visualizations_router",
     "vocabulary_mapping_router",
     "websocket_router",
@@ -267,6 +273,10 @@ __all__ = [
     "cohort_phenotypes_router",
     "consent_router",
     "data_quality_dqd_router",
+    "screen_failure_analytics_router",
+    "diversity_analytics_router",
+    "criteria_fidelity_router",
+    "fhir_validation_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",

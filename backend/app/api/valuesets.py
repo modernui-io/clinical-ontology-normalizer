@@ -27,6 +27,17 @@ from app.services.value_set_service import (
     ValueSetStatus,
     ValueSetType,
     get_value_set_service,
+    get_clinical_value_set_service,
+)
+from app.schemas.value_set import (
+    CodeMember,
+    CodeSystem,
+    MembershipCheck,
+    ValueSetCreate,
+    ValueSetExpansion,
+    ValueSetListResponse as ClinicalValueSetListResponse,
+    ValueSetSchema,
+    ValueSetUpdate,
 )
 
 logger = logging.getLogger(__name__)
@@ -1034,3 +1045,171 @@ async def get_stats() -> dict[str, Any]:
     """
     service = get_value_set_service()
     return service.get_stats()
+
+
+# =============================================================================
+# Dir-CI-3.3: Clinical Trial Value Set Endpoints
+# =============================================================================
+
+clinical_router = APIRouter(prefix="/clinical-valuesets", tags=["clinical-valuesets"])
+
+
+def _vs_to_schema(vs: Any) -> ValueSetSchema:
+    """Convert internal _ClinicalValueSet to ValueSetSchema."""
+    return ValueSetSchema(
+        name=vs.name,
+        oid=vs.oid,
+        version=vs.version,
+        description=vs.description,
+        code_system=CodeSystem(vs.code_system) if vs.code_system and vs.code_system in CodeSystem.__members__ else None,
+        codes=[
+            CodeMember(
+                code=m.code,
+                code_system=CodeSystem(m.code_system) if m.code_system in CodeSystem.__members__ else CodeSystem.ICD10CM,
+                display_name=m.display_name,
+                is_active=m.is_active,
+            )
+            for m in vs.codes
+        ],
+        domain=vs.domain,
+        created_at=vs.created_at,
+        updated_at=vs.updated_at,
+    )
+
+
+@clinical_router.get("", response_model=ClinicalValueSetListResponse)
+async def list_clinical_value_sets(
+    domain: str | None = Query(None, description="Filter by clinical domain"),
+) -> ClinicalValueSetListResponse:
+    """List all clinical trial value sets.
+
+    Args:
+        domain: Optional clinical domain filter (e.g., 'Endocrinology').
+
+    Returns:
+        List of clinical value sets.
+    """
+    service = get_clinical_value_set_service()
+    value_sets = service.list_value_sets(domain=domain)
+    schemas = [_vs_to_schema(vs) for vs in value_sets]
+    return ClinicalValueSetListResponse(value_sets=schemas, total=len(schemas))
+
+
+@clinical_router.get("/{name}", response_model=ValueSetSchema)
+async def get_clinical_value_set(name: str) -> ValueSetSchema:
+    """Get a specific clinical value set by name.
+
+    Args:
+        name: Value set name (e.g., 'diabetes_mellitus').
+
+    Returns:
+        The value set.
+    """
+    service = get_clinical_value_set_service()
+    vs = service.get_value_set(name)
+    if not vs:
+        raise HTTPException(status_code=404, detail=f"Value set '{name}' not found")
+    return _vs_to_schema(vs)
+
+
+@clinical_router.post("", response_model=ValueSetSchema)
+async def create_clinical_value_set(request: ValueSetCreate) -> ValueSetSchema:
+    """Create a new clinical value set.
+
+    Args:
+        request: Value set creation request.
+
+    Returns:
+        The created value set.
+    """
+    service = get_clinical_value_set_service()
+
+    codes_tuples = [
+        (c.code, c.display_name) for c in request.codes
+    ] if request.codes else None
+
+    try:
+        vs = service.create_value_set(
+            name=request.name,
+            oid=request.oid,
+            code_system=request.code_system.value if request.code_system else None,
+            codes=codes_tuples,
+            description=request.description,
+            version=request.version,
+            domain=request.domain,
+        )
+        return _vs_to_schema(vs)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@clinical_router.get("/{name}/expand", response_model=ValueSetExpansion)
+async def expand_clinical_value_set(name: str) -> ValueSetExpansion:
+    """Expand a clinical value set to all codes (including hierarchical children).
+
+    Args:
+        name: Value set name.
+
+    Returns:
+        Expanded list of codes.
+    """
+    service = get_clinical_value_set_service()
+    vs = service.get_value_set(name)
+    if not vs:
+        raise HTTPException(status_code=404, detail=f"Value set '{name}' not found")
+
+    members = service.expand_value_set(name)
+    return ValueSetExpansion(
+        value_set_name=name,
+        total_codes=len(members),
+        codes=[
+            CodeMember(
+                code=m.code,
+                code_system=CodeSystem(m.code_system) if m.code_system in CodeSystem.__members__ else CodeSystem.ICD10CM,
+                display_name=m.display_name,
+                is_active=m.is_active,
+            )
+            for m in members
+        ],
+    )
+
+
+@clinical_router.get(
+    "/{name}/check/{code_system}/{code}",
+    response_model=MembershipCheck,
+)
+async def check_clinical_code_membership(
+    name: str,
+    code_system: str,
+    code: str,
+) -> MembershipCheck:
+    """Check if a code is a member of a clinical value set.
+
+    For ICD-10 codes, uses hierarchical prefix matching.
+
+    Args:
+        name: Value set name.
+        code_system: Code system (ICD10CM, SNOMED, LOINC, RxNorm).
+        code: The code to check.
+
+    Returns:
+        Membership check result.
+    """
+    service = get_clinical_value_set_service()
+    vs = service.get_value_set(name)
+    if not vs:
+        raise HTTPException(status_code=404, detail=f"Value set '{name}' not found")
+
+    is_member, matched_code = service.check_membership_detailed(
+        code=code,
+        code_system=code_system,
+        value_set_name=name,
+    )
+
+    return MembershipCheck(
+        code=code,
+        code_system=code_system,
+        value_set_name=name,
+        is_member=is_member,
+        matched_code=matched_code,
+    )

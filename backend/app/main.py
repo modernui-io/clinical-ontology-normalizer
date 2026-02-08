@@ -68,6 +68,7 @@ from app.api import (
     timeline_router,
     users_router,
     valuesets_router,
+    clinical_valuesets_router,
     visualizations_router,
     vocabulary_mapping_router,
     websocket_router,
@@ -117,6 +118,10 @@ from app.api import (
     cohort_phenotypes_router,
     consent_router,
     data_quality_dqd_router,
+    screen_failure_analytics_router,
+    diversity_analytics_router,
+    criteria_fidelity_router,
+    fhir_validation_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -700,6 +705,7 @@ api_v1_router.include_router(etl_router)
 api_v1_router.include_router(export_router)
 api_v1_router.include_router(federated_router)
 api_v1_router.include_router(fhir_router)
+api_v1_router.include_router(fhir_validation_router)
 api_v1_router.include_router(graph_router)
 api_v1_router.include_router(graph_reasoning_router)
 api_v1_router.include_router(graph_rag_router)
@@ -725,6 +731,7 @@ api_v1_router.include_router(tefca_router)
 api_v1_router.include_router(terminology_router)
 api_v1_router.include_router(timeline_router)
 api_v1_router.include_router(valuesets_router)
+api_v1_router.include_router(clinical_valuesets_router)
 api_v1_router.include_router(visualizations_router)
 api_v1_router.include_router(vocabulary_mapping_router)
 api_v1_router.include_router(websocket_router)
@@ -776,6 +783,9 @@ api_v1_router.include_router(terminology_governance_router)
 api_v1_router.include_router(cohort_phenotypes_router)
 api_v1_router.include_router(data_quality_dqd_router)
 api_v1_router.include_router(consent_router)
+api_v1_router.include_router(screen_failure_analytics_router)
+api_v1_router.include_router(diversity_analytics_router)
+api_v1_router.include_router(criteria_fidelity_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)

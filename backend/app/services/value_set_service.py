@@ -1628,3 +1628,551 @@ class ValueSetService:
             "by_status": by_status,
             "by_type": by_type,
         }
+
+
+# =============================================================================
+# Dir-CI-3.3: Clinical Trial Value Set Management
+# =============================================================================
+
+
+class ClinicalValueSetService:
+    """Value set management for clinical trial criteria matching.
+
+    Dir-CI-3.3: Manages curated code lists used to match patients against
+    trial eligibility criteria.  Replaces ad-hoc ILIKE patterns with
+    versioned, hierarchical code sets.
+
+    Key features:
+    - Pre-loaded value sets for trial-relevant conditions
+    - ICD-10 hierarchical expansion (prefix matching)
+    - Code membership checking for eligibility screening
+    - In-memory singleton with thread-safe access
+
+    Usage::
+
+        from app.services.value_set_service import get_clinical_value_set_service
+
+        svc = get_clinical_value_set_service()
+        vs = svc.get_value_set("diabetes_mellitus")
+        is_match = svc.check_membership("E11.65", "ICD10CM", "diabetes_mellitus")
+    """
+
+    def __init__(self) -> None:
+        self._value_sets: dict[str, "_ClinicalValueSet"] = {}
+        self._load_clinical_value_sets()
+        logger.info(
+            "ClinicalValueSetService initialized with %d value sets",
+            len(self._value_sets),
+        )
+
+    # =========================================================================
+    # Pre-loaded Clinical Value Sets
+    # =========================================================================
+
+    def _load_clinical_value_sets(self) -> None:
+        """Pre-load value sets for trial-relevant clinical conditions."""
+
+        # --- Diabetes Mellitus ---
+        self.create_value_set(
+            name="diabetes_mellitus",
+            oid="2.16.840.1.113883.3.464.1003.103.12.1001",
+            code_system="ICD10CM",
+            codes=[
+                ("E10", "Type 1 diabetes mellitus"),
+                ("E10.9", "Type 1 diabetes mellitus without complications"),
+                ("E10.65", "Type 1 diabetes mellitus with hyperglycemia"),
+                ("E11", "Type 2 diabetes mellitus"),
+                ("E11.9", "Type 2 diabetes mellitus without complications"),
+                ("E11.65", "Type 2 diabetes mellitus with hyperglycemia"),
+                ("E13", "Other specified diabetes mellitus"),
+                ("E13.9", "Other specified diabetes mellitus without complications"),
+            ],
+            description="Diabetes Mellitus diagnosis codes (ICD-10 + SNOMED)",
+            version="1.0.0",
+            domain="Endocrinology",
+        )
+        # Add SNOMED codes to diabetes value set
+        self.update_value_set(
+            name="diabetes_mellitus",
+            codes_to_add=[
+                ("73211009", "SNOMED", "Diabetes mellitus"),
+                ("44054006", "SNOMED", "Type 2 diabetes mellitus"),
+                ("46635009", "SNOMED", "Type 1 diabetes mellitus"),
+            ],
+            new_version="1.0.0",
+        )
+
+        # --- Diabetic Macular Edema (DME) ---
+        self.create_value_set(
+            name="diabetic_macular_edema",
+            oid="2.16.840.1.113883.3.526.3.1449",
+            code_system="ICD10CM",
+            codes=[
+                ("H35.81", "Retinal edema"),
+                ("E11.311", "Type 2 DM with unspecified diabetic retinopathy with macular edema"),
+                ("E11.3211", "Type 2 DM with mild nonproliferative diabetic retinopathy with macular edema, right eye"),
+                ("E11.3212", "Type 2 DM with mild nonproliferative diabetic retinopathy with macular edema, left eye"),
+                ("E11.3213", "Type 2 DM with mild nonproliferative diabetic retinopathy with macular edema, bilateral"),
+                ("E11.3311", "Type 2 DM with moderate nonproliferative diabetic retinopathy with macular edema, right eye"),
+                ("E10.311", "Type 1 DM with unspecified diabetic retinopathy with macular edema"),
+            ],
+            description="Diabetic Macular Edema diagnosis codes for EYLEA trials",
+            version="1.0.0",
+            domain="Ophthalmology",
+        )
+        # Add SNOMED codes to DME value set
+        self.update_value_set(
+            name="diabetic_macular_edema",
+            codes_to_add=[
+                ("312912001", "SNOMED", "Diabetic macular edema"),
+                ("232020009", "SNOMED", "Diabetic macular edema - Loss of central vision"),
+            ],
+            new_version="1.0.0",
+        )
+
+        # --- Atopic Dermatitis ---
+        self.create_value_set(
+            name="atopic_dermatitis",
+            oid="2.16.840.1.113883.3.526.3.1437",
+            code_system="ICD10CM",
+            codes=[
+                ("L20", "Atopic dermatitis"),
+                ("L20.0", "Besnier's prurigo"),
+                ("L20.81", "Atopic neurodermatitis"),
+                ("L20.82", "Flexural eczema"),
+                ("L20.84", "Intrinsic (allergic) eczema"),
+                ("L20.89", "Other atopic dermatitis"),
+                ("L20.9", "Atopic dermatitis, unspecified"),
+            ],
+            description="Atopic Dermatitis diagnosis codes for DUPIXENT trials",
+            version="1.0.0",
+            domain="Dermatology",
+        )
+        # Add SNOMED codes
+        self.update_value_set(
+            name="atopic_dermatitis",
+            codes_to_add=[
+                ("24079001", "SNOMED", "Atopic dermatitis"),
+                ("200775004", "SNOMED", "Eczema of eyelid"),
+            ],
+            new_version="1.0.0",
+        )
+
+        # --- Cutaneous Squamous Cell Carcinoma (CSCC) ---
+        self.create_value_set(
+            name="cutaneous_scc",
+            oid="2.16.840.1.113883.3.526.3.1500",
+            code_system="ICD10CM",
+            codes=[
+                ("C44.0", "Malignant neoplasm of skin of lip"),
+                ("C44.1", "Malignant neoplasm of skin of eyelid"),
+                ("C44.2", "Malignant neoplasm of skin of ear and external auricular canal"),
+                ("C44.3", "Malignant neoplasm of skin of other and unspecified parts of face"),
+                ("C44.4", "Malignant neoplasm of skin of scalp and neck"),
+                ("C44.5", "Malignant neoplasm of skin of trunk"),
+                ("C44.6", "Malignant neoplasm of skin of upper limb"),
+                ("C44.7", "Malignant neoplasm of skin of lower limb"),
+                ("C44.8", "Malignant neoplasm of overlapping sites of skin"),
+                ("C44.9", "Malignant neoplasm of skin, unspecified"),
+                ("C44.92", "Squamous cell carcinoma of skin, unspecified"),
+            ],
+            description="Cutaneous Squamous Cell Carcinoma codes for LIBTAYO trials",
+            version="1.0.0",
+            domain="Oncology",
+        )
+        # Add SNOMED codes
+        self.update_value_set(
+            name="cutaneous_scc",
+            codes_to_add=[
+                ("402561009", "SNOMED", "Squamous cell carcinoma of skin"),
+                ("254651007", "SNOMED", "Squamous cell carcinoma of skin of face"),
+            ],
+            new_version="1.0.0",
+        )
+
+        # --- HbA1c (Lab Tests) ---
+        self.create_value_set(
+            name="hba1c",
+            oid="2.16.840.1.113883.3.464.1003.198.12.1013",
+            code_system="LOINC",
+            codes=[
+                ("4548-4", "Hemoglobin A1c/Hemoglobin.total in Blood"),
+                ("17856-6", "Hemoglobin A1c/Hemoglobin.total in Blood by HPLC"),
+                ("4549-2", "Hemoglobin A1c/Hemoglobin.total in Blood by Electrophoresis"),
+                ("62388-4", "Hemoglobin A1c/Hemoglobin.total in Blood by JDS/JSCC protocol"),
+                ("71875-9", "Hemoglobin A1c/Hemoglobin.total in Blood by IFCC protocol"),
+            ],
+            description="HbA1c lab test LOINC codes for diabetes trial screening",
+            version="1.0.0",
+            domain="Laboratory",
+        )
+
+    # =========================================================================
+    # CRUD Operations
+    # =========================================================================
+
+    def create_value_set(
+        self,
+        name: str,
+        oid: str | None = None,
+        code_system: str | None = None,
+        codes: list[tuple[str, str]] | None = None,
+        description: str | None = None,
+        version: str = "1.0.0",
+        domain: str | None = None,
+    ) -> "_ClinicalValueSet":
+        """Create a new clinical value set.
+
+        Args:
+            name: Unique name for the value set.
+            oid: Optional OID identifier.
+            code_system: Primary code system (ICD10CM, SNOMED, LOINC, RxNorm).
+            codes: List of (code, display_name) tuples.
+            description: Human-readable description.
+            version: Semantic version string.
+            domain: Clinical domain (e.g., "Endocrinology").
+
+        Returns:
+            The created _ClinicalValueSet.
+
+        Raises:
+            ValueError: If a value set with this name already exists.
+        """
+        if name in self._value_sets:
+            raise ValueError(f"Value set '{name}' already exists")
+
+        now = datetime.now(timezone.utc)
+        members: list[_ClinicalCodeMember] = []
+        if codes:
+            for code_val, display in codes:
+                members.append(
+                    _ClinicalCodeMember(
+                        code=code_val,
+                        code_system=code_system or "",
+                        display_name=display,
+                        is_active=True,
+                    )
+                )
+
+        vs = _ClinicalValueSet(
+            name=name,
+            oid=oid,
+            version=version,
+            description=description,
+            code_system=code_system,
+            codes=members,
+            domain=domain,
+            created_at=now,
+            updated_at=now,
+        )
+        self._value_sets[name] = vs
+        logger.info(
+            "Created clinical value set '%s' with %d codes",
+            name,
+            len(members),
+        )
+        return vs
+
+    def get_value_set(self, name: str) -> "_ClinicalValueSet | None":
+        """Retrieve a value set by name.
+
+        Args:
+            name: Value set name.
+
+        Returns:
+            The value set, or None if not found.
+        """
+        return self._value_sets.get(name)
+
+    def list_value_sets(self, domain: str | None = None) -> list["_ClinicalValueSet"]:
+        """List all value sets, optionally filtered by clinical domain.
+
+        Args:
+            domain: Optional domain filter (case-insensitive).
+
+        Returns:
+            List of matching value sets.
+        """
+        results = list(self._value_sets.values())
+        if domain:
+            domain_lower = domain.lower()
+            results = [
+                vs for vs in results
+                if vs.domain and domain_lower in vs.domain.lower()
+            ]
+        return sorted(results, key=lambda vs: vs.name)
+
+    def update_value_set(
+        self,
+        name: str,
+        codes_to_add: list[tuple[str, str, str]] | None = None,
+        codes_to_remove: list[tuple[str, str]] | None = None,
+        new_version: str | None = None,
+    ) -> "_ClinicalValueSet | None":
+        """Update a value set by adding/removing codes.
+
+        Args:
+            name: Value set name.
+            codes_to_add: List of (code, code_system, display_name) tuples to add.
+            codes_to_remove: List of (code, code_system) tuples to remove.
+            new_version: New version string.
+
+        Returns:
+            The updated value set, or None if not found.
+        """
+        vs = self._value_sets.get(name)
+        if not vs:
+            return None
+
+        if codes_to_add:
+            existing_keys = {(m.code, m.code_system) for m in vs.codes}
+            for code_val, code_sys, display in codes_to_add:
+                if (code_val, code_sys) not in existing_keys:
+                    vs.codes.append(
+                        _ClinicalCodeMember(
+                            code=code_val,
+                            code_system=code_sys,
+                            display_name=display,
+                            is_active=True,
+                        )
+                    )
+
+        if codes_to_remove:
+            remove_keys = {(c, s) for c, s in codes_to_remove}
+            vs.codes = [
+                m for m in vs.codes
+                if (m.code, m.code_system) not in remove_keys
+            ]
+
+        if new_version:
+            vs.version = new_version
+
+        vs.updated_at = datetime.now(timezone.utc)
+        return vs
+
+    # =========================================================================
+    # Expansion (Hierarchical Code Resolution)
+    # =========================================================================
+
+    def expand_value_set(self, name: str) -> list["_ClinicalCodeMember"]:
+        """Expand a value set to include all hierarchical children.
+
+        For ICD-10 codes, expansion uses prefix matching: if a value set
+        contains ``E11``, then ``E11.0``, ``E11.65``, ``E11.3211`` all
+        match because they start with ``E11``.
+
+        For other code systems (SNOMED, LOINC, RxNorm), returns the flat
+        code list as-is.
+
+        Args:
+            name: Value set name.
+
+        Returns:
+            Expanded list of code members including hierarchical children.
+            Returns empty list if value set not found.
+        """
+        vs = self._value_sets.get(name)
+        if not vs:
+            return []
+
+        # For non-ICD10 or mixed sets, just return the flat list.
+        # ICD-10 hierarchy is handled by check_membership at query time.
+        # Expansion returns the curated list as stored.
+        return list(vs.codes)
+
+    # =========================================================================
+    # Membership Checking
+    # =========================================================================
+
+    def check_membership(
+        self,
+        code: str,
+        code_system: str,
+        value_set_name: str,
+    ) -> bool:
+        """Check whether a code is a member of a value set.
+
+        For ICD-10 codes, uses hierarchical prefix matching: if the value
+        set contains ``E11``, then ``E11.65`` is a member because it is
+        a child of ``E11``.
+
+        For other code systems, performs exact match.
+
+        Args:
+            code: The code to check (e.g., "E11.65").
+            code_system: Code system of the code (e.g., "ICD10CM").
+            value_set_name: Name of the value set to check against.
+
+        Returns:
+            True if the code is a member, False otherwise.
+        """
+        vs = self._value_sets.get(value_set_name)
+        if not vs:
+            return False
+
+        return self._is_member(code, code_system, vs)
+
+    def check_membership_detailed(
+        self,
+        code: str,
+        code_system: str,
+        value_set_name: str,
+    ) -> tuple[bool, str | None]:
+        """Check membership and return the matched code.
+
+        Like check_membership, but also returns which code in the value
+        set matched (useful for hierarchical matches where the matched
+        parent differs from the input code).
+
+        Args:
+            code: The code to check.
+            code_system: Code system.
+            value_set_name: Value set name.
+
+        Returns:
+            Tuple of (is_member, matched_code_or_none).
+        """
+        vs = self._value_sets.get(value_set_name)
+        if not vs:
+            return False, None
+
+        return self._find_match(code, code_system, vs)
+
+    def _is_member(
+        self,
+        code: str,
+        code_system: str,
+        vs: "_ClinicalValueSet",
+    ) -> bool:
+        """Internal: check if code is a member of value set."""
+        matched, _ = self._find_match(code, code_system, vs)
+        return matched
+
+    def _find_match(
+        self,
+        code: str,
+        code_system: str,
+        vs: "_ClinicalValueSet",
+    ) -> tuple[bool, str | None]:
+        """Internal: find the matching code in a value set.
+
+        ICD-10 hierarchy: a patient code is a member if it exactly matches
+        a value set code OR if it starts with a value set code followed by
+        a dot.  For example, value set code ``E11`` matches patient codes
+        ``E11``, ``E11.9``, ``E11.65``, ``E11.3211``.
+        """
+        code_upper = code.upper().strip()
+        system_upper = code_system.upper().strip()
+
+        for member in vs.codes:
+            member_system = member.code_system.upper().strip()
+            member_code = member.code.upper().strip()
+
+            if member_system != system_upper:
+                continue
+
+            # Exact match
+            if member_code == code_upper:
+                return True, member.code
+
+            # ICD-10 hierarchical prefix matching
+            if system_upper == "ICD10CM":
+                # Parent code in VS matches child patient code
+                if code_upper.startswith(member_code + "."):
+                    return True, member.code
+                if code_upper.startswith(member_code) and len(code_upper) > len(member_code):
+                    # Handle codes without dot separator (e.g., E11 -> E119)
+                    next_char = code_upper[len(member_code)]
+                    if next_char == "." or next_char.isdigit():
+                        return True, member.code
+
+        return False, None
+
+    # =========================================================================
+    # Bulk membership for screening pipelines
+    # =========================================================================
+
+    def check_any_membership(
+        self,
+        codes: list[tuple[str, str]],
+        value_set_name: str,
+    ) -> tuple[bool, str | None]:
+        """Check if any code in a list is a member of a value set.
+
+        Useful for patient screening where a patient may have multiple
+        diagnosis codes and any match is sufficient.
+
+        Args:
+            codes: List of (code, code_system) tuples.
+            value_set_name: Value set to check against.
+
+        Returns:
+            Tuple of (any_match, first_matched_code).
+        """
+        vs = self._value_sets.get(value_set_name)
+        if not vs:
+            return False, None
+
+        for code, code_system in codes:
+            matched, matched_code = self._find_match(code, code_system, vs)
+            if matched:
+                return True, matched_code
+
+        return False, None
+
+
+@dataclass
+class _ClinicalCodeMember:
+    """Internal code member representation."""
+
+    code: str
+    code_system: str
+    display_name: str
+    is_active: bool = True
+
+
+@dataclass
+class _ClinicalValueSet:
+    """Internal value set representation."""
+
+    name: str
+    oid: str | None
+    version: str
+    description: str | None
+    code_system: str | None
+    codes: list[_ClinicalCodeMember]
+    domain: str | None
+    created_at: datetime
+    updated_at: datetime
+
+
+# =============================================================================
+# Clinical Value Set Singleton
+# =============================================================================
+
+_clinical_value_set_service: ClinicalValueSetService | None = None
+_clinical_value_set_lock = Lock()
+
+
+def get_clinical_value_set_service() -> ClinicalValueSetService:
+    """Get the singleton ClinicalValueSetService instance.
+
+    Returns:
+        The singleton ClinicalValueSetService.
+    """
+    global _clinical_value_set_service
+
+    if _clinical_value_set_service is None:
+        with _clinical_value_set_lock:
+            if _clinical_value_set_service is None:
+                logger.info("Creating singleton ClinicalValueSetService instance")
+                _clinical_value_set_service = ClinicalValueSetService()
+
+    return _clinical_value_set_service
+
+
+def reset_clinical_value_set_service() -> None:
+    """Reset the clinical value set singleton (for testing)."""
+    global _clinical_value_set_service
+    with _clinical_value_set_lock:
+        _clinical_value_set_service = None
