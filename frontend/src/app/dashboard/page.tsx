@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,17 +24,16 @@ import {
   TrendingUp,
   BarChart3,
   RefreshCw,
+  FlaskConical,
 } from "lucide-react";
 
-// Mock data - In production, this would come from the API
 interface DashboardStats {
   totalDocuments: number;
-  documentsThisWeek: number;
   totalPatients: number;
-  patientsThisWeek: number;
-  processingJobs: number;
-  completedJobs: number;
-  failedJobs: number;
+  activeTrials: number;
+  completedDocs: number;
+  processingDocs: number;
+  failedDocs: number;
 }
 
 interface RecentActivity {
@@ -47,59 +46,39 @@ interface RecentActivity {
   documentId?: string;
 }
 
-const mockStats: DashboardStats = {
-  totalDocuments: 1247,
-  documentsThisWeek: 89,
-  totalPatients: 342,
-  patientsThisWeek: 12,
-  processingJobs: 3,
-  completedJobs: 156,
-  failedJobs: 2,
-};
+function formatTimeAgo(isoTimestamp: string): string {
+  const now = Date.now();
+  const then = new Date(isoTimestamp).getTime();
+  const diffMs = now - then;
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return "just now";
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHours = Math.floor(diffMin / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays}d ago`;
+}
 
-const mockRecentActivity: RecentActivity[] = [
-  {
-    id: "1",
-    type: "document_processed",
-    title: "Discharge Summary Processed",
-    description: "Patient John Smith - 15 clinical facts extracted",
-    timestamp: "5 minutes ago",
-    patientId: "P001",
-    documentId: "D001",
-  },
-  {
-    id: "2",
-    type: "document_uploaded",
-    title: "Progress Note Uploaded",
-    description: "Patient Mary Johnson - Queued for processing",
-    timestamp: "12 minutes ago",
-    patientId: "P002",
-    documentId: "D002",
-  },
-  {
-    id: "3",
-    type: "job_completed",
-    title: "NLP Pipeline Completed",
-    description: "Batch processing of 5 documents finished",
-    timestamp: "25 minutes ago",
-  },
-  {
-    id: "4",
-    type: "patient_added",
-    title: "New Patient Added",
-    description: "Robert Williams added to the system",
-    timestamp: "1 hour ago",
-    patientId: "P003",
-  },
-  {
-    id: "5",
-    type: "job_failed",
-    title: "Processing Failed",
-    description: "Document D103 - Invalid format detected",
-    timestamp: "2 hours ago",
-    documentId: "D103",
-  },
-];
+function mapAuditAction(action: string, resourceType: string): RecentActivity["type"] {
+  if (action === "create" && resourceType === "document") return "document_uploaded";
+  if (action === "read" && resourceType === "document") return "document_processed";
+  if (action === "create" && resourceType === "patient") return "patient_added";
+  if (action === "create" && resourceType === "system") return "job_completed";
+  if (resourceType === "patient") return "patient_added";
+  if (resourceType === "document") return "document_processed";
+  return "job_completed";
+}
+
+function describeAuditLog(log: { action: string; resource_type: string; request_path: string; details?: Record<string, unknown> }): { title: string; description: string } {
+  const action = log.action.charAt(0).toUpperCase() + log.action.slice(1);
+  const resource = log.resource_type.charAt(0).toUpperCase() + log.resource_type.slice(1);
+  const durationMs = log.details?.duration_ms;
+  const durationStr = typeof durationMs === "number" ? ` (${durationMs.toFixed(0)}ms)` : "";
+  return {
+    title: `${action} ${resource}`,
+    description: `${log.request_path}${durationStr}`,
+  };
+}
 
 const activityIcons: Record<RecentActivity["type"], React.ReactNode> = {
   document_uploaded: <Upload className="h-4 w-4 text-blue-500" />,
@@ -110,23 +89,67 @@ const activityIcons: Record<RecentActivity["type"], React.ReactNode> = {
 };
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState<DashboardStats>(mockStats);
-  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>(mockRecentActivity);
-  const [isLoading, setIsLoading] = useState(false);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const refreshData = async () => {
+  const refreshData = useCallback(async () => {
     setIsLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setStats(mockStats);
-    setRecentActivity(mockRecentActivity);
-    setIsLoading(false);
-  };
+    try {
+      const [docsRes, patientsRes, trialsRes, auditRes] = await Promise.all([
+        fetch("/api/documents?page=1&page_size=1").then(r => r.json()),
+        fetch("/api/patients?page=1&page_size=1").then(r => r.json()),
+        fetch("/api/trials").then(r => r.json()),
+        fetch("/api/audit/logs?limit=10").then(r => r.json()),
+      ]);
+
+      // Count document statuses from a larger fetch
+      const docsForStatus = await fetch("/api/documents?page=1&page_size=100").then(r => r.json());
+      const docs = docsForStatus.documents || [];
+      const completedDocs = docs.filter((d: { status: string }) => d.status === "completed").length;
+      const processingDocs = docs.filter((d: { status: string }) => d.status === "processing" || d.status === "queued").length;
+      const failedDocs = docs.filter((d: { status: string }) => d.status === "failed").length;
+
+      const activeTrials = (trialsRes.trials || []).filter(
+        (t: { status: string }) => t.status === "recruiting"
+      ).length;
+
+      setStats({
+        totalDocuments: docsRes.total ?? 0,
+        totalPatients: patientsRes.total ?? 0,
+        activeTrials,
+        completedDocs,
+        processingDocs,
+        failedDocs,
+      });
+
+      // Map audit logs to activity feed
+      const logs = auditRes.logs || [];
+      const activities: RecentActivity[] = logs.map(
+        (log: { id: string; action: string; resource_type: string; request_path: string; timestamp: string; resource_id?: string; patient_id?: string; details?: Record<string, unknown> }, idx: number) => {
+          const { title, description } = describeAuditLog(log);
+          return {
+            id: log.id || String(idx),
+            type: mapAuditAction(log.action, log.resource_type),
+            title,
+            description,
+            timestamp: formatTimeAgo(log.timestamp),
+            patientId: log.patient_id || undefined,
+            documentId: log.resource_type === "document" ? log.resource_id || undefined : undefined,
+          };
+        }
+      );
+      setRecentActivity(activities);
+    } catch (err) {
+      console.error("Failed to load dashboard data:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    // In production, fetch real data from API
-    // refreshData();
-  }, []);
+    refreshData();
+  }, [refreshData]);
 
   return (
     <div className="p-6 space-y-6">
@@ -158,12 +181,11 @@ export default function DashboardPage() {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalDocuments.toLocaleString()}</div>
+            <div className="text-2xl font-bold">
+              {stats ? stats.totalDocuments.toLocaleString() : "--"}
+            </div>
             <p className="text-xs text-muted-foreground">
-              <span className="text-green-600 dark:text-green-400">
-                +{stats.documentsThisWeek}
-              </span>{" "}
-              this week
+              {stats ? `${stats.completedDocs} completed` : "Loading..."}
             </p>
           </CardContent>
         </Card>
@@ -175,26 +197,27 @@ export default function DashboardPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalPatients.toLocaleString()}</div>
+            <div className="text-2xl font-bold">
+              {stats ? stats.totalPatients.toLocaleString() : "--"}
+            </div>
             <p className="text-xs text-muted-foreground">
-              <span className="text-green-600 dark:text-green-400">
-                +{stats.patientsThisWeek}
-              </span>{" "}
-              new patients
+              {stats ? "in knowledge graph" : "Loading..."}
             </p>
           </CardContent>
         </Card>
 
-        {/* Processing Jobs Card */}
+        {/* Active Trials Card */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Processing Jobs</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Active Trials</CardTitle>
+            <FlaskConical className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.processingJobs}</div>
+            <div className="text-2xl font-bold">
+              {stats ? stats.activeTrials : "--"}
+            </div>
             <p className="text-xs text-muted-foreground">
-              {stats.completedJobs} completed today
+              {stats ? "currently recruiting" : "Loading..."}
             </p>
           </CardContent>
         </Card>
@@ -207,15 +230,14 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {stats.completedJobs + stats.failedJobs > 0
-                ? Math.round(
-                    (stats.completedJobs / (stats.completedJobs + stats.failedJobs)) * 100
-                  )
-                : 100}
-              %
+              {stats
+                ? stats.completedDocs + stats.failedDocs > 0
+                  ? `${Math.round((stats.completedDocs / (stats.completedDocs + stats.failedDocs)) * 100)}%`
+                  : "100%"
+                : "--"}
             </div>
             <p className="text-xs text-muted-foreground">
-              {stats.failedJobs} failed jobs
+              {stats ? `${stats.failedDocs} failed` : "Loading..."}
             </p>
           </CardContent>
         </Card>
@@ -365,7 +387,7 @@ export default function DashboardPage() {
               <div>
                 <p className="text-sm font-medium">Job Queue</p>
                 <p className="text-xs text-muted-foreground">
-                  {stats.processingJobs} pending
+                  {stats?.processingDocs ?? 0} pending
                 </p>
               </div>
             </div>

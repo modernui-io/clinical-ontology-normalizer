@@ -551,6 +551,16 @@ function HeroSection() {
   const bgY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
   const orbScale = useTransform(scrollYProgress, [0, 1], [1, 1.3]);
 
+  const [trialCount, setTrialCount] = useState("3");
+  useEffect(() => {
+    fetch("/api/trials/stats")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d?.total_trials) setTrialCount(String(d.total_trials));
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <section
       ref={heroRef}
@@ -742,7 +752,7 @@ function HeroSection() {
             <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-white/[0.04]">
               {[
                 {
-                  value: "3",
+                  value: trialCount,
                   label: "Active Regeneron Trials",
                   accent: false,
                 },
@@ -838,6 +848,37 @@ const trials = [
 function TherapeuticPipelineSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-60px" });
+  const [trialCards, setTrialCards] = useState(trials);
+
+  useEffect(() => {
+    async function fetchTrialData() {
+      try {
+        const res = await fetch("/api/trials");
+        if (!res.ok) return;
+        const data = await res.json();
+        const apiTrials: Array<{ nct_number: string; enrollment_target: number; enrolled_count: number }> = data.trials || [];
+        if (apiTrials.length === 0) return;
+
+        // Match API trials to card data by NCT number and update stats
+        setTrialCards((prev) =>
+          prev.map((card) => {
+            const match = apiTrials.find((t) => t.nct_number === card.nct);
+            if (!match) return card;
+            const target = match.enrollment_target || 0;
+            const enrolled = match.enrolled_count || 0;
+            return {
+              ...card,
+              stat: `${enrolled} / ${target}`,
+              statLabel: "Enrolled / Target",
+            };
+          })
+        );
+      } catch {
+        // Keep defaults on error
+      }
+    }
+    fetchTrialData();
+  }, []);
 
   return (
     <section
@@ -868,7 +909,7 @@ function TherapeuticPipelineSection() {
         </Reveal>
 
         <div className="grid md:grid-cols-3 gap-5">
-          {trials.map((trial, i) => {
+          {trialCards.map((trial, i) => {
             const Icon = trial.icon;
             return (
               <motion.div
@@ -1052,6 +1093,89 @@ function EnrollmentPipelineSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-60px" });
 
+  const [pipeline, setPipeline] = useState(pipelineSteps);
+  const [conversions, setConversions] = useState(conversionMetrics);
+
+  useEffect(() => {
+    async function fetchPipelineData() {
+      try {
+        const res = await fetch("/api/trials");
+        if (!res.ok) return;
+        const data = await res.json();
+        const trialIds: string[] = (data.trials || []).map((t: { id: string }) => t.id);
+        if (trialIds.length === 0) return;
+
+        const dashboards = await Promise.all(
+          trialIds.map(async (id) => {
+            const r = await fetch(`/api/trials/${id}/dashboard`);
+            if (!r.ok) return null;
+            return r.json();
+          })
+        );
+
+        const valid = dashboards.filter(Boolean);
+        if (valid.length === 0) return;
+
+        // Aggregate pipeline counts across all trials
+        // "Screened" = total_screened + total_eligible + total_enrolled + total_active + total_completed + total_screen_failed
+        // But the dashboard already has cumulative-style counts:
+        //   total_screened includes everyone who was screened (could overlap with eligible)
+        // Actually the dashboard counts are per-status, so we accumulate cumulatively:
+        const totals = valid.reduce(
+          (acc, d) => ({
+            candidates: acc.candidates + (d.total_candidates || 0),
+            screened: acc.screened + (d.total_screened || 0),
+            eligible: acc.eligible + (d.total_eligible || 0),
+            enrolled: acc.enrolled + (d.total_enrolled || 0),
+            active: acc.active + (d.total_active || 0),
+            completed: acc.completed + (d.total_completed || 0),
+            screenFailed: acc.screenFailed + (d.total_screen_failed || 0),
+            withdrawn: acc.withdrawn + (d.total_withdrawn || 0),
+          }),
+          { candidates: 0, screened: 0, eligible: 0, enrolled: 0, active: 0, completed: 0, screenFailed: 0, withdrawn: 0 }
+        );
+
+        // Build cumulative pipeline: each step includes patients who progressed further
+        const screened = totals.screened + totals.eligible + totals.enrolled + totals.active + totals.completed + totals.screenFailed;
+        const eligible = totals.eligible + totals.enrolled + totals.active + totals.completed;
+        const enrolled = totals.enrolled + totals.active + totals.completed;
+        const active = totals.active + totals.completed;
+        const completed = totals.completed;
+
+        if (screened === 0) return;
+
+        setPipeline([
+          { label: "Screened", count: screened, pct: 100, color: "#64748B" },
+          { label: "Eligible", count: eligible, pct: Math.round((eligible / screened) * 100), color: "#045AA9" },
+          { label: "Enrolled", count: enrolled, pct: Math.round((enrolled / screened) * 100), color: "#14B8A6" },
+          { label: "Active", count: active, pct: Math.round((active / screened) * 100), color: "#10B981" },
+          { label: "Completed", count: completed, pct: Math.round((completed / screened) * 100), color: "#059669" },
+        ]);
+
+        setConversions([
+          {
+            rate: eligible > 0 ? parseFloat(((eligible / screened) * 100).toFixed(1)) : 0,
+            label: "Screen-to-Eligible",
+            color: "#045AA9",
+          },
+          {
+            rate: eligible > 0 ? parseFloat(((enrolled / eligible) * 100).toFixed(1)) : 0,
+            label: "Eligible-to-Enrolled",
+            color: "#14B8A6",
+          },
+          {
+            rate: enrolled > 0 ? parseFloat(((active / enrolled) * 100).toFixed(1)) : 0,
+            label: "Enrolled-to-Active",
+            color: "#10B981",
+          },
+        ]);
+      } catch {
+        // Keep defaults on error
+      }
+    }
+    fetchPipelineData();
+  }, []);
+
   return (
     <section
       className="py-24 px-6"
@@ -1113,7 +1237,7 @@ function EnrollmentPipelineSection() {
           <div className="p-8">
             {/* Pipeline funnel with pulse dots */}
             <div className="flex items-stretch gap-2 md:gap-3">
-              {pipelineSteps.map((step, i) => (
+              {pipeline.map((step, i) => (
                 <div
                   key={step.label}
                   className="flex-1 flex items-center gap-2 md:gap-3"
@@ -1148,10 +1272,10 @@ function EnrollmentPipelineSection() {
                       />
                     </div>
                   </div>
-                  {i < pipelineSteps.length - 1 && (
+                  {i < pipeline.length - 1 && (
                     <div className="flex flex-col items-center gap-1">
                       <PulseDot
-                        color={pipelineSteps[i + 1].color}
+                        color={pipeline[i + 1].color}
                         delay={0.8 + i * 0.2}
                       />
                       <ChevronRight className="h-3 w-3 text-white/10 flex-shrink-0" />
@@ -1163,7 +1287,7 @@ function EnrollmentPipelineSection() {
 
             {/* Conversion metrics with animated decimals */}
             <div className="mt-10 pt-6 border-t border-white/[0.04] grid grid-cols-3 gap-3">
-              {conversionMetrics.map((metric) => (
+              {conversions.map((metric) => (
                 <div
                   key={metric.label}
                   className="text-center rounded-xl p-4 border border-white/[0.04] bg-white/[0.015]"

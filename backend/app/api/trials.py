@@ -87,16 +87,18 @@ async def list_trials(
     search: str | None = Query(None, description="Search in name, description, NCT number"),
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
+    session: AsyncSession = Depends(get_db),
 ) -> TrialListResponse:
     """List all clinical trials."""
     service = get_trial_service()
-    trials, total = service.list_trials(
+    trials, total = await service.list_trials(
         status=status,
         sponsor=sponsor,
         therapeutic_area=therapeutic_area,
         search=search,
         limit=limit,
         offset=offset,
+        session=session,
     )
     return TrialListResponse(trials=trials, total=total, offset=offset, limit=limit)
 
@@ -121,10 +123,10 @@ async def create_trial(create: TrialCreate) -> TrialResponse:
     summary="Get trial service statistics",
     description="Get aggregate statistics across all trials.",
 )
-async def get_trial_stats() -> dict:
+async def get_trial_stats(session: AsyncSession = Depends(get_db)) -> dict:
     """Get trial service statistics."""
     service = get_trial_service()
-    return service.get_stats()
+    return await service.get_stats(session=session)
 
 
 @router.get(
@@ -133,10 +135,10 @@ async def get_trial_stats() -> dict:
     summary="Get trial details",
     description="Get full details of a clinical trial including criteria and enrollment status.",
 )
-async def get_trial(trial_id: str) -> TrialResponse:
+async def get_trial(trial_id: str, session: AsyncSession = Depends(get_db)) -> TrialResponse:
     """Get a trial by ID."""
     service = get_trial_service()
-    trial = service.get_trial(trial_id)
+    trial = await service.get_trial(trial_id, session=session)
     if not trial:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -312,10 +314,10 @@ async def list_enrollments(
     summary="Get trial enrollment dashboard",
     description="Get enrollment progress and status breakdown for a trial.",
 )
-async def get_trial_dashboard(trial_id: str) -> TrialDashboard:
+async def get_trial_dashboard(trial_id: str, session: AsyncSession = Depends(get_db)) -> TrialDashboard:
     """Get enrollment dashboard for a trial."""
     service = get_trial_service()
-    result = service.get_dashboard(trial_id)
+    result = await service.get_dashboard(trial_id, session=session)
     if not result:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

@@ -44,7 +44,7 @@ export interface Document {
   text: string;
   metadata: Record<string, unknown>;
   status: string;
-  job_id: string;
+  job_id: string | null;
   created_at: string;
   processed_at: string | null;
 }
@@ -71,9 +71,15 @@ export interface JobListResponse {
 export interface Patient {
   id: string;
   external_id: string;
+  name: string;
+  gender: string;
+  birth_date: string;
   created_at: string;
   document_count: number;
   fact_count: number;
+  node_count: number;
+  conditions: string[];
+  medications: string[];
 }
 
 export interface PatientListResponse {

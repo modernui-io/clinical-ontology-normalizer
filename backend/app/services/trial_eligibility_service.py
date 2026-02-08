@@ -26,7 +26,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.clinical_fact import ClinicalFact
 from app.models.knowledge_graph import KGNode
-from app.models.trial import EnrollmentStatus, TrialPhase, TrialStatus
+from app.models.trial import EnrollmentStatus, Trial, TrialEnrollment, TrialPhase, TrialStatus
 from app.schemas.base import Assertion, Domain
 from app.schemas.knowledge_graph import NodeType
 from app.schemas.trial import (
@@ -188,6 +188,7 @@ class TrialEligibilityService:
 
     def __init__(self):
         self._trials: dict[str, _TrialRecord] = {}
+        self._loaded_from_db: bool = False
         self._init_demo_trials()
 
     # ==========================================================================
@@ -356,8 +357,14 @@ class TrialEligibilityService:
             ),
         ]
 
-        for trial_create in demo_trials:
-            trial_id = str(uuid4())
+        # Stable UUIDs matching seed_demo_data.py so in-memory and DB IDs agree
+        stable_ids = [
+            "00000000-de00-0002-0000-000000000002",  # DUPIXENT (LIBERTY ADCHRONOS)
+            "00000000-de00-0003-0000-000000000003",  # LIBTAYO
+            "00000000-de00-0001-0000-000000000001",  # EYLEA HD
+        ]
+
+        for trial_create, trial_id in zip(demo_trials, stable_ids):
             record = _TrialRecord(
                 id=trial_id,
                 create=trial_create,
@@ -365,6 +372,117 @@ class TrialEligibilityService:
             self._trials[trial_id] = record
 
         logger.info(f"Initialized {len(demo_trials)} demo trials")
+
+    # ==========================================================================
+    # DB Loading
+    # ==========================================================================
+
+    async def load_from_db(self, session: AsyncSession) -> None:
+        """Load trials and enrollments from the database.
+
+        If the DB has trial rows, clears the in-memory dict and replaces
+        it with DB data so that IDs always match.
+        """
+        if self._loaded_from_db:
+            return
+
+        try:
+            result = await session.execute(
+                select(Trial).where(Trial.deleted_at.is_(None))
+            )
+            db_trials = result.scalars().all()
+
+            if not db_trials:
+                logger.info("No trials in DB; keeping in-memory demo trials")
+                self._loaded_from_db = True
+                return
+
+            # Merge DB records with in-memory demo trials.
+            # DB provides stable IDs and enrollment data; in-memory
+            # provides eligibility criteria if the DB columns are NULL.
+            existing_by_name: dict[str, _TrialRecord] = {
+                r.name: r for r in self._trials.values()
+            }
+            merged: dict[str, _TrialRecord] = {}
+
+            for t in db_trials:
+                # Prefer DB criteria; fall back to in-memory demo criteria
+                demo = existing_by_name.get(t.name)
+                inc = t.inclusion_criteria or (demo.inclusion_criteria if demo else None)
+                exc = t.exclusion_criteria or (demo.exclusion_criteria if demo else None)
+
+                trial_create = TrialCreate(
+                    name=t.name,
+                    nct_number=t.nct_number,
+                    protocol_id=t.protocol_id,
+                    sponsor=t.sponsor,
+                    phase=t.phase,
+                    status=t.status,
+                    description=t.description,
+                    therapeutic_area=t.therapeutic_area,
+                    indication_codes=t.indication_codes,
+                    inclusion_criteria=inc,
+                    exclusion_criteria=exc,
+                    enrollment_target=t.enrollment_target,
+                    site_count=t.site_count,
+                    start_date=t.start_date,
+                    end_date=t.end_date,
+                )
+                record = _TrialRecord(
+                    id=str(t.id),
+                    create=trial_create,
+                )
+                record.created_at = t.created_at
+
+                merged[str(t.id)] = record
+
+            self._trials = merged
+
+            # Load enrollments for each trial
+            enrollment_result = await session.execute(select(TrialEnrollment))
+            db_enrollments = enrollment_result.scalars().all()
+
+            for e in db_enrollments:
+                trial_record = self._trials.get(str(e.trial_id))
+                if not trial_record:
+                    continue
+
+                enrollment_create = EnrollmentCreate(
+                    patient_id=e.patient_id,
+                    enrollment_status=e.enrollment_status,
+                    site_id=e.site_id,
+                    notes=e.notes,
+                )
+                enrollment = _EnrollmentRecord(
+                    id=str(e.id),
+                    trial_id=str(e.trial_id),
+                    create=enrollment_create,
+                )
+                enrollment.match_score = e.match_score
+                enrollment.criteria_met = e.criteria_met
+                enrollment.criteria_failed = e.criteria_failed
+                enrollment.screening_date = e.screening_date
+                enrollment.enrollment_date = e.enrollment_date
+                enrollment.withdrawal_date = e.withdrawal_date
+                enrollment.withdrawal_reason = e.withdrawal_reason
+                enrollment.created_at = e.created_at
+
+                trial_record.enrollments[e.patient_id] = enrollment
+
+            self._loaded_from_db = True
+            logger.info(
+                f"Loaded {len(db_trials)} trials and {len(db_enrollments)} "
+                f"enrollments from DB"
+            )
+
+        except Exception:
+            logger.warning("Could not load trials from DB; keeping in-memory data", exc_info=True)
+            self._loaded_from_db = True
+
+    async def _ensure_loaded(self, session: AsyncSession) -> None:
+        """Ensure trials are loaded from DB on first request."""
+        if not self._loaded_from_db:
+            await self.load_from_db(session)
 
     # ==========================================================================
     # Criterion SQL helpers
@@ -486,12 +604,14 @@ class TrialEligibilityService:
         logger.info(f"Created trial: {trial_id} - {create.name}")
         return record.to_response()
 
-    def get_trial(self, trial_id: str) -> TrialResponse | None:
+    async def get_trial(self, trial_id: str, *, session: AsyncSession | None = None) -> TrialResponse | None:
         """Get a trial by ID."""
+        if session:
+            await self._ensure_loaded(session)
         record = self._trials.get(trial_id)
         return record.to_response() if record else None
 
-    def list_trials(
+    async def list_trials(
         self,
         status: TrialStatus | None = None,
         sponsor: str | None = None,
@@ -499,8 +619,11 @@ class TrialEligibilityService:
         search: str | None = None,
         limit: int = 50,
         offset: int = 0,
+        session: AsyncSession | None = None,
     ) -> tuple[list[TrialSummary], int]:
         """List trials with filtering."""
+        if session:
+            await self._ensure_loaded(session)
         records = list(self._trials.values())
 
         if status:
@@ -570,6 +693,7 @@ class TrialEligibilityService:
         intersects inclusion results (AND logic), subtracts exclusion matches,
         and returns scored candidates.
         """
+        await self._ensure_loaded(session)
         record = self._trials.get(trial_id)
         if not record:
             return None
@@ -804,6 +928,7 @@ class TrialEligibilityService:
         evidence fact IDs and confidence scores, and returns a weighted
         match score with a full per-criterion audit trail.
         """
+        await self._ensure_loaded(session)
         record = self._trials.get(trial_id)
         if not record:
             return None
@@ -940,6 +1065,7 @@ class TrialEligibilityService:
         session: AsyncSession,
     ) -> list[dict[str, Any]]:
         """Auto-screen a patient against all active trials after FHIR import."""
+        await self._ensure_loaded(session)
         results = []
         for trial_id, record in self._trials.items():
             if record.status != TrialStatus.RECRUITING:
@@ -986,6 +1112,7 @@ class TrialEligibilityService:
         session: AsyncSession,
     ) -> EnrollmentResponse | None:
         """Add a patient to a trial's enrollment pipeline."""
+        await self._ensure_loaded(session)
         record = self._trials.get(trial_id)
         if not record:
             return None
@@ -1069,8 +1196,10 @@ class TrialEligibilityService:
     # Dashboard
     # ==========================================================================
 
-    def get_dashboard(self, trial_id: str) -> TrialDashboard | None:
+    async def get_dashboard(self, trial_id: str, *, session: AsyncSession | None = None) -> TrialDashboard | None:
         """Get enrollment dashboard for a trial."""
+        if session:
+            await self._ensure_loaded(session)
         record = self._trials.get(trial_id)
         if not record:
             return None
@@ -1102,8 +1231,10 @@ class TrialEligibilityService:
     # Stats
     # ==========================================================================
 
-    def get_stats(self) -> dict[str, Any]:
+    async def get_stats(self, *, session: AsyncSession | None = None) -> dict[str, Any]:
         """Get service-level statistics."""
+        if session:
+            await self._ensure_loaded(session)
         trials_by_status = {}
         total_enrolled = 0
         for trial in self._trials.values():

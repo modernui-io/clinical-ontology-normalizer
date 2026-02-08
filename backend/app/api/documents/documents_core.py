@@ -6,9 +6,9 @@ import logging
 from typing import Annotated
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.errors import (
@@ -33,6 +33,79 @@ router = APIRouter(prefix="/documents", tags=["Documents"])
 
 # Type alias for database session dependency (avoids B008 linting issue)
 DbSession = Annotated[AsyncSession, Depends(get_db)]
+
+
+class DocumentListResponse(BaseModel):
+    """Paginated list of documents."""
+
+    documents: list[Document]
+    total: int
+    page: int
+    page_size: int
+
+
+@router.get(
+    "",
+    response_model=DocumentListResponse,
+    summary="List clinical documents",
+    description="Retrieve a paginated list of clinical documents.",
+)
+async def list_documents(
+    db: DbSession,
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(10, ge=1, le=100, description="Items per page"),
+) -> DocumentListResponse:
+    """List all clinical documents with pagination.
+
+    Args:
+        db: Database session.
+        page: Page number (1-indexed).
+        page_size: Number of documents per page.
+
+    Returns:
+        DocumentListResponse with documents, total count, and pagination info.
+    """
+    offset = (page - 1) * page_size
+
+    # Count total (excluding soft-deleted)
+    count_stmt = select(func.count(DocumentModel.id)).where(
+        DocumentModel.deleted_at.is_(None)
+    )
+    total_result = await db.execute(count_stmt)
+    total = total_result.scalar_one()
+
+    # Fetch page of documents
+    stmt = (
+        select(DocumentModel)
+        .where(DocumentModel.deleted_at.is_(None))
+        .order_by(DocumentModel.created_at.desc())
+        .offset(offset)
+        .limit(page_size)
+    )
+    result = await db.execute(stmt)
+    rows = result.scalars().all()
+
+    documents = [
+        Document(
+            id=UUID(row.id),
+            patient_id=row.patient_id,
+            note_type=row.note_type,
+            text=row.text,
+            metadata=row.extra_metadata,
+            status=row.status,
+            job_id=row.job_id,
+            created_at=row.created_at,
+            processed_at=row.processed_at,
+        )
+        for row in rows
+    ]
+
+    return DocumentListResponse(
+        documents=documents,
+        total=total,
+        page=page,
+        page_size=page_size,
+    )
 
 
 @router.post(
