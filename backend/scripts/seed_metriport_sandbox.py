@@ -168,10 +168,10 @@ async def seed_sandbox() -> dict:
     results = {}
 
     async with MetriportService() as mp:
-        # Verify connectivity by checking the organization
+        # Verify connectivity by listing the facility
         try:
-            org = await mp.get_organization()
-            logger.info(f"Connected to Metriport org: {org.get('name', 'unknown')}")
+            fac = await mp.get_facility(facility_id)
+            logger.info(f"Connected to Metriport facility: {fac.get('name', 'unknown')}")
         except MetriportError as e:
             logger.error(f"Failed to connect to Metriport: {e}")
             sys.exit(1)

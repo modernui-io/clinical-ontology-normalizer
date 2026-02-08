@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, JSON, Enum, Float, ForeignKey, Index, Integer, String
+from sqlalchemy import BigInteger, DateTime, JSON, Enum, Float, ForeignKey, Index, Integer, String
 from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -46,7 +46,7 @@ class KGNode(SoftDeleteMixin, Base):
         index=True,
     )
     omop_concept_id: Mapped[int | None] = mapped_column(
-        Integer,
+        BigInteger,
         nullable=True,
         index=True,
     )

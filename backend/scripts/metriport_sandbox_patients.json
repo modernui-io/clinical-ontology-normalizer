@@ -1,0 +1,82 @@
+{
+  "created_at": "2026-02-08T17:06:48.999766+00:00",
+  "facility_id": "019c3e0e-a03d-74bd-a65d-65bc5fa9e2d4",
+  "base_url": "https://api.sandbox.metriport.com",
+  "patients": {
+    "Jane Smith": {
+      "metriport_id": "019c3e38-4c9b-73cb-a764-a6c9a6b68d7d",
+      "status": "created",
+      "consolidated_query": {
+        "error": "Metriport API error 404: {'status': 404, 'title': 'NotFoundError', 'detail': 'Could not find patient', 'name': 'Not Found', 'additionalInfo': {'id': 'consolidated'}}"
+      },
+      "document_query": {
+        "download": {
+          "status": "processing"
+        },
+        "requestId": "019c3e38-4ff0-7dac-bbca-bf9f3dfa2887",
+        "startedAt": "2026-02-08T17:06:43.838Z",
+        "triggerConsolidated": false
+      }
+    },
+    "Chris Smith": {
+      "metriport_id": "019c3e38-51b0-7f53-8174-ae769b005597",
+      "status": "created",
+      "consolidated_query": {
+        "error": "Metriport API error 404: {'status': 404, 'title': 'NotFoundError', 'detail': 'Could not find patient', 'name': 'Not Found', 'additionalInfo': {'id': 'consolidated'}}"
+      },
+      "document_query": {
+        "download": {
+          "status": "processing"
+        },
+        "requestId": "019c3e38-544c-770e-87a5-461dac833c79",
+        "startedAt": "2026-02-08T17:06:45.018Z",
+        "triggerConsolidated": false
+      }
+    },
+    "Ollie Brown": {
+      "metriport_id": "019c3e38-5680-7cf6-b306-e8c1ab8c8396",
+      "status": "created",
+      "consolidated_query": {
+        "error": "Metriport API error 404: {'status': 404, 'title': 'NotFoundError', 'detail': 'Could not find patient', 'name': 'Not Found', 'additionalInfo': {'id': 'consolidated'}}"
+      },
+      "document_query": {
+        "download": {
+          "status": "processing"
+        },
+        "requestId": "019c3e38-5c9a-78e9-9ffa-bd52d154df54",
+        "startedAt": "2026-02-08T17:06:47.077Z",
+        "triggerConsolidated": false
+      }
+    },
+    "Kyla Brown": {
+      "metriport_id": "019c3e38-5df6-7c09-b338-e102316bfefa",
+      "status": "created",
+      "consolidated_query": {
+        "error": "Metriport API error 404: {'status': 404, 'title': 'NotFoundError', 'detail': 'Could not find patient', 'name': 'Not Found', 'additionalInfo': {'id': 'consolidated'}}"
+      },
+      "document_query": {
+        "download": {
+          "status": "processing"
+        },
+        "requestId": "019c3e38-606b-74fb-8b13-073bd65c7cd4",
+        "startedAt": "2026-02-08T17:06:48.054Z",
+        "triggerConsolidated": false
+      }
+    },
+    "Andreas Brown": {
+      "metriport_id": "019c3e38-61b4-7b3d-8ebf-bf5be0e08757",
+      "status": "created",
+      "consolidated_query": {
+        "error": "Metriport API error 404: {'status': 404, 'title': 'NotFoundError', 'detail': 'Could not find patient', 'name': 'Not Found', 'additionalInfo': {'id': 'consolidated'}}"
+      },
+      "document_query": {
+        "download": {
+          "status": "processing"
+        },
+        "requestId": "019c3e38-63e0-7e69-84a7-e6f6fb8c1f14",
+        "startedAt": "2026-02-08T17:06:48.943Z",
+        "triggerConsolidated": false
+      }
+    }
+  }
+}

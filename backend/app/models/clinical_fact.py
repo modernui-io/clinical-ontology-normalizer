@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, Float, ForeignKey, Index, Integer, String, Text
+from sqlalchemy import BigInteger, DateTime, Enum, Float, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -42,7 +42,7 @@ class ClinicalFact(SoftDeleteMixin, Base):
         index=True,
     )
     omop_concept_id: Mapped[int] = mapped_column(
-        Integer,
+        BigInteger,
         nullable=False,
         index=True,
     )

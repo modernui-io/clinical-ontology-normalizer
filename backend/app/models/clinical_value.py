@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from uuid import UUID
 
 from sqlalchemy import Enum as SAEnum
-from sqlalchemy import ForeignKey, Integer, String, Float, Text
+from sqlalchemy import BigInteger, ForeignKey, Integer, String, Float, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -98,7 +98,7 @@ class ClinicalValue(Base):
 
     # Linked OMOP concept (for the measurement type)
     omop_concept_id: Mapped[int | None] = mapped_column(
-        Integer,
+        BigInteger,
         nullable=True,
         index=True,
     )

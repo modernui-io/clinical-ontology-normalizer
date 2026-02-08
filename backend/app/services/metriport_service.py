@@ -258,6 +258,7 @@ class MetriportService:
             patient_id: Metriport patient UUID.
             resources: Optional list of FHIR resource types to include
                       (e.g., ["Condition", "MedicationRequest", "Observation"]).
+                      If None/empty, all resource types are returned.
             date_from: Start date filter (YYYY-MM-DD).
             date_to: End date filter (YYYY-MM-DD).
             conversion_type: "json" for FHIR JSON, "pdf" for PDF, "html" for HTML.
@@ -265,7 +266,7 @@ class MetriportService:
         Returns:
             Query status with requestId.
         """
-        params: dict[str, Any] = {"patientId": patient_id, "conversionType": conversion_type}
+        params: dict[str, Any] = {"conversionType": conversion_type}
         if resources:
             params["resources"] = ",".join(resources)
         if date_from:
@@ -273,7 +274,9 @@ class MetriportService:
         if date_to:
             params["dateTo"] = date_to
 
-        return await self._request("GET", "/patient/consolidated", params=params)
+        return await self._request(
+            "POST", f"/patient/{patient_id}/consolidated/query", params=params
+        )
 
     async def get_consolidated_count(self, patient_id: str) -> dict[str, Any]:
         """Get count of consolidated data resources for a patient."""

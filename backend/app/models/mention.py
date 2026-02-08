@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from sqlalchemy import Enum, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import BigInteger, Enum, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -103,7 +103,7 @@ class MentionConceptCandidate(Base):
         index=True,
     )
     omop_concept_id: Mapped[int] = mapped_column(
-        Integer,
+        BigInteger,
         nullable=False,
         index=True,
     )
