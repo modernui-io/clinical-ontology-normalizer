@@ -151,10 +151,15 @@ from app.api.pipelines import router as pipelines_router
 from app.api.feedback import router as feedback_router
 from app.api.lineage import router as lineage_router
 from app.api.trials import router as trials_router
+from app.api.bulk_screening import router as bulk_screening_router
 from app.api.mapping_quality import router as mapping_quality_router
 from app.api.metriport_api import router as metriport_api_router
 from app.api.metriport_webhook import router as metriport_webhook_router
 from app.api.incidents import router as incidents_router
+from app.api.screening_results import router as screening_results_router
+from app.api.sites import router as sites_router
+from app.api.backup_status import router as backup_status_router
+from app.api.roi_dashboard import router as roi_dashboard_router
 
 __all__ = [
     # Routers
@@ -242,11 +247,16 @@ __all__ = [
     "pipelines_router",
     "feedback_router",
     "trials_router",
+    "bulk_screening_router",
     "mapping_quality_router",
     "metriport_api_router",
     "metriport_webhook_router",
     "lineage_router",
     "incidents_router",
+    "screening_results_router",
+    "sites_router",
+    "backup_status_router",
+    "roi_dashboard_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",

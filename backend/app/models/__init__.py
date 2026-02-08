@@ -92,6 +92,12 @@ from app.models.trial import (
     TrialStatus,
 )
 from app.models.data_lineage import DataLineageRecord, SourceType as LineageSourceType
+from app.models.site import PatientSiteAssignment, Site
+from app.models.screening_result import (
+    OverallScreeningStatus,
+    ScreeningResult,
+    ScreeningTrigger,
+)
 from app.models.vocabulary import Concept, ConceptRelationship, ConceptStatus, ConceptSynonym
 
 __all__ = [
@@ -169,4 +175,11 @@ __all__ = [
     # Data Lineage Models (CDO-1)
     "DataLineageRecord",
     "LineageSourceType",
+    # Site Models
+    "Site",
+    "PatientSiteAssignment",
+    # Screening Result Models
+    "ScreeningResult",
+    "OverallScreeningStatus",
+    "ScreeningTrigger",
 ]

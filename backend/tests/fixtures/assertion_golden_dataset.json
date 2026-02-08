@@ -1,0 +1,997 @@
+{
+  "version": "1.0.0",
+  "description": "Golden assertion dataset for validating clinical NLP assertion detection. Contains 110 annotated test cases covering negation, uncertainty, hypothetical, family history, section-aware, temporal, and edge cases.",
+  "annotation_guidelines": "Each test case contains a clinical text snippet, a mention span with character offsets, the expected assertion classification, a category tag, and a difficulty rating. Expected assertions use the Assertion enum: PRESENT, ABSENT, POSSIBLE, HYPOTHETICAL, FAMILY_HISTORY, CONDITIONAL.",
+  "test_cases": [
+    {
+      "id": 1,
+      "text": "Patient denies fever.",
+      "mention_text": "fever",
+      "mention_start": 15,
+      "expected_assertion": "ABSENT",
+      "category": "negation",
+      "difficulty": "easy"
+    },
+    {
+      "id": 2,
+      "text": "No chest pain reported.",
+      "mention_text": "chest pain",
+      "mention_start": 3,
+      "expected_assertion": "ABSENT",
+      "category": "negation",
+      "difficulty": "easy"
+    },
+    {
+      "id": 3,
+      "text": "Patient has no evidence of pneumonia on chest X-ray.",
+      "mention_text": "pneumonia",
+      "mention_start": 27,
+      "expected_assertion": "ABSENT",
+      "category": "negation",
+      "difficulty": "easy"
+    },
+    {
+      "id": 4,
+      "text": "Denies nausea, vomiting, or diarrhea.",
+      "mention_text": "nausea",
+      "mention_start": 7,
+      "expected_assertion": "ABSENT",
+      "category": "negation",
+      "difficulty": "easy"
+    },
+    {
+      "id": 5,
+      "text": "Denies nausea, vomiting, or diarrhea.",
+      "mention_text": "vomiting",
+      "mention_start": 15,
+      "expected_assertion": "ABSENT",
+      "category": "negation",
+      "difficulty": "easy"
+    },
+    {
+      "id": 6,
+      "text": "Denies nausea, vomiting, or diarrhea.",
+      "mention_text": "diarrhea",
+      "mention_start": 28,
+      "expected_assertion": "ABSENT",
+      "category": "negation",
+      "difficulty": "easy"
+    },
+    {
+      "id": 7,
+      "text": "No signs of infection at the surgical site.",
+      "mention_text": "infection",
+      "mention_start": 12,
+      "expected_assertion": "ABSENT",
+      "category": "negation",
+      "difficulty": "easy"
+    },
+    {
+      "id": 8,
+      "text": "Patient denied any headaches or dizziness.",
+      "mention_text": "headaches",
+      "mention_start": 19,
+      "expected_assertion": "ABSENT",
+      "category": "negation",
+      "difficulty": "easy"
+    },
+    {
+      "id": 9,
+      "text": "Without evidence of metastatic disease.",
+      "mention_text": "metastatic disease",
+      "mention_start": 20,
+      "expected_assertion": "ABSENT",
+      "category": "negation",
+      "difficulty": "easy"
+    },
+    {
+      "id": 10,
+      "text": "Patient is free of disease.",
+      "mention_text": "disease",
+      "mention_start": 19,
+      "expected_assertion": "ABSENT",
+      "category": "negation",
+      "difficulty": "easy"
+    },
+    {
+      "id": 11,
+      "text": "Negative for hepatitis B surface antigen.",
+      "mention_text": "hepatitis B surface antigen",
+      "mention_start": 13,
+      "expected_assertion": "ABSENT",
+      "category": "negation",
+      "difficulty": "easy"
+    },
+    {
+      "id": 12,
+      "text": "Absence of lymphadenopathy on physical exam.",
+      "mention_text": "lymphadenopathy",
+      "mention_start": 11,
+      "expected_assertion": "ABSENT",
+      "category": "negation",
+      "difficulty": "easy"
+    },
+    {
+      "id": 13,
+      "text": "No known drug allergies.",
+      "mention_text": "drug allergies",
+      "mention_start": 9,
+      "expected_assertion": "ABSENT",
+      "category": "negation",
+      "difficulty": "easy"
+    },
+    {
+      "id": 14,
+      "text": "No history of diabetes mellitus.",
+      "mention_text": "diabetes mellitus",
+      "mention_start": 14,
+      "expected_assertion": "ABSENT",
+      "category": "negation",
+      "difficulty": "easy"
+    },
+    {
+      "id": 15,
+      "text": "Patient has never had a seizure.",
+      "mention_text": "seizure",
+      "mention_start": 24,
+      "expected_assertion": "ABSENT",
+      "category": "negation",
+      "difficulty": "easy"
+    },
+    {
+      "id": 16,
+      "text": "Pulmonary embolism was ruled out by CT angiography.",
+      "mention_text": "Pulmonary embolism",
+      "mention_start": 0,
+      "expected_assertion": "ABSENT",
+      "category": "negation",
+      "difficulty": "medium"
+    },
+    {
+      "id": 17,
+      "text": "DVT was excluded by venous doppler study.",
+      "mention_text": "DVT",
+      "mention_start": 0,
+      "expected_assertion": "ABSENT",
+      "category": "negation",
+      "difficulty": "medium"
+    },
+    {
+      "id": 18,
+      "text": "Cardiac enzymes were not elevated.",
+      "mention_text": "Cardiac enzymes",
+      "mention_start": 0,
+      "expected_assertion": "ABSENT",
+      "category": "negation",
+      "difficulty": "medium"
+    },
+    {
+      "id": 19,
+      "text": "The patient does not have hypertension.",
+      "mention_text": "hypertension",
+      "mention_start": 26,
+      "expected_assertion": "ABSENT",
+      "category": "negation",
+      "difficulty": "easy"
+    },
+    {
+      "id": 20,
+      "text": "The rash has resolved completely.",
+      "mention_text": "rash",
+      "mention_start": 4,
+      "expected_assertion": "ABSENT",
+      "category": "negation",
+      "difficulty": "medium"
+    },
+    {
+      "id": 21,
+      "text": "Patient presents with diabetes mellitus type 2.",
+      "mention_text": "diabetes mellitus type 2",
+      "mention_start": 22,
+      "expected_assertion": "PRESENT",
+      "category": "negation",
+      "difficulty": "easy"
+    },
+    {
+      "id": 22,
+      "text": "Diagnosed with congestive heart failure.",
+      "mention_text": "congestive heart failure",
+      "mention_start": 15,
+      "expected_assertion": "PRESENT",
+      "category": "negation",
+      "difficulty": "easy"
+    },
+    {
+      "id": 23,
+      "text": "Patient has confirmed MRSA infection.",
+      "mention_text": "MRSA infection",
+      "mention_start": 22,
+      "expected_assertion": "PRESENT",
+      "category": "negation",
+      "difficulty": "easy"
+    },
+    {
+      "id": 24,
+      "text": "Positive for influenza A.",
+      "mention_text": "influenza A",
+      "mention_start": 13,
+      "expected_assertion": "PRESENT",
+      "category": "negation",
+      "difficulty": "easy"
+    },
+    {
+      "id": 25,
+      "text": "Patient complains of severe abdominal pain.",
+      "mention_text": "abdominal pain",
+      "mention_start": 28,
+      "expected_assertion": "PRESENT",
+      "category": "negation",
+      "difficulty": "easy"
+    },
+    {
+      "id": 26,
+      "text": "CT scan reveals a 2cm mass in the right lung.",
+      "mention_text": "mass",
+      "mention_start": 22,
+      "expected_assertion": "PRESENT",
+      "category": "negation",
+      "difficulty": "easy"
+    },
+    {
+      "id": 27,
+      "text": "Chest X-ray shows bilateral pleural effusions.",
+      "mention_text": "pleural effusions",
+      "mention_start": 28,
+      "expected_assertion": "PRESENT",
+      "category": "negation",
+      "difficulty": "easy"
+    },
+    {
+      "id": 28,
+      "text": "Patient is currently experiencing shortness of breath.",
+      "mention_text": "shortness of breath",
+      "mention_start": 34,
+      "expected_assertion": "PRESENT",
+      "category": "negation",
+      "difficulty": "easy"
+    },
+    {
+      "id": 29,
+      "text": "Physical exam noted hepatomegaly.",
+      "mention_text": "hepatomegaly",
+      "mention_start": 20,
+      "expected_assertion": "PRESENT",
+      "category": "negation",
+      "difficulty": "easy"
+    },
+    {
+      "id": 30,
+      "text": "Possible pneumonia on chest imaging.",
+      "mention_text": "pneumonia",
+      "mention_start": 9,
+      "expected_assertion": "POSSIBLE",
+      "category": "uncertainty",
+      "difficulty": "easy"
+    },
+    {
+      "id": 31,
+      "text": "Suspected urinary tract infection.",
+      "mention_text": "urinary tract infection",
+      "mention_start": 10,
+      "expected_assertion": "POSSIBLE",
+      "category": "uncertainty",
+      "difficulty": "easy"
+    },
+    {
+      "id": 32,
+      "text": "Cannot rule out pulmonary embolism.",
+      "mention_text": "pulmonary embolism",
+      "mention_start": 16,
+      "expected_assertion": "POSSIBLE",
+      "category": "uncertainty",
+      "difficulty": "easy"
+    },
+    {
+      "id": 33,
+      "text": "Questionable pneumothorax on chest X-ray.",
+      "mention_text": "pneumothorax",
+      "mention_start": 13,
+      "expected_assertion": "POSSIBLE",
+      "category": "uncertainty",
+      "difficulty": "easy"
+    },
+    {
+      "id": 34,
+      "text": "Findings are suggestive of sarcoidosis.",
+      "mention_text": "sarcoidosis",
+      "mention_start": 27,
+      "expected_assertion": "POSSIBLE",
+      "category": "uncertainty",
+      "difficulty": "easy"
+    },
+    {
+      "id": 35,
+      "text": "Imaging is consistent with lymphoma.",
+      "mention_text": "lymphoma",
+      "mention_start": 27,
+      "expected_assertion": "POSSIBLE",
+      "category": "uncertainty",
+      "difficulty": "easy"
+    },
+    {
+      "id": 36,
+      "text": "The patient may have multiple sclerosis.",
+      "mention_text": "multiple sclerosis",
+      "mention_start": 21,
+      "expected_assertion": "POSSIBLE",
+      "category": "uncertainty",
+      "difficulty": "easy"
+    },
+    {
+      "id": 37,
+      "text": "Probably viral gastroenteritis.",
+      "mention_text": "viral gastroenteritis",
+      "mention_start": 9,
+      "expected_assertion": "POSSIBLE",
+      "category": "uncertainty",
+      "difficulty": "easy"
+    },
+    {
+      "id": 38,
+      "text": "Concerning for appendicitis given clinical presentation.",
+      "mention_text": "appendicitis",
+      "mention_start": 15,
+      "expected_assertion": "POSSIBLE",
+      "category": "uncertainty",
+      "difficulty": "easy"
+    },
+    {
+      "id": 39,
+      "text": "Cannot exclude meningitis in this clinical setting.",
+      "mention_text": "meningitis",
+      "mention_start": 15,
+      "expected_assertion": "POSSIBLE",
+      "category": "uncertainty",
+      "difficulty": "easy"
+    },
+    {
+      "id": 40,
+      "text": "The differential diagnosis includes lupus.",
+      "mention_text": "lupus",
+      "mention_start": 36,
+      "expected_assertion": "POSSIBLE",
+      "category": "uncertainty",
+      "difficulty": "medium"
+    },
+    {
+      "id": 41,
+      "text": "Appears to be cellulitis based on clinical exam.",
+      "mention_text": "cellulitis",
+      "mention_start": 14,
+      "expected_assertion": "POSSIBLE",
+      "category": "uncertainty",
+      "difficulty": "easy"
+    },
+    {
+      "id": 42,
+      "text": "If patient develops chest pain, consider cardiac workup.",
+      "mention_text": "chest pain",
+      "mention_start": 20,
+      "expected_assertion": "HYPOTHETICAL",
+      "category": "hypothetical",
+      "difficulty": "easy"
+    },
+    {
+      "id": 43,
+      "text": "Should symptoms worsen, start antibiotics.",
+      "mention_text": "symptoms",
+      "mention_start": 7,
+      "expected_assertion": "HYPOTHETICAL",
+      "category": "hypothetical",
+      "difficulty": "easy"
+    },
+    {
+      "id": 44,
+      "text": "Patient would benefit from physical therapy.",
+      "mention_text": "physical therapy",
+      "mention_start": 27,
+      "expected_assertion": "HYPOTHETICAL",
+      "category": "hypothetical",
+      "difficulty": "easy"
+    },
+    {
+      "id": 45,
+      "text": "Patient is at risk for deep vein thrombosis.",
+      "mention_text": "deep vein thrombosis",
+      "mention_start": 23,
+      "expected_assertion": "HYPOTHETICAL",
+      "category": "hypothetical",
+      "difficulty": "easy"
+    },
+    {
+      "id": 46,
+      "text": "Screening for colorectal cancer is recommended.",
+      "mention_text": "colorectal cancer",
+      "mention_start": 14,
+      "expected_assertion": "HYPOTHETICAL",
+      "category": "hypothetical",
+      "difficulty": "easy"
+    },
+    {
+      "id": 47,
+      "text": "CT performed to rule out appendicitis.",
+      "mention_text": "appendicitis",
+      "mention_start": 25,
+      "expected_assertion": "HYPOTHETICAL",
+      "category": "hypothetical",
+      "difficulty": "easy"
+    },
+    {
+      "id": 48,
+      "text": "In case of anaphylaxis, administer epinephrine.",
+      "mention_text": "anaphylaxis",
+      "mention_start": 11,
+      "expected_assertion": "HYPOTHETICAL",
+      "category": "hypothetical",
+      "difficulty": "easy"
+    },
+    {
+      "id": 49,
+      "text": "Prophylaxis for DVT with enoxaparin.",
+      "mention_text": "DVT",
+      "mention_start": 16,
+      "expected_assertion": "HYPOTHETICAL",
+      "category": "hypothetical",
+      "difficulty": "easy"
+    },
+    {
+      "id": 50,
+      "text": "Prevention of osteoporosis with calcium supplementation.",
+      "mention_text": "osteoporosis",
+      "mention_start": 14,
+      "expected_assertion": "HYPOTHETICAL",
+      "category": "hypothetical",
+      "difficulty": "easy"
+    },
+    {
+      "id": 51,
+      "text": "Evaluate for sleep apnea with polysomnography.",
+      "mention_text": "sleep apnea",
+      "mention_start": 13,
+      "expected_assertion": "HYPOTHETICAL",
+      "category": "hypothetical",
+      "difficulty": "easy"
+    },
+    {
+      "id": 52,
+      "text": "Mother had breast cancer at age 45.",
+      "mention_text": "breast cancer",
+      "mention_start": 11,
+      "expected_assertion": "FAMILY_HISTORY",
+      "category": "family_history",
+      "difficulty": "easy"
+    },
+    {
+      "id": 53,
+      "text": "Family history of coronary artery disease.",
+      "mention_text": "coronary artery disease",
+      "mention_start": 18,
+      "expected_assertion": "FAMILY_HISTORY",
+      "category": "family_history",
+      "difficulty": "easy"
+    },
+    {
+      "id": 54,
+      "text": "Father was diagnosed with type 2 diabetes.",
+      "mention_text": "type 2 diabetes",
+      "mention_start": 26,
+      "expected_assertion": "FAMILY_HISTORY",
+      "category": "family_history",
+      "difficulty": "easy"
+    },
+    {
+      "id": 55,
+      "text": "Brother has hypertension and hyperlipidemia.",
+      "mention_text": "hypertension",
+      "mention_start": 12,
+      "expected_assertion": "FAMILY_HISTORY",
+      "category": "family_history",
+      "difficulty": "easy"
+    },
+    {
+      "id": 56,
+      "text": "Sister was treated for thyroid cancer.",
+      "mention_text": "thyroid cancer",
+      "mention_start": 23,
+      "expected_assertion": "FAMILY_HISTORY",
+      "category": "family_history",
+      "difficulty": "easy"
+    },
+    {
+      "id": 57,
+      "text": "Maternal grandmother had Alzheimer disease.",
+      "mention_text": "Alzheimer disease",
+      "mention_start": 25,
+      "expected_assertion": "FAMILY_HISTORY",
+      "category": "family_history",
+      "difficulty": "easy"
+    },
+    {
+      "id": 58,
+      "text": "Family History:\nMother: hypertension, diabetes\nFather: colon cancer",
+      "mention_text": "hypertension",
+      "mention_start": 24,
+      "expected_assertion": "FAMILY_HISTORY",
+      "category": "family_history",
+      "difficulty": "medium"
+    },
+    {
+      "id": 59,
+      "text": "Family History:\nMother: hypertension, diabetes\nFather: colon cancer",
+      "mention_text": "colon cancer",
+      "mention_start": 55,
+      "expected_assertion": "FAMILY_HISTORY",
+      "category": "family_history",
+      "difficulty": "medium"
+    },
+    {
+      "id": 60,
+      "text": "No family history of cancer.",
+      "mention_text": "cancer",
+      "mention_start": 21,
+      "expected_assertion": "ABSENT",
+      "category": "family_history",
+      "difficulty": "medium"
+    },
+    {
+      "id": 61,
+      "text": "Paternal uncle died of myocardial infarction at age 50.",
+      "mention_text": "myocardial infarction",
+      "mention_start": 23,
+      "expected_assertion": "FAMILY_HISTORY",
+      "category": "family_history",
+      "difficulty": "medium"
+    },
+    {
+      "id": 62,
+      "text": "Patient cannot rule out that the symptoms are not improving.",
+      "mention_text": "symptoms",
+      "mention_start": 33,
+      "expected_assertion": "POSSIBLE",
+      "category": "double_negation",
+      "difficulty": "hard"
+    },
+    {
+      "id": 63,
+      "text": "Not without concern for malignancy.",
+      "mention_text": "malignancy",
+      "mention_start": 24,
+      "expected_assertion": "POSSIBLE",
+      "category": "double_negation",
+      "difficulty": "hard"
+    },
+    {
+      "id": 64,
+      "text": "We cannot exclude the possibility of lymphoma.",
+      "mention_text": "lymphoma",
+      "mention_start": 37,
+      "expected_assertion": "POSSIBLE",
+      "category": "double_negation",
+      "difficulty": "hard"
+    },
+    {
+      "id": 65,
+      "text": "It is not unlikely that the patient has COPD.",
+      "mention_text": "COPD",
+      "mention_start": 40,
+      "expected_assertion": "POSSIBLE",
+      "category": "double_negation",
+      "difficulty": "hard"
+    },
+    {
+      "id": 66,
+      "text": "Chest X-ray shows no change in the cardiomegaly.",
+      "mention_text": "cardiomegaly",
+      "mention_start": 35,
+      "expected_assertion": "PRESENT",
+      "category": "double_negation",
+      "difficulty": "hard"
+    },
+    {
+      "id": 67,
+      "text": "No worsening of the pleural effusion.",
+      "mention_text": "pleural effusion",
+      "mention_start": 20,
+      "expected_assertion": "PRESENT",
+      "category": "double_negation",
+      "difficulty": "hard"
+    },
+    {
+      "id": 68,
+      "text": "No increase in tumor size on follow-up imaging.",
+      "mention_text": "tumor",
+      "mention_start": 15,
+      "expected_assertion": "PRESENT",
+      "category": "double_negation",
+      "difficulty": "hard"
+    },
+    {
+      "id": 69,
+      "text": "Patient had pneumonia last year but has since recovered.",
+      "mention_text": "pneumonia",
+      "mention_start": 12,
+      "expected_assertion": "PRESENT",
+      "category": "temporal",
+      "difficulty": "medium"
+    },
+    {
+      "id": 70,
+      "text": "History of myocardial infarction in 2019.",
+      "mention_text": "myocardial infarction",
+      "mention_start": 11,
+      "expected_assertion": "PRESENT",
+      "category": "temporal",
+      "difficulty": "medium"
+    },
+    {
+      "id": 71,
+      "text": "Patient is currently experiencing atrial fibrillation.",
+      "mention_text": "atrial fibrillation",
+      "mention_start": 34,
+      "expected_assertion": "PRESENT",
+      "category": "temporal",
+      "difficulty": "easy"
+    },
+    {
+      "id": 72,
+      "text": "Former smoker, quit 10 years ago.",
+      "mention_text": "smoker",
+      "mention_start": 7,
+      "expected_assertion": "PRESENT",
+      "category": "temporal",
+      "difficulty": "medium"
+    },
+    {
+      "id": 73,
+      "text": "Previously treated for tuberculosis.",
+      "mention_text": "tuberculosis",
+      "mention_start": 23,
+      "expected_assertion": "PRESENT",
+      "category": "temporal",
+      "difficulty": "medium"
+    },
+    {
+      "id": 74,
+      "text": "Patient no longer has active hepatitis C after treatment.",
+      "mention_text": "hepatitis C",
+      "mention_start": 29,
+      "expected_assertion": "ABSENT",
+      "category": "temporal",
+      "difficulty": "medium"
+    },
+    {
+      "id": 75,
+      "text": "Past Medical History:\nHypertension\nDiabetes mellitus type 2\nGERD",
+      "mention_text": "Hypertension",
+      "mention_start": 22,
+      "expected_assertion": "PRESENT",
+      "category": "section_context",
+      "difficulty": "easy"
+    },
+    {
+      "id": 76,
+      "text": "Assessment:\nAcute kidney injury likely secondary to dehydration.",
+      "mention_text": "Acute kidney injury",
+      "mention_start": 12,
+      "expected_assertion": "PRESENT",
+      "category": "section_context",
+      "difficulty": "easy"
+    },
+    {
+      "id": 77,
+      "text": "Review of Systems:\nNo fever, no chills, no weight loss.",
+      "mention_text": "fever",
+      "mention_start": 22,
+      "expected_assertion": "ABSENT",
+      "category": "section_context",
+      "difficulty": "easy"
+    },
+    {
+      "id": 78,
+      "text": "Family History:\nDiabetes in both parents.",
+      "mention_text": "Diabetes",
+      "mention_start": 16,
+      "expected_assertion": "FAMILY_HISTORY",
+      "category": "section_context",
+      "difficulty": "medium"
+    },
+    {
+      "id": 79,
+      "text": "Allergies:\nPenicillin - rash\nSulfa drugs - anaphylaxis",
+      "mention_text": "Penicillin",
+      "mention_start": 11,
+      "expected_assertion": "PRESENT",
+      "category": "section_context",
+      "difficulty": "easy"
+    },
+    {
+      "id": 80,
+      "text": "Plan:\nStart metformin for diabetes management.",
+      "mention_text": "diabetes",
+      "mention_start": 26,
+      "expected_assertion": "PRESENT",
+      "category": "section_context",
+      "difficulty": "easy"
+    },
+    {
+      "id": 81,
+      "text": "Patient denies chest pain but reports shortness of breath.",
+      "mention_text": "chest pain",
+      "mention_start": 15,
+      "expected_assertion": "ABSENT",
+      "category": "negation",
+      "difficulty": "medium"
+    },
+    {
+      "id": 82,
+      "text": "Patient denies chest pain but reports shortness of breath.",
+      "mention_text": "shortness of breath",
+      "mention_start": 38,
+      "expected_assertion": "PRESENT",
+      "category": "negation",
+      "difficulty": "medium"
+    },
+    {
+      "id": 83,
+      "text": "No fever or chills, but has a productive cough.",
+      "mention_text": "fever",
+      "mention_start": 3,
+      "expected_assertion": "ABSENT",
+      "category": "negation",
+      "difficulty": "medium"
+    },
+    {
+      "id": 84,
+      "text": "No fever or chills, but has a productive cough.",
+      "mention_text": "productive cough",
+      "mention_start": 30,
+      "expected_assertion": "PRESENT",
+      "category": "negation",
+      "difficulty": "medium"
+    },
+    {
+      "id": 85,
+      "text": "No significant cardiac history except for occasional palpitations.",
+      "mention_text": "cardiac history",
+      "mention_start": 15,
+      "expected_assertion": "ABSENT",
+      "category": "negation",
+      "difficulty": "medium"
+    },
+    {
+      "id": 86,
+      "text": "Gram negative rod bacteremia confirmed by blood culture.",
+      "mention_text": "bacteremia",
+      "mention_start": 18,
+      "expected_assertion": "PRESENT",
+      "category": "double_negation",
+      "difficulty": "medium"
+    },
+    {
+      "id": 87,
+      "text": "CT abdomen unremarkable.",
+      "mention_text": "CT abdomen",
+      "mention_start": 0,
+      "expected_assertion": "PRESENT",
+      "category": "negation",
+      "difficulty": "easy"
+    },
+    {
+      "id": 88,
+      "text": "Likely community-acquired pneumonia.",
+      "mention_text": "pneumonia",
+      "mention_start": 26,
+      "expected_assertion": "POSSIBLE",
+      "category": "uncertainty",
+      "difficulty": "easy"
+    },
+    {
+      "id": 89,
+      "text": "MRI brain is suspicious for glioblastoma.",
+      "mention_text": "glioblastoma",
+      "mention_start": 28,
+      "expected_assertion": "PRESENT",
+      "category": "uncertainty",
+      "difficulty": "medium"
+    },
+    {
+      "id": 90,
+      "text": "Skin biopsy pending to confirm melanoma.",
+      "mention_text": "melanoma",
+      "mention_start": 31,
+      "expected_assertion": "POSSIBLE",
+      "category": "uncertainty",
+      "difficulty": "medium"
+    },
+    {
+      "id": 91,
+      "text": "Found to have severe aortic stenosis on echocardiogram.",
+      "mention_text": "aortic stenosis",
+      "mention_start": 21,
+      "expected_assertion": "PRESENT",
+      "category": "negation",
+      "difficulty": "easy"
+    },
+    {
+      "id": 92,
+      "text": "Mother and sister both have lupus.",
+      "mention_text": "lupus",
+      "mention_start": 28,
+      "expected_assertion": "FAMILY_HISTORY",
+      "category": "family_history",
+      "difficulty": "easy"
+    },
+    {
+      "id": 93,
+      "text": "Patient reports that her mother died of ovarian cancer.",
+      "mention_text": "ovarian cancer",
+      "mention_start": 40,
+      "expected_assertion": "FAMILY_HISTORY",
+      "category": "family_history",
+      "difficulty": "medium"
+    },
+    {
+      "id": 94,
+      "text": "FHx significant for early-onset colon cancer.",
+      "mention_text": "colon cancer",
+      "mention_start": 32,
+      "expected_assertion": "FAMILY_HISTORY",
+      "category": "family_history",
+      "difficulty": "medium"
+    },
+    {
+      "id": 95,
+      "text": "If the patient develops a rash, discontinue the medication.",
+      "mention_text": "rash",
+      "mention_start": 26,
+      "expected_assertion": "HYPOTHETICAL",
+      "category": "hypothetical",
+      "difficulty": "easy"
+    },
+    {
+      "id": 96,
+      "text": "Risk for falls given advanced age and polypharmacy.",
+      "mention_text": "falls",
+      "mention_start": 9,
+      "expected_assertion": "HYPOTHETICAL",
+      "category": "hypothetical",
+      "difficulty": "easy"
+    },
+    {
+      "id": 97,
+      "text": "Should the patient fail conservative management, consider surgical intervention.",
+      "mention_text": "conservative management",
+      "mention_start": 24,
+      "expected_assertion": "HYPOTHETICAL",
+      "category": "hypothetical",
+      "difficulty": "medium"
+    },
+    {
+      "id": 98,
+      "text": "Patient has diabetes but no evidence of nephropathy.",
+      "mention_text": "diabetes",
+      "mention_start": 12,
+      "expected_assertion": "PRESENT",
+      "category": "negation",
+      "difficulty": "medium"
+    },
+    {
+      "id": 99,
+      "text": "Patient has diabetes but no evidence of nephropathy.",
+      "mention_text": "nephropathy",
+      "mention_start": 40,
+      "expected_assertion": "ABSENT",
+      "category": "negation",
+      "difficulty": "medium"
+    },
+    {
+      "id": 100,
+      "text": "Labs are equivocal for autoimmune hepatitis.",
+      "mention_text": "autoimmune hepatitis",
+      "mention_start": 23,
+      "expected_assertion": "POSSIBLE",
+      "category": "uncertainty",
+      "difficulty": "medium"
+    },
+    {
+      "id": 101,
+      "text": "Chest X-ray demonstrates no improvement in the pneumonia.",
+      "mention_text": "pneumonia",
+      "mention_start": 47,
+      "expected_assertion": "PRESENT",
+      "category": "double_negation",
+      "difficulty": "hard"
+    },
+    {
+      "id": 102,
+      "text": "The patient's aunt had rheumatoid arthritis.",
+      "mention_text": "rheumatoid arthritis",
+      "mention_start": 23,
+      "expected_assertion": "FAMILY_HISTORY",
+      "category": "family_history",
+      "difficulty": "medium"
+    },
+    {
+      "id": 103,
+      "text": "Suspicion of endocarditis given positive blood cultures.",
+      "mention_text": "endocarditis",
+      "mention_start": 13,
+      "expected_assertion": "POSSIBLE",
+      "category": "uncertainty",
+      "difficulty": "easy"
+    },
+    {
+      "id": 104,
+      "text": "Patient has a strong family history of breast cancer but no personal history.",
+      "mention_text": "breast cancer",
+      "mention_start": 39,
+      "expected_assertion": "FAMILY_HISTORY",
+      "category": "family_history",
+      "difficulty": "hard"
+    },
+    {
+      "id": 105,
+      "text": "Not ruled out for aortic dissection.",
+      "mention_text": "aortic dissection",
+      "mention_start": 18,
+      "expected_assertion": "POSSIBLE",
+      "category": "double_negation",
+      "difficulty": "hard"
+    },
+    {
+      "id": 106,
+      "text": "Patient might have celiac disease based on serological findings.",
+      "mention_text": "celiac disease",
+      "mention_start": 19,
+      "expected_assertion": "POSSIBLE",
+      "category": "uncertainty",
+      "difficulty": "easy"
+    },
+    {
+      "id": 107,
+      "text": "Compatible with acute pancreatitis given lipase elevation.",
+      "mention_text": "acute pancreatitis",
+      "mention_start": 16,
+      "expected_assertion": "POSSIBLE",
+      "category": "uncertainty",
+      "difficulty": "easy"
+    },
+    {
+      "id": 108,
+      "text": "Patient observed to have bilateral pedal edema.",
+      "mention_text": "pedal edema",
+      "mention_start": 35,
+      "expected_assertion": "PRESENT",
+      "category": "negation",
+      "difficulty": "easy"
+    },
+    {
+      "id": 109,
+      "text": "Reports no difficulty breathing at rest.",
+      "mention_text": "difficulty breathing",
+      "mention_start": 11,
+      "expected_assertion": "ABSENT",
+      "category": "negation",
+      "difficulty": "medium"
+    },
+    {
+      "id": 110,
+      "text": "Non-contributory past surgical history.",
+      "mention_text": "past surgical history",
+      "mention_start": 17,
+      "expected_assertion": "ABSENT",
+      "category": "negation",
+      "difficulty": "medium"
+    }
+  ]
+}

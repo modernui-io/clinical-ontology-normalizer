@@ -308,9 +308,14 @@ async def _process_consolidated_data(
                     f"{result.get('diagnostic_reports', 0)} diagnostic reports"
                 )
 
-                # Auto-screen patient against active trials
+                # Auto-screen patient against active trials and persist results
                 try:
                     from app.services.trial_eligibility_service import get_trial_service
+                    from app.models.screening_result import (
+                        OverallScreeningStatus,
+                        ScreeningResult,
+                        ScreeningTrigger,
+                    )
 
                     trial_service = get_trial_service()
                     screen_results = await trial_service.auto_screen_patient(
@@ -320,6 +325,37 @@ async def _process_consolidated_data(
                     logger.info(
                         f"Auto-screening for {internal_id}: "
                         f"{len(matched_trials)}/{len(screen_results)} trial(s) matched"
+                    )
+
+                    # Persist each screening result to the DB
+                    now = datetime.now(timezone.utc)
+                    for sr in screen_results:
+                        if sr.get("eligible"):
+                            db_status = OverallScreeningStatus.ELIGIBLE
+                        elif sr.get("safety_blocked"):
+                            db_status = OverallScreeningStatus.INELIGIBLE
+                        elif sr.get("match_score", 0) == 0:
+                            db_status = OverallScreeningStatus.INELIGIBLE
+                        else:
+                            db_status = OverallScreeningStatus.UNKNOWN
+
+                        db_row = ScreeningResult(
+                            patient_id=internal_id,
+                            trial_id=sr["trial_id"],
+                            trial_name=sr.get("trial_name"),
+                            screening_date=now,
+                            overall_status=db_status,
+                            match_score=sr.get("match_score"),
+                            safety_blocked=sr.get("safety_blocked", False),
+                            triggered_by=ScreeningTrigger.WEBHOOK,
+                            criterion_results=sr,
+                        )
+                        session.add(db_row)
+
+                    await session.commit()
+                    logger.info(
+                        f"Persisted {len(screen_results)} screening result(s) "
+                        f"for {internal_id}"
                     )
                 except Exception as e:
                     logger.error(f"Auto-screening failed for {internal_id}: {e}")

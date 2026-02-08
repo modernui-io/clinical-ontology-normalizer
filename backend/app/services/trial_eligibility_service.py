@@ -17,7 +17,7 @@ from __future__ import annotations
 import logging
 import threading
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 from uuid import uuid4
 
@@ -26,11 +26,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.audit import AuditAction, log_audit
 from app.services.fn_monitoring_service import get_fn_monitoring_service
+from app.services.temporal_eligibility_service import TemporalEligibilityService
 from app.models.clinical_fact import ClinicalFact
 from app.models.knowledge_graph import KGNode
 from app.models.trial import EnrollmentStatus, Trial, TrialEnrollment, TrialPhase, TrialStatus
 from app.schemas.base import Assertion, Domain
 from app.schemas.knowledge_graph import NodeType
+from app.schemas.temporal import (
+    TemporalCriterion,
+    TemporalDirection,
+    TemporalReferencePoint,
+    TemporalStatus,
+)
 from app.schemas.trial import (
     CDS_DISCLAIMER,
     CriterionResult,
@@ -198,6 +205,7 @@ class TrialEligibilityService:
     def __init__(self):
         self._trials: dict[str, _TrialRecord] = {}
         self._loaded_from_db: bool = False
+        self._temporal_service = TemporalEligibilityService()
         self._init_demo_trials()
 
     # ==========================================================================
@@ -545,6 +553,22 @@ class TrialEligibilityService:
                 filters.append(cast(ClinicalFact.value, SAFloat) >= vr["min_value"])
             if vr.get("max_value") is not None:
                 filters.append(cast(ClinicalFact.value, SAFloat) <= vr["max_value"])
+
+        # CMO-1.3: Temporal SQL filtering for batch screening
+        temporal_config = self._parse_temporal_config(criterion)
+        if temporal_config is not None:
+            now = datetime.now(timezone.utc)
+            if temporal_config.direction == TemporalDirection.WITHIN_LAST:
+                days = temporal_config.time_window_days or 365
+                cutoff = now - timedelta(days=days)
+                filters.append(ClinicalFact.start_date >= cutoff)
+            elif temporal_config.direction == TemporalDirection.ACTIVE:
+                filters.append(
+                    or_(
+                        ClinicalFact.end_date.is_(None),
+                        ClinicalFact.end_date >= now,
+                    )
+                )
 
         return select(ClinicalFact.patient_id).where(and_(*filters)).distinct()
 
@@ -1008,10 +1032,69 @@ class TrialEligibilityService:
             ClinicalFact.value,
             ClinicalFact.unit,
             ClinicalFact.start_date,
+            ClinicalFact.end_date,
             ClinicalFact.omop_concept_id,
         ).where(and_(*filters))
         result = await session.execute(stmt)
         facts = result.all()
+
+        # --- CMO-1.3: Apply temporal filtering if criterion has temporal config ---
+        temporal_config = self._parse_temporal_config(criterion)
+        if temporal_config is not None and facts:
+            temporal_result = self._apply_temporal_to_rows(facts, temporal_config)
+            if temporal_result.status == TemporalStatus.NOT_MET:
+                return CriterionResult(
+                    criterion_name=name,
+                    criterion_type=ctype,
+                    status="NOT_MET",
+                    evidence_fact_ids=[str(f.id) for f in facts],
+                    confidence=0.0,
+                    details=(
+                        f"Matching facts exist but are outside the required temporal window. "
+                        f"{temporal_result.evidence}"
+                    ),
+                    weight=weight,
+                    evidence_summary=(
+                        f"Found {len(facts)} matching fact(s) for '{name}', but none "
+                        f"within the required time window. {temporal_result.evidence}"
+                    ),
+                    confidence_explanation="Temporal constraint not satisfied",
+                )
+            if temporal_result.status == TemporalStatus.UNKNOWN:
+                return CriterionResult(
+                    criterion_name=name,
+                    criterion_type=ctype,
+                    status="UNKNOWN",
+                    evidence_fact_ids=[str(f.id) for f in facts],
+                    confidence=0.0,
+                    details=(
+                        f"Matching facts exist but lack date information for temporal evaluation. "
+                        f"{temporal_result.evidence}"
+                    ),
+                    weight=weight,
+                    missing_domain=domain_label,
+                    evidence_summary=(
+                        f"Found {len(facts)} matching fact(s) for '{name}', but dates are "
+                        f"missing; cannot verify temporal constraint. {temporal_result.evidence}"
+                    ),
+                    confidence_explanation="Unable to evaluate temporal constraint: missing dates",
+                )
+            # MET or INSUFFICIENT_DATA (shouldn't happen since we have facts):
+            # Filter down to only temporally valid facts
+            matched_ids = set(temporal_result.matched_fact_ids)
+            facts = [f for f in facts if str(f.id) in matched_ids]
+            if not facts:
+                return CriterionResult(
+                    criterion_name=name,
+                    criterion_type=ctype,
+                    status="NOT_MET",
+                    evidence_fact_ids=[],
+                    confidence=0.0,
+                    details=f"No facts remain after temporal filtering for '{name}'",
+                    weight=weight,
+                    evidence_summary=f"No facts within the temporal window for '{name}'",
+                    confidence_explanation="Temporal constraint not satisfied",
+                )
 
         if not facts:
             # Distinguish NOT_MET vs UNKNOWN: check if patient has ANY data
@@ -1144,6 +1227,66 @@ class TrialEligibilityService:
             evidence_summary=evidence_summary,
             confidence_explanation=confidence_explanation,
         )
+
+    # ======================================================================
+    # CMO-1.3: Temporal filtering helpers
+    # ======================================================================
+
+    @staticmethod
+    def _parse_temporal_config(criterion: dict) -> TemporalCriterion | None:
+        """Parse temporal configuration from a criterion dict.
+
+        Supports two formats:
+        1. Explicit ``temporal`` sub-dict with TemporalCriterion fields
+        2. Simple ``temporal_window_days`` integer (shorthand for WITHIN_LAST)
+
+        Returns None when the criterion has no temporal constraints.
+        """
+        # Full temporal config
+        temporal_dict = criterion.get("temporal")
+        if temporal_dict and isinstance(temporal_dict, dict):
+            try:
+                return TemporalCriterion(**temporal_dict)
+            except Exception:
+                logger.warning("Invalid temporal config in criterion: %s", temporal_dict)
+                return None
+
+        # Shorthand: temporal_window_days -> WITHIN_LAST
+        window_days = criterion.get("temporal_window_days")
+        if window_days is not None:
+            try:
+                return TemporalCriterion(
+                    direction=TemporalDirection.WITHIN_LAST,
+                    time_window_days=int(window_days),
+                )
+            except (ValueError, TypeError):
+                logger.warning("Invalid temporal_window_days: %s", window_days)
+                return None
+
+        return None
+
+    def _apply_temporal_to_rows(
+        self,
+        rows: list[Any],
+        criterion: TemporalCriterion,
+    ):
+        """Apply temporal filtering to SQLAlchemy Row objects.
+
+        Wraps rows in a lightweight adapter so the TemporalEligibilityService
+        can access .id, .start_date, .end_date attributes.
+        """
+
+        class _RowAdapter:
+            """Duck-typed adapter for SQLAlchemy Row -> fact-like object."""
+            __slots__ = ("id", "start_date", "end_date")
+
+            def __init__(self, row):
+                self.id = row.id
+                self.start_date = row.start_date
+                self.end_date = row.end_date
+
+        adapted = [_RowAdapter(r) for r in rows]
+        return self._temporal_service.apply_temporal_filter(adapted, criterion)
 
     def _compute_data_completeness(
         self,

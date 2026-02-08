@@ -365,3 +365,191 @@ class TrialDashboard(BaseModel):
     total_screen_failed: int = 0
     enrollment_progress: float = 0.0
     site_count: int = 1
+
+
+# ---------------------------------------------------------------------------
+# Bulk screening schemas
+# ---------------------------------------------------------------------------
+
+class BulkScreeningRequest(BaseModel):
+    """Request to screen multiple patients against multiple trials."""
+
+    patient_ids: list[str] = Field(
+        ...,
+        min_length=1,
+        max_length=10000,
+        description="Patient IDs to screen (max 10,000)",
+    )
+    trial_ids: list[str] = Field(
+        ...,
+        min_length=1,
+        max_length=100,
+        description="Trial IDs to screen against (max 100)",
+    )
+    min_match_score: float = Field(
+        default=0.0,
+        ge=0.0,
+        le=1.0,
+        description="Minimum match score to include in results",
+    )
+    include_details: bool = Field(
+        default=False,
+        description="Include per-criterion details in results (increases payload size)",
+    )
+
+
+class BulkPatientResult(BaseModel):
+    """Screening result for a single patient in the bulk response."""
+
+    patient_id: str
+    eligible: bool
+    match_score: float = Field(ge=0.0, le=1.0)
+    inclusion_met: list[str] = Field(default_factory=list)
+    inclusion_total: int = 0
+    exclusion_triggered: list[str] = Field(default_factory=list)
+    exclusion_total: int = 0
+    missing_data: list[str] = Field(default_factory=list)
+    safety_blocked: bool = False
+    criteria_details: list[CriterionResult] | None = Field(
+        default=None,
+        description="Per-criterion audit trail (only if include_details=True)",
+    )
+
+
+class BulkTrialResult(BaseModel):
+    """Screening results for a single trial across all screened patients."""
+
+    trial_id: str
+    trial_name: str
+    nct_number: str | None = None
+    total_screened: int
+    eligible_count: int
+    ineligible_count: int
+    pass_rate: float = Field(
+        ge=0.0,
+        le=100.0,
+        description="Percentage of screened patients eligible",
+    )
+    candidates: list[BulkPatientResult] = Field(default_factory=list)
+
+
+class BulkScreeningSummary(BaseModel):
+    """Aggregate statistics across all trials in a bulk screening run."""
+
+    total_patients: int
+    total_trials: int
+    total_pairs_screened: int
+    total_eligible: int
+    overall_pass_rate: float = Field(
+        ge=0.0,
+        le=100.0,
+        description="Overall eligible / total pairs screened",
+    )
+    screening_duration_ms: float
+    trials_not_found: list[str] = Field(
+        default_factory=list,
+        description="Trial IDs that were not found",
+    )
+
+
+class BulkScreeningResponse(BaseModel):
+    """Full response from a bulk screening operation."""
+
+    summary: BulkScreeningSummary
+    results: list[BulkTrialResult]
+    requires_clinician_review: bool = Field(
+        default=True,
+        description="All screening results require independent clinician review",
+    )
+    cds_disclaimer: str = Field(
+        default=CDS_DISCLAIMER,
+        description="CDS disclaimer text for regulatory compliance",
+    )
+
+
+# ---------------------------------------------------------------------------
+# Dual enrollment detection schemas
+# ---------------------------------------------------------------------------
+
+class DualEnrollmentRequest(BaseModel):
+    """Request to detect dual enrollment candidates."""
+
+    trial_id: str | None = Field(
+        default=None,
+        description=(
+            "Find additional candidates for this specific trial. "
+            "If None, checks all active (recruiting) trials."
+        ),
+    )
+    enrollment_statuses: list[EnrollmentStatus] = Field(
+        default_factory=lambda: [
+            EnrollmentStatus.ENROLLED,
+            EnrollmentStatus.ACTIVE,
+            EnrollmentStatus.CANDIDATE,
+            EnrollmentStatus.ELIGIBLE,
+        ],
+        description="Which enrollment statuses to consider as 'active' for cross-matching",
+    )
+    min_match_score: float = Field(
+        default=0.0,
+        ge=0.0,
+        le=1.0,
+        description="Minimum match score to include in additional matches",
+    )
+
+
+class CurrentEnrollmentInfo(BaseModel):
+    """A patient's current enrollment in a trial."""
+
+    trial_id: str
+    trial_name: str
+    nct_number: str | None = None
+    enrollment_status: EnrollmentStatus
+    match_score: float | None = None
+
+
+class AdditionalTrialMatch(BaseModel):
+    """A potential additional trial match for an enrolled patient."""
+
+    trial_id: str
+    trial_name: str
+    nct_number: str | None = None
+    eligible: bool
+    match_score: float = Field(ge=0.0, le=1.0)
+    key_criteria_met: list[str] = Field(default_factory=list)
+    exclusion_triggered: list[str] = Field(default_factory=list)
+    safety_blocked: bool = False
+
+
+class DualEnrollmentCandidate(BaseModel):
+    """A patient with current enrollment(s) and additional trial matches."""
+
+    patient_id: str
+    current_enrollments: list[CurrentEnrollmentInfo]
+    additional_matches: list[AdditionalTrialMatch]
+    total_additional_matches: int = 0
+
+
+class DualEnrollmentSummary(BaseModel):
+    """Summary statistics for dual enrollment detection."""
+
+    total_enrolled_patients_checked: int
+    total_patients_with_additional_matches: int
+    total_additional_matches: int
+    trials_checked: int
+    screening_duration_ms: float
+
+
+class DualEnrollmentResponse(BaseModel):
+    """Full response from dual enrollment detection."""
+
+    summary: DualEnrollmentSummary
+    candidates: list[DualEnrollmentCandidate]
+    requires_clinician_review: bool = Field(
+        default=True,
+        description="All screening results require independent clinician review",
+    )
+    cds_disclaimer: str = Field(
+        default=CDS_DISCLAIMER,
+        description="CDS disclaimer text for regulatory compliance",
+    )
