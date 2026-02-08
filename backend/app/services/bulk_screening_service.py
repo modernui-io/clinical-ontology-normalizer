@@ -16,10 +16,14 @@ from __future__ import annotations
 import logging
 import threading
 import time
-from typing import Any
-
+from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.screening_result import (
+    OverallScreeningStatus,
+    ScreeningResult,
+    ScreeningTrigger,
+)
 from app.schemas.trial import (
     BulkPatientResult,
     BulkScreeningRequest,
@@ -68,6 +72,33 @@ class BulkScreeningService:
         min_score = request.min_match_score
         include_details = request.include_details
 
+        # If no trial_ids provided, default to all active/recruiting trials
+        if not trial_ids:
+            from sqlalchemy import select
+            from app.models.trial import Trial
+            result = await session.execute(
+                select(Trial.id).where(
+                    Trial.status.in_(["recruiting", "active_not_recruiting"])
+                )
+            )
+            trial_ids = [str(row[0]) for row in result.fetchall()]
+            if not trial_ids:
+                logger.warning("No active trials found for bulk screening")
+                return BulkScreeningResponse(
+                    summary=BulkScreeningSummary(
+                        total_patients=len(patient_ids),
+                        total_trials=0,
+                        total_pairs_screened=0,
+                        total_eligible=0,
+                        overall_pass_rate=0.0,
+                        screening_duration_ms=0.0,
+                        trials_not_found=[],
+                    ),
+                    results=[],
+                    requires_clinician_review=False,
+                    cds_disclaimer=CDS_DISCLAIMER,
+                )
+
         # Validate pair count to prevent runaway requests
         pair_count = len(patient_ids) * len(trial_ids)
         if pair_count > MAX_PAIRS:
@@ -107,6 +138,37 @@ class BulkScreeningService:
                 if eligibility.eligible:
                     eligible_count += 1
 
+                # Persist screening result to DB via ORM
+                if eligibility.eligible:
+                    status_val = OverallScreeningStatus.ELIGIBLE
+                elif eligibility.missing_data:
+                    status_val = OverallScreeningStatus.UNKNOWN
+                else:
+                    status_val = OverallScreeningStatus.INELIGIBLE
+
+                try:
+                    sr = ScreeningResult(
+                        patient_id=patient_id,
+                        trial_id=trial_id,
+                        trial_name=trial.name,
+                        screening_date=datetime.now(timezone.utc),
+                        overall_status=status_val,
+                        match_score=eligibility.match_score,
+                        inclusion_met=len(eligibility.inclusion_met),
+                        inclusion_total=eligibility.inclusion_total,
+                        exclusion_triggered=len(eligibility.exclusion_triggered),
+                        exclusion_total=eligibility.exclusion_total,
+                        criterion_results=None,
+                        safety_blocked=eligibility.safety_blocked,
+                        triggered_by=ScreeningTrigger.BULK,
+                    )
+                    session.add(sr)
+                except Exception:
+                    logger.warning(
+                        "Failed to persist screening result for %s/%s",
+                        patient_id, trial_id, exc_info=True,
+                    )
+
                 # Apply minimum score filter
                 if eligibility.match_score < min_score:
                     continue
@@ -145,6 +207,12 @@ class BulkScreeningService:
             ))
 
             total_eligible += eligible_count
+
+        # Commit persisted screening results
+        try:
+            await session.commit()
+        except Exception:
+            logger.warning("Failed to commit screening results", exc_info=True)
 
         elapsed_ms = (time.perf_counter() - start_time) * 1000
         overall_pass_rate = (

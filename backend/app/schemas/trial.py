@@ -381,10 +381,9 @@ class BulkScreeningRequest(BaseModel):
         description="Patient IDs to screen (max 10,000)",
     )
     trial_ids: list[str] = Field(
-        ...,
-        min_length=1,
+        default_factory=list,
         max_length=100,
-        description="Trial IDs to screen against (max 100)",
+        description="Trial IDs to screen against (max 100). Empty = all active trials.",
     )
     min_match_score: float = Field(
         default=0.0,
