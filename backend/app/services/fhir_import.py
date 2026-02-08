@@ -256,6 +256,8 @@ class FHIRImportService:
             "allergies": 0,
             "observations": 0,
             "procedures": 0,
+            "encounters": 0,
+            "immunizations": 0,
             "clinical_notes": 0,
             "diagnostic_reports": 0,
             "nodes": 1,
@@ -271,6 +273,8 @@ class FHIRImportService:
             "AllergyIntolerance": ("allergies", self._import_allergy),
             "Observation": ("observations", self._import_observation),
             "Procedure": ("procedures", self._import_procedure),
+            "Encounter": ("encounters", self._import_encounter),
+            "Immunization": ("immunizations", self._import_immunization),
             "DocumentReference": ("clinical_notes", self._import_document_reference),
             "DiagnosticReport": ("diagnostic_reports", self._import_diagnostic_report),
         }
@@ -905,6 +909,263 @@ class FHIRImportService:
             edge_type=EdgeType.HAS_PROCEDURE,
             fact_id=fact.id,
             properties={"status": status, "outcome": outcome_text},
+        )
+        session.add(edge)
+
+        return fact, node, edge
+
+    async def _import_encounter(
+        self,
+        session: AsyncSession,
+        patient_id: str,
+        patient_node_id: UUID,
+        encounter: dict[str, Any],
+    ) -> tuple[ClinicalFact | None, KGNode | None, KGEdge | None]:
+        """Import a FHIR Encounter as a clinical fact and KG node.
+
+        Extracts encounter type, period (start/end), status, reason codes,
+        and service type. Maps to OMOP Visit domain.
+
+        Args:
+            session: Database session
+            patient_id: Internal patient ID
+            patient_node_id: Patient KG node UUID
+            encounter: FHIR Encounter resource
+
+        Returns:
+            Tuple of (fact, node, edge) or (None, None, None) if malformed
+        """
+        # Check status -- skip entered-in-error encounters
+        status = encounter.get("status", "finished")
+        if status == "entered-in-error":
+            return None, None, None
+
+        # Extract encounter type (e.g., ambulatory, emergency, inpatient)
+        encounter_types = encounter.get("type", [])
+        type_code, type_display, type_system = None, None, None
+        if encounter_types:
+            type_code, type_display, type_system = self._get_code_from_codeable_concept(
+                encounter_types[0]
+            )
+
+        # Extract class (broader category: AMB, IMP, EMER, etc.)
+        encounter_class = encounter.get("class", {})
+        class_code = encounter_class.get("code")
+        class_display = encounter_class.get("display")
+
+        # Build a display label from the best available info
+        display = type_display or class_display or f"Encounter ({status})"
+
+        # Extract period (start/end)
+        period = encounter.get("period", {})
+        period_start = self._parse_fhir_datetime(period.get("start"))
+        period_end = self._parse_fhir_datetime(period.get("end"))
+
+        # Extract reason codes
+        reason_codes = encounter.get("reasonCode", [])
+        reason_texts = []
+        for reason in reason_codes:
+            _, reason_display, _ = self._get_code_from_codeable_concept(reason)
+            if reason_display:
+                reason_texts.append(reason_display)
+
+        # Extract service type
+        service_type = encounter.get("serviceType", {})
+        _, service_display, _ = self._get_code_from_codeable_concept(service_type) if service_type else (None, None, None)
+
+        # Determine assertion from status
+        assertion = Assertion.PRESENT
+        if status in ("cancelled", "entered-in-error"):
+            assertion = Assertion.ABSENT
+
+        # Determine temporality
+        temporality = Temporality.PAST if period_end else Temporality.CURRENT
+        if status == "planned":
+            temporality = Temporality.FUTURE
+
+        # Use type code for concept ID if numeric, otherwise 0
+        concept_id = int(type_code) if type_code and type_code.isdigit() else 0
+
+        # Create clinical fact with Visit domain
+        fact = ClinicalFact(
+            patient_id=patient_id,
+            domain=Domain.VISIT,
+            omop_concept_id=concept_id,
+            concept_name=display,
+            assertion=assertion,
+            temporality=temporality,
+            experiencer=Experiencer.PATIENT,
+            confidence=1.0,
+            start_date=period_start,
+            end_date=period_end,
+        )
+        session.add(fact)
+        await session.flush()
+
+        # Create KG node -- use ADMISSION node type (closest to visit/encounter)
+        node = KGNode(
+            patient_id=patient_id,
+            node_type=NodeType.ADMISSION,
+            omop_concept_id=concept_id if concept_id else None,
+            label=display,
+            properties={
+                "fhir_id": encounter.get("id"),
+                "status": status,
+                "class_code": class_code,
+                "class_display": class_display,
+                "type_code": type_code,
+                "type_system": type_system,
+                "service_type": service_display,
+                "reason_codes": reason_texts,
+                "period_start": period_start.isoformat() if period_start else None,
+                "period_end": period_end.isoformat() if period_end else None,
+            },
+        )
+        session.add(node)
+        await session.flush()
+
+        # Create edge from patient to encounter
+        edge = KGEdge(
+            patient_id=patient_id,
+            source_node_id=patient_node_id,
+            target_node_id=node.id,
+            edge_type=EdgeType.HAS_EPISODE,
+            fact_id=fact.id,
+            properties={
+                "status": status,
+                "class": class_code,
+                "reason": ", ".join(reason_texts) if reason_texts else None,
+            },
+        )
+        session.add(edge)
+
+        return fact, node, edge
+
+    async def _import_immunization(
+        self,
+        session: AsyncSession,
+        patient_id: str,
+        patient_node_id: UUID,
+        immunization: dict[str, Any],
+    ) -> tuple[ClinicalFact | None, KGNode | None, KGEdge | None]:
+        """Import a FHIR Immunization as a clinical fact and KG node.
+
+        Extracts vaccine code (CVX), status, occurrence date, and dose info.
+        Maps to OMOP Drug domain (immunizations are Drug Exposures in OMOP).
+
+        Args:
+            session: Database session
+            patient_id: Internal patient ID
+            patient_node_id: Patient KG node UUID
+            immunization: FHIR Immunization resource
+
+        Returns:
+            Tuple of (fact, node, edge) or (None, None, None) if malformed
+        """
+        # Extract vaccine code from vaccineCode CodeableConcept
+        vaccine_concept = immunization.get("vaccineCode", {})
+        code, display, system = self._get_code_from_codeable_concept(vaccine_concept)
+
+        if not display:
+            return None, None, None
+
+        # Check status
+        status = immunization.get("status", "completed")
+        if status == "entered-in-error":
+            return None, None, None
+
+        # Determine assertion from status
+        assertion = Assertion.PRESENT
+        if status == "not-done":
+            assertion = Assertion.ABSENT
+
+        # Extract occurrence date (occurrenceDateTime or occurrenceString)
+        occurrence = self._parse_fhir_datetime(
+            immunization.get("occurrenceDateTime")
+        )
+
+        # Extract dose information
+        dose_quantity = immunization.get("doseQuantity", {})
+        dose_value = dose_quantity.get("value")
+        dose_unit = dose_quantity.get("unit")
+
+        # Extract protocol applied (dose number, series)
+        protocol_applied = immunization.get("protocolApplied", [])
+        dose_number = None
+        series_name = None
+        if protocol_applied:
+            protocol = protocol_applied[0]
+            dose_number = protocol.get("doseNumberPositiveInt") or protocol.get("doseNumberString")
+            series_name = protocol.get("series")
+
+        # Extract manufacturer
+        manufacturer = immunization.get("manufacturer", {})
+        manufacturer_display = manufacturer.get("display") if manufacturer else None
+
+        # Extract site and route
+        site_concept = immunization.get("site", {})
+        _, site_display, _ = self._get_code_from_codeable_concept(site_concept) if site_concept else (None, None, None)
+
+        route_concept = immunization.get("route", {})
+        _, route_display, _ = self._get_code_from_codeable_concept(route_concept) if route_concept else (None, None, None)
+
+        # Determine if this is a CVX code
+        is_cvx = system and "cvx" in system.lower() if system else False
+
+        # Create clinical fact -- immunizations map to Drug domain in OMOP
+        fact = ClinicalFact(
+            patient_id=patient_id,
+            domain=Domain.DRUG,
+            omop_concept_id=int(code) if code and code.isdigit() else 0,
+            concept_name=display,
+            assertion=assertion,
+            temporality=Temporality.PAST if occurrence else Temporality.CURRENT,
+            experiencer=Experiencer.PATIENT,
+            confidence=1.0,
+            value=str(dose_value) if dose_value is not None else None,
+            unit=dose_unit,
+            start_date=occurrence,
+        )
+        session.add(fact)
+        await session.flush()
+
+        # Create KG node
+        node = KGNode(
+            patient_id=patient_id,
+            node_type=NodeType.DRUG,
+            omop_concept_id=int(code) if code and code.isdigit() else None,
+            label=display,
+            properties={
+                "fhir_id": immunization.get("id"),
+                "fhir_resource_type": "Immunization",
+                "vaccine_code": code,
+                "vaccine_system": system,
+                "is_cvx": is_cvx,
+                "status": status,
+                "manufacturer": manufacturer_display,
+                "dose_number": dose_number,
+                "series": series_name,
+                "site": site_display,
+                "route": route_display,
+                "dose_value": dose_value,
+                "dose_unit": dose_unit,
+            },
+        )
+        session.add(node)
+        await session.flush()
+
+        # Create edge from patient to immunization
+        edge = KGEdge(
+            patient_id=patient_id,
+            source_node_id=patient_node_id,
+            target_node_id=node.id,
+            edge_type=EdgeType.TAKES_DRUG,
+            fact_id=fact.id,
+            properties={
+                "status": status,
+                "immunization": True,
+                "dose_number": dose_number,
+            },
         )
         session.add(edge)
 

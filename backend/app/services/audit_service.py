@@ -1,7 +1,10 @@
 """HIPAA-compliant audit service for logging all PHI access.
 
 Provides centralized audit logging with automatic PHI detection,
-supporting HIPAA compliance requirements for healthcare data handling.
+supporting HIPAA and 21 CFR Part 11 compliance requirements:
+- Tamper-evident hash chain (SHA-256 linking each record to predecessor)
+- Automatic PHI detection
+- Structured audit fields (actor_id, actor_role, action, resource, patient)
 
 This module uses a singleton pattern to ensure consistent audit logging
 across all services and API endpoints.
@@ -116,6 +119,7 @@ class AuditService:
 
     Features:
     - Automatic PHI detection in request/response data
+    - Tamper-evident hash chain (CISO-8, 21 CFR Part 11)
     - Configurable logging levels
     - Export to JSON, CSV, and HIPAA-required formats
     - Query interface for compliance audits
@@ -124,11 +128,81 @@ class AuditService:
     # VP-Validation-1: Maximum records for single export to prevent memory issues
     MAX_EXPORT_RECORDS = 10000
 
+    # CISO-8: Genesis hash used as previous_hash for the very first audit record
+    GENESIS_HASH = "0" * 64
+
     def __init__(self) -> None:
         """Initialize the audit service."""
         self._initialized = True
         self._log_count = 0
         logger.info("AuditService initialized")
+
+    @staticmethod
+    def _compute_record_hash(
+        previous_hash: str,
+        record_id: str,
+        timestamp_iso: str,
+        user_id: str | None,
+        action: str,
+        resource_type: str,
+        resource_id: str | None,
+        patient_id: str | None,
+    ) -> str:
+        """Compute SHA-256 hash for a tamper-evident audit chain.
+
+        The hash is computed over a canonical string representation of the
+        record's key fields concatenated with the previous record's hash.
+        This creates a chain where modifying any record breaks all subsequent
+        hashes, making tampering detectable.
+
+        Args:
+            previous_hash: Hash of the previous audit record (or GENESIS_HASH)
+            record_id: UUID of this record
+            timestamp_iso: ISO-format timestamp string
+            user_id: Actor who performed the action
+            action: The action performed
+            resource_type: Type of resource accessed
+            resource_id: ID of the specific resource
+            patient_id: Patient ID if applicable
+
+        Returns:
+            64-character hex SHA-256 digest
+        """
+        # Build canonical string with pipe delimiters for unambiguous parsing.
+        # None values are represented as empty strings.
+        canonical = "|".join([
+            previous_hash,
+            record_id,
+            timestamp_iso,
+            user_id or "",
+            action,
+            resource_type,
+            resource_id or "",
+            patient_id or "",
+        ])
+        return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+    async def _get_latest_hash(self, db: AsyncSession) -> str:
+        """Retrieve the hash of the most recent audit log record.
+
+        Used to chain new records to the existing audit trail.
+
+        Args:
+            db: Database session
+
+        Returns:
+            The record_hash of the latest audit log, or GENESIS_HASH if
+            no records exist or the latest record has no hash.
+        """
+        stmt = (
+            select(AuditLog.record_hash)
+            .where(AuditLog.record_hash.isnot(None))
+            .order_by(AuditLog.timestamp.desc())
+            .limit(1)
+        )
+        result = await db.execute(stmt)
+        latest_hash = result.scalar_one_or_none()
+        return latest_hash if latest_hash else self.GENESIS_HASH
 
     def detect_phi_in_content(self, content: str | dict | list | None) -> bool:
         """Detect if content contains PHI patterns.
@@ -227,6 +301,7 @@ class AuditService:
         resource_type: str,
         resource_id: str | None = None,
         user_id: str | None = None,
+        actor_role: str | None = None,
         ip_address: str | None = None,
         user_agent: str | None = None,
         request_id: str | None = None,
@@ -240,16 +315,19 @@ class AuditService:
         success: bool = True,
         error_message: str | None = None,
     ) -> AuditLog:
-        """Log an audit event.
+        """Log an audit event with tamper-evident hash chain.
 
         This is the core logging method that all other log methods use.
+        Each record is chained to the previous via SHA-256 hash, creating
+        a tamper-evident audit trail per HIPAA and 21 CFR Part 11.
 
         Args:
             db: Database session
             action: The action being performed
             resource_type: Type of resource being accessed
             resource_id: ID of specific resource (if applicable)
-            user_id: ID of user performing action
+            user_id: ID of user performing action (actor_id)
+            actor_role: Role of the user performing the action
             ip_address: Client IP address
             user_agent: Client user agent string
             request_id: Unique request identifier
@@ -275,10 +353,34 @@ class AuditService:
                 response_body=details.get("response_body") if details else None,
             )
 
+        # CISO-8: Compute hash chain
+        record_id = str(uuid4())
+        record_timestamp = datetime.now(timezone.utc)
+        timestamp_iso = record_timestamp.isoformat()
+
+        try:
+            previous_hash = await self._get_latest_hash(db)
+        except Exception:
+            # If we cannot read the chain (e.g., empty table, connection issue),
+            # use genesis hash so the record is still written.
+            logger.warning("Could not retrieve latest audit hash; using genesis hash")
+            previous_hash = self.GENESIS_HASH
+
+        record_hash = self._compute_record_hash(
+            previous_hash=previous_hash,
+            record_id=record_id,
+            timestamp_iso=timestamp_iso,
+            user_id=user_id,
+            action=action,
+            resource_type=resource_type,
+            resource_id=resource_id,
+            patient_id=patient_id,
+        )
+
         # Create audit log entry
         audit_log = AuditLog(
-            id=str(uuid4()),
-            timestamp=datetime.now(timezone.utc),
+            id=record_id,
+            timestamp=record_timestamp,
             user_id=user_id,
             action=action,
             resource_type=resource_type,
@@ -295,6 +397,9 @@ class AuditService:
             session_id=session_id,
             success=success,
             error_message=error_message,
+            actor_role=actor_role,
+            record_hash=record_hash,
+            previous_hash=previous_hash,
         )
 
         db.add(audit_log)
@@ -812,6 +917,7 @@ class AuditService:
             "id",
             "timestamp",
             "user_id",
+            "actor_role",
             "action",
             "resource_type",
             "resource_id",
@@ -824,6 +930,8 @@ class AuditService:
             "phi_accessed",
             "success",
             "error_message",
+            "record_hash",
+            "previous_hash",
         ]
         writer.writerow(headers)
 
@@ -833,6 +941,7 @@ class AuditService:
                 log.id,
                 log.timestamp.isoformat() if log.timestamp else "",
                 log.user_id or "",
+                log.actor_role or "",
                 log.action,
                 log.resource_type,
                 log.resource_id or "",
@@ -845,6 +954,8 @@ class AuditService:
                 log.phi_accessed,
                 log.success,
                 log.error_message or "",
+                log.record_hash or "",
+                log.previous_hash or "",
             ])
 
         content = output.getvalue()
@@ -876,6 +987,7 @@ class AuditService:
                 # Required HIPAA fields
                 "access_datetime": log.timestamp.isoformat() if log.timestamp else None,
                 "user_identification": log.user_id,
+                "user_role": log.actor_role,
                 "action_type": log.action,
                 "patient_identification": log.patient_id,
                 "information_accessed": {
@@ -889,6 +1001,9 @@ class AuditService:
                 "session_id": log.session_id,
                 "request_id": log.request_id,
                 "error_details": log.error_message,
+                # 21 CFR Part 11 integrity fields
+                "record_hash": log.record_hash,
+                "previous_hash": log.previous_hash,
             }
             hipaa_records.append(hipaa_record)
 
@@ -920,6 +1035,7 @@ class AuditService:
             "id": log.id,
             "timestamp": log.timestamp.isoformat() if log.timestamp else None,
             "user_id": log.user_id,
+            "actor_role": log.actor_role,
             "action": log.action,
             "resource_type": log.resource_type,
             "resource_id": log.resource_id,
@@ -935,6 +1051,8 @@ class AuditService:
             "session_id": log.session_id,
             "success": log.success,
             "error_message": log.error_message,
+            "record_hash": log.record_hash,
+            "previous_hash": log.previous_hash,
             "created_at": log.created_at.isoformat() if log.created_at else None,
         }
 

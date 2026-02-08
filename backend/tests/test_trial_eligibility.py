@@ -31,6 +31,7 @@ from app.schemas.base import Assertion, Domain, Experiencer, Temporality
 from app.schemas.knowledge_graph import NodeType
 from app.schemas.trial import (
     CriterionResult,
+    DataCompletenessScore,
     PatientEligibility,
     ScreeningRequest,
     ScreeningResponse,
@@ -1721,3 +1722,338 @@ class TestFamilyHistoryAssertions:
         assert result is not None
         assert result.eligible is False
         assert "Hypertension" in result.missing_data
+
+
+# =============================================================================
+# Tests: NOT_MET vs UNKNOWN Distinction (CDO-6)
+# =============================================================================
+
+
+class TestNotMetVsUnknown:
+    """CDO-6: Data Completeness Scoring.
+
+    Verify that the system distinguishes between:
+    - NOT_MET: Patient has data in the relevant domain but the criterion is not satisfied.
+    - UNKNOWN: Patient has no data in the relevant domain at all.
+    """
+
+    @pytest.mark.asyncio
+    async def test_no_data_at_all_returns_unknown(
+        self, service: TrialEligibilityService, session: AsyncSession
+    ):
+        """Patient with absolutely no condition data should get UNKNOWN status."""
+        trial_id = _register_trial(service, _simple_condition_trial())
+
+        # No facts for this patient
+        result = await service.check_patient_eligibility(
+            trial_id, "P-NO-DATA-CDO6", session=session
+        )
+        assert result is not None
+        cond_cr = result.criteria_details[0]
+        assert cond_cr.status == "UNKNOWN"
+        assert cond_cr.missing_domain == "conditions"
+
+    @pytest.mark.asyncio
+    async def test_has_condition_data_but_wrong_condition_returns_not_met(
+        self, service: TrialEligibilityService, session: AsyncSession
+    ):
+        """Patient has condition data (diabetes) but not hypertension -> NOT_MET."""
+        trial_id = _register_trial(service, _simple_condition_trial())
+
+        # Insert a condition fact that does NOT match the trial criterion
+        await _insert_fact(
+            session,
+            patient_id="P-WRONG-COND-CDO6",
+            domain=Domain.CONDITION,
+            concept_name="Type 2 diabetes mellitus",
+        )
+
+        result = await service.check_patient_eligibility(
+            trial_id, "P-WRONG-COND-CDO6", session=session
+        )
+        assert result is not None
+        cond_cr = result.criteria_details[0]
+        assert cond_cr.status == "NOT_MET"
+        assert cond_cr.missing_domain is None  # NOT_MET does not have a missing_domain
+
+    @pytest.mark.asyncio
+    async def test_not_met_is_evaluable_in_scoring(
+        self, service: TrialEligibilityService, session: AsyncSession
+    ):
+        """NOT_MET criteria should count as evaluable (we have data)."""
+        trial_id = _register_trial(service, _simple_condition_trial())
+
+        # Patient has conditions (just not the right one)
+        await _insert_fact(
+            session,
+            patient_id="P-EVALUABLE-CDO6",
+            domain=Domain.CONDITION,
+            concept_name="Type 2 diabetes mellitus",
+        )
+
+        result = await service.check_patient_eligibility(
+            trial_id, "P-EVALUABLE-CDO6", session=session
+        )
+        assert result is not None
+        # NOT_MET is evaluable, so evaluable_criteria should be 1
+        assert result.evaluable_criteria == 1
+        # Score should be 0 because the criterion is not met
+        assert result.match_score == 0.0
+
+    @pytest.mark.asyncio
+    async def test_unknown_is_not_evaluable_in_scoring(
+        self, service: TrialEligibilityService, session: AsyncSession
+    ):
+        """UNKNOWN criteria should NOT count as evaluable."""
+        trial_id = _register_trial(service, _simple_condition_trial())
+
+        # No data at all
+        result = await service.check_patient_eligibility(
+            trial_id, "P-UNKNOWN-CDO6", session=session
+        )
+        assert result is not None
+        assert result.evaluable_criteria == 0
+
+    @pytest.mark.asyncio
+    async def test_demographic_not_met_with_age_data(
+        self, service: TrialEligibilityService, session: AsyncSession
+    ):
+        """Patient has demographic data (birth_date) but age is out of range -> NOT_MET."""
+        trial_id = _register_trial(service, _ad_trial_create())
+
+        # Patient is 17 (too young for 18-75 range), but HAS birth_date
+        birth = (datetime.now(timezone.utc) - timedelta(days=17 * 365)).isoformat()
+        await _insert_patient_node(session, patient_id="P-YOUNG-CDO6", birth_date=birth)
+        await _insert_fact(
+            session,
+            patient_id="P-YOUNG-CDO6",
+            domain=Domain.CONDITION,
+            concept_name="Atopic dermatitis, unspecified",
+        )
+
+        result = await service.check_patient_eligibility(
+            trial_id, "P-YOUNG-CDO6", session=session
+        )
+        assert result is not None
+        demo_cr = next(
+            (cr for cr in result.criteria_details if cr.criterion_type == "demographic"),
+            None,
+        )
+        assert demo_cr is not None
+        assert demo_cr.status == "NOT_MET"
+        assert demo_cr.missing_domain is None
+
+    @pytest.mark.asyncio
+    async def test_demographic_unknown_no_patient_node(
+        self, service: TrialEligibilityService, session: AsyncSession
+    ):
+        """Patient with no KGNode should get UNKNOWN for demographic criteria."""
+        trial_id = _register_trial(service, _ad_trial_create())
+
+        await _insert_fact(
+            session,
+            patient_id="P-NONODE-CDO6",
+            domain=Domain.CONDITION,
+            concept_name="Atopic dermatitis, unspecified",
+        )
+
+        result = await service.check_patient_eligibility(
+            trial_id, "P-NONODE-CDO6", session=session
+        )
+        assert result is not None
+        demo_cr = next(
+            (cr for cr in result.criteria_details if cr.criterion_type == "demographic"),
+            None,
+        )
+        assert demo_cr is not None
+        assert demo_cr.status == "UNKNOWN"
+        assert demo_cr.missing_domain == "demographics"
+
+
+# =============================================================================
+# Tests: Data Completeness Score (CDO-6)
+# =============================================================================
+
+
+class TestDataCompletenessScore:
+    """CDO-6: Verify DataCompletenessScore is computed correctly."""
+
+    @pytest.mark.asyncio
+    async def test_full_completeness_when_all_criteria_evaluable(
+        self, service: TrialEligibilityService, session: AsyncSession
+    ):
+        """Patient meeting all criteria should have completeness = 1.0."""
+        trial_id = _register_trial(service, _simple_condition_trial())
+
+        await _insert_fact(
+            session,
+            patient_id="P-COMPLETE-CDO6",
+            domain=Domain.CONDITION,
+            concept_name="Essential hypertension",
+            confidence=0.95,
+        )
+
+        result = await service.check_patient_eligibility(
+            trial_id, "P-COMPLETE-CDO6", session=session
+        )
+        assert result is not None
+        assert result.data_completeness is not None
+        dc = result.data_completeness
+        assert dc.overall_completeness == 1.0
+        assert dc.evaluable_criteria == dc.total_criteria
+        assert dc.unknown_criteria == 0
+        assert dc.missing_domains == []
+        assert dc.recommendation is None
+
+    @pytest.mark.asyncio
+    async def test_zero_completeness_when_all_unknown(
+        self, service: TrialEligibilityService, session: AsyncSession
+    ):
+        """Patient with no data at all should have completeness = 0.0."""
+        trial_id = _register_trial(service, _simple_condition_trial())
+
+        result = await service.check_patient_eligibility(
+            trial_id, "P-EMPTY-CDO6", session=session
+        )
+        assert result is not None
+        assert result.data_completeness is not None
+        dc = result.data_completeness
+        assert dc.overall_completeness == 0.0
+        assert dc.evaluable_criteria == 0
+        assert dc.unknown_criteria == dc.total_criteria
+        assert len(dc.missing_domains) > 0
+        assert dc.recommendation is not None
+
+    @pytest.mark.asyncio
+    async def test_partial_completeness_mixed_criteria(
+        self, service: TrialEligibilityService, session: AsyncSession
+    ):
+        """Patient has data for some criteria but not others -> partial completeness."""
+        trial_id = _register_trial(service, _dme_trial_create())
+
+        # Provide age data (demographic = evaluable)
+        birth = (datetime.now(timezone.utc) - timedelta(days=50 * 365)).isoformat()
+        await _insert_patient_node(session, patient_id="P-PARTIAL-CDO6", birth_date=birth)
+
+        # Provide one condition but not the other two
+        await _insert_fact(
+            session,
+            patient_id="P-PARTIAL-CDO6",
+            domain=Domain.CONDITION,
+            concept_name="Retinal edema",
+        )
+
+        result = await service.check_patient_eligibility(
+            trial_id, "P-PARTIAL-CDO6", session=session
+        )
+        assert result is not None
+        dc = result.data_completeness
+        assert dc is not None
+        # total_criteria = 3 inclusion + 1 exclusion = 4
+        assert dc.total_criteria == 4
+        # demographic=PASS (evaluable), retinal edema=PASS (evaluable),
+        # type 2 diabetes=NOT_MET (has condition data, evaluable),
+        # exclusion HbA1c=UNKNOWN (no measurement data)
+        assert 0.0 < dc.overall_completeness < 1.0
+        # At least the measurement domain should be listed as missing
+        assert dc.unknown_criteria >= 1
+
+    @pytest.mark.asyncio
+    async def test_not_met_criteria_counted_in_completeness(
+        self, service: TrialEligibilityService, session: AsyncSession
+    ):
+        """NOT_MET criteria should count as evaluable (improve completeness score)."""
+        trial_id = _register_trial(service, _simple_condition_trial())
+
+        # Patient has condition data but not the right condition
+        await _insert_fact(
+            session,
+            patient_id="P-NOTMET-COMPLETE-CDO6",
+            domain=Domain.CONDITION,
+            concept_name="Diabetes mellitus",
+        )
+
+        result = await service.check_patient_eligibility(
+            trial_id, "P-NOTMET-COMPLETE-CDO6", session=session
+        )
+        assert result is not None
+        dc = result.data_completeness
+        assert dc is not None
+        # Criterion is NOT_MET, which is evaluable
+        assert dc.overall_completeness == 1.0
+        assert dc.evaluable_criteria == 1
+        assert dc.not_met_criteria == 1
+        assert dc.unknown_criteria == 0
+
+    @pytest.mark.asyncio
+    async def test_completeness_recommendation_lists_missing_domains(
+        self, service: TrialEligibilityService, session: AsyncSession
+    ):
+        """Recommendation should list the specific missing data domains."""
+        trial_id = _register_trial(service, _dme_trial_create())
+
+        # No data at all for any domain
+        result = await service.check_patient_eligibility(
+            trial_id, "P-RECOMMEND-CDO6", session=session
+        )
+        assert result is not None
+        dc = result.data_completeness
+        assert dc is not None
+        assert dc.recommendation is not None
+        # Should mention obtaining data
+        assert "Obtain" in dc.recommendation
+
+    @pytest.mark.asyncio
+    async def test_completeness_in_screening_response(
+        self, service: TrialEligibilityService, session: AsyncSession
+    ):
+        """ScreeningResponse should include data_insufficient_count."""
+        trial_id = _register_trial(service, _simple_condition_trial())
+
+        # One patient with matching data, one with unrelated data
+        await _insert_fact(
+            session,
+            patient_id="P-SCREEN-OK-CDO6",
+            domain=Domain.CONDITION,
+            concept_name="Essential hypertension",
+        )
+        await _insert_fact(
+            session,
+            patient_id="P-SCREEN-BAD-CDO6",
+            domain=Domain.DRUG,
+            concept_name="Metformin",
+        )
+
+        response = await service.screen_patients(trial_id, session=session)
+        assert response is not None
+        # data_insufficient_count should be >= 0
+        assert response.data_insufficient_count >= 0
+        # P-SCREEN-BAD-CDO6 has drug data but no condition data,
+        # so it doesn't match any inclusion set
+        assert response.data_insufficient_count >= 1
+
+    @pytest.mark.asyncio
+    async def test_eligible_patient_has_full_completeness(
+        self, service: TrialEligibilityService, session: AsyncSession
+    ):
+        """Eligible patient in batch screening should have completeness = 1.0."""
+        trial_id = _register_trial(service, _simple_condition_trial())
+
+        await _insert_fact(
+            session,
+            patient_id="P-BATCH-CDO6",
+            domain=Domain.CONDITION,
+            concept_name="Essential hypertension",
+            confidence=0.95,
+        )
+
+        response = await service.screen_patients(trial_id, session=session)
+        assert response is not None
+        assert len(response.candidates) >= 1
+        candidate = next(
+            (c for c in response.candidates if c.patient_id == "P-BATCH-CDO6"),
+            None,
+        )
+        assert candidate is not None
+        assert candidate.data_completeness is not None
+        assert candidate.data_completeness.overall_completeness == 1.0

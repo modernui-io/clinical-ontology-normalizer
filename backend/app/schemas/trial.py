@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, computed_field
 
 from app.models.trial import EnrollmentStatus, TrialPhase, TrialStatus
 
@@ -165,15 +165,61 @@ class CriterionResult(BaseModel):
     Provides an audit trail entry for regulatory compliance, capturing
     which ClinicalFacts were evaluated, the confidence of the match,
     and whether the criterion was met.
+
+    Status values:
+        PASS          - Data exists and criterion is satisfied.
+        NOT_MET       - Data exists in the relevant domain but the specific criterion is not satisfied.
+        UNKNOWN       - No data available in the relevant domain to evaluate this criterion.
+        POSSIBLE_MATCH - Low-confidence match that needs review.
+        FAIL          - Exclusion criterion matched with high confidence.
     """
 
     criterion_name: str = Field(..., description="Human-readable criterion name")
     criterion_type: str = Field(..., description="Type: condition, measurement, demographic")
-    status: str = Field(..., description="PASS, FAIL, UNKNOWN, or POSSIBLE_MATCH")
+    status: str = Field(..., description="PASS, NOT_MET, FAIL, UNKNOWN, or POSSIBLE_MATCH")
     evidence_fact_ids: list[str] = Field(default_factory=list, description="ClinicalFact IDs supporting this result")
     confidence: float = Field(default=1.0, ge=0.0, le=1.0, description="Max confidence from matching facts")
     details: str = Field(default="", description="Human-readable explanation")
     weight: float = Field(default=1.0, ge=0.0, description="Criterion importance weight for scoring")
+    missing_domain: str | None = Field(
+        default=None,
+        description="Data domain that is missing when status is UNKNOWN (e.g., 'lab_results', 'conditions')",
+    )
+
+
+class DataCompletenessScore(BaseModel):
+    """Scores how complete a patient's data is relative to trial criteria.
+
+    Distinguishes between criteria that CANNOT be evaluated (no data)
+    vs criteria where data exists but doesn't match.
+    """
+
+    overall_completeness: float = Field(
+        ge=0.0, le=1.0,
+        description="Fraction of criteria that can be evaluated (0.0 to 1.0)",
+    )
+    evaluable_criteria: int = Field(
+        description="Number of criteria with sufficient data to evaluate",
+    )
+    total_criteria: int = Field(
+        description="Total number of criteria (inclusion + exclusion)",
+    )
+    unknown_criteria: int = Field(
+        default=0,
+        description="Number of criteria with UNKNOWN status (no data to evaluate)",
+    )
+    not_met_criteria: int = Field(
+        default=0,
+        description="Number of criteria explicitly not met (data exists, doesn't match)",
+    )
+    missing_domains: list[str] = Field(
+        default_factory=list,
+        description="Data domains that are missing (e.g., 'lab_results', 'demographics')",
+    )
+    recommendation: str | None = Field(
+        default=None,
+        description="Actionable recommendation to improve data completeness",
+    )
 
 
 class PatientEligibility(BaseModel):
@@ -197,6 +243,10 @@ class PatientEligibility(BaseModel):
     review_disclaimer: str = Field(
         default=CDS_DISCLAIMER,
         description="CDS disclaimer text for regulatory compliance",
+    )
+    data_completeness: DataCompletenessScore | None = Field(
+        default=None,
+        description="Data completeness score showing how much patient data is available for evaluation",
     )
 
 
@@ -225,6 +275,10 @@ class ScreeningResponse(BaseModel):
     total_patients_screened: int
     eligible_count: int
     ineligible_count: int
+    data_insufficient_count: int = Field(
+        default=0,
+        description="Patients where data was insufficient to fully evaluate eligibility (any criterion UNKNOWN)",
+    )
     enrollment_target: int
     enrollment_rate: float = Field(description="Percentage of screened patients eligible")
     candidates: list[PatientEligibility] = Field(default_factory=list)

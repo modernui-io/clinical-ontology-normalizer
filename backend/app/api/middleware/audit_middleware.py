@@ -129,9 +129,10 @@ class AuditMiddleware(BaseHTTPMiddleware):
         return True
 
     def _extract_user_id(self, request: Request) -> str | None:
-        """Extract user ID from request headers.
+        """Extract user ID from request headers or auth state.
 
         Supports multiple authentication patterns:
+        - Authenticated user from auth middleware (request.state.user)
         - Bearer token (extracts from X-User-Id header)
         - API key header
         - Basic auth username
@@ -142,6 +143,11 @@ class AuditMiddleware(BaseHTTPMiddleware):
         Returns:
             User ID if found, None otherwise
         """
+        # Check for authenticated user set by auth middleware
+        user = getattr(request.state, "user", None)
+        if user and hasattr(user, "id"):
+            return user.id
+
         # Check for explicit user ID header
         user_id = request.headers.get("X-User-Id")
         if user_id:
@@ -169,6 +175,23 @@ class AuditMiddleware(BaseHTTPMiddleware):
             # For now, just indicate bearer auth was used
             return "bearer_auth"
 
+        return None
+
+    def _extract_actor_role(self, request: Request) -> str | None:
+        """Extract actor role from authenticated user context.
+
+        CISO-8: Captures the actor's role for RBAC audit correlation.
+        The role is set by the auth middleware on request.state.user.
+
+        Args:
+            request: The incoming request
+
+        Returns:
+            Comma-separated role string, or None if not authenticated.
+        """
+        user = getattr(request.state, "user", None)
+        if user and hasattr(user, "roles") and user.roles:
+            return ",".join(user.roles)
         return None
 
     def _extract_ip_address(self, request: Request) -> str:
@@ -358,6 +381,7 @@ class AuditMiddleware(BaseHTTPMiddleware):
         start_time = time.perf_counter()
         method = request.method
         user_id = self._extract_user_id(request)
+        actor_role = self._extract_actor_role(request)
         ip_address = self._extract_ip_address(request)
         user_agent = request.headers.get("User-Agent", "")
         query_params = dict(request.query_params)
@@ -400,6 +424,12 @@ class AuditMiddleware(BaseHTTPMiddleware):
             )
 
             # Log the audit entry asynchronously
+            # CISO-8: Re-extract user_id and actor_role after request processing,
+            # since auth middleware may have populated request.state.user
+            # during call_next(request).
+            post_user_id = self._extract_user_id(request)
+            post_actor_role = self._extract_actor_role(request)
+
             try:
                 async with async_session_maker() as db:
                     await self.audit_service.log_event(
@@ -407,7 +437,8 @@ class AuditMiddleware(BaseHTTPMiddleware):
                         action=action,
                         resource_type=resource_type,
                         resource_id=resource_id,
-                        user_id=user_id,
+                        user_id=post_user_id or user_id,
+                        actor_role=post_actor_role or actor_role,
                         ip_address=ip_address,
                         user_agent=user_agent[:500] if user_agent else None,
                         request_id=request_id,

@@ -371,14 +371,24 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     from app.api.health import set_app_start_time
     set_app_start_time(time.time())
 
-    # Startup - Initialize database
-    if settings.debug:
-        logger.info("Initializing database connection (debug mode)")
+    # Startup - Initialize database (development only)
+    # VPE-3: In production/staging, schema is managed exclusively by Alembic.
+    # init_db() calls create_all() which bypasses migration tracking.
+    # The guard inside init_db() will also refuse to run in production/staging.
+    if settings.debug and settings.environment.lower() not in ("production", "staging"):
+        logger.info("Initializing database via create_all (debug mode, non-production)")
         try:
             await init_db()
-            logger.info("Database connection established")
+            logger.info("Database tables initialized via create_all")
         except Exception as e:
             logger.warning(f"Database init (create_all) skipped — tables may already exist: {e}")
+    else:
+        logger.info(
+            "Skipping create_all — schema managed by Alembic migrations "
+            "(environment=%s, debug=%s)",
+            settings.environment,
+            settings.debug,
+        )
 
     # Preload vocabulary service (singleton) for fast NLP extraction
     logger.info("Preloading vocabulary service...")

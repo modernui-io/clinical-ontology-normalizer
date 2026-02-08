@@ -32,6 +32,7 @@ from app.schemas.knowledge_graph import NodeType
 from app.schemas.trial import (
     CDS_DISCLAIMER,
     CriterionResult,
+    DataCompletenessScore,
     EnrollmentCreate,
     EnrollmentResponse,
     EnrollmentUpdate,
@@ -762,6 +763,18 @@ class TrialEligibilityService:
         eligible_patients = included_patients - excluded_patients
         eligible_count = len(eligible_patients)
 
+        # --- Compute data_insufficient_count ---
+        # Patients who matched NONE of the inclusion criteria sets likely
+        # lack data. This is an approximation for the batch-level count.
+        if inclusion_sets:
+            patients_in_any_set = set()
+            for s in inclusion_sets:
+                patients_in_any_set |= s
+            # Patients not appearing in any criterion match set
+            data_insufficient_count = len(all_patient_ids - patients_in_any_set)
+        else:
+            data_insufficient_count = 0
+
         # --- Build candidate list with per-criterion detail ---
         limit = request.limit if request else 100
         min_score = request.min_match_score if request else 0.0
@@ -784,6 +797,7 @@ class TrialEligibilityService:
             total_patients_screened=total_screened,
             eligible_count=eligible_count,
             ineligible_count=total_screened - eligible_count,
+            data_insufficient_count=data_insufficient_count,
             enrollment_target=record.enrollment_target,
             enrollment_rate=round(enrollment_rate, 2),
             candidates=candidates,
@@ -800,6 +814,16 @@ class TrialEligibilityService:
         "demographic": 0.5,
     }
 
+    # Map criterion types to human-readable domain labels for completeness reports.
+    _DOMAIN_LABEL: dict[str, str] = {
+        "condition": "conditions",
+        "drug": "medications",
+        "measurement": "lab_results",
+        "procedure": "procedures",
+        "observation": "observations",
+        "demographic": "demographics",
+    }
+
     async def _evaluate_criterion(
         self,
         criterion: dict,
@@ -812,23 +836,75 @@ class TrialEligibilityService:
 
         Returns a CriterionResult with fact-level audit data, confidence
         scores, and a weighted importance value.
+
+        Distinguishes between:
+        - UNKNOWN: No data exists in the relevant domain for this patient.
+        - NOT_MET: Data exists in the domain but does not satisfy the criterion.
         """
         name = criterion.get("name", criterion.get("criterion_type", "Unknown"))
         ctype = criterion.get("criterion_type", "unknown")
         weight = self._CRITERION_WEIGHT.get(ctype, 1.0)
+        domain_label = self._DOMAIN_LABEL.get(ctype)
 
         # --- Demographic criteria (no ClinicalFact, uses KGNode) ---
         if ctype == "demographic":
             matching = await self._get_demographic_patient_ids(criterion, session)
             matched = patient_id in matching
+
+            if matched:
+                return CriterionResult(
+                    criterion_name=name,
+                    criterion_type=ctype,
+                    status="PASS",
+                    evidence_fact_ids=[],
+                    confidence=1.0,
+                    details="Demographic matched",
+                    weight=weight,
+                )
+
+            # Check whether the patient has a KGNode at all (has demographic data)
+            patient_check_stmt = select(KGNode.patient_id).where(
+                KGNode.patient_id == patient_id,
+                KGNode.node_type == NodeType.PATIENT,
+                KGNode.deleted_at.is_(None),
+            ).limit(1)
+            patient_check_result = await session.execute(patient_check_stmt)
+            has_patient_node = patient_check_result.scalar_one_or_none() is not None
+
+            if has_patient_node:
+                # Patient node exists but doesn't match criteria (e.g., age out of range,
+                # or birth_date missing). Check if birth_date is present to distinguish.
+                props_stmt = select(KGNode.properties).where(
+                    KGNode.patient_id == patient_id,
+                    KGNode.node_type == NodeType.PATIENT,
+                    KGNode.deleted_at.is_(None),
+                ).limit(1)
+                props_result = await session.execute(props_stmt)
+                props = props_result.scalar_one_or_none()
+                has_birth_date = bool(props and (props or {}).get("birth_date"))
+
+                if has_birth_date:
+                    # Has demographic data but doesn't meet criterion
+                    return CriterionResult(
+                        criterion_name=name,
+                        criterion_type=ctype,
+                        status="NOT_MET",
+                        evidence_fact_ids=[],
+                        confidence=1.0,
+                        details="Demographic data exists but criterion not satisfied",
+                        weight=weight,
+                    )
+
+            # No demographic data available
             return CriterionResult(
                 criterion_name=name,
                 criterion_type=ctype,
-                status="PASS" if matched else "UNKNOWN",
+                status="UNKNOWN",
                 evidence_fact_ids=[],
-                confidence=1.0 if matched else 0.0,
-                details=f"Demographic {'matched' if matched else 'not matched or missing data'}",
+                confidence=0.0,
+                details="No demographic data available for this patient",
                 weight=weight,
+                missing_domain=domain_label,
             )
 
         # --- Non-demographic: query ClinicalFact with id + confidence ---
@@ -843,6 +919,7 @@ class TrialEligibilityService:
                 confidence=0.0,
                 details="No display terms available for criterion",
                 weight=weight,
+                missing_domain=domain_label,
             )
 
         domain_map = {
@@ -862,6 +939,7 @@ class TrialEligibilityService:
                 confidence=0.0,
                 details=f"Unsupported criterion type: {ctype}",
                 weight=weight,
+                missing_domain=domain_label,
             )
 
         like_clauses = [ClinicalFact.concept_name.ilike(f"%{term}%") for term in display_terms]
@@ -885,15 +963,37 @@ class TrialEligibilityService:
         facts = result.all()
 
         if not facts:
-            return CriterionResult(
-                criterion_name=name,
-                criterion_type=ctype,
-                status="UNKNOWN",
-                evidence_fact_ids=[],
-                confidence=0.0,
-                details="No matching clinical facts found",
-                weight=weight,
-            )
+            # Distinguish NOT_MET vs UNKNOWN: check if patient has ANY data
+            # in this domain (regardless of concept match).
+            domain_check_stmt = select(ClinicalFact.id).where(
+                ClinicalFact.patient_id == patient_id,
+                ClinicalFact.domain == domain,
+                ClinicalFact.assertion == Assertion.PRESENT,
+            ).limit(1)
+            domain_check_result = await session.execute(domain_check_stmt)
+            has_domain_data = domain_check_result.scalar_one_or_none() is not None
+
+            if has_domain_data:
+                return CriterionResult(
+                    criterion_name=name,
+                    criterion_type=ctype,
+                    status="NOT_MET",
+                    evidence_fact_ids=[],
+                    confidence=0.0,
+                    details=f"Patient has {domain.value} data but no match for this criterion",
+                    weight=weight,
+                )
+            else:
+                return CriterionResult(
+                    criterion_name=name,
+                    criterion_type=ctype,
+                    status="UNKNOWN",
+                    evidence_fact_ids=[],
+                    confidence=0.0,
+                    details=f"No {domain.value} data available for this patient",
+                    weight=weight,
+                    missing_domain=domain_label,
+                )
 
         max_confidence = max(f.confidence for f in facts)
         fact_ids = [str(f.id) for f in facts]
@@ -918,6 +1018,58 @@ class TrialEligibilityService:
             weight=weight,
         )
 
+    def _compute_data_completeness(
+        self,
+        criteria_details: list[CriterionResult],
+    ) -> DataCompletenessScore:
+        """Compute data completeness score from criterion evaluation results.
+
+        Classifies each criterion as evaluable (we have data) or not (UNKNOWN),
+        and collects the missing data domains.
+        """
+        total = len(criteria_details)
+        unknown_count = 0
+        not_met_count = 0
+        missing_domains: list[str] = []
+
+        for cr in criteria_details:
+            if cr.status == "UNKNOWN":
+                unknown_count += 1
+                if cr.missing_domain and cr.missing_domain not in missing_domains:
+                    missing_domains.append(cr.missing_domain)
+            elif cr.status == "NOT_MET":
+                not_met_count += 1
+
+        evaluable = total - unknown_count
+        completeness = evaluable / total if total > 0 else 1.0
+
+        # Generate recommendation based on what's missing
+        recommendation: str | None = None
+        if missing_domains:
+            domain_labels = {
+                "lab_results": "laboratory results",
+                "conditions": "condition/diagnosis records",
+                "medications": "medication records",
+                "procedures": "procedure records",
+                "demographics": "demographic information (age, sex)",
+                "observations": "clinical observations",
+            }
+            readable = [domain_labels.get(d, d) for d in missing_domains]
+            if len(readable) == 1:
+                recommendation = f"Obtain {readable[0]} to complete eligibility evaluation"
+            else:
+                recommendation = f"Obtain {', '.join(readable[:-1])} and {readable[-1]} to complete eligibility evaluation"
+
+        return DataCompletenessScore(
+            overall_completeness=round(completeness, 3),
+            evaluable_criteria=evaluable,
+            total_criteria=total,
+            unknown_criteria=unknown_count,
+            not_met_criteria=not_met_count,
+            missing_domains=missing_domains,
+            recommendation=recommendation,
+        )
+
     async def check_patient_eligibility(
         self,
         trial_id: str,
@@ -930,6 +1082,10 @@ class TrialEligibilityService:
         Queries the clinical_facts table for each criterion, collects
         evidence fact IDs and confidence scores, and returns a weighted
         match score with a full per-criterion audit trail.
+
+        Distinguishes between:
+        - NOT_MET: data exists in the domain but doesn't satisfy the criterion
+        - UNKNOWN: no data available to evaluate the criterion
         """
         await self._ensure_loaded(session)
         record = self._trials.get(trial_id)
@@ -958,6 +1114,7 @@ class TrialEligibilityService:
                 # Possible matches are noted but do not count as met
                 missing_data.append(cr.criterion_name)
             else:
+                # Both UNKNOWN and NOT_MET go to missing_data
                 missing_data.append(cr.criterion_name)
 
         # --- Evaluate exclusion criteria ---
@@ -973,12 +1130,13 @@ class TrialEligibilityService:
                 exclusion_triggered.append(cr.criterion_name)
 
         # --- Weighted match score ---
-        # Only count evaluable criteria (not UNKNOWN) in the denominator
+        # Count evaluable criteria (not UNKNOWN) in the denominator.
+        # NOT_MET is evaluable (we have data, it just doesn't match).
         evaluable_weight = 0.0
         met_weight = 0.0
         evaluable_count = 0
         for cr in criteria_details:
-            if cr.status in ("PASS", "FAIL", "POSSIBLE_MATCH"):
+            if cr.status in ("PASS", "FAIL", "POSSIBLE_MATCH", "NOT_MET"):
                 evaluable_weight += cr.weight
                 evaluable_count += 1
                 if cr.status == "PASS":
@@ -997,6 +1155,9 @@ class TrialEligibilityService:
             len(inclusion_met) == len(inclusion_list) and len(exclusion_triggered) == 0
         )
 
+        # --- Compute data completeness score ---
+        data_completeness = self._compute_data_completeness(criteria_details)
+
         return PatientEligibility(
             patient_id=patient_id,
             eligible=eligible,
@@ -1011,6 +1172,7 @@ class TrialEligibilityService:
             screening_timestamp=screening_ts,
             requires_clinician_review=True,
             review_disclaimer=CDS_DISCLAIMER,
+            data_completeness=data_completeness,
         )
 
     async def _build_real_candidates(
@@ -1038,6 +1200,8 @@ class TrialEligibilityService:
             for c in inclusion_list
         ]
 
+        total_criteria = len(inclusion_list) + len(exclusion_list)
+
         candidates: list[PatientEligibility] = []
         for patient_id in sorted(eligible_patients):
             if len(candidates) >= limit:
@@ -1045,6 +1209,16 @@ class TrialEligibilityService:
 
             score = 1.0  # All inclusion met, no exclusion triggered
             if score >= min_score:
+                # Eligible patients passed all criteria -> full completeness
+                completeness = DataCompletenessScore(
+                    overall_completeness=1.0,
+                    evaluable_criteria=total_criteria,
+                    total_criteria=total_criteria,
+                    unknown_criteria=0,
+                    not_met_criteria=0,
+                    missing_domains=[],
+                    recommendation=None,
+                )
                 candidates.append(PatientEligibility(
                     patient_id=patient_id,
                     eligible=True,
@@ -1056,6 +1230,7 @@ class TrialEligibilityService:
                     missing_data=[],
                     requires_clinician_review=True,
                     review_disclaimer=CDS_DISCLAIMER,
+                    data_completeness=completeness,
                 ))
 
         candidates.sort(key=lambda c: c.match_score, reverse=True)
