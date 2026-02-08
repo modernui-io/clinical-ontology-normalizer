@@ -153,6 +153,7 @@ from app.api.lineage import router as lineage_router
 from app.api.trials import router as trials_router
 from app.api.bulk_screening import router as bulk_screening_router
 from app.api.mapping_quality import router as mapping_quality_router
+from app.api.model_evaluation import router as model_evaluation_router
 from app.api.metriport_api import router as metriport_api_router
 from app.api.metriport_webhook import router as metriport_webhook_router
 from app.api.incidents import router as incidents_router
@@ -160,6 +161,10 @@ from app.api.screening_results import router as screening_results_router
 from app.api.sites import router as sites_router
 from app.api.backup_status import router as backup_status_router
 from app.api.roi_dashboard import router as roi_dashboard_router
+from app.api.terminology_governance import router as terminology_governance_router
+from app.api.cohort_phenotypes import router as cohort_phenotypes_router
+from app.api.consent import router as consent_router
+from app.api.data_quality_dqd import router as data_quality_dqd_router
 
 __all__ = [
     # Routers
@@ -235,6 +240,7 @@ __all__ = [
     "pipeline_scheduling_router",
     "data_completeness_router",
     "data_consistency_router",
+    "model_evaluation_router",
     "model_registry_router",
     "clinical_agent_router",
     "guidelines_router",
@@ -257,6 +263,10 @@ __all__ = [
     "sites_router",
     "backup_status_router",
     "roi_dashboard_router",
+    "terminology_governance_router",
+    "cohort_phenotypes_router",
+    "consent_router",
+    "data_quality_dqd_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",

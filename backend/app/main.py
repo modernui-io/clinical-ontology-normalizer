@@ -104,6 +104,7 @@ from app.api import (
     trials_router,
     bulk_screening_router,
     mapping_quality_router,
+    model_evaluation_router,
     metriport_api_router,
     metriport_webhook_router,
     lineage_router,
@@ -112,6 +113,10 @@ from app.api import (
     sites_router,
     backup_status_router,
     roi_dashboard_router,
+    terminology_governance_router,
+    cohort_phenotypes_router,
+    consent_router,
+    data_quality_dqd_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -744,6 +749,7 @@ api_v1_router.include_router(pipeline_scheduling_router)
 api_v1_router.include_router(data_completeness_router)
 api_v1_router.include_router(data_consistency_router)
 api_v1_router.include_router(mapping_quality_router)
+api_v1_router.include_router(model_evaluation_router)
 api_v1_router.include_router(model_registry_router)
 api_v1_router.include_router(clinical_agent_router)
 api_v1_router.include_router(guidelines_router)
@@ -766,6 +772,10 @@ api_v1_router.include_router(screening_results_router)
 api_v1_router.include_router(sites_router)
 api_v1_router.include_router(backup_status_router)
 api_v1_router.include_router(roi_dashboard_router)
+api_v1_router.include_router(terminology_governance_router)
+api_v1_router.include_router(cohort_phenotypes_router)
+api_v1_router.include_router(data_quality_dqd_router)
+api_v1_router.include_router(consent_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)
