@@ -291,7 +291,7 @@ async def get_site_screening_summary(
             eligibility = await trial_service.check_patient_eligibility(
                 trial_id, pid, session=session
             )
-            if eligibility and eligibility.is_eligible:
+            if eligibility and eligibility.eligible:
                 matched_patient_ids.append(pid)
                 patients_matched_set.add(pid)
 
