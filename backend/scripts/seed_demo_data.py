@@ -62,9 +62,9 @@ random.seed(42)
 NOW = datetime.now(timezone.utc)
 
 # Stable UUIDs for demo trials (so they're predictable across runs)
-EYLEA_TRIAL_ID = "00000000-demo-0001-0000-000000000001"
-DUPIXENT_TRIAL_ID = "00000000-demo-0002-0000-000000000002"
-LIBTAYO_TRIAL_ID = "00000000-demo-0003-0000-000000000003"
+EYLEA_TRIAL_ID = "00000000-de00-0001-0000-000000000001"
+DUPIXENT_TRIAL_ID = "00000000-de00-0002-0000-000000000002"
+LIBTAYO_TRIAL_ID = "00000000-de00-0003-0000-000000000003"
 
 
 # =============================================================================
@@ -828,11 +828,7 @@ async def seed_demo_data() -> None:
 
     await init_db()
 
-    # Idempotency check
-    if await _check_demo_data_exists():
-        logger.info("Demo data already exists. Skipping seeding.")
-        logger.info("To re-seed, delete existing demo documents first.")
-        return
+    doc_count = mention_count = candidate_count = trial_count = enrollment_count = audit_count = 0
 
     # Step 1: Seed patients via FHIR import pipeline
     logger.info("\n[1/5] Seeding patients via FHIR import...")
@@ -842,25 +838,44 @@ async def seed_demo_data() -> None:
         logger.error(f"FHIR patient import failed: {e}", exc_info=True)
         logger.info("Continuing with remaining seed steps...")
 
-    # Step 2: Seed clinical note documents with mentions
-    logger.info("\n[2/5] Seeding clinical documents and NLP mentions...")
-    doc_count, mention_count, candidate_count = await seed_documents_and_mentions()
-    logger.info(f"  Created {doc_count} documents, {mention_count} mentions, {candidate_count} concept candidates")
+    # Step 2: Seed clinical note documents with mentions (skip if already done)
+    if await _check_demo_data_exists():
+        logger.info("\n[2/5] Documents already seeded — skipping.")
+    else:
+        logger.info("\n[2/5] Seeding clinical documents and NLP mentions...")
+        doc_count, mention_count, candidate_count = await seed_documents_and_mentions()
+        logger.info(f"  Created {doc_count} documents, {mention_count} mentions, {candidate_count} concept candidates")
 
-    # Step 3: Seed trial records to DB
-    logger.info("\n[3/5] Seeding trial records...")
-    trial_count = await seed_trials()
-    logger.info(f"  Created {trial_count} trials in database")
+    # Step 3: Seed trial records to DB (skip if already done)
+    from sqlalchemy import select as sa_select, func as sa_func
+    async with async_session_maker() as session:
+        existing_trials = (await session.execute(sa_select(sa_func.count()).select_from(Trial))).scalar() or 0
+    if existing_trials > 0:
+        logger.info(f"\n[3/5] Trials already seeded ({existing_trials}) — skipping.")
+    else:
+        logger.info("\n[3/5] Seeding trial records...")
+        trial_count = await seed_trials()
+        logger.info(f"  Created {trial_count} trials in database")
 
-    # Step 4: Seed enrollment records
-    logger.info("\n[4/5] Seeding trial enrollments...")
-    enrollment_count = await seed_enrollments()
-    logger.info(f"  Created {enrollment_count} enrollment records")
+    # Step 4: Seed enrollment records (skip if already done)
+    async with async_session_maker() as session:
+        existing_enrollments = (await session.execute(sa_select(sa_func.count()).select_from(TrialEnrollment))).scalar() or 0
+    if existing_enrollments > 0:
+        logger.info(f"\n[4/5] Enrollments already seeded ({existing_enrollments}) — skipping.")
+    else:
+        logger.info("\n[4/5] Seeding trial enrollments...")
+        enrollment_count = await seed_enrollments()
+        logger.info(f"  Created {enrollment_count} enrollment records")
 
-    # Step 5: Seed audit logs
-    logger.info("\n[5/5] Seeding audit log entries...")
-    audit_count = await seed_audit_logs()
-    logger.info(f"  Created {audit_count} audit log entries")
+    # Step 5: Seed audit logs (skip if already done)
+    async with async_session_maker() as session:
+        existing_audits = (await session.execute(sa_select(sa_func.count()).select_from(AuditLog).where(AuditLog.details.contains({"demo": True})))).scalar() or 0
+    if existing_audits > 0:
+        logger.info(f"\n[5/5] Audit logs already seeded ({existing_audits}) — skipping.")
+    else:
+        logger.info("\n[5/5] Seeding audit log entries...")
+        audit_count = await seed_audit_logs()
+        logger.info(f"  Created {audit_count} audit log entries")
 
     # Summary
     logger.info("\n" + "=" * 60)
