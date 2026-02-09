@@ -276,7 +276,7 @@ function HeroSection() {
         }}
       />
 
-      <div className="relative max-w-6xl mx-auto px-6 pt-28 pb-32 md:pt-40 md:pb-44">
+      <div className="relative max-w-6xl mx-auto px-6 pt-24 pb-20 md:pt-32 md:pb-28">
         <motion.div
           variants={stagger.container}
           initial="hidden"
@@ -472,7 +472,7 @@ function TherapeuticPipelineSection() {
   }, []);
 
   return (
-    <section className="py-20 md:py-32 lg:py-40 px-6" style={{ background: "#09090B" }}>
+    <section className="py-16 md:py-24 px-6" style={{ background: "#09090B" }}>
       <div className="max-w-6xl mx-auto" ref={ref}>
         <Reveal>
           <div className="text-center mb-16">
@@ -718,7 +718,7 @@ function EnrollmentPipelineSection() {
   }, []);
 
   return (
-    <section className="py-20 md:py-32 lg:py-40 px-6" style={{ background: "#09090B" }}>
+    <section className="py-16 md:py-24 px-6" style={{ background: "#09090B" }}>
       <div className="max-w-5xl mx-auto" ref={ref}>
         <Reveal>
           <div className="text-center mb-14">
@@ -856,7 +856,7 @@ function HowItWorksSection() {
   const isInView = useInView(ref, { once: true, margin: "-60px" });
 
   return (
-    <section className="py-20 md:py-32 lg:py-40 px-6" style={{ background: "#09090B" }}>
+    <section className="py-16 md:py-24 px-6" style={{ background: "#09090B" }}>
       <div className="max-w-5xl mx-auto" ref={ref}>
         <Reveal>
           <div className="text-center mb-16">
@@ -957,7 +957,7 @@ function CapabilitiesSection() {
   ];
 
   return (
-    <section className="py-20 md:py-32 lg:py-40 px-6" style={{ background: "#09090B" }}>
+    <section className="py-16 md:py-24 px-6" style={{ background: "#09090B" }}>
       <div className="max-w-5xl mx-auto" ref={ref}>
         <Reveal>
           <div className="text-center mb-16">
@@ -1114,7 +1114,7 @@ const standardsList = [
 
 function ComplianceSection() {
   return (
-    <section className="py-20 md:py-32 px-6" style={{ background: "#09090B" }}>
+    <section className="py-16 md:py-24 px-6" style={{ background: "#09090B" }}>
       <Reveal className="max-w-5xl mx-auto">
         <div className="grid md:grid-cols-2 gap-12">
           {/* Standards — static flex-wrap grid */}
@@ -1182,7 +1182,7 @@ function ComplianceSection() {
 function CTASection() {
   return (
     <section
-      className="relative py-28 md:py-40 px-6"
+      className="relative py-20 md:py-28 px-6"
       style={{ background: "#09090B" }}
     >
       <Reveal className="relative max-w-3xl mx-auto text-center">
