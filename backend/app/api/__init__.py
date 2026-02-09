@@ -229,6 +229,11 @@ from app.api.invoice_management import router as invoice_management_router
 from app.api.biomarker_analysis import router as biomarker_analysis_router
 from app.api.investigator_management import router as investigator_management_router
 from app.api.deployment_verification import router as deployment_verification_router
+from app.api.regression_testing import router as regression_testing_router
+from app.api.threat_intelligence import router as threat_intelligence_router
+from app.api.api_gateway import router as api_gateway_router
+from app.api.patient_retention import router as patient_retention_router
+from app.api.regulatory_correspondence import router as regulatory_correspondence_router
 
 __all__ = [
     # Routers
@@ -395,6 +400,11 @@ __all__ = [
     "biomarker_analysis_router",
     "investigator_management_router",
     "deployment_verification_router",
+    "regression_testing_router",
+    "threat_intelligence_router",
+    "api_gateway_router",
+    "patient_retention_router",
+    "regulatory_correspondence_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",

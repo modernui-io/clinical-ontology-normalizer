@@ -181,6 +181,11 @@ from app.api import (
     biomarker_analysis_router,
     investigator_management_router,
     deployment_verification_router,
+    regression_testing_router,
+    threat_intelligence_router,
+    api_gateway_router,
+    patient_retention_router,
+    regulatory_correspondence_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -904,6 +909,11 @@ api_v1_router.include_router(operational_dashboard_router)
 api_v1_router.include_router(biomarker_analysis_router)
 api_v1_router.include_router(investigator_management_router)
 api_v1_router.include_router(deployment_verification_router)
+api_v1_router.include_router(regression_testing_router)
+api_v1_router.include_router(threat_intelligence_router)
+api_v1_router.include_router(api_gateway_router)
+api_v1_router.include_router(patient_retention_router)
+api_v1_router.include_router(regulatory_correspondence_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)
