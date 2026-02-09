@@ -219,6 +219,11 @@ from app.api.screening_dashboard import router as screening_dashboard_router
 from app.api.budget_management import router as budget_management_router
 from app.api.release_management import router as release_management_router
 from app.api.adverse_events import router as adverse_events_router
+from app.api.user_analytics import router as user_analytics_router
+from app.api.contract_lifecycle import router as contract_lifecycle_router
+from app.api.defect_tracking import router as defect_tracking_router
+from app.api.enrollment_forecasting import router as enrollment_forecasting_router
+from app.api.incident_response import router as incident_response_router
 
 __all__ = [
     # Routers
@@ -375,6 +380,11 @@ __all__ = [
     "budget_management_router",
     "release_management_router",
     "adverse_events_router",
+    "user_analytics_router",
+    "contract_lifecycle_router",
+    "defect_tracking_router",
+    "enrollment_forecasting_router",
+    "incident_response_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",

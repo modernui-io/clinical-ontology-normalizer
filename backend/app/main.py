@@ -171,6 +171,11 @@ from app.api import (
     budget_management_router,
     release_management_router,
     adverse_events_router,
+    user_analytics_router,
+    contract_lifecycle_router,
+    defect_tracking_router,
+    enrollment_forecasting_router,
+    incident_response_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -884,6 +889,11 @@ api_v1_router.include_router(screening_dashboard_router)
 api_v1_router.include_router(budget_management_router)
 api_v1_router.include_router(release_management_router)
 api_v1_router.include_router(adverse_events_router)
+api_v1_router.include_router(user_analytics_router)
+api_v1_router.include_router(contract_lifecycle_router)
+api_v1_router.include_router(defect_tracking_router)
+api_v1_router.include_router(enrollment_forecasting_router)
+api_v1_router.include_router(incident_response_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)
