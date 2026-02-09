@@ -250,6 +250,11 @@ from app.api.training_management import router as training_management_router
 from app.api.medical_writing import router as medical_writing_router
 from app.api.medical_review import router as medical_review_router
 from app.api.study_startup import router as study_startup_router
+from app.api.protocol_amendment import router as protocol_amendment_router
+from app.api.biobank_management import router as biobank_management_router
+from app.api.econsent import router as econsent_router
+from app.api.irt_system import router as irt_system_router
+from app.api.endpoint_adjudication import router as endpoint_adjudication_router
 
 __all__ = [
     # Routers
@@ -437,6 +442,11 @@ __all__ = [
     "medical_writing_router",
     "medical_review_router",
     "study_startup_router",
+    "protocol_amendment_router",
+    "biobank_management_router",
+    "econsent_router",
+    "irt_system_router",
+    "endpoint_adjudication_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",
