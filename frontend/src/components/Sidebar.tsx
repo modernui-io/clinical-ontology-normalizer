@@ -87,6 +87,7 @@ const navSections: NavSection[] = [
       { title: "ROI Dashboard", href: "/roi-dashboard", icon: BarChart3 },
       { title: "Dual Enrollment", href: "/trials/dual-enrollment", icon: GitBranch },
       { title: "HIE Integration", href: "/metriport", icon: Network },
+      { title: "Medidata Rave", href: "/integrations/medidata-rave", icon: Database },
     ],
   },
   {

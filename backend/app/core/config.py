@@ -162,6 +162,12 @@ class Settings(BaseSettings):
     metriport_base_url: str = "https://api.sandbox.metriport.com"  # Sandbox by default
     metriport_facility_id: str | None = None  # Metriport facility UUID
 
+    # Medidata Rave EDC Integration
+    medidata_rave_base_url: str = ""  # Rave Web Services URL (e.g., https://rave.example.com)
+    medidata_rave_username: str = ""  # Rave API username
+    medidata_rave_password: str = ""  # Rave API password
+    medidata_rave_default_env: str = "Prod"  # Default study environment
+
     # ETL Configuration (VP-Round60)
     # Encryption key for storing data source credentials
     # IMPORTANT: Set this in production - otherwise each restart generates new key

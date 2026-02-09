@@ -3900,3 +3900,146 @@ export async function getScreeningResults(
     `${API_BASE_URL}/screening-results${qs ? `?${qs}` : ""}`
   );
 }
+
+// ============================================================================
+// Medidata Rave Integration
+// ============================================================================
+
+export interface RaveConnectionTestRequest {
+  rave_url: string;
+  username: string;
+  password: string;
+  environment?: string;
+}
+
+export interface RaveConnectionTestResponse {
+  connected: boolean;
+  latency_ms: number;
+  rave_version: string | null;
+  studies_count: number;
+  error: string | null;
+}
+
+export interface RaveStudy {
+  study_oid: string;
+  study_name: string;
+  environment: string;
+  status: string;
+  subject_count: number;
+  site_count: number;
+}
+
+export interface RaveStudyListResponse {
+  studies: RaveStudy[];
+  total: number;
+}
+
+export interface RaveStudyImportResponse {
+  success: boolean;
+  trial_id: string | null;
+  study_oid: string;
+  study_name: string;
+  criteria_found: number;
+  mapping_preview: { rave_field: string; mapped_to: string }[];
+  error: string | null;
+}
+
+export interface RaveScreeningPushRequest {
+  trial_id: string;
+  patient_ids?: string[];
+}
+
+export interface RaveScreeningPushResult {
+  patient_id: string;
+  status: "pushed" | "failed" | "skipped";
+  rave_subject_id: string | null;
+  error: string | null;
+}
+
+export interface RaveScreeningPushResponse {
+  total: number;
+  pushed: number;
+  failed: number;
+  skipped: number;
+  results: RaveScreeningPushResult[];
+}
+
+export interface RaveEnrollmentSyncResponse {
+  synced: number;
+  pending: number;
+  failed: number;
+  events: RaveSyncEvent[];
+}
+
+export interface RaveSyncEvent {
+  patient_id: string;
+  rave_subject_id: string;
+  status: string;
+  previous_status: string | null;
+  synced_at: string;
+  error: string | null;
+}
+
+export interface RaveIntegrationStatus {
+  connected: boolean;
+  configured: boolean;
+  rave_url: string | null;
+  last_sync_at: string | null;
+  synced_count: number;
+  pending_count: number;
+  failed_count: number;
+}
+
+export async function testRaveConnection(
+  data: RaveConnectionTestRequest
+): Promise<RaveConnectionTestResponse> {
+  return fetchWithRetry<RaveConnectionTestResponse>(
+    `${API_BASE_URL}/medidata-rave/connection/test`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    }
+  );
+}
+
+export async function getRaveStudies(): Promise<RaveStudyListResponse> {
+  return fetchWithRetry<RaveStudyListResponse>(
+    `${API_BASE_URL}/medidata-rave/studies`
+  );
+}
+
+export async function importRaveStudy(
+  studyOid: string
+): Promise<RaveStudyImportResponse> {
+  return fetchWithRetry<RaveStudyImportResponse>(
+    `${API_BASE_URL}/medidata-rave/studies/${studyOid}/import`,
+    { method: "POST" }
+  );
+}
+
+export async function pushScreeningToRave(
+  data: RaveScreeningPushRequest
+): Promise<RaveScreeningPushResponse> {
+  return fetchWithRetry<RaveScreeningPushResponse>(
+    `${API_BASE_URL}/medidata-rave/screening/push`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    }
+  );
+}
+
+export async function syncRaveEnrollment(): Promise<RaveEnrollmentSyncResponse> {
+  return fetchWithRetry<RaveEnrollmentSyncResponse>(
+    `${API_BASE_URL}/medidata-rave/enrollment/sync`,
+    { method: "POST" }
+  );
+}
+
+export async function getRaveStatus(): Promise<RaveIntegrationStatus> {
+  return fetchWithRetry<RaveIntegrationStatus>(
+    `${API_BASE_URL}/medidata-rave/status`
+  );
+}

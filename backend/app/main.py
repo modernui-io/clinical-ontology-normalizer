@@ -106,6 +106,7 @@ from app.api import (
     bulk_screening_router,
     mapping_quality_router,
     model_evaluation_router,
+    medidata_rave_router,
     metriport_api_router,
     metriport_webhook_router,
     lineage_router,
@@ -165,6 +166,11 @@ from app.api import (
     model_governance_router,
     site_performance_router,
     regulatory_submissions_router,
+    cicd_pipeline_router,
+    screening_dashboard_router,
+    budget_management_router,
+    release_management_router,
+    adverse_events_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -814,6 +820,7 @@ api_v1_router.include_router(pipelines_router)
 api_v1_router.include_router(feedback_router)
 api_v1_router.include_router(bulk_screening_router)
 api_v1_router.include_router(trials_router)
+api_v1_router.include_router(medidata_rave_router)
 api_v1_router.include_router(metriport_api_router)
 api_v1_router.include_router(metriport_webhook_router)
 api_v1_router.include_router(lineage_router)
@@ -872,6 +879,11 @@ api_v1_router.include_router(access_review_router)
 api_v1_router.include_router(model_governance_router)
 api_v1_router.include_router(site_performance_router)
 api_v1_router.include_router(regulatory_submissions_router)
+api_v1_router.include_router(cicd_pipeline_router)
+api_v1_router.include_router(screening_dashboard_router)
+api_v1_router.include_router(budget_management_router)
+api_v1_router.include_router(release_management_router)
+api_v1_router.include_router(adverse_events_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)

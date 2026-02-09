@@ -117,6 +117,16 @@ export {
   useStartConsolidatedQuery,
 } from "./useMetriport";
 
+// Medidata Rave EDC Integration hooks
+export {
+  useRaveConnectionTest,
+  useRaveStudies,
+  useRaveStudyImport,
+  useRaveScreeningPush,
+  useRaveEnrollmentSync,
+  useRaveStatus,
+} from "./useMedidataRave";
+
 // Search hooks (placeholder for future implementation)
 // export {} from "./useSearch";
 

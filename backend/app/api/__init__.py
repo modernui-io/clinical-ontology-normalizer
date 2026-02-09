@@ -155,6 +155,7 @@ from app.api.trials import router as trials_router
 from app.api.bulk_screening import router as bulk_screening_router
 from app.api.mapping_quality import router as mapping_quality_router
 from app.api.model_evaluation import router as model_evaluation_router
+from app.api.medidata_rave import router as medidata_rave_router
 from app.api.metriport_api import router as metriport_api_router
 from app.api.metriport_webhook import router as metriport_webhook_router
 from app.api.incidents import router as incidents_router
@@ -213,6 +214,11 @@ from app.api.access_review import router as access_review_router
 from app.api.model_governance import router as model_governance_router
 from app.api.site_performance import router as site_performance_router
 from app.api.regulatory_submissions import router as regulatory_submissions_router
+from app.api.cicd_pipeline import router as cicd_pipeline_router
+from app.api.screening_dashboard import router as screening_dashboard_router
+from app.api.budget_management import router as budget_management_router
+from app.api.release_management import router as release_management_router
+from app.api.adverse_events import router as adverse_events_router
 
 __all__ = [
     # Routers
@@ -304,6 +310,7 @@ __all__ = [
     "trials_router",
     "bulk_screening_router",
     "mapping_quality_router",
+    "medidata_rave_router",
     "metriport_api_router",
     "metriport_webhook_router",
     "lineage_router",
@@ -363,6 +370,11 @@ __all__ = [
     "model_governance_router",
     "site_performance_router",
     "regulatory_submissions_router",
+    "cicd_pipeline_router",
+    "screening_dashboard_router",
+    "budget_management_router",
+    "release_management_router",
+    "adverse_events_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",

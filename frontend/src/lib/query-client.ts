@@ -160,6 +160,13 @@ export const queryKeys = {
       [...queryKeys.metriport.all, "documents", patientId] as const,
     facilities: () => [...queryKeys.metriport.all, "facilities"] as const,
   },
+
+  // Medidata Rave Integration
+  medidataRave: {
+    all: ["medidata-rave"] as const,
+    status: () => [...queryKeys.medidataRave.all, "status"] as const,
+    studies: () => [...queryKeys.medidataRave.all, "studies"] as const,
+  },
 } as const;
 
 // ============================================================================
@@ -450,6 +457,13 @@ export const invalidationHelpers = {
    */
   invalidateMetriport: (client: QueryClient) => {
     return client.invalidateQueries({ queryKey: queryKeys.metriport.all });
+  },
+
+  /**
+   * Invalidate all Medidata Rave-related queries
+   */
+  invalidateMedidataRave: (client: QueryClient) => {
+    return client.invalidateQueries({ queryKey: queryKeys.medidataRave.all });
   },
 
   /**
