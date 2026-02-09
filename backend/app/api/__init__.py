@@ -245,6 +245,11 @@ from app.api.safety_monitoring import router as safety_monitoring_router
 from app.api.epro import router as epro_router
 from app.api.supply_chain import router as supply_chain_router
 from app.api.trial_management import router as trial_management_router
+from app.api.medical_affairs import router as medical_affairs_router
+from app.api.training_management import router as training_management_router
+from app.api.medical_writing import router as medical_writing_router
+from app.api.medical_review import router as medical_review_router
+from app.api.study_startup import router as study_startup_router
 
 __all__ = [
     # Routers
@@ -427,6 +432,11 @@ __all__ = [
     "epro_router",
     "supply_chain_router",
     "trial_management_router",
+    "medical_affairs_router",
+    "training_management_router",
+    "medical_writing_router",
+    "medical_review_router",
+    "study_startup_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",

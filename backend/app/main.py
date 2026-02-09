@@ -197,6 +197,11 @@ from app.api import (
     epro_router,
     supply_chain_router,
     trial_management_router,
+    medical_affairs_router,
+    training_management_router,
+    medical_writing_router,
+    medical_review_router,
+    study_startup_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -936,6 +941,11 @@ api_v1_router.include_router(central_laboratory_router)
 api_v1_router.include_router(epro_router)
 api_v1_router.include_router(supply_chain_router)
 api_v1_router.include_router(trial_management_router)
+api_v1_router.include_router(medical_affairs_router)
+api_v1_router.include_router(training_management_router)
+api_v1_router.include_router(medical_writing_router)
+api_v1_router.include_router(medical_review_router)
+api_v1_router.include_router(study_startup_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)
