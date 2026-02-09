@@ -207,6 +207,11 @@ from app.api import (
     econsent_router,
     irt_system_router,
     endpoint_adjudication_router,
+    ctms_core_router,
+    site_payments_router,
+    statistical_analysis_router,
+    edc_forms_router,
+    safety_database_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -956,6 +961,11 @@ api_v1_router.include_router(biobank_management_router)
 api_v1_router.include_router(econsent_router)
 api_v1_router.include_router(irt_system_router)
 api_v1_router.include_router(endpoint_adjudication_router)
+api_v1_router.include_router(ctms_core_router)
+api_v1_router.include_router(site_payments_router)
+api_v1_router.include_router(statistical_analysis_router)
+api_v1_router.include_router(edc_forms_router)
+api_v1_router.include_router(safety_database_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)

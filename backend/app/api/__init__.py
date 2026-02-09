@@ -255,6 +255,11 @@ from app.api.biobank_management import router as biobank_management_router
 from app.api.econsent import router as econsent_router
 from app.api.irt_system import router as irt_system_router
 from app.api.endpoint_adjudication import router as endpoint_adjudication_router
+from app.api.ctms_core import router as ctms_core_router
+from app.api.site_payments import router as site_payments_router
+from app.api.statistical_analysis import router as statistical_analysis_router
+from app.api.edc_forms import router as edc_forms_router
+from app.api.safety_database import router as safety_database_router
 
 __all__ = [
     # Routers
@@ -447,6 +452,11 @@ __all__ = [
     "econsent_router",
     "irt_system_router",
     "endpoint_adjudication_router",
+    "ctms_core_router",
+    "site_payments_router",
+    "statistical_analysis_router",
+    "edc_forms_router",
+    "safety_database_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",
