@@ -186,7 +186,12 @@ from app.api import (
     threat_intelligence_router,
     api_gateway_router,
     patient_retention_router,
+    randomization_router,
     regulatory_correspondence_router,
+    etmf_router,
+    clinical_data_management_router,
+    pharmacovigilance_router,
+    safety_monitoring_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -915,7 +920,12 @@ api_v1_router.include_router(regression_testing_router)
 api_v1_router.include_router(threat_intelligence_router)
 api_v1_router.include_router(api_gateway_router)
 api_v1_router.include_router(patient_retention_router)
+api_v1_router.include_router(randomization_router)
 api_v1_router.include_router(regulatory_correspondence_router)
+api_v1_router.include_router(etmf_router)
+api_v1_router.include_router(clinical_data_management_router)
+api_v1_router.include_router(pharmacovigilance_router)
+api_v1_router.include_router(safety_monitoring_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)

@@ -234,7 +234,12 @@ from app.api.regression_testing import router as regression_testing_router
 from app.api.threat_intelligence import router as threat_intelligence_router
 from app.api.api_gateway import router as api_gateway_router
 from app.api.patient_retention import router as patient_retention_router
+from app.api.randomization import router as randomization_router
 from app.api.regulatory_correspondence import router as regulatory_correspondence_router
+from app.api.etmf import router as etmf_router
+from app.api.clinical_data_management import router as clinical_data_management_router
+from app.api.pharmacovigilance import router as pharmacovigilance_router
+from app.api.safety_monitoring import router as safety_monitoring_router
 
 __all__ = [
     # Routers
@@ -406,7 +411,12 @@ __all__ = [
     "threat_intelligence_router",
     "api_gateway_router",
     "patient_retention_router",
+    "randomization_router",
     "regulatory_correspondence_router",
+    "etmf_router",
+    "clinical_data_management_router",
+    "pharmacovigilance_router",
+    "safety_monitoring_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",
