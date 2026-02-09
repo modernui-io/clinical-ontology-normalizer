@@ -191,7 +191,12 @@ from app.api import (
     etmf_router,
     clinical_data_management_router,
     pharmacovigilance_router,
+    risk_based_monitoring_router,
     safety_monitoring_router,
+    central_laboratory_router,
+    epro_router,
+    supply_chain_router,
+    trial_management_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -925,7 +930,12 @@ api_v1_router.include_router(regulatory_correspondence_router)
 api_v1_router.include_router(etmf_router)
 api_v1_router.include_router(clinical_data_management_router)
 api_v1_router.include_router(pharmacovigilance_router)
+api_v1_router.include_router(risk_based_monitoring_router)
 api_v1_router.include_router(safety_monitoring_router)
+api_v1_router.include_router(central_laboratory_router)
+api_v1_router.include_router(epro_router)
+api_v1_router.include_router(supply_chain_router)
+api_v1_router.include_router(trial_management_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)

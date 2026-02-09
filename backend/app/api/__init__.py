@@ -239,7 +239,12 @@ from app.api.regulatory_correspondence import router as regulatory_correspondenc
 from app.api.etmf import router as etmf_router
 from app.api.clinical_data_management import router as clinical_data_management_router
 from app.api.pharmacovigilance import router as pharmacovigilance_router
+from app.api.risk_based_monitoring import router as risk_based_monitoring_router
+from app.api.central_laboratory import router as central_laboratory_router
 from app.api.safety_monitoring import router as safety_monitoring_router
+from app.api.epro import router as epro_router
+from app.api.supply_chain import router as supply_chain_router
+from app.api.trial_management import router as trial_management_router
 
 __all__ = [
     # Routers
@@ -416,7 +421,12 @@ __all__ = [
     "etmf_router",
     "clinical_data_management_router",
     "pharmacovigilance_router",
+    "risk_based_monitoring_router",
+    "central_laboratory_router",
     "safety_monitoring_router",
+    "epro_router",
+    "supply_chain_router",
+    "trial_management_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",
