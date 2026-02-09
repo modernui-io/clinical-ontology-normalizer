@@ -224,6 +224,11 @@ from app.api.contract_lifecycle import router as contract_lifecycle_router
 from app.api.defect_tracking import router as defect_tracking_router
 from app.api.enrollment_forecasting import router as enrollment_forecasting_router
 from app.api.incident_response import router as incident_response_router
+from app.api.operational_dashboard import router as operational_dashboard_router
+from app.api.invoice_management import router as invoice_management_router
+from app.api.biomarker_analysis import router as biomarker_analysis_router
+from app.api.investigator_management import router as investigator_management_router
+from app.api.deployment_verification import router as deployment_verification_router
 
 __all__ = [
     # Routers
@@ -385,6 +390,11 @@ __all__ = [
     "defect_tracking_router",
     "enrollment_forecasting_router",
     "incident_response_router",
+    "operational_dashboard_router",
+    "invoice_management_router",
+    "biomarker_analysis_router",
+    "investigator_management_router",
+    "deployment_verification_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",
