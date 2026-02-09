@@ -88,6 +88,7 @@ const navSections: NavSection[] = [
       { title: "Dual Enrollment", href: "/trials/dual-enrollment", icon: GitBranch },
       { title: "HIE Integration", href: "/metriport", icon: Network },
       { title: "Medidata Rave", href: "/integrations/medidata-rave", icon: Database },
+      { title: "Veeva Vault", href: "/integrations/veeva-vault", icon: Database },
     ],
   },
   {

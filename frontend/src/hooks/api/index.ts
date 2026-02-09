@@ -127,6 +127,16 @@ export {
   useRaveStatus,
 } from "./useMedidataRave";
 
+// Veeva Vault CDMS Integration hooks
+export {
+  useVeevaConnectionTest,
+  useVeevaStudies,
+  useVeevaStudyImport,
+  useVeevaScreeningPush,
+  useVeevaEnrollmentSync,
+  useVeevaStatus,
+} from "./useVeevaVault";
+
 // Search hooks (placeholder for future implementation)
 // export {} from "./useSearch";
 

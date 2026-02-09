@@ -156,6 +156,7 @@ from app.api.bulk_screening import router as bulk_screening_router
 from app.api.mapping_quality import router as mapping_quality_router
 from app.api.model_evaluation import router as model_evaluation_router
 from app.api.medidata_rave import router as medidata_rave_router
+from app.api.veeva_vault import router as veeva_vault_router
 from app.api.metriport_api import router as metriport_api_router
 from app.api.metriport_webhook import router as metriport_webhook_router
 from app.api.incidents import router as incidents_router
@@ -326,6 +327,7 @@ __all__ = [
     "bulk_screening_router",
     "mapping_quality_router",
     "medidata_rave_router",
+    "veeva_vault_router",
     "metriport_api_router",
     "metriport_webhook_router",
     "lineage_router",

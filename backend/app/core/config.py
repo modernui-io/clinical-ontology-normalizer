@@ -168,6 +168,11 @@ class Settings(BaseSettings):
     medidata_rave_password: str = ""  # Rave API password
     medidata_rave_default_env: str = "Prod"  # Default study environment
 
+    # Veeva Vault CDMS Integration
+    veeva_vault_url: str = ""  # Vault CDMS URL (e.g., https://myvault.veevavault.com)
+    veeva_vault_username: str = ""  # Vault API username
+    veeva_vault_password: str = ""  # Vault API password
+
     # ETL Configuration (VP-Round60)
     # Encryption key for storing data source credentials
     # IMPORTANT: Set this in production - otherwise each restart generates new key

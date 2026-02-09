@@ -107,6 +107,7 @@ from app.api import (
     mapping_quality_router,
     model_evaluation_router,
     medidata_rave_router,
+    veeva_vault_router,
     metriport_api_router,
     metriport_webhook_router,
     lineage_router,
@@ -836,6 +837,7 @@ api_v1_router.include_router(feedback_router)
 api_v1_router.include_router(bulk_screening_router)
 api_v1_router.include_router(trials_router)
 api_v1_router.include_router(medidata_rave_router)
+api_v1_router.include_router(veeva_vault_router)
 api_v1_router.include_router(metriport_api_router)
 api_v1_router.include_router(metriport_webhook_router)
 api_v1_router.include_router(lineage_router)
