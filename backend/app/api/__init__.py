@@ -260,6 +260,11 @@ from app.api.site_payments import router as site_payments_router
 from app.api.statistical_analysis import router as statistical_analysis_router
 from app.api.edc_forms import router as edc_forms_router
 from app.api.safety_database import router as safety_database_router
+from app.api.site_initiation import router as site_initiation_router
+from app.api.clinical_monitoring import router as clinical_monitoring_router
+from app.api.data_queries import router as data_queries_router
+from app.api.sae_reporting import router as sae_reporting_router
+from app.api.data_lock import router as data_lock_router
 
 __all__ = [
     # Routers
@@ -457,6 +462,11 @@ __all__ = [
     "statistical_analysis_router",
     "edc_forms_router",
     "safety_database_router",
+    "site_initiation_router",
+    "clinical_monitoring_router",
+    "data_queries_router",
+    "sae_reporting_router",
+    "data_lock_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",
