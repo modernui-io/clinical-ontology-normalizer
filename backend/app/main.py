@@ -212,6 +212,16 @@ from app.api import (
     statistical_analysis_router,
     edc_forms_router,
     safety_database_router,
+    site_initiation_router,
+    clinical_monitoring_router,
+    data_queries_router,
+    sae_reporting_router,
+    data_lock_router,
+    ip_accountability_router,
+    protocol_feasibility_router,
+    central_irb_router,
+    medical_monitor_router,
+    study_closeout_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -966,6 +976,16 @@ api_v1_router.include_router(site_payments_router)
 api_v1_router.include_router(statistical_analysis_router)
 api_v1_router.include_router(edc_forms_router)
 api_v1_router.include_router(safety_database_router)
+api_v1_router.include_router(site_initiation_router)
+api_v1_router.include_router(clinical_monitoring_router)
+api_v1_router.include_router(data_queries_router)
+api_v1_router.include_router(sae_reporting_router)
+api_v1_router.include_router(data_lock_router)
+api_v1_router.include_router(ip_accountability_router)
+api_v1_router.include_router(protocol_feasibility_router)
+api_v1_router.include_router(medical_monitor_router)
+api_v1_router.include_router(central_irb_router)
+api_v1_router.include_router(study_closeout_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)

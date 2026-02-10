@@ -265,6 +265,11 @@ from app.api.clinical_monitoring import router as clinical_monitoring_router
 from app.api.data_queries import router as data_queries_router
 from app.api.sae_reporting import router as sae_reporting_router
 from app.api.data_lock import router as data_lock_router
+from app.api.ip_accountability import router as ip_accountability_router
+from app.api.protocol_feasibility import router as protocol_feasibility_router
+from app.api.central_irb import router as central_irb_router
+from app.api.medical_monitor import router as medical_monitor_router
+from app.api.study_closeout import router as study_closeout_router
 
 __all__ = [
     # Routers
@@ -467,6 +472,11 @@ __all__ = [
     "data_queries_router",
     "sae_reporting_router",
     "data_lock_router",
+    "ip_accountability_router",
+    "protocol_feasibility_router",
+    "central_irb_router",
+    "medical_monitor_router",
+    "study_closeout_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",
