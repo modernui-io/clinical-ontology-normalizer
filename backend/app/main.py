@@ -227,6 +227,11 @@ from app.api import (
     supply_forecasting_router,
     inspection_readiness_router,
     dsmb_management_router,
+    clinical_ops_metrics_router,
+    ancillary_study_router,
+    trial_insurance_router,
+    payment_reconciliation_router,
+    language_services_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -996,6 +1001,11 @@ api_v1_router.include_router(patient_stipend_router)
 api_v1_router.include_router(supply_forecasting_router)
 api_v1_router.include_router(inspection_readiness_router)
 api_v1_router.include_router(dsmb_management_router)
+api_v1_router.include_router(clinical_ops_metrics_router)
+api_v1_router.include_router(ancillary_study_router)
+api_v1_router.include_router(trial_insurance_router)
+api_v1_router.include_router(payment_reconciliation_router)
+api_v1_router.include_router(language_services_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)
