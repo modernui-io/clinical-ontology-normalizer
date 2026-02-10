@@ -420,6 +420,11 @@ class SiteInitiationService:
             {"id": "MS-003", "site_id": "SINIT-001", "milestone_type": MilestoneType.IRB_APPROVAL, "target_date": now - timedelta(days=175), "actual_date": now - timedelta(days=170), "status": MilestoneStatus.COMPLETED, "notes": None},
             {"id": "MS-004", "site_id": "SINIT-001", "milestone_type": MilestoneType.SITE_ACTIVATED, "target_date": now - timedelta(days=130), "actual_date": now - timedelta(days=120), "status": MilestoneStatus.COMPLETED, "notes": None},
             {"id": "MS-005", "site_id": "SINIT-001", "milestone_type": MilestoneType.FIRST_PATIENT_SCREENED, "target_date": now - timedelta(days=110), "actual_date": now - timedelta(days=105), "status": MilestoneStatus.COMPLETED, "notes": "First patient screened within target window"},
+            # SINIT-002: activated (Wills Eye Hospital)
+            {"id": "MS-025", "site_id": "SINIT-002", "milestone_type": MilestoneType.SITE_IDENTIFIED, "target_date": now - timedelta(days=200), "actual_date": now - timedelta(days=195), "status": MilestoneStatus.COMPLETED, "notes": None},
+            {"id": "MS-026", "site_id": "SINIT-002", "milestone_type": MilestoneType.QUALIFICATION_VISIT_COMPLETE, "target_date": now - timedelta(days=150), "actual_date": now - timedelta(days=145), "status": MilestoneStatus.COMPLETED, "notes": None},
+            {"id": "MS-027", "site_id": "SINIT-002", "milestone_type": MilestoneType.IRB_APPROVAL, "target_date": now - timedelta(days=80), "actual_date": now - timedelta(days=75), "status": MilestoneStatus.COMPLETED, "notes": None},
+            {"id": "MS-028", "site_id": "SINIT-002", "milestone_type": MilestoneType.SITE_ACTIVATED, "target_date": now - timedelta(days=50), "actual_date": now - timedelta(days=45), "status": MilestoneStatus.COMPLETED, "notes": None},
             # SINIT-003: regulatory stage
             {"id": "MS-006", "site_id": "SINIT-003", "milestone_type": MilestoneType.SITE_IDENTIFIED, "target_date": now - timedelta(days=155), "actual_date": now - timedelta(days=150), "status": MilestoneStatus.COMPLETED, "notes": None},
             {"id": "MS-007", "site_id": "SINIT-003", "milestone_type": MilestoneType.QUALIFICATION_VISIT_COMPLETE, "target_date": now - timedelta(days=120), "actual_date": now - timedelta(days=115), "status": MilestoneStatus.COMPLETED, "notes": None},
@@ -434,6 +439,11 @@ class SiteInitiationService:
             {"id": "MS-014", "site_id": "SINIT-008", "milestone_type": MilestoneType.SITE_IDENTIFIED, "target_date": now - timedelta(days=355), "actual_date": now - timedelta(days=350), "status": MilestoneStatus.COMPLETED, "notes": None},
             {"id": "MS-015", "site_id": "SINIT-008", "milestone_type": MilestoneType.SITE_ACTIVATED, "target_date": now - timedelta(days=215), "actual_date": now - timedelta(days=210), "status": MilestoneStatus.COMPLETED, "notes": None},
             {"id": "MS-016", "site_id": "SINIT-008", "milestone_type": MilestoneType.FIRST_PATIENT_SCREENED, "target_date": now - timedelta(days=200), "actual_date": now - timedelta(days=195), "status": MilestoneStatus.COMPLETED, "notes": None},
+            # SINIT-006: activated (Northwestern Dermatology)
+            {"id": "MS-029", "site_id": "SINIT-006", "milestone_type": MilestoneType.SITE_IDENTIFIED, "target_date": now - timedelta(days=160), "actual_date": now - timedelta(days=155), "status": MilestoneStatus.COMPLETED, "notes": None},
+            {"id": "MS-030", "site_id": "SINIT-006", "milestone_type": MilestoneType.QUALIFICATION_VISIT_COMPLETE, "target_date": now - timedelta(days=110), "actual_date": now - timedelta(days=105), "status": MilestoneStatus.COMPLETED, "notes": None},
+            {"id": "MS-031", "site_id": "SINIT-006", "milestone_type": MilestoneType.IRB_APPROVAL, "target_date": now - timedelta(days=55), "actual_date": now - timedelta(days=50), "status": MilestoneStatus.COMPLETED, "notes": None},
+            {"id": "MS-032", "site_id": "SINIT-006", "milestone_type": MilestoneType.SITE_ACTIVATED, "target_date": now - timedelta(days=35), "actual_date": now - timedelta(days=30), "status": MilestoneStatus.COMPLETED, "notes": None},
             # SINIT-009: regulatory submitted
             {"id": "MS-017", "site_id": "SINIT-009", "milestone_type": MilestoneType.SITE_IDENTIFIED, "target_date": now - timedelta(days=105), "actual_date": now - timedelta(days=100), "status": MilestoneStatus.COMPLETED, "notes": None},
             {"id": "MS-018", "site_id": "SINIT-009", "milestone_type": MilestoneType.QUALIFICATION_VISIT_COMPLETE, "target_date": now - timedelta(days=80), "actual_date": now - timedelta(days=85), "status": MilestoneStatus.COMPLETED, "notes": "Completed ahead of schedule"},

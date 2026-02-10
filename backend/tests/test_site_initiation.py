@@ -198,7 +198,7 @@ class TestSeedData:
         all_ms = []
         for site in svc.list_sites():
             all_ms.extend(svc.get_milestones(site.id))
-        assert len(all_ms) == 24
+        assert len(all_ms) == 32
 
     def test_seed_milestone_statuses(self, svc: SiteInitiationService):
         all_ms = []
