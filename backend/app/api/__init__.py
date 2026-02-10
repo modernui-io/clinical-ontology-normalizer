@@ -280,6 +280,11 @@ from app.api.clinical_ops_metrics import router as clinical_ops_metrics_router
 from app.api.ancillary_study import router as ancillary_study_router
 from app.api.trial_insurance import router as trial_insurance_router
 from app.api.payment_reconciliation import router as payment_reconciliation_router
+from app.api.patient_travel import router as patient_travel_router
+from app.api.clinical_supply_returns import router as clinical_supply_returns_router
+from app.api.regulatory_intelligence import router as regulatory_intelligence_router
+from app.api.site_audit import router as site_audit_router
+from app.api.competitive_intelligence import router as competitive_intelligence_router
 
 __all__ = [
     # Routers
@@ -497,6 +502,11 @@ __all__ = [
     "trial_insurance_router",
     "payment_reconciliation_router",
     "language_services_router",
+    "patient_travel_router",
+    "clinical_supply_returns_router",
+    "regulatory_intelligence_router",
+    "site_audit_router",
+    "competitive_intelligence_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",
