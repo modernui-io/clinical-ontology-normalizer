@@ -270,6 +270,11 @@ from app.api.protocol_feasibility import router as protocol_feasibility_router
 from app.api.central_irb import router as central_irb_router
 from app.api.medical_monitor import router as medical_monitor_router
 from app.api.study_closeout import router as study_closeout_router
+from app.api.lab_certification import router as lab_certification_router
+from app.api.patient_stipend import router as patient_stipend_router
+from app.api.supply_forecasting import router as supply_forecasting_router
+from app.api.inspection_readiness import router as inspection_readiness_router
+from app.api.dsmb_management import router as dsmb_management_router
 
 __all__ = [
     # Routers
@@ -477,6 +482,11 @@ __all__ = [
     "central_irb_router",
     "medical_monitor_router",
     "study_closeout_router",
+    "lab_certification_router",
+    "patient_stipend_router",
+    "supply_forecasting_router",
+    "inspection_readiness_router",
+    "dsmb_management_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",

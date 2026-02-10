@@ -222,6 +222,11 @@ from app.api import (
     central_irb_router,
     medical_monitor_router,
     study_closeout_router,
+    lab_certification_router,
+    patient_stipend_router,
+    supply_forecasting_router,
+    inspection_readiness_router,
+    dsmb_management_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -986,6 +991,11 @@ api_v1_router.include_router(protocol_feasibility_router)
 api_v1_router.include_router(medical_monitor_router)
 api_v1_router.include_router(central_irb_router)
 api_v1_router.include_router(study_closeout_router)
+api_v1_router.include_router(lab_certification_router)
+api_v1_router.include_router(patient_stipend_router)
+api_v1_router.include_router(supply_forecasting_router)
+api_v1_router.include_router(inspection_readiness_router)
+api_v1_router.include_router(dsmb_management_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)
