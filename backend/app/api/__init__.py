@@ -285,6 +285,11 @@ from app.api.clinical_supply_returns import router as clinical_supply_returns_ro
 from app.api.regulatory_intelligence import router as regulatory_intelligence_router
 from app.api.site_audit import router as site_audit_router
 from app.api.competitive_intelligence import router as competitive_intelligence_router
+from app.api.document_management import router as document_management_router
+from app.api.data_transfer import router as data_transfer_router
+from app.api.vendor_qualification import router as vendor_qualification_router
+from app.api.country_regulatory import router as country_regulatory_router
+from app.api.risk_management import router as risk_management_router
 
 __all__ = [
     # Routers
@@ -507,6 +512,11 @@ __all__ = [
     "regulatory_intelligence_router",
     "site_audit_router",
     "competitive_intelligence_router",
+    "document_management_router",
+    "data_transfer_router",
+    "vendor_qualification_router",
+    "country_regulatory_router",
+    "risk_management_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",
