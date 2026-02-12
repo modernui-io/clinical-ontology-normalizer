@@ -4043,3 +4043,144 @@ export async function getRaveStatus(): Promise<RaveIntegrationStatus> {
     `${API_BASE_URL}/medidata-rave/status`
   );
 }
+
+// ============================================================================
+// Veeva Vault CDMS Integration
+// ============================================================================
+
+export interface VeevaConnectionTestRequest {
+  vault_url: string;
+  username: string;
+  password: string;
+}
+
+export interface VeevaConnectionTestResponse {
+  connected: boolean;
+  latency_ms: number;
+  vault_version: string | null;
+  studies_count: number;
+  session_valid: boolean;
+  error: string | null;
+}
+
+export interface VeevaStudy {
+  study_name: string;
+  title: string;
+  phase: string;
+  status: string;
+  subject_count: number;
+}
+
+export interface VeevaStudyListResponse {
+  studies: VeevaStudy[];
+  total: number;
+}
+
+export interface VeevaStudyImportResponse {
+  success: boolean;
+  trial_id: string | null;
+  study_name: string;
+  criteria_found: number;
+  mapping_preview: { vault_field: string; mapped_to: string }[];
+  error: string | null;
+}
+
+export interface VeevaScreeningPushRequest {
+  trial_id: string;
+  patient_ids?: string[];
+}
+
+export interface VeevaScreeningPushResult {
+  patient_id: string;
+  status: "pushed" | "failed" | "skipped";
+  vault_subject_id: string | null;
+  error: string | null;
+}
+
+export interface VeevaScreeningPushResponse {
+  total: number;
+  pushed: number;
+  failed: number;
+  skipped: number;
+  results: VeevaScreeningPushResult[];
+}
+
+export interface VeevaEnrollmentSyncEvent {
+  patient_id: string;
+  vault_subject_id: string;
+  status: string;
+  previous_status: string | null;
+  synced_at: string;
+  error: string | null;
+}
+
+export interface VeevaEnrollmentSyncResponse {
+  synced: number;
+  pending: number;
+  failed: number;
+  events: VeevaEnrollmentSyncEvent[];
+}
+
+export interface VeevaIntegrationStatus {
+  connected: boolean;
+  configured: boolean;
+  vault_url: string | null;
+  last_sync_at: string | null;
+  synced_count: number;
+  pending_count: number;
+  failed_count: number;
+}
+
+export async function testVeevaConnection(
+  data: VeevaConnectionTestRequest
+): Promise<VeevaConnectionTestResponse> {
+  return fetchWithRetry<VeevaConnectionTestResponse>(
+    `${API_BASE_URL}/veeva-vault/connection/test`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    }
+  );
+}
+
+export async function getVeevaStudies(): Promise<VeevaStudyListResponse> {
+  return fetchWithRetry<VeevaStudyListResponse>(
+    `${API_BASE_URL}/veeva-vault/studies`
+  );
+}
+
+export async function importVeevaStudy(
+  studyName: string
+): Promise<VeevaStudyImportResponse> {
+  return fetchWithRetry<VeevaStudyImportResponse>(
+    `${API_BASE_URL}/veeva-vault/studies/${encodeURIComponent(studyName)}/import`,
+    { method: "POST" }
+  );
+}
+
+export async function pushScreeningToVeeva(
+  data: VeevaScreeningPushRequest
+): Promise<VeevaScreeningPushResponse> {
+  return fetchWithRetry<VeevaScreeningPushResponse>(
+    `${API_BASE_URL}/veeva-vault/screening/push`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    }
+  );
+}
+
+export async function syncVeevaEnrollment(): Promise<VeevaEnrollmentSyncResponse> {
+  return fetchWithRetry<VeevaEnrollmentSyncResponse>(
+    `${API_BASE_URL}/veeva-vault/enrollment/sync`,
+    { method: "POST" }
+  );
+}
+
+export async function getVeevaStatus(): Promise<VeevaIntegrationStatus> {
+  return fetchWithRetry<VeevaIntegrationStatus>(
+    `${API_BASE_URL}/veeva-vault/status`
+  );
+}

@@ -167,6 +167,13 @@ export const queryKeys = {
     status: () => [...queryKeys.medidataRave.all, "status"] as const,
     studies: () => [...queryKeys.medidataRave.all, "studies"] as const,
   },
+
+  // Veeva Vault CDMS Integration
+  veevaVault: {
+    all: ["veeva-vault"] as const,
+    status: () => [...queryKeys.veevaVault.all, "status"] as const,
+    studies: () => [...queryKeys.veevaVault.all, "studies"] as const,
+  },
 } as const;
 
 // ============================================================================
@@ -464,6 +471,13 @@ export const invalidationHelpers = {
    */
   invalidateMedidataRave: (client: QueryClient) => {
     return client.invalidateQueries({ queryKey: queryKeys.medidataRave.all });
+  },
+
+  /**
+   * Invalidate all Veeva Vault-related queries
+   */
+  invalidateVeevaVault: (client: QueryClient) => {
+    return client.invalidateQueries({ queryKey: queryKeys.veevaVault.all });
   },
 
   /**
