@@ -328,6 +328,11 @@ from app.api.central_monitoring import router as central_monitoring_router
 from app.api.drug_accountability import router as drug_accountability_router
 from app.api.site_feasibility import router as site_feasibility_router
 from app.api.clinical_data_review import router as clinical_data_review_router
+from app.api.patient_stratification import router as patient_stratification_router
+from app.api.protocol_compliance import router as protocol_compliance_router
+from app.api.clinical_supply_forecast import router as clinical_supply_forecast_router
+from app.api.data_privacy import router as data_privacy_router
+from app.api.adaptive_trial import router as adaptive_trial_router
 
 __all__ = [
     # Routers
@@ -593,6 +598,11 @@ __all__ = [
     "drug_accountability_router",
     "site_feasibility_router",
     "clinical_data_review_router",
+    "patient_stratification_router",
+    "protocol_compliance_router",
+    "clinical_supply_forecast_router",
+    "data_privacy_router",
+    "adaptive_trial_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",
