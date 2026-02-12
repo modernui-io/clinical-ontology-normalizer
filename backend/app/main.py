@@ -270,6 +270,11 @@ from app.api import (
     signal_detection_router,
     benefit_risk_assessment_router,
     clinical_outcome_assessment_router,
+    dose_escalation_router,
+    clinical_trial_agreement_router,
+    regulatory_inspection_router,
+    tissue_tracking_router,
+    reference_safety_info_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -1082,6 +1087,11 @@ api_v1_router.include_router(capa_management_router)
 api_v1_router.include_router(signal_detection_router)
 api_v1_router.include_router(benefit_risk_assessment_router)
 api_v1_router.include_router(clinical_outcome_assessment_router)
+api_v1_router.include_router(dose_escalation_router)
+api_v1_router.include_router(clinical_trial_agreement_router)
+api_v1_router.include_router(regulatory_inspection_router)
+api_v1_router.include_router(tissue_tracking_router)
+api_v1_router.include_router(reference_safety_info_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)

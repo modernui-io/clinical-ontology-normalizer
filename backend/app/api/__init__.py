@@ -318,6 +318,11 @@ from app.api.capa_management import router as capa_management_router
 from app.api.signal_detection import router as signal_detection_router
 from app.api.benefit_risk_assessment import router as benefit_risk_assessment_router
 from app.api.clinical_outcome_assessment import router as clinical_outcome_assessment_router
+from app.api.dose_escalation import router as dose_escalation_router
+from app.api.clinical_trial_agreement import router as clinical_trial_agreement_router
+from app.api.regulatory_inspection import router as regulatory_inspection_router
+from app.api.tissue_tracking import router as tissue_tracking_router
+from app.api.reference_safety_info import router as reference_safety_info_router
 
 __all__ = [
     # Routers
@@ -573,6 +578,11 @@ __all__ = [
     "signal_detection_router",
     "benefit_risk_assessment_router",
     "clinical_outcome_assessment_router",
+    "dose_escalation_router",
+    "clinical_trial_agreement_router",
+    "regulatory_inspection_router",
+    "tissue_tracking_router",
+    "reference_safety_info_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",
