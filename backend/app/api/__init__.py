@@ -303,6 +303,11 @@ from app.api.lab_data_management import router as lab_data_management_router
 from app.api.protocol_design import router as protocol_design_router
 from app.api.biostatistics_ops import router as biostatistics_ops_router
 from app.api.medical_coding import router as medical_coding_router
+from app.api.digital_biomarkers import router as digital_biomarkers_router
+from app.api.ectd_submission import router as ectd_submission_router
+from app.api.labeling_management import router as labeling_management_router
+from app.api.publication_planning import router as publication_planning_router
+from app.api.safety_signal_detection import router as safety_signal_detection_router
 
 __all__ = [
     # Routers
@@ -543,6 +548,11 @@ __all__ = [
     "protocol_design_router",
     "biostatistics_ops_router",
     "medical_coding_router",
+    "ectd_submission_router",
+    "labeling_management_router",
+    "publication_planning_router",
+    "digital_biomarkers_router",
+    "safety_signal_detection_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",
