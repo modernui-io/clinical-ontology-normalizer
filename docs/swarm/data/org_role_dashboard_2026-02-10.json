@@ -1,0 +1,1164 @@
+{
+  "snapshot": {
+    "state_file": "docs/swarm/SWARM_STATE_2026-02-10.json",
+    "endpoint_count": 3113,
+    "method_counts": {
+      "GET": 1680,
+      "POST": 935,
+      "DELETE": 224,
+      "PUT": 271,
+      "PATCH": 3
+    },
+    "maturity_counts": {
+      "Pilot": 2745,
+      "Production": 283,
+      "Scaffold": 85
+    }
+  },
+  "top_endpoint_files": [
+    {
+      "file": "backend/app/api/data_lock.py",
+      "endpoint_count": 34
+    },
+    {
+      "file": "backend/app/api/clinical_monitoring.py",
+      "endpoint_count": 33
+    },
+    {
+      "file": "backend/app/api/clinical_ops_metrics.py",
+      "endpoint_count": 33
+    },
+    {
+      "file": "backend/app/api/threat_intelligence.py",
+      "endpoint_count": 33
+    },
+    {
+      "file": "backend/app/api/dsmb_management.py",
+      "endpoint_count": 32
+    },
+    {
+      "file": "backend/app/api/biomarker_analysis.py",
+      "endpoint_count": 31
+    },
+    {
+      "file": "backend/app/api/clinical_data_management.py",
+      "endpoint_count": 30
+    },
+    {
+      "file": "backend/app/api/language_services.py",
+      "endpoint_count": 30
+    },
+    {
+      "file": "backend/app/api/supply_forecasting.py",
+      "endpoint_count": 30
+    },
+    {
+      "file": "backend/app/api/ancillary_study.py",
+      "endpoint_count": 29
+    },
+    {
+      "file": "backend/app/api/etmf.py",
+      "endpoint_count": 29
+    },
+    {
+      "file": "backend/app/api/operational_dashboard.py",
+      "endpoint_count": 29
+    },
+    {
+      "file": "backend/app/api/payment_reconciliation.py",
+      "endpoint_count": 29
+    },
+    {
+      "file": "backend/app/api/regulatory_correspondence.py",
+      "endpoint_count": 29
+    },
+    {
+      "file": "backend/app/api/supply_chain.py",
+      "endpoint_count": 29
+    },
+    {
+      "file": "backend/app/api/trial_management.py",
+      "endpoint_count": 29
+    },
+    {
+      "file": "backend/app/api/biobank_management.py",
+      "endpoint_count": 28
+    },
+    {
+      "file": "backend/app/api/central_laboratory.py",
+      "endpoint_count": 28
+    },
+    {
+      "file": "backend/app/api/inspection_readiness.py",
+      "endpoint_count": 28
+    },
+    {
+      "file": "backend/app/api/trial_insurance.py",
+      "endpoint_count": 28
+    },
+    {
+      "file": "backend/app/api/competitive_intelligence.py",
+      "endpoint_count": 27
+    },
+    {
+      "file": "backend/app/api/lab_certification.py",
+      "endpoint_count": 27
+    },
+    {
+      "file": "backend/app/api/country_regulatory.py",
+      "endpoint_count": 26
+    },
+    {
+      "file": "backend/app/api/deployment_verification.py",
+      "endpoint_count": 26
+    },
+    {
+      "file": "backend/app/api/edc_forms.py",
+      "endpoint_count": 26
+    },
+    {
+      "file": "backend/app/api/irt_system.py",
+      "endpoint_count": 26
+    },
+    {
+      "file": "backend/app/api/regression_testing.py",
+      "endpoint_count": 26
+    },
+    {
+      "file": "backend/app/api/sae_reporting.py",
+      "endpoint_count": 26
+    },
+    {
+      "file": "backend/app/api/study_closeout.py",
+      "endpoint_count": 26
+    },
+    {
+      "file": "backend/app/api/training_management.py",
+      "endpoint_count": 26
+    },
+    {
+      "file": "backend/app/api/valuesets.py",
+      "endpoint_count": 26
+    },
+    {
+      "file": "backend/app/api/central_irb.py",
+      "endpoint_count": 25
+    },
+    {
+      "file": "backend/app/api/clinical_supply_returns.py",
+      "endpoint_count": 25
+    },
+    {
+      "file": "backend/app/api/endpoint_adjudication.py",
+      "endpoint_count": 25
+    },
+    {
+      "file": "backend/app/api/incident_response.py",
+      "endpoint_count": 25
+    },
+    {
+      "file": "backend/app/api/pharmacovigilance.py",
+      "endpoint_count": 25
+    },
+    {
+      "file": "backend/app/api/risk_based_monitoring.py",
+      "endpoint_count": 25
+    },
+    {
+      "file": "backend/app/api/safety_monitoring.py",
+      "endpoint_count": 25
+    },
+    {
+      "file": "backend/app/api/api_gateway.py",
+      "endpoint_count": 24
+    },
+    {
+      "file": "backend/app/api/ctms_core.py",
+      "endpoint_count": 24
+    }
+  ],
+  "top_exposure_files": [
+    {
+      "file": "backend/app/api/data_lock.py",
+      "total": 34,
+      "auth": 0,
+      "unauth": 34,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/clinical_monitoring.py",
+      "total": 33,
+      "auth": 0,
+      "unauth": 33,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/clinical_ops_metrics.py",
+      "total": 33,
+      "auth": 0,
+      "unauth": 33,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/threat_intelligence.py",
+      "total": 33,
+      "auth": 0,
+      "unauth": 33,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/dsmb_management.py",
+      "total": 32,
+      "auth": 0,
+      "unauth": 32,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/biomarker_analysis.py",
+      "total": 31,
+      "auth": 0,
+      "unauth": 31,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/clinical_data_management.py",
+      "total": 30,
+      "auth": 0,
+      "unauth": 30,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/language_services.py",
+      "total": 30,
+      "auth": 0,
+      "unauth": 30,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/supply_forecasting.py",
+      "total": 30,
+      "auth": 0,
+      "unauth": 30,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/ancillary_study.py",
+      "total": 29,
+      "auth": 0,
+      "unauth": 29,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/etmf.py",
+      "total": 29,
+      "auth": 0,
+      "unauth": 29,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/operational_dashboard.py",
+      "total": 29,
+      "auth": 0,
+      "unauth": 29,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/payment_reconciliation.py",
+      "total": 29,
+      "auth": 0,
+      "unauth": 29,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/regulatory_correspondence.py",
+      "total": 29,
+      "auth": 0,
+      "unauth": 29,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/supply_chain.py",
+      "total": 29,
+      "auth": 0,
+      "unauth": 29,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/trial_management.py",
+      "total": 29,
+      "auth": 0,
+      "unauth": 29,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/biobank_management.py",
+      "total": 28,
+      "auth": 0,
+      "unauth": 28,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/central_laboratory.py",
+      "total": 28,
+      "auth": 0,
+      "unauth": 28,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/inspection_readiness.py",
+      "total": 28,
+      "auth": 0,
+      "unauth": 28,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/trial_insurance.py",
+      "total": 28,
+      "auth": 0,
+      "unauth": 28,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/competitive_intelligence.py",
+      "total": 27,
+      "auth": 0,
+      "unauth": 27,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/lab_certification.py",
+      "total": 27,
+      "auth": 0,
+      "unauth": 27,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/country_regulatory.py",
+      "total": 26,
+      "auth": 0,
+      "unauth": 26,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/deployment_verification.py",
+      "total": 26,
+      "auth": 0,
+      "unauth": 26,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/edc_forms.py",
+      "total": 26,
+      "auth": 0,
+      "unauth": 26,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/irt_system.py",
+      "total": 26,
+      "auth": 0,
+      "unauth": 26,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/regression_testing.py",
+      "total": 26,
+      "auth": 0,
+      "unauth": 26,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/sae_reporting.py",
+      "total": 26,
+      "auth": 0,
+      "unauth": 26,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/study_closeout.py",
+      "total": 26,
+      "auth": 0,
+      "unauth": 26,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/training_management.py",
+      "total": 26,
+      "auth": 0,
+      "unauth": 26,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/valuesets.py",
+      "total": 26,
+      "auth": 0,
+      "unauth": 26,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/central_irb.py",
+      "total": 25,
+      "auth": 0,
+      "unauth": 25,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/clinical_supply_returns.py",
+      "total": 25,
+      "auth": 0,
+      "unauth": 25,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/endpoint_adjudication.py",
+      "total": 25,
+      "auth": 0,
+      "unauth": 25,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/incident_response.py",
+      "total": 25,
+      "auth": 0,
+      "unauth": 25,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/pharmacovigilance.py",
+      "total": 25,
+      "auth": 0,
+      "unauth": 25,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/risk_based_monitoring.py",
+      "total": 25,
+      "auth": 0,
+      "unauth": 25,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/safety_monitoring.py",
+      "total": 25,
+      "auth": 0,
+      "unauth": 25,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/api_gateway.py",
+      "total": 24,
+      "auth": 0,
+      "unauth": 24,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/ctms_core.py",
+      "total": 24,
+      "auth": 0,
+      "unauth": 24,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/investigator_management.py",
+      "total": 24,
+      "auth": 0,
+      "unauth": 24,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/medical_monitor.py",
+      "total": 24,
+      "auth": 0,
+      "unauth": 24,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/study_startup.py",
+      "total": 24,
+      "auth": 0,
+      "unauth": 24,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/ip_accountability.py",
+      "total": 23,
+      "auth": 0,
+      "unauth": 23,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/medical_writing.py",
+      "total": 23,
+      "auth": 0,
+      "unauth": 23,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/patient_stipend.py",
+      "total": 23,
+      "auth": 0,
+      "unauth": 23,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/randomization.py",
+      "total": 23,
+      "auth": 0,
+      "unauth": 23,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/calculators.py",
+      "total": 22,
+      "auth": 0,
+      "unauth": 22,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/contract_lifecycle.py",
+      "total": 22,
+      "auth": 0,
+      "unauth": 22,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/data_queries.py",
+      "total": 22,
+      "auth": 0,
+      "unauth": 22,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/medical_affairs.py",
+      "total": 22,
+      "auth": 0,
+      "unauth": 22,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/medical_review.py",
+      "total": 22,
+      "auth": 0,
+      "unauth": 22,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/site_initiation.py",
+      "total": 22,
+      "auth": 0,
+      "unauth": 22,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/statistical_analysis.py",
+      "total": 22,
+      "auth": 0,
+      "unauth": 22,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/econsent.py",
+      "total": 21,
+      "auth": 0,
+      "unauth": 21,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/epro.py",
+      "total": 21,
+      "auth": 0,
+      "unauth": 21,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/invoice_management.py",
+      "total": 21,
+      "auth": 0,
+      "unauth": 21,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/llm_finetuning.py",
+      "total": 21,
+      "auth": 0,
+      "unauth": 21,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/model_governance.py",
+      "total": 21,
+      "auth": 0,
+      "unauth": 21,
+      "auth_ratio": 0.0
+    },
+    {
+      "file": "backend/app/api/protocol_amendment.py",
+      "total": 21,
+      "auth": 0,
+      "unauth": 21,
+      "auth_ratio": 0.0
+    }
+  ],
+  "top_path_segments": [
+    {
+      "segment": "fhir",
+      "count": 37
+    },
+    {
+      "segment": "data-locks",
+      "count": 34
+    },
+    {
+      "segment": "clinical-monitoring",
+      "count": 33
+    },
+    {
+      "segment": "clinical-ops-metrics",
+      "count": 33
+    },
+    {
+      "segment": "threat-intelligence",
+      "count": 33
+    },
+    {
+      "segment": "dsmb",
+      "count": 32
+    },
+    {
+      "segment": "biomarker-analysis",
+      "count": 31
+    },
+    {
+      "segment": "kg",
+      "count": 31
+    },
+    {
+      "segment": "quality",
+      "count": 31
+    },
+    {
+      "segment": "clinical-data-management",
+      "count": 30
+    },
+    {
+      "segment": "documents",
+      "count": 30
+    },
+    {
+      "segment": "language-services",
+      "count": 30
+    },
+    {
+      "segment": "supply-forecasting",
+      "count": 30
+    },
+    {
+      "segment": "ancillary-studies",
+      "count": 29
+    },
+    {
+      "segment": "etmf",
+      "count": 29
+    },
+    {
+      "segment": "operational-dashboard",
+      "count": 29
+    },
+    {
+      "segment": "payment-reconciliation",
+      "count": 29
+    },
+    {
+      "segment": "regulatory-correspondence",
+      "count": 29
+    },
+    {
+      "segment": "supply-chain",
+      "count": 29
+    },
+    {
+      "segment": "trial-management",
+      "count": 29
+    },
+    {
+      "segment": "biobank",
+      "count": 28
+    },
+    {
+      "segment": "central-laboratory",
+      "count": 28
+    },
+    {
+      "segment": "inspection-readiness",
+      "count": 28
+    },
+    {
+      "segment": "trial-insurance",
+      "count": 28
+    },
+    {
+      "segment": "competitive-intelligence",
+      "count": 27
+    },
+    {
+      "segment": "lab-certification",
+      "count": 27
+    },
+    {
+      "segment": "llm",
+      "count": 27
+    },
+    {
+      "segment": "country-regulatory",
+      "count": 26
+    },
+    {
+      "segment": "deployment-verification",
+      "count": 26
+    },
+    {
+      "segment": "edc",
+      "count": 26
+    },
+    {
+      "segment": "irt",
+      "count": 26
+    },
+    {
+      "segment": "regression-testing",
+      "count": 26
+    },
+    {
+      "segment": "sae-reporting",
+      "count": 26
+    },
+    {
+      "segment": "study-closeout",
+      "count": 26
+    },
+    {
+      "segment": "training",
+      "count": 26
+    },
+    {
+      "segment": "valuesets",
+      "count": 26
+    },
+    {
+      "segment": "central-irb",
+      "count": 25
+    },
+    {
+      "segment": "clinical-supply-returns",
+      "count": 25
+    },
+    {
+      "segment": "endpoint-adjudication",
+      "count": 25
+    },
+    {
+      "segment": "incident-response",
+      "count": 25
+    },
+    {
+      "segment": "pharmacovigilance",
+      "count": 25
+    },
+    {
+      "segment": "risk-based-monitoring",
+      "count": 25
+    },
+    {
+      "segment": "safety-monitoring",
+      "count": 25
+    },
+    {
+      "segment": "api-gateway",
+      "count": 24
+    },
+    {
+      "segment": "ctms",
+      "count": 24
+    },
+    {
+      "segment": "governance",
+      "count": 24
+    },
+    {
+      "segment": "investigator-management",
+      "count": 24
+    },
+    {
+      "segment": "medical-monitor",
+      "count": 24
+    },
+    {
+      "segment": "study-startup",
+      "count": 24
+    },
+    {
+      "segment": "infrastructure",
+      "count": 23
+    }
+  ],
+  "service_summary": {
+    "service_file_count": 343,
+    "total_service_loc": 303578,
+    "classification_counts": {
+      "logic_or_orchestration": 33,
+      "db_backed": 166,
+      "in_memory_or_fixture": 123,
+      "db_plus_external": 12,
+      "external_integration": 9
+    },
+    "classification_loc": {
+      "logic_or_orchestration": 29875,
+      "db_backed": 159772,
+      "in_memory_or_fixture": 96997,
+      "db_plus_external": 10464,
+      "external_integration": 6470
+    },
+    "top100_classification_counts": {
+      "logic_or_orchestration": 4,
+      "db_backed": 69,
+      "in_memory_or_fixture": 23,
+      "db_plus_external": 3,
+      "external_integration": 1
+    },
+    "top20_largest_services": [
+      {
+        "file": "backend/app/services/calculator_definitions.py",
+        "loc": 12713,
+        "classification": "logic_or_orchestration"
+      },
+      {
+        "file": "backend/app/services/clinical_calculators.py",
+        "loc": 4181,
+        "classification": "db_backed"
+      },
+      {
+        "file": "backend/app/services/clinical_calculator_service.py",
+        "loc": 3034,
+        "classification": "logic_or_orchestration"
+      },
+      {
+        "file": "backend/app/services/cpt_suggester.py",
+        "loc": 2329,
+        "classification": "db_backed"
+      },
+      {
+        "file": "backend/app/services/note_generator.py",
+        "loc": 2324,
+        "classification": "db_backed"
+      },
+      {
+        "file": "backend/app/services/quality_measures.py",
+        "loc": 2223,
+        "classification": "in_memory_or_fixture"
+      },
+      {
+        "file": "backend/app/services/value_set_service.py",
+        "loc": 2178,
+        "classification": "db_backed"
+      },
+      {
+        "file": "backend/app/services/nlp_entity/nlp_entity_extractors.py",
+        "loc": 1875,
+        "classification": "in_memory_or_fixture"
+      },
+      {
+        "file": "backend/app/services/trial_eligibility_service.py",
+        "loc": 1863,
+        "classification": "db_backed"
+      },
+      {
+        "file": "backend/app/services/etl_orchestrator.py",
+        "loc": 1829,
+        "classification": "db_plus_external"
+      },
+      {
+        "file": "backend/app/services/fhir_terminology.py",
+        "loc": 1754,
+        "classification": "in_memory_or_fixture"
+      },
+      {
+        "file": "backend/app/services/clinical_ontology_mapper.py",
+        "loc": 1718,
+        "classification": "db_backed"
+      },
+      {
+        "file": "backend/app/services/fhir_import.py",
+        "loc": 1686,
+        "classification": "db_plus_external"
+      },
+      {
+        "file": "backend/app/services/notification_service.py",
+        "loc": 1646,
+        "classification": "external_integration"
+      },
+      {
+        "file": "backend/app/services/x12_service.py",
+        "loc": 1638,
+        "classification": "db_backed"
+      },
+      {
+        "file": "backend/app/services/iac_service.py",
+        "loc": 1620,
+        "classification": "db_backed"
+      },
+      {
+        "file": "backend/app/services/synthetic_data_service.py",
+        "loc": 1607,
+        "classification": "in_memory_or_fixture"
+      },
+      {
+        "file": "backend/app/services/ai_coding_service.py",
+        "loc": 1604,
+        "classification": "in_memory_or_fixture"
+      },
+      {
+        "file": "backend/app/services/federated_learning_service.py",
+        "loc": 1602,
+        "classification": "db_backed"
+      },
+      {
+        "file": "backend/app/services/contract_lifecycle_service.py",
+        "loc": 1581,
+        "classification": "db_backed"
+      }
+    ]
+  },
+  "top_services": [
+    {
+      "file": "backend/app/services/calculator_definitions.py",
+      "loc": 12713,
+      "classification": "logic_or_orchestration"
+    },
+    {
+      "file": "backend/app/services/clinical_calculators.py",
+      "loc": 4181,
+      "classification": "db_backed"
+    },
+    {
+      "file": "backend/app/services/clinical_calculator_service.py",
+      "loc": 3034,
+      "classification": "logic_or_orchestration"
+    },
+    {
+      "file": "backend/app/services/cpt_suggester.py",
+      "loc": 2329,
+      "classification": "db_backed"
+    },
+    {
+      "file": "backend/app/services/note_generator.py",
+      "loc": 2324,
+      "classification": "db_backed"
+    },
+    {
+      "file": "backend/app/services/quality_measures.py",
+      "loc": 2223,
+      "classification": "in_memory_or_fixture"
+    },
+    {
+      "file": "backend/app/services/value_set_service.py",
+      "loc": 2178,
+      "classification": "db_backed"
+    },
+    {
+      "file": "backend/app/services/nlp_entity/nlp_entity_extractors.py",
+      "loc": 1875,
+      "classification": "in_memory_or_fixture"
+    },
+    {
+      "file": "backend/app/services/trial_eligibility_service.py",
+      "loc": 1863,
+      "classification": "db_backed"
+    },
+    {
+      "file": "backend/app/services/etl_orchestrator.py",
+      "loc": 1829,
+      "classification": "db_plus_external"
+    },
+    {
+      "file": "backend/app/services/fhir_terminology.py",
+      "loc": 1754,
+      "classification": "in_memory_or_fixture"
+    },
+    {
+      "file": "backend/app/services/clinical_ontology_mapper.py",
+      "loc": 1718,
+      "classification": "db_backed"
+    },
+    {
+      "file": "backend/app/services/fhir_import.py",
+      "loc": 1686,
+      "classification": "db_plus_external"
+    },
+    {
+      "file": "backend/app/services/notification_service.py",
+      "loc": 1646,
+      "classification": "external_integration"
+    },
+    {
+      "file": "backend/app/services/x12_service.py",
+      "loc": 1638,
+      "classification": "db_backed"
+    },
+    {
+      "file": "backend/app/services/iac_service.py",
+      "loc": 1620,
+      "classification": "db_backed"
+    },
+    {
+      "file": "backend/app/services/synthetic_data_service.py",
+      "loc": 1607,
+      "classification": "in_memory_or_fixture"
+    },
+    {
+      "file": "backend/app/services/ai_coding_service.py",
+      "loc": 1604,
+      "classification": "in_memory_or_fixture"
+    },
+    {
+      "file": "backend/app/services/federated_learning_service.py",
+      "loc": 1602,
+      "classification": "db_backed"
+    },
+    {
+      "file": "backend/app/services/contract_lifecycle_service.py",
+      "loc": 1581,
+      "classification": "db_backed"
+    }
+  ],
+  "role_dashboard": {
+    "vp_engineering": {
+      "backend_app_loc": 503103,
+      "backend_tests_loc": 231184,
+      "frontend_src_loc": 130698,
+      "service_files": 343,
+      "api_endpoint_count": 3113
+    },
+    "quality_vp": {
+      "backend_tests_loc": 231184,
+      "test_to_app_ratio": 0.46,
+      "pharma_total_test_functions": 2910,
+      "pharma_avg_tests_per_module": 116.4
+    },
+    "vp_compliance": {
+      "auth_semantic_protected": 93,
+      "auth_semantic_unprotected": 3020,
+      "inventory_auth_count": 73,
+      "auth_delta_vs_inventory": 20
+    },
+    "cpo": {
+      "api_surface_size": 3113,
+      "maturity": {
+        "Pilot": 2745,
+        "Production": 283,
+        "Scaffold": 85
+      },
+      "top_path_segments": [
+        {
+          "segment": "fhir",
+          "count": 37
+        },
+        {
+          "segment": "data-locks",
+          "count": 34
+        },
+        {
+          "segment": "clinical-monitoring",
+          "count": 33
+        },
+        {
+          "segment": "clinical-ops-metrics",
+          "count": 33
+        },
+        {
+          "segment": "threat-intelligence",
+          "count": 33
+        },
+        {
+          "segment": "dsmb",
+          "count": 32
+        },
+        {
+          "segment": "biomarker-analysis",
+          "count": 31
+        },
+        {
+          "segment": "kg",
+          "count": 31
+        },
+        {
+          "segment": "quality",
+          "count": 31
+        },
+        {
+          "segment": "clinical-data-management",
+          "count": 30
+        },
+        {
+          "segment": "documents",
+          "count": 30
+        },
+        {
+          "segment": "language-services",
+          "count": 30
+        },
+        {
+          "segment": "supply-forecasting",
+          "count": 30
+        },
+        {
+          "segment": "ancillary-studies",
+          "count": 29
+        },
+        {
+          "segment": "etmf",
+          "count": 29
+        },
+        {
+          "segment": "operational-dashboard",
+          "count": 29
+        },
+        {
+          "segment": "payment-reconciliation",
+          "count": 29
+        },
+        {
+          "segment": "regulatory-correspondence",
+          "count": 29
+        },
+        {
+          "segment": "supply-chain",
+          "count": 29
+        },
+        {
+          "segment": "trial-management",
+          "count": 29
+        }
+      ]
+    },
+    "sre_platform": {
+      "graph_sync_degrade_mode_documented": true,
+      "queue_enqueue_non_blocking_upload": true,
+      "pipeline_idempotency_partial": true
+    },
+    "database": {
+      "db_backed_services": 166,
+      "in_memory_or_fixture_services": 123,
+      "db_plus_external_services": 12
+    },
+    "pharma_family": {
+      "module_count": 25,
+      "fully_complete_modules": 25,
+      "total_endpoints": 647,
+      "total_auth_endpoints": 0,
+      "total_unauth_endpoints": 647,
+      "total_test_functions": 2910,
+      "avg_endpoints_per_module": 25.88,
+      "avg_test_functions_per_module": 116.4
+    }
+  }
+}

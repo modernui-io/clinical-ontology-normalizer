@@ -333,6 +333,11 @@ from app.api.protocol_compliance import router as protocol_compliance_router
 from app.api.clinical_supply_forecast import router as clinical_supply_forecast_router
 from app.api.data_privacy import router as data_privacy_router
 from app.api.adaptive_trial import router as adaptive_trial_router
+from app.api.investigator_brochure import router as investigator_brochure_router
+from app.api.clinical_simulation import router as clinical_simulation_router
+from app.api.bioequivalence import router as bioequivalence_router
+from app.api.site_qualification import router as site_qualification_router
+from app.api.trial_disclosure import router as trial_disclosure_router
 
 __all__ = [
     # Routers

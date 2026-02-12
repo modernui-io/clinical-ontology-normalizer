@@ -1,0 +1,183 @@
+{
+  "snapshot_timestamp_utc": "2026-02-10 04:47:29 UTC",
+  "snapshot_timestamp_local": "2026-02-09 23:47:29 EST",
+  "last_updated_utc": "2026-02-10 13:01:59 UTC",
+  "last_updated_local": "2026-02-10 08:01:59 EST",
+  "repo": {
+    "branch": "master",
+    "head": "84b47d7",
+    "remote": "https://github.com/astinard/clinical-ontology-normalizer.git",
+    "working_tree_dirty": true
+  },
+  "dirty_paths": {
+    "modified": [
+      "backend/app/api/kg_orchestration.py",
+      "backend/tests/test_kg_orchestration_api.py",
+      "frontend/src/lib/api.ts",
+      "frontend/src/lib/query-client.ts"
+    ],
+    "untracked_patterns": [
+      "docs/swarm/**",
+      "landing-*.png"
+    ]
+  },
+  "loc": {
+    "tracked_files": 1772,
+    "total_loc": 4201735,
+    "composition": {
+      "data_loc": 3241852,
+      "source_loc": 913966,
+      "docs_loc": 41721,
+      "other_loc": 4196
+    },
+    "major_paths": {
+      "backend": {
+        "files": 1296,
+        "loc": 3970628
+      },
+      "backend_app": {
+        "files": 824,
+        "loc": 503103
+      },
+      "backend_tests": {
+        "files": 332,
+        "loc": 231184
+      },
+      "backend_fixtures": {
+        "files": 17,
+        "loc": 3193605
+      },
+      "frontend": {
+        "files": 285,
+        "loc": 152339
+      },
+      "frontend_src": {
+        "files": 241,
+        "loc": 130698
+      },
+      "docs": {
+        "files": 69,
+        "loc": 32034
+      }
+    },
+    "backend_app_breakdown": {
+      "services": {
+        "files": 343,
+        "loc": 303578
+      },
+      "api": {
+        "files": 256,
+        "loc": 122436
+      },
+      "schemas": {
+        "files": 153,
+        "loc": 51117
+      }
+    }
+  },
+  "api_inventory": {
+    "total_endpoints": 3113,
+    "methods": {
+      "GET": 1680,
+      "POST": 935,
+      "PUT": 271,
+      "DELETE": 224,
+      "PATCH": 3
+    },
+    "maturity_tier": {
+      "Pilot": 2745,
+      "Production": 283,
+      "Scaffold": 85
+    },
+    "auth_required_true": 73,
+    "auth_required_false": 3040,
+    "api_files_with_endpoints": 232
+  },
+  "auth_semantics": {
+    "endpoint_count": 3113,
+    "auth_signature_count": 93,
+    "auth_decorator_count": 13,
+    "auth_router_count": 0,
+    "auth_any_count": 93,
+    "unauth_any_count": 3020,
+    "inventory_vs_semantic_delta": 20
+  },
+  "service_taxonomy": {
+    "service_file_count": 343,
+    "total_service_loc": 303578,
+    "classification_counts": {
+      "db_backed": 166,
+      "in_memory_or_fixture": 123,
+      "logic_or_orchestration": 33,
+      "db_plus_external": 12,
+      "external_integration": 9
+    }
+  },
+  "pharma_module_quality_matrix": {
+    "module_count": 25,
+    "fully_complete_modules": 25,
+    "total_endpoints": 647,
+    "total_auth_endpoints": 0,
+    "total_unauth_endpoints": 647,
+    "total_test_functions": 2910,
+    "avg_endpoints_per_module": 25.88,
+    "avg_test_functions_per_module": 116.4
+  },
+  "pharma_module_auth_test_signals": {
+    "modules_scanned": 25,
+    "modules_with_401_assertions": 0,
+    "modules_with_403_assertions": 0
+  },
+  "pipeline_idempotency": {
+    "facts_graph_dedup_present": true,
+    "mention_candidate_retry_amplification_risk": true,
+    "single_consumer_lock_detected": false
+  },
+  "org_role_review": {
+    "endpoint_count": 3113,
+    "maturity_counts": {
+      "Pilot": 2745,
+      "Production": 283,
+      "Scaffold": 85
+    },
+    "topline_assessment": "High delivery breadth and velocity; enterprise hardening gap concentrated in auth policy enforcement and retry/idempotency controls",
+    "executive_roles_explicitly_covered": [
+      "CEO",
+      "COO",
+      "Founder",
+      "CPO",
+      "CRO"
+    ]
+  },
+  "artifact_paths": {
+    "charter": "docs/swarm/SWARM_CHARTER_2026-02-10.md",
+    "loc_baseline": "docs/swarm/SWARM_LOC_BASELINE_2026-02-10.md",
+    "auth_semantics": "docs/swarm/SWARM_AUTH_SEMANTICS_2026-02-10.md",
+    "service_taxonomy": "docs/swarm/SWARM_SERVICE_TAXONOMY_2026-02-10.md",
+    "pipeline_trace": "docs/swarm/SWARM_PIPELINE_TRACE_2026-02-10.md",
+    "pharma_module_quality_matrix": "docs/swarm/SWARM_PHARMA_MODULE_QUALITY_MATRIX_2026-02-10.md",
+    "unauth_modules_deepdive": "docs/swarm/SWARM_UNAUTH_MODULES_DEEPDIVE_2026-02-10.md",
+    "pipeline_idempotency": "docs/swarm/SWARM_PIPELINE_IDEMPOTENCY_ANALYSIS_2026-02-10.md",
+    "billion_dollar_org_review": "docs/swarm/SWARM_BILLION_DOLLAR_ORG_REVIEW_2026-02-10.md",
+    "findings": "docs/swarm/SWARM_FINDINGS.md",
+    "memory": "docs/swarm/SWARM_MEMORY.md",
+    "progress_log": "docs/swarm/SWARM_PROGRESS_LOG.md",
+    "loc_tracked_tsv": "docs/swarm/data/loc_tracked_2026-02-10.tsv",
+    "endpoint_inventory_json": "docs/swarm/data/endpoint_inventory_2026-02-10.json",
+    "auth_semantics_json": "docs/swarm/data/auth_semantics_2026-02-10.json",
+    "auth_semantics_file_tsv": "docs/swarm/data/auth_semantics_file_summary_2026-02-10.tsv",
+    "service_taxonomy_json": "docs/swarm/data/service_taxonomy_2026-02-10.json",
+    "service_taxonomy_tsv": "docs/swarm/data/service_taxonomy_2026-02-10.tsv",
+    "pharma_module_quality_matrix_json": "docs/swarm/data/pharma_module_quality_matrix_2026-02-10.json",
+    "pharma_module_quality_matrix_tsv": "docs/swarm/data/pharma_module_quality_matrix_2026-02-10.tsv",
+    "pharma_module_auth_test_signals_json": "docs/swarm/data/pharma_module_auth_test_signals_2026-02-10.json",
+    "org_role_dashboard_json": "docs/swarm/data/org_role_dashboard_2026-02-10.json"
+  },
+  "resume_next_tasks": [
+    "Deep-read highest-exposure API modules for auth intent vs missing enforcement",
+    "Rank highest-value refactor targets by complexity and blast radius",
+    "Build subsystem modernization roadmap with incremental milestones",
+    "Convert findings into implementation-ready hardening backlog",
+    "Begin hardening wave 1 (auth policy CI gates + protected endpoint tests)"
+  ]
+}

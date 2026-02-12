@@ -1,0 +1,179 @@
+{
+  "rows": [
+    {
+      "module": "site_initiation",
+      "has_401": false,
+      "has_403": false,
+      "has_auth_words": false,
+      "test_exists": true
+    },
+    {
+      "module": "clinical_monitoring",
+      "has_401": false,
+      "has_403": false,
+      "has_auth_words": false,
+      "test_exists": true
+    },
+    {
+      "module": "data_queries",
+      "has_401": false,
+      "has_403": false,
+      "has_auth_words": false,
+      "test_exists": true
+    },
+    {
+      "module": "sae_reporting",
+      "has_401": false,
+      "has_403": false,
+      "has_auth_words": true,
+      "test_exists": true
+    },
+    {
+      "module": "data_lock",
+      "has_401": false,
+      "has_403": false,
+      "has_auth_words": false,
+      "test_exists": true
+    },
+    {
+      "module": "ip_accountability",
+      "has_401": false,
+      "has_403": false,
+      "has_auth_words": true,
+      "test_exists": true
+    },
+    {
+      "module": "protocol_feasibility",
+      "has_401": false,
+      "has_403": false,
+      "has_auth_words": true,
+      "test_exists": true
+    },
+    {
+      "module": "central_irb",
+      "has_401": false,
+      "has_403": false,
+      "has_auth_words": true,
+      "test_exists": true
+    },
+    {
+      "module": "medical_monitor",
+      "has_401": false,
+      "has_403": false,
+      "has_auth_words": true,
+      "test_exists": true
+    },
+    {
+      "module": "study_closeout",
+      "has_401": false,
+      "has_403": false,
+      "has_auth_words": true,
+      "test_exists": true
+    },
+    {
+      "module": "lab_certification",
+      "has_401": false,
+      "has_403": false,
+      "has_auth_words": false,
+      "test_exists": true
+    },
+    {
+      "module": "patient_stipend",
+      "has_401": false,
+      "has_403": false,
+      "has_auth_words": true,
+      "test_exists": true
+    },
+    {
+      "module": "supply_forecasting",
+      "has_401": false,
+      "has_403": false,
+      "has_auth_words": true,
+      "test_exists": true
+    },
+    {
+      "module": "inspection_readiness",
+      "has_401": false,
+      "has_403": false,
+      "has_auth_words": true,
+      "test_exists": true
+    },
+    {
+      "module": "dsmb_management",
+      "has_401": false,
+      "has_403": false,
+      "has_auth_words": true,
+      "test_exists": true
+    },
+    {
+      "module": "language_services",
+      "has_401": false,
+      "has_403": false,
+      "has_auth_words": false,
+      "test_exists": true
+    },
+    {
+      "module": "ancillary_study",
+      "has_401": false,
+      "has_403": false,
+      "has_auth_words": false,
+      "test_exists": true
+    },
+    {
+      "module": "clinical_ops_metrics",
+      "has_401": false,
+      "has_403": false,
+      "has_auth_words": false,
+      "test_exists": true
+    },
+    {
+      "module": "trial_insurance",
+      "has_401": false,
+      "has_403": false,
+      "has_auth_words": true,
+      "test_exists": true
+    },
+    {
+      "module": "payment_reconciliation",
+      "has_401": false,
+      "has_403": false,
+      "has_auth_words": true,
+      "test_exists": true
+    },
+    {
+      "module": "vendor_qualification",
+      "has_401": false,
+      "has_403": false,
+      "has_auth_words": true,
+      "test_exists": true
+    },
+    {
+      "module": "document_management",
+      "has_401": false,
+      "has_403": false,
+      "has_auth_words": true,
+      "test_exists": true
+    },
+    {
+      "module": "risk_management",
+      "has_401": false,
+      "has_403": false,
+      "has_auth_words": true,
+      "test_exists": true
+    },
+    {
+      "module": "country_regulatory",
+      "has_401": false,
+      "has_403": false,
+      "has_auth_words": true,
+      "test_exists": true
+    },
+    {
+      "module": "data_transfer",
+      "has_401": false,
+      "has_403": false,
+      "has_auth_words": true,
+      "test_exists": true
+    }
+  ]
+}

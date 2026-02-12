@@ -1,0 +1,12 @@
+backend/app/services	343	303578
+backend/app/api	256	122436
+backend/app/schemas	153	51117
+backend/app/models	23	6437
+backend/app/connectors	8	6313
+backend/app/etl	12	5400
+backend/app/core	15	3149
+backend/app/scripts	7	2647
+backend/app/main.py	1	1176
+backend/app/jobs	3	522
+backend/app/cli	2	323
+backend/app/__init__.py	1	5

@@ -1,0 +1,6611 @@
+{
+  "summary": {
+    "service_file_count": 343,
+    "total_service_loc": 303578,
+    "classification_counts": {
+      "logic_or_orchestration": 33,
+      "db_backed": 166,
+      "in_memory_or_fixture": 123,
+      "db_plus_external": 12,
+      "external_integration": 9
+    },
+    "classification_loc": {
+      "logic_or_orchestration": 29875,
+      "db_backed": 159772,
+      "in_memory_or_fixture": 96997,
+      "db_plus_external": 10464,
+      "external_integration": 6470
+    },
+    "top100_classification_counts": {
+      "logic_or_orchestration": 4,
+      "db_backed": 69,
+      "in_memory_or_fixture": 23,
+      "db_plus_external": 3,
+      "external_integration": 1
+    },
+    "top20_largest_services": [
+      {
+        "file": "backend/app/services/calculator_definitions.py",
+        "loc": 12713,
+        "classification": "logic_or_orchestration"
+      },
+      {
+        "file": "backend/app/services/clinical_calculators.py",
+        "loc": 4181,
+        "classification": "db_backed"
+      },
+      {
+        "file": "backend/app/services/clinical_calculator_service.py",
+        "loc": 3034,
+        "classification": "logic_or_orchestration"
+      },
+      {
+        "file": "backend/app/services/cpt_suggester.py",
+        "loc": 2329,
+        "classification": "db_backed"
+      },
+      {
+        "file": "backend/app/services/note_generator.py",
+        "loc": 2324,
+        "classification": "db_backed"
+      },
+      {
+        "file": "backend/app/services/quality_measures.py",
+        "loc": 2223,
+        "classification": "in_memory_or_fixture"
+      },
+      {
+        "file": "backend/app/services/value_set_service.py",
+        "loc": 2178,
+        "classification": "db_backed"
+      },
+      {
+        "file": "backend/app/services/nlp_entity/nlp_entity_extractors.py",
+        "loc": 1875,
+        "classification": "in_memory_or_fixture"
+      },
+      {
+        "file": "backend/app/services/trial_eligibility_service.py",
+        "loc": 1863,
+        "classification": "db_backed"
+      },
+      {
+        "file": "backend/app/services/etl_orchestrator.py",
+        "loc": 1829,
+        "classification": "db_plus_external"
+      },
+      {
+        "file": "backend/app/services/fhir_terminology.py",
+        "loc": 1754,
+        "classification": "in_memory_or_fixture"
+      },
+      {
+        "file": "backend/app/services/clinical_ontology_mapper.py",
+        "loc": 1718,
+        "classification": "db_backed"
+      },
+      {
+        "file": "backend/app/services/fhir_import.py",
+        "loc": 1686,
+        "classification": "db_plus_external"
+      },
+      {
+        "file": "backend/app/services/notification_service.py",
+        "loc": 1646,
+        "classification": "external_integration"
+      },
+      {
+        "file": "backend/app/services/x12_service.py",
+        "loc": 1638,
+        "classification": "db_backed"
+      },
+      {
+        "file": "backend/app/services/iac_service.py",
+        "loc": 1620,
+        "classification": "db_backed"
+      },
+      {
+        "file": "backend/app/services/synthetic_data_service.py",
+        "loc": 1607,
+        "classification": "in_memory_or_fixture"
+      },
+      {
+        "file": "backend/app/services/ai_coding_service.py",
+        "loc": 1604,
+        "classification": "in_memory_or_fixture"
+      },
+      {
+        "file": "backend/app/services/federated_learning_service.py",
+        "loc": 1602,
+        "classification": "db_backed"
+      },
+      {
+        "file": "backend/app/services/contract_lifecycle_service.py",
+        "loc": 1581,
+        "classification": "db_backed"
+      }
+    ]
+  },
+  "records": [
+    {
+      "file": "backend/app/services/__init__.py",
+      "loc": 969,
+      "classification": "logic_or_orchestration",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app"
+      ]
+    },
+    {
+      "file": "backend/app/services/access_review_service.py",
+      "loc": 592,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/active_learning_service.py",
+      "loc": 1023,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "collections",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "hashlib",
+        "json",
+        "logging",
+        "math",
+        "random",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/adverse_event_service.py",
+      "loc": 1201,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "collections",
+        "datetime",
+        "logging",
+        "math",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/agent_chat_service.py",
+      "loc": 190,
+      "classification": "db_plus_external",
+      "has_db_markers": true,
+      "has_external_markers": true,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "anthropic",
+        "app",
+        "json",
+        "logging",
+        "sqlalchemy",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/agent_tools.py",
+      "loc": 572,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "logging",
+        "sqlalchemy",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/agents/__init__.py",
+      "loc": 34,
+      "classification": "logic_or_orchestration",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app"
+      ]
+    },
+    {
+      "file": "backend/app/services/agents/policy_compliance_agent.py",
+      "loc": 452,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "datetime",
+        "logging",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/agents/temporal_reasoning_agent.py",
+      "loc": 490,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "datetime",
+        "logging",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/ai_audit_service.py",
+      "loc": 233,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "datetime",
+        "hashlib",
+        "logging",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/ai_coding_service.py",
+      "loc": 1604,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "collections",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "json",
+        "logging",
+        "math",
+        "pathlib",
+        "re",
+        "threading",
+        "time"
+      ]
+    },
+    {
+      "file": "backend/app/services/alert_rules_service.py",
+      "loc": 576,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/ancillary_study_service.py",
+      "loc": 1147,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/api_contract_service.py",
+      "loc": 638,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "fastapi",
+        "json",
+        "logging",
+        "pathlib",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/api_gateway_service.py",
+      "loc": 1275,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "fnmatch",
+        "hashlib",
+        "logging",
+        "random",
+        "threading",
+        "time",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/api_versioning_service.py",
+      "loc": 1019,
+      "classification": "logic_or_orchestration",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "pydantic",
+        "threading"
+      ]
+    },
+    {
+      "file": "backend/app/services/assertion_classifier.py",
+      "loc": 494,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "enum",
+        "logging",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/assertion_validator.py",
+      "loc": 395,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "collections",
+        "json",
+        "logging",
+        "pathlib",
+        "re"
+      ]
+    },
+    {
+      "file": "backend/app/services/async_query_executor.py",
+      "loc": 531,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "asyncio",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "time",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/audit_integrity_service.py",
+      "loc": 242,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "datetime",
+        "logging",
+        "sqlalchemy"
+      ]
+    },
+    {
+      "file": "backend/app/services/audit_service.py",
+      "loc": 1090,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "csv",
+        "datetime",
+        "hashlib",
+        "io",
+        "json",
+        "logging",
+        "pathlib",
+        "re",
+        "sqlalchemy",
+        "threading"
+      ]
+    },
+    {
+      "file": "backend/app/services/auth/__init__.py",
+      "loc": 64,
+      "classification": "logic_or_orchestration",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "auth_core",
+        "auth_password",
+        "auth_tokens"
+      ]
+    },
+    {
+      "file": "backend/app/services/auth/auth_core.py",
+      "loc": 711,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "auth_password",
+        "auth_tokens",
+        "dataclasses",
+        "datetime",
+        "hashlib",
+        "logging",
+        "sqlalchemy",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/auth/auth_password.py",
+      "loc": 47,
+      "classification": "logic_or_orchestration",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "bcrypt"
+      ]
+    },
+    {
+      "file": "backend/app/services/auth/auth_tokens.py",
+      "loc": 280,
+      "classification": "logic_or_orchestration",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "jwt",
+        "logging",
+        "secrets",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/autoscaling_service.py",
+      "loc": 1057,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "collections",
+        "datetime",
+        "logging",
+        "statistics",
+        "threading",
+        "typing",
+        "uuid",
+        "zoneinfo"
+      ]
+    },
+    {
+      "file": "backend/app/services/backup_verification_service.py",
+      "loc": 463,
+      "classification": "logic_or_orchestration",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "hashlib",
+        "logging",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/batch_processor.py",
+      "loc": 549,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "collections",
+        "concurrent",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "threading",
+        "time",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/billing_optimizer.py",
+      "loc": 811,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "enum",
+        "logging",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/biobank_management_service.py",
+      "loc": 1031,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/biomarker_analysis_service.py",
+      "loc": 1141,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "collections",
+        "datetime",
+        "logging",
+        "math",
+        "random",
+        "statistics",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/budget_management_service.py",
+      "loc": 1168,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/bulk_export_service.py",
+      "loc": 922,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "asyncio",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "gzip",
+        "json",
+        "logging",
+        "os",
+        "pathlib",
+        "random",
+        "shutil"
+      ]
+    },
+    {
+      "file": "backend/app/services/bulk_screening_service.py",
+      "loc": 267,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "sqlalchemy",
+        "threading",
+        "time"
+      ]
+    },
+    {
+      "file": "backend/app/services/business_continuity_service.py",
+      "loc": 1269,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "pydantic",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/calculator_builder.py",
+      "loc": 1355,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "math",
+        "operator",
+        "re",
+        "threading",
+        "time",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/calculator_definitions.py",
+      "loc": 12713,
+      "classification": "logic_or_orchestration",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "enum",
+        "math",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/calculator_kg_integration.py",
+      "loc": 534,
+      "classification": "db_plus_external",
+      "has_db_markers": true,
+      "has_external_markers": true,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "neo4j",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/calculator_reasoning_service.py",
+      "loc": 520,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/capa_service.py",
+      "loc": 524,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "pydantic",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/causal_reasoning_service.py",
+      "loc": 569,
+      "classification": "external_integration",
+      "has_db_markers": false,
+      "has_external_markers": true,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "neo4j",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/cdisc_odm_parser.py",
+      "loc": 339,
+      "classification": "logic_or_orchestration",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "logging",
+        "typing",
+        "xml"
+      ]
+    },
+    {
+      "file": "backend/app/services/cdisc_terminology_service.py",
+      "loc": 1371,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "json",
+        "logging",
+        "pathlib",
+        "re",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/cds_hooks_service.py",
+      "loc": 1224,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "threading",
+        "time",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/central_irb_service.py",
+      "loc": 1046,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/central_laboratory_service.py",
+      "loc": 1104,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "random",
+        "statistics",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/change_control_service.py",
+      "loc": 1164,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "os",
+        "pydantic",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/cicd_pipeline_service.py",
+      "loc": 761,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "hashlib",
+        "logging",
+        "random",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/circuit_breaker.py",
+      "loc": 602,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "asyncio",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "functools",
+        "logging",
+        "threading",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/circuit_breaker_mock.py",
+      "loc": 8,
+      "classification": "logic_or_orchestration",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__"
+      ]
+    },
+    {
+      "file": "backend/app/services/clinical_calculator_service.py",
+      "loc": 3034,
+      "classification": "logic_or_orchestration",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "math",
+        "pydantic",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/clinical_calculators.py",
+      "loc": 4181,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "enum",
+        "logging",
+        "math",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/clinical_context.py",
+      "loc": 868,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "enum",
+        "re",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/clinical_data_management_service.py",
+      "loc": 1282,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "statistics",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/clinical_intelligence_agent.py",
+      "loc": 702,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "threading",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/clinical_monitoring_service.py",
+      "loc": 1548,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/clinical_ontology_mapper.py",
+      "loc": 1718,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "enum",
+        "json",
+        "logging",
+        "pathlib",
+        "re",
+        "threading",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/clinical_ops_metrics_service.py",
+      "loc": 1505,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/clinical_summarizer.py",
+      "loc": 834,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/clinical_supply_returns_service.py",
+      "loc": 649,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/coding_assistant_service.py",
+      "loc": 1188,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "json",
+        "logging",
+        "re",
+        "threading",
+        "time",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/coding_query_generator.py",
+      "loc": 864,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/cohort_service.py",
+      "loc": 1517,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "abc",
+        "datetime",
+        "enum",
+        "logging",
+        "pydantic",
+        "random",
+        "re",
+        "threading",
+        "time",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/competitive_intelligence_service.py",
+      "loc": 1087,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/compose_analyzer_service.py",
+      "loc": 579,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "os",
+        "threading",
+        "typing",
+        "yaml"
+      ]
+    },
+    {
+      "file": "backend/app/services/concept_lookup.py",
+      "loc": 402,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "logging",
+        "sqlalchemy"
+      ]
+    },
+    {
+      "file": "backend/app/services/condition_calculator_mapping.py",
+      "loc": 279,
+      "classification": "logic_or_orchestration",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "logging"
+      ]
+    },
+    {
+      "file": "backend/app/services/consent_preferences_service.py",
+      "loc": 984,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/consent_service.py",
+      "loc": 473,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/contract_lifecycle_service.py",
+      "loc": 1581,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/cost_modeling_service.py",
+      "loc": 761,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "math",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/country_regulatory_service.py",
+      "loc": 643,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/cpt_suggester.py",
+      "loc": 2329,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "json",
+        "logging",
+        "pathlib",
+        "re",
+        "threading",
+        "time",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/criteria_parser_service.py",
+      "loc": 925,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "re",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/ctms_core_service.py",
+      "loc": 856,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "random",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/data_classification_service.py",
+      "loc": 1266,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/data_completeness_service.py",
+      "loc": 305,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "enum",
+        "logging",
+        "threading",
+        "time",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/data_consistency_service.py",
+      "loc": 436,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "threading",
+        "time",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/data_lock_service.py",
+      "loc": 1215,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/data_quality_service.py",
+      "loc": 1400,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "functools",
+        "hashlib",
+        "logging",
+        "random",
+        "threading",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/data_queries_service.py",
+      "loc": 1378,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/data_source_service.py",
+      "loc": 665,
+      "classification": "db_plus_external",
+      "has_db_markers": true,
+      "has_external_markers": true,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "asyncio",
+        "base64",
+        "cryptography",
+        "dataclasses",
+        "datetime",
+        "hashlib",
+        "httpx",
+        "logging",
+        "pydantic",
+        "sqlalchemy"
+      ]
+    },
+    {
+      "file": "backend/app/services/data_transfer_service.py",
+      "loc": 637,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/data_use_agreement_service.py",
+      "loc": 566,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/defect_tracking_service.py",
+      "loc": 1317,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "pydantic",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/deletion_service.py",
+      "loc": 611,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/deployment_verification_service.py",
+      "loc": 1220,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "pydantic",
+        "random",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/differential_diagnosis.py",
+      "loc": 1177,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "enum",
+        "logging",
+        "threading"
+      ]
+    },
+    {
+      "file": "backend/app/services/disaster_recovery_service.py",
+      "loc": 1072,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/diversity_analytics_service.py",
+      "loc": 478,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "collections",
+        "datetime",
+        "logging",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/document_management_service.py",
+      "loc": 539,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/documentation_gaps.py",
+      "loc": 655,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "enum",
+        "logging",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/dqd_check_service.py",
+      "loc": 1290,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "sqlalchemy",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/drift_detection_service.py",
+      "loc": 737,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "collections",
+        "datetime",
+        "logging",
+        "math",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/drknows_benchmark_service.py",
+      "loc": 824,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "random",
+        "statistics",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/drug_interactions.py",
+      "loc": 1519,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "json",
+        "logging",
+        "pathlib",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/drug_safety.py",
+      "loc": 1169,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "enum",
+        "json",
+        "logging",
+        "pathlib",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/dsmb_management_service.py",
+      "loc": 1106,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/dual_enrollment_service.py",
+      "loc": 234,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "logging",
+        "sqlalchemy",
+        "threading",
+        "time"
+      ]
+    },
+    {
+      "file": "backend/app/services/econsent_service.py",
+      "loc": 1343,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/edc_forms_service.py",
+      "loc": 1015,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "random",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/embedding_service.py",
+      "loc": 208,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "functools",
+        "logging",
+        "numpy",
+        "sentence_transformers",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/endpoint_adjudication_service.py",
+      "loc": 960,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "collections",
+        "datetime",
+        "logging",
+        "math",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/enhanced_extraction.py",
+      "loc": 698,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "collections",
+        "dataclasses",
+        "functools",
+        "hashlib",
+        "logging",
+        "re",
+        "threading",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/enrollment_forecasting_service.py",
+      "loc": 1382,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "collections",
+        "datetime",
+        "logging",
+        "math",
+        "random",
+        "statistics",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/epro_service.py",
+      "loc": 1377,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "collections",
+        "datetime",
+        "logging",
+        "random",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/error_budget_service.py",
+      "loc": 395,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "enum",
+        "logging",
+        "threading",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/etl_checkpoint.py",
+      "loc": 284,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "datetime",
+        "json",
+        "logging",
+        "os",
+        "pathlib",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/etl_orchestrator.py",
+      "loc": 1829,
+      "classification": "db_plus_external",
+      "has_db_markers": true,
+      "has_external_markers": true,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "asyncio",
+        "collections",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "pathlib",
+        "sqlalchemy",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/etl_validation_service.py",
+      "loc": 917,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "sqlalchemy",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/etmf_service.py",
+      "loc": 1084,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "collections",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/event_stream.py",
+      "loc": 576,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "asyncio",
+        "collections",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "json",
+        "logging",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/exceptions.py",
+      "loc": 581,
+      "classification": "logic_or_orchestration",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/experiment_service.py",
+      "loc": 1182,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "hashlib",
+        "logging",
+        "math",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/export/__init__.py",
+      "loc": 35,
+      "classification": "logic_or_orchestration",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app"
+      ]
+    },
+    {
+      "file": "backend/app/services/export/omop_exporter.py",
+      "loc": 261,
+      "classification": "logic_or_orchestration",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "abc",
+        "dataclasses",
+        "datetime",
+        "pydantic"
+      ]
+    },
+    {
+      "file": "backend/app/services/export/omop_exporter_db.py",
+      "loc": 199,
+      "classification": "logic_or_orchestration",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/extraction_pipeline.py",
+      "loc": 792,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "collections",
+        "dataclasses",
+        "enum",
+        "logging",
+        "re",
+        "threading",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/fact_builder.py",
+      "loc": 349,
+      "classification": "logic_or_orchestration",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "abc",
+        "app",
+        "dataclasses",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/fact_builder_db.py",
+      "loc": 316,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "logging",
+        "sqlalchemy",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/fairness_audit_service.py",
+      "loc": 890,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "collections",
+        "datetime",
+        "logging",
+        "math",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/feature_store_service.py",
+      "loc": 1103,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "collections",
+        "datetime",
+        "logging",
+        "math",
+        "random",
+        "threading",
+        "time",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/federated_learning_service.py",
+      "loc": 1602,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "datetime",
+        "enum",
+        "hashlib",
+        "logging",
+        "numpy",
+        "pandas",
+        "pydantic",
+        "secrets",
+        "threading",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/fhir_exporter.py",
+      "loc": 619,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "json",
+        "logging",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/fhir_import.py",
+      "loc": 1686,
+      "classification": "db_plus_external",
+      "has_db_markers": true,
+      "has_external_markers": true,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "base64",
+        "datetime",
+        "httpx",
+        "logging",
+        "re",
+        "sqlalchemy",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/fhir_terminology.py",
+      "loc": 1754,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "json",
+        "logging",
+        "pathlib",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/fhir_validator.py",
+      "loc": 749,
+      "classification": "logic_or_orchestration",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "logging",
+        "re",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/fn_monitoring_service.py",
+      "loc": 333,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "collections",
+        "datetime",
+        "logging",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/gold_standard_service.py",
+      "loc": 430,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "collections",
+        "json",
+        "logging",
+        "pathlib",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/graph_analytics_service.py",
+      "loc": 815,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "threading",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/graph_augmented_rag.py",
+      "loc": 759,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "datetime",
+        "logging",
+        "re",
+        "sqlalchemy",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/graph_builder.py",
+      "loc": 352,
+      "classification": "logic_or_orchestration",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "abc",
+        "app",
+        "dataclasses",
+        "datetime",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/graph_builder_db.py",
+      "loc": 652,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "json",
+        "logging",
+        "sqlalchemy",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/graph_database_service.py",
+      "loc": 635,
+      "classification": "external_integration",
+      "has_db_markers": false,
+      "has_external_markers": true,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "neo4j",
+        "threading",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/graph_embedding_service.py",
+      "loc": 640,
+      "classification": "external_integration",
+      "has_db_markers": false,
+      "has_external_markers": true,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "logging",
+        "neo4j",
+        "numpy",
+        "sentence_transformers",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/graph_etl_service.py",
+      "loc": 889,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "threading",
+        "time",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/guideline_rag_service.py",
+      "loc": 537,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "json",
+        "logging",
+        "pathlib",
+        "threading",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/hcc_analyzer.py",
+      "loc": 896,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "re",
+        "threading",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/hitrust_service.py",
+      "loc": 1465,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/hybrid_clinical_analyzer.py",
+      "loc": 1040,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "json",
+        "logging",
+        "threading",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/hybrid_search.py",
+      "loc": 372,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "asyncio",
+        "dataclasses",
+        "logging",
+        "numpy",
+        "sqlalchemy",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/iac_service.py",
+      "loc": 1620,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "os",
+        "pathlib",
+        "re",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/icd10_suggester.py",
+      "loc": 1149,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "enum",
+        "json",
+        "logging",
+        "pathlib",
+        "re",
+        "threading"
+      ]
+    },
+    {
+      "file": "backend/app/services/impact_analysis_service.py",
+      "loc": 266,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "logging",
+        "sqlalchemy",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/incident_response_service.py",
+      "loc": 1267,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "collections",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/incident_service.py",
+      "loc": 523,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "datetime",
+        "enum",
+        "logging",
+        "pydantic",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/infrastructure_service.py",
+      "loc": 738,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "random",
+        "threading",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/input_validation.py",
+      "loc": 291,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "asyncio",
+        "functools",
+        "inspect",
+        "logging",
+        "pydantic",
+        "re",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/inspection_readiness_service.py",
+      "loc": 1184,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/integration_roadmap_service.py",
+      "loc": 1420,
+      "classification": "logic_or_orchestration",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging"
+      ]
+    },
+    {
+      "file": "backend/app/services/investigator_management_service.py",
+      "loc": 949,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/invoice_management_service.py",
+      "loc": 1229,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/ip_accountability_service.py",
+      "loc": 1168,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/irt_service.py",
+      "loc": 1032,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "random",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/job_queue_service.py",
+      "loc": 669,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "collections",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "random",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/kafka_service.py",
+      "loc": 648,
+      "classification": "db_plus_external",
+      "has_db_markers": true,
+      "has_external_markers": true,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "asyncio",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "json",
+        "kafka",
+        "logging",
+        "pydantic",
+        "random",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/kg_api_key_service.py",
+      "loc": 815,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "hashlib",
+        "hmac",
+        "logging",
+        "secrets",
+        "threading",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/kg_audit_service.py",
+      "loc": 832,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "asyncio",
+        "collections",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "functools",
+        "hashlib",
+        "json",
+        "logging",
+        "re",
+        "threading"
+      ]
+    },
+    {
+      "file": "backend/app/services/kg_cache_service.py",
+      "loc": 570,
+      "classification": "db_plus_external",
+      "has_db_markers": true,
+      "has_external_markers": true,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "collections",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "hashlib",
+        "json",
+        "logging",
+        "redis",
+        "threading",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/kg_calculator_mapper.py",
+      "loc": 260,
+      "classification": "logic_or_orchestration",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/kg_config_service.py",
+      "loc": 817,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "collections",
+        "copy",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "hashlib",
+        "json",
+        "logging",
+        "os",
+        "pathlib",
+        "threading"
+      ]
+    },
+    {
+      "file": "backend/app/services/kg_data_export_service.py",
+      "loc": 985,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "abc",
+        "csv",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "io",
+        "json",
+        "logging",
+        "threading",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/kg_grafana_dashboards.py",
+      "loc": 929,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "json",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/kg_kafka_streaming_service.py",
+      "loc": 596,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "asyncio",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "json",
+        "logging",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/kg_load_testing_service.py",
+      "loc": 772,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "asyncio",
+        "concurrent",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "statistics",
+        "threading",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/kg_logging_service.py",
+      "loc": 859,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "contextvars",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "functools",
+        "json",
+        "logging",
+        "os",
+        "sys",
+        "threading",
+        "time"
+      ]
+    },
+    {
+      "file": "backend/app/services/kg_partitioning_service.py",
+      "loc": 594,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "hashlib",
+        "logging",
+        "statistics",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/kg_prometheus_metrics.py",
+      "loc": 1110,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "asyncio",
+        "collections",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "functools",
+        "re",
+        "threading",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/kg_schema_migration_service.py",
+      "loc": 882,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "hashlib",
+        "json",
+        "re",
+        "threading",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/kg_tracing_service.py",
+      "loc": 492,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "contextlib",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "functools",
+        "logging",
+        "threading",
+        "time",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/kg_visualization_service.py",
+      "loc": 757,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "math",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/kg_webhook_service.py",
+      "loc": 952,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "asyncio",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "hashlib",
+        "hmac",
+        "json",
+        "logging",
+        "secrets",
+        "threading",
+        "time"
+      ]
+    },
+    {
+      "file": "backend/app/services/knowledge_graph_fhir_export.py",
+      "loc": 746,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "json",
+        "logging",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/lab_certification_service.py",
+      "loc": 1192,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/lab_reference.py",
+      "loc": 958,
+      "classification": "logic_or_orchestration",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "enum",
+        "logging",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/language_services_service.py",
+      "loc": 800,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/lineage_service.py",
+      "loc": 238,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "logging",
+        "sqlalchemy",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/llm_finetuning_service.py",
+      "loc": 1377,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "asyncio",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "hashlib",
+        "json",
+        "logging",
+        "math",
+        "pydantic",
+        "random",
+        "threading"
+      ]
+    },
+    {
+      "file": "backend/app/services/llm_service.py",
+      "loc": 933,
+      "classification": "external_integration",
+      "has_db_markers": false,
+      "has_external_markers": true,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "abc",
+        "anthropic",
+        "app",
+        "asyncio",
+        "dataclasses",
+        "enum",
+        "logging",
+        "openai",
+        "threading",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/llm_summarizer.py",
+      "loc": 922,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "re",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/mapping.py",
+      "loc": 211,
+      "classification": "logic_or_orchestration",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "abc",
+        "app",
+        "dataclasses",
+        "enum",
+        "re"
+      ]
+    },
+    {
+      "file": "backend/app/services/mapping_db.py",
+      "loc": 223,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "sqlalchemy"
+      ]
+    },
+    {
+      "file": "backend/app/services/mapping_quality_service.py",
+      "loc": 392,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "collections",
+        "datetime",
+        "logging",
+        "sqlalchemy"
+      ]
+    },
+    {
+      "file": "backend/app/services/mapping_sql.py",
+      "loc": 227,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "logging",
+        "sqlalchemy"
+      ]
+    },
+    {
+      "file": "backend/app/services/match_explanation_service.py",
+      "loc": 435,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "sqlalchemy"
+      ]
+    },
+    {
+      "file": "backend/app/services/med_reconciliation_service.py",
+      "loc": 247,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "enum",
+        "logging",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/medagentbench_service.py",
+      "loc": 901,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "json",
+        "logging",
+        "pathlib",
+        "statistics",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/medical_affairs_service.py",
+      "loc": 894,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/medical_monitor_service.py",
+      "loc": 1157,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/medical_review_service.py",
+      "loc": 810,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "math",
+        "random",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/medical_writing_service.py",
+      "loc": 813,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/medication_reconciliation.py",
+      "loc": 1517,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/medidata_rave_service.py",
+      "loc": 676,
+      "classification": "external_integration",
+      "has_db_markers": false,
+      "has_external_markers": true,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "httpx",
+        "logging",
+        "time",
+        "typing",
+        "uuid",
+        "xml"
+      ]
+    },
+    {
+      "file": "backend/app/services/metrics_collector_service.py",
+      "loc": 615,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "collections",
+        "datetime",
+        "math",
+        "threading",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/metriport_service.py",
+      "loc": 351,
+      "classification": "external_integration",
+      "has_db_markers": false,
+      "has_external_markers": true,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "httpx",
+        "logging",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/ml_model_service.py",
+      "loc": 934,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "datetime",
+        "enum",
+        "hashlib",
+        "json",
+        "logging",
+        "numpy",
+        "pathlib",
+        "pydantic",
+        "sklearn",
+        "threading",
+        "time"
+      ]
+    },
+    {
+      "file": "backend/app/services/model_evaluation_service.py",
+      "loc": 284,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/model_governance_service.py",
+      "loc": 875,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/model_registry_service.py",
+      "loc": 363,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/multi_agent_orchestrator.py",
+      "loc": 1058,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "asyncio",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/narrative_extractor.py",
+      "loc": 586,
+      "classification": "external_integration",
+      "has_db_markers": false,
+      "has_external_markers": true,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "anthropic",
+        "app",
+        "dataclasses",
+        "datetime",
+        "httpx",
+        "json",
+        "logging",
+        "re",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/neo4j_temporal_service.py",
+      "loc": 701,
+      "classification": "db_plus_external",
+      "has_db_markers": true,
+      "has_external_markers": true,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "contextlib",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "neo4j",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/network_segmentation_service.py",
+      "loc": 1389,
+      "classification": "logic_or_orchestration",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "hashlib",
+        "logging",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/nlp.py",
+      "loc": 190,
+      "classification": "logic_or_orchestration",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "abc",
+        "app",
+        "dataclasses",
+        "re",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/nlp_advanced.py",
+      "loc": 903,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "enum",
+        "logging",
+        "re",
+        "threading"
+      ]
+    },
+    {
+      "file": "backend/app/services/nlp_claude_api.py",
+      "loc": 434,
+      "classification": "external_integration",
+      "has_db_markers": false,
+      "has_external_markers": true,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "anthropic",
+        "dataclasses",
+        "httpx",
+        "json",
+        "logging",
+        "os",
+        "re",
+        "time",
+        "traceback",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/nlp_clinical_ner.py",
+      "loc": 601,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "logging",
+        "re",
+        "spacy",
+        "threading",
+        "torch",
+        "transformers",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/nlp_coverage.py",
+      "loc": 260,
+      "classification": "logic_or_orchestration",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/nlp_ensemble.py",
+      "loc": 604,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "logging",
+        "threading",
+        "time",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/nlp_entity/__init__.py",
+      "loc": 76,
+      "classification": "logic_or_orchestration",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "nlp_entity_core",
+        "nlp_entity_extractors",
+        "nlp_entity_linkers",
+        "nlp_entity_normalizers"
+      ]
+    },
+    {
+      "file": "backend/app/services/nlp_entity/date_parser.py",
+      "loc": 249,
+      "classification": "logic_or_orchestration",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "datetime",
+        "logging",
+        "re",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/nlp_entity/nlp_entity_core.py",
+      "loc": 419,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "logging",
+        "nlp_entity_extractors",
+        "nlp_entity_linkers",
+        "nlp_entity_normalizers",
+        "threading",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/nlp_entity/nlp_entity_extractors.py",
+      "loc": 1875,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "json",
+        "logging",
+        "nlp_entity_normalizers",
+        "pathlib",
+        "re",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/nlp_entity/nlp_entity_linkers.py",
+      "loc": 846,
+      "classification": "logic_or_orchestration",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "logging",
+        "nlp_entity_extractors",
+        "nlp_entity_normalizers",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/nlp_entity/nlp_entity_ml_models.py",
+      "loc": 179,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "logging",
+        "nlp_entity_core",
+        "nlp_entity_extractors",
+        "nlp_entity_normalizers",
+        "spacy",
+        "torch",
+        "transformers",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/nlp_entity/nlp_entity_normalizers.py",
+      "loc": 488,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "enum",
+        "nlp_entity_core",
+        "re",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/nlp_entity_service.py",
+      "loc": 60,
+      "classification": "logic_or_orchestration",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app"
+      ]
+    },
+    {
+      "file": "backend/app/services/nlp_modernbert_ner.py",
+      "loc": 616,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "flash_attn",
+        "logging",
+        "re",
+        "threading",
+        "torch",
+        "transformers",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/nlp_rule_based.py",
+      "loc": 622,
+      "classification": "logic_or_orchestration",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "ahocorasick",
+        "app",
+        "logging",
+        "os",
+        "re",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/nlp_vocabulary.py",
+      "loc": 396,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "json",
+        "logging",
+        "pathlib",
+        "sqlalchemy"
+      ]
+    },
+    {
+      "file": "backend/app/services/note_generator.py",
+      "loc": 2324,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "json",
+        "logging",
+        "re",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/notification_service.py",
+      "loc": 1646,
+      "classification": "external_integration",
+      "has_db_markers": false,
+      "has_external_markers": true,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "abc",
+        "app",
+        "asyncio",
+        "dataclasses",
+        "datetime",
+        "email",
+        "enum",
+        "hashlib",
+        "hmac",
+        "httpx",
+        "json"
+      ]
+    },
+    {
+      "file": "backend/app/services/observability_service.py",
+      "loc": 610,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "asyncio",
+        "collections",
+        "datetime",
+        "functools",
+        "logging",
+        "os",
+        "threading",
+        "time",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/omop_hierarchy_service.py",
+      "loc": 546,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "functools",
+        "logging",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/ontology_graph_integration.py",
+      "loc": 391,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "datetime",
+        "logging",
+        "sqlalchemy",
+        "time",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/ontology_scanner.py",
+      "loc": 134,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "sqlalchemy",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/operational_dashboard_service.py",
+      "loc": 1056,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "random",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/patient_engagement_service.py",
+      "loc": 969,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "collections",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/patient_retention_service.py",
+      "loc": 1053,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "collections",
+        "datetime",
+        "logging",
+        "math",
+        "random",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/patient_stipend_service.py",
+      "loc": 1130,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/patient_timeline.py",
+      "loc": 1416,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "re",
+        "threading",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/patient_travel_service.py",
+      "loc": 802,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/payment_reconciliation_service.py",
+      "loc": 1361,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/pentest_management_service.py",
+      "loc": 859,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/performance_benchmark_service.py",
+      "loc": 845,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "math",
+        "random",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/pharmacovigilance_service.py",
+      "loc": 1329,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "collections",
+        "datetime",
+        "logging",
+        "math",
+        "statistics",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/phenotype_engine.py",
+      "loc": 848,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "sqlalchemy",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/phenotype_service.py",
+      "loc": 544,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "re",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/phi_audit_service.py",
+      "loc": 426,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "pathlib",
+        "re"
+      ]
+    },
+    {
+      "file": "backend/app/services/pipeline_scheduling_service.py",
+      "loc": 433,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/pipeline_service.py",
+      "loc": 663,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "croniter",
+        "datetime",
+        "logging",
+        "pydantic",
+        "sqlalchemy",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/policy_diff_service.py",
+      "loc": 186,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "difflib",
+        "logging",
+        "sqlalchemy",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/policy_kg_builder.py",
+      "loc": 774,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "datetime",
+        "json",
+        "logging",
+        "re",
+        "sqlalchemy",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/policy_service.py",
+      "loc": 346,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "hashlib",
+        "logging",
+        "re",
+        "sqlalchemy",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/prediction_audit_service.py",
+      "loc": 394,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/privacy_impact_service.py",
+      "loc": 1494,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/protocol_amendment_service.py",
+      "loc": 1053,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/protocol_deviation_service.py",
+      "loc": 765,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "collections",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/protocol_feasibility_service.py",
+      "loc": 1313,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "math",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/provenance_assembler.py",
+      "loc": 112,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "logging",
+        "sqlalchemy",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/provenance_db_service.py",
+      "loc": 294,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "sqlalchemy",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/provenance_service.py",
+      "loc": 538,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "hashlib",
+        "logging",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/qualification_runner_service.py",
+      "loc": 948,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "concurrent",
+        "datetime",
+        "fastapi",
+        "importlib",
+        "json",
+        "logging",
+        "os",
+        "pydantic",
+        "resource",
+        "sys"
+      ]
+    },
+    {
+      "file": "backend/app/services/quality_measures.py",
+      "loc": 2223,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "re",
+        "threading",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/quality_metrics.py",
+      "loc": 573,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "collections",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "statistics",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/randomization_service.py",
+      "loc": 1254,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "collections",
+        "datetime",
+        "hashlib",
+        "logging",
+        "math",
+        "random",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/rbac_service.py",
+      "loc": 1013,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "collections",
+        "dataclasses",
+        "enum",
+        "logging",
+        "sqlalchemy",
+        "threading",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/referral_service.py",
+      "loc": 899,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "math",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/regression_testing_service.py",
+      "loc": 829,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "math",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/regulatory_correspondence_service.py",
+      "loc": 1223,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "collections",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/regulatory_intelligence_service.py",
+      "loc": 1166,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/regulatory_submission_service.py",
+      "loc": 831,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "collections",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/relation_extraction.py",
+      "loc": 629,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "enum",
+        "logging",
+        "re",
+        "spacy",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/release_management_service.py",
+      "loc": 997,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "pydantic",
+        "random",
+        "re",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/report_generator.py",
+      "loc": 712,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "io",
+        "json",
+        "threading",
+        "typing",
+        "weasyprint"
+      ]
+    },
+    {
+      "file": "backend/app/services/retry_handler.py",
+      "loc": 521,
+      "classification": "logic_or_orchestration",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "asyncio",
+        "dataclasses",
+        "datetime",
+        "functools",
+        "logging",
+        "random",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/revenue_analytics_service.py",
+      "loc": 737,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "math",
+        "statistics",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/rfp_service.py",
+      "loc": 1369,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging"
+      ]
+    },
+    {
+      "file": "backend/app/services/risk_based_monitoring_service.py",
+      "loc": 1526,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/risk_management_service.py",
+      "loc": 856,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/risk_prediction_service.py",
+      "loc": 1047,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "enum",
+        "hashlib",
+        "logging",
+        "math",
+        "numpy",
+        "pydantic",
+        "threading",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/risk_thresholds_service.py",
+      "loc": 385,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/roi_dashboard_service.py",
+      "loc": 291,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "math",
+        "sqlalchemy"
+      ]
+    },
+    {
+      "file": "backend/app/services/rxnorm_service.py",
+      "loc": 924,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "enum",
+        "json",
+        "logging",
+        "pathlib",
+        "re",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/sae_reporting_service.py",
+      "loc": 1328,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/safety_database_service.py",
+      "loc": 1249,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/safety_monitoring_service.py",
+      "loc": 1453,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "collections",
+        "datetime",
+        "logging",
+        "math",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/scalability_audit_service.py",
+      "loc": 1280,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "math",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/screen_failure_analytics_service.py",
+      "loc": 487,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "collections",
+        "datetime",
+        "logging",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/screening_dashboard_service.py",
+      "loc": 920,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "collections",
+        "datetime",
+        "logging",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/sdtm_engine.py",
+      "loc": 628,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "datetime",
+        "logging",
+        "re",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/sdtm_generator.py",
+      "loc": 476,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "csv",
+        "dataclasses",
+        "datetime",
+        "io",
+        "json",
+        "logging",
+        "pathlib",
+        "struct",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/sdtm_templates.py",
+      "loc": 1038,
+      "classification": "logic_or_orchestration",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app"
+      ]
+    },
+    {
+      "file": "backend/app/services/sdtm_validator.py",
+      "loc": 585,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "re",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/secret_rotation_service.py",
+      "loc": 513,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "base64",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "os",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/secret_store.py",
+      "loc": 236,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "abc",
+        "base64",
+        "hashlib",
+        "hmac",
+        "json",
+        "logging",
+        "os",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/section_parser.py",
+      "loc": 381,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "enum",
+        "re",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/security_hardening_service.py",
+      "loc": 1303,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "hashlib",
+        "logging",
+        "re",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/semantic_qa.py",
+      "loc": 790,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "math",
+        "re",
+        "threading",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/semantic_search.py",
+      "loc": 385,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "logging",
+        "sqlalchemy",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/semantic_search_service.py",
+      "loc": 1043,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "collections",
+        "dataclasses",
+        "enum",
+        "json",
+        "logging",
+        "math",
+        "pathlib",
+        "re",
+        "threading",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/session_service.py",
+      "loc": 324,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "hashlib",
+        "logging",
+        "secrets",
+        "threading",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/site_audit_service.py",
+      "loc": 593,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/site_initiation_service.py",
+      "loc": 1050,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/site_payments_service.py",
+      "loc": 1163,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/site_performance_service.py",
+      "loc": 802,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "math",
+        "random",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/smart_auth_server.py",
+      "loc": 998,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "base64",
+        "bcrypt",
+        "dataclasses",
+        "datetime",
+        "hashlib",
+        "jwt",
+        "logging",
+        "secrets",
+        "sqlalchemy",
+        "threading"
+      ]
+    },
+    {
+      "file": "backend/app/services/smart_fhir.py",
+      "loc": 836,
+      "classification": "db_plus_external",
+      "has_db_markers": true,
+      "has_external_markers": true,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "base64",
+        "collections",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "hashlib",
+        "httpx",
+        "logging",
+        "pydantic",
+        "secrets"
+      ]
+    },
+    {
+      "file": "backend/app/services/snomed_service.py",
+      "loc": 790,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "enum",
+        "json",
+        "logging",
+        "pathlib",
+        "re",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/soc2_service.py",
+      "loc": 1209,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/source_config_service.py",
+      "loc": 1569,
+      "classification": "db_plus_external",
+      "has_db_markers": true,
+      "has_external_markers": true,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "asyncio",
+        "base64",
+        "cryptography",
+        "csv",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "httpx",
+        "json",
+        "logging"
+      ]
+    },
+    {
+      "file": "backend/app/services/statistical_analysis_service.py",
+      "loc": 1288,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/streaming_aggregation_service.py",
+      "loc": 843,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "asyncio",
+        "collections",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "pydantic",
+        "random",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/streaming_etl_service.py",
+      "loc": 798,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "asyncio",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "json",
+        "logging",
+        "pydantic",
+        "random",
+        "re",
+        "threading"
+      ]
+    },
+    {
+      "file": "backend/app/services/study_closeout_service.py",
+      "loc": 1485,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/study_startup_service.py",
+      "loc": 1320,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/supply_chain_service.py",
+      "loc": 995,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "collections",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/supply_forecasting_service.py",
+      "loc": 1222,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "math",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/synthetic_data_service.py",
+      "loc": 1607,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "collections",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "hashlib",
+        "math",
+        "random",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/task_queue.py",
+      "loc": 642,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "asyncio",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "random",
+        "traceback",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/tech_debt_scanner.py",
+      "loc": 623,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "ast",
+        "dataclasses",
+        "enum",
+        "logging",
+        "os",
+        "pathlib",
+        "re"
+      ]
+    },
+    {
+      "file": "backend/app/services/tefca_service.py",
+      "loc": 1244,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "hashlib",
+        "logging",
+        "pydantic",
+        "secrets",
+        "threading",
+        "time",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/temporal_eligibility_service.py",
+      "loc": 407,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "sqlalchemy",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/temporal_extractor.py",
+      "loc": 486,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "datetime",
+        "logging",
+        "re",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/temporal_query_service.py",
+      "loc": 731,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "sqlalchemy",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/terminology_cache.py",
+      "loc": 413,
+      "classification": "db_plus_external",
+      "has_db_markers": true,
+      "has_external_markers": true,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "collections",
+        "dataclasses",
+        "functools",
+        "hashlib",
+        "json",
+        "logging",
+        "redis",
+        "threading",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/terminology_governance_service.py",
+      "loc": 356,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/threat_intelligence_service.py",
+      "loc": 1463,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/traceability_service.py",
+      "loc": 1347,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/training_management_service.py",
+      "loc": 1198,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/trial_eligibility_service.py",
+      "loc": 1863,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "sqlalchemy",
+        "threading",
+        "time",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/trial_insurance_service.py",
+      "loc": 1129,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/trial_management_service.py",
+      "loc": 1506,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "collections",
+        "datetime",
+        "logging",
+        "math",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/trie_index.py",
+      "loc": 473,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "collections",
+        "dataclasses",
+        "logging",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/user_analytics_service.py",
+      "loc": 1137,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "collections",
+        "datetime",
+        "hashlib",
+        "logging",
+        "random",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/validation_study_service.py",
+      "loc": 391,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "logging",
+        "math",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/value_extraction.py",
+      "loc": 746,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "logging",
+        "re",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/value_set_service.py",
+      "loc": 2178,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "csv",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "io",
+        "json",
+        "logging",
+        "pathlib",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/veeva_vault_service.py",
+      "loc": 823,
+      "classification": "db_plus_external",
+      "has_db_markers": true,
+      "has_external_markers": true,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "httpx",
+        "logging",
+        "time",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/vendor_management_service.py",
+      "loc": 1062,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/vendor_qualification_service.py",
+      "loc": 749,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/visualization_data_service.py",
+      "loc": 931,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "logging",
+        "math",
+        "random",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/vocab_regression_service.py",
+      "loc": 766,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "json",
+        "logging",
+        "pathlib",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/vocabulary.py",
+      "loc": 395,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "json",
+        "logging",
+        "pathlib",
+        "threading",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/vocabulary_db.py",
+      "loc": 192,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": false,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "logging",
+        "sqlalchemy"
+      ]
+    },
+    {
+      "file": "backend/app/services/vocabulary_enhanced.py",
+      "loc": 501,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": true,
+      "import_roots_sample": [
+        "__future__",
+        "ahocorasick",
+        "app",
+        "dataclasses",
+        "json",
+        "logging",
+        "numpy",
+        "pathlib",
+        "sentence_transformers",
+        "threading",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/vocabulary_mapping.py",
+      "loc": 495,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "dataclasses",
+        "enum",
+        "logging",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/vocabulary_version_service.py",
+      "loc": 293,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "sqlalchemy",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/voice_transcription_service.py",
+      "loc": 563,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "asyncio",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "hashlib",
+        "io",
+        "logging",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/vulnerability_management_service.py",
+      "loc": 992,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "random",
+        "threading",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/workforce_planning_service.py",
+      "loc": 1036,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "datetime",
+        "logging",
+        "math",
+        "threading",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "file": "backend/app/services/x12_mapper.py",
+      "loc": 1210,
+      "classification": "in_memory_or_fixture",
+      "has_db_markers": false,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "datetime",
+        "decimal",
+        "enum",
+        "logging",
+        "re",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "file": "backend/app/services/x12_service.py",
+      "loc": 1638,
+      "classification": "db_backed",
+      "has_db_markers": true,
+      "has_external_markers": false,
+      "has_inmemory_markers": true,
+      "has_fixture_markers": false,
+      "import_roots_sample": [
+        "__future__",
+        "app",
+        "dataclasses",
+        "datetime",
+        "decimal",
+        "logging",
+        "re",
+        "threading",
+        "typing"
+      ]
+    }
+  ]
+}
