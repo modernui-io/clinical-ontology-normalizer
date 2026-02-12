@@ -308,6 +308,11 @@ from app.api.ectd_submission import router as ectd_submission_router
 from app.api.labeling_management import router as labeling_management_router
 from app.api.publication_planning import router as publication_planning_router
 from app.api.safety_signal_detection import router as safety_signal_detection_router
+from app.api.environmental_monitoring import router as environmental_monitoring_router
+from app.api.cdisc_standards import router as cdisc_standards_router
+from app.api.ha_meeting_tracker import router as ha_meeting_tracker_router
+from app.api.medical_information import router as medical_information_router
+from app.api.pharmacogenomics import router as pharmacogenomics_router
 
 __all__ = [
     # Routers
@@ -553,6 +558,11 @@ __all__ = [
     "publication_planning_router",
     "digital_biomarkers_router",
     "safety_signal_detection_router",
+    "environmental_monitoring_router",
+    "cdisc_standards_router",
+    "ha_meeting_tracker_router",
+    "medical_information_router",
+    "pharmacogenomics_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",

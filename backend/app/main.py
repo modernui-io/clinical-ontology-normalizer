@@ -260,6 +260,11 @@ from app.api import (
     labeling_management_router,
     publication_planning_router,
     safety_signal_detection_router,
+    environmental_monitoring_router,
+    cdisc_standards_router,
+    ha_meeting_tracker_router,
+    medical_information_router,
+    pharmacogenomics_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -1062,6 +1067,11 @@ api_v1_router.include_router(ectd_submission_router)
 api_v1_router.include_router(labeling_management_router)
 api_v1_router.include_router(publication_planning_router)
 api_v1_router.include_router(safety_signal_detection_router)
+api_v1_router.include_router(environmental_monitoring_router)
+api_v1_router.include_router(cdisc_standards_router)
+api_v1_router.include_router(ha_meeting_tracker_router)
+api_v1_router.include_router(medical_information_router)
+api_v1_router.include_router(pharmacogenomics_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)
