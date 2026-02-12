@@ -285,6 +285,11 @@ from app.api import (
     clinical_supply_forecast_router,
     data_privacy_router,
     adaptive_trial_router,
+    investigator_brochure_router,
+    clinical_simulation_router,
+    bioequivalence_router,
+    site_qualification_router,
+    trial_disclosure_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -1112,6 +1117,11 @@ api_v1_router.include_router(protocol_compliance_router)
 api_v1_router.include_router(clinical_supply_forecast_router)
 api_v1_router.include_router(data_privacy_router)
 api_v1_router.include_router(adaptive_trial_router)
+api_v1_router.include_router(investigator_brochure_router)
+api_v1_router.include_router(clinical_simulation_router)
+api_v1_router.include_router(bioequivalence_router)
+api_v1_router.include_router(site_qualification_router)
+api_v1_router.include_router(trial_disclosure_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)

@@ -608,6 +608,11 @@ __all__ = [
     "clinical_supply_forecast_router",
     "data_privacy_router",
     "adaptive_trial_router",
+    "investigator_brochure_router",
+    "clinical_simulation_router",
+    "bioequivalence_router",
+    "site_qualification_router",
+    "trial_disclosure_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",
