@@ -298,6 +298,11 @@ from app.api.clinical_pharmacology import router as clinical_pharmacology_router
 from app.api.heor import router as heor_router
 from app.api.portfolio_governance import router as portfolio_governance_router
 from app.api.product_licensure import router as product_licensure_router
+from app.api.companion_diagnostics import router as companion_diagnostics_router
+from app.api.lab_data_management import router as lab_data_management_router
+from app.api.protocol_design import router as protocol_design_router
+from app.api.biostatistics_ops import router as biostatistics_ops_router
+from app.api.medical_coding import router as medical_coding_router
 
 __all__ = [
     # Routers
@@ -533,6 +538,11 @@ __all__ = [
     "heor_router",
     "portfolio_governance_router",
     "product_licensure_router",
+    "companion_diagnostics_router",
+    "lab_data_management_router",
+    "protocol_design_router",
+    "biostatistics_ops_router",
+    "medical_coding_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",
