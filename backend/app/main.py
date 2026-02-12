@@ -248,6 +248,7 @@ from app.api import (
     patient_registry_router,
     clinical_pharmacology_router,
     heor_router,
+    portfolio_governance_router,
     product_licensure_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
@@ -1039,6 +1040,7 @@ api_v1_router.include_router(imaging_management_router)
 api_v1_router.include_router(patient_registry_router)
 api_v1_router.include_router(clinical_pharmacology_router)
 api_v1_router.include_router(heor_router)
+api_v1_router.include_router(portfolio_governance_router)
 api_v1_router.include_router(product_licensure_router)
 
 # Mount versioned API router

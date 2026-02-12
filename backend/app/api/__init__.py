@@ -296,6 +296,7 @@ from app.api.imaging_management import router as imaging_management_router
 from app.api.patient_registry import router as patient_registry_router
 from app.api.clinical_pharmacology import router as clinical_pharmacology_router
 from app.api.heor import router as heor_router
+from app.api.portfolio_governance import router as portfolio_governance_router
 from app.api.product_licensure import router as product_licensure_router
 
 __all__ = [
@@ -530,6 +531,7 @@ __all__ = [
     "patient_registry_router",
     "clinical_pharmacology_router",
     "heor_router",
+    "portfolio_governance_router",
     "product_licensure_router",
     # Middleware
     "AuditMiddleware",
