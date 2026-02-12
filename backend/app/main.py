@@ -275,6 +275,11 @@ from app.api import (
     regulatory_inspection_router,
     tissue_tracking_router,
     reference_safety_info_router,
+    patient_diary_router,
+    central_monitoring_router,
+    drug_accountability_router,
+    site_feasibility_router,
+    clinical_data_review_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -1092,6 +1097,11 @@ api_v1_router.include_router(clinical_trial_agreement_router)
 api_v1_router.include_router(regulatory_inspection_router)
 api_v1_router.include_router(tissue_tracking_router)
 api_v1_router.include_router(reference_safety_info_router)
+api_v1_router.include_router(patient_diary_router)
+api_v1_router.include_router(central_monitoring_router)
+api_v1_router.include_router(drug_accountability_router)
+api_v1_router.include_router(site_feasibility_router)
+api_v1_router.include_router(clinical_data_review_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)
