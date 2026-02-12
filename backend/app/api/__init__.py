@@ -338,6 +338,11 @@ from app.api.clinical_simulation import router as clinical_simulation_router
 from app.api.bioequivalence import router as bioequivalence_router
 from app.api.site_qualification import router as site_qualification_router
 from app.api.trial_disclosure import router as trial_disclosure_router
+from app.api.endpoint_adjudication_committee import router as endpoint_adjudication_committee_router
+from app.api.investigator_meeting import router as investigator_meeting_router
+from app.api.regulatory_intelligence_hub import router as regulatory_intelligence_hub_router
+from app.api.product_complaint import router as product_complaint_router
+from app.api.clinical_pharmacokinetics import router as clinical_pharmacokinetics_router
 
 __all__ = [
     # Routers
@@ -613,6 +618,11 @@ __all__ = [
     "bioequivalence_router",
     "site_qualification_router",
     "trial_disclosure_router",
+    "endpoint_adjudication_committee_router",
+    "investigator_meeting_router",
+    "regulatory_intelligence_hub_router",
+    "product_complaint_router",
+    "clinical_pharmacokinetics_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",
