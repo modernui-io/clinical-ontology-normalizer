@@ -313,6 +313,11 @@ from app.api.cdisc_standards import router as cdisc_standards_router
 from app.api.ha_meeting_tracker import router as ha_meeting_tracker_router
 from app.api.medical_information import router as medical_information_router
 from app.api.pharmacogenomics import router as pharmacogenomics_router
+from app.api.unblinding_management import router as unblinding_management_router
+from app.api.capa_management import router as capa_management_router
+from app.api.signal_detection import router as signal_detection_router
+from app.api.benefit_risk_assessment import router as benefit_risk_assessment_router
+from app.api.clinical_outcome_assessment import router as clinical_outcome_assessment_router
 
 __all__ = [
     # Routers
@@ -563,6 +568,11 @@ __all__ = [
     "ha_meeting_tracker_router",
     "medical_information_router",
     "pharmacogenomics_router",
+    "unblinding_management_router",
+    "capa_management_router",
+    "signal_detection_router",
+    "benefit_risk_assessment_router",
+    "clinical_outcome_assessment_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",

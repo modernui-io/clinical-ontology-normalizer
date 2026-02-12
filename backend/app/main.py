@@ -265,6 +265,11 @@ from app.api import (
     ha_meeting_tracker_router,
     medical_information_router,
     pharmacogenomics_router,
+    unblinding_management_router,
+    capa_management_router,
+    signal_detection_router,
+    benefit_risk_assessment_router,
+    clinical_outcome_assessment_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -1072,6 +1077,11 @@ api_v1_router.include_router(cdisc_standards_router)
 api_v1_router.include_router(ha_meeting_tracker_router)
 api_v1_router.include_router(medical_information_router)
 api_v1_router.include_router(pharmacogenomics_router)
+api_v1_router.include_router(unblinding_management_router)
+api_v1_router.include_router(capa_management_router)
+api_v1_router.include_router(signal_detection_router)
+api_v1_router.include_router(benefit_risk_assessment_router)
+api_v1_router.include_router(clinical_outcome_assessment_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)
