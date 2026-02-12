@@ -196,6 +196,7 @@ from app.api import (
     central_laboratory_router,
     epro_router,
     supply_chain_router,
+    supply_serialization_router,
     trial_management_router,
     medical_affairs_router,
     training_management_router,
@@ -242,6 +243,12 @@ from app.api import (
     vendor_qualification_router,
     country_regulatory_router,
     risk_management_router,
+    decentralized_trials_router,
+    imaging_management_router,
+    patient_registry_router,
+    clinical_pharmacology_router,
+    heor_router,
+    product_licensure_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -980,6 +987,7 @@ api_v1_router.include_router(safety_monitoring_router)
 api_v1_router.include_router(central_laboratory_router)
 api_v1_router.include_router(epro_router)
 api_v1_router.include_router(supply_chain_router)
+api_v1_router.include_router(supply_serialization_router)
 api_v1_router.include_router(trial_management_router)
 api_v1_router.include_router(medical_affairs_router)
 api_v1_router.include_router(training_management_router)
@@ -1026,6 +1034,12 @@ api_v1_router.include_router(data_transfer_router)
 api_v1_router.include_router(vendor_qualification_router)
 api_v1_router.include_router(country_regulatory_router)
 api_v1_router.include_router(risk_management_router)
+api_v1_router.include_router(decentralized_trials_router)
+api_v1_router.include_router(imaging_management_router)
+api_v1_router.include_router(patient_registry_router)
+api_v1_router.include_router(clinical_pharmacology_router)
+api_v1_router.include_router(heor_router)
+api_v1_router.include_router(product_licensure_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)

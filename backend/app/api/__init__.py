@@ -244,6 +244,7 @@ from app.api.central_laboratory import router as central_laboratory_router
 from app.api.safety_monitoring import router as safety_monitoring_router
 from app.api.epro import router as epro_router
 from app.api.supply_chain import router as supply_chain_router
+from app.api.supply_serialization import router as supply_serialization_router
 from app.api.trial_management import router as trial_management_router
 from app.api.medical_affairs import router as medical_affairs_router
 from app.api.training_management import router as training_management_router
@@ -290,6 +291,12 @@ from app.api.data_transfer import router as data_transfer_router
 from app.api.vendor_qualification import router as vendor_qualification_router
 from app.api.country_regulatory import router as country_regulatory_router
 from app.api.risk_management import router as risk_management_router
+from app.api.decentralized_trials import router as decentralized_trials_router
+from app.api.imaging_management import router as imaging_management_router
+from app.api.patient_registry import router as patient_registry_router
+from app.api.clinical_pharmacology import router as clinical_pharmacology_router
+from app.api.heor import router as heor_router
+from app.api.product_licensure import router as product_licensure_router
 
 __all__ = [
     # Routers
@@ -471,6 +478,7 @@ __all__ = [
     "safety_monitoring_router",
     "epro_router",
     "supply_chain_router",
+    "supply_serialization_router",
     "trial_management_router",
     "medical_affairs_router",
     "training_management_router",
@@ -517,6 +525,12 @@ __all__ = [
     "vendor_qualification_router",
     "country_regulatory_router",
     "risk_management_router",
+    "decentralized_trials_router",
+    "imaging_management_router",
+    "patient_registry_router",
+    "clinical_pharmacology_router",
+    "heor_router",
+    "product_licensure_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",
