@@ -295,6 +295,11 @@ from app.api import (
     regulatory_intelligence_hub_router,
     product_complaint_router,
     clinical_pharmacokinetics_router,
+    cross_functional_team_router,
+    post_marketing_surveillance_router,
+    clinical_operations_analytics_router,
+    external_data_integration_router,
+    specimen_management_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -1132,6 +1137,11 @@ api_v1_router.include_router(investigator_meeting_router)
 api_v1_router.include_router(regulatory_intelligence_hub_router)
 api_v1_router.include_router(product_complaint_router)
 api_v1_router.include_router(clinical_pharmacokinetics_router)
+api_v1_router.include_router(cross_functional_team_router)
+api_v1_router.include_router(post_marketing_surveillance_router)
+api_v1_router.include_router(clinical_operations_analytics_router)
+api_v1_router.include_router(external_data_integration_router)
+api_v1_router.include_router(specimen_management_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)

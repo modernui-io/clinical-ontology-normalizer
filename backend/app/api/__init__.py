@@ -343,6 +343,11 @@ from app.api.investigator_meeting import router as investigator_meeting_router
 from app.api.regulatory_intelligence_hub import router as regulatory_intelligence_hub_router
 from app.api.product_complaint import router as product_complaint_router
 from app.api.clinical_pharmacokinetics import router as clinical_pharmacokinetics_router
+from app.api.cross_functional_team import router as cross_functional_team_router
+from app.api.post_marketing_surveillance import router as post_marketing_surveillance_router
+from app.api.clinical_operations_analytics import router as clinical_operations_analytics_router
+from app.api.external_data_integration import router as external_data_integration_router
+from app.api.specimen_management import router as specimen_management_router
 
 __all__ = [
     # Routers
@@ -623,6 +628,11 @@ __all__ = [
     "regulatory_intelligence_hub_router",
     "product_complaint_router",
     "clinical_pharmacokinetics_router",
+    "cross_functional_team_router",
+    "post_marketing_surveillance_router",
+    "clinical_operations_analytics_router",
+    "external_data_integration_router",
+    "specimen_management_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",
