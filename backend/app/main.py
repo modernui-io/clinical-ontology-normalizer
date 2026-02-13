@@ -320,6 +320,14 @@ from app.api import (
     site_resource_planning_router,
     adverse_event_reconciliation_router,
     treatment_compliance_monitoring_router,
+    data_quality_router,
+    etl_management_router,
+    manufacturing_ops_router,
+    med_reconciliation_router,
+    real_world_evidence_router,
+    screen_failure_router,
+    x12_router,
+    batch_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -1182,6 +1190,14 @@ api_v1_router.include_router(patient_insurance_verification_router)
 api_v1_router.include_router(site_resource_planning_router)
 api_v1_router.include_router(adverse_event_reconciliation_router)
 api_v1_router.include_router(treatment_compliance_monitoring_router)
+api_v1_router.include_router(data_quality_router)
+api_v1_router.include_router(etl_management_router)
+api_v1_router.include_router(manufacturing_ops_router)
+api_v1_router.include_router(med_reconciliation_router)
+api_v1_router.include_router(real_world_evidence_router)
+api_v1_router.include_router(screen_failure_router)
+api_v1_router.include_router(x12_router)
+api_v1_router.include_router(batch_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)

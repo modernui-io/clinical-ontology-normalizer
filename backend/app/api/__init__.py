@@ -368,6 +368,13 @@ from app.api.patient_insurance_verification import router as patient_insurance_v
 from app.api.site_resource_planning import router as site_resource_planning_router
 from app.api.adverse_event_reconciliation import router as adverse_event_reconciliation_router
 from app.api.treatment_compliance_monitoring import router as treatment_compliance_monitoring_router
+from app.api.data_quality import router as data_quality_router
+from app.api.etl_management import router as etl_management_router
+from app.api.manufacturing_ops import router as manufacturing_ops_router
+from app.api.med_reconciliation import router as med_reconciliation_router
+from app.api.real_world_evidence import router as real_world_evidence_router
+from app.api.screen_failure import router as screen_failure_router
+from app.api.x12 import router as x12_router
 
 __all__ = [
     # Routers
@@ -673,6 +680,13 @@ __all__ = [
     "site_resource_planning_router",
     "adverse_event_reconciliation_router",
     "treatment_compliance_monitoring_router",
+    "data_quality_router",
+    "etl_management_router",
+    "manufacturing_ops_router",
+    "med_reconciliation_router",
+    "real_world_evidence_router",
+    "screen_failure_router",
+    "x12_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",
