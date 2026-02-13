@@ -305,6 +305,11 @@ from app.api import (
     emergency_unblinding_router,
     crf_management_router,
     lab_proficiency_router,
+    patient_visit_tracking_router,
+    inventory_reconciliation_router,
+    interim_analysis_router,
+    subject_withdrawal_router,
+    protocol_knowledge_assessment_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -1152,6 +1157,11 @@ api_v1_router.include_router(delegation_log_router)
 api_v1_router.include_router(emergency_unblinding_router)
 api_v1_router.include_router(crf_management_router)
 api_v1_router.include_router(lab_proficiency_router)
+api_v1_router.include_router(patient_visit_tracking_router)
+api_v1_router.include_router(inventory_reconciliation_router)
+api_v1_router.include_router(interim_analysis_router)
+api_v1_router.include_router(subject_withdrawal_router)
+api_v1_router.include_router(protocol_knowledge_assessment_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)

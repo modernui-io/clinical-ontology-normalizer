@@ -353,6 +353,11 @@ from app.api.delegation_log import router as delegation_log_router
 from app.api.emergency_unblinding import router as emergency_unblinding_router
 from app.api.crf_management import router as crf_management_router
 from app.api.lab_proficiency import router as lab_proficiency_router
+from app.api.patient_visit_tracking import router as patient_visit_tracking_router
+from app.api.inventory_reconciliation import router as inventory_reconciliation_router
+from app.api.interim_analysis import router as interim_analysis_router
+from app.api.subject_withdrawal import router as subject_withdrawal_router
+from app.api.protocol_knowledge_assessment import router as protocol_knowledge_assessment_router
 
 __all__ = [
     # Routers
@@ -643,6 +648,11 @@ __all__ = [
     "emergency_unblinding_router",
     "crf_management_router",
     "lab_proficiency_router",
+    "patient_visit_tracking_router",
+    "inventory_reconciliation_router",
+    "interim_analysis_router",
+    "subject_withdrawal_router",
+    "protocol_knowledge_assessment_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",
