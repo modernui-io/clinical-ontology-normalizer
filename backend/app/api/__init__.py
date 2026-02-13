@@ -348,6 +348,11 @@ from app.api.post_marketing_surveillance import router as post_marketing_surveil
 from app.api.clinical_operations_analytics import router as clinical_operations_analytics_router
 from app.api.external_data_integration import router as external_data_integration_router
 from app.api.specimen_management import router as specimen_management_router
+from app.api.source_data_verification import router as source_data_verification_router
+from app.api.delegation_log import router as delegation_log_router
+from app.api.emergency_unblinding import router as emergency_unblinding_router
+from app.api.crf_management import router as crf_management_router
+from app.api.lab_proficiency import router as lab_proficiency_router
 
 __all__ = [
     # Routers
@@ -633,6 +638,11 @@ __all__ = [
     "clinical_operations_analytics_router",
     "external_data_integration_router",
     "specimen_management_router",
+    "source_data_verification_router",
+    "delegation_log_router",
+    "emergency_unblinding_router",
+    "crf_management_router",
+    "lab_proficiency_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",

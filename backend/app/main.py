@@ -300,6 +300,11 @@ from app.api import (
     clinical_operations_analytics_router,
     external_data_integration_router,
     specimen_management_router,
+    source_data_verification_router,
+    delegation_log_router,
+    emergency_unblinding_router,
+    crf_management_router,
+    lab_proficiency_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -1142,6 +1147,11 @@ api_v1_router.include_router(post_marketing_surveillance_router)
 api_v1_router.include_router(clinical_operations_analytics_router)
 api_v1_router.include_router(external_data_integration_router)
 api_v1_router.include_router(specimen_management_router)
+api_v1_router.include_router(source_data_verification_router)
+api_v1_router.include_router(delegation_log_router)
+api_v1_router.include_router(emergency_unblinding_router)
+api_v1_router.include_router(crf_management_router)
+api_v1_router.include_router(lab_proficiency_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)
