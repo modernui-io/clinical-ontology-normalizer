@@ -310,6 +310,11 @@ from app.api import (
     interim_analysis_router,
     subject_withdrawal_router,
     protocol_knowledge_assessment_router,
+    investigator_oversight_router,
+    medical_device_tracking_router,
+    clinical_event_adjudication_router,
+    site_communication_router,
+    concomitant_medication_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -1162,6 +1167,11 @@ api_v1_router.include_router(inventory_reconciliation_router)
 api_v1_router.include_router(interim_analysis_router)
 api_v1_router.include_router(subject_withdrawal_router)
 api_v1_router.include_router(protocol_knowledge_assessment_router)
+api_v1_router.include_router(investigator_oversight_router)
+api_v1_router.include_router(medical_device_tracking_router)
+api_v1_router.include_router(clinical_event_adjudication_router)
+api_v1_router.include_router(site_communication_router)
+api_v1_router.include_router(concomitant_medication_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)

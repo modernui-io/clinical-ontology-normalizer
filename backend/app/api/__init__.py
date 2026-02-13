@@ -358,6 +358,11 @@ from app.api.inventory_reconciliation import router as inventory_reconciliation_
 from app.api.interim_analysis import router as interim_analysis_router
 from app.api.subject_withdrawal import router as subject_withdrawal_router
 from app.api.protocol_knowledge_assessment import router as protocol_knowledge_assessment_router
+from app.api.investigator_oversight import router as investigator_oversight_router
+from app.api.medical_device_tracking import router as medical_device_tracking_router
+from app.api.clinical_event_adjudication import router as clinical_event_adjudication_router
+from app.api.site_communication import router as site_communication_router
+from app.api.concomitant_medication import router as concomitant_medication_router
 
 __all__ = [
     # Routers
@@ -653,6 +658,11 @@ __all__ = [
     "interim_analysis_router",
     "subject_withdrawal_router",
     "protocol_knowledge_assessment_router",
+    "investigator_oversight_router",
+    "medical_device_tracking_router",
+    "clinical_event_adjudication_router",
+    "site_communication_router",
+    "concomitant_medication_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",
