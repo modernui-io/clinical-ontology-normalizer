@@ -315,6 +315,11 @@ from app.api import (
     clinical_event_adjudication_router,
     site_communication_router,
     concomitant_medication_router,
+    clinical_hold_management_router,
+    patient_insurance_verification_router,
+    site_resource_planning_router,
+    adverse_event_reconciliation_router,
+    treatment_compliance_monitoring_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -1172,6 +1177,11 @@ api_v1_router.include_router(medical_device_tracking_router)
 api_v1_router.include_router(clinical_event_adjudication_router)
 api_v1_router.include_router(site_communication_router)
 api_v1_router.include_router(concomitant_medication_router)
+api_v1_router.include_router(clinical_hold_management_router)
+api_v1_router.include_router(patient_insurance_verification_router)
+api_v1_router.include_router(site_resource_planning_router)
+api_v1_router.include_router(adverse_event_reconciliation_router)
+api_v1_router.include_router(treatment_compliance_monitoring_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)

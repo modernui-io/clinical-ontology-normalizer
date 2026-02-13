@@ -363,6 +363,11 @@ from app.api.medical_device_tracking import router as medical_device_tracking_ro
 from app.api.clinical_event_adjudication import router as clinical_event_adjudication_router
 from app.api.site_communication import router as site_communication_router
 from app.api.concomitant_medication import router as concomitant_medication_router
+from app.api.clinical_hold_management import router as clinical_hold_management_router
+from app.api.patient_insurance_verification import router as patient_insurance_verification_router
+from app.api.site_resource_planning import router as site_resource_planning_router
+from app.api.adverse_event_reconciliation import router as adverse_event_reconciliation_router
+from app.api.treatment_compliance_monitoring import router as treatment_compliance_monitoring_router
 
 __all__ = [
     # Routers
@@ -663,6 +668,11 @@ __all__ = [
     "clinical_event_adjudication_router",
     "site_communication_router",
     "concomitant_medication_router",
+    "clinical_hold_management_router",
+    "patient_insurance_verification_router",
+    "site_resource_planning_router",
+    "adverse_event_reconciliation_router",
+    "treatment_compliance_monitoring_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",
