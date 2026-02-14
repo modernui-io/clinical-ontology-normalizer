@@ -484,6 +484,42 @@ function StatsSection() {
 }
 
 // ============================================================================
+// PROBLEM FRAMING
+// ============================================================================
+const problems = [
+  { stat: "80%", label: "of clinical data is unstructured", detail: "Physician notes, radiology reports, discharge summaries — trapped in free text." },
+  { stat: "72h", label: "average chart abstraction time", detail: "Manual review per patient for quality measures, research, and coding." },
+  { stat: "30%", label: "of clinical signal is never captured", detail: "Negation, temporality, and context lost in translation to structured fields." },
+];
+
+function ProblemSection() {
+  return (
+    <section className="py-16 md:py-24 px-6 relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-b from-neutral-50/60 to-white pointer-events-none" />
+      <div className="relative max-w-[1200px] mx-auto">
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={VIEWPORT} transition={{ duration: 0.5, ease: EASE }} className="text-center mb-12">
+          <p className="text-[13px] font-medium text-rose-500 mb-2">The problem</p>
+          <h2 className="text-[1.75rem] md:text-[2.25rem] font-medium tracking-[-0.03em] text-neutral-900 leading-[1.15]" style={{ textWrap: "balance" }}>
+            Your smartest data is your dumbest asset.
+          </h2>
+        </motion.div>
+        <div className="grid md:grid-cols-3 gap-4">
+          {problems.map((p, i) => (
+            <motion.div key={p.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={VIEWPORT} transition={{ duration: 0.4, delay: i * 0.08, ease: EASE }}>
+              <div className="h-full rounded-2xl border border-rose-100/80 bg-gradient-to-b from-rose-50/40 to-white p-6 hover:border-rose-200 hover:shadow-[0_8px_40px_rgba(244,63,94,0.06)] transition-all duration-300">
+                <div className="text-[2.5rem] font-bold tracking-[-0.04em] text-rose-500/80 mb-1">{p.stat}</div>
+                <div className="text-[14px] font-semibold text-neutral-900 mb-2">{p.label}</div>
+                <p className="text-[13px] text-neutral-500 leading-relaxed">{p.detail}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ============================================================================
 // CORE ENGINES
 // ============================================================================
 const engines = [
@@ -1156,6 +1192,98 @@ function CTASection() {
 }
 
 // ============================================================================
+// PRICING
+// ============================================================================
+const plans = [
+  {
+    name: "Starter",
+    price: "Free",
+    period: "",
+    description: "For exploration and prototyping.",
+    features: ["1,000 documents/month", "NLP extraction + UMLS mapping", "REST API access", "Community support", "Single user"],
+    cta: "Start Free",
+    highlight: false,
+  },
+  {
+    name: "Pro",
+    price: "$499",
+    period: "/mo",
+    description: "For teams building production pipelines.",
+    features: ["25,000 documents/month", "Full OMOP CDM + custom ontologies", "Knowledge graph + GraphRAG", "FHIR R4 import/export", "Priority support", "Up to 10 users", "SSO + audit logs"],
+    cta: "Start Trial",
+    highlight: true,
+  },
+  {
+    name: "Enterprise",
+    price: "Custom",
+    period: "",
+    description: "For health systems and regulated environments.",
+    features: ["Unlimited documents", "On-prem / VPC deployment", "Custom ontology development", "Dedicated success engineer", "BAA + 21 CFR Part 11", "SLA 99.99% uptime", "TEFCA + bulk export"],
+    cta: "Contact Sales",
+    highlight: false,
+  },
+];
+
+function PricingSection() {
+  return (
+    <section className="py-20 md:py-28 px-6 relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-b from-neutral-50/30 to-white pointer-events-none" />
+      <div className="relative max-w-[1200px] mx-auto">
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={VIEWPORT} transition={{ duration: 0.5, ease: EASE }} className="text-center mb-14">
+          <SectionBadge icon={Zap} label="Pricing" />
+          <h2 className="text-[2rem] md:text-[2.75rem] font-medium tracking-[-0.035em] text-neutral-900 leading-[1.1]">Simple, <span className="bg-gradient-to-r from-indigo-600 to-violet-500 bg-clip-text text-transparent">predictable</span> pricing</h2>
+          <p className="mt-4 text-neutral-500 max-w-lg mx-auto text-[15.5px] leading-relaxed" style={{ textWrap: "balance" }}>
+            Start free. Scale when you&apos;re ready. No surprises.
+          </p>
+        </motion.div>
+        <div className="grid md:grid-cols-3 gap-4 max-w-[960px] mx-auto">
+          {plans.map((plan, i) => (
+            <motion.div key={plan.name} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={VIEWPORT} transition={{ duration: 0.5, delay: i * 0.08, ease: EASE }}>
+              <div className={`relative h-full rounded-2xl border p-6 transition-all duration-300 hover:-translate-y-0.5 ${
+                plan.highlight
+                  ? "border-indigo-200 bg-gradient-to-b from-indigo-50/60 to-white shadow-[0_8px_40px_rgba(99,102,241,0.1)] hover:shadow-[0_12px_48px_rgba(99,102,241,0.15)]"
+                  : "border-neutral-200/80 bg-gradient-to-b from-white to-neutral-50/30 hover:border-neutral-300 hover:shadow-[0_8px_40px_rgba(0,0,0,0.06)]"
+              }`}>
+                {plan.highlight && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <span className="px-3 py-1 rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 text-white text-[11px] font-semibold shadow-sm">Most Popular</span>
+                  </div>
+                )}
+                <div className="mb-4">
+                  <h3 className="text-[16px] font-semibold text-neutral-900 mb-1">{plan.name}</h3>
+                  <p className="text-[12.5px] text-neutral-400">{plan.description}</p>
+                </div>
+                <div className="flex items-baseline gap-1 mb-6">
+                  <span className="text-[2.5rem] font-bold tracking-[-0.04em] text-neutral-900">{plan.price}</span>
+                  {plan.period && <span className="text-[14px] text-neutral-400">{plan.period}</span>}
+                </div>
+                <Link href="/dashboard">
+                  <Button className={`w-full rounded-xl h-10 text-[13px] font-medium transition-all ${
+                    plan.highlight
+                      ? "bg-neutral-900 text-white hover:bg-neutral-800 shadow-sm"
+                      : "bg-white text-neutral-700 border border-neutral-200 hover:bg-neutral-50 hover:border-neutral-300"
+                  }`}>
+                    {plan.cta} <ArrowRight className="ml-1.5 h-3 w-3" />
+                  </Button>
+                </Link>
+                <div className="mt-6 pt-5 border-t border-neutral-100 space-y-2.5">
+                  {plan.features.map((f) => (
+                    <div key={f} className="flex items-start gap-2.5">
+                      <CheckCircle2 className={`h-3.5 w-3.5 mt-0.5 flex-shrink-0 ${plan.highlight ? "text-indigo-500" : "text-neutral-300"}`} />
+                      <span className="text-[13px] text-neutral-600 leading-snug">{f}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ============================================================================
 // FOOTER
 // ============================================================================
 function FooterSection() {
@@ -1181,9 +1309,9 @@ function FooterSection() {
             </div>
             {/* Newsletter */}
             <div className="flex items-center gap-2 max-w-[320px]">
-              <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-lg border border-neutral-200/80 bg-neutral-50/50 text-[13px] text-neutral-400">
+              <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-lg border border-neutral-200/80 bg-neutral-50/50 focus-within:border-indigo-300 focus-within:ring-2 focus-within:ring-indigo-100 transition-all">
                 <Activity className="h-3.5 w-3.5 text-neutral-300 flex-shrink-0" />
-                <span>your@email.com</span>
+                <input type="email" placeholder="your@email.com" className="flex-1 bg-transparent text-[13px] text-neutral-700 placeholder:text-neutral-400 outline-none" />
               </div>
               <button className="px-3.5 py-2 rounded-lg bg-neutral-900 text-white text-[12px] font-medium hover:bg-neutral-800 transition-colors shadow-sm">
                 Subscribe
@@ -1222,13 +1350,21 @@ function GradientDivider() {
 }
 
 function TrustBar() {
-  const orgs = ["Mayo Clinic", "Johns Hopkins", "Stanford Health", "Mass General", "Cleveland Clinic", "UCSF Health"];
+  const orgs = [
+    { name: "HCA Healthcare", detail: "185+ hospitals" },
+    { name: "Commure", detail: "AI infrastructure" },
+    { name: "UCF Health", detail: "Academic medicine" },
+    { name: "Augmedix + Google", detail: "Ambient AI" },
+  ];
   return (
     <div className="py-10 md:py-12">
-      <p className="text-[11px] font-semibold tracking-[0.12em] uppercase text-neutral-400 mb-6 text-center">Trusted by leading health systems</p>
-      <div className="flex items-center justify-center gap-8 md:gap-12 flex-wrap px-6">
+      <p className="text-[11px] font-semibold tracking-[0.12em] uppercase text-neutral-400 mb-6 text-center">Built by teams from</p>
+      <div className="flex items-center justify-center gap-6 md:gap-10 flex-wrap px-6">
         {orgs.map((org) => (
-          <span key={org} className="text-[14px] font-semibold tracking-[-0.01em] text-neutral-300 hover:text-neutral-500 transition-colors cursor-default">{org}</span>
+          <div key={org.name} className="flex flex-col items-center gap-0.5 group cursor-default">
+            <span className="text-[14px] font-semibold tracking-[-0.01em] text-neutral-400 group-hover:text-neutral-700 transition-colors">{org.name}</span>
+            <span className="text-[10px] text-neutral-300 group-hover:text-neutral-400 transition-colors">{org.detail}</span>
+          </div>
         ))}
       </div>
     </div>
@@ -1246,6 +1382,8 @@ export default function Home() {
       <GradientDivider />
       <StatsSection />
       <GradientDivider />
+      <ProblemSection />
+      <GradientDivider />
       <CoreEngines />
       <KnowledgeGraphViz />
       <GradientDivider />
@@ -1260,6 +1398,8 @@ export default function Home() {
       <GradientDivider />
       <FounderSection />
       <CTASection />
+      <GradientDivider />
+      <PricingSection />
       <FooterSection />
     </div>
   );
