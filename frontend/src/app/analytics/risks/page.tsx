@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -29,19 +28,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   AlertTriangle,
   Activity,
   TrendingUp,
-  TrendingDown,
   Users,
-  Heart,
   Stethoscope,
   RefreshCw,
   Download,
   Search,
-  Filter,
   ChevronRight,
   AlertCircle,
   ArrowUpRight,
@@ -50,30 +45,31 @@ import {
   Clock,
   Gauge,
   Brain,
+  Loader2,
 } from "lucide-react";
 
 // ============================================================================
 // Types
 // ============================================================================
 
+interface RiskScoreDetail {
+  score: number;
+  tier: string;
+  score_raw: number | null;
+}
+
 interface PatientRisk {
   patient_id: string;
   patient_name: string;
   age: number;
   department: string;
-  readmission_risk: RiskScore | null;
-  deterioration_risk: RiskScore | null;
-  mortality_risk: RiskScore | null;
+  readmission_risk: RiskScoreDetail | null;
+  deterioration_risk: RiskScoreDetail | null;
+  mortality_risk: RiskScoreDetail | null;
   overall_tier: string;
   overall_score: number;
-  trend: "improving" | "worsening" | "stable";
+  trend: "improving" | "worsening" | "stable" | null;
   last_updated: string;
-}
-
-interface RiskScore {
-  score: number;
-  tier: string;
-  score_raw: number | null;
 }
 
 interface RiskDistribution {
@@ -90,116 +86,22 @@ interface DepartmentSummary {
   high_count: number;
 }
 
-// ============================================================================
-// Mock Data
-// ============================================================================
+interface PopulationRiskData {
+  total_patients: number;
+  critical_count: number;
+  high_count: number;
+  medium_count: number;
+  low_count: number;
+  average_score: number;
+  worsening_count: number;
+  tier_distribution: RiskDistribution[];
+  department_summary: DepartmentSummary[];
+}
 
-const mockPatients: PatientRisk[] = [
-  {
-    patient_id: "P001",
-    patient_name: "John Smith",
-    age: 72,
-    department: "Cardiology",
-    readmission_risk: { score: 0.78, tier: "critical", score_raw: 15 },
-    deterioration_risk: { score: 0.45, tier: "medium", score_raw: 5 },
-    mortality_risk: { score: 0.35, tier: "medium", score_raw: 8 },
-    overall_tier: "critical",
-    overall_score: 0.78,
-    trend: "worsening",
-    last_updated: new Date(Date.now() - 30 * 60000).toISOString(),
-  },
-  {
-    patient_id: "P002",
-    patient_name: "Mary Johnson",
-    age: 65,
-    department: "Internal Medicine",
-    readmission_risk: { score: 0.62, tier: "high", score_raw: 12 },
-    deterioration_risk: { score: 0.55, tier: "high", score_raw: 7 },
-    mortality_risk: { score: 0.28, tier: "low", score_raw: 5 },
-    overall_tier: "high",
-    overall_score: 0.62,
-    trend: "stable",
-    last_updated: new Date(Date.now() - 45 * 60000).toISOString(),
-  },
-  {
-    patient_id: "P003",
-    patient_name: "Robert Williams",
-    age: 58,
-    department: "ICU",
-    readmission_risk: { score: 0.42, tier: "medium", score_raw: 8 },
-    deterioration_risk: { score: 0.72, tier: "critical", score_raw: 12 },
-    mortality_risk: { score: 0.68, tier: "high", score_raw: 14 },
-    overall_tier: "critical",
-    overall_score: 0.72,
-    trend: "worsening",
-    last_updated: new Date(Date.now() - 15 * 60000).toISOString(),
-  },
-  {
-    patient_id: "P004",
-    patient_name: "Patricia Brown",
-    age: 45,
-    department: "Surgery",
-    readmission_risk: { score: 0.25, tier: "low", score_raw: 5 },
-    deterioration_risk: { score: 0.18, tier: "low", score_raw: 2 },
-    mortality_risk: { score: 0.12, tier: "low", score_raw: 3 },
-    overall_tier: "low",
-    overall_score: 0.25,
-    trend: "improving",
-    last_updated: new Date(Date.now() - 120 * 60000).toISOString(),
-  },
-  {
-    patient_id: "P005",
-    patient_name: "James Davis",
-    age: 81,
-    department: "Geriatrics",
-    readmission_risk: { score: 0.85, tier: "critical", score_raw: 17 },
-    deterioration_risk: { score: 0.58, tier: "high", score_raw: 8 },
-    mortality_risk: { score: 0.72, tier: "critical", score_raw: 16 },
-    overall_tier: "critical",
-    overall_score: 0.85,
-    trend: "worsening",
-    last_updated: new Date(Date.now() - 60 * 60000).toISOString(),
-  },
-  {
-    patient_id: "P006",
-    patient_name: "Linda Miller",
-    age: 55,
-    department: "Oncology",
-    readmission_risk: { score: 0.52, tier: "high", score_raw: 10 },
-    deterioration_risk: { score: 0.38, tier: "medium", score_raw: 4 },
-    mortality_risk: { score: 0.45, tier: "medium", score_raw: 9 },
-    overall_tier: "high",
-    overall_score: 0.52,
-    trend: "stable",
-    last_updated: new Date(Date.now() - 90 * 60000).toISOString(),
-  },
-  {
-    patient_id: "P007",
-    patient_name: "Michael Wilson",
-    age: 68,
-    department: "Cardiology",
-    readmission_risk: { score: 0.35, tier: "medium", score_raw: 7 },
-    deterioration_risk: { score: 0.22, tier: "low", score_raw: 3 },
-    mortality_risk: { score: 0.18, tier: "low", score_raw: 4 },
-    overall_tier: "medium",
-    overall_score: 0.35,
-    trend: "improving",
-    last_updated: new Date(Date.now() - 180 * 60000).toISOString(),
-  },
-  {
-    patient_id: "P008",
-    patient_name: "Barbara Taylor",
-    age: 74,
-    department: "Pulmonology",
-    readmission_risk: { score: 0.68, tier: "high", score_raw: 13 },
-    deterioration_risk: { score: 0.75, tier: "critical", score_raw: 11 },
-    mortality_risk: { score: 0.55, tier: "high", score_raw: 12 },
-    overall_tier: "critical",
-    overall_score: 0.75,
-    trend: "worsening",
-    last_updated: new Date(Date.now() - 25 * 60000).toISOString(),
-  },
-];
+interface RiskScoresResponse {
+  total: number;
+  patients: PatientRisk[];
+}
 
 // ============================================================================
 // Helper Functions
@@ -242,7 +144,7 @@ const getScoreColor = (score: number): string => {
   return "text-green-600 dark:text-green-400";
 };
 
-const getTrendIcon = (trend: string) => {
+const getTrendIcon = (trend: string | null) => {
   switch (trend) {
     case "worsening":
       return <ArrowUpRight className="h-4 w-4 text-red-500" />;
@@ -266,47 +168,11 @@ const formatRelativeTime = (dateString: string): string => {
   return date.toLocaleDateString();
 };
 
-const calculateDistribution = (patients: PatientRisk[]): RiskDistribution[] => {
-  const counts: Record<string, number> = {
-    critical: 0,
-    high: 0,
-    medium: 0,
-    low: 0,
-  };
-
-  patients.forEach((p) => {
-    counts[p.overall_tier] = (counts[p.overall_tier] || 0) + 1;
-  });
-
-  const total = patients.length;
-  return Object.entries(counts).map(([tier, count]) => ({
-    tier,
-    count,
-    percentage: total > 0 ? (count / total) * 100 : 0,
-  }));
-};
-
-const calculateDepartmentSummary = (patients: PatientRisk[]): DepartmentSummary[] => {
-  const byDept: Record<string, PatientRisk[]> = {};
-  patients.forEach((p) => {
-    if (!byDept[p.department]) byDept[p.department] = [];
-    byDept[p.department].push(p);
-  });
-
-  return Object.entries(byDept).map(([department, pts]) => ({
-    department,
-    patient_count: pts.length,
-    avg_risk_score: pts.reduce((sum, p) => sum + p.overall_score, 0) / pts.length,
-    critical_count: pts.filter((p) => p.overall_tier === "critical").length,
-    high_count: pts.filter((p) => p.overall_tier === "high").length,
-  }));
-};
-
 // ============================================================================
 // Sparkline Component
 // ============================================================================
 
-function RiskSparkline({ data, trend }: { data: number[]; trend: string }) {
+function RiskSparkline({ data, trend }: { data: number[]; trend: string | null }) {
   const height = 24;
   const width = 60;
   const min = Math.min(...data);
@@ -388,18 +254,69 @@ function MiniScoreGauge({ score, size = 40 }: { score: number; size?: number }) 
 // ============================================================================
 
 export default function RiskDashboardPage() {
-  const [patients, setPatients] = useState<PatientRisk[]>(mockPatients);
-  const [isLoading, setIsLoading] = useState(false);
+  // Data states
+  const [patients, setPatients] = useState<PatientRisk[]>([]);
+  const [populationData, setPopulationData] = useState<PopulationRiskData | null>(null);
+
+  // Loading / error states
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Filter / sort states
   const [searchQuery, setSearchQuery] = useState("");
   const [tierFilter, setTierFilter] = useState<string>("all");
   const [departmentFilter, setDepartmentFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("overall_score");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
+  // -------------------------------------------------------------------
+  // Fetch data from backend
+  // -------------------------------------------------------------------
+  const fetchData = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const [riskScoresRes, populationRes] = await Promise.all([
+        fetch("/api/predictions/risk-scores?limit=500"),
+        fetch("/api/predictions/population-risk"),
+      ]);
+
+      if (!riskScoresRes.ok) {
+        throw new Error(
+          `Failed to fetch risk scores: ${riskScoresRes.status} ${riskScoresRes.statusText}`
+        );
+      }
+      if (!populationRes.ok) {
+        throw new Error(
+          `Failed to fetch population risk: ${populationRes.status} ${populationRes.statusText}`
+        );
+      }
+
+      const riskScoresJson: RiskScoresResponse = await riskScoresRes.json();
+      const populationJson: PopulationRiskData = await populationRes.json();
+
+      setPatients(riskScoresJson.patients);
+      setPopulationData(populationJson);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "An unknown error occurred";
+      setError(message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // -------------------------------------------------------------------
   // Derived data
+  // -------------------------------------------------------------------
   const departments = ["all", ...new Set(patients.map((p) => p.department))];
-  const distribution = calculateDistribution(patients);
-  const departmentSummary = calculateDepartmentSummary(patients);
+
+  const distribution: RiskDistribution[] = populationData?.tier_distribution ?? [];
+  const departmentSummary: DepartmentSummary[] = populationData?.department_summary ?? [];
 
   // Filter and sort patients
   const filteredPatients = patients
@@ -433,18 +350,15 @@ export default function RiskDashboardPage() {
       return sortOrder === "desc" ? -comparison : comparison;
     });
 
-  // Summary stats
-  const totalPatients = patients.length;
-  const criticalCount = patients.filter((p) => p.overall_tier === "critical").length;
-  const highCount = patients.filter((p) => p.overall_tier === "high").length;
-  const avgScore = patients.reduce((sum, p) => sum + p.overall_score, 0) / totalPatients;
-  const worseningCount = patients.filter((p) => p.trend === "worsening").length;
+  // Summary stats from population data or derived from patients list
+  const totalPatients = populationData?.total_patients ?? patients.length;
+  const criticalCount = populationData?.critical_count ?? patients.filter((p) => p.overall_tier === "critical").length;
+  const highCount = populationData?.high_count ?? patients.filter((p) => p.overall_tier === "high").length;
+  const avgScore = populationData?.average_score ?? (patients.length > 0 ? patients.reduce((sum, p) => sum + p.overall_score, 0) / patients.length : 0);
+  const worseningCount = populationData?.worsening_count ?? patients.filter((p) => p.trend === "worsening").length;
 
   const handleRefresh = async () => {
-    setIsLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsLoading(false);
+    await fetchData();
   };
 
   const handleExport = () => {
@@ -472,6 +386,35 @@ export default function RiskDashboardPage() {
     a.click();
     URL.revokeObjectURL(url);
   };
+
+  // -------------------------------------------------------------------
+  // Loading state
+  // -------------------------------------------------------------------
+  if (isLoading && patients.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <p className="text-muted-foreground">Loading risk dashboard...</p>
+      </div>
+    );
+  }
+
+  // -------------------------------------------------------------------
+  // Error state
+  // -------------------------------------------------------------------
+  if (error && patients.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <AlertCircle className="h-12 w-12 text-red-500" />
+        <p className="text-lg font-medium">Failed to load risk data</p>
+        <p className="text-sm text-muted-foreground max-w-md text-center">{error}</p>
+        <Button variant="outline" onClick={handleRefresh}>
+          <RefreshCw className="mr-2 h-4 w-4" />
+          Retry
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -505,6 +448,14 @@ export default function RiskDashboardPage() {
           </Link>
         </div>
       </div>
+
+      {/* Inline error banner (when we have stale data but refresh failed) */}
+      {error && patients.length > 0 && (
+        <div className="flex items-center gap-2 p-3 rounded-lg border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950 text-red-700 dark:text-red-300 text-sm">
+          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+          <span>Failed to refresh data: {error}. Showing last loaded data.</span>
+        </div>
+      )}
 
       {/* Summary Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
@@ -586,35 +537,39 @@ export default function RiskDashboardPage() {
             <CardDescription>Patient count by risk tier</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {distribution.map((d) => (
-                <div key={d.tier} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Badge className={getTierColor(d.tier)}>{d.tier}</Badge>
-                      <span className="text-sm text-muted-foreground">
-                        {d.count} patients
+            {distribution.length > 0 ? (
+              <div className="space-y-4">
+                {distribution.map((d) => (
+                  <div key={d.tier} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Badge className={getTierColor(d.tier)}>{d.tier}</Badge>
+                        <span className="text-sm text-muted-foreground">
+                          {d.count} patients
+                        </span>
+                      </div>
+                      <span className="text-sm font-medium">
+                        {d.percentage.toFixed(1)}%
                       </span>
                     </div>
-                    <span className="text-sm font-medium">
-                      {d.percentage.toFixed(1)}%
-                    </span>
+                    <Progress
+                      value={d.percentage}
+                      className={`h-2 ${
+                        d.tier === "critical"
+                          ? "[&>div]:bg-red-600"
+                          : d.tier === "high"
+                          ? "[&>div]:bg-red-500"
+                          : d.tier === "medium"
+                          ? "[&>div]:bg-amber-500"
+                          : "[&>div]:bg-green-500"
+                      }`}
+                    />
                   </div>
-                  <Progress
-                    value={d.percentage}
-                    className={`h-2 ${
-                      d.tier === "critical"
-                        ? "[&>div]:bg-red-600"
-                        : d.tier === "high"
-                        ? "[&>div]:bg-red-500"
-                        : d.tier === "medium"
-                        ? "[&>div]:bg-amber-500"
-                        : "[&>div]:bg-green-500"
-                    }`}
-                  />
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No distribution data available</p>
+            )}
           </CardContent>
         </Card>
 
@@ -628,43 +583,47 @@ export default function RiskDashboardPage() {
             <CardDescription>Risk summary by department</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {departmentSummary.map((dept) => (
-                <div
-                  key={dept.department}
-                  className="flex items-center justify-between p-3 rounded-lg border"
-                >
-                  <div>
-                    <div className="font-medium">{dept.department}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {dept.patient_count} patients
+            {departmentSummary.length > 0 ? (
+              <div className="space-y-4">
+                {departmentSummary.map((dept) => (
+                  <div
+                    key={dept.department}
+                    className="flex items-center justify-between p-3 rounded-lg border"
+                  >
+                    <div>
+                      <div className="font-medium">{dept.department}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {dept.patient_count} patients
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <div className={`text-sm font-bold ${getScoreColor(dept.avg_risk_score)}`}>
+                          {(dept.avg_risk_score * 100).toFixed(0)}%
+                        </div>
+                        <div className="text-xs text-muted-foreground">avg risk</div>
+                      </div>
+                      {(dept.critical_count > 0 || dept.high_count > 0) && (
+                        <div className="flex gap-1">
+                          {dept.critical_count > 0 && (
+                            <Badge className="bg-red-600 text-white text-xs">
+                              {dept.critical_count}
+                            </Badge>
+                          )}
+                          {dept.high_count > 0 && (
+                            <Badge className="bg-red-500 text-white text-xs">
+                              {dept.high_count}
+                            </Badge>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <div className={`text-sm font-bold ${getScoreColor(dept.avg_risk_score)}`}>
-                        {(dept.avg_risk_score * 100).toFixed(0)}%
-                      </div>
-                      <div className="text-xs text-muted-foreground">avg risk</div>
-                    </div>
-                    {(dept.critical_count > 0 || dept.high_count > 0) && (
-                      <div className="flex gap-1">
-                        {dept.critical_count > 0 && (
-                          <Badge className="bg-red-600 text-white text-xs">
-                            {dept.critical_count}
-                          </Badge>
-                        )}
-                        {dept.high_count > 0 && (
-                          <Badge className="bg-red-500 text-white text-xs">
-                            {dept.high_count}
-                          </Badge>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No department data available</p>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -804,11 +763,15 @@ export default function RiskDashboardPage() {
             </TableBody>
           </Table>
 
-          {filteredPatients.length === 0 && (
+          {filteredPatients.length === 0 && !isLoading && (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <Users className="h-12 w-12 mb-4" />
               <p className="text-lg font-medium">No patients found</p>
-              <p className="text-sm">Try adjusting your search or filters</p>
+              <p className="text-sm">
+                {patients.length === 0
+                  ? "No risk assessments have been recorded yet. Run predictions via the API to populate data."
+                  : "Try adjusting your search or filters"}
+              </p>
             </div>
           )}
         </CardContent>

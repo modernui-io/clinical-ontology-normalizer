@@ -1271,6 +1271,29 @@ class TestMetrics:
         expected_rate = round((completed / max(1, len(actions))) * 100, 1)
         assert metrics.corrective_action_completion_rate == expected_rate
 
+    @pytest.mark.anyio
+    async def test_metrics_with_trial_id_filter(self, client: AsyncClient):
+        resp = await client.get(f"{API_PREFIX}/metrics", params={"trial_id": EYLEA_TRIAL})
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["total_proficiency_tests"] > 0
+        assert data["total_proficiency_tests"] < 12
+
+    @pytest.mark.anyio
+    async def test_metrics_with_nonexistent_trial_id(self, client: AsyncClient):
+        resp = await client.get(f"{API_PREFIX}/metrics", params={"trial_id": "nonexistent"})
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["total_proficiency_tests"] == 0
+        assert data["total_comparisons"] == 0
+        assert data["total_accreditations"] == 0
+        assert data["total_corrective_actions"] == 0
+
+    def test_service_metrics_with_trial_id(self, svc: LabProficiencyService):
+        metrics = svc.get_metrics(trial_id=EYLEA_TRIAL)
+        all_tests = svc.list_proficiency_tests(trial_id=EYLEA_TRIAL)
+        assert metrics.total_proficiency_tests == len(all_tests)
+
     def test_service_metrics_after_create(self, svc: LabProficiencyService):
         """Metrics should update after creating a new proficiency test."""
         from app.schemas.lab_proficiency import ProficiencyTestCreate, TestCategory

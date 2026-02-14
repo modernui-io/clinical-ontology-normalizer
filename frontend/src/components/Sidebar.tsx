@@ -6,6 +6,11 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
   LayoutDashboard,
   FileText,
   Users,
@@ -15,6 +20,7 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Menu,
   X,
   Activity,
@@ -38,18 +44,35 @@ import {
   Database,
   Workflow,
   Gauge,
+  Pill,
+  FileCheck,
+  Shuffle,
+  FlaskConical,
+  FileSpreadsheet,
+  Syringe,
+  Scale,
+  Package,
+  Microscope,
+  Building2,
+  Lock,
 } from "lucide-react";
 
 interface NavItem {
   title: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
-  children?: { title: string; href: string }[];
+}
+
+interface NavSubGroup {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  items: NavItem[];
 }
 
 interface NavSection {
   title: string;
-  items: NavItem[];
+  items?: NavItem[];
+  subGroups?: NavSubGroup[];
 }
 
 const navSections: NavSection[] = [
@@ -80,15 +103,71 @@ const navSections: NavSection[] = [
   },
   {
     title: "Clinical Trials",
-    items: [
-      { title: "Trials", href: "/trials", icon: ClipboardList },
-      { title: "Sites", href: "/sites", icon: Server },
-      { title: "Bulk Screening", href: "/trials/bulk-screen", icon: Shield },
-      { title: "ROI Dashboard", href: "/roi-dashboard", icon: BarChart3 },
-      { title: "Dual Enrollment", href: "/trials/dual-enrollment", icon: GitBranch },
-      { title: "HIE Integration", href: "/metriport", icon: Network },
-      { title: "Medidata Rave", href: "/integrations/medidata-rave", icon: Database },
-      { title: "Veeva Vault", href: "/integrations/veeva-vault", icon: Database },
+    subGroups: [
+      {
+        title: "Trial Operations",
+        icon: ClipboardList,
+        items: [
+          { title: "Trials", href: "/trials", icon: ClipboardList },
+          { title: "Sites", href: "/sites", icon: Server },
+          { title: "Screening", href: "/trials/bulk-screen", icon: Shield },
+          { title: "Enrollment", href: "/trials/dual-enrollment", icon: GitBranch },
+          { title: "ROI Dashboard", href: "/roi-dashboard", icon: BarChart3 },
+        ],
+      },
+      {
+        title: "Safety & PV",
+        icon: AlertTriangle,
+        items: [
+          { title: "Adverse Events", href: "/adverse-events", icon: AlertTriangle },
+          { title: "Drug Safety", href: "/clinical/drug-safety", icon: Pill },
+          { title: "Pharmacovigilance", href: "/pharmacovigilance", icon: Shield },
+        ],
+      },
+      {
+        title: "Regulatory",
+        icon: FileCheck,
+        items: [
+          { title: "Submissions", href: "/regulatory", icon: FileCheck },
+          { title: "eTMF", href: "/etmf", icon: FileText },
+          { title: "IRB / DSMB", href: "/irb", icon: Scale },
+        ],
+      },
+      {
+        title: "Randomization",
+        icon: Shuffle,
+        items: [
+          { title: "Schemes", href: "/randomization", icon: Shuffle },
+          { title: "Unblinding", href: "/unblinding", icon: Lock },
+        ],
+      },
+      {
+        title: "Data Management",
+        icon: FileSpreadsheet,
+        items: [
+          { title: "CRF Management", href: "/crf-management", icon: FileSpreadsheet },
+          { title: "EDC Forms", href: "/edc", icon: ClipboardList },
+          { title: "eConsent", href: "/econsent", icon: FileCheck },
+        ],
+      },
+      {
+        title: "Supply & Lab",
+        icon: FlaskConical,
+        items: [
+          { title: "Drug Accountability", href: "/drug-accountability", icon: Pill },
+          { title: "Lab Management", href: "/lab-management", icon: Microscope },
+          { title: "Specimens", href: "/specimens", icon: FlaskConical },
+        ],
+      },
+      {
+        title: "Integrations",
+        icon: Network,
+        items: [
+          { title: "Medidata Rave", href: "/integrations/medidata-rave", icon: Database },
+          { title: "Veeva Vault", href: "/integrations/veeva-vault", icon: Database },
+          { title: "HIE", href: "/metriport", icon: Network },
+        ],
+      },
     ],
   },
   {
@@ -151,6 +230,20 @@ export function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [openSubGroups, setOpenSubGroups] = useState<Record<string, boolean>>({});
+
+  // Auto-open the subgroup that contains the current path
+  useEffect(() => {
+    for (const section of navSections) {
+      if (section.subGroups) {
+        for (const group of section.subGroups) {
+          if (group.items.some((item) => pathname.startsWith(item.href))) {
+            setOpenSubGroups((prev) => ({ ...prev, [group.title]: true }));
+          }
+        }
+      }
+    }
+  }, [pathname]);
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -180,6 +273,35 @@ export function Sidebar({ className }: SidebarProps) {
     return pathname.startsWith(href);
   };
 
+  const toggleSubGroup = (title: string) => {
+    setOpenSubGroups((prev) => ({ ...prev, [title]: !prev[title] }));
+  };
+
+  const NavLink = ({ item }: { item: NavItem }) => {
+    const Icon = item.icon;
+    const active = isActive(item.href);
+    return (
+      <li role="listitem">
+        <Link
+          href={item.href}
+          className={cn(
+            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+            active
+              ? "bg-sidebar-accent text-sidebar-accent-foreground"
+              : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+            isCollapsed && "justify-center px-2"
+          )}
+          title={isCollapsed ? item.title : undefined}
+          aria-current={active ? "page" : undefined}
+          aria-label={isCollapsed ? item.title : undefined}
+        >
+          <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+          {!isCollapsed && <span>{item.title}</span>}
+        </Link>
+      </li>
+    );
+  };
+
   const SidebarContent = () => (
     <div className="flex h-full flex-col">
       {/* Logo/Brand */}
@@ -203,11 +325,11 @@ export function Sidebar({ className }: SidebarProps) {
 
       {/* Navigation */}
       <nav
-        className="flex-1 overflow-y-auto p-4"
+        className="flex-1 overflow-y-auto p-3"
         role="navigation"
         aria-label="Main navigation"
       >
-        <div className="space-y-6">
+        <div className="space-y-5">
           {navSections.map((section) => {
             const sectionId = `nav-section-${section.title.toLowerCase().replace(/\s+/g, "-")}`;
             return (
@@ -215,37 +337,78 @@ export function Sidebar({ className }: SidebarProps) {
                 {!isCollapsed && (
                   <h3
                     id={sectionId}
-                    className="mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                    className="mb-1.5 px-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground"
                   >
                     {section.title}
                   </h3>
                 )}
-                <ul className="space-y-1" role="list">
-                  {section.items.map((item) => {
-                    const Icon = item.icon;
-                    const active = isActive(item.href);
-                    return (
-                      <li key={item.href} role="listitem">
-                        <Link
-                          href={item.href}
-                          className={cn(
-                            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-                            active
-                              ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                              : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                            isCollapsed && "justify-center px-2"
-                          )}
-                          title={isCollapsed ? item.title : undefined}
-                          aria-current={active ? "page" : undefined}
-                          aria-label={isCollapsed ? item.title : undefined}
+
+                {/* Regular items */}
+                {section.items && (
+                  <ul className="space-y-0.5" role="list">
+                    {section.items.map((item) => (
+                      <NavLink key={item.href} item={item} />
+                    ))}
+                  </ul>
+                )}
+
+                {/* Collapsible sub-groups */}
+                {section.subGroups && !isCollapsed && (
+                  <div className="space-y-0.5">
+                    {section.subGroups.map((group) => {
+                      const GroupIcon = group.icon;
+                      const isOpen = openSubGroups[group.title] ?? false;
+                      const hasActiveChild = group.items.some((item) =>
+                        isActive(item.href)
+                      );
+                      return (
+                        <Collapsible
+                          key={group.title}
+                          open={isOpen}
+                          onOpenChange={() => toggleSubGroup(group.title)}
                         >
-                          <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
-                          {!isCollapsed && <span>{item.title}</span>}
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
+                          <CollapsibleTrigger asChild>
+                            <button
+                              className={cn(
+                                "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                                hasActiveChild
+                                  ? "text-sidebar-accent-foreground"
+                                  : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                              )}
+                            >
+                              <GroupIcon className="h-4 w-4 shrink-0" />
+                              <span className="flex-1 text-left">{group.title}</span>
+                              <ChevronDown
+                                className={cn(
+                                  "h-3.5 w-3.5 shrink-0 transition-transform duration-200",
+                                  isOpen && "rotate-180"
+                                )}
+                              />
+                            </button>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent>
+                            <ul className="ml-4 mt-0.5 space-y-0.5 border-l border-border pl-2" role="list">
+                              {group.items.map((item) => (
+                                <NavLink key={item.href} item={item} />
+                              ))}
+                            </ul>
+                          </CollapsibleContent>
+                        </Collapsible>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Collapsed mode: show sub-group items as flat icons */}
+                {section.subGroups && isCollapsed && (
+                  <ul className="space-y-0.5" role="list">
+                    {section.subGroups.flatMap((group) =>
+                      group.items.slice(0, 1).map((item) => (
+                        <NavLink key={item.href} item={item} />
+                      ))
+                    )}
+                  </ul>
+                )}
               </div>
             );
           })}
@@ -322,7 +485,7 @@ export function Sidebar({ className }: SidebarProps) {
       <aside
         className={cn(
           "hidden h-screen border-r bg-sidebar transition-all duration-200 lg:fixed lg:inset-y-0 lg:left-0 lg:z-30 lg:flex lg:flex-col",
-          isCollapsed ? "lg:w-16" : "lg:w-64",
+          isCollapsed ? "lg:w-16" : "lg:w-60",
           className
         )}
         aria-label="Desktop navigation"
@@ -334,7 +497,7 @@ export function Sidebar({ className }: SidebarProps) {
       <div
         className={cn(
           "hidden lg:block",
-          isCollapsed ? "lg:w-16" : "lg:w-64"
+          isCollapsed ? "lg:w-16" : "lg:w-60"
         )}
         aria-hidden="true"
       />

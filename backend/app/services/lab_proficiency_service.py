@@ -1377,13 +1377,20 @@ class LabProficiencyService:
     # Metrics
     # ------------------------------------------------------------------
 
-    def get_metrics(self) -> LabProficiencyMetrics:
+    def get_metrics(self, trial_id: str | None = None) -> LabProficiencyMetrics:
         """Compute aggregated lab proficiency metrics."""
         with self._lock:
             tests = list(self._proficiency_tests.values())
             comparisons = list(self._lab_comparisons.values())
             accreditations = list(self._accreditation_records.values())
             actions = list(self._corrective_actions.values())
+
+        # Filter by trial_id if provided
+        if trial_id is not None:
+            tests = [t for t in tests if t.trial_id == trial_id]
+            comparisons = [c for c in comparisons if c.trial_id == trial_id]
+            accreditations = [a for a in accreditations if a.trial_id == trial_id]
+            actions = [a for a in actions if a.trial_id == trial_id]
 
         # Tests by category
         tests_by_category: dict[str, int] = {}

@@ -37,6 +37,7 @@ import {
   Clock,
   ExternalLink,
   History,
+  CalendarClock,
 } from "lucide-react";
 
 interface VocabularySummary {
@@ -49,6 +50,8 @@ interface VocabularySummary {
   status_breakdown: Record<string, number>;
   update_frequency: string | null;
   release_url: string | null;
+  source: string | null;
+  next_release_date: string | null;
 }
 
 interface VocabulariesResponse {
@@ -66,6 +69,20 @@ interface VersionHistoryEntry {
   status: string;
   status_changed_at: string | null;
   previous_concept_id: number | null;
+}
+
+function formatNextRelease(dateStr: string | null): { label: string; urgent: boolean } {
+  if (!dateStr) return { label: "—", urgent: false };
+  const now = new Date();
+  const target = new Date(dateStr + "T00:00:00");
+  const diffMs = target.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  if (diffDays < 0) return { label: "Overdue", urgent: true };
+  if (diffDays === 0) return { label: "Today", urgent: true };
+  if (diffDays <= 7) return { label: `${diffDays}d`, urgent: true };
+  if (diffDays <= 30) return { label: `${diffDays}d`, urgent: false };
+  const months = Math.round(diffDays / 30);
+  return { label: months <= 1 ? "~1 mo" : `~${months} mo`, urgent: false };
 }
 
 function StatusBadge({ status }: { status: string }) {
@@ -317,7 +334,8 @@ export default function VocabulariesPage() {
                       <TableHead>Latest Version</TableHead>
                       <TableHead className="text-right">Concepts</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Frequency</TableHead>
+                      <TableHead>Schedule</TableHead>
+                      <TableHead>Next Update</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -357,8 +375,32 @@ export default function VocabulariesPage() {
                             </Badge>
                           )}
                         </TableCell>
-                        <TableCell className="text-xs text-muted-foreground capitalize">
-                          {vocab.update_frequency || "—"}
+                        <TableCell>
+                          <div className="text-xs capitalize">
+                            {vocab.update_frequency || "—"}
+                          </div>
+                          {vocab.source && (
+                            <div className="text-xs text-muted-foreground">
+                              {vocab.source}
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {(() => {
+                            const nr = formatNextRelease(vocab.next_release_date);
+                            return (
+                              <div className="flex items-center gap-1.5">
+                                <CalendarClock
+                                  className={`h-3.5 w-3.5 ${nr.urgent ? "text-amber-500" : "text-muted-foreground"}`}
+                                />
+                                <span
+                                  className={`text-xs ${nr.urgent ? "font-medium text-amber-700" : "text-muted-foreground"}`}
+                                >
+                                  {nr.label}
+                                </span>
+                              </div>
+                            );
+                          })()}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex gap-1 justify-end">
@@ -386,7 +428,7 @@ export default function VocabulariesPage() {
                     {data.vocabularies.length === 0 && (
                       <TableRow>
                         <TableCell
-                          colSpan={7}
+                          colSpan={8}
                           className="text-center py-8 text-muted-foreground"
                         >
                           No vocabularies found in the database

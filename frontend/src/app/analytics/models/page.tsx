@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Activity,
   AlertTriangle,
@@ -17,6 +17,7 @@ import {
   Filter,
   GitBranch,
   Layers,
+  Loader2,
   MoreVertical,
   Play,
   RefreshCw,
@@ -44,7 +45,10 @@ import {
   ReferenceLine,
 } from "recharts";
 
-// Types
+// ---------------------------------------------------------------------------
+// Types - frontend display types
+// ---------------------------------------------------------------------------
+
 interface ModelVersion {
   version: string;
   createdAt: string;
@@ -64,7 +68,7 @@ interface ModelVersion {
 interface Model {
   id: string;
   name: string;
-  type: "readmission" | "deterioration" | "mortality" | "custom";
+  type: string;
   description: string;
   currentVersion: string;
   versions: ModelVersion[];
@@ -74,6 +78,9 @@ interface Model {
   driftScore: number;
   predictionsLast24h: number;
   avgLatencyMs: number;
+  riskTier: string;
+  owner: string;
+  governanceStatus: string;
 }
 
 interface DriftDataPoint {
@@ -104,135 +111,157 @@ interface TrainingRun {
   } | null;
 }
 
-// Mock Data
-const mockModels: Model[] = [
-  {
-    id: "readmission-risk-v1",
-    name: "30-Day Readmission Risk",
-    type: "readmission",
-    description: "Predicts probability of hospital readmission within 30 days using LACE+ methodology",
-    currentVersion: "2.3.1",
-    versions: [
-      {
-        version: "2.3.1",
-        createdAt: "2026-01-15",
-        status: "active",
-        metrics: { aucRoc: 0.847, aucPr: 0.723, precision: 0.78, recall: 0.72, f1Score: 0.749, brierScore: 0.112 },
-        trainingSize: 125000,
-        features: 48,
-      },
-      {
-        version: "2.3.0",
-        createdAt: "2026-01-01",
-        status: "archived",
-        metrics: { aucRoc: 0.841, aucPr: 0.715, precision: 0.76, recall: 0.71, f1Score: 0.734, brierScore: 0.118 },
-        trainingSize: 120000,
-        features: 45,
-      },
-      {
-        version: "2.2.0",
-        createdAt: "2025-12-15",
-        status: "archived",
-        metrics: { aucRoc: 0.832, aucPr: 0.698, precision: 0.74, recall: 0.69, f1Score: 0.714, brierScore: 0.125 },
-        trainingSize: 115000,
-        features: 42,
-      },
-    ],
-    lastTrained: "2026-01-15T08:30:00Z",
-    nextScheduledTraining: "2026-02-01T00:00:00Z",
-    status: "healthy",
-    driftScore: 0.023,
-    predictionsLast24h: 1847,
-    avgLatencyMs: 12,
-  },
-  {
-    id: "deterioration-risk-v1",
-    name: "Clinical Deterioration",
-    type: "deterioration",
-    description: "Predicts risk of clinical deterioration using NEWS2 and vital signs patterns",
-    currentVersion: "1.8.2",
-    versions: [
-      {
-        version: "1.8.2",
-        createdAt: "2026-01-10",
-        status: "active",
-        metrics: { aucRoc: 0.912, aucPr: 0.856, precision: 0.85, recall: 0.88, f1Score: 0.865, brierScore: 0.078 },
-        trainingSize: 89000,
-        features: 36,
-      },
-      {
-        version: "1.8.1",
-        createdAt: "2025-12-28",
-        status: "archived",
-        metrics: { aucRoc: 0.908, aucPr: 0.848, precision: 0.84, recall: 0.86, f1Score: 0.85, brierScore: 0.082 },
-        trainingSize: 85000,
-        features: 35,
-      },
-    ],
-    lastTrained: "2026-01-10T14:15:00Z",
-    nextScheduledTraining: "2026-01-25T00:00:00Z",
-    status: "healthy",
-    driftScore: 0.018,
-    predictionsLast24h: 3254,
-    avgLatencyMs: 8,
-  },
-  {
-    id: "mortality-risk-v1",
-    name: "In-Hospital Mortality",
-    type: "mortality",
-    description: "Predicts in-hospital mortality risk using Charlson/Elixhauser indices",
-    currentVersion: "3.1.0",
-    versions: [
-      {
-        version: "3.1.0",
-        createdAt: "2026-01-05",
-        status: "active",
-        metrics: { aucRoc: 0.891, aucPr: 0.812, precision: 0.82, recall: 0.79, f1Score: 0.805, brierScore: 0.095 },
-        trainingSize: 156000,
-        features: 62,
-      },
-    ],
-    lastTrained: "2026-01-05T22:00:00Z",
-    nextScheduledTraining: "2026-02-05T00:00:00Z",
-    status: "degraded",
-    driftScore: 0.067,
-    predictionsLast24h: 892,
-    avgLatencyMs: 18,
-  },
-  {
-    id: "sepsis-risk-v1",
-    name: "Sepsis Early Warning",
-    type: "custom",
-    description: "Early detection of sepsis using qSOFA criteria and lab trends",
-    currentVersion: "1.2.0",
-    versions: [
-      {
-        version: "1.2.0",
-        createdAt: "2026-01-12",
-        status: "training",
-        metrics: { aucRoc: 0, aucPr: 0, precision: 0, recall: 0, f1Score: 0, brierScore: 0 },
-        trainingSize: 0,
-        features: 28,
-      },
-      {
-        version: "1.1.0",
-        createdAt: "2025-12-20",
-        status: "active",
-        metrics: { aucRoc: 0.878, aucPr: 0.795, precision: 0.81, recall: 0.76, f1Score: 0.784, brierScore: 0.105 },
-        trainingSize: 45000,
-        features: 25,
-      },
-    ],
-    lastTrained: "2025-12-20T16:45:00Z",
-    nextScheduledTraining: null,
-    status: "training",
-    driftScore: 0.041,
-    predictionsLast24h: 567,
-    avgLatencyMs: 15,
-  },
-];
+// ---------------------------------------------------------------------------
+// Types - backend API response shapes
+// ---------------------------------------------------------------------------
 
-const mockDriftData: DriftDataPoint[] = [
+interface GovernedModelAPI {
+  id: string;
+  name: string;
+  version: string;
+  description: string;
+  model_type: string;
+  risk_tier: string;
+  status: string;
+  owner: string;
+  team: string;
+  training_data_hash: string;
+  performance_metrics: Record<string, unknown>;
+  fairness_metrics: Record<string, unknown>;
+  validation_date: string | null;
+  approved_by: string | null;
+  approval_date: string | null;
+  deployment_date: string | null;
+  monitoring_config: Record<string, unknown>;
+  review_frequency_days: number;
+  next_review_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface GovernedModelListResponseAPI {
+  total: number;
+  models: GovernedModelAPI[];
+}
+
+interface ModelGovernanceMetricsAPI {
+  total_models: number;
+  by_tier: Record<string, number>;
+  by_status: Record<string, number>;
+  pending_approvals: number;
+  overdue_reviews: number;
+  active_alerts: number;
+  avg_time_to_approval_days: number;
+  models_in_production: number;
+  deprecated_count: number;
+}
+
+interface MonitoringAlertAPI {
+  id: string;
+  model_id: string;
+  alert_type: string;
+  severity: string;
+  message: string;
+  detected_at: string;
+  acknowledged: boolean;
+  resolved_at: string | null;
+}
+
+interface AlertListResponseAPI {
+  total: number;
+  alerts: MonitoringAlertAPI[];
+}
+
+interface ModelHistoryResponseAPI {
+  model_id: string;
+  model_name: string;
+  validations: unknown[];
+  alerts: MonitoringAlertAPI[];
+  approval_requests: unknown[];
+}
+
+// ---------------------------------------------------------------------------
+// Backend -> Frontend mapping helpers
+// ---------------------------------------------------------------------------
+
+/** Map backend governance status to the frontend display status. */
+function mapGovernanceStatusToDisplayStatus(
+  status: string,
+  activeAlerts: MonitoringAlertAPI[],
+): Model["status"] {
+  // If the model is still in development/validation, treat as training
+  if (status === "development" || status === "validation") return "training";
+  // If deprecated or retired, treat as critical
+  if (status === "deprecated" || status === "retired") return "critical";
+
+  // For deployed/monitoring/approved models, check alert severity
+  const modelHasCriticalAlert = activeAlerts.some(
+    (a) => a.severity === "critical" || a.severity === "high",
+  );
+  const modelHasMediumAlert = activeAlerts.some(
+    (a) => a.severity === "medium",
+  );
+
+  if (modelHasCriticalAlert) return "critical";
+  if (modelHasMediumAlert) return "degraded";
+  return "healthy";
+}
+
+/** Extract a numeric metric from performance_metrics dict, with fallback. */
+function pm(metrics: Record<string, unknown>, key: string, fallback = 0): number {
+  const val = metrics[key];
+  return typeof val === "number" ? val : fallback;
+}
+
+/** Map a single backend GovernedModel to the frontend Model shape. */
+function mapGovernedModelToModel(
+  gm: GovernedModelAPI,
+  alerts: MonitoringAlertAPI[],
+): Model {
+  const modelAlerts = alerts.filter((a) => a.model_id === gm.id && !a.resolved_at);
+  const perf = gm.performance_metrics ?? {};
+
+  // Build a single version entry from the backend model's current state
+  const currentVersion: ModelVersion = {
+    version: gm.version,
+    createdAt: gm.created_at,
+    status: gm.status === "development" || gm.status === "validation" ? "training" : "active",
+    metrics: {
+      aucRoc: pm(perf, "auc_roc") || pm(perf, "aucRoc") || pm(perf, "auc"),
+      aucPr: pm(perf, "auc_pr") || pm(perf, "aucPr"),
+      precision: pm(perf, "precision"),
+      recall: pm(perf, "recall"),
+      f1Score: pm(perf, "f1_score") || pm(perf, "f1Score") || pm(perf, "f1"),
+      brierScore: pm(perf, "brier_score") || pm(perf, "brierScore"),
+    },
+    trainingSize: pm(perf, "training_size") || pm(perf, "trainingSize"),
+    features: pm(perf, "features") || pm(perf, "feature_count"),
+  };
+
+  return {
+    id: gm.id,
+    name: gm.name,
+    type: gm.model_type,
+    description: gm.description,
+    currentVersion: gm.version,
+    versions: [currentVersion],
+    lastTrained: gm.updated_at,
+    nextScheduledTraining: gm.next_review_date,
+    status: mapGovernanceStatusToDisplayStatus(gm.status, modelAlerts),
+    driftScore: pm(perf, "drift_score") || pm(perf, "driftScore"),
+    predictionsLast24h: pm(perf, "predictions_last_24h") || pm(perf, "predictionsLast24h"),
+    avgLatencyMs: pm(perf, "avg_latency_ms") || pm(perf, "avgLatencyMs"),
+    riskTier: gm.risk_tier,
+    owner: gm.owner,
+    governanceStatus: gm.status,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Static chart data (not available from backend governance endpoints)
+// ---------------------------------------------------------------------------
+
+const staticDriftData: DriftDataPoint[] = [
   { date: "Jan 1", psi: 0.012, threshold: 0.1 },
   { date: "Jan 3", psi: 0.015, threshold: 0.1 },
   { date: "Jan 5", psi: 0.018, threshold: 0.1 },
@@ -245,7 +274,7 @@ const mockDriftData: DriftDataPoint[] = [
   { date: "Jan 19", psi: 0.023, threshold: 0.1 },
 ];
 
-const mockPerformanceHistory: PerformanceHistory[] = [
+const staticPerformanceHistory: PerformanceHistory[] = [
   { date: "Dec 1", aucRoc: 0.832, precision: 0.74, recall: 0.69 },
   { date: "Dec 8", aucRoc: 0.835, precision: 0.75, recall: 0.70 },
   { date: "Dec 15", aucRoc: 0.841, precision: 0.76, recall: 0.71 },
@@ -256,63 +285,9 @@ const mockPerformanceHistory: PerformanceHistory[] = [
   { date: "Jan 19", aucRoc: 0.847, precision: 0.78, recall: 0.72 },
 ];
 
-const mockTrainingRuns: TrainingRun[] = [
-  {
-    id: "tr-001",
-    modelId: "readmission-risk-v1",
-    version: "2.3.1",
-    status: "completed",
-    startedAt: "2026-01-15T08:00:00Z",
-    completedAt: "2026-01-15T08:30:00Z",
-    duration: "30m",
-    triggeredBy: "scheduled",
-    metrics: { aucRoc: 0.847, aucPr: 0.723 },
-  },
-  {
-    id: "tr-002",
-    modelId: "sepsis-risk-v1",
-    version: "1.2.0",
-    status: "running",
-    startedAt: "2026-01-19T10:00:00Z",
-    completedAt: null,
-    duration: null,
-    triggeredBy: "manual",
-    metrics: null,
-  },
-  {
-    id: "tr-003",
-    modelId: "deterioration-risk-v1",
-    version: "1.8.2",
-    status: "completed",
-    startedAt: "2026-01-10T13:45:00Z",
-    completedAt: "2026-01-10T14:15:00Z",
-    duration: "30m",
-    triggeredBy: "drift_alert",
-    metrics: { aucRoc: 0.912, aucPr: 0.856 },
-  },
-  {
-    id: "tr-004",
-    modelId: "mortality-risk-v1",
-    version: "3.0.1",
-    status: "failed",
-    startedAt: "2026-01-03T22:00:00Z",
-    completedAt: "2026-01-03T22:45:00Z",
-    duration: "45m",
-    triggeredBy: "scheduled",
-    metrics: null,
-  },
-  {
-    id: "tr-005",
-    modelId: "readmission-risk-v1",
-    version: "2.4.0",
-    status: "queued",
-    startedAt: "2026-02-01T00:00:00Z",
-    completedAt: null,
-    duration: null,
-    triggeredBy: "scheduled",
-    metrics: null,
-  },
-];
+// Training runs are static placeholders - the backend model-governance API
+// does not expose a training-runs endpoint. Wire to a real endpoint when available.
+const staticTrainingRuns: TrainingRun[] = [];
 
 // Helper Components
 function StatusBadge({ status }: { status: Model["status"] }) {
@@ -476,15 +451,125 @@ function FeatureImportanceChart() {
 }
 
 export default function ModelsPage() {
-  const [selectedModel, setSelectedModel] = useState<Model | null>(mockModels[0]);
+  // -----------------------------------------------------------------------
+  // State: API data
+  // -----------------------------------------------------------------------
+  const [models, setModels] = useState<Model[]>([]);
+  const [metrics, setMetrics] = useState<ModelGovernanceMetricsAPI | null>(null);
+  const [alerts, setAlerts] = useState<MonitoringAlertAPI[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // -----------------------------------------------------------------------
+  // State: UI
+  // -----------------------------------------------------------------------
+  const [selectedModel, setSelectedModel] = useState<Model | null>(null);
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [activeTab, setActiveTab] = useState<"overview" | "performance" | "drift" | "training">("overview");
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const totalModels = mockModels.length;
-  const healthyModels = mockModels.filter((m) => m.status === "healthy").length;
-  const modelsWithDrift = mockModels.filter((m) => m.driftScore > 0.05).length;
-  const totalPredictions = mockModels.reduce((sum, m) => sum + m.predictionsLast24h, 0);
-  const avgLatency = mockModels.reduce((sum, m) => sum + m.avgLatencyMs, 0) / mockModels.length;
+  // -----------------------------------------------------------------------
+  // Data fetching
+  // -----------------------------------------------------------------------
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [modelsRes, metricsRes, alertsRes] = await Promise.all([
+        fetch("/api/model-governance/models"),
+        fetch("/api/model-governance/metrics"),
+        fetch("/api/model-governance/alerts"),
+      ]);
+
+      if (!modelsRes.ok) throw new Error(`Failed to fetch models: ${modelsRes.status} ${modelsRes.statusText}`);
+      if (!metricsRes.ok) throw new Error(`Failed to fetch metrics: ${metricsRes.status} ${metricsRes.statusText}`);
+      if (!alertsRes.ok) throw new Error(`Failed to fetch alerts: ${alertsRes.status} ${alertsRes.statusText}`);
+
+      const modelsData: GovernedModelListResponseAPI = await modelsRes.json();
+      const metricsData: ModelGovernanceMetricsAPI = await metricsRes.json();
+      const alertsData: AlertListResponseAPI = await alertsRes.json();
+
+      setAlerts(alertsData.alerts);
+      setMetrics(metricsData);
+
+      const mapped = modelsData.models.map((gm) => mapGovernedModelToModel(gm, alertsData.alerts));
+      setModels(mapped);
+
+      // Auto-select first model if nothing selected yet
+      if (mapped.length > 0) {
+        setSelectedModel((prev) => {
+          // Keep current selection if it still exists in the new data
+          if (prev && mapped.some((m) => m.id === prev.id)) {
+            return mapped.find((m) => m.id === prev.id) ?? mapped[0];
+          }
+          return mapped[0];
+        });
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An unexpected error occurred");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // -----------------------------------------------------------------------
+  // Derived summary stats (from live data or metrics endpoint)
+  // -----------------------------------------------------------------------
+  const totalModels = metrics?.total_models ?? models.length;
+  const healthyModels = models.filter((m) => m.status === "healthy").length;
+  const modelsWithDrift = models.filter((m) => m.driftScore > 0.05).length;
+  const totalPredictions = models.reduce((sum, m) => sum + m.predictionsLast24h, 0);
+  const avgLatency = models.length > 0 ? models.reduce((sum, m) => sum + m.avgLatencyMs, 0) / models.length : 0;
+
+  // Filtered model list for search
+  const filteredModels = searchQuery
+    ? models.filter(
+        (m) =>
+          m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          m.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          m.id.toLowerCase().includes(searchQuery.toLowerCase()),
+      )
+    : models;
+
+  // -----------------------------------------------------------------------
+  // Loading state
+  // -----------------------------------------------------------------------
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
+          <p className="text-sm text-gray-500">Loading model governance data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // -----------------------------------------------------------------------
+  // Error state
+  // -----------------------------------------------------------------------
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-white rounded-lg border border-red-200 p-8 max-w-md text-center">
+          <XCircle className="h-10 w-10 text-red-500 mx-auto mb-3" />
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">Failed to Load Models</h2>
+          <p className="text-sm text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={fetchData}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -502,6 +587,14 @@ export default function ModelsPage() {
             <h1 className="text-2xl font-bold text-gray-900">ML Model Management</h1>
           </div>
           <div className="flex items-center gap-3">
+            <button
+              onClick={fetchData}
+              className="flex items-center gap-2 px-3 py-2 text-sm border rounded-lg hover:bg-gray-50"
+              title="Refresh data"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Refresh
+            </button>
             <button className="flex items-center gap-2 px-3 py-2 text-sm border rounded-lg hover:bg-gray-50">
               <Upload className="h-4 w-4" />
               Import Model
@@ -534,8 +627,8 @@ export default function ModelsPage() {
                 <CheckCircle2 className="h-5 w-5 text-green-600" />
               </div>
               <div>
-                <div className="text-2xl font-semibold">{healthyModels}</div>
-                <div className="text-sm text-gray-500">Healthy</div>
+                <div className="text-2xl font-semibold">{metrics?.models_in_production ?? healthyModels}</div>
+                <div className="text-sm text-gray-500">In Production</div>
               </div>
             </div>
           </div>
@@ -545,8 +638,8 @@ export default function ModelsPage() {
                 <AlertTriangle className="h-5 w-5 text-yellow-600" />
               </div>
               <div>
-                <div className="text-2xl font-semibold">{modelsWithDrift}</div>
-                <div className="text-sm text-gray-500">Drift Detected</div>
+                <div className="text-2xl font-semibold">{metrics?.active_alerts ?? modelsWithDrift}</div>
+                <div className="text-sm text-gray-500">Active Alerts</div>
               </div>
             </div>
           </div>
@@ -556,8 +649,8 @@ export default function ModelsPage() {
                 <Activity className="h-5 w-5 text-purple-600" />
               </div>
               <div>
-                <div className="text-2xl font-semibold">{totalPredictions.toLocaleString()}</div>
-                <div className="text-sm text-gray-500">Predictions (24h)</div>
+                <div className="text-2xl font-semibold">{metrics?.pending_approvals ?? 0}</div>
+                <div className="text-sm text-gray-500">Pending Approvals</div>
               </div>
             </div>
           </div>
@@ -567,8 +660,8 @@ export default function ModelsPage() {
                 <Clock className="h-5 w-5 text-indigo-600" />
               </div>
               <div>
-                <div className="text-2xl font-semibold">{avgLatency.toFixed(0)}ms</div>
-                <div className="text-sm text-gray-500">Avg Latency</div>
+                <div className="text-2xl font-semibold">{metrics?.overdue_reviews ?? 0}</div>
+                <div className="text-sm text-gray-500">Overdue Reviews</div>
               </div>
             </div>
           </div>
@@ -590,43 +683,56 @@ export default function ModelsPage() {
               <input
                 type="text"
                 placeholder="Search models..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div className="divide-y max-h-[600px] overflow-y-auto">
-              {mockModels.map((model) => (
-                <button
-                  key={model.id}
-                  onClick={() => setSelectedModel(model)}
-                  className={`w-full p-4 text-left hover:bg-gray-50 transition-colors ${
-                    selectedModel?.id === model.id ? "bg-blue-50 border-l-2 border-l-blue-600" : ""
-                  }`}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <div className="font-medium text-gray-900">{model.name}</div>
-                      <div className="text-xs text-gray-500">v{model.currentVersion}</div>
+              {filteredModels.length === 0 ? (
+                <div className="p-8 text-center text-sm text-gray-500">
+                  {models.length === 0 ? "No models registered yet." : "No models match your search."}
+                </div>
+              ) : (
+                filteredModels.map((model) => (
+                  <button
+                    key={model.id}
+                    onClick={() => setSelectedModel(model)}
+                    className={`w-full p-4 text-left hover:bg-gray-50 transition-colors ${
+                      selectedModel?.id === model.id ? "bg-blue-50 border-l-2 border-l-blue-600" : ""
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <div className="font-medium text-gray-900">{model.name}</div>
+                        <div className="text-xs text-gray-500">v{model.currentVersion}</div>
+                      </div>
+                      <StatusBadge status={model.status} />
                     </div>
-                    <StatusBadge status={model.status} />
-                  </div>
-                  <div className="flex items-center gap-4 text-xs text-gray-500">
-                    <span className="flex items-center gap-1">
-                      <Target className="h-3 w-3" />
-                      AUC: {(model.versions[0].metrics.aucRoc * 100).toFixed(1)}%
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Activity className="h-3 w-3" />
-                      {model.predictionsLast24h.toLocaleString()}/day
-                    </span>
-                  </div>
-                  {model.driftScore > 0.05 && (
-                    <div className="mt-2 flex items-center gap-1 text-xs text-yellow-600">
-                      <AlertTriangle className="h-3 w-3" />
-                      Drift: {(model.driftScore * 100).toFixed(1)}%
+                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                      {model.versions[0]?.metrics.aucRoc > 0 && (
+                        <span className="flex items-center gap-1">
+                          <Target className="h-3 w-3" />
+                          AUC: {(model.versions[0].metrics.aucRoc * 100).toFixed(1)}%
+                        </span>
+                      )}
+                      {model.predictionsLast24h > 0 && (
+                        <span className="flex items-center gap-1">
+                          <Activity className="h-3 w-3" />
+                          {model.predictionsLast24h.toLocaleString()}/day
+                        </span>
+                      )}
+                      <span className="text-xs text-gray-400">{model.riskTier.replace(/_/g, " ")}</span>
                     </div>
-                  )}
-                </button>
-              ))}
+                    {model.driftScore > 0.05 && (
+                      <div className="mt-2 flex items-center gap-1 text-xs text-yellow-600">
+                        <AlertTriangle className="h-3 w-3" />
+                        Drift: {(model.driftScore * 100).toFixed(1)}%
+                      </div>
+                    )}
+                  </button>
+                ))
+              )}
             </div>
           </div>
 
@@ -807,7 +913,7 @@ export default function ModelsPage() {
                         <h3 className="font-medium mb-4">Performance Trend</h3>
                         <div className="h-64">
                           <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={mockPerformanceHistory}>
+                            <LineChart data={staticPerformanceHistory}>
                               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                               <XAxis dataKey="date" tick={{ fontSize: 11 }} />
                               <YAxis
@@ -956,7 +1062,7 @@ export default function ModelsPage() {
                         <h3 className="font-medium mb-4">Population Stability Index (PSI) Trend</h3>
                         <div className="h-64">
                           <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={mockDriftData}>
+                            <AreaChart data={staticDriftData}>
                               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                               <XAxis dataKey="date" tick={{ fontSize: 11 }} />
                               <YAxis
@@ -1077,7 +1183,7 @@ export default function ModelsPage() {
                             </tr>
                           </thead>
                           <tbody className="divide-y">
-                            {mockTrainingRuns
+                            {staticTrainingRuns
                               .filter((run) => run.modelId === selectedModel.id)
                               .map((run) => (
                                 <tr key={run.id} className="hover:bg-gray-50">

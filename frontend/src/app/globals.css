@@ -126,7 +126,19 @@
 
 /* Skeleton shimmer animation */
 @keyframes shimmer {
-  100% {
-    transform: translateX(100%);
-  }
+  0% { background-position: 100% 50%; }
+  50% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+/* Gradient glow pulse */
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+
+/* Smooth fade-in for section backgrounds */
+@keyframes fade-in-slow {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }

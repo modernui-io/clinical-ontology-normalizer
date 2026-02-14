@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -49,6 +49,7 @@ import {
   Building,
   Eye,
   Search,
+  Loader2,
 } from "lucide-react";
 
 // Types
@@ -72,8 +73,20 @@ interface Role {
   updatedAt: string;
 }
 
-// Mock Data
-const mockPermissions: Permission[] = [
+// Backend API response shape (snake_case)
+interface RoleApiResponse {
+  id: string;
+  name: string;
+  description: string | null;
+  is_system_role: boolean;
+  permissions: string[];
+  user_count: number;
+}
+
+// Permission catalog - these are the known permissions in the system.
+// The backend roles endpoint returns permission names (strings) for each role;
+// this catalog provides display metadata for the permission matrix UI.
+const permissionCatalog: Permission[] = [
   { id: "p1", name: "documents:read", resource: "documents", action: "read", description: "View clinical documents" },
   { id: "p2", name: "documents:write", resource: "documents", action: "write", description: "Create and edit clinical documents" },
   { id: "p3", name: "documents:delete", resource: "documents", action: "delete", description: "Delete clinical documents" },
@@ -96,108 +109,27 @@ const mockPermissions: Permission[] = [
   { id: "p20", name: "llm:write", resource: "llm", action: "write", description: "Use LLM features (generate)" },
 ];
 
-const mockRoles: Role[] = [
-  {
-    id: "role-1",
-    name: "admin",
-    displayName: "Administrator",
-    description: "Full system access - can manage users, roles, and all data",
-    isSystemRole: true,
-    permissions: mockPermissions.map((p) => p.name),
-    userCount: 3,
-    createdAt: "2025-01-01T00:00:00Z",
-    updatedAt: "2025-01-01T00:00:00Z",
-  },
-  {
-    id: "role-2",
-    name: "provider",
-    displayName: "Healthcare Provider",
-    description: "Clinical data access - can view and modify patient data",
-    isSystemRole: true,
-    permissions: [
-      "documents:read", "documents:write",
-      "patients:read", "patients:write",
-      "billing:read",
-      "coding:read",
-      "vocabulary:read",
-      "graphs:read", "graphs:write",
-      "export:write",
-      "llm:read", "llm:write",
-    ],
-    userCount: 15,
-    createdAt: "2025-01-01T00:00:00Z",
-    updatedAt: "2025-01-01T00:00:00Z",
-  },
-  {
-    id: "role-3",
-    name: "biller",
-    displayName: "Medical Biller",
-    description: "Billing and coding access - can manage billing codes and HCC analysis",
-    isSystemRole: true,
-    permissions: [
-      "documents:read",
-      "patients:read",
-      "billing:read", "billing:write",
-      "coding:read", "coding:write",
-      "vocabulary:read",
-      "export:write",
-    ],
-    userCount: 8,
-    createdAt: "2025-01-01T00:00:00Z",
-    updatedAt: "2025-01-01T00:00:00Z",
-  },
-  {
-    id: "role-4",
-    name: "viewer",
-    displayName: "Read-Only User",
-    description: "Read-only access - can view non-sensitive data only",
-    isSystemRole: true,
-    permissions: [
-      "documents:read",
-      "vocabulary:read",
-      "graphs:read",
-    ],
-    userCount: 12,
-    createdAt: "2025-01-01T00:00:00Z",
-    updatedAt: "2025-01-01T00:00:00Z",
-  },
-  {
-    id: "role-5",
-    name: "quality_analyst",
-    displayName: "Quality Analyst",
-    description: "Quality measures access - can view and analyze quality metrics",
-    isSystemRole: false,
-    permissions: [
-      "documents:read",
-      "patients:read",
-      "billing:read",
-      "vocabulary:read",
-      "graphs:read",
-      "export:write",
-    ],
-    userCount: 4,
-    createdAt: "2025-06-15T10:00:00Z",
-    updatedAt: "2025-12-01T14:30:00Z",
-  },
-  {
-    id: "role-6",
-    name: "researcher",
-    displayName: "Clinical Researcher",
-    description: "Research access - can view anonymized data and export for studies",
-    isSystemRole: false,
-    permissions: [
-      "documents:read",
-      "patients:read",
-      "vocabulary:read",
-      "graphs:read",
-      "export:write",
-      "llm:read",
-    ],
-    userCount: 2,
-    createdAt: "2025-09-20T08:00:00Z",
-    updatedAt: "2026-01-10T11:15:00Z",
-  },
-];
+/** Convert a backend RoleApiResponse (snake_case) to the frontend Role shape (camelCase). */
+function mapApiRoleToRole(apiRole: RoleApiResponse): Role {
+  // Generate a display name from the role name (e.g., "quality_analyst" -> "Quality Analyst")
+  const displayName = apiRole.name
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+
+  return {
+    id: apiRole.id,
+    name: apiRole.name,
+    displayName,
+    description: apiRole.description ?? "",
+    isSystemRole: apiRole.is_system_role,
+    permissions: apiRole.permissions,
+    userCount: apiRole.user_count,
+    // The backend RoleResponse does not include timestamps; use empty strings as fallback
+    createdAt: "",
+    updatedAt: "",
+  };
+}
 
 // Helper functions
 const getRoleIcon = (role: string) => {
@@ -239,9 +171,11 @@ const formatDate = (dateString: string): string => {
 };
 
 export default function RolesPage() {
-  const [roles, setRoles] = useState<Role[]>(mockRoles);
-  const [permissions] = useState<Permission[]>(mockPermissions);
-  const [isLoading, setIsLoading] = useState(false);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [permissions] = useState<Permission[]>(permissionCatalog);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -256,6 +190,31 @@ export default function RolesPage() {
 
   const resourceTypes = getResourceTypes(permissions);
 
+  // Fetch roles from backend API
+  const fetchRoles = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/users/roles/all");
+      if (!res.ok) {
+        const detail = await res.text();
+        throw new Error(`Failed to fetch roles: ${res.status} ${detail}`);
+      }
+      const data: RoleApiResponse[] = await res.json();
+      setRoles(data.map(mapApiRoleToRole));
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown error loading roles";
+      setError(message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Load roles on mount
+  useEffect(() => {
+    fetchRoles();
+  }, [fetchRoles]);
+
   // Filter roles
   const filteredRoles = roles.filter((role) =>
     searchQuery === "" ||
@@ -265,9 +224,7 @@ export default function RolesPage() {
   );
 
   const refreshData = async () => {
-    setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsLoading(false);
+    await fetchRoles();
   };
 
   const openCreateDialog = () => {
@@ -297,45 +254,73 @@ export default function RolesPage() {
     setIsRoleDialogOpen(true);
   };
 
-  const handleSaveRole = () => {
-    if (selectedRole) {
-      // Update existing role
-      setRoles(
-        roles.map((r) =>
-          r.id === selectedRole.id
-            ? {
-                ...r,
-                displayName: formDisplayName,
-                description: formDescription,
-                permissions: formPermissions,
-                updatedAt: new Date().toISOString(),
-              }
-            : r
-        )
-      );
-    } else {
-      // Create new role
-      const newRole: Role = {
-        id: `role-${Date.now()}`,
-        name: formName.toLowerCase().replace(/\s+/g, "_"),
-        displayName: formDisplayName,
-        description: formDescription,
-        isSystemRole: false,
-        permissions: formPermissions,
-        userCount: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      setRoles([...roles, newRole]);
+  const handleSaveRole = async () => {
+    setIsSaving(true);
+    try {
+      if (selectedRole) {
+        // Backend does not currently have a PATCH/PUT endpoint for updating roles.
+        // For now, apply the update optimistically on the client side and re-fetch.
+        // TODO: Wire to PUT /api/users/roles/{name} once the backend supports it.
+        setRoles(
+          roles.map((r) =>
+            r.id === selectedRole.id
+              ? {
+                  ...r,
+                  displayName: formDisplayName,
+                  description: formDescription,
+                  permissions: formPermissions,
+                  updatedAt: new Date().toISOString(),
+                }
+              : r
+          )
+        );
+      } else {
+        // Create new role via backend
+        const res = await fetch("/api/users/roles", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: formName.toLowerCase().replace(/\s+/g, "_"),
+            description: formDescription,
+            permissions: formPermissions,
+          }),
+        });
+        if (!res.ok) {
+          const detail = await res.text();
+          throw new Error(`Failed to create role: ${res.status} ${detail}`);
+        }
+        // Refresh to get the canonical state from the backend
+        await fetchRoles();
+      }
+      setIsRoleDialogOpen(false);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to save role";
+      setError(message);
+    } finally {
+      setIsSaving(false);
     }
-    setIsRoleDialogOpen(false);
   };
 
-  const handleDeleteRole = () => {
-    if (roleToDelete) {
-      setRoles(roles.filter((r) => r.id !== roleToDelete.id));
+  const handleDeleteRole = async () => {
+    if (!roleToDelete) return;
+    setIsSaving(true);
+    try {
+      const res = await fetch(`/api/users/roles/${encodeURIComponent(roleToDelete.name)}`, {
+        method: "DELETE",
+      });
+      if (!res.ok && res.status !== 204) {
+        const detail = await res.text();
+        throw new Error(`Failed to delete role: ${res.status} ${detail}`);
+      }
+      // Refresh roles list from backend
+      await fetchRoles();
       setRoleToDelete(null);
       setIsDeleteDialogOpen(false);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to delete role";
+      setError(message);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -396,6 +381,28 @@ export default function RolesPage() {
           </Button>
         </div>
       </div>
+
+      {/* Error Banner */}
+      {error && (
+        <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950">
+          <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 shrink-0" />
+          <div className="flex-1">
+            <h5 className="font-medium text-red-800 dark:text-red-200">Error</h5>
+            <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+          </div>
+          <Button variant="ghost" size="sm" onClick={() => setError(null)}>
+            <XCircle className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+
+      {/* Initial Loading State */}
+      {isLoading && roles.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-16 gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <p className="text-muted-foreground">Loading roles...</p>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-4">
@@ -467,6 +474,14 @@ export default function RolesPage() {
 
       {/* Roles List */}
       <div className="space-y-4">
+        {!isLoading && roles.length === 0 && !error && (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12 gap-3">
+              <Shield className="h-10 w-10 text-muted-foreground" />
+              <p className="text-muted-foreground">No roles found. Create a role to get started.</p>
+            </CardContent>
+          </Card>
+        )}
         {filteredRoles.map((role) => (
           <Card key={role.id}>
             <CardContent className="pt-6">
@@ -510,10 +525,12 @@ export default function RolesPage() {
                     </div>
                   </div>
 
-                  <div className="flex gap-4 mt-4 text-xs text-muted-foreground">
-                    <span>Created: {formatDate(role.createdAt)}</span>
-                    <span>Updated: {formatDate(role.updatedAt)}</span>
-                  </div>
+                  {(role.createdAt || role.updatedAt) && (
+                    <div className="flex gap-4 mt-4 text-xs text-muted-foreground">
+                      {role.createdAt && <span>Created: {formatDate(role.createdAt)}</span>}
+                      {role.updatedAt && <span>Updated: {formatDate(role.updatedAt)}</span>}
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex gap-2">
@@ -697,8 +714,9 @@ export default function RolesPage() {
             </Button>
             <Button
               onClick={handleSaveRole}
-              disabled={!formName || !formDisplayName}
+              disabled={!formName || !formDisplayName || isSaving}
             >
+              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {selectedRole ? "Update Role" : "Create Role"}
             </Button>
           </DialogFooter>
@@ -741,8 +759,9 @@ export default function RolesPage() {
             <Button
               variant="destructive"
               onClick={handleDeleteRole}
-              disabled={roleToDelete?.userCount ? roleToDelete.userCount > 0 : false}
+              disabled={isSaving || (roleToDelete?.userCount ? roleToDelete.userCount > 0 : false)}
             >
+              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Delete Role
             </Button>
           </DialogFooter>

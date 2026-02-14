@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,18 +18,87 @@ import {
   TrendingUp,
   AlertTriangle,
   CheckCircle,
-  Clock,
   FileText,
   ArrowRight,
   RefreshCw,
   Target,
-  AlertCircle,
   MessageSquare,
   Zap,
   BarChart3,
+  Loader2,
 } from "lucide-react";
 
-// Mock data for billing dashboard
+// ---------------------------------------------------------------------------
+// Types matching backend schemas (revenue_analytics)
+// ---------------------------------------------------------------------------
+
+interface RevenueMetrics {
+  mrr: number;
+  arr: number;
+  mrr_growth_rate_pct: number;
+  net_revenue_retention_pct: number;
+  gross_margin_pct: number;
+  arpu: number;
+  ltv: number;
+  cac: number;
+  ltv_cac_ratio: number;
+  payback_period_months: number;
+  revenue_per_employee: number;
+}
+
+interface RevenueContract {
+  id: string;
+  sponsor_name: string;
+  trial_id: string;
+  stream: string;
+  status: string;
+  monthly_base_fee: number;
+  per_patient_fee: number;
+  per_enrollment_fee: number;
+  start_date: string;
+  end_date: string;
+  total_contract_value: number;
+  recognized_revenue: number;
+  remaining_value: number;
+  created_at: string;
+}
+
+interface RevenueContractListResponse {
+  total: number;
+  contracts: RevenueContract[];
+}
+
+interface MonthlyRevenue {
+  month: string;
+  total: number;
+  by_stream: Record<string, number>;
+  by_sponsor: Record<string, number>;
+  patient_volume: number;
+  enrollment_volume: number;
+}
+
+interface MonthlyRevenueListResponse {
+  total: number;
+  months: MonthlyRevenue[];
+}
+
+interface RevenueForecast {
+  month: string;
+  projected_revenue: number;
+  confidence_low: number;
+  confidence_high: number;
+  assumptions: string[];
+}
+
+interface RevenueForecastListResponse {
+  total: number;
+  forecasts: RevenueForecast[];
+}
+
+// ---------------------------------------------------------------------------
+// Types for billing-specific mock data (not yet backed by revenue-analytics API)
+// ---------------------------------------------------------------------------
+
 interface RevenueOpportunity {
   id: string;
   category: string;
@@ -76,26 +145,10 @@ interface CDIQuery {
   patientName: string;
 }
 
-interface BillingStats {
-  totalRevenueOpportunity: number;
-  hccGapCount: number;
-  hccRevenuePotential: number;
-  pendingQueries: number;
-  codingSuggestions: number;
-  monthlyRecovered: number;
-  complianceScore: number;
-}
-
-// Mock data
-const mockStats: BillingStats = {
-  totalRevenueOpportunity: 487250,
-  hccGapCount: 156,
-  hccRevenuePotential: 312500,
-  pendingQueries: 42,
-  codingSuggestions: 89,
-  monthlyRecovered: 125000,
-  complianceScore: 92,
-};
+// ---------------------------------------------------------------------------
+// Local billing mock data (HCC gaps, coding suggestions, CDI queries)
+// These are billing-domain specific and not yet backed by revenue-analytics.
+// ---------------------------------------------------------------------------
 
 const mockRevenueOpportunities: RevenueOpportunity[] = [
   {
@@ -250,7 +303,10 @@ const mockCDIQueries: CDIQuery[] = [
   },
 ];
 
-// Helper functions
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
 const formatCurrency = (amount: number): string => {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -258,6 +314,10 @@ const formatCurrency = (amount: number): string => {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount);
+};
+
+const formatPct = (value: number): string => {
+  return `${value.toFixed(1)}%`;
 };
 
 const getConfidenceBadgeVariant = (confidence: string): "default" | "secondary" | "outline" => {
@@ -289,6 +349,16 @@ const getStatusColor = (status: string): string => {
       return "text-green-600 bg-green-50 dark:bg-green-950";
     case "resolved":
       return "text-gray-600 bg-gray-50 dark:bg-gray-950";
+    case "active":
+      return "text-green-600 bg-green-50 dark:bg-green-950";
+    case "draft":
+      return "text-gray-600 bg-gray-50 dark:bg-gray-950";
+    case "paused":
+      return "text-yellow-600 bg-yellow-50 dark:bg-yellow-950";
+    case "expired":
+      return "text-red-600 bg-red-50 dark:bg-red-950";
+    case "terminated":
+      return "text-red-600 bg-red-50 dark:bg-red-950";
     default:
       return "text-gray-600 bg-gray-50 dark:bg-gray-950";
   }
@@ -309,20 +379,112 @@ const getPriorityColor = (priority: string): string => {
   }
 };
 
+const getStreamLabel = (stream: string): string => {
+  const labels: Record<string, string> = {
+    platform_license: "Platform License",
+    per_patient_screening: "Patient Screening",
+    per_enrollment: "Enrollment",
+    data_analytics: "Data Analytics",
+    integration_fees: "Integration",
+    professional_services: "Professional Services",
+  };
+  return labels[stream] ?? stream;
+};
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+
 export default function BillingDashboardPage() {
-  const [stats, setStats] = useState<BillingStats>(mockStats);
+  // Revenue-analytics API state
+  const [metrics, setMetrics] = useState<RevenueMetrics | null>(null);
+  const [contracts, setContracts] = useState<RevenueContractListResponse | null>(null);
+  const [monthlyRevenue, setMonthlyRevenue] = useState<MonthlyRevenueListResponse | null>(null);
+  const [forecast, setForecast] = useState<RevenueForecastListResponse | null>(null);
+
+  // Billing-domain local data (not yet wired to API)
   const [revenueOpportunities] = useState<RevenueOpportunity[]>(mockRevenueOpportunities);
   const [hccGaps] = useState<HCCGap[]>(mockHCCGaps);
   const [codingSuggestions] = useState<CodingSuggestion[]>(mockCodingSuggestions);
   const [cdiQueries] = useState<CDIQuery[]>(mockCDIQueries);
-  const [isLoading, setIsLoading] = useState(false);
 
-  const refreshData = async () => {
+  // Loading / error
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
     setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setStats(mockStats);
-    setIsLoading(false);
-  };
+    setError(null);
+
+    try {
+      const [metricsRes, contractsRes, monthlyRes, forecastRes] = await Promise.all([
+        fetch("/api/revenue-analytics/metrics"),
+        fetch("/api/revenue-analytics/contracts"),
+        fetch("/api/revenue-analytics/monthly"),
+        fetch("/api/revenue-analytics/forecast"),
+      ]);
+
+      // Check for errors on each response
+      if (!metricsRes.ok) {
+        throw new Error(`Metrics API returned ${metricsRes.status}: ${metricsRes.statusText}`);
+      }
+      if (!contractsRes.ok) {
+        throw new Error(`Contracts API returned ${contractsRes.status}: ${contractsRes.statusText}`);
+      }
+      if (!monthlyRes.ok) {
+        throw new Error(`Monthly revenue API returned ${monthlyRes.status}: ${monthlyRes.statusText}`);
+      }
+      if (!forecastRes.ok) {
+        throw new Error(`Forecast API returned ${forecastRes.status}: ${forecastRes.statusText}`);
+      }
+
+      const [metricsData, contractsData, monthlyData, forecastData] = await Promise.all([
+        metricsRes.json() as Promise<RevenueMetrics>,
+        contractsRes.json() as Promise<RevenueContractListResponse>,
+        monthlyRes.json() as Promise<MonthlyRevenueListResponse>,
+        forecastRes.json() as Promise<RevenueForecastListResponse>,
+      ]);
+
+      setMetrics(metricsData);
+      setContracts(contractsData);
+      setMonthlyRevenue(monthlyData);
+      setForecast(forecastData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load revenue data");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Derived values
+  const totalContractValue = contracts?.contracts.reduce(
+    (sum, c) => sum + c.total_contract_value,
+    0,
+  ) ?? 0;
+
+  const activeContracts = contracts?.contracts.filter((c) => c.status === "active") ?? [];
+
+  const latestMonth = monthlyRevenue?.months.length
+    ? monthlyRevenue.months[monthlyRevenue.months.length - 1]
+    : null;
+
+  // -------------------------------------------------------------------
+  // Loading state
+  // -------------------------------------------------------------------
+  if (isLoading && !metrics) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">Loading revenue analytics...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -331,13 +493,13 @@ export default function BillingDashboardPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Billing & Revenue Dashboard</h1>
           <p className="text-muted-foreground">
-            Revenue opportunities, HCC gaps, and coding optimization
+            Revenue analytics, contracts, and coding optimization
           </p>
         </div>
         <Button
           variant="outline"
           size="sm"
-          onClick={refreshData}
+          onClick={fetchData}
           disabled={isLoading}
         >
           <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
@@ -345,92 +507,255 @@ export default function BillingDashboardPage() {
         </Button>
       </div>
 
-      {/* Key Metrics Cards */}
+      {/* Error Banner */}
+      {error && (
+        <Card className="border-red-300 bg-red-50 dark:bg-red-950">
+          <CardContent className="flex items-center gap-3 py-3">
+            <AlertTriangle className="h-5 w-5 text-red-600" />
+            <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="ml-auto"
+              onClick={fetchData}
+            >
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Key Metrics Cards - wired to /api/revenue-analytics/metrics */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {/* Total Revenue Opportunity */}
+        {/* MRR */}
         <Card className="border-l-4 border-l-green-500">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue Opportunity</CardTitle>
+            <CardTitle className="text-sm font-medium">Monthly Recurring Revenue</CardTitle>
             <DollarSign className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {formatCurrency(stats.totalRevenueOpportunity)}
+              {metrics ? formatCurrency(metrics.mrr) : "--"}
             </div>
             <p className="text-xs text-muted-foreground">
-              Across all identified opportunities
+              ARR: {metrics ? formatCurrency(metrics.arr) : "--"}
             </p>
           </CardContent>
         </Card>
 
-        {/* HCC Revenue Potential */}
+        {/* LTV/CAC */}
         <Card className="border-l-4 border-l-blue-500">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">HCC Revenue Potential</CardTitle>
+            <CardTitle className="text-sm font-medium">LTV / CAC Ratio</CardTitle>
             <Target className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
-              {formatCurrency(stats.hccRevenuePotential)}
+              {metrics ? `${metrics.ltv_cac_ratio.toFixed(1)}x` : "--"}
             </div>
             <p className="text-xs text-muted-foreground">
-              <span className="text-blue-600">{stats.hccGapCount}</span> HCC gaps identified
+              LTV: {metrics ? formatCurrency(metrics.ltv) : "--"} | CAC: {metrics ? formatCurrency(metrics.cac) : "--"}
             </p>
           </CardContent>
         </Card>
 
-        {/* Pending CDI Queries */}
+        {/* NRR */}
         <Card className="border-l-4 border-l-yellow-500">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Pending Queries</CardTitle>
-            <MessageSquare className="h-4 w-4 text-yellow-600" />
+            <CardTitle className="text-sm font-medium">Net Revenue Retention</CardTitle>
+            <TrendingUp className="h-4 w-4 text-yellow-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{stats.pendingQueries}</div>
+            <div className="text-2xl font-bold text-yellow-600">
+              {metrics ? formatPct(metrics.net_revenue_retention_pct) : "--"}
+            </div>
             <p className="text-xs text-muted-foreground">
-              <span className="text-yellow-600">{stats.codingSuggestions}</span> coding suggestions
+              MRR Growth: {metrics ? formatPct(metrics.mrr_growth_rate_pct) : "--"}
             </p>
           </CardContent>
         </Card>
 
-        {/* Compliance Score */}
+        {/* Gross Margin */}
         <Card className="border-l-4 border-l-purple-500">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Compliance Score</CardTitle>
+            <CardTitle className="text-sm font-medium">Gross Margin</CardTitle>
             <CheckCircle className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-purple-600">{stats.complianceScore}%</div>
-            <Progress value={stats.complianceScore} className="mt-2 h-2" />
+            <div className="text-2xl font-bold text-purple-600">
+              {metrics ? formatPct(metrics.gross_margin_pct) : "--"}
+            </div>
+            <Progress value={metrics?.gross_margin_pct ?? 0} className="mt-2 h-2" />
           </CardContent>
         </Card>
       </div>
 
-      {/* Revenue Trend Placeholder */}
+      {/* Revenue Trend - wired to /api/revenue-analytics/monthly */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5" />
-            Revenue Recovery Trend
+            Monthly Revenue Trend
           </CardTitle>
-          <CardDescription>Monthly recovered revenue from coding optimization</CardDescription>
+          <CardDescription>
+            Historical monthly revenue from the platform
+            {monthlyRevenue ? ` (${monthlyRevenue.total} months)` : ""}
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex h-48 items-center justify-center rounded-lg border-2 border-dashed bg-muted/30">
-            <div className="text-center">
-              <TrendingUp className="mx-auto h-12 w-12 text-muted-foreground/50" />
-              <p className="mt-2 text-sm text-muted-foreground">
-                Revenue trend chart will display here
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Monthly recovered: {formatCurrency(stats.monthlyRecovered)}
-              </p>
+          {monthlyRevenue && monthlyRevenue.months.length > 0 ? (
+            <div className="space-y-3">
+              {/* Simple bar chart using divs */}
+              <div className="flex items-end gap-1 h-48">
+                {(() => {
+                  const maxRev = Math.max(...monthlyRevenue.months.map((m) => m.total), 1);
+                  return monthlyRevenue.months.slice(-12).map((m) => {
+                    const heightPct = (m.total / maxRev) * 100;
+                    return (
+                      <div key={m.month} className="flex-1 flex flex-col items-center gap-1">
+                        <span className="text-[10px] text-muted-foreground">
+                          {formatCurrency(m.total)}
+                        </span>
+                        <div
+                          className="w-full rounded-t bg-green-500/80 min-h-[2px]"
+                          style={{ height: `${heightPct}%` }}
+                          title={`${m.month}: ${formatCurrency(m.total)}`}
+                        />
+                        <span className="text-[10px] text-muted-foreground truncate w-full text-center">
+                          {m.month.slice(5)}
+                        </span>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+              {/* Latest month summary */}
+              {latestMonth && (
+                <div className="flex gap-6 text-sm text-muted-foreground border-t pt-3">
+                  <span>
+                    Latest ({latestMonth.month}): <strong className="text-foreground">{formatCurrency(latestMonth.total)}</strong>
+                  </span>
+                  <span>
+                    Patients screened: <strong className="text-foreground">{latestMonth.patient_volume}</strong>
+                  </span>
+                  <span>
+                    Enrolled: <strong className="text-foreground">{latestMonth.enrollment_volume}</strong>
+                  </span>
+                </div>
+              )}
             </div>
-          </div>
+          ) : (
+            <div className="flex h-48 items-center justify-center rounded-lg border-2 border-dashed bg-muted/30">
+              <div className="text-center">
+                <TrendingUp className="mx-auto h-12 w-12 text-muted-foreground/50" />
+                <p className="mt-2 text-sm text-muted-foreground">
+                  No monthly revenue data available
+                </p>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Main Content Tabs */}
+      {/* Active Contracts - wired to /api/revenue-analytics/contracts */}
+      {contracts && contracts.contracts.length > 0 && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Revenue Contracts</CardTitle>
+                <CardDescription>
+                  {contracts.total} contracts | Total value: {formatCurrency(totalContractValue)} | {activeContracts.length} active
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {contracts.contracts.slice(0, 5).map((contract) => {
+                const pctRecognized =
+                  contract.total_contract_value > 0
+                    ? (contract.recognized_revenue / contract.total_contract_value) * 100
+                    : 0;
+                return (
+                  <div
+                    key={contract.id}
+                    className="flex items-center justify-between gap-4 rounded-lg border p-4 transition-colors hover:bg-muted/50"
+                  >
+                    <div className="flex-1 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{contract.sponsor_name}</span>
+                        <Badge variant="outline">{getStreamLabel(contract.stream)}</Badge>
+                        <span
+                          className={`rounded px-2 py-0.5 text-xs font-medium ${getStatusColor(contract.status)}`}
+                        >
+                          {contract.status}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Trial: {contract.trial_id} | {contract.start_date} to {contract.end_date}
+                      </p>
+                      <Progress value={pctRecognized} className="h-1.5 w-48" />
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-green-600">
+                        {formatCurrency(contract.total_contract_value)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Recognized: {formatCurrency(contract.recognized_revenue)}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Revenue Forecast - wired to /api/revenue-analytics/forecast */}
+      {forecast && forecast.forecasts.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Revenue Forecast
+            </CardTitle>
+            <CardDescription>
+              Projected revenue with confidence intervals ({forecast.total} months)
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {forecast.forecasts.map((f) => (
+                <div
+                  key={f.month}
+                  className="flex items-center justify-between gap-4 rounded-lg border p-3"
+                >
+                  <div className="flex-1">
+                    <span className="text-sm font-medium">{f.month}</span>
+                    {f.assumptions.length > 0 && (
+                      <p className="text-xs text-muted-foreground truncate">
+                        {f.assumptions[0]}
+                      </p>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-green-600">
+                      {formatCurrency(f.projected_revenue)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatCurrency(f.confidence_low)} &ndash; {formatCurrency(f.confidence_high)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Main Content Tabs (billing-domain data) */}
       <Tabs defaultValue="opportunities" className="space-y-4">
         <TabsList>
           <TabsTrigger value="opportunities" className="gap-2">

@@ -5,32 +5,32 @@ field definitions, edit check rules, CRF deployment tracking, CRF annotations,
 and CRF metrics.
 
 Endpoints:
-    GET    /crf-management/crf-versions                              - List CRF versions
-    GET    /crf-management/crf-versions/{version_id}                 - Get single version
-    POST   /crf-management/crf-versions                              - Create version
-    PUT    /crf-management/crf-versions/{version_id}                 - Update version
-    DELETE /crf-management/crf-versions/{version_id}                 - Delete version
-    GET    /crf-management/crf-fields                                - List CRF fields
-    GET    /crf-management/crf-fields/{field_id}                     - Get single field
-    POST   /crf-management/crf-fields                                - Create field
-    PUT    /crf-management/crf-fields/{field_id}                     - Update field
-    DELETE /crf-management/crf-fields/{field_id}                     - Delete field
-    GET    /crf-management/edit-check-rules                          - List edit check rules
-    GET    /crf-management/edit-check-rules/{rule_id}                - Get single rule
-    POST   /crf-management/edit-check-rules                          - Create rule
-    PUT    /crf-management/edit-check-rules/{rule_id}                - Update rule
-    DELETE /crf-management/edit-check-rules/{rule_id}                - Delete rule
-    GET    /crf-management/deployments                               - List deployments
-    GET    /crf-management/deployments/{deployment_id}               - Get single deployment
-    POST   /crf-management/deployments                               - Create deployment
-    PUT    /crf-management/deployments/{deployment_id}               - Update deployment
-    DELETE /crf-management/deployments/{deployment_id}               - Delete deployment
-    GET    /crf-management/annotations                               - List annotations
-    GET    /crf-management/annotations/{annotation_id}               - Get single annotation
-    POST   /crf-management/annotations                               - Create annotation
-    PUT    /crf-management/annotations/{annotation_id}               - Update annotation
-    DELETE /crf-management/annotations/{annotation_id}               - Delete annotation
-    GET    /crf-management/metrics                                   - CRF metrics
+    GET    /crf-management/versions                              - List CRF versions
+    GET    /crf-management/versions/{version_id}                 - Get single version
+    POST   /crf-management/versions                              - Create version
+    PUT    /crf-management/versions/{version_id}                 - Update version
+    DELETE /crf-management/versions/{version_id}                 - Delete version
+    GET    /crf-management/fields                                - List CRF fields
+    GET    /crf-management/fields/{field_id}                     - Get single field
+    POST   /crf-management/fields                                - Create field
+    PUT    /crf-management/fields/{field_id}                     - Update field
+    DELETE /crf-management/fields/{field_id}                     - Delete field
+    GET    /crf-management/edit-check-rules                      - List edit check rules
+    GET    /crf-management/edit-check-rules/{rule_id}            - Get single rule
+    POST   /crf-management/edit-check-rules                      - Create rule
+    PUT    /crf-management/edit-check-rules/{rule_id}            - Update rule
+    DELETE /crf-management/edit-check-rules/{rule_id}            - Delete rule
+    GET    /crf-management/deployments                           - List deployments
+    GET    /crf-management/deployments/{deployment_id}           - Get single deployment
+    POST   /crf-management/deployments                           - Create deployment
+    PUT    /crf-management/deployments/{deployment_id}           - Update deployment
+    DELETE /crf-management/deployments/{deployment_id}           - Delete deployment
+    GET    /crf-management/annotations                           - List annotations
+    GET    /crf-management/annotations/{annotation_id}           - Get single annotation
+    POST   /crf-management/annotations                           - Create annotation
+    PUT    /crf-management/annotations/{annotation_id}           - Update annotation
+    DELETE /crf-management/annotations/{annotation_id}           - Delete annotation
+    GET    /crf-management/metrics                               - CRF metrics
 """
 
 import logging
@@ -82,7 +82,7 @@ router = APIRouter(
 
 
 @router.get(
-    "/crf-versions",
+    "/versions",
     response_model=CRFVersionListResponse,
     summary="List CRF versions",
     description="Retrieve CRF versions with optional filtering by trial and status.",
@@ -97,7 +97,7 @@ async def list_crf_versions(
 
 
 @router.get(
-    "/crf-versions/{version_id}",
+    "/versions/{version_id}",
     response_model=CRFVersion,
     summary="Get a CRF version",
 )
@@ -110,7 +110,7 @@ async def get_crf_version(version_id: str) -> CRFVersion:
 
 
 @router.post(
-    "/crf-versions",
+    "/versions",
     response_model=CRFVersion,
     status_code=201,
     summary="Create a CRF version",
@@ -121,7 +121,7 @@ async def create_crf_version(payload: CRFVersionCreate) -> CRFVersion:
 
 
 @router.put(
-    "/crf-versions/{version_id}",
+    "/versions/{version_id}",
     response_model=CRFVersion,
     summary="Update a CRF version",
 )
@@ -136,7 +136,7 @@ async def update_crf_version(
 
 
 @router.delete(
-    "/crf-versions/{version_id}",
+    "/versions/{version_id}",
     status_code=204,
     summary="Delete a CRF version",
 )
@@ -153,10 +153,10 @@ async def delete_crf_version(version_id: str) -> None:
 
 
 @router.get(
-    "/crf-fields",
+    "/fields",
     response_model=CRFFieldListResponse,
     summary="List CRF fields",
-    description="Retrieve CRF fields with optional filtering by trial, version, and field type.",
+    description="Retrieve CRF fields with optional filtering by trial, version, and type.",
 )
 async def list_crf_fields(
     trial_id: Optional[str] = Query(None, description="Filter by trial ID"),
@@ -171,7 +171,7 @@ async def list_crf_fields(
 
 
 @router.get(
-    "/crf-fields/{field_id}",
+    "/fields/{field_id}",
     response_model=CRFField,
     summary="Get a CRF field",
 )
@@ -184,7 +184,7 @@ async def get_crf_field(field_id: str) -> CRFField:
 
 
 @router.post(
-    "/crf-fields",
+    "/fields",
     response_model=CRFField,
     status_code=201,
     summary="Create a CRF field",
@@ -195,7 +195,7 @@ async def create_crf_field(payload: CRFFieldCreate) -> CRFField:
 
 
 @router.put(
-    "/crf-fields/{field_id}",
+    "/fields/{field_id}",
     response_model=CRFField,
     summary="Update a CRF field",
 )
@@ -210,7 +210,7 @@ async def update_crf_field(
 
 
 @router.delete(
-    "/crf-fields/{field_id}",
+    "/fields/{field_id}",
     status_code=204,
     summary="Delete a CRF field",
 )
@@ -235,9 +235,7 @@ async def delete_crf_field(field_id: str) -> None:
 async def list_edit_check_rules(
     trial_id: Optional[str] = Query(None, description="Filter by trial ID"),
     crf_version_id: Optional[str] = Query(None, description="Filter by CRF version ID"),
-    edit_check_severity: Optional[EditCheckSeverity] = Query(
-        None, description="Filter by severity"
-    ),
+    edit_check_severity: Optional[EditCheckSeverity] = Query(None, description="Filter by severity"),
     is_active: Optional[bool] = Query(None, description="Filter by active status"),
 ) -> EditCheckRuleListResponse:
     svc = get_crf_management_service()
@@ -312,18 +310,14 @@ async def delete_edit_check_rule(rule_id: str) -> None:
     summary="List CRF deployments",
     description="Retrieve CRF deployments with optional filtering by trial, status, and version.",
 )
-async def list_deployments(
+async def list_crf_deployments(
     trial_id: Optional[str] = Query(None, description="Filter by trial ID"),
-    deployment_status: Optional[DeploymentStatus] = Query(
-        None, description="Filter by deployment status"
-    ),
+    deployment_status: Optional[DeploymentStatus] = Query(None, description="Filter by deployment status"),
     crf_version_id: Optional[str] = Query(None, description="Filter by CRF version ID"),
 ) -> CRFDeploymentListResponse:
     svc = get_crf_management_service()
-    items = svc.list_deployments(
-        trial_id=trial_id,
-        deployment_status=deployment_status,
-        crf_version_id=crf_version_id,
+    items = svc.list_crf_deployments(
+        trial_id=trial_id, deployment_status=deployment_status, crf_version_id=crf_version_id
     )
     return CRFDeploymentListResponse(items=items, total=len(items))
 
@@ -333,9 +327,9 @@ async def list_deployments(
     response_model=CRFDeployment,
     summary="Get a CRF deployment",
 )
-async def get_deployment(deployment_id: str) -> CRFDeployment:
+async def get_crf_deployment(deployment_id: str) -> CRFDeployment:
     svc = get_crf_management_service()
-    record = svc.get_deployment(deployment_id)
+    record = svc.get_crf_deployment(deployment_id)
     if record is None:
         raise HTTPException(
             status_code=404, detail=f"CRF deployment '{deployment_id}' not found"
@@ -349,9 +343,9 @@ async def get_deployment(deployment_id: str) -> CRFDeployment:
     status_code=201,
     summary="Create a CRF deployment",
 )
-async def create_deployment(payload: CRFDeploymentCreate) -> CRFDeployment:
+async def create_crf_deployment(payload: CRFDeploymentCreate) -> CRFDeployment:
     svc = get_crf_management_service()
-    return svc.create_deployment(payload)
+    return svc.create_crf_deployment(payload)
 
 
 @router.put(
@@ -359,11 +353,11 @@ async def create_deployment(payload: CRFDeploymentCreate) -> CRFDeployment:
     response_model=CRFDeployment,
     summary="Update a CRF deployment",
 )
-async def update_deployment(
+async def update_crf_deployment(
     deployment_id: str, payload: CRFDeploymentUpdate
 ) -> CRFDeployment:
     svc = get_crf_management_service()
-    updated = svc.update_deployment(deployment_id, payload)
+    updated = svc.update_crf_deployment(deployment_id, payload)
     if updated is None:
         raise HTTPException(
             status_code=404, detail=f"CRF deployment '{deployment_id}' not found"
@@ -376,9 +370,9 @@ async def update_deployment(
     status_code=204,
     summary="Delete a CRF deployment",
 )
-async def delete_deployment(deployment_id: str) -> None:
+async def delete_crf_deployment(deployment_id: str) -> None:
     svc = get_crf_management_service()
-    deleted = svc.delete_deployment(deployment_id)
+    deleted = svc.delete_crf_deployment(deployment_id)
     if not deleted:
         raise HTTPException(
             status_code=404, detail=f"CRF deployment '{deployment_id}' not found"
@@ -396,18 +390,14 @@ async def delete_deployment(deployment_id: str) -> None:
     summary="List CRF annotations",
     description="Retrieve CRF annotations with optional filtering by trial, version, and type.",
 )
-async def list_annotations(
+async def list_crf_annotations(
     trial_id: Optional[str] = Query(None, description="Filter by trial ID"),
     crf_version_id: Optional[str] = Query(None, description="Filter by CRF version ID"),
-    annotation_type: Optional[AnnotationType] = Query(
-        None, description="Filter by annotation type"
-    ),
+    annotation_type: Optional[AnnotationType] = Query(None, description="Filter by annotation type"),
 ) -> CRFAnnotationListResponse:
     svc = get_crf_management_service()
-    items = svc.list_annotations(
-        trial_id=trial_id,
-        crf_version_id=crf_version_id,
-        annotation_type=annotation_type,
+    items = svc.list_crf_annotations(
+        trial_id=trial_id, crf_version_id=crf_version_id, annotation_type=annotation_type
     )
     return CRFAnnotationListResponse(items=items, total=len(items))
 
@@ -417,9 +407,9 @@ async def list_annotations(
     response_model=CRFAnnotation,
     summary="Get a CRF annotation",
 )
-async def get_annotation(annotation_id: str) -> CRFAnnotation:
+async def get_crf_annotation(annotation_id: str) -> CRFAnnotation:
     svc = get_crf_management_service()
-    record = svc.get_annotation(annotation_id)
+    record = svc.get_crf_annotation(annotation_id)
     if record is None:
         raise HTTPException(
             status_code=404, detail=f"CRF annotation '{annotation_id}' not found"
@@ -433,9 +423,9 @@ async def get_annotation(annotation_id: str) -> CRFAnnotation:
     status_code=201,
     summary="Create a CRF annotation",
 )
-async def create_annotation(payload: CRFAnnotationCreate) -> CRFAnnotation:
+async def create_crf_annotation(payload: CRFAnnotationCreate) -> CRFAnnotation:
     svc = get_crf_management_service()
-    return svc.create_annotation(payload)
+    return svc.create_crf_annotation(payload)
 
 
 @router.put(
@@ -443,11 +433,11 @@ async def create_annotation(payload: CRFAnnotationCreate) -> CRFAnnotation:
     response_model=CRFAnnotation,
     summary="Update a CRF annotation",
 )
-async def update_annotation(
+async def update_crf_annotation(
     annotation_id: str, payload: CRFAnnotationUpdate
 ) -> CRFAnnotation:
     svc = get_crf_management_service()
-    updated = svc.update_annotation(annotation_id, payload)
+    updated = svc.update_crf_annotation(annotation_id, payload)
     if updated is None:
         raise HTTPException(
             status_code=404, detail=f"CRF annotation '{annotation_id}' not found"
@@ -460,9 +450,9 @@ async def update_annotation(
     status_code=204,
     summary="Delete a CRF annotation",
 )
-async def delete_annotation(annotation_id: str) -> None:
+async def delete_crf_annotation(annotation_id: str) -> None:
     svc = get_crf_management_service()
-    deleted = svc.delete_annotation(annotation_id)
+    deleted = svc.delete_crf_annotation(annotation_id)
     if not deleted:
         raise HTTPException(
             status_code=404, detail=f"CRF annotation '{annotation_id}' not found"
@@ -478,8 +468,10 @@ async def delete_annotation(annotation_id: str) -> None:
     "/metrics",
     response_model=CRFManagementMetrics,
     summary="Get CRF management metrics",
-    description="Aggregated metrics across all CRF management operations.",
+    description="Aggregated metrics across all CRF management operations. Optionally filter by trial.",
 )
-async def get_metrics() -> CRFManagementMetrics:
+async def get_metrics(
+    trial_id: Optional[str] = Query(None, description="Filter by trial ID"),
+) -> CRFManagementMetrics:
     svc = get_crf_management_service()
-    return svc.get_metrics()
+    return svc.get_metrics(trial_id=trial_id)

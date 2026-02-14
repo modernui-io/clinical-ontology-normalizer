@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -35,246 +35,62 @@ import {
   FileText,
   User,
   Calendar,
-  Clock,
   AlertTriangle,
   CheckCircle,
   XCircle,
   ChevronLeft,
   ChevronRight,
+  Loader2,
 } from "lucide-react";
 
-// Types
+// ---------------------------------------------------------------------------
+// Types matching backend response shapes
+// ---------------------------------------------------------------------------
+
 interface AuditLogEntry {
   id: string;
   timestamp: string;
-  userId: string;
-  userName: string;
-  action: "read" | "create" | "update" | "delete" | "export" | "search" | "login" | "logout";
-  resourceType: string;
-  resourceId: string | null;
-  patientId: string | null;
-  ipAddress: string;
-  userAgent: string;
-  requestMethod: string;
-  requestPath: string;
-  responseStatus: number;
-  phiAccessed: boolean;
-  success: boolean;
-  errorMessage: string | null;
+  user_id: string | null;
+  action: string;
+  resource_type: string;
+  resource_id: string | null;
+  ip_address: string | null;
+  user_agent: string | null;
+  request_id: string | null;
+  request_method: string | null;
+  request_path: string | null;
+  response_status: number | null;
   details: Record<string, unknown> | null;
+  phi_accessed: boolean;
+  patient_id: string | null;
+  session_id: string | null;
+  success: boolean;
+  error_message: string | null;
+  created_at: string;
+}
+
+interface AuditLogListResponse {
+  logs: AuditLogEntry[];
+  total: number;
+  limit: number;
+  offset: number;
+  has_more: boolean;
 }
 
 interface AuditStats {
-  totalEvents: number;
-  phiAccessEvents: number;
-  failedEvents: number;
-  uniqueUsers: number;
-  eventsToday: number;
+  total_logs: number;
+  phi_access_count: number;
+  unique_users: number;
+  action_counts: Record<string, number>;
+  resource_type_counts: Record<string, number>;
+  period_start: string | null;
+  period_end: string | null;
 }
 
-// Mock Data
-const mockAuditLogs: AuditLogEntry[] = [
-  {
-    id: "audit-001",
-    timestamp: "2026-01-19T14:32:15Z",
-    userId: "user-001",
-    userName: "Dr. John Smith",
-    action: "read",
-    resourceType: "patient",
-    resourceId: "P001",
-    patientId: "P001",
-    ipAddress: "192.168.1.100",
-    userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-    requestMethod: "GET",
-    requestPath: "/api/patients/P001",
-    responseStatus: 200,
-    phiAccessed: true,
-    success: true,
-    errorMessage: null,
-    details: { fields_accessed: ["name", "dob", "mrn", "diagnoses"] },
-  },
-  {
-    id: "audit-002",
-    timestamp: "2026-01-19T14:28:45Z",
-    userId: "user-002",
-    userName: "Mary Johnson",
-    action: "export",
-    resourceType: "document",
-    resourceId: null,
-    patientId: "P003",
-    ipAddress: "192.168.1.105",
-    userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
-    requestMethod: "POST",
-    requestPath: "/api/documents/export",
-    responseStatus: 200,
-    phiAccessed: true,
-    success: true,
-    errorMessage: null,
-    details: { export_format: "pdf", document_count: 5 },
-  },
-  {
-    id: "audit-003",
-    timestamp: "2026-01-19T14:25:10Z",
-    userId: "user-001",
-    userName: "Dr. John Smith",
-    action: "update",
-    resourceType: "clinical_fact",
-    resourceId: "fact-123",
-    patientId: "P001",
-    ipAddress: "192.168.1.100",
-    userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-    requestMethod: "PUT",
-    requestPath: "/api/facts/fact-123",
-    responseStatus: 200,
-    phiAccessed: true,
-    success: true,
-    errorMessage: null,
-    details: { changed_fields: ["assertion", "confidence"] },
-  },
-  {
-    id: "audit-004",
-    timestamp: "2026-01-19T14:20:30Z",
-    userId: "user-003",
-    userName: "Bob Williams",
-    action: "delete",
-    resourceType: "document",
-    resourceId: "doc-456",
-    patientId: "P008",
-    ipAddress: "192.168.1.110",
-    userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-    requestMethod: "DELETE",
-    requestPath: "/api/documents/doc-456",
-    responseStatus: 403,
-    phiAccessed: false,
-    success: false,
-    errorMessage: "Permission denied: insufficient privileges",
-    details: null,
-  },
-  {
-    id: "audit-005",
-    timestamp: "2026-01-19T14:15:00Z",
-    userId: "user-004",
-    userName: "Sarah Davis",
-    action: "search",
-    resourceType: "patient",
-    resourceId: null,
-    patientId: null,
-    ipAddress: "192.168.1.115",
-    userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
-    requestMethod: "POST",
-    requestPath: "/api/patients/search",
-    responseStatus: 200,
-    phiAccessed: true,
-    success: true,
-    errorMessage: null,
-    details: { search_query: "diabetes medication", result_count: 45 },
-  },
-  {
-    id: "audit-006",
-    timestamp: "2026-01-19T14:10:22Z",
-    userId: "user-005",
-    userName: "Admin User",
-    action: "login",
-    resourceType: "session",
-    resourceId: "session-789",
-    patientId: null,
-    ipAddress: "192.168.1.120",
-    userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-    requestMethod: "POST",
-    requestPath: "/api/auth/login",
-    responseStatus: 200,
-    phiAccessed: false,
-    success: true,
-    errorMessage: null,
-    details: { auth_method: "password", mfa_used: true },
-  },
-  {
-    id: "audit-007",
-    timestamp: "2026-01-19T14:05:15Z",
-    userId: "user-002",
-    userName: "Mary Johnson",
-    action: "create",
-    resourceType: "document",
-    resourceId: "doc-789",
-    patientId: "P012",
-    ipAddress: "192.168.1.105",
-    userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
-    requestMethod: "POST",
-    requestPath: "/api/documents",
-    responseStatus: 201,
-    phiAccessed: true,
-    success: true,
-    errorMessage: null,
-    details: { note_type: "progress_note", size_bytes: 4520 },
-  },
-  {
-    id: "audit-008",
-    timestamp: "2026-01-19T13:55:40Z",
-    userId: "user-006",
-    userName: "Unknown",
-    action: "login",
-    resourceType: "session",
-    resourceId: null,
-    patientId: null,
-    ipAddress: "203.45.67.89",
-    userAgent: "curl/7.68.0",
-    requestMethod: "POST",
-    requestPath: "/api/auth/login",
-    responseStatus: 401,
-    phiAccessed: false,
-    success: false,
-    errorMessage: "Invalid credentials",
-    details: { attempts: 3, username: "admin@test.com" },
-  },
-  {
-    id: "audit-009",
-    timestamp: "2026-01-19T13:50:10Z",
-    userId: "user-001",
-    userName: "Dr. John Smith",
-    action: "read",
-    resourceType: "knowledge_graph",
-    resourceId: "graph-P001",
-    patientId: "P001",
-    ipAddress: "192.168.1.100",
-    userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-    requestMethod: "GET",
-    requestPath: "/api/patients/P001/graph",
-    responseStatus: 200,
-    phiAccessed: true,
-    success: true,
-    errorMessage: null,
-    details: { node_count: 45, edge_count: 78 },
-  },
-  {
-    id: "audit-010",
-    timestamp: "2026-01-19T13:45:30Z",
-    userId: "user-002",
-    userName: "Mary Johnson",
-    action: "read",
-    resourceType: "billing",
-    resourceId: "hcc-analysis-001",
-    patientId: "P003",
-    ipAddress: "192.168.1.105",
-    userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
-    requestMethod: "GET",
-    requestPath: "/api/billing/hcc/P003",
-    responseStatus: 200,
-    phiAccessed: true,
-    success: true,
-    errorMessage: null,
-    details: { hcc_codes: ["HCC85", "HCC37"], estimated_raf: 0.625 },
-  },
-];
-
-const mockStats: AuditStats = {
-  totalEvents: 15482,
-  phiAccessEvents: 8956,
-  failedEvents: 234,
-  uniqueUsers: 42,
-  eventsToday: 1256,
-};
-
+// ---------------------------------------------------------------------------
 // Helper functions
+// ---------------------------------------------------------------------------
+
 const getActionIcon = (action: string) => {
   switch (action) {
     case "read":
@@ -357,10 +173,23 @@ const formatTimeAgo = (timestamp: string): string => {
   return `${diffDays}d ago`;
 };
 
+// ---------------------------------------------------------------------------
+// Page component
+// ---------------------------------------------------------------------------
+
 export default function AuditLogPage() {
-  const [logs] = useState<AuditLogEntry[]>(mockAuditLogs);
-  const [stats] = useState<AuditStats>(mockStats);
-  const [isLoading, setIsLoading] = useState(false);
+  // Data state
+  const [logs, setLogs] = useState<AuditLogEntry[]>([]);
+  const [totalLogs, setTotalLogs] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [stats, setStats] = useState<AuditStats | null>(null);
+
+  // Loading / error
+  const [isLoading, setIsLoading] = useState(true);
+  const [isStatsLoading, setIsStatsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Expanded row
   const [expandedLog, setExpandedLog] = useState<string | null>(null);
 
   // Filters
@@ -372,11 +201,21 @@ export default function AuditLogPage() {
   const [phiOnlyFilter, setPhiOnlyFilter] = useState(false);
   const [failedOnlyFilter, setFailedOnlyFilter] = useState(false);
 
-  // Pagination
+  // Pagination (offset-based to match backend)
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
-  const actions = ["all", "read", "create", "update", "delete", "export", "search", "login", "logout"];
+  const actions = [
+    "all",
+    "read",
+    "create",
+    "update",
+    "delete",
+    "export",
+    "search",
+    "login",
+    "logout",
+  ];
   const resourceTypes = [
     "all",
     "patient",
@@ -387,55 +226,126 @@ export default function AuditLogPage() {
     "session",
   ];
 
-  // Filter logs
-  const filteredLogs = logs.filter((log) => {
-    const matchesUser =
-      userFilter === "" ||
-      log.userName.toLowerCase().includes(userFilter.toLowerCase()) ||
-      log.userId.toLowerCase().includes(userFilter.toLowerCase());
-    const matchesAction = actionFilter === "all" || log.action === actionFilter;
-    const matchesResource =
-      resourceFilter === "all" || log.resourceType === resourceFilter;
-    const matchesPhi = !phiOnlyFilter || log.phiAccessed;
-    const matchesFailed = !failedOnlyFilter || !log.success;
-
-    let matchesDateRange = true;
-    if (dateFrom) {
-      matchesDateRange =
-        matchesDateRange && new Date(log.timestamp) >= new Date(dateFrom);
-    }
-    if (dateTo) {
-      matchesDateRange =
-        matchesDateRange && new Date(log.timestamp) <= new Date(dateTo);
-    }
-
-    return (
-      matchesUser &&
-      matchesAction &&
-      matchesResource &&
-      matchesPhi &&
-      matchesFailed &&
-      matchesDateRange
-    );
-  });
-
-  // Pagination
-  const totalPages = Math.ceil(filteredLogs.length / pageSize);
-  const paginatedLogs = filteredLogs.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
-  );
-
-  const refreshData = async () => {
+  // -------------------------------------------------------------------
+  // Fetch audit logs
+  // -------------------------------------------------------------------
+  const fetchLogs = useCallback(async () => {
     setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsLoading(false);
+    setError(null);
+
+    try {
+      const params = new URLSearchParams();
+      params.set("limit", String(pageSize));
+      params.set("offset", String((currentPage - 1) * pageSize));
+
+      if (userFilter.trim()) {
+        params.set("user_id", userFilter.trim());
+      }
+      if (actionFilter !== "all") {
+        params.set("action", actionFilter);
+      }
+      if (resourceFilter !== "all") {
+        params.set("resource_type", resourceFilter);
+      }
+      if (dateFrom) {
+        // Convert date input (YYYY-MM-DD) to ISO datetime
+        params.set("start_date", new Date(dateFrom).toISOString());
+      }
+      if (dateTo) {
+        // Set to end of day
+        const endDate = new Date(dateTo);
+        endDate.setHours(23, 59, 59, 999);
+        params.set("end_date", endDate.toISOString());
+      }
+      if (phiOnlyFilter) {
+        params.set("phi_only", "true");
+      }
+
+      const res = await fetch(`/api/audit/logs?${params.toString()}`);
+      if (!res.ok) {
+        const body = await res.text();
+        throw new Error(
+          `Failed to fetch audit logs (${res.status}): ${body}`
+        );
+      }
+
+      const data: AuditLogListResponse = await res.json();
+
+      // Client-side filter for failed-only (backend doesn't have this param)
+      let filteredLogs = data.logs;
+      if (failedOnlyFilter) {
+        filteredLogs = filteredLogs.filter((log) => !log.success);
+      }
+
+      setLogs(filteredLogs);
+      setTotalLogs(data.total);
+      setHasMore(data.has_more);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unknown error");
+      setLogs([]);
+      setTotalLogs(0);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [
+    currentPage,
+    pageSize,
+    userFilter,
+    actionFilter,
+    resourceFilter,
+    dateFrom,
+    dateTo,
+    phiOnlyFilter,
+    failedOnlyFilter,
+  ]);
+
+  // -------------------------------------------------------------------
+  // Fetch audit stats
+  // -------------------------------------------------------------------
+  const fetchStats = useCallback(async () => {
+    setIsStatsLoading(true);
+    try {
+      const res = await fetch("/api/audit/stats");
+      if (!res.ok) {
+        // Stats are non-critical; silently ignore failures
+        return;
+      }
+      const data: AuditStats = await res.json();
+      setStats(data);
+    } catch {
+      // Stats failure is non-critical
+    } finally {
+      setIsStatsLoading(false);
+    }
+  }, []);
+
+  // -------------------------------------------------------------------
+  // Initial load + filter/page changes
+  // -------------------------------------------------------------------
+  useEffect(() => {
+    fetchLogs();
+  }, [fetchLogs]);
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
+
+  // -------------------------------------------------------------------
+  // Derived
+  // -------------------------------------------------------------------
+  const totalPages = Math.max(1, Math.ceil(totalLogs / pageSize));
+
+  // -------------------------------------------------------------------
+  // Actions
+  // -------------------------------------------------------------------
+  const refreshData = async () => {
+    await Promise.all([fetchLogs(), fetchStats()]);
   };
 
   const exportToCSV = () => {
     const headers = [
       "Timestamp",
-      "User",
+      "User ID",
       "Action",
       "Resource Type",
       "Resource ID",
@@ -446,18 +356,18 @@ export default function AuditLogPage() {
       "Success",
       "Error",
     ];
-    const rows = filteredLogs.map((log) => [
+    const rows = logs.map((log) => [
       log.timestamp,
-      log.userName,
+      log.user_id || "",
       log.action,
-      log.resourceType,
-      log.resourceId || "",
-      log.patientId || "",
-      log.ipAddress,
-      log.responseStatus,
-      log.phiAccessed ? "Yes" : "No",
+      log.resource_type,
+      log.resource_id || "",
+      log.patient_id || "",
+      log.ip_address || "",
+      log.response_status ?? "",
+      log.phi_accessed ? "Yes" : "No",
       log.success ? "Yes" : "No",
-      log.errorMessage || "",
+      log.error_message || "",
     ]);
 
     const csv = [headers, ...rows].map((row) => row.join(",")).join("\n");
@@ -491,7 +401,8 @@ export default function AuditLogPage() {
             Audit Log
           </h1>
           <p className="text-muted-foreground">
-            HIPAA-compliant audit trail for all system access and data modifications
+            HIPAA-compliant audit trail for all system access and data
+            modifications
           </p>
         </div>
         <div className="flex gap-2">
@@ -513,6 +424,26 @@ export default function AuditLogPage() {
         </div>
       </div>
 
+      {/* Error Banner */}
+      {error && (
+        <Card className="border-red-300 bg-red-50 dark:bg-red-950/30">
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-2 text-red-700 dark:text-red-400">
+              <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+              <p className="text-sm">{error}</p>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="ml-auto"
+                onClick={refreshData}
+              >
+                Retry
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Summary Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Card>
@@ -521,10 +452,16 @@ export default function AuditLogPage() {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {stats.totalEvents.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">All time</p>
+            {isStatsLoading ? (
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            ) : (
+              <>
+                <div className="text-2xl font-bold">
+                  {(stats?.total_logs ?? 0).toLocaleString()}
+                </div>
+                <p className="text-xs text-muted-foreground">All time</p>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -534,29 +471,43 @@ export default function AuditLogPage() {
             <AlertTriangle className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-amber-600">
-              {stats.phiAccessEvents.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {((stats.phiAccessEvents / stats.totalEvents) * 100).toFixed(1)}% of
-              events
-            </p>
+            {isStatsLoading ? (
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            ) : (
+              <>
+                <div className="text-2xl font-bold text-amber-600">
+                  {(stats?.phi_access_count ?? 0).toLocaleString()}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {stats && stats.total_logs > 0
+                    ? `${((stats.phi_access_count / stats.total_logs) * 100).toFixed(1)}% of events`
+                    : "No events"}
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Failed Events</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Actions Breakdown
+            </CardTitle>
             <XCircle className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">
-              {stats.failedEvents.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {((stats.failedEvents / stats.totalEvents) * 100).toFixed(2)}% failure
-              rate
-            </p>
+            {isStatsLoading ? (
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            ) : (
+              <>
+                <div className="text-2xl font-bold text-red-600">
+                  {Object.keys(stats?.action_counts ?? {}).length}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Distinct action types
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -566,21 +517,39 @@ export default function AuditLogPage() {
             <User className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.uniqueUsers}</div>
-            <p className="text-xs text-muted-foreground">Active users</p>
+            {isStatsLoading ? (
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            ) : (
+              <>
+                <div className="text-2xl font-bold">
+                  {stats?.unique_users ?? 0}
+                </div>
+                <p className="text-xs text-muted-foreground">Active users</p>
+              </>
+            )}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Today</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Current Results
+            </CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {stats.eventsToday.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">Events today</p>
+            {isLoading ? (
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            ) : (
+              <>
+                <div className="text-2xl font-bold">
+                  {totalLogs.toLocaleString()}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Matching current filters
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -604,7 +573,7 @@ export default function AuditLogPage() {
               <Label htmlFor="user-filter">User</Label>
               <Input
                 id="user-filter"
-                placeholder="Search by user..."
+                placeholder="Search by user ID..."
                 value={userFilter}
                 onChange={(e) => {
                   setUserFilter(e.target.value);
@@ -645,9 +614,7 @@ export default function AuditLogPage() {
               >
                 {resourceTypes.map((type) => (
                   <option key={type} value={type}>
-                    {type === "all"
-                      ? "All Resources"
-                      : type.replace("_", " ")}
+                    {type === "all" ? "All Resources" : type.replace("_", " ")}
                   </option>
                 ))}
               </select>
@@ -715,190 +682,260 @@ export default function AuditLogPage() {
             <div>
               <CardTitle>Audit Log Entries</CardTitle>
               <CardDescription>
-                {filteredLogs.length.toLocaleString()} entries found
+                {totalLogs.toLocaleString()} entries found
               </CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[50px]"></TableHead>
-                <TableHead>Timestamp</TableHead>
-                <TableHead>User</TableHead>
-                <TableHead>Action</TableHead>
-                <TableHead>Resource</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>PHI</TableHead>
-                <TableHead className="w-[50px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedLogs.map((log) => (
-                <>
-                  <TableRow
-                    key={log.id}
-                    className={`cursor-pointer hover:bg-muted/50 ${
-                      !log.success ? "bg-red-50 dark:bg-red-950/20" : ""
-                    }`}
-                    onClick={() =>
-                      setExpandedLog(expandedLog === log.id ? null : log.id)
-                    }
-                  >
-                    <TableCell>
-                      <div className="flex items-center justify-center">
-                        {log.success ? (
-                          <CheckCircle className="h-4 w-4 text-green-600" />
-                        ) : (
-                          <XCircle className="h-4 w-4 text-red-600" />
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium text-sm">
-                          {formatTimestamp(log.timestamp)}
+          {isLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <div className="flex flex-col items-center gap-3">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">
+                  Loading audit logs...
+                </p>
+              </div>
+            </div>
+          ) : logs.length === 0 ? (
+            <div className="flex items-center justify-center py-16">
+              <div className="flex flex-col items-center gap-3 text-muted-foreground">
+                <FileText className="h-8 w-8" />
+                <p className="text-sm">
+                  {error
+                    ? "Failed to load audit logs."
+                    : "No audit log entries match the current filters."}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[50px]"></TableHead>
+                  <TableHead>Timestamp</TableHead>
+                  <TableHead>User</TableHead>
+                  <TableHead>Action</TableHead>
+                  <TableHead>Resource</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>PHI</TableHead>
+                  <TableHead className="w-[50px]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {logs.map((log) => (
+                  <>
+                    <TableRow
+                      key={log.id}
+                      className={`cursor-pointer hover:bg-muted/50 ${
+                        !log.success ? "bg-red-50 dark:bg-red-950/20" : ""
+                      }`}
+                      onClick={() =>
+                        setExpandedLog(
+                          expandedLog === log.id ? null : log.id
+                        )
+                      }
+                    >
+                      <TableCell>
+                        <div className="flex items-center justify-center">
+                          {log.success ? (
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                          ) : (
+                            <XCircle className="h-4 w-4 text-red-600" />
+                          )}
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          {formatTimeAgo(log.timestamp)}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{log.userName}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {log.ipAddress}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={`gap-1 ${getActionColor(log.action)}`}>
-                        {getActionIcon(log.action)}
-                        {log.action}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Badge className={getResourceTypeColor(log.resourceType)}>
-                          {log.resourceType.replace("_", " ")}
-                        </Badge>
-                        {log.resourceId && (
-                          <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
-                            {log.resourceId}
-                          </code>
-                        )}
-                      </div>
-                      {log.patientId && (
-                        <div className="text-xs text-muted-foreground mt-1">
-                          Patient: {log.patientId}
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={log.responseStatus < 400 ? "outline" : "destructive"}
-                      >
-                        {log.responseStatus}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {log.phiAccessed ? (
-                        <Badge className="bg-amber-500 text-white">PHI</Badge>
-                      ) : (
-                        <span className="text-muted-foreground text-sm">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {expandedLog === log.id ? (
-                        <ChevronUp className="h-4 w-4" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4" />
-                      )}
-                    </TableCell>
-                  </TableRow>
-                  {expandedLog === log.id && (
-                    <TableRow>
-                      <TableCell colSpan={8} className="bg-muted/20">
-                        <div className="p-4 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                          <div>
-                            <h4 className="text-sm font-medium mb-2">
-                              Request Details
-                            </h4>
-                            <div className="space-y-1 text-sm">
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">
-                                  Method:
-                                </span>
-                                <code className="bg-muted px-1 rounded">
-                                  {log.requestMethod}
-                                </code>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Path:</span>
-                                <code className="bg-muted px-1 rounded text-xs">
-                                  {log.requestPath}
-                                </code>
-                              </div>
-                            </div>
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium text-sm">
+                            {formatTimestamp(log.timestamp)}
                           </div>
-                          <div>
-                            <h4 className="text-sm font-medium mb-2">
-                              User Agent
-                            </h4>
-                            <p className="text-sm text-muted-foreground break-all">
-                              {log.userAgent}
-                            </p>
-                          </div>
-                          <div>
-                            <h4 className="text-sm font-medium mb-2">User Info</h4>
-                            <div className="space-y-1 text-sm">
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">
-                                  User ID:
-                                </span>
-                                <span>{log.userId}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">
-                                  IP Address:
-                                </span>
-                                <span>{log.ipAddress}</span>
-                              </div>
-                            </div>
-                          </div>
-                          <div>
-                            <h4 className="text-sm font-medium mb-2">
-                              Additional Details
-                            </h4>
-                            {log.errorMessage && (
-                              <div className="text-sm text-red-600 mb-2">
-                                Error: {log.errorMessage}
-                              </div>
-                            )}
-                            {log.details && (
-                              <pre className="text-xs bg-muted p-2 rounded overflow-auto max-h-24">
-                                {JSON.stringify(log.details, null, 2)}
-                              </pre>
-                            )}
+                          <div className="text-xs text-muted-foreground">
+                            {formatTimeAgo(log.timestamp)}
                           </div>
                         </div>
                       </TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">
+                            {log.user_id || "Unknown"}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {log.ip_address || "-"}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          className={`gap-1 ${getActionColor(log.action)}`}
+                        >
+                          {getActionIcon(log.action)}
+                          {log.action}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Badge
+                            className={getResourceTypeColor(
+                              log.resource_type
+                            )}
+                          >
+                            {log.resource_type.replace("_", " ")}
+                          </Badge>
+                          {log.resource_id && (
+                            <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
+                              {log.resource_id}
+                            </code>
+                          )}
+                        </div>
+                        {log.patient_id && (
+                          <div className="text-xs text-muted-foreground mt-1">
+                            Patient: {log.patient_id}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            log.response_status != null &&
+                            log.response_status < 400
+                              ? "outline"
+                              : "destructive"
+                          }
+                        >
+                          {log.response_status ?? "-"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {log.phi_accessed ? (
+                          <Badge className="bg-amber-500 text-white">
+                            PHI
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">
+                            -
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {expandedLog === log.id ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
+                      </TableCell>
                     </TableRow>
-                  )}
-                </>
-              ))}
-            </TableBody>
-          </Table>
+                    {expandedLog === log.id && (
+                      <TableRow key={`${log.id}-detail`}>
+                        <TableCell colSpan={8} className="bg-muted/20">
+                          <div className="p-4 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                            <div>
+                              <h4 className="text-sm font-medium mb-2">
+                                Request Details
+                              </h4>
+                              <div className="space-y-1 text-sm">
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">
+                                    Method:
+                                  </span>
+                                  <code className="bg-muted px-1 rounded">
+                                    {log.request_method || "-"}
+                                  </code>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">
+                                    Path:
+                                  </span>
+                                  <code className="bg-muted px-1 rounded text-xs">
+                                    {log.request_path || "-"}
+                                  </code>
+                                </div>
+                                {log.request_id && (
+                                  <div className="flex justify-between">
+                                    <span className="text-muted-foreground">
+                                      Request ID:
+                                    </span>
+                                    <code className="bg-muted px-1 rounded text-xs">
+                                      {log.request_id}
+                                    </code>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-medium mb-2">
+                                User Agent
+                              </h4>
+                              <p className="text-sm text-muted-foreground break-all">
+                                {log.user_agent || "Not available"}
+                              </p>
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-medium mb-2">
+                                User Info
+                              </h4>
+                              <div className="space-y-1 text-sm">
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">
+                                    User ID:
+                                  </span>
+                                  <span>{log.user_id || "-"}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">
+                                    IP Address:
+                                  </span>
+                                  <span>{log.ip_address || "-"}</span>
+                                </div>
+                                {log.session_id && (
+                                  <div className="flex justify-between">
+                                    <span className="text-muted-foreground">
+                                      Session:
+                                    </span>
+                                    <span className="text-xs">
+                                      {log.session_id}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-medium mb-2">
+                                Additional Details
+                              </h4>
+                              {log.error_message && (
+                                <div className="text-sm text-red-600 mb-2">
+                                  Error: {log.error_message}
+                                </div>
+                              )}
+                              {log.details && (
+                                <pre className="text-xs bg-muted p-2 rounded overflow-auto max-h-24">
+                                  {JSON.stringify(log.details, null, 2)}
+                                </pre>
+                              )}
+                              {!log.error_message && !log.details && (
+                                <p className="text-sm text-muted-foreground">
+                                  No additional details
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </>
+                ))}
+              </TableBody>
+            </Table>
+          )}
 
           {/* Pagination */}
-          {totalPages > 1 && (
+          {!isLoading && totalPages > 1 && (
             <div className="flex items-center justify-between mt-4">
               <p className="text-sm text-muted-foreground">
                 Showing {(currentPage - 1) * pageSize + 1} to{" "}
-                {Math.min(currentPage * pageSize, filteredLogs.length)} of{" "}
-                {filteredLogs.length} entries
+                {Math.min(currentPage * pageSize, totalLogs)} of{" "}
+                {totalLogs} entries
               </p>
               <div className="flex items-center gap-2">
                 <Button
@@ -911,29 +948,34 @@ export default function AuditLogPage() {
                   Previous
                 </Button>
                 <div className="flex items-center gap-1">
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    let pageNum = i + 1;
-                    if (totalPages > 5) {
-                      if (currentPage <= 3) {
-                        pageNum = i + 1;
-                      } else if (currentPage >= totalPages - 2) {
-                        pageNum = totalPages - 4 + i;
-                      } else {
-                        pageNum = currentPage - 2 + i;
+                  {Array.from(
+                    { length: Math.min(5, totalPages) },
+                    (_, i) => {
+                      let pageNum = i + 1;
+                      if (totalPages > 5) {
+                        if (currentPage <= 3) {
+                          pageNum = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          pageNum = currentPage - 2 + i;
+                        }
                       }
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant={
+                            currentPage === pageNum ? "default" : "outline"
+                          }
+                          size="sm"
+                          onClick={() => setCurrentPage(pageNum)}
+                          className="w-8"
+                        >
+                          {pageNum}
+                        </Button>
+                      );
                     }
-                    return (
-                      <Button
-                        key={pageNum}
-                        variant={currentPage === pageNum ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setCurrentPage(pageNum)}
-                        className="w-8"
-                      >
-                        {pageNum}
-                      </Button>
-                    );
-                  })}
+                  )}
                 </div>
                 <Button
                   variant="outline"

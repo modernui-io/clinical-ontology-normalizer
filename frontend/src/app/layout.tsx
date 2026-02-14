@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Clinical Ontology Normalizer",
-  description: "Clinical data ingestion, NLP extraction, and OMOP mapping",
+  title: "Sulci AI",
+  description: "Clinical ontology normalization — NLP extraction, UMLS/OMOP mapping, and knowledge graphs",
 };
 
 export default function RootLayout({
@@ -35,7 +35,7 @@ export default function RootLayout({
         <Providers>
           <div className="flex min-h-screen">
             <Sidebar />
-            <div className="flex flex-1 flex-col lg:pl-0">
+            <div className="flex flex-1 flex-col lg:pl-0 min-w-0">
               <Header />
               <MainContent>{children}</MainContent>
             </div>

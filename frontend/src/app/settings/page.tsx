@@ -19,6 +19,8 @@ import {
   Eye,
   EyeOff,
   Check,
+  Shield,
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -46,16 +48,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth, useRequireAuth } from "@/hooks/use-auth";
 
 // ============================================================================
-// Form Schemas
+// Types
 // ============================================================================
 
-const profileSchema = z.object({
-  name: z
-    .string()
-    .min(2, "Name must be at least 2 characters")
-    .max(100, "Name must be less than 100 characters"),
-  email: z.string().email("Please enter a valid email address"),
-});
+/** Shape returned by GET /api/auth/me */
+interface MeResponse {
+  id: string;
+  email: string;
+  roles: string[];
+  permissions: string[];
+  is_admin: boolean;
+}
+
+// ============================================================================
+// Form Schemas
+// ============================================================================
 
 const passwordSchema = z
   .object({
@@ -73,7 +80,6 @@ const passwordSchema = z
     path: ["confirmPassword"],
   });
 
-type ProfileFormData = z.infer<typeof profileSchema>;
 type PasswordFormData = z.infer<typeof passwordSchema>;
 
 // ============================================================================
@@ -217,50 +223,94 @@ function ThemeOption({
 }
 
 // ============================================================================
-// Profile Section
+// Profile Section (wired to GET /api/auth/me)
 // ============================================================================
 
 function ProfileSection() {
-  const { user, updateProfile, isLoading, error } = useAuth();
-  const [isSaving, setIsSaving] = useState(false);
+  const { user } = useAuth();
+  const [profile, setProfile] = useState<MeResponse | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileError, setProfileError] = useState<string | null>(null);
 
-  const form = useForm<ProfileFormData>({
-    resolver: zodResolver(profileSchema),
-    defaultValues: {
-      name: user?.name || "",
-      email: user?.email || "",
-    },
-  });
+  const fetchProfile = useCallback(async () => {
+    setProfileLoading(true);
+    setProfileError(null);
+
+    try {
+      const storedTokens = localStorage.getItem("auth_tokens");
+      const tokens = storedTokens ? JSON.parse(storedTokens) : null;
+      const headers: Record<string, string> = {};
+      if (tokens?.access_token) {
+        headers["Authorization"] = `Bearer ${tokens.access_token}`;
+      }
+
+      const res = await fetch("/api/auth/me", { headers });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({ detail: "Failed to load profile" }));
+        throw new Error(body.detail || `Server returned ${res.status}`);
+      }
+
+      const data: MeResponse = await res.json();
+      setProfile(data);
+    } catch (err) {
+      setProfileError(err instanceof Error ? err.message : "Failed to load profile");
+    } finally {
+      setProfileLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    if (user) {
-      form.reset({
-        name: user.name,
-        email: user.email,
-      });
-    }
-  }, [user, form]);
+    fetchProfile();
+  }, [fetchProfile]);
 
-  const onSubmit = async (data: ProfileFormData) => {
-    setIsSaving(true);
+  if (profileLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <User className="h-5 w-5" />
+            Profile Information
+          </CardTitle>
+          <CardDescription>Your account details.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            <span className="ml-2 text-sm text-muted-foreground">
+              Loading profile...
+            </span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
-    const success = await updateProfile({
-      name: data.name,
-      email: data.email,
-    });
-
-    setIsSaving(false);
-
-    if (success) {
-      toast.success("Profile updated", {
-        description: "Your profile has been updated successfully.",
-      });
-    } else {
-      toast.error("Update failed", {
-        description: error || "Please try again.",
-      });
-    }
-  };
+  if (profileError) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <User className="h-5 w-5" />
+            Profile Information
+          </CardTitle>
+          <CardDescription>Your account details.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-4 space-y-3">
+            <p className="text-sm text-destructive font-medium">
+              Unable to load profile
+            </p>
+            <p className="text-sm text-muted-foreground">{profileError}</p>
+            <Button variant="outline" size="sm" onClick={fetchProfile}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Retry
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -269,64 +319,78 @@ function ProfileSection() {
           <User className="h-5 w-5" />
           Profile Information
         </CardTitle>
-        <CardDescription>
-          Update your account details and email address.
-        </CardDescription>
+        <CardDescription>Your account details.</CardDescription>
       </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Full Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="John Doe" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+      <CardContent className="space-y-4">
+        {/* Display name from auth context (populated at login) */}
+        {user?.name && (
+          <div className="space-y-1">
+            <Label className="text-sm text-muted-foreground">Full Name</Label>
+            <p className="text-sm font-medium">{user.name}</p>
+          </div>
+        )}
 
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email Address</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="name@example.com"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Changing your email will require verification.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        <div className="space-y-1">
+          <Label className="text-sm text-muted-foreground">Email Address</Label>
+          <p className="text-sm font-medium">{profile?.email ?? "---"}</p>
+        </div>
 
-            <Button type="submit" disabled={isSaving || isLoading}>
-              {isSaving ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  Save Changes
-                </>
-              )}
-            </Button>
-          </form>
-        </Form>
+        <div className="space-y-1">
+          <Label className="text-sm text-muted-foreground">User ID</Label>
+          <p className="text-sm font-mono text-muted-foreground">
+            {profile?.id ?? "---"}
+          </p>
+        </div>
+
+        <div className="space-y-1">
+          <Label className="text-sm text-muted-foreground">Roles</Label>
+          <div className="flex flex-wrap gap-2">
+            {profile?.roles.length ? (
+              profile.roles.map((role) => (
+                <span
+                  key={role}
+                  className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors bg-secondary text-secondary-foreground"
+                >
+                  {role}
+                </span>
+              ))
+            ) : (
+              <span className="text-sm text-muted-foreground">No roles assigned</span>
+            )}
+          </div>
+        </div>
+
+        {profile?.is_admin && (
+          <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 p-3">
+            <Shield className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium text-primary">
+              Administrator
+            </span>
+          </div>
+        )}
+
+        {profile?.permissions && profile.permissions.length > 0 && (
+          <div className="space-y-1">
+            <Label className="text-sm text-muted-foreground">Permissions</Label>
+            <div className="flex flex-wrap gap-1.5">
+              {profile.permissions.map((perm) => (
+                <span
+                  key={perm}
+                  className="inline-flex items-center rounded border px-2 py-0.5 text-xs text-muted-foreground"
+                >
+                  {perm}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </CardContent>
+      <CardFooter>
+        <Button variant="outline" size="sm" onClick={fetchProfile}>
+          <RefreshCw className="mr-2 h-4 w-4" />
+          Refresh
+        </Button>
+      </CardFooter>
     </Card>
   );
 }
@@ -503,13 +567,35 @@ function PasswordSection() {
 // Notifications Section
 // ============================================================================
 
-function NotificationsSection() {
-  const [preferences, setPreferences] = useState<NotificationPreferences>({
+const NOTIFICATION_PREFS_KEY = "notification_preferences";
+
+function getStoredNotificationPrefs(): NotificationPreferences {
+  if (typeof window === "undefined") {
+    return {
+      emailNotifications: true,
+      documentProcessed: true,
+      weeklyDigest: false,
+      securityAlerts: true,
+    };
+  }
+  try {
+    const stored = localStorage.getItem(NOTIFICATION_PREFS_KEY);
+    if (stored) return JSON.parse(stored);
+  } catch {
+    // fall through to defaults
+  }
+  return {
     emailNotifications: true,
     documentProcessed: true,
     weeklyDigest: false,
     securityAlerts: true,
-  });
+  };
+}
+
+function NotificationsSection() {
+  const [preferences, setPreferences] = useState<NotificationPreferences>(
+    getStoredNotificationPrefs
+  );
   const [isSaving, setIsSaving] = useState(false);
 
   const handleToggle = useCallback((key: keyof NotificationPreferences) => {
@@ -521,8 +607,12 @@ function NotificationsSection() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    // Persist to localStorage (no backend endpoint for notification prefs)
+    try {
+      localStorage.setItem(NOTIFICATION_PREFS_KEY, JSON.stringify(preferences));
+    } catch {
+      // localStorage write failed, non-fatal
+    }
     setIsSaving(false);
     toast.success("Preferences saved", {
       description: "Your notification preferences have been updated.",

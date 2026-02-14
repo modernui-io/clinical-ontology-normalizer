@@ -398,6 +398,8 @@ async def delete_corrective_action(action_id: str) -> None:
     summary="Get lab proficiency metrics",
     description="Aggregated metrics across all lab proficiency operations.",
 )
-async def get_metrics() -> LabProficiencyMetrics:
+async def get_metrics(
+    trial_id: Optional[str] = Query(None, description="Filter metrics by trial ID"),
+) -> LabProficiencyMetrics:
     svc = get_lab_proficiency_service()
-    return svc.get_metrics()
+    return svc.get_metrics(trial_id=trial_id)

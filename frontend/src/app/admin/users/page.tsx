@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,12 +46,10 @@ import {
   MoreHorizontal,
   Edit,
   Trash,
-  Shield,
   Key,
   CheckCircle,
   XCircle,
   Mail,
-  UserCog,
   ChevronLeft,
   ChevronRight,
   Filter,
@@ -60,145 +58,33 @@ import {
   User as UserIcon,
   Building,
   Eye,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 
-// Types
+// Types matching backend UserSummary
 interface User {
   id: string;
   name: string;
   email: string;
-  role: string;
-  status: "active" | "inactive" | "pending";
-  lastActive: string | null;
-  createdAt: string;
-  avatar?: string;
+  is_active: boolean;
+  roles: string[];
+  last_login: string | null;
+}
+
+interface UserListResponse {
+  users: User[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
 }
 
 interface UserStats {
   totalUsers: number;
   activeUsers: number;
   inactiveUsers: number;
-  pendingUsers: number;
 }
-
-// Mock Data
-const mockUsers: User[] = [
-  {
-    id: "user-001",
-    name: "Admin User",
-    email: "admin@hospital.org",
-    role: "admin",
-    status: "active",
-    lastActive: "2026-01-19T14:32:00Z",
-    createdAt: "2025-01-15T10:00:00Z",
-  },
-  {
-    id: "user-002",
-    name: "Dr. John Smith",
-    email: "dr.smith@hospital.org",
-    role: "provider",
-    status: "active",
-    lastActive: "2026-01-19T13:45:00Z",
-    createdAt: "2025-02-20T09:30:00Z",
-  },
-  {
-    id: "user-003",
-    name: "Mary Johnson",
-    email: "mary.johnson@hospital.org",
-    role: "biller",
-    status: "active",
-    lastActive: "2026-01-19T12:15:00Z",
-    createdAt: "2025-03-10T14:00:00Z",
-  },
-  {
-    id: "user-004",
-    name: "Dr. Sarah Davis",
-    email: "dr.davis@hospital.org",
-    role: "provider",
-    status: "active",
-    lastActive: "2026-01-19T11:30:00Z",
-    createdAt: "2025-04-05T11:00:00Z",
-  },
-  {
-    id: "user-005",
-    name: "Bob Williams",
-    email: "bob.williams@hospital.org",
-    role: "viewer",
-    status: "active",
-    lastActive: "2026-01-18T16:00:00Z",
-    createdAt: "2025-05-12T08:30:00Z",
-  },
-  {
-    id: "user-006",
-    name: "Lisa Brown",
-    email: "lisa.brown@hospital.org",
-    role: "biller",
-    status: "inactive",
-    lastActive: "2025-12-15T10:00:00Z",
-    createdAt: "2025-06-01T13:00:00Z",
-  },
-  {
-    id: "user-007",
-    name: "Michael Chen",
-    email: "michael.chen@hospital.org",
-    role: "provider",
-    status: "active",
-    lastActive: "2026-01-19T10:22:00Z",
-    createdAt: "2025-07-18T09:00:00Z",
-  },
-  {
-    id: "user-008",
-    name: "Emily Watson",
-    email: "emily.watson@hospital.org",
-    role: "quality_analyst",
-    status: "pending",
-    lastActive: null,
-    createdAt: "2026-01-18T15:30:00Z",
-  },
-  {
-    id: "user-009",
-    name: "Dr. Robert Lee",
-    email: "dr.lee@hospital.org",
-    role: "provider",
-    status: "active",
-    lastActive: "2026-01-19T09:45:00Z",
-    createdAt: "2025-08-25T10:00:00Z",
-  },
-  {
-    id: "user-010",
-    name: "Jennifer Martinez",
-    email: "jennifer.martinez@hospital.org",
-    role: "biller",
-    status: "active",
-    lastActive: "2026-01-19T08:30:00Z",
-    createdAt: "2025-09-10T14:00:00Z",
-  },
-  {
-    id: "user-011",
-    name: "David Kim",
-    email: "david.kim@hospital.org",
-    role: "viewer",
-    status: "inactive",
-    lastActive: "2025-11-20T12:00:00Z",
-    createdAt: "2025-10-05T11:00:00Z",
-  },
-  {
-    id: "user-012",
-    name: "Dr. Amanda White",
-    email: "dr.white@hospital.org",
-    role: "provider",
-    status: "active",
-    lastActive: "2026-01-19T07:15:00Z",
-    createdAt: "2025-11-15T09:30:00Z",
-  },
-];
-
-const mockStats: UserStats = {
-  totalUsers: mockUsers.length,
-  activeUsers: mockUsers.filter((u) => u.status === "active").length,
-  inactiveUsers: mockUsers.filter((u) => u.status === "inactive").length,
-  pendingUsers: mockUsers.filter((u) => u.status === "pending").length,
-};
 
 // Helper functions
 const getRoleColor = (role: string): string => {
@@ -233,30 +119,22 @@ const getRoleIcon = (role: string) => {
   }
 };
 
-const getStatusColor = (status: string): string => {
-  switch (status) {
-    case "active":
-      return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
-    case "inactive":
-      return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
-    case "pending":
-      return "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200";
-    default:
-      return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
-  }
+const getStatusColor = (isActive: boolean): string => {
+  return isActive
+    ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+    : "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
 };
 
-const getStatusIcon = (status: string) => {
-  switch (status) {
-    case "active":
-      return <CheckCircle className="h-3 w-3" />;
-    case "inactive":
-      return <XCircle className="h-3 w-3" />;
-    case "pending":
-      return <Mail className="h-3 w-3" />;
-    default:
-      return null;
-  }
+const getStatusIcon = (isActive: boolean) => {
+  return isActive ? (
+    <CheckCircle className="h-3 w-3" />
+  ) : (
+    <XCircle className="h-3 w-3" />
+  );
+};
+
+const getStatusLabel = (isActive: boolean): string => {
+  return isActive ? "active" : "inactive";
 };
 
 const formatDate = (dateString: string): string => {
@@ -294,9 +172,11 @@ const getInitials = (name: string): string => {
 };
 
 export default function UsersPage() {
-  const [users, setUsers] = useState<User[]>(mockUsers);
-  const [stats] = useState<UserStats>(mockStats);
-  const [isLoading, setIsLoading] = useState(false);
+  const [users, setUsers] = useState<User[]>([]);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -305,43 +185,82 @@ export default function UsersPage() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteName, setInviteName] = useState("");
   const [inviteRole, setInviteRole] = useState("viewer");
+  const [actionError, setActionError] = useState<string | null>(null);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
   const roles = ["all", "admin", "provider", "biller", "viewer", "quality_analyst"];
-  const statuses = ["all", "active", "inactive", "pending"];
+  const statuses = ["all", "active", "inactive"];
 
-  // Filter users
-  const filteredUsers = users.filter((user) => {
-    const matchesSearch =
-      searchQuery === "" ||
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesRole = roleFilter === "all" || user.role === roleFilter;
-    const matchesStatus = statusFilter === "all" || user.status === statusFilter;
-    return matchesSearch && matchesRole && matchesStatus;
-  });
-
-  // Pagination
-  const totalPages = Math.ceil(filteredUsers.length / pageSize);
-  const paginatedUsers = filteredUsers.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
-  );
-
-  const refreshData = async () => {
+  // Fetch users from the backend
+  const fetchUsers = useCallback(async () => {
     setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsLoading(false);
+    setError(null);
+    setActionError(null);
+
+    try {
+      const params = new URLSearchParams({
+        page: String(currentPage),
+        page_size: String(pageSize),
+        include_inactive: "true",
+      });
+
+      if (searchQuery) {
+        params.set("search", searchQuery);
+      }
+
+      const res = await fetch(`/api/users?${params.toString()}`);
+
+      if (!res.ok) {
+        const body = await res.text();
+        throw new Error(`Failed to fetch users: ${res.status} ${body}`);
+      }
+
+      const data: UserListResponse = await res.json();
+
+      // Apply client-side role and status filters since the backend
+      // does not natively support them as query params.
+      let filtered = data.users;
+      if (roleFilter !== "all") {
+        filtered = filtered.filter((u) => u.roles.includes(roleFilter));
+      }
+      if (statusFilter !== "all") {
+        const wantActive = statusFilter === "active";
+        filtered = filtered.filter((u) => u.is_active === wantActive);
+      }
+
+      setUsers(filtered);
+      setTotal(data.total);
+      setTotalPages(data.total_pages);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentPage, pageSize, searchQuery, roleFilter, statusFilter]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  // Compute stats from the current total (server knows true counts)
+  const stats: UserStats = {
+    totalUsers: total,
+    activeUsers: users.filter((u) => u.is_active).length,
+    inactiveUsers: users.filter((u) => !u.is_active).length,
+  };
+
+  const refreshData = () => {
+    fetchUsers();
   };
 
   const handleSelectAll = () => {
-    if (selectedUsers.length === paginatedUsers.length) {
+    if (selectedUsers.length === users.length) {
       setSelectedUsers([]);
     } else {
-      setSelectedUsers(paginatedUsers.map((u) => u.id));
+      setSelectedUsers(users.map((u) => u.id));
     }
   };
 
@@ -353,53 +272,96 @@ export default function UsersPage() {
     }
   };
 
-  const handleBulkActivate = () => {
-    setUsers(
-      users.map((u) =>
-        selectedUsers.includes(u.id) ? { ...u, status: "active" as const } : u
-      )
-    );
-    setSelectedUsers([]);
+  const handleBulkActivate = async () => {
+    setActionError(null);
+    try {
+      await Promise.all(
+        selectedUsers.map((userId) =>
+          fetch(`/api/users/${userId}/reactivate`, { method: "POST" })
+        )
+      );
+      setSelectedUsers([]);
+      fetchUsers();
+    } catch (err) {
+      setActionError("Failed to activate some users");
+    }
   };
 
-  const handleBulkDeactivate = () => {
-    setUsers(
-      users.map((u) =>
-        selectedUsers.includes(u.id) ? { ...u, status: "inactive" as const } : u
-      )
-    );
-    setSelectedUsers([]);
+  const handleBulkDeactivate = async () => {
+    setActionError(null);
+    try {
+      await Promise.all(
+        selectedUsers.map((userId) =>
+          fetch(`/api/users/${userId}`, { method: "DELETE" })
+        )
+      );
+      setSelectedUsers([]);
+      fetchUsers();
+    } catch (err) {
+      setActionError("Failed to deactivate some users");
+    }
   };
 
-  const handleInviteUser = () => {
-    const newUser: User = {
-      id: `user-${Date.now()}`,
-      name: inviteName,
-      email: inviteEmail,
-      role: inviteRole,
-      status: "pending",
-      lastActive: null,
-      createdAt: new Date().toISOString(),
-    };
-    setUsers([...users, newUser]);
-    setIsInviteDialogOpen(false);
-    setInviteEmail("");
-    setInviteName("");
-    setInviteRole("viewer");
+  const handleInviteUser = async () => {
+    setActionError(null);
+    try {
+      const res = await fetch("/api/users/invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: inviteEmail,
+          name: inviteName,
+          role: inviteRole,
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.text();
+        throw new Error(`Invite failed: ${res.status} ${body}`);
+      }
+      setIsInviteDialogOpen(false);
+      setInviteEmail("");
+      setInviteName("");
+      setInviteRole("viewer");
+      fetchUsers();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Failed to send invite");
+    }
   };
 
-  const handleDeleteUser = (userId: string) => {
-    setUsers(users.filter((u) => u.id !== userId));
+  const handleDeactivateUser = async (userId: string) => {
+    setActionError(null);
+    try {
+      const res = await fetch(`/api/users/${userId}`, { method: "DELETE" });
+      if (!res.ok && res.status !== 204) {
+        const body = await res.text();
+        throw new Error(`Deactivate failed: ${res.status} ${body}`);
+      }
+      fetchUsers();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Failed to deactivate user");
+    }
   };
 
-  const handleToggleStatus = (userId: string) => {
-    setUsers(
-      users.map((u) =>
-        u.id === userId
-          ? { ...u, status: u.status === "active" ? "inactive" as const : "active" as const }
-          : u
-      )
-    );
+  const handleToggleStatus = async (userId: string, currentlyActive: boolean) => {
+    setActionError(null);
+    try {
+      if (currentlyActive) {
+        const res = await fetch(`/api/users/${userId}`, { method: "DELETE" });
+        if (!res.ok && res.status !== 204) {
+          throw new Error("Failed to deactivate user");
+        }
+      } else {
+        const res = await fetch(`/api/users/${userId}/reactivate`, {
+          method: "POST",
+        });
+        if (!res.ok) {
+          throw new Error("Failed to reactivate user");
+        }
+      }
+      fetchUsers();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Failed to toggle status");
+    }
   };
 
   const clearFilters = () => {
@@ -483,6 +445,9 @@ export default function UsersPage() {
                     ))}
                   </select>
                 </div>
+                {actionError && (
+                  <p className="text-sm text-red-600">{actionError}</p>
+                )}
               </div>
               <DialogFooter>
                 <Button
@@ -499,6 +464,29 @@ export default function UsersPage() {
           </Dialog>
         </div>
       </div>
+
+      {/* Error Banner */}
+      {(error || actionError) && (
+        <Card className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950">
+          <CardContent className="py-4">
+            <div className="flex items-center gap-2 text-red-700 dark:text-red-300">
+              <AlertCircle className="h-4 w-4" />
+              <span className="text-sm font-medium">{error || actionError}</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="ml-auto"
+                onClick={() => {
+                  setError(null);
+                  setActionError(null);
+                }}
+              >
+                Dismiss
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-4">
@@ -521,7 +509,9 @@ export default function UsersPage() {
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{stats.activeUsers}</div>
             <p className="text-xs text-muted-foreground">
-              {((stats.activeUsers / stats.totalUsers) * 100).toFixed(0)}% of total
+              {stats.totalUsers > 0
+                ? `${((stats.activeUsers / stats.totalUsers) * 100).toFixed(0)}% of total`
+                : "No users"}
             </p>
           </CardContent>
         </Card>
@@ -539,12 +529,12 @@ export default function UsersPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Pending Invites</CardTitle>
+            <CardTitle className="text-sm font-medium">This Page</CardTitle>
             <Mail className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-amber-600">{stats.pendingUsers}</div>
-            <p className="text-xs text-muted-foreground">Awaiting confirmation</p>
+            <div className="text-2xl font-bold text-amber-600">{users.length}</div>
+            <p className="text-xs text-muted-foreground">Users shown on current page</p>
           </CardContent>
         </Card>
       </div>
@@ -667,182 +657,226 @@ export default function UsersPage() {
             <div>
               <CardTitle>Users</CardTitle>
               <CardDescription>
-                {filteredUsers.length} user(s) found
+                {isLoading ? "Loading..." : `${total} user(s) found`}
               </CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[50px]">
-                  <Checkbox
-                    checked={
-                      paginatedUsers.length > 0 &&
-                      selectedUsers.length === paginatedUsers.length
-                    }
-                    onCheckedChange={handleSelectAll}
-                  />
-                </TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Last Active</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead className="w-[100px]">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedUsers.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>
-                    <Checkbox
-                      checked={selectedUsers.includes(user.id)}
-                      onCheckedChange={() => handleSelectUser(user.id)}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Link
-                      href={`/admin/users/${user.id}`}
-                      className="flex items-center gap-3 hover:underline"
-                    >
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-medium">
-                        {getInitials(user.name)}
-                      </div>
-                      <span className="font-medium">{user.name}</span>
-                    </Link>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {user.email}
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={`gap-1 ${getRoleColor(user.role)}`}>
-                      {getRoleIcon(user.role)}
-                      {user.role.replace("_", " ")}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={`gap-1 ${getStatusColor(user.status)}`}>
-                      {getStatusIcon(user.status)}
-                      {user.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div>
-                      <div className="text-sm">{formatTimeAgo(user.lastActive)}</div>
-                      {user.lastActive && (
-                        <div className="text-xs text-muted-foreground">
-                          {formatDateTime(user.lastActive).split(",")[0]}
-                        </div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {formatDate(user.createdAt)}
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
-                          <Link href={`/admin/users/${user.id}`}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit User
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleToggleStatus(user.id)}>
-                          {user.status === "active" ? (
-                            <>
-                              <XCircle className="mr-2 h-4 w-4" />
-                              Deactivate
-                            </>
-                          ) : (
-                            <>
-                              <CheckCircle className="mr-2 h-4 w-4" />
-                              Activate
-                            </>
-                          )}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Key className="mr-2 h-4 w-4" />
-                          Reset Password
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-red-600"
-                          onClick={() => handleDeleteUser(user.id)}
-                        >
-                          <Trash className="mr-2 h-4 w-4" />
-                          Delete User
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          {/* Loading State */}
+          {isLoading && users.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+              <Loader2 className="h-8 w-8 animate-spin mb-4" />
+              <p className="text-sm">Loading users...</p>
+            </div>
+          )}
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4">
-              <p className="text-sm text-muted-foreground">
-                Showing {(currentPage - 1) * pageSize + 1} to{" "}
-                {Math.min(currentPage * pageSize, filteredUsers.length)} of{" "}
-                {filteredUsers.length} users
-              </p>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(currentPage - 1)}
-                  disabled={currentPage === 1}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  Previous
-                </Button>
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    let pageNum = i + 1;
-                    if (totalPages > 5) {
-                      if (currentPage <= 3) {
-                        pageNum = i + 1;
-                      } else if (currentPage >= totalPages - 2) {
-                        pageNum = totalPages - 4 + i;
-                      } else {
-                        pageNum = currentPage - 2 + i;
-                      }
-                    }
+          {/* Error State (only when no data at all) */}
+          {error && users.length === 0 && !isLoading && (
+            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+              <AlertCircle className="h-8 w-8 mb-4 text-red-400" />
+              <p className="text-sm text-red-600 mb-4">{error}</p>
+              <Button variant="outline" size="sm" onClick={refreshData}>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Retry
+              </Button>
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!isLoading && !error && users.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+              <Users className="h-8 w-8 mb-4" />
+              <p className="text-sm">No users found</p>
+            </div>
+          )}
+
+          {/* Table */}
+          {users.length > 0 && (
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[50px]">
+                      <Checkbox
+                        checked={
+                          users.length > 0 &&
+                          selectedUsers.length === users.length
+                        }
+                        onCheckedChange={handleSelectAll}
+                      />
+                    </TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Last Login</TableHead>
+                    <TableHead className="w-[100px]">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {users.map((user) => {
                     return (
-                      <Button
-                        key={pageNum}
-                        variant={currentPage === pageNum ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setCurrentPage(pageNum)}
-                        className="w-8"
-                      >
-                        {pageNum}
-                      </Button>
+                      <TableRow key={user.id}>
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedUsers.includes(user.id)}
+                            onCheckedChange={() => handleSelectUser(user.id)}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Link
+                            href={`/admin/users/${user.id}`}
+                            className="flex items-center gap-3 hover:underline"
+                          >
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-medium">
+                              {getInitials(user.name)}
+                            </div>
+                            <span className="font-medium">{user.name}</span>
+                          </Link>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {user.email}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-wrap gap-1">
+                            {user.roles.length > 0 ? (
+                              user.roles.map((role) => (
+                                <Badge key={role} className={`gap-1 ${getRoleColor(role)}`}>
+                                  {getRoleIcon(role)}
+                                  {role.replace("_", " ")}
+                                </Badge>
+                              ))
+                            ) : (
+                              <Badge className={getRoleColor("viewer")}>
+                                {getRoleIcon("viewer")}
+                                no role
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={`gap-1 ${getStatusColor(user.is_active)}`}>
+                            {getStatusIcon(user.is_active)}
+                            {getStatusLabel(user.is_active)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <div className="text-sm">{formatTimeAgo(user.last_login)}</div>
+                            {user.last_login && (
+                              <div className="text-xs text-muted-foreground">
+                                {formatDateTime(user.last_login).split(",")[0]}
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem asChild>
+                                <Link href={`/admin/users/${user.id}`}>
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  Edit User
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  handleToggleStatus(user.id, user.is_active)
+                                }
+                              >
+                                {user.is_active ? (
+                                  <>
+                                    <XCircle className="mr-2 h-4 w-4" />
+                                    Deactivate
+                                  </>
+                                ) : (
+                                  <>
+                                    <CheckCircle className="mr-2 h-4 w-4" />
+                                    Activate
+                                  </>
+                                )}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <Key className="mr-2 h-4 w-4" />
+                                Reset Password
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="text-red-600"
+                                onClick={() => handleDeactivateUser(user.id)}
+                              >
+                                <Trash className="mr-2 h-4 w-4" />
+                                Deactivate User
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
                     );
                   })}
+                </TableBody>
+              </Table>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between mt-4">
+                  <p className="text-sm text-muted-foreground">
+                    Page {currentPage} of {totalPages} ({total} total users)
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(currentPage - 1)}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Previous
+                    </Button>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum = i + 1;
+                        if (totalPages > 5) {
+                          if (currentPage <= 3) {
+                            pageNum = i + 1;
+                          } else if (currentPage >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i;
+                          } else {
+                            pageNum = currentPage - 2 + i;
+                          }
+                        }
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant={currentPage === pageNum ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setCurrentPage(pageNum)}
+                            className="w-8"
+                          >
+                            {pageNum}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>

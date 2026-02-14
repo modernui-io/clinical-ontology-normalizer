@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,7 +39,102 @@ import {
   Network,
 } from "lucide-react";
 
-// Types for CDS data
+// ---------------------------------------------------------------------------
+// Types matching backend schema shapes
+// ---------------------------------------------------------------------------
+
+interface DrugAlertSummary {
+  alert_type: string;
+  severity: string;
+  drug1: string;
+  drug2: string | null;
+  description: string;
+}
+
+interface DiagnosisSummary {
+  name: string;
+  probability: number;
+  urgency: string;
+  icd10_code: string | null;
+}
+
+interface RiskScoreSummary {
+  calculator_name: string;
+  risk_level: string;
+  score_value: number | null;
+  interpretation: string;
+}
+
+interface LabInterpretationSummary {
+  lab_name: string;
+  value: number;
+  unit: string;
+  interpretation: string;
+  reference_range: string;
+}
+
+interface ActionItem {
+  priority: string;
+  title: string;
+  description: string;
+  category: string;
+  patient_id: string | null;
+  estimated_impact: string | null;
+}
+
+interface ProviderDashboardResponse {
+  metadata: {
+    generated_at: string;
+    patient_id: string | null;
+    time_window: string;
+  };
+  clinical_summary: {
+    one_liner: string;
+    active_problems_count: number;
+    medication_count: number;
+    critical_findings: string[];
+  } | null;
+  differential_diagnoses: DiagnosisSummary[];
+  risk_scores: RiskScoreSummary[];
+  drug_alerts: DrugAlertSummary[];
+  abnormal_labs: LabInterpretationSummary[];
+  stats: Record<string, unknown>;
+  action_items: ActionItem[];
+}
+
+interface HCCOpportunitySummary {
+  hcc_code: string;
+  description: string;
+  gap_type: string;
+  confidence: string;
+  estimated_revenue: number;
+  recommended_icd10: string | null;
+}
+
+interface CDIQuerySummary {
+  query_id: string;
+  priority: string;
+  question: string;
+  gap_category: string;
+  estimated_impact: number;
+}
+
+interface BillerDashboardResponse {
+  metadata: {
+    generated_at: string;
+    patient_id: string | null;
+    time_window: string;
+  };
+  hcc_opportunities: HCCOpportunitySummary[];
+  cdi_queries: CDIQuerySummary[];
+  revenue_summary: Record<string, unknown>;
+  action_items: ActionItem[];
+}
+
+// ---------------------------------------------------------------------------
+// UI-facing types for backward-compatible rendering
+// ---------------------------------------------------------------------------
+
 interface DrugAlert {
   id: string;
   drug1: string;
@@ -85,150 +180,95 @@ interface ClinicalCalculator {
   category: string;
 }
 
-// Mock data for demonstration
-const mockDrugAlerts: DrugAlert[] = [
-  {
-    id: "1",
-    drug1: "Warfarin",
-    drug2: "Aspirin",
-    severity: "major",
-    description: "Additive anticoagulant/antiplatelet effects",
-    management: "Monitor INR closely; avoid unless specifically indicated",
-  },
-  {
-    id: "2",
-    drug1: "Simvastatin",
-    drug2: "Clarithromycin",
-    severity: "contraindicated",
-    description: "Strong CYP3A4 inhibition increases simvastatin levels 10-fold",
-    management: "Contraindicated; suspend simvastatin during clarithromycin course",
-  },
-  {
-    id: "3",
-    drug1: "Metformin",
-    drug2: "Lisinopril",
-    severity: "moderate",
-    description: "ACE inhibitors may enhance hypoglycemic effect",
-    management: "Monitor blood glucose; may need to reduce metformin dose",
-  },
-  {
-    id: "4",
-    drug1: "Gabapentin",
-    drug2: "Morphine",
-    severity: "moderate",
-    description: "Additive CNS depression",
-    management: "Start with lower doses; monitor for respiratory depression",
-  },
-];
+// ---------------------------------------------------------------------------
+// Mappers: backend response -> UI types
+// ---------------------------------------------------------------------------
 
-const mockHCCOpportunities: HCCOpportunity[] = [
-  {
-    id: "1",
-    hccCode: "HCC85",
-    description: "Heart Failure",
-    rafValue: 0.323,
-    estimatedRevenue: 4651,
-    confidence: "high",
-    evidence: "Documentation mentions 'CHF', 'reduced EF 35%', BNP elevated",
-  },
-  {
-    id: "2",
-    hccCode: "HCC37",
-    description: "Diabetes with Chronic Complications",
-    rafValue: 0.302,
-    estimatedRevenue: 4349,
-    confidence: "high",
-    evidence: "Diabetic nephropathy documented, UACR >300 mg/g",
-  },
-  {
-    id: "3",
-    hccCode: "HCC111",
-    description: "COPD",
-    rafValue: 0.335,
-    estimatedRevenue: 4824,
-    confidence: "medium",
-    evidence: "History of emphysema mentioned, FEV1/FVC ratio <0.7",
-  },
-  {
-    id: "4",
-    hccCode: "HCC155",
-    description: "Major Depression, Moderate/Severe",
-    rafValue: 0.309,
-    estimatedRevenue: 4450,
-    confidence: "low",
-    evidence: "Depression noted but severity not specified",
-  },
-];
+function mapDrugAlerts(alerts: DrugAlertSummary[]): DrugAlert[] {
+  return alerts.map((a, idx) => ({
+    id: String(idx + 1),
+    drug1: a.drug1,
+    drug2: a.drug2 ?? "Unknown",
+    severity: normalizeSeverity(a.severity),
+    description: a.description,
+    management: a.alert_type === "contraindication"
+      ? "Contraindicated combination"
+      : "Review clinical appropriateness",
+  }));
+}
 
-const mockDocumentationIssues: DocumentationIssue[] = [
-  {
-    id: "1",
-    type: "incomplete",
-    description: "Diabetes type not specified (Type 1 vs Type 2)",
-    affectedCode: "E11.9",
-    priority: "high",
-  },
-  {
-    id: "2",
-    type: "missing",
-    description: "Heart failure type missing (HFrEF vs HFpEF)",
-    affectedCode: "I50.9",
-    priority: "high",
-  },
-  {
-    id: "3",
-    type: "conflicting",
-    description: "CKD stage documented as both 3 and 4 in different notes",
-    affectedCode: "N18.3/N18.4",
-    priority: "medium",
-  },
-  {
-    id: "4",
-    type: "incomplete",
-    description: "BMI 42 documented but morbid obesity not coded",
-    affectedCode: "E66.01",
-    priority: "medium",
-  },
-];
+function normalizeSeverity(
+  s: string
+): "contraindicated" | "major" | "moderate" | "minor" {
+  const lower = s.toLowerCase();
+  if (lower === "contraindicated") return "contraindicated";
+  if (lower === "major") return "major";
+  if (lower === "moderate") return "moderate";
+  return "minor";
+}
 
-const mockQualityGaps: QualityGap[] = [
-  {
-    id: "1",
-    measureId: "HEDIS-CDC-HBA1C",
-    measureName: "Diabetes: HbA1c Control (<8%)",
-    category: "Diabetes",
-    missingElement: "HbA1c test overdue by 45 days",
-    dueDate: "2024-11-15",
-    priority: "critical",
-  },
-  {
-    id: "2",
-    measureId: "HEDIS-CDC-EYE",
-    measureName: "Diabetes: Eye Exam",
-    category: "Diabetes",
-    missingElement: "Annual dilated eye exam not documented",
-    dueDate: "2024-12-31",
-    priority: "high",
-  },
-  {
-    id: "3",
-    measureId: "HEDIS-BCS",
-    measureName: "Breast Cancer Screening",
-    category: "Preventive",
-    missingElement: "Mammogram due (last: 2022-06-15)",
-    dueDate: "2024-06-15",
-    priority: "high",
-  },
-  {
-    id: "4",
-    measureId: "HEDIS-CBP",
-    measureName: "Controlling High Blood Pressure",
-    category: "Cardiovascular",
-    missingElement: "Last BP reading 145/92 (target: <140/90)",
-    dueDate: "2024-12-31",
-    priority: "medium",
-  },
-];
+function mapHCCOpportunities(opps: HCCOpportunitySummary[]): HCCOpportunity[] {
+  return opps.map((o, idx) => ({
+    id: String(idx + 1),
+    hccCode: o.hcc_code,
+    description: o.description,
+    rafValue: 0,
+    estimatedRevenue: o.estimated_revenue,
+    confidence: normalizeConfidence(o.confidence),
+    evidence: o.gap_type + (o.recommended_icd10 ? ` (${o.recommended_icd10})` : ""),
+  }));
+}
+
+function normalizeConfidence(c: string): "high" | "medium" | "low" {
+  const lower = c.toLowerCase();
+  if (lower === "high") return "high";
+  if (lower === "medium") return "medium";
+  return "low";
+}
+
+function mapCDIToDocIssues(queries: CDIQuerySummary[]): DocumentationIssue[] {
+  return queries.map((q, idx) => {
+    const rawPriority = normalizePriority(q.priority);
+    // DocumentationIssue priority does not include "critical"; map to "high"
+    const priority: DocumentationIssue["priority"] =
+      rawPriority === "critical" ? "high" : rawPriority;
+    return {
+      id: String(idx + 1),
+      type: "incomplete" as const,
+      description: q.question,
+      affectedCode: q.gap_category,
+      priority,
+    };
+  });
+}
+
+function normalizePriority(
+  p: string
+): "critical" | "high" | "medium" | "low" {
+  const lower = p.toLowerCase();
+  if (lower === "critical") return "critical";
+  if (lower === "high") return "high";
+  if (lower === "medium") return "medium";
+  return "low";
+}
+
+function mapActionItemsToQualityGaps(items: ActionItem[]): QualityGap[] {
+  return items
+    .filter((a) => a.category === "quality" || a.category === "hcc")
+    .map((a, idx) => ({
+      id: String(idx + 1),
+      measureId: a.category.toUpperCase(),
+      measureName: a.title,
+      category: a.category,
+      missingElement: a.description,
+      dueDate: "",
+      priority: normalizePriority(a.priority),
+    }));
+}
+
+// ---------------------------------------------------------------------------
+// Static calculator list (these are UI links, not backend-driven)
+// ---------------------------------------------------------------------------
 
 const clinicalCalculators: ClinicalCalculator[] = [
   {
@@ -275,58 +315,144 @@ const clinicalCalculators: ClinicalCalculator[] = [
   },
 ];
 
-// Severity badge styling
-const severityStyles = {
+// ---------------------------------------------------------------------------
+// Severity / priority badge styling
+// ---------------------------------------------------------------------------
+
+const severityStyles: Record<string, string> = {
   contraindicated: "bg-red-600 text-white hover:bg-red-700",
   major: "bg-red-500 text-white hover:bg-red-600",
   moderate: "bg-amber-500 text-white hover:bg-amber-600",
   minor: "bg-blue-500 text-white hover:bg-blue-600",
 };
 
-const priorityStyles = {
+const priorityStyles: Record<string, string> = {
   critical: "bg-red-600 text-white",
   high: "bg-red-500 text-white",
   medium: "bg-amber-500 text-white",
   low: "bg-blue-500 text-white",
 };
 
-const confidenceStyles = {
+const confidenceStyles: Record<string, string> = {
   high: "bg-green-500 text-white",
   medium: "bg-amber-500 text-white",
   low: "bg-gray-500 text-white",
 };
 
-const issueTypeStyles = {
+const issueTypeStyles: Record<string, string> = {
   missing: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-  incomplete: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200",
-  conflicting: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+  incomplete:
+    "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200",
+  conflicting:
+    "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
 };
 
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+
 export default function ClinicalDashboardPage() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const refreshData = async () => {
+  // Data derived from API responses
+  const [drugAlerts, setDrugAlerts] = useState<DrugAlert[]>([]);
+  const [hccOpportunities, setHCCOpportunities] = useState<HCCOpportunity[]>(
+    []
+  );
+  const [documentationIssues, setDocumentationIssues] = useState<
+    DocumentationIssue[]
+  >([]);
+  const [qualityGaps, setQualityGaps] = useState<QualityGap[]>([]);
+  const [providerStats, setProviderStats] = useState<Record<string, unknown>>(
+    {}
+  );
+
+  // -----------------------------------------------------------------------
+  // Fetch data from backend dashboard endpoints
+  // -----------------------------------------------------------------------
+
+  const refreshData = useCallback(async () => {
     setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsLoading(false);
-  };
+    setError(null);
 
-  // Calculate summary stats
-  const totalAlerts = mockDrugAlerts.length;
-  const criticalAlerts = mockDrugAlerts.filter(
+    try {
+      const [providerRes, billerRes] = await Promise.all([
+        fetch("/api/dashboard/provider"),
+        fetch("/api/dashboard/biller"),
+      ]);
+
+      if (!providerRes.ok) {
+        throw new Error(
+          `Provider dashboard returned ${providerRes.status}: ${providerRes.statusText}`
+        );
+      }
+      if (!billerRes.ok) {
+        throw new Error(
+          `Biller dashboard returned ${billerRes.status}: ${billerRes.statusText}`
+        );
+      }
+
+      const provider: ProviderDashboardResponse = await providerRes.json();
+      const biller: BillerDashboardResponse = await billerRes.json();
+
+      // Map backend shapes to UI types
+      setDrugAlerts(mapDrugAlerts(provider.drug_alerts));
+      setHCCOpportunities(mapHCCOpportunities(biller.hcc_opportunities));
+      setDocumentationIssues(mapCDIToDocIssues(biller.cdi_queries));
+      setProviderStats(provider.stats);
+
+      // Combine action items from both dashboards into quality gaps
+      const allActions = [
+        ...provider.action_items,
+        ...biller.action_items,
+      ];
+      setQualityGaps(mapActionItemsToQualityGaps(allActions));
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to load dashboard data";
+      setError(message);
+      console.error("Clinical dashboard fetch error:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshData();
+  }, [refreshData]);
+
+  // -----------------------------------------------------------------------
+  // Computed summary stats
+  // -----------------------------------------------------------------------
+
+  const totalAlerts = drugAlerts.length;
+  const criticalAlerts = drugAlerts.filter(
     (a) => a.severity === "contraindicated" || a.severity === "major"
   ).length;
-  const totalRAFOpportunity = mockHCCOpportunities.reduce(
+  const totalRAFOpportunity = hccOpportunities.reduce(
     (sum, o) => sum + o.rafValue,
     0
   );
-  const totalRevenueOpportunity = mockHCCOpportunities.reduce(
+  const totalRevenueOpportunity = hccOpportunities.reduce(
     (sum, o) => sum + o.estimatedRevenue,
     0
   );
-  const criticalGaps = mockQualityGaps.filter(
+  const criticalGaps = qualityGaps.filter(
     (g) => g.priority === "critical"
   ).length;
+
+  // Available calculators count from provider stats
+  const availableCalculators =
+    (
+      providerStats as {
+        summary?: { available_calculators?: number };
+      }
+    )?.summary?.available_calculators ?? clinicalCalculators.length;
+
+  // -----------------------------------------------------------------------
+  // Render
+  // -----------------------------------------------------------------------
 
   return (
     <div className="p-6 space-y-6">
@@ -337,7 +463,8 @@ export default function ClinicalDashboardPage() {
             Clinical Decision Support
           </h1>
           <p className="text-muted-foreground">
-            Real-time clinical alerts, HCC opportunities, and quality measure gaps
+            Real-time clinical alerts, HCC opportunities, and quality measure
+            gaps
           </p>
         </div>
         <div className="flex gap-2">
@@ -415,6 +542,29 @@ export default function ClinicalDashboardPage() {
         </div>
       </div>
 
+      {/* Error Banner */}
+      {error && (
+        <Card className="border-red-300 bg-red-50 dark:border-red-800 dark:bg-red-950">
+          <CardContent className="flex items-center gap-3 py-4">
+            <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-red-800 dark:text-red-200">
+                Failed to load dashboard data
+              </p>
+              <p className="text-xs text-red-600 dark:text-red-400">{error}</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={refreshData}
+              disabled={isLoading}
+            >
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Summary Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -423,27 +573,39 @@ export default function ClinicalDashboardPage() {
             <Pill className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalAlerts}</div>
+            <div className="text-2xl font-bold">
+              {isLoading ? "..." : totalAlerts}
+            </div>
             <p className="text-xs text-muted-foreground">
-              <span className="text-red-600 dark:text-red-400 font-medium">
-                {criticalAlerts} critical
-              </span>{" "}
-              interactions detected
+              {isLoading ? (
+                "Loading..."
+              ) : (
+                <>
+                  <span className="text-red-600 dark:text-red-400 font-medium">
+                    {criticalAlerts} critical
+                  </span>{" "}
+                  interactions detected
+                </>
+              )}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">RAF Opportunity</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              RAF Opportunity
+            </CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              +{totalRAFOpportunity.toFixed(3)}
+              {isLoading ? "..." : `+${totalRAFOpportunity.toFixed(3)}`}
             </div>
             <p className="text-xs text-muted-foreground">
-              {mockHCCOpportunities.length} HCC gaps identified
+              {isLoading
+                ? "Loading..."
+                : `${hccOpportunities.length} HCC gaps identified`}
             </p>
           </CardContent>
         </Card>
@@ -457,10 +619,12 @@ export default function ClinicalDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-              ${totalRevenueOpportunity.toLocaleString()}
+              {isLoading
+                ? "..."
+                : `$${totalRevenueOpportunity.toLocaleString()}`}
             </div>
             <p className="text-xs text-muted-foreground">
-              Potential annual revenue
+              {isLoading ? "Loading..." : "Potential annual revenue"}
             </p>
           </CardContent>
         </Card>
@@ -471,12 +635,20 @@ export default function ClinicalDashboardPage() {
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockQualityGaps.length}</div>
+            <div className="text-2xl font-bold">
+              {isLoading ? "..." : qualityGaps.length}
+            </div>
             <p className="text-xs text-muted-foreground">
-              <span className="text-red-600 dark:text-red-400 font-medium">
-                {criticalGaps} critical
-              </span>{" "}
-              gaps to close
+              {isLoading ? (
+                "Loading..."
+              ) : (
+                <>
+                  <span className="text-red-600 dark:text-red-400 font-medium">
+                    {criticalGaps} critical
+                  </span>{" "}
+                  gaps to close
+                </>
+              )}
             </p>
           </CardContent>
         </Card>
@@ -506,38 +678,51 @@ export default function ClinicalDashboardPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {mockDrugAlerts.map((alert) => (
-                <div
-                  key={alert.id}
-                  className="flex items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"
-                >
-                  {alert.severity === "contraindicated" ? (
-                    <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 shrink-0" />
-                  ) : alert.severity === "major" ? (
-                    <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5 shrink-0" />
-                  ) : (
-                    <Info className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" />
-                  )}
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-medium">
-                        {alert.drug1} + {alert.drug2}
-                      </span>
-                      <Badge className={severityStyles[alert.severity]}>
-                        {alert.severity}
-                      </Badge>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+                <span className="ml-2 text-sm text-muted-foreground">
+                  Loading alerts...
+                </span>
+              </div>
+            ) : drugAlerts.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-8 text-center">
+                No drug interaction alerts found.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {drugAlerts.map((alert) => (
+                  <div
+                    key={alert.id}
+                    className="flex items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"
+                  >
+                    {alert.severity === "contraindicated" ? (
+                      <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 shrink-0" />
+                    ) : alert.severity === "major" ? (
+                      <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5 shrink-0" />
+                    ) : (
+                      <Info className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" />
+                    )}
+                    <div className="flex-1 space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-medium">
+                          {alert.drug1} + {alert.drug2}
+                        </span>
+                        <Badge className={severityStyles[alert.severity] ?? ""}>
+                          {alert.severity}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {alert.description}
+                      </p>
+                      <p className="text-xs text-blue-600 dark:text-blue-400">
+                        {alert.management}
+                      </p>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {alert.description}
-                    </p>
-                    <p className="text-xs text-blue-600 dark:text-blue-400">
-                      {alert.management}
-                    </p>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -555,46 +740,70 @@ export default function ClinicalDashboardPage() {
                 </CardDescription>
               </div>
               <Badge variant="outline" className="text-green-600">
-                ${totalRevenueOpportunity.toLocaleString()} potential
+                {isLoading
+                  ? "..."
+                  : `$${totalRevenueOpportunity.toLocaleString()} potential`}
               </Badge>
             </div>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>HCC</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>RAF</TableHead>
-                  <TableHead>Est. Revenue</TableHead>
-                  <TableHead>Confidence</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {mockHCCOpportunities.map((opp) => (
-                  <TableRow key={opp.id}>
-                    <TableCell className="font-medium">{opp.hccCode}</TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium text-sm">{opp.description}</div>
-                        <div className="text-xs text-muted-foreground truncate max-w-[200px]">
-                          {opp.evidence}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>+{opp.rafValue.toFixed(3)}</TableCell>
-                    <TableCell className="text-green-600 dark:text-green-400 font-medium">
-                      ${opp.estimatedRevenue.toLocaleString()}
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={confidenceStyles[opp.confidence]}>
-                        {opp.confidence}
-                      </Badge>
-                    </TableCell>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+                <span className="ml-2 text-sm text-muted-foreground">
+                  Loading opportunities...
+                </span>
+              </div>
+            ) : hccOpportunities.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-8 text-center">
+                No HCC gap opportunities found. Provide clinical text to analyze
+                for revenue opportunities.
+              </p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>HCC</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>RAF</TableHead>
+                    <TableHead>Est. Revenue</TableHead>
+                    <TableHead>Confidence</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {hccOpportunities.map((opp) => (
+                    <TableRow key={opp.id}>
+                      <TableCell className="font-medium">
+                        {opp.hccCode}
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium text-sm">
+                            {opp.description}
+                          </div>
+                          <div className="text-xs text-muted-foreground truncate max-w-[200px]">
+                            {opp.evidence}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>+{opp.rafValue.toFixed(3)}</TableCell>
+                      <TableCell className="text-green-600 dark:text-green-400 font-medium">
+                        ${opp.estimatedRevenue.toLocaleString()}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          className={
+                            confidenceStyles[opp.confidence] ?? ""
+                          }
+                        >
+                          {opp.confidence}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
 
@@ -612,34 +821,49 @@ export default function ClinicalDashboardPage() {
                 </CardDescription>
               </div>
               <Badge variant="outline">
-                {mockDocumentationIssues.length} issues
+                {isLoading ? "..." : `${documentationIssues.length} issues`}
               </Badge>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {mockDocumentationIssues.map((issue) => (
-                <div
-                  key={issue.id}
-                  className="flex items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"
-                >
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Badge className={issueTypeStyles[issue.type]}>
-                        {issue.type}
-                      </Badge>
-                      <Badge className={priorityStyles[issue.priority]}>
-                        {issue.priority}
-                      </Badge>
-                      <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
-                        {issue.affectedCode}
-                      </code>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+                <span className="ml-2 text-sm text-muted-foreground">
+                  Loading issues...
+                </span>
+              </div>
+            ) : documentationIssues.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-8 text-center">
+                No documentation issues found.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {documentationIssues.map((issue) => (
+                  <div
+                    key={issue.id}
+                    className="flex items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"
+                  >
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge className={issueTypeStyles[issue.type] ?? ""}>
+                          {issue.type}
+                        </Badge>
+                        <Badge
+                          className={priorityStyles[issue.priority] ?? ""}
+                        >
+                          {issue.priority}
+                        </Badge>
+                        <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
+                          {issue.affectedCode}
+                        </code>
+                      </div>
+                      <p className="text-sm">{issue.description}</p>
                     </div>
-                    <p className="text-sm">{issue.description}</p>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -657,48 +881,67 @@ export default function ClinicalDashboardPage() {
                 </CardDescription>
               </div>
               <Badge variant="outline" className="text-red-600">
-                {criticalGaps} critical
+                {isLoading ? "..." : `${criticalGaps} critical`}
               </Badge>
             </div>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Measure</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Gap</TableHead>
-                  <TableHead>Due</TableHead>
-                  <TableHead>Priority</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {mockQualityGaps.map((gap) => (
-                  <TableRow key={gap.id}>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium text-sm">{gap.measureName}</div>
-                        <code className="text-xs text-muted-foreground">
-                          {gap.measureId}
-                        </code>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">{gap.category}</Badge>
-                    </TableCell>
-                    <TableCell className="max-w-[200px]">
-                      <span className="text-sm">{gap.missingElement}</span>
-                    </TableCell>
-                    <TableCell className="text-sm">{gap.dueDate}</TableCell>
-                    <TableCell>
-                      <Badge className={priorityStyles[gap.priority]}>
-                        {gap.priority}
-                      </Badge>
-                    </TableCell>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+                <span className="ml-2 text-sm text-muted-foreground">
+                  Loading quality gaps...
+                </span>
+              </div>
+            ) : qualityGaps.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-8 text-center">
+                No quality measure gaps found.
+              </p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Measure</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Gap</TableHead>
+                    <TableHead>Due</TableHead>
+                    <TableHead>Priority</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {qualityGaps.map((gap) => (
+                    <TableRow key={gap.id}>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium text-sm">
+                            {gap.measureName}
+                          </div>
+                          <code className="text-xs text-muted-foreground">
+                            {gap.measureId}
+                          </code>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">{gap.category}</Badge>
+                      </TableCell>
+                      <TableCell className="max-w-[200px]">
+                        <span className="text-sm">{gap.missingElement}</span>
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {gap.dueDate || "--"}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          className={priorityStyles[gap.priority] ?? ""}
+                        >
+                          {gap.priority}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -714,6 +957,8 @@ export default function ClinicalDashboardPage() {
               </CardTitle>
               <CardDescription>
                 Quick access to validated clinical risk calculators
+                {availableCalculators > 0 &&
+                  ` (${availableCalculators} available)`}
               </CardDescription>
             </div>
             <Link href="/clinical/tools">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -47,7 +47,10 @@ import {
   ExternalLink,
 } from "lucide-react";
 
-// Types
+// ---------------------------------------------------------------------------
+// Types -- frontend display model
+// ---------------------------------------------------------------------------
+
 interface SearchResult {
   id: string;
   documentId: string;
@@ -86,141 +89,59 @@ interface FacetCounts {
   dateRanges: Record<string, number>;
 }
 
-// Mock Data
-const mockDomains = ["Condition", "Medication", "Procedure", "Observation", "Immunization", "CarePlan", "AllergyIntolerance"];
-const mockNoteTypes = ["Progress Note", "Discharge Summary", "H&P", "Consultation", "Lab Report", "Imaging", "Operative Note"];
-const mockPatients = [
-  { id: "P001", name: "John Smith" },
-  { id: "P003", name: "Mary Johnson" },
-  { id: "P008", name: "Robert Williams" },
-  { id: "P012", name: "Lisa Brown" },
-  { id: "P015", name: "David Garcia" },
+// ---------------------------------------------------------------------------
+// Types -- backend /api/search/typeahead response
+// ---------------------------------------------------------------------------
+
+interface TypeaheadResult {
+  id: string;
+  text: string;
+  type: string; // "patient" | "concept" | "document"
+  score: number;
+  highlight: string | null;
+  metadata: Record<string, unknown> | null;
+}
+
+interface TypeaheadResponse {
+  query: string;
+  results: TypeaheadResult[];
+  total: number;
+  groups: Record<string, number>;
+}
+
+// ---------------------------------------------------------------------------
+// Static label lists for sidebar (used as fallback when no API data yet)
+// ---------------------------------------------------------------------------
+
+const ALL_DOMAINS = [
+  "Condition",
+  "Medication",
+  "Procedure",
+  "Observation",
+  "Immunization",
+  "CarePlan",
+  "AllergyIntolerance",
+  "Drug",
+  "Measurement",
+];
+const ALL_NOTE_TYPES = [
+  "Progress Note",
+  "Discharge Summary",
+  "H&P",
+  "Consultation",
+  "Lab Report",
+  "Imaging",
+  "Operative Note",
 ];
 
-const mockFacetCounts: FacetCounts = {
-  domains: {
-    Condition: 245,
-    Medication: 189,
-    Procedure: 134,
-    Observation: 456,
-    Immunization: 78,
-    CarePlan: 45,
-    AllergyIntolerance: 92,
-  },
-  noteTypes: {
-    "Progress Note": 520,
-    "Discharge Summary": 145,
-    "H&P": 89,
-    Consultation: 234,
-    "Lab Report": 178,
-    Imaging: 112,
-    "Operative Note": 67,
-  },
-  patients: {
-    P001: { name: "John Smith", count: 156 },
-    P003: { name: "Mary Johnson", count: 89 },
-    P008: { name: "Robert Williams", count: 234 },
-    P012: { name: "Lisa Brown", count: 67 },
-    P015: { name: "David Garcia", count: 123 },
-  },
-  dateRanges: {
-    "Last 7 days": 156,
-    "Last 30 days": 456,
-    "Last 90 days": 789,
-    "Last year": 1234,
-    "All time": 1567,
-  },
+const EMPTY_FACETS: FacetCounts = {
+  domains: {},
+  noteTypes: {},
+  patients: {},
+  dateRanges: {},
 };
 
-const mockResults: SearchResult[] = [
-  {
-    id: "result-001",
-    documentId: "doc-123",
-    patientId: "P001",
-    patientName: "John Smith",
-    domain: "Condition",
-    content: "Patient presents with Type 2 Diabetes Mellitus with HbA1c of 7.2%. Started on metformin 500mg BID. Will follow up in 3 months for repeat labs.",
-    snippet: "...presents with Type 2 **Diabetes** Mellitus with HbA1c of 7.2%...",
-    score: 0.95,
-    date: "2026-01-15",
-    noteType: "Progress Note",
-    highlights: ["diabetes", "HbA1c", "metformin"],
-    metadata: { provider: "Dr. Sarah Davis", location: "Endocrinology Clinic" },
-  },
-  {
-    id: "result-002",
-    documentId: "doc-456",
-    patientId: "P003",
-    patientName: "Mary Johnson",
-    domain: "Medication",
-    content: "Review of diabetes medications. Currently on metformin 1000mg BID and glipizide 5mg daily. Good glycemic control achieved.",
-    snippet: "...review of **diabetes** medications. Currently on metformin...",
-    score: 0.88,
-    date: "2026-01-10",
-    noteType: "Progress Note",
-    highlights: ["diabetes", "metformin", "glipizide"],
-    metadata: { provider: "Dr. John Smith", location: "Primary Care" },
-  },
-  {
-    id: "result-003",
-    documentId: "doc-789",
-    patientId: "P008",
-    patientName: "Robert Williams",
-    domain: "Observation",
-    content: "HbA1c result: 6.8%. Patient has shown excellent improvement in diabetes control with lifestyle modifications and medication adherence.",
-    snippet: "...excellent improvement in **diabetes** control with lifestyle...",
-    score: 0.82,
-    date: "2025-12-20",
-    noteType: "Lab Report",
-    highlights: ["diabetes", "HbA1c", "improvement"],
-    metadata: { provider: "Lab Services", location: "Main Hospital" },
-  },
-  {
-    id: "result-004",
-    documentId: "doc-101",
-    patientId: "P001",
-    patientName: "John Smith",
-    domain: "CarePlan",
-    content: "Diabetes care plan: Continue current medications, dietary counseling scheduled, foot exam due next visit, eye exam referral placed.",
-    snippet: "...**Diabetes** care plan: Continue current medications...",
-    score: 0.78,
-    date: "2025-12-15",
-    noteType: "Progress Note",
-    highlights: ["diabetes", "care plan", "medications"],
-    metadata: { provider: "Dr. Sarah Davis", location: "Endocrinology Clinic" },
-  },
-  {
-    id: "result-005",
-    documentId: "doc-112",
-    patientId: "P012",
-    patientName: "Lisa Brown",
-    domain: "Condition",
-    content: "New diagnosis of pre-diabetes based on fasting glucose of 118 mg/dL. Discussed lifestyle modifications and will recheck in 3 months.",
-    snippet: "...new diagnosis of pre-**diabetes** based on fasting glucose...",
-    score: 0.72,
-    date: "2025-11-30",
-    noteType: "H&P",
-    highlights: ["diabetes", "fasting glucose", "lifestyle"],
-    metadata: { provider: "Dr. Michael Chen", location: "Primary Care" },
-  },
-];
-
-const mockSavedSearches: SavedSearch[] = [
-  {
-    id: "saved-1",
-    name: "Diabetes patients",
-    query: "diabetes",
-    filters: { domains: ["Condition"], noteTypes: [], patientIds: [], dateFrom: "", dateTo: "" },
-    createdAt: "2026-01-10",
-  },
-  {
-    id: "saved-2",
-    name: "Recent lab results",
-    query: "lab results",
-    filters: { domains: [], noteTypes: ["Lab Report"], patientIds: [], dateFrom: "2025-12-01", dateTo: "" },
-    createdAt: "2026-01-05",
-  },
-];
+const INITIAL_SAVED_SEARCHES: SavedSearch[] = [];
 
 // Helper functions
 const highlightText = (text: string, query: string): React.ReactNode => {
@@ -270,14 +191,20 @@ const formatDate = (dateStr: string): string => {
 };
 
 export default function SearchPage() {
+  // ---------------------------------------------------------------------------
   // State
+  // ---------------------------------------------------------------------------
   const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<SearchResult[]>([]);
-  const [facetCounts, setFacetCounts] = useState<FacetCounts>(mockFacetCounts);
+  const [facetCounts, setFacetCounts] = useState<FacetCounts>(EMPTY_FACETS);
   const [totalResults, setTotalResults] = useState(0);
   const [searchTime, setSearchTime] = useState(0);
   const [hasSearched, setHasSearched] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Abort controller ref so we can cancel in-flight requests on new searches
+  const abortRef = useRef<AbortController | null>(null);
 
   // Filters
   const [filters, setFilters] = useState<SearchFilters>({
@@ -289,8 +216,8 @@ export default function SearchPage() {
   });
   const [showFilters, setShowFilters] = useState(true);
 
-  // Saved searches
-  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>(mockSavedSearches);
+  // Saved searches (local only -- persisted in component state)
+  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>(INITIAL_SAVED_SEARCHES);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [searchName, setSearchName] = useState("");
 
@@ -301,51 +228,152 @@ export default function SearchPage() {
     "recent labs",
   ]);
 
-  // Note: SearchWithDebounce handles auto-focus via its own ref
+  // ---------------------------------------------------------------------------
+  // Map a backend TypeaheadResult to the frontend SearchResult display model
+  // ---------------------------------------------------------------------------
+  const mapTypeaheadToSearchResult = useCallback(
+    (item: TypeaheadResult, idx: number): SearchResult => {
+      const meta = (item.metadata ?? {}) as Record<string, unknown>;
+      return {
+        id: item.id || `result-${idx}`,
+        documentId: item.type === "document" ? item.id : "",
+        patientId:
+          item.type === "patient"
+            ? item.id
+            : (meta.patient_id as string) ?? "",
+        patientName:
+          item.type === "patient"
+            ? item.text
+            : (meta.patient_name as string) ?? (meta.patient_id as string) ?? "",
+        domain: (meta.domain as string) ?? (meta.domain_id as string) ?? item.type,
+        content: item.text,
+        snippet: item.highlight ?? item.text,
+        score: item.score,
+        date: (meta.date as string) ?? "",
+        noteType: (meta.note_type as string) ?? "",
+        highlights: [],
+        metadata: meta,
+      };
+    },
+    [],
+  );
 
-  // Search function
+  // ---------------------------------------------------------------------------
+  // Build facet counts from the groups dict returned by the typeahead API
+  // ---------------------------------------------------------------------------
+  const buildFacets = useCallback(
+    (groups: Record<string, number>, resultList: SearchResult[]): FacetCounts => {
+      const domains: Record<string, number> = {};
+      const noteTypes: Record<string, number> = {};
+      const patients: Record<string, { name: string; count: number }> = {};
+
+      // Tally from results themselves so the sidebar reflects actual data
+      for (const r of resultList) {
+        if (r.domain) {
+          domains[r.domain] = (domains[r.domain] ?? 0) + 1;
+        }
+        if (r.noteType) {
+          noteTypes[r.noteType] = (noteTypes[r.noteType] ?? 0) + 1;
+        }
+        if (r.patientId) {
+          if (patients[r.patientId]) {
+            patients[r.patientId].count += 1;
+          } else {
+            patients[r.patientId] = {
+              name: r.patientName || r.patientId,
+              count: 1,
+            };
+          }
+        }
+      }
+
+      return {
+        domains,
+        noteTypes,
+        patients,
+        dateRanges: groups, // pass raw group counts through
+      };
+    },
+    [],
+  );
+
+  // ---------------------------------------------------------------------------
+  // Core search -- calls GET /api/search/typeahead
+  // ---------------------------------------------------------------------------
   const performSearch = useCallback(async () => {
-    if (!query.trim()) return;
+    const trimmed = query.trim();
+    if (!trimmed) return;
+
+    // Cancel any in-flight request
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
 
     setIsLoading(true);
     setHasSearched(true);
+    setError(null);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    const t0 = performance.now();
 
-    // Filter mock results based on filters
-    let filteredResults = mockResults.filter((r) =>
-      r.content.toLowerCase().includes(query.toLowerCase())
-    );
+    try {
+      // Build type filter from selected domain filters
+      const typeParam = filters.domains.length > 0
+        ? `&types=${filters.domains.map((d) => d.toLowerCase()).join(",")}`
+        : "";
 
-    if (filters.domains.length > 0) {
-      filteredResults = filteredResults.filter((r) =>
-        filters.domains.includes(r.domain)
+      const res = await fetch(
+        `/api/search/typeahead?q=${encodeURIComponent(trimmed)}&limit=20${typeParam}`,
+        { signal: controller.signal },
       );
-    }
-    if (filters.noteTypes.length > 0) {
-      filteredResults = filteredResults.filter((r) =>
-        filters.noteTypes.includes(r.noteType)
-      );
-    }
-    if (filters.patientIds.length > 0) {
-      filteredResults = filteredResults.filter((r) =>
-        filters.patientIds.includes(r.patientId)
-      );
-    }
 
-    setResults(filteredResults);
-    setTotalResults(filteredResults.length);
-    setSearchTime(Math.random() * 100 + 50);
+      if (!res.ok) {
+        throw new Error(`Search failed (${res.status})`);
+      }
 
-    // Add to recent searches
-    setRecentSearches((prev) => {
-      const updated = [query, ...prev.filter((q) => q !== query)].slice(0, 5);
-      return updated;
-    });
+      const data: TypeaheadResponse = await res.json();
+      const elapsed = performance.now() - t0;
 
-    setIsLoading(false);
-  }, [query, filters]);
+      // Map to display model
+      let mapped = data.results.map(mapTypeaheadToSearchResult);
+
+      // Apply client-side filters that the typeahead API doesn't support
+      if (filters.noteTypes.length > 0) {
+        mapped = mapped.filter((r) => filters.noteTypes.includes(r.noteType));
+      }
+      if (filters.patientIds.length > 0) {
+        mapped = mapped.filter((r) => filters.patientIds.includes(r.patientId));
+      }
+
+      setResults(mapped);
+      setTotalResults(data.total);
+      setSearchTime(elapsed);
+      setFacetCounts(buildFacets(data.groups, mapped));
+
+      // Track recent searches
+      setRecentSearches((prev) => {
+        const updated = [trimmed, ...prev.filter((q) => q !== trimmed)].slice(0, 5);
+        return updated;
+      });
+    } catch (err: unknown) {
+      if (err instanceof DOMException && err.name === "AbortError") {
+        // Request was cancelled by a newer search -- not an error
+        return;
+      }
+      setError(err instanceof Error ? err.message : "An unexpected error occurred");
+      setResults([]);
+      setTotalResults(0);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [query, filters, mapTypeaheadToSearchResult, buildFacets]);
+
+  // Re-run search when filters change (if we already have a query)
+  useEffect(() => {
+    if (hasSearched && query.trim()) {
+      performSearch();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters]);
 
   // Handle submit
   const handleSubmit = (e: React.FormEvent) => {
@@ -411,6 +439,21 @@ export default function SearchPage() {
     (filters.dateFrom ? 1 : 0) +
     (filters.dateTo ? 1 : 0);
 
+  // ---------------------------------------------------------------------------
+  // Derive sidebar filter lists.
+  // Before any search we show the static labels; after a search we merge in
+  // any new values that appeared in results so the sidebar stays useful.
+  // ---------------------------------------------------------------------------
+  const domainList = Array.from(
+    new Set([...ALL_DOMAINS, ...Object.keys(facetCounts.domains)]),
+  );
+  const noteTypeList = Array.from(
+    new Set([...ALL_NOTE_TYPES, ...Object.keys(facetCounts.noteTypes)]),
+  );
+  const patientList = Object.entries(facetCounts.patients).map(
+    ([id, info]) => ({ id, name: info.name }),
+  );
+
   return (
     <div className="flex min-h-screen bg-background">
       {/* Sidebar - Faceted Filters */}
@@ -435,7 +478,7 @@ export default function SearchPage() {
           <div className="space-y-2">
             <h3 className="text-sm font-medium">Domain</h3>
             <div className="space-y-1">
-              {mockDomains.map((domain) => (
+              {domainList.map((domain) => (
                 <div key={domain} className="flex items-center space-x-2">
                   <Checkbox
                     id={`domain-${domain}`}
@@ -460,7 +503,7 @@ export default function SearchPage() {
           <div className="space-y-2">
             <h3 className="text-sm font-medium">Note Type</h3>
             <div className="space-y-1">
-              {mockNoteTypes.map((noteType) => (
+              {noteTypeList.map((noteType) => (
                 <div key={noteType} className="flex items-center space-x-2">
                   <Checkbox
                     id={`notetype-${noteType}`}
@@ -481,11 +524,12 @@ export default function SearchPage() {
             </div>
           </div>
 
-          {/* Patient Filter */}
+          {/* Patient Filter -- populated dynamically from search results */}
+          {patientList.length > 0 && (
           <div className="space-y-2">
             <h3 className="text-sm font-medium">Patient</h3>
             <div className="space-y-1">
-              {mockPatients.map((patient) => (
+              {patientList.map((patient) => (
                 <div key={patient.id} className="flex items-center space-x-2">
                   <Checkbox
                     id={`patient-${patient.id}`}
@@ -505,6 +549,7 @@ export default function SearchPage() {
               ))}
             </div>
           </div>
+          )}
 
           {/* Date Range Filter */}
           <div className="space-y-2">
@@ -733,7 +778,7 @@ export default function SearchPage() {
                     </Badge>
                   ))}
                   {filters.patientIds.map((patientId) => {
-                    const patient = mockPatients.find((p) => p.id === patientId);
+                    const patientInfo = facetCounts.patients[patientId];
                     return (
                       <Badge
                         key={patientId}
@@ -741,7 +786,7 @@ export default function SearchPage() {
                         className="gap-1 cursor-pointer"
                         onClick={() => toggleFilter("patientIds", patientId)}
                       >
-                        {patient?.name || patientId}
+                        {patientInfo?.name || patientId}
                         <X className="h-3 w-3" />
                       </Badge>
                     );
@@ -776,6 +821,29 @@ export default function SearchPage() {
           </CardContent>
         </Card>
 
+        {/* Error State */}
+        {error && (
+          <Card className="border-destructive">
+            <CardContent className="py-6">
+              <div className="flex items-center gap-3 text-destructive">
+                <AlertCircle className="h-5 w-5 flex-shrink-0" />
+                <div>
+                  <p className="font-medium">Search failed</p>
+                  <p className="text-sm text-muted-foreground">{error}</p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="ml-auto"
+                  onClick={performSearch}
+                >
+                  Retry
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Results Loading State */}
         {isLoading && hasSearched && (
           <div className="space-y-4">
@@ -791,7 +859,7 @@ export default function SearchPage() {
         )}
 
         {/* Results */}
-        {hasSearched && !isLoading && (
+        {hasSearched && !isLoading && !error && (
           <div className="space-y-4">
             {/* Results Header */}
             <div className="flex items-center justify-between">
@@ -819,21 +887,27 @@ export default function SearchPage() {
                             <Badge className={getDomainColor(result.domain)}>
                               {result.domain}
                             </Badge>
-                            <Badge variant="outline">{result.noteType}</Badge>
-                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                              <User className="h-3 w-3" />
-                              <Link
-                                href={`/patients/${result.patientId}/graph`}
-                                className="hover:underline"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                {result.patientName}
-                              </Link>
-                            </div>
-                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                              <Calendar className="h-3 w-3" />
-                              {formatDate(result.date)}
-                            </div>
+                            {result.noteType && (
+                              <Badge variant="outline">{result.noteType}</Badge>
+                            )}
+                            {result.patientId && (
+                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                <User className="h-3 w-3" />
+                                <Link
+                                  href={`/patients/${result.patientId}/graph`}
+                                  className="hover:underline"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  {result.patientName || result.patientId}
+                                </Link>
+                              </div>
+                            )}
+                            {result.date && (
+                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                <Calendar className="h-3 w-3" />
+                                {formatDate(result.date)}
+                              </div>
+                            )}
                           </div>
                           <div className="flex items-center gap-2">
                             <Badge
@@ -848,14 +922,16 @@ export default function SearchPage() {
                             >
                               {(result.score * 100).toFixed(0)}% match
                             </Badge>
-                            <Link
-                              href={`/documents/${result.documentId}`}
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <Button variant="ghost" size="sm">
-                                <ExternalLink className="h-4 w-4" />
-                              </Button>
-                            </Link>
+                            {result.documentId && (
+                              <Link
+                                href={`/documents/${result.documentId}`}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <Button variant="ghost" size="sm">
+                                  <ExternalLink className="h-4 w-4" />
+                                </Button>
+                              </Link>
+                            )}
                           </div>
                         </div>
 
@@ -879,13 +955,19 @@ export default function SearchPage() {
                         )}
 
                         {/* Metadata */}
-                        {result.metadata && (
+                        {result.metadata && Object.keys(result.metadata).length > 0 && (
                           <div className="flex items-center gap-4 text-xs text-muted-foreground">
                             {result.metadata.provider ? (
                               <span>Provider: {String(result.metadata.provider)}</span>
                             ) : null}
                             {result.metadata.location ? (
                               <span>Location: {String(result.metadata.location)}</span>
+                            ) : null}
+                            {result.metadata.vocabulary ? (
+                              <span>Vocab: {String(result.metadata.vocabulary)}</span>
+                            ) : null}
+                            {result.metadata.vocabulary_id && !result.metadata.vocabulary ? (
+                              <span>Vocab: {String(result.metadata.vocabulary_id)}</span>
                             ) : null}
                           </div>
                         )}

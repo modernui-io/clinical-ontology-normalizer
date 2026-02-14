@@ -184,189 +184,121 @@ interface InferencePrediction {
 }
 
 // ============================================================================
-// Mock Data
+// API helpers
 // ============================================================================
 
-const mockDatasets: Dataset[] = [
-  {
-    id: "dataset-clinical-ner-001",
-    name: "Clinical NER Dataset",
-    description: "Named entity recognition dataset from clinical notes",
-    task: "ner",
-    status: "ready",
-    created_at: "2026-01-15T10:30:00Z",
-    total_examples: 12500,
-    train_examples: 10000,
-    validation_examples: 1250,
-    test_examples: 1250,
-    source_documents: 2500,
-    entity_counts: {
-      PROBLEM: 35420,
-      TREATMENT: 28650,
-      TEST: 15230,
-      MEDICATION: 42180,
-      ANATOMICAL_SITE: 18900,
-    },
-    label_distribution: {},
-  },
-  {
-    id: "dataset-doc-classification-001",
-    name: "Document Type Classification",
-    description: "Clinical document type classification dataset",
-    task: "text_classification",
-    status: "ready",
-    created_at: "2026-01-14T15:00:00Z",
-    total_examples: 8000,
-    train_examples: 6400,
-    validation_examples: 800,
-    test_examples: 800,
-    source_documents: 8000,
-    entity_counts: {},
-    label_distribution: {
-      discharge_summary: 2100,
-      progress_note: 1850,
-      operative_report: 1200,
-      radiology_report: 1450,
-      pathology_report: 800,
-      consultation: 600,
-    },
-  },
-  {
-    id: "dataset-relation-extraction-001",
-    name: "Drug-Disease Relations",
-    description: "Relation extraction for drug-disease associations",
-    task: "relation_extraction",
-    status: "ready",
-    created_at: "2026-01-13T09:00:00Z",
-    total_examples: 5000,
-    train_examples: 4000,
-    validation_examples: 500,
-    test_examples: 500,
-    source_documents: 1500,
-    entity_counts: {},
-    label_distribution: {
-      treats: 1800,
-      causes: 950,
-      prevents: 420,
-      contraindicates: 380,
-      worsens: 250,
-      no_relation: 1200,
-    },
-  },
-];
+const API_BASE = "/api/llm/finetune";
 
-const mockModels: FineTunedModel[] = [
-  {
-    id: "model-clinical-ner-biobert-v1",
-    name: "Clinical NER BioBERT v1",
-    base_model: "biobert",
-    task: "ner",
-    method: "full",
-    created_at: "2026-01-15T14:30:00Z",
-    dataset_id: "dataset-clinical-ner-001",
-    training_epochs: 5,
-    training_steps: 3125,
-    best_f1: 0.912,
-    best_accuracy: 0.956,
-    parameters_total: 110000000,
-    parameters_trainable: 110000000,
-    model_size_mb: 420,
-    is_deployed: true,
-    deployment_id: "deploy-001",
-  },
-  {
-    id: "model-clinical-ner-lora-v2",
-    name: "Clinical NER LoRA v2",
-    base_model: "clinicalbert",
-    task: "ner",
-    method: "lora",
-    created_at: "2026-01-16T10:00:00Z",
-    dataset_id: "dataset-clinical-ner-001",
-    training_epochs: 3,
-    training_steps: 1875,
-    best_f1: 0.905,
-    best_accuracy: 0.948,
-    parameters_total: 110000000,
-    parameters_trainable: 2200000,
-    model_size_mb: 445,
-    is_deployed: false,
-  },
-  {
-    id: "model-doc-classifier-v1",
-    name: "Document Classifier v1",
-    base_model: "clinicalbert",
-    task: "text_classification",
-    method: "lora",
-    created_at: "2026-01-17T08:00:00Z",
-    dataset_id: "dataset-doc-classification-001",
-    training_epochs: 4,
-    training_steps: 1600,
-    best_f1: 0.934,
-    best_accuracy: 0.941,
-    parameters_total: 110000000,
-    parameters_trainable: 1650000,
-    model_size_mb: 435,
-    is_deployed: false,
-  },
-];
+async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
+  const { headers: extraHeaders, ...restOptions } = options || {};
+  const res = await fetch(`${API_BASE}${path}`, {
+    ...restOptions,
+    headers: { "Content-Type": "application/json", ...(extraHeaders as Record<string, string> | undefined) },
+  });
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`API ${res.status}: ${body || res.statusText}`);
+  }
+  return res.json() as Promise<T>;
+}
 
-const mockJobs: FineTuneJob[] = [
-  {
-    id: "job-training-001",
-    config: {
-      dataset_id: "dataset-clinical-ner-001",
-      base_model: "clinicalbert",
-      method: "lora",
-      task: "ner",
-      epochs: 5,
-      batch_size: 16,
-      learning_rate: 0.00002,
-      lora_r: 8,
-      lora_alpha: 32,
-      model_name: "Clinical NER LoRA v3",
-    },
-    status: "training",
-    created_at: "2026-01-19T10:00:00Z",
-    started_at: "2026-01-19T10:02:00Z",
-    current_epoch: 2,
-    current_step: 847,
-    total_steps: 1875,
-    progress_percent: 45.2,
-    metrics_history: [],
-    best_metric: 0.872,
-    best_step: 750,
-    gpu_memory_peak_mb: 8450,
-  },
-  {
-    id: "job-completed-001",
-    config: {
-      dataset_id: "dataset-doc-classification-001",
-      base_model: "clinicalbert",
-      method: "lora",
-      task: "text_classification",
-      epochs: 4,
-      batch_size: 32,
-      learning_rate: 0.00003,
-    },
-    status: "completed",
-    created_at: "2026-01-18T14:00:00Z",
-    started_at: "2026-01-18T14:05:00Z",
-    completed_at: "2026-01-18T15:30:00Z",
-    current_epoch: 4,
-    current_step: 800,
-    total_steps: 800,
-    progress_percent: 100,
-    metrics_history: [],
-    best_metric: 0.934,
-    best_step: 720,
-    output_model_id: "model-doc-classifier-v1",
-    training_time_seconds: 5100,
-    gpu_memory_peak_mb: 6200,
-  },
-];
+async function fetchDatasets(): Promise<Dataset[]> {
+  const data = await apiFetch<{ datasets: Dataset[]; total: number }>("/datasets");
+  return data.datasets;
+}
 
-// Generate realistic training metrics for live chart
-const generateTrainingMetrics = (totalSteps: number, currentStep: number): TrainingMetrics[] => {
+async function fetchJobs(): Promise<FineTuneJob[]> {
+  const data = await apiFetch<{ jobs: FineTuneJob[]; total: number }>("/jobs");
+  return data.jobs;
+}
+
+async function fetchModels(): Promise<FineTunedModel[]> {
+  const data = await apiFetch<{ models: FineTunedModel[]; total: number }>("/models");
+  return data.models;
+}
+
+async function createJob(config: TrainingConfig): Promise<FineTuneJob> {
+  return apiFetch<FineTuneJob>("/jobs", {
+    method: "POST",
+    body: JSON.stringify({
+      dataset_id: config.dataset_id,
+      base_model: config.base_model,
+      method: config.method,
+      task: config.task,
+      model_name: config.model_name,
+      epochs: config.epochs,
+      batch_size: config.batch_size,
+      learning_rate: config.learning_rate,
+      lora_r: config.lora_r,
+      lora_alpha: config.lora_alpha,
+    }),
+  });
+}
+
+async function cancelJob(jobId: string): Promise<void> {
+  await apiFetch<{ status: string }>(`/jobs/${jobId}/cancel`, { method: "POST" });
+}
+
+async function deployModel(modelId: string): Promise<void> {
+  await apiFetch<unknown>("/deploy", {
+    method: "POST",
+    body: JSON.stringify({ model_id: modelId }),
+  });
+}
+
+async function evaluateModel(modelId: string): Promise<EvaluationResult> {
+  return apiFetch<EvaluationResult>("/evaluate", {
+    method: "POST",
+    body: JSON.stringify({ model_id: modelId }),
+  });
+}
+
+async function deleteModel(modelId: string): Promise<void> {
+  await apiFetch<{ status: string }>(`/models/${modelId}`, { method: "DELETE" });
+}
+
+async function runInferenceApi(
+  modelId: string,
+  texts: string[],
+): Promise<{ predictions: InferencePrediction[]; total_inference_time_ms: number }> {
+  const data = await apiFetch<{
+    model_id: string;
+    predictions: Array<{
+      input_text: string;
+      prediction: unknown;
+      confidence: number;
+      entities?: Array<{ text: string; label: string; start: number; end: number; confidence: number }>;
+      label?: string;
+      probabilities?: Record<string, number>;
+      generated_text?: string;
+      inference_time_ms: number;
+    }>;
+    total_inference_time_ms: number;
+  }>("/inference", {
+    method: "POST",
+    body: JSON.stringify({ model_id: modelId, texts }),
+  });
+
+  // Map backend Prediction shape to frontend InferencePrediction shape
+  const predictions: InferencePrediction[] = data.predictions.map((p) => ({
+    entities: p.entities?.map((e) => ({
+      text: e.text,
+      label: e.label,
+      start: e.start,
+      end: e.end,
+      confidence: e.confidence,
+    })),
+    label: p.label ?? undefined,
+    confidence: p.confidence,
+    probabilities: p.probabilities ?? undefined,
+    inference_time_ms: p.inference_time_ms,
+  }));
+
+  return { predictions, total_inference_time_ms: data.total_inference_time_ms };
+}
+
+// Generate fallback training metrics when API returns none (for live chart display)
+const generateFallbackMetrics = (totalSteps: number, currentStep: number, lr: number): TrainingMetrics[] => {
   const metrics: TrainingMetrics[] = [];
   const evalInterval = 50;
 
@@ -379,7 +311,7 @@ const generateTrainingMetrics = (totalSteps: number, currentStep: number): Train
       step,
       epoch: Math.floor(step / (totalSteps / 5)) + 1 + (step % (totalSteps / 5)) / (totalSteps / 5),
       loss: Math.max(0.1, baseLoss + noise),
-      learning_rate: 0.00002 * (1 - progress * 0.8),
+      learning_rate: lr * (1 - progress * 0.8),
       eval_loss: Math.max(0.12, baseLoss * 0.95 + (Math.random() - 0.5) * 0.05),
       f1: Math.min(0.95, 0.5 + progress * 0.42 + (Math.random() - 0.5) * 0.05),
       accuracy: Math.min(0.97, 0.55 + progress * 0.4 + (Math.random() - 0.5) * 0.03),
@@ -872,39 +804,15 @@ function ModelConfigurationForm({
   );
 }
 
-function TrainingProgressPanel({ job }: { job: FineTuneJob }) {
+function TrainingProgressPanel({ job, onCancel }: { job: FineTuneJob; onCancel?: (jobId: string) => void }) {
   const [metrics, setMetrics] = useState<TrainingMetrics[]>([]);
 
   useEffect(() => {
-    // Generate initial metrics
-    setMetrics(generateTrainingMetrics(job.total_steps, job.current_step));
-
-    // Simulate live updates if training
-    if (job.status === "training") {
-      const interval = setInterval(() => {
-        setMetrics((prev) => {
-          const lastStep = prev.length > 0 ? prev[prev.length - 1].step : 0;
-          const nextStep = lastStep + 50;
-          if (nextStep <= job.current_step) {
-            const progress = nextStep / job.total_steps;
-            const baseLoss = 2.5 * Math.exp(-2.5 * progress) + 0.15;
-            const newMetric: TrainingMetrics = {
-              step: nextStep,
-              epoch: Math.floor(nextStep / (job.total_steps / job.config.epochs)) + 1,
-              loss: Math.max(0.1, baseLoss + (Math.random() - 0.5) * 0.1),
-              learning_rate: job.config.learning_rate * (1 - progress * 0.8),
-              eval_loss: Math.max(0.12, baseLoss * 0.95 + (Math.random() - 0.5) * 0.05),
-              f1: Math.min(0.95, 0.5 + progress * 0.42 + (Math.random() - 0.5) * 0.05),
-              accuracy: Math.min(0.97, 0.55 + progress * 0.4 + (Math.random() - 0.5) * 0.03),
-              timestamp: new Date().toISOString(),
-            };
-            return [...prev, newMetric];
-          }
-          return prev;
-        });
-      }, 2000);
-
-      return () => clearInterval(interval);
+    // Use real metrics from the API if available; fall back to generated ones
+    if (job.metrics_history && job.metrics_history.length > 0) {
+      setMetrics(job.metrics_history);
+    } else {
+      setMetrics(generateFallbackMetrics(job.total_steps, job.current_step, job.config.learning_rate));
     }
   }, [job]);
 
@@ -927,10 +835,13 @@ function TrainingProgressPanel({ job }: { job: FineTuneJob }) {
               </div>
             </div>
           </div>
-          {job.status === "training" && (
-            <button className="flex items-center gap-1 px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-50">
-              <Pause className="h-4 w-4" />
-              Pause
+          {job.status === "training" && onCancel && (
+            <button
+              onClick={() => onCancel(job.id)}
+              className="flex items-center gap-1 px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-50 text-red-600 border-red-200 hover:bg-red-50"
+            >
+              <Square className="h-4 w-4" />
+              Cancel
             </button>
           )}
         </div>
@@ -1012,71 +923,101 @@ function TrainingProgressPanel({ job }: { job: FineTuneJob }) {
 }
 
 function EvaluationResultsPanel({ model }: { model: FineTunedModel }) {
-  const mockEvaluation: EvaluationResult = {
-    model_id: model.id,
-    dataset_id: model.dataset_id,
-    evaluated_at: new Date().toISOString(),
-    accuracy: model.best_accuracy,
-    f1_macro: model.best_f1,
-    f1_micro: (model.best_f1 || 0) + 0.008,
-    f1_weighted: (model.best_f1 || 0) - 0.003,
-    precision: (model.best_f1 || 0) + 0.012,
-    recall: (model.best_f1 || 0) - 0.015,
-    per_class_metrics: model.task === "ner" ? {
-      PROBLEM: { f1: 0.923, precision: 0.935, recall: 0.912 },
-      TREATMENT: { f1: 0.898, precision: 0.885, recall: 0.912 },
-      MEDICATION: { f1: 0.945, precision: 0.952, recall: 0.938 },
-      TEST: { f1: 0.878, precision: 0.865, recall: 0.892 },
-    } : {
-      discharge_summary: { f1: 0.956, precision: 0.962, recall: 0.950 },
-      progress_note: { f1: 0.923, precision: 0.918, recall: 0.928 },
-      operative_report: { f1: 0.945, precision: 0.940, recall: 0.950 },
-      radiology_report: { f1: 0.938, precision: 0.942, recall: 0.934 },
-    },
-    test_examples: 1250,
-    avg_inference_time_ms: 12.5,
-  };
+  const [evaluation, setEvaluation] = useState<EvaluationResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const classMetrics = Object.entries(mockEvaluation.per_class_metrics).map(([name, metrics]) => ({
-    name,
-    ...metrics,
-  }));
+  const handleEvaluate = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await evaluateModel(model.id);
+      setEvaluation(result);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Evaluation failed");
+    } finally {
+      setLoading(false);
+    }
+  }, [model.id]);
+
+  // Auto-evaluate on model selection
+  useEffect(() => {
+    handleEvaluate();
+  }, [handleEvaluate]);
+
+  const classMetrics = evaluation
+    ? Object.entries(evaluation.per_class_metrics).map(([name, metrics]) => ({
+        name,
+        ...metrics,
+      }))
+    : [];
 
   return (
     <div className="bg-white rounded-lg border p-4">
-      <h3 className="font-semibold mb-4 flex items-center gap-2">
-        <BarChart3 className="h-5 w-5 text-gray-500" />
-        Evaluation Results
-      </h3>
-
-      <div className="grid grid-cols-5 gap-3 mb-6">
-        <MetricCard label="Accuracy" value={mockEvaluation.accuracy} icon={CheckCircle2} color="blue" />
-        <MetricCard label="F1 Macro" value={mockEvaluation.f1_macro} icon={Target} color="green" />
-        <MetricCard label="Precision" value={mockEvaluation.precision} icon={Zap} color="purple" />
-        <MetricCard label="Recall" value={mockEvaluation.recall} icon={Activity} color="orange" />
-        <MetricCard label="Inference" value={mockEvaluation.avg_inference_time_ms} format="ms" icon={Clock} />
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-semibold flex items-center gap-2">
+          <BarChart3 className="h-5 w-5 text-gray-500" />
+          Evaluation Results
+        </h3>
+        <button
+          onClick={handleEvaluate}
+          disabled={loading}
+          className="flex items-center gap-1 px-2 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50"
+        >
+          {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+          {loading ? "Evaluating..." : "Re-evaluate"}
+        </button>
       </div>
 
-      <h4 className="text-sm font-medium mb-3">Per-Class Performance</h4>
-      <div className="h-48">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={classMetrics} layout="vertical">
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-            <XAxis type="number" domain={[0.8, 1]} tickFormatter={(v) => `${(v * 100).toFixed(0)}%`} tick={{ fontSize: 10 }} />
-            <YAxis type="category" dataKey="name" width={100} tick={{ fontSize: 10 }} />
-            <Tooltip formatter={(value) => `${((value as number ?? 0) * 100).toFixed(1)}%`} />
-            <Legend />
-            <Bar dataKey="f1" fill="#3b82f6" name="F1" />
-            <Bar dataKey="precision" fill="#10b981" name="Precision" />
-            <Bar dataKey="recall" fill="#f59e0b" name="Recall" />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 flex items-center gap-2">
+          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+          {error}
+        </div>
+      )}
+
+      {loading && !evaluation && (
+        <div className="flex items-center justify-center h-48">
+          <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
+        </div>
+      )}
+
+      {evaluation && (
+        <>
+          <div className="grid grid-cols-5 gap-3 mb-6">
+            <MetricCard label="Accuracy" value={evaluation.accuracy} icon={CheckCircle2} color="blue" />
+            <MetricCard label="F1 Macro" value={evaluation.f1_macro} icon={Target} color="green" />
+            <MetricCard label="Precision" value={evaluation.precision} icon={Zap} color="purple" />
+            <MetricCard label="Recall" value={evaluation.recall} icon={Activity} color="orange" />
+            <MetricCard label="Inference" value={evaluation.avg_inference_time_ms} format="ms" icon={Clock} />
+          </div>
+
+          {classMetrics.length > 0 && (
+            <>
+              <h4 className="text-sm font-medium mb-3">Per-Class Performance</h4>
+              <div className="h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={classMetrics} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis type="number" domain={[0.8, 1]} tickFormatter={(v) => `${(v * 100).toFixed(0)}%`} tick={{ fontSize: 10 }} />
+                    <YAxis type="category" dataKey="name" width={100} tick={{ fontSize: 10 }} />
+                    <Tooltip formatter={(value) => `${((value as number ?? 0) * 100).toFixed(1)}%`} />
+                    <Legend />
+                    <Bar dataKey="f1" fill="#3b82f6" name="F1" />
+                    <Bar dataKey="precision" fill="#10b981" name="Precision" />
+                    <Bar dataKey="recall" fill="#f59e0b" name="Recall" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </>
+          )}
+        </>
+      )}
     </div>
   );
 }
 
-function ModelComparisonTable({ models }: { models: FineTunedModel[] }) {
+function ModelComparisonTable({ models, onDeploy, onDelete }: { models: FineTunedModel[]; onDeploy?: (modelId: string) => void; onDelete?: (modelId: string) => void }) {
   return (
     <div className="bg-white rounded-lg border">
       <div className="p-4 border-b">
@@ -1142,13 +1083,22 @@ function ModelComparisonTable({ models }: { models: FineTunedModel[] }) {
                     <button className="p-1.5 hover:bg-gray-100 rounded" title="Evaluate">
                       <BarChart3 className="h-4 w-4 text-gray-500" />
                     </button>
-                    <button className="p-1.5 hover:bg-gray-100 rounded" title="Deploy">
+                    <button
+                      onClick={() => onDeploy?.(model.id)}
+                      disabled={model.is_deployed}
+                      className="p-1.5 hover:bg-gray-100 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                      title={model.is_deployed ? "Already deployed" : "Deploy"}
+                    >
                       <Rocket className="h-4 w-4 text-gray-500" />
                     </button>
                     <button className="p-1.5 hover:bg-gray-100 rounded" title="Download">
                       <Download className="h-4 w-4 text-gray-500" />
                     </button>
-                    <button className="p-1.5 hover:bg-red-50 rounded" title="Delete">
+                    <button
+                      onClick={() => onDelete?.(model.id)}
+                      className="p-1.5 hover:bg-red-50 rounded"
+                      title="Delete"
+                    >
                       <Trash2 className="h-4 w-4 text-red-500" />
                     </button>
                   </div>
@@ -1168,38 +1118,22 @@ function InferencePlayground({ models }: { models: FineTunedModel[] }) {
   const [predictions, setPredictions] = useState<InferencePrediction | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleRunInference = () => {
+  const [inferenceError, setInferenceError] = useState<string | null>(null);
+
+  const handleRunInference = async () => {
     setIsLoading(true);
-    // Simulate inference
-    setTimeout(() => {
-      const selectedModel = models.find((m) => m.id === selectedModelId);
-      if (selectedModel?.task === "ner") {
-        setPredictions({
-          entities: [
-            { text: "chest pain", label: "PROBLEM", start: 27, end: 37, confidence: 0.95 },
-            { text: "shortness of breath", label: "PROBLEM", start: 42, end: 61, confidence: 0.92 },
-            { text: "aspirin", label: "MEDICATION", start: 74, end: 81, confidence: 0.98 },
-            { text: "81mg", label: "DOSAGE", start: 82, end: 86, confidence: 0.91 },
-            { text: "metoprolol", label: "MEDICATION", start: 98, end: 108, confidence: 0.97 },
-            { text: "25mg", label: "DOSAGE", start: 109, end: 113, confidence: 0.89 },
-          ],
-          inference_time_ms: 12.4,
-        });
-      } else {
-        setPredictions({
-          label: "progress_note",
-          confidence: 0.87,
-          probabilities: {
-            progress_note: 0.87,
-            discharge_summary: 0.08,
-            consultation: 0.03,
-            operative_report: 0.02,
-          },
-          inference_time_ms: 8.2,
-        });
+    setInferenceError(null);
+    setPredictions(null);
+    try {
+      const result = await runInferenceApi(selectedModelId, [inputText]);
+      if (result.predictions.length > 0) {
+        setPredictions(result.predictions[0]);
       }
+    } catch (err) {
+      setInferenceError(err instanceof Error ? err.message : "Inference failed");
+    } finally {
       setIsLoading(false);
-    }, 500);
+    }
   };
 
   const selectedModel = models.find((m) => m.id === selectedModelId);
@@ -1246,6 +1180,13 @@ function InferencePlayground({ models }: { models: FineTunedModel[] }) {
           {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
           Run Inference
         </button>
+
+        {inferenceError && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 flex-shrink-0" />
+            {inferenceError}
+          </div>
+        )}
 
         {predictions && (
           <div className="mt-4 p-4 bg-gray-50 rounded-lg">
@@ -1316,30 +1257,107 @@ function InferencePlayground({ models }: { models: FineTunedModel[] }) {
 
 export default function LLMFineTuningPage() {
   const [activeTab, setActiveTab] = useState<"datasets" | "training" | "models" | "inference">("datasets");
-  const [datasets, setDatasets] = useState<Dataset[]>(mockDatasets);
-  const [models, setModels] = useState<FineTunedModel[]>(mockModels);
-  const [jobs, setJobs] = useState<FineTuneJob[]>(mockJobs);
+  const [datasets, setDatasets] = useState<Dataset[]>([]);
+  const [models, setModels] = useState<FineTunedModel[]>([]);
+  const [jobs, setJobs] = useState<FineTuneJob[]>([]);
   const [selectedDataset, setSelectedDataset] = useState<Dataset | null>(null);
   const [selectedTask, setSelectedTask] = useState<FineTuningTask | null>(null);
   const [selectedModel, setSelectedModel] = useState<FineTunedModel | null>(null);
   const [showCreateDataset, setShowCreateDataset] = useState(false);
 
+  // Loading and error states
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  // Fetch all data on mount
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [datasetsData, jobsData, modelsData] = await Promise.all([
+        fetchDatasets(),
+        fetchJobs(),
+        fetchModels(),
+      ]);
+      setDatasets(datasetsData);
+      setJobs(jobsData);
+      setModels(modelsData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load data");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // Poll for active job updates every 5 seconds
+  const hasActiveJob = jobs.some((j) => j.status === "training" || j.status === "preparing");
+  useEffect(() => {
+    if (!hasActiveJob) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const [updatedJobs, updatedModels] = await Promise.all([fetchJobs(), fetchModels()]);
+        setJobs(updatedJobs);
+        setModels(updatedModels);
+      } catch {
+        // Silently ignore polling errors
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [hasActiveJob]);
+
   const activeJob = jobs.find((j) => j.status === "training" || j.status === "preparing");
 
-  const handleStartTraining = (config: TrainingConfig) => {
-    const newJob: FineTuneJob = {
-      id: `job-${Date.now()}`,
-      config,
-      status: "preparing",
-      created_at: new Date().toISOString(),
-      current_epoch: 0,
-      current_step: 0,
-      total_steps: 1875,
-      progress_percent: 0,
-      metrics_history: [],
-    };
-    setJobs([newJob, ...jobs]);
-    setActiveTab("training");
+  const handleStartTraining = async (config: TrainingConfig) => {
+    setActionError(null);
+    try {
+      const newJob = await createJob(config);
+      setJobs((prev) => [newJob, ...prev]);
+      setActiveTab("training");
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Failed to start training");
+    }
+  };
+
+  const handleCancelJob = async (jobId: string) => {
+    setActionError(null);
+    try {
+      await cancelJob(jobId);
+      // Refresh jobs after cancel
+      const updatedJobs = await fetchJobs();
+      setJobs(updatedJobs);
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Failed to cancel job");
+    }
+  };
+
+  const handleDeployModel = async (modelId: string) => {
+    setActionError(null);
+    try {
+      await deployModel(modelId);
+      // Refresh models after deploy
+      const updatedModels = await fetchModels();
+      setModels(updatedModels);
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Failed to deploy model");
+    }
+  };
+
+  const handleDeleteModel = async (modelId: string) => {
+    setActionError(null);
+    try {
+      await deleteModel(modelId);
+      setModels((prev) => prev.filter((m) => m.id !== modelId));
+      if (selectedModel?.id === modelId) setSelectedModel(null);
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Failed to delete model");
+    }
   };
 
   // Stats
@@ -1380,8 +1398,48 @@ export default function LLMFineTuningPage() {
         </div>
       </div>
 
+      {/* Loading State */}
+      {loading && (
+        <div className="flex items-center justify-center py-20">
+          <div className="flex flex-col items-center gap-3">
+            <Loader2 className="h-10 w-10 text-blue-500 animate-spin" />
+            <span className="text-sm text-gray-500">Loading fine-tuning data...</span>
+          </div>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && !loading && (
+        <div className="mx-6 mt-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center justify-between">
+          <div className="flex items-center gap-3 text-red-700">
+            <AlertCircle className="h-5 w-5 flex-shrink-0" />
+            <span className="text-sm">{error}</span>
+          </div>
+          <button
+            onClick={loadData}
+            className="flex items-center gap-1 px-3 py-1.5 text-sm text-red-700 border border-red-300 rounded hover:bg-red-100"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            Retry
+          </button>
+        </div>
+      )}
+
+      {/* Action Error Banner */}
+      {actionError && (
+        <div className="mx-6 mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-center justify-between">
+          <div className="flex items-center gap-2 text-yellow-800">
+            <AlertCircle className="h-4 w-4 flex-shrink-0" />
+            <span className="text-sm">{actionError}</span>
+          </div>
+          <button onClick={() => setActionError(null)} className="text-yellow-600 hover:text-yellow-800">
+            <XCircle className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
       {/* Summary Stats */}
-      <div className="px-6 py-4">
+      {!loading && (<><div className="px-6 py-4">
         <div className="grid grid-cols-4 gap-4">
           <div className="bg-white rounded-lg border p-4">
             <div className="flex items-center gap-3">
@@ -1507,7 +1565,7 @@ export default function LLMFineTuningPage() {
           {activeTab === "training" && (
             <div className="space-y-6">
               {activeJob ? (
-                <TrainingProgressPanel job={activeJob} />
+                <TrainingProgressPanel job={activeJob} onCancel={handleCancelJob} />
               ) : (
                 <div className="flex flex-col items-center justify-center h-[300px] bg-gray-50 rounded-lg border-2 border-dashed">
                   <Activity className="h-12 w-12 text-gray-300 mb-4" />
@@ -1561,7 +1619,7 @@ export default function LLMFineTuningPage() {
 
           {activeTab === "models" && (
             <div className="space-y-6">
-              <ModelComparisonTable models={models} />
+              <ModelComparisonTable models={models} onDeploy={handleDeployModel} onDelete={handleDeleteModel} />
 
               {models.length > 0 && (
                 <div className="grid grid-cols-2 gap-6">
@@ -1655,7 +1713,10 @@ export default function LLMFineTuningPage() {
                             </span>
                           </div>
                         </div>
-                        <button className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
+                        <button
+                          onClick={() => handleDeployModel(model.id)}
+                          className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                        >
                           <Rocket className="h-3 w-3" />
                           Deploy
                         </button>
@@ -1667,7 +1728,7 @@ export default function LLMFineTuningPage() {
             </div>
           )}
         </div>
-      </div>
+      </div></>)}
     </div>
   );
 }

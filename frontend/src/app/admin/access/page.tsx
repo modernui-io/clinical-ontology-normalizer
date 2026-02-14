@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -21,7 +21,6 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -36,352 +35,386 @@ import {
   Users,
   Key,
   Plus,
-  Edit,
-  Trash,
   Search,
-  UserPlus,
   Settings,
   CheckCircle,
   XCircle,
   Crown,
-  User as UserIcon,
-  Building,
   Lock,
   RefreshCw,
+  AlertTriangle,
+  Play,
+  CircleCheck,
+  Clock,
+  Loader2,
 } from "lucide-react";
 
-// Types
-interface Permission {
+// ---------------------------------------------------------------------------
+// Types mirroring backend schemas
+// ---------------------------------------------------------------------------
+
+interface ReviewCycle {
   id: string;
   name: string;
+  cycle_type: "QUARTERLY" | "SEMI_ANNUAL" | "ANNUAL";
+  status: "PLANNED" | "IN_PROGRESS" | "COMPLETED" | "OVERDUE";
+  start_date: string;
+  end_date: string;
+  reviewer: string;
+  created_at: string;
+}
+
+interface ReviewCycleListResponse {
+  items: ReviewCycle[];
+  total: number;
+}
+
+interface AccessEntitlement {
+  id: string;
+  user_id: string;
+  user_name: string;
+  user_role: string;
   resource: string;
-  action: string;
-  description: string;
+  access_level: "READ" | "WRITE" | "ADMIN" | "OWNER";
+  granted_date: string;
+  granted_by: string;
+  last_used: string | null;
+  justification: string;
 }
 
-interface Role {
+interface EntitlementListResponse {
+  items: AccessEntitlement[];
+  total: number;
+}
+
+interface ReviewDecision {
   id: string;
-  name: string;
-  description: string;
-  isSystemRole: boolean;
-  permissions: string[];
-  userCount: number;
+  cycle_id: string;
+  entitlement_id: string;
+  decision: "CERTIFY" | "REVOKE" | "MODIFY" | "ESCALATE";
+  reviewer: string;
+  decided_at: string;
+  comments: string;
+  new_access_level: string | null;
 }
 
-interface UserWithRoles {
-  id: string;
-  email: string;
-  name: string;
-  roles: string[];
-  isActive: boolean;
-  lastLogin: string | null;
-  createdAt: string;
+interface DecisionListResponse {
+  items: ReviewDecision[];
+  total: number;
 }
 
-// Mock Data
-const mockPermissions: Permission[] = [
-  { id: "p1", name: "documents:read", resource: "documents", action: "read", description: "View clinical documents" },
-  { id: "p2", name: "documents:write", resource: "documents", action: "write", description: "Create and edit clinical documents" },
-  { id: "p3", name: "documents:delete", resource: "documents", action: "delete", description: "Delete clinical documents" },
-  { id: "p4", name: "patients:read", resource: "patients", action: "read", description: "View patient information" },
-  { id: "p5", name: "patients:write", resource: "patients", action: "write", description: "Create and edit patient records" },
-  { id: "p6", name: "patients:delete", resource: "patients", action: "delete", description: "Delete patient records" },
-  { id: "p7", name: "billing:read", resource: "billing", action: "read", description: "View billing information" },
-  { id: "p8", name: "billing:write", resource: "billing", action: "write", description: "Create and edit billing records" },
-  { id: "p9", name: "coding:read", resource: "coding", action: "read", description: "View medical codes" },
-  { id: "p10", name: "coding:write", resource: "coding", action: "write", description: "Assign and modify codes" },
-  { id: "p11", name: "audit:read", resource: "audit", action: "read", description: "View audit logs" },
-  { id: "p12", name: "audit:export", resource: "audit", action: "export", description: "Export audit logs" },
-  { id: "p13", name: "admin:manage_users", resource: "admin", action: "manage_users", description: "Manage user accounts" },
-  { id: "p14", name: "admin:manage_roles", resource: "admin", action: "manage_roles", description: "Manage roles and permissions" },
-  { id: "p15", name: "vocabulary:read", resource: "vocabulary", action: "read", description: "Search and view vocabulary terms" },
-  { id: "p16", name: "graphs:read", resource: "graphs", action: "read", description: "View knowledge graphs" },
-  { id: "p17", name: "graphs:write", resource: "graphs", action: "write", description: "Modify knowledge graphs" },
-  { id: "p18", name: "export:write", resource: "export", action: "write", description: "Create export jobs" },
-  { id: "p19", name: "llm:read", resource: "llm", action: "read", description: "Use LLM features (read)" },
-  { id: "p20", name: "llm:write", resource: "llm", action: "write", description: "Use LLM features (generate)" },
-];
+interface AccessReviewMetrics {
+  total_cycles: number;
+  total_entitlements: number;
+  certification_rate: number;
+  revocation_rate: number;
+  avg_review_time_days: number;
+  overdue_reviews: number;
+  by_decision: Record<string, number>;
+  excessive_access_count: number;
+}
 
-const mockRoles: Role[] = [
-  {
-    id: "role-1",
-    name: "admin",
-    description: "Full system access - can manage users, roles, and all data",
-    isSystemRole: true,
-    permissions: mockPermissions.map((p) => p.name),
-    userCount: 3,
-  },
-  {
-    id: "role-2",
-    name: "provider",
-    description: "Clinical data access - can view and modify patient data",
-    isSystemRole: true,
-    permissions: [
-      "documents:read", "documents:write",
-      "patients:read", "patients:write",
-      "billing:read",
-      "coding:read",
-      "vocabulary:read",
-      "graphs:read", "graphs:write",
-      "export:write",
-      "llm:read", "llm:write",
-    ],
-    userCount: 15,
-  },
-  {
-    id: "role-3",
-    name: "biller",
-    description: "Billing and coding access - can manage billing codes and HCC analysis",
-    isSystemRole: true,
-    permissions: [
-      "documents:read",
-      "patients:read",
-      "billing:read", "billing:write",
-      "coding:read", "coding:write",
-      "vocabulary:read",
-      "export:write",
-    ],
-    userCount: 8,
-  },
-  {
-    id: "role-4",
-    name: "viewer",
-    description: "Read-only access - can view non-sensitive data",
-    isSystemRole: true,
-    permissions: [
-      "documents:read",
-      "vocabulary:read",
-      "graphs:read",
-    ],
-    userCount: 12,
-  },
-  {
-    id: "role-5",
-    name: "quality_analyst",
-    description: "Quality measures access - can view and analyze quality metrics",
-    isSystemRole: false,
-    permissions: [
-      "documents:read",
-      "patients:read",
-      "billing:read",
-      "vocabulary:read",
-      "graphs:read",
-      "export:write",
-    ],
-    userCount: 4,
-  },
-];
+interface ExcessiveAccessEntry {
+  user_id: string;
+  user_name: string;
+  user_role: string;
+  reasons: string[];
+  entitlements: AccessEntitlement[];
+}
 
-const mockUsers: UserWithRoles[] = [
-  {
-    id: "user-001",
-    email: "admin@hospital.org",
-    name: "Admin User",
-    roles: ["admin"],
-    isActive: true,
-    lastLogin: "2026-01-19T14:32:00Z",
-    createdAt: "2025-01-15T10:00:00Z",
-  },
-  {
-    id: "user-002",
-    email: "dr.smith@hospital.org",
-    name: "Dr. John Smith",
-    roles: ["provider"],
-    isActive: true,
-    lastLogin: "2026-01-19T13:45:00Z",
-    createdAt: "2025-02-20T09:30:00Z",
-  },
-  {
-    id: "user-003",
-    email: "mary.johnson@hospital.org",
-    name: "Mary Johnson",
-    roles: ["biller"],
-    isActive: true,
-    lastLogin: "2026-01-19T12:15:00Z",
-    createdAt: "2025-03-10T14:00:00Z",
-  },
-  {
-    id: "user-004",
-    email: "dr.davis@hospital.org",
-    name: "Dr. Sarah Davis",
-    roles: ["provider", "quality_analyst"],
-    isActive: true,
-    lastLogin: "2026-01-19T11:30:00Z",
-    createdAt: "2025-04-05T11:00:00Z",
-  },
-  {
-    id: "user-005",
-    email: "bob.williams@hospital.org",
-    name: "Bob Williams",
-    roles: ["viewer"],
-    isActive: true,
-    lastLogin: "2026-01-18T16:00:00Z",
-    createdAt: "2025-05-12T08:30:00Z",
-  },
-  {
-    id: "user-006",
-    email: "lisa.brown@hospital.org",
-    name: "Lisa Brown",
-    roles: ["biller", "viewer"],
-    isActive: false,
-    lastLogin: "2025-12-15T10:00:00Z",
-    createdAt: "2025-06-01T13:00:00Z",
-  },
-];
+interface ExcessiveAccessResponse {
+  items: ExcessiveAccessEntry[];
+  total: number;
+}
 
-// Helper functions
-const getRoleColor = (role: string): string => {
-  switch (role) {
-    case "admin":
-      return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
-    case "provider":
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+const API_BASE = "/api/access-review";
+
+const cycleStatusColor = (status: ReviewCycle["status"]): string => {
+  switch (status) {
+    case "PLANNED":
       return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
-    case "biller":
+    case "IN_PROGRESS":
+      return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
+    case "COMPLETED":
       return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
-    case "viewer":
+    case "OVERDUE":
+      return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+    default:
+      return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
+  }
+};
+
+const cycleTypeLabel = (ct: ReviewCycle["cycle_type"]): string => {
+  switch (ct) {
+    case "QUARTERLY":
+      return "Quarterly";
+    case "SEMI_ANNUAL":
+      return "Semi-Annual";
+    case "ANNUAL":
+      return "Annual";
+    default:
+      return ct;
+  }
+};
+
+const accessLevelColor = (level: AccessEntitlement["access_level"]): string => {
+  switch (level) {
+    case "OWNER":
+      return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+    case "ADMIN":
+      return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200";
+    case "WRITE":
+      return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
+    case "READ":
       return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
     default:
+      return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
+  }
+};
+
+const decisionColor = (d: ReviewDecision["decision"]): string => {
+  switch (d) {
+    case "CERTIFY":
+      return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+    case "REVOKE":
+      return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+    case "MODIFY":
+      return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
+    case "ESCALATE":
       return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200";
-  }
-};
-
-const getRoleIcon = (role: string) => {
-  switch (role) {
-    case "admin":
-      return <Crown className="h-4 w-4" />;
-    case "provider":
-      return <UserIcon className="h-4 w-4" />;
-    case "biller":
-      return <Building className="h-4 w-4" />;
-    case "viewer":
-      return <UserIcon className="h-4 w-4" />;
     default:
-      return <Key className="h-4 w-4" />;
+      return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
   }
 };
 
-const formatDate = (dateString: string): string => {
-  return new Date(dateString).toLocaleDateString();
-};
+const formatDate = (dateString: string): string =>
+  new Date(dateString).toLocaleDateString();
 
 const formatDateTime = (dateString: string | null): string => {
   if (!dateString) return "Never";
   return new Date(dateString).toLocaleString();
 };
 
-const getResourceTypes = (permissions: Permission[]): string[] => {
-  return [...new Set(permissions.map((p) => p.resource))];
-};
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
 
 export default function AccessControlPage() {
-  const [roles, setRoles] = useState<Role[]>(mockRoles);
-  const [users] = useState<UserWithRoles[]>(mockUsers);
-  const [permissions] = useState<Permission[]>(mockPermissions);
-  const [isLoading, setIsLoading] = useState(false);
+  // Data state
+  const [cycles, setCycles] = useState<ReviewCycle[]>([]);
+  const [entitlements, setEntitlements] = useState<AccessEntitlement[]>([]);
+  const [decisions, setDecisions] = useState<ReviewDecision[]>([]);
+  const [metrics, setMetrics] = useState<AccessReviewMetrics | null>(null);
+  const [excessiveAccess, setExcessiveAccess] = useState<ExcessiveAccessEntry[]>([]);
+
+  // UI state
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
-  const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
-  const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
-  const [newRoleName, setNewRoleName] = useState("");
-  const [newRoleDescription, setNewRoleDescription] = useState("");
-  const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRoles, setInviteRoles] = useState<string[]>([]);
+  const [entitlementSearch, setEntitlementSearch] = useState("");
 
-  const resourceTypes = getResourceTypes(permissions);
+  // Create cycle dialog state
+  const [isCycleDialogOpen, setIsCycleDialogOpen] = useState(false);
+  const [newCycleName, setNewCycleName] = useState("");
+  const [newCycleType, setNewCycleType] = useState<"QUARTERLY" | "SEMI_ANNUAL" | "ANNUAL">("QUARTERLY");
+  const [newCycleStartDate, setNewCycleStartDate] = useState("");
+  const [newCycleEndDate, setNewCycleEndDate] = useState("");
+  const [newCycleReviewer, setNewCycleReviewer] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
 
-  const filteredUsers = users.filter(
-    (u) =>
+  // -------------------------------------------------------------------------
+  // Data fetching
+  // -------------------------------------------------------------------------
+
+  const fetchAll = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const [cyclesRes, entitlementsRes, decisionsRes, metricsRes, excessiveRes] =
+        await Promise.all([
+          fetch(`${API_BASE}/cycles`),
+          fetch(`${API_BASE}/entitlements`),
+          fetch(`${API_BASE}/decisions`),
+          fetch(`${API_BASE}/metrics`),
+          fetch(`${API_BASE}/excessive-access`),
+        ]);
+
+      // Check for HTTP errors on each response
+      const responses = [cyclesRes, entitlementsRes, decisionsRes, metricsRes, excessiveRes];
+      const labels = ["cycles", "entitlements", "decisions", "metrics", "excessive-access"];
+      for (let i = 0; i < responses.length; i++) {
+        if (!responses[i].ok) {
+          throw new Error(
+            `Failed to fetch ${labels[i]}: ${responses[i].status} ${responses[i].statusText}`
+          );
+        }
+      }
+
+      const cyclesData: ReviewCycleListResponse = await cyclesRes.json();
+      const entitlementsData: EntitlementListResponse = await entitlementsRes.json();
+      const decisionsData: DecisionListResponse = await decisionsRes.json();
+      const metricsData: AccessReviewMetrics = await metricsRes.json();
+      const excessiveData: ExcessiveAccessResponse = await excessiveRes.json();
+
+      setCycles(cyclesData.items);
+      setEntitlements(entitlementsData.items);
+      setDecisions(decisionsData.items);
+      setMetrics(metricsData);
+      setExcessiveAccess(excessiveData.items);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An unexpected error occurred");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAll();
+  }, [fetchAll]);
+
+  // -------------------------------------------------------------------------
+  // Cycle lifecycle actions
+  // -------------------------------------------------------------------------
+
+  const handleStartCycle = async (cycleId: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/cycles/${cycleId}/start`, { method: "POST" });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.detail || `Failed to start cycle: ${res.status}`);
+      }
+      const updated: ReviewCycle = await res.json();
+      setCycles((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to start cycle");
+    }
+  };
+
+  const handleCompleteCycle = async (cycleId: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/cycles/${cycleId}/complete`, { method: "POST" });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.detail || `Failed to complete cycle: ${res.status}`);
+      }
+      const updated: ReviewCycle = await res.json();
+      setCycles((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to complete cycle");
+    }
+  };
+
+  const handleDeleteCycle = async (cycleId: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/cycles/${cycleId}`, { method: "DELETE" });
+      if (!res.ok && res.status !== 204) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.detail || `Failed to delete cycle: ${res.status}`);
+      }
+      setCycles((prev) => prev.filter((c) => c.id !== cycleId));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to delete cycle");
+    }
+  };
+
+  // -------------------------------------------------------------------------
+  // Create cycle
+  // -------------------------------------------------------------------------
+
+  const handleCreateCycle = async () => {
+    if (!newCycleName || !newCycleStartDate || !newCycleEndDate || !newCycleReviewer) return;
+    setIsCreating(true);
+    try {
+      const res = await fetch(`${API_BASE}/cycles`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newCycleName,
+          cycle_type: newCycleType,
+          start_date: new Date(newCycleStartDate).toISOString(),
+          end_date: new Date(newCycleEndDate).toISOString(),
+          reviewer: newCycleReviewer,
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.detail || `Failed to create cycle: ${res.status}`);
+      }
+      const created: ReviewCycle = await res.json();
+      setCycles((prev) => [...prev, created]);
+      setIsCycleDialogOpen(false);
+      setNewCycleName("");
+      setNewCycleType("QUARTERLY");
+      setNewCycleStartDate("");
+      setNewCycleEndDate("");
+      setNewCycleReviewer("");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to create cycle");
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  // -------------------------------------------------------------------------
+  // Filtering
+  // -------------------------------------------------------------------------
+
+  const filteredCycles = cycles.filter(
+    (c) =>
       searchQuery === "" ||
-      u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.email.toLowerCase().includes(searchQuery.toLowerCase())
+      c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.reviewer.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const refreshData = async () => {
-    setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsLoading(false);
-  };
+  const filteredEntitlements = entitlements.filter(
+    (e) =>
+      entitlementSearch === "" ||
+      e.user_name.toLowerCase().includes(entitlementSearch.toLowerCase()) ||
+      e.resource.toLowerCase().includes(entitlementSearch.toLowerCase()) ||
+      e.user_role.toLowerCase().includes(entitlementSearch.toLowerCase())
+  );
 
-  const openRoleDialog = (role?: Role) => {
-    if (role) {
-      setSelectedRole(role);
-      setNewRoleName(role.name);
-      setNewRoleDescription(role.description);
-      setSelectedPermissions(role.permissions);
-    } else {
-      setSelectedRole(null);
-      setNewRoleName("");
-      setNewRoleDescription("");
-      setSelectedPermissions([]);
-    }
-    setIsRoleDialogOpen(true);
-  };
+  // -------------------------------------------------------------------------
+  // Render
+  // -------------------------------------------------------------------------
 
-  const handleSaveRole = () => {
-    if (selectedRole) {
-      // Update existing role
-      setRoles(
-        roles.map((r) =>
-          r.id === selectedRole.id
-            ? { ...r, description: newRoleDescription, permissions: selectedPermissions }
-            : r
-        )
-      );
-    } else {
-      // Create new role
-      const newRole: Role = {
-        id: `role-${Date.now()}`,
-        name: newRoleName.toLowerCase().replace(/\s+/g, "_"),
-        description: newRoleDescription,
-        isSystemRole: false,
-        permissions: selectedPermissions,
-        userCount: 0,
-      };
-      setRoles([...roles, newRole]);
-    }
-    setIsRoleDialogOpen(false);
-  };
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">Loading access review data...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const handleDeleteRole = (roleId: string) => {
-    const role = roles.find((r) => r.id === roleId);
-    if (role?.isSystemRole) {
-      alert("System roles cannot be deleted");
-      return;
-    }
-    setRoles(roles.filter((r) => r.id !== roleId));
-  };
-
-  const togglePermission = (permName: string) => {
-    if (selectedPermissions.includes(permName)) {
-      setSelectedPermissions(selectedPermissions.filter((p) => p !== permName));
-    } else {
-      setSelectedPermissions([...selectedPermissions, permName]);
-    }
-  };
-
-  const toggleResourcePermissions = (resource: string) => {
-    const resourcePerms = permissions
-      .filter((p) => p.resource === resource)
-      .map((p) => p.name);
-    const allSelected = resourcePerms.every((p) => selectedPermissions.includes(p));
-
-    if (allSelected) {
-      setSelectedPermissions(selectedPermissions.filter((p) => !resourcePerms.includes(p)));
-    } else {
-      setSelectedPermissions([
-        ...selectedPermissions,
-        ...resourcePerms.filter((p) => !selectedPermissions.includes(p)),
-      ]);
-    }
-  };
-
-  const handleInviteUser = () => {
-    console.log("Invite user:", inviteEmail, inviteRoles);
-    setIsInviteDialogOpen(false);
-    setInviteEmail("");
-    setInviteRoles([]);
-  };
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Error Loading Data
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">{error}</p>
+            <Button onClick={fetchAll} variant="outline">
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -393,14 +426,14 @@ export default function AccessControlPage() {
             Access Control
           </h1>
           <p className="text-muted-foreground">
-            Manage users, roles, and permissions for the application
+            Manage access review cycles, entitlements, and compliance
           </p>
         </div>
         <div className="flex gap-2">
           <Button
             variant="outline"
             size="sm"
-            onClick={refreshData}
+            onClick={fetchAll}
             disabled={isLoading}
           >
             <RefreshCw
@@ -411,170 +444,182 @@ export default function AccessControlPage() {
         </div>
       </div>
 
-      {/* Summary Stats */}
+      {/* Summary Stats from Metrics API */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Review Cycles</CardTitle>
+            <Settings className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{users.length}</div>
+            <div className="text-2xl font-bold">{metrics?.total_cycles ?? 0}</div>
             <p className="text-xs text-muted-foreground">
-              {users.filter((u) => u.isActive).length} active
+              {metrics?.overdue_reviews ?? 0} overdue
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Roles</CardTitle>
+            <CardTitle className="text-sm font-medium">Entitlements</CardTitle>
             <Key className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{roles.length}</div>
+            <div className="text-2xl font-bold">{metrics?.total_entitlements ?? 0}</div>
             <p className="text-xs text-muted-foreground">
-              {roles.filter((r) => r.isSystemRole).length} system roles
+              {((metrics?.certification_rate ?? 0) * 100).toFixed(1)}% certified
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Permissions</CardTitle>
-            <Lock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{permissions.length}</div>
-            <p className="text-xs text-muted-foreground">
-              Across {resourceTypes.length} resources
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Admin Users</CardTitle>
-            <Crown className="h-4 w-4 text-amber-500" />
+            <CardTitle className="text-sm font-medium">Avg Review Time</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {users.filter((u) => u.roles.includes("admin")).length}
+              {(metrics?.avg_review_time_days ?? 0).toFixed(1)}d
             </div>
-            <p className="text-xs text-muted-foreground">Full access users</p>
+            <p className="text-xs text-muted-foreground">
+              {((metrics?.revocation_rate ?? 0) * 100).toFixed(1)}% revoked
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Excessive Access</CardTitle>
+            <Crown className="h-4 w-4 text-amber-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{metrics?.excessive_access_count ?? 0}</div>
+            <p className="text-xs text-muted-foreground">Users flagged</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Main Content Tabs */}
-      <Tabs defaultValue="users" className="space-y-4">
+      <Tabs defaultValue="cycles" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="users" className="gap-2">
-            <Users className="h-4 w-4" />
-            Users
+          <TabsTrigger value="cycles" className="gap-2">
+            <Settings className="h-4 w-4" />
+            Review Cycles
           </TabsTrigger>
-          <TabsTrigger value="roles" className="gap-2">
+          <TabsTrigger value="entitlements" className="gap-2">
             <Key className="h-4 w-4" />
-            Roles
+            Entitlements
           </TabsTrigger>
-          <TabsTrigger value="permissions" className="gap-2">
-            <Lock className="h-4 w-4" />
-            Permissions Matrix
+          <TabsTrigger value="decisions" className="gap-2">
+            <CheckCircle className="h-4 w-4" />
+            Decisions
+          </TabsTrigger>
+          <TabsTrigger value="excessive" className="gap-2">
+            <AlertTriangle className="h-4 w-4" />
+            Excessive Access
           </TabsTrigger>
         </TabsList>
 
-        {/* Users Tab */}
-        <TabsContent value="users" className="space-y-4">
+        {/* Review Cycles Tab */}
+        <TabsContent value="cycles" className="space-y-4">
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>User Management</CardTitle>
+                  <CardTitle>Review Cycles</CardTitle>
                   <CardDescription>
-                    Manage user accounts and role assignments
+                    Manage periodic access review cycles and their lifecycle
                   </CardDescription>
                 </div>
                 <div className="flex gap-2">
                   <div className="relative">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Search users..."
+                      placeholder="Search cycles..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="pl-8 w-[200px]"
                     />
                   </div>
-                  <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
+                  <Dialog open={isCycleDialogOpen} onOpenChange={setIsCycleDialogOpen}>
                     <DialogTrigger asChild>
                       <Button size="sm">
-                        <UserPlus className="mr-2 h-4 w-4" />
-                        Invite User
+                        <Plus className="mr-2 h-4 w-4" />
+                        New Cycle
                       </Button>
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Invite New User</DialogTitle>
+                        <DialogTitle>Create Review Cycle</DialogTitle>
                         <DialogDescription>
-                          Send an invitation to a new user to join the system
+                          Define a new periodic access review cycle
                         </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4 py-4">
                         <div className="space-y-2">
-                          <Label htmlFor="invite-email">Email Address</Label>
+                          <Label htmlFor="cycle-name">Cycle Name</Label>
                           <Input
-                            id="invite-email"
-                            type="email"
-                            placeholder="user@hospital.org"
-                            value={inviteEmail}
-                            onChange={(e) => setInviteEmail(e.target.value)}
+                            id="cycle-name"
+                            placeholder="Q1 2026 Access Review"
+                            value={newCycleName}
+                            onChange={(e) => setNewCycleName(e.target.value)}
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label>Assign Roles</Label>
-                          <div className="grid gap-2">
-                            {roles.map((role) => (
-                              <div
-                                key={role.id}
-                                className="flex items-center space-x-2"
-                              >
-                                <Checkbox
-                                  id={`invite-role-${role.id}`}
-                                  checked={inviteRoles.includes(role.name)}
-                                  onCheckedChange={(checked) => {
-                                    if (checked) {
-                                      setInviteRoles([...inviteRoles, role.name]);
-                                    } else {
-                                      setInviteRoles(
-                                        inviteRoles.filter((r) => r !== role.name)
-                                      );
-                                    }
-                                  }}
-                                />
-                                <Label
-                                  htmlFor={`invite-role-${role.id}`}
-                                  className="flex items-center gap-2"
-                                >
-                                  <Badge className={getRoleColor(role.name)}>
-                                    {role.name}
-                                  </Badge>
-                                  <span className="text-sm text-muted-foreground">
-                                    {role.description}
-                                  </span>
-                                </Label>
-                              </div>
-                            ))}
+                          <Label htmlFor="cycle-type">Cycle Type</Label>
+                          <select
+                            id="cycle-type"
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                            value={newCycleType}
+                            onChange={(e) =>
+                              setNewCycleType(e.target.value as "QUARTERLY" | "SEMI_ANNUAL" | "ANNUAL")
+                            }
+                          >
+                            <option value="QUARTERLY">Quarterly</option>
+                            <option value="SEMI_ANNUAL">Semi-Annual</option>
+                            <option value="ANNUAL">Annual</option>
+                          </select>
+                        </div>
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <div className="space-y-2">
+                            <Label htmlFor="cycle-start">Start Date</Label>
+                            <Input
+                              id="cycle-start"
+                              type="date"
+                              value={newCycleStartDate}
+                              onChange={(e) => setNewCycleStartDate(e.target.value)}
+                            />
                           </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="cycle-end">End Date</Label>
+                            <Input
+                              id="cycle-end"
+                              type="date"
+                              value={newCycleEndDate}
+                              onChange={(e) => setNewCycleEndDate(e.target.value)}
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="cycle-reviewer">Reviewer</Label>
+                          <Input
+                            id="cycle-reviewer"
+                            placeholder="Reviewer name"
+                            value={newCycleReviewer}
+                            onChange={(e) => setNewCycleReviewer(e.target.value)}
+                          />
                         </div>
                       </div>
                       <DialogFooter>
                         <Button
                           variant="outline"
-                          onClick={() => setIsInviteDialogOpen(false)}
+                          onClick={() => setIsCycleDialogOpen(false)}
                         >
                           Cancel
                         </Button>
-                        <Button onClick={handleInviteUser}>
-                          Send Invitation
+                        <Button onClick={handleCreateCycle} disabled={isCreating}>
+                          {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                          Create Cycle
                         </Button>
                       </DialogFooter>
                     </DialogContent>
@@ -583,344 +628,295 @@ export default function AccessControlPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>User</TableHead>
-                    <TableHead>Roles</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Last Login</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredUsers.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{user.name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {user.email}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {user.roles.map((role) => (
-                            <Badge
-                              key={role}
-                              className={`gap-1 ${getRoleColor(role)}`}
-                            >
-                              {getRoleIcon(role)}
-                              {role}
-                            </Badge>
-                          ))}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {user.isActive ? (
-                          <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                            <CheckCircle className="mr-1 h-3 w-3" />
-                            Active
-                          </Badge>
-                        ) : (
-                          <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200">
-                            <XCircle className="mr-1 h-3 w-3" />
-                            Inactive
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-sm">
-                        {formatDateTime(user.lastLogin)}
-                      </TableCell>
-                      <TableCell className="text-sm">
-                        {formatDate(user.createdAt)}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="outline" size="sm">
-                            <Settings className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+              {filteredCycles.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">
+                  No review cycles found.
+                </p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Cycle</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Reviewer</TableHead>
+                      <TableHead>Start</TableHead>
+                      <TableHead>End</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredCycles.map((cycle) => (
+                      <TableRow key={cycle.id}>
+                        <TableCell>
+                          <div className="font-medium">{cycle.name}</div>
+                          <div className="text-xs text-muted-foreground">{cycle.id}</div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">
+                            {cycleTypeLabel(cycle.cycle_type)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={cycleStatusColor(cycle.status)}>
+                            {cycle.status === "COMPLETED" && <CircleCheck className="mr-1 h-3 w-3" />}
+                            {cycle.status === "OVERDUE" && <AlertTriangle className="mr-1 h-3 w-3" />}
+                            {cycle.status === "IN_PROGRESS" && <Play className="mr-1 h-3 w-3" />}
+                            {cycle.status === "PLANNED" && <Clock className="mr-1 h-3 w-3" />}
+                            {cycle.status.replace("_", " ")}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-sm">{cycle.reviewer}</TableCell>
+                        <TableCell className="text-sm">{formatDate(cycle.start_date)}</TableCell>
+                        <TableCell className="text-sm">{formatDate(cycle.end_date)}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
+                            {cycle.status === "PLANNED" && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleStartCycle(cycle.id)}
+                                title="Start cycle"
+                              >
+                                <Play className="h-4 w-4" />
+                              </Button>
+                            )}
+                            {cycle.status === "IN_PROGRESS" && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleCompleteCycle(cycle.id)}
+                                title="Complete cycle"
+                              >
+                                <CircleCheck className="h-4 w-4" />
+                              </Button>
+                            )}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteCycle(cycle.id)}
+                              title="Delete cycle"
+                            >
+                              <XCircle className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Roles Tab */}
-        <TabsContent value="roles" className="space-y-4">
+        {/* Entitlements Tab */}
+        <TabsContent value="entitlements" className="space-y-4">
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Role Management</CardTitle>
+                  <CardTitle>Access Entitlements</CardTitle>
                   <CardDescription>
-                    Create and manage roles with specific permissions
+                    All access grants linking users to resources
                   </CardDescription>
                 </div>
-                <Dialog open={isRoleDialogOpen} onOpenChange={setIsRoleDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button size="sm" onClick={() => openRoleDialog()}>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Create Role
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                    <DialogHeader>
-                      <DialogTitle>
-                        {selectedRole ? "Edit Role" : "Create New Role"}
-                      </DialogTitle>
-                      <DialogDescription>
-                        {selectedRole
-                          ? "Update the role configuration and permissions"
-                          : "Define a new role with specific permissions"}
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <div className="space-y-2">
-                          <Label htmlFor="role-name">Role Name</Label>
-                          <Input
-                            id="role-name"
-                            placeholder="custom_role"
-                            value={newRoleName}
-                            onChange={(e) => setNewRoleName(e.target.value)}
-                            disabled={selectedRole?.isSystemRole}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="role-description">Description</Label>
-                          <Input
-                            id="role-description"
-                            placeholder="Role description..."
-                            value={newRoleDescription}
-                            onChange={(e) => setNewRoleDescription(e.target.value)}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Permissions</Label>
-                        <div className="border rounded-lg p-4 space-y-4 max-h-[300px] overflow-y-auto">
-                          {resourceTypes.map((resource) => {
-                            const resourcePerms = permissions.filter(
-                              (p) => p.resource === resource
-                            );
-                            const allSelected = resourcePerms.every((p) =>
-                              selectedPermissions.includes(p.name)
-                            );
-                            const someSelected = resourcePerms.some((p) =>
-                              selectedPermissions.includes(p.name)
-                            );
-
-                            return (
-                              <div key={resource} className="space-y-2">
-                                <div className="flex items-center space-x-2 border-b pb-2">
-                                  <Checkbox
-                                    id={`resource-${resource}`}
-                                    checked={allSelected}
-                                    // @ts-expect-error - indeterminate is valid but not typed
-                                    indeterminate={someSelected && !allSelected}
-                                    onCheckedChange={() =>
-                                      toggleResourcePermissions(resource)
-                                    }
-                                  />
-                                  <Label
-                                    htmlFor={`resource-${resource}`}
-                                    className="font-medium capitalize"
-                                  >
-                                    {resource}
-                                  </Label>
-                                </div>
-                                <div className="grid gap-2 pl-6">
-                                  {resourcePerms.map((perm) => (
-                                    <div
-                                      key={perm.id}
-                                      className="flex items-center space-x-2"
-                                    >
-                                      <Checkbox
-                                        id={`perm-${perm.id}`}
-                                        checked={selectedPermissions.includes(
-                                          perm.name
-                                        )}
-                                        onCheckedChange={() =>
-                                          togglePermission(perm.name)
-                                        }
-                                      />
-                                      <Label
-                                        htmlFor={`perm-${perm.id}`}
-                                        className="text-sm"
-                                      >
-                                        <code className="bg-muted px-1 rounded text-xs">
-                                          {perm.action}
-                                        </code>
-                                        <span className="ml-2 text-muted-foreground">
-                                          {perm.description}
-                                        </span>
-                                      </Label>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button
-                        variant="outline"
-                        onClick={() => setIsRoleDialogOpen(false)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button onClick={handleSaveRole}>
-                        {selectedRole ? "Update Role" : "Create Role"}
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search entitlements..."
+                    value={entitlementSearch}
+                    onChange={(e) => setEntitlementSearch(e.target.value)}
+                    className="pl-8 w-[200px]"
+                  />
+                </div>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {roles.map((role) => (
-                  <div
-                    key={role.id}
-                    className="flex items-start justify-between p-4 border rounded-lg"
-                  >
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Badge className={`gap-1 ${getRoleColor(role.name)}`}>
-                          {getRoleIcon(role.name)}
-                          {role.name}
-                        </Badge>
-                        {role.isSystemRole && (
-                          <Badge variant="outline">System Role</Badge>
-                        )}
-                        <Badge variant="secondary">
-                          {role.userCount} users
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        {role.description}
-                      </p>
-                      <div className="flex flex-wrap gap-1">
-                        {role.permissions.slice(0, 5).map((perm) => (
-                          <code
-                            key={perm}
-                            className="text-xs bg-muted px-1.5 py-0.5 rounded"
-                          >
-                            {perm}
+              {filteredEntitlements.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">
+                  No entitlements found.
+                </p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>User</TableHead>
+                      <TableHead>Role</TableHead>
+                      <TableHead>Resource</TableHead>
+                      <TableHead>Access Level</TableHead>
+                      <TableHead>Granted By</TableHead>
+                      <TableHead>Granted</TableHead>
+                      <TableHead>Last Used</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredEntitlements.map((ent) => (
+                      <TableRow key={ent.id}>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{ent.user_name}</div>
+                            <div className="text-xs text-muted-foreground">{ent.user_id}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">{ent.user_role}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
+                            {ent.resource}
                           </code>
-                        ))}
-                        {role.permissions.length > 5 && (
-                          <span className="text-xs text-muted-foreground">
-                            +{role.permissions.length - 5} more
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openRoleDialog(role)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      {!role.isSystemRole && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDeleteRole(role.id)}
-                        >
-                          <Trash className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={accessLevelColor(ent.access_level)}>
+                            {ent.access_level === "ADMIN" && <Crown className="mr-1 h-3 w-3" />}
+                            {ent.access_level === "OWNER" && <Lock className="mr-1 h-3 w-3" />}
+                            {ent.access_level}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-sm">{ent.granted_by}</TableCell>
+                        <TableCell className="text-sm">{formatDate(ent.granted_date)}</TableCell>
+                        <TableCell className="text-sm">{formatDateTime(ent.last_used)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Permissions Matrix Tab */}
-        <TabsContent value="permissions" className="space-y-4">
+        {/* Decisions Tab */}
+        <TabsContent value="decisions" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Permission Matrix</CardTitle>
+              <CardTitle>Review Decisions</CardTitle>
               <CardDescription>
-                Overview of permissions assigned to each role
+                All review decisions made across cycles
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
+              {decisions.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">
+                  No decisions recorded yet.
+                </p>
+              ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="sticky left-0 bg-background">
-                        Permission
-                      </TableHead>
-                      {roles.map((role) => (
-                        <TableHead key={role.id} className="text-center">
-                          <Badge className={getRoleColor(role.name)}>
-                            {role.name}
-                          </Badge>
-                        </TableHead>
-                      ))}
+                      <TableHead>Decision</TableHead>
+                      <TableHead>Cycle</TableHead>
+                      <TableHead>Entitlement</TableHead>
+                      <TableHead>Reviewer</TableHead>
+                      <TableHead>Decided At</TableHead>
+                      <TableHead>Comments</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {resourceTypes.map((resource) => (
-                      <>
-                        <TableRow key={resource} className="bg-muted/50">
-                          <TableCell
-                            colSpan={roles.length + 1}
-                            className="font-medium capitalize"
-                          >
-                            {resource}
-                          </TableCell>
-                        </TableRow>
-                        {permissions
-                          .filter((p) => p.resource === resource)
-                          .map((perm) => (
-                            <TableRow key={perm.id}>
-                              <TableCell className="sticky left-0 bg-background">
-                                <div>
-                                  <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
-                                    {perm.name}
-                                  </code>
-                                  <p className="text-xs text-muted-foreground mt-1">
-                                    {perm.description}
-                                  </p>
-                                </div>
-                              </TableCell>
-                              {roles.map((role) => (
-                                <TableCell key={role.id} className="text-center">
-                                  {role.permissions.includes(perm.name) ? (
-                                    <CheckCircle className="h-5 w-5 text-green-600 mx-auto" />
-                                  ) : (
-                                    <XCircle className="h-5 w-5 text-gray-300 mx-auto" />
-                                  )}
-                                </TableCell>
-                              ))}
-                            </TableRow>
-                          ))}
-                      </>
+                    {decisions.map((d) => (
+                      <TableRow key={d.id}>
+                        <TableCell>
+                          <Badge className={decisionColor(d.decision)}>
+                            {d.decision === "CERTIFY" && <CheckCircle className="mr-1 h-3 w-3" />}
+                            {d.decision === "REVOKE" && <XCircle className="mr-1 h-3 w-3" />}
+                            {d.decision === "ESCALATE" && <AlertTriangle className="mr-1 h-3 w-3" />}
+                            {d.decision}
+                          </Badge>
+                          {d.new_access_level && (
+                            <span className="ml-2 text-xs text-muted-foreground">
+                              New level: {d.new_access_level}
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
+                            {d.cycle_id}
+                          </code>
+                        </TableCell>
+                        <TableCell>
+                          <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
+                            {d.entitlement_id}
+                          </code>
+                        </TableCell>
+                        <TableCell className="text-sm">{d.reviewer}</TableCell>
+                        <TableCell className="text-sm">{formatDateTime(d.decided_at)}</TableCell>
+                        <TableCell className="text-sm max-w-[200px] truncate">
+                          {d.comments || "-"}
+                        </TableCell>
+                      </TableRow>
                     ))}
                   </TableBody>
                 </Table>
-              </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Excessive Access Tab */}
+        <TabsContent value="excessive" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-amber-500" />
+                Excessive Access Report
+              </CardTitle>
+              <CardDescription>
+                Users flagged for ADMIN on 3+ resources or unused access exceeding 90 days
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {excessiveAccess.length === 0 ? (
+                <div className="text-center py-8 space-y-2">
+                  <CheckCircle className="h-8 w-8 text-green-500 mx-auto" />
+                  <p className="text-sm text-muted-foreground">
+                    No users flagged for excessive access.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {excessiveAccess.map((entry) => (
+                    <div
+                      key={entry.user_id}
+                      className="border rounded-lg p-4 space-y-3"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Users className="h-5 w-5 text-muted-foreground" />
+                          <div>
+                            <div className="font-medium">{entry.user_name}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {entry.user_id} - {entry.user_role}
+                            </div>
+                          </div>
+                        </div>
+                        <Badge variant="destructive">
+                          {entry.reasons.length} flag{entry.reasons.length !== 1 ? "s" : ""}
+                        </Badge>
+                      </div>
+                      <div className="space-y-1">
+                        {entry.reasons.map((reason, i) => (
+                          <div key={i} className="flex items-center gap-2 text-sm text-amber-700 dark:text-amber-300">
+                            <AlertTriangle className="h-3 w-3 flex-shrink-0" />
+                            {reason}
+                          </div>
+                        ))}
+                      </div>
+                      {entry.entitlements.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {entry.entitlements.map((ent) => (
+                            <Badge
+                              key={ent.id}
+                              className={accessLevelColor(ent.access_level)}
+                            >
+                              {ent.resource}: {ent.access_level}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

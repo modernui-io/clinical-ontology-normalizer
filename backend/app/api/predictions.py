@@ -978,3 +978,331 @@ async def batch_predict(request: BatchPredictionRequest) -> BatchPredictionRespo
             message=f"Batch prediction failed: {str(e)}",
             error_code=ErrorCode.INTERNAL_SERVICE_ERROR,
         )
+
+
+# ============================================================================
+# Risk Scores List Endpoint (for dashboard)
+# ============================================================================
+
+
+class PatientRiskRow(BaseModel):
+    """A single patient's risk summary for the dashboard table."""
+
+    patient_id: str
+    patient_name: str
+    age: int
+    department: str
+    readmission_risk: dict[str, Any] | None = None
+    deterioration_risk: dict[str, Any] | None = None
+    mortality_risk: dict[str, Any] | None = None
+    overall_tier: str
+    overall_score: float
+    trend: str | None = None
+    last_updated: datetime
+
+
+class RiskScoresListResponse(BaseModel):
+    """Response with paginated patient risk scores."""
+
+    total: int
+    patients: list[PatientRiskRow]
+
+
+@router.get(
+    "/risk-scores",
+    response_model=RiskScoresListResponse,
+    summary="List patient risk scores",
+    description="Get risk score summaries for all monitored patients.",
+)
+async def list_risk_scores(
+    tier: str | None = Query(default=None, description="Filter by risk tier"),
+    department: str | None = Query(default=None, description="Filter by department"),
+    limit: int = Query(default=100, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
+) -> RiskScoresListResponse:
+    """List risk score summaries for all patients in the system.
+
+    Returns a flat list of patients with their latest risk scores
+    across readmission, deterioration, and mortality, plus an
+    overall tier and trend.
+
+    Args:
+        tier: Optional filter by overall tier (low/medium/high/critical).
+        department: Optional filter by department.
+        limit: Max results to return.
+        offset: Pagination offset.
+
+    Returns:
+        RiskScoresListResponse with patient rows.
+    """
+    try:
+        from app.services.risk_prediction_service import (
+            RiskType,
+            get_risk_prediction_service,
+        )
+
+        service = get_risk_prediction_service()
+        history_map = service._risk_history
+
+        patients: list[PatientRiskRow] = []
+
+        for pid, entries in history_map.items():
+            if not entries:
+                continue
+
+            # Group latest entry per risk type
+            latest_by_type: dict[str, dict[str, Any]] = {}
+            for entry in entries:
+                rt = entry.get("risk_type")
+                rt_val = rt.value if hasattr(rt, "value") else str(rt)
+                existing = latest_by_type.get(rt_val)
+                entry_ts = entry.get("timestamp", datetime.min.replace(tzinfo=timezone.utc))
+                if existing is None or entry_ts > existing.get("timestamp", datetime.min.replace(tzinfo=timezone.utc)):
+                    latest_by_type[rt_val] = entry
+
+            # Compute overall score = max of latest scores
+            overall_score = 0.0
+            overall_tier = "low"
+            last_updated = datetime.min.replace(tzinfo=timezone.utc)
+
+            risk_data: dict[str, dict[str, Any] | None] = {
+                "readmission": None,
+                "deterioration": None,
+                "mortality": None,
+            }
+
+            for rt_val, entry in latest_by_type.items():
+                score = entry.get("score", 0)
+                entry_tier = entry.get("tier", "low")
+                tier_str = entry_tier.value if hasattr(entry_tier, "value") else str(entry_tier)
+                entry_ts = entry.get("timestamp", datetime.min.replace(tzinfo=timezone.utc))
+
+                if rt_val in risk_data:
+                    risk_data[rt_val] = {
+                        "score": round(score, 4),
+                        "tier": tier_str,
+                        "score_raw": entry.get("score_raw"),
+                    }
+
+                if score > overall_score:
+                    overall_score = score
+                    overall_tier = tier_str
+                if entry_ts > last_updated:
+                    last_updated = entry_ts
+
+            # Compute trend from history
+            all_scores = sorted(entries, key=lambda x: x.get("timestamp", datetime.min.replace(tzinfo=timezone.utc)))
+            if len(all_scores) >= 2:
+                scores_list = [e.get("score", 0) for e in all_scores]
+                slope = (scores_list[-1] - scores_list[0]) / len(scores_list)
+                if slope > 0.02:
+                    trend = "worsening"
+                elif slope < -0.02:
+                    trend = "improving"
+                else:
+                    trend = "stable"
+            else:
+                trend = "stable"
+
+            # Filter by tier if requested
+            if tier and overall_tier != tier:
+                continue
+
+            # Derive patient metadata from patient_id
+            # In production these would come from a patient registry
+            # For now, generate deterministic demo data from the ID
+            pid_hash = hash(pid) % 10000
+            demo_names = [
+                "John Smith", "Mary Johnson", "Robert Williams", "Patricia Brown",
+                "James Davis", "Linda Miller", "Michael Wilson", "Barbara Taylor",
+                "David Anderson", "Susan Thomas", "Richard Jackson", "Dorothy White",
+            ]
+            demo_depts = [
+                "Cardiology", "Internal Medicine", "ICU", "Surgery",
+                "Geriatrics", "Oncology", "Pulmonology", "Neurology",
+            ]
+            name = demo_names[pid_hash % len(demo_names)]
+            age = 40 + (pid_hash % 50)
+            dept = demo_depts[pid_hash % len(demo_depts)]
+
+            if department and dept != department:
+                continue
+
+            patients.append(
+                PatientRiskRow(
+                    patient_id=pid,
+                    patient_name=name,
+                    age=age,
+                    department=dept,
+                    readmission_risk=risk_data.get("readmission"),
+                    deterioration_risk=risk_data.get("deterioration"),
+                    mortality_risk=risk_data.get("mortality"),
+                    overall_tier=overall_tier,
+                    overall_score=round(overall_score, 4),
+                    trend=trend,
+                    last_updated=last_updated,
+                )
+            )
+
+        # Sort by overall_score descending (highest risk first)
+        patients.sort(key=lambda p: p.overall_score, reverse=True)
+        total = len(patients)
+        patients = patients[offset : offset + limit]
+
+        return RiskScoresListResponse(total=total, patients=patients)
+
+    except Exception as e:
+        raise InternalError(
+            message=f"Failed to list risk scores: {str(e)}",
+            error_code=ErrorCode.INTERNAL_SERVICE_ERROR,
+        )
+
+
+# ============================================================================
+# Population Risk Endpoint (for dashboard overview)
+# ============================================================================
+
+
+class DepartmentRiskSummary(BaseModel):
+    """Risk summary for a single department."""
+
+    department: str
+    patient_count: int
+    avg_risk_score: float
+    critical_count: int
+    high_count: int
+
+
+class PopulationRiskResponse(BaseModel):
+    """Population-level risk overview for the dashboard."""
+
+    total_patients: int
+    critical_count: int
+    high_count: int
+    medium_count: int
+    low_count: int
+    average_score: float
+    worsening_count: int
+    tier_distribution: list[dict[str, Any]]
+    department_summary: list[DepartmentRiskSummary]
+
+
+@router.get(
+    "/population-risk",
+    response_model=PopulationRiskResponse,
+    summary="Get population-level risk overview",
+    description="Aggregate risk statistics across all monitored patients.",
+)
+async def get_population_risk() -> PopulationRiskResponse:
+    """Get population-level risk overview.
+
+    Aggregates risk scores across all monitored patients and returns
+    tier distribution, department breakdown, and trend counts.
+
+    Returns:
+        PopulationRiskResponse with aggregate statistics.
+    """
+    try:
+        from app.services.risk_prediction_service import get_risk_prediction_service
+
+        service = get_risk_prediction_service()
+        history_map = service._risk_history
+
+        tier_counts: dict[str, int] = {"critical": 0, "high": 0, "medium": 0, "low": 0}
+        dept_data: dict[str, dict[str, Any]] = {}
+        scores: list[float] = []
+        worsening_count = 0
+
+        for pid, entries in history_map.items():
+            if not entries:
+                continue
+
+            # Find latest per risk type, compute overall
+            latest_by_type: dict[str, dict[str, Any]] = {}
+            for entry in entries:
+                rt = entry.get("risk_type")
+                rt_val = rt.value if hasattr(rt, "value") else str(rt)
+                existing = latest_by_type.get(rt_val)
+                entry_ts = entry.get("timestamp", datetime.min.replace(tzinfo=timezone.utc))
+                if existing is None or entry_ts > existing.get("timestamp", datetime.min.replace(tzinfo=timezone.utc)):
+                    latest_by_type[rt_val] = entry
+
+            overall_score = 0.0
+            overall_tier = "low"
+            for _, entry in latest_by_type.items():
+                s = entry.get("score", 0)
+                t = entry.get("tier", "low")
+                t_str = t.value if hasattr(t, "value") else str(t)
+                if s > overall_score:
+                    overall_score = s
+                    overall_tier = t_str
+
+            scores.append(overall_score)
+            tier_counts[overall_tier] = tier_counts.get(overall_tier, 0) + 1
+
+            # Trend
+            sorted_entries = sorted(entries, key=lambda x: x.get("timestamp", datetime.min.replace(tzinfo=timezone.utc)))
+            if len(sorted_entries) >= 2:
+                sl = [e.get("score", 0) for e in sorted_entries]
+                slope = (sl[-1] - sl[0]) / len(sl)
+                if slope > 0.02:
+                    worsening_count += 1
+
+            # Department
+            pid_hash = hash(pid) % 10000
+            demo_depts = [
+                "Cardiology", "Internal Medicine", "ICU", "Surgery",
+                "Geriatrics", "Oncology", "Pulmonology", "Neurology",
+            ]
+            dept = demo_depts[pid_hash % len(demo_depts)]
+
+            if dept not in dept_data:
+                dept_data[dept] = {"count": 0, "scores": [], "critical": 0, "high": 0}
+            dept_data[dept]["count"] += 1
+            dept_data[dept]["scores"].append(overall_score)
+            if overall_tier == "critical":
+                dept_data[dept]["critical"] += 1
+            elif overall_tier == "high":
+                dept_data[dept]["high"] += 1
+
+        total = len(scores)
+        avg_score = round(sum(scores) / total, 4) if total > 0 else 0.0
+
+        tier_distribution = []
+        for t in ["critical", "high", "medium", "low"]:
+            count = tier_counts.get(t, 0)
+            tier_distribution.append({
+                "tier": t,
+                "count": count,
+                "percentage": round((count / total) * 100, 1) if total > 0 else 0,
+            })
+
+        department_summary = []
+        for dept, data in sorted(dept_data.items()):
+            department_summary.append(
+                DepartmentRiskSummary(
+                    department=dept,
+                    patient_count=data["count"],
+                    avg_risk_score=round(sum(data["scores"]) / len(data["scores"]), 4) if data["scores"] else 0,
+                    critical_count=data["critical"],
+                    high_count=data["high"],
+                )
+            )
+
+        return PopulationRiskResponse(
+            total_patients=total,
+            critical_count=tier_counts.get("critical", 0),
+            high_count=tier_counts.get("high", 0),
+            medium_count=tier_counts.get("medium", 0),
+            low_count=tier_counts.get("low", 0),
+            average_score=avg_score,
+            worsening_count=worsening_count,
+            tier_distribution=tier_distribution,
+            department_summary=department_summary,
+        )
+
+    except Exception as e:
+        raise InternalError(
+            message=f"Failed to get population risk: {str(e)}",
+            error_code=ErrorCode.INTERNAL_SERVICE_ERROR,
+        )
