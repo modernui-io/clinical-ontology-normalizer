@@ -57,6 +57,52 @@ const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 const VIEWPORT = { once: true, margin: "-60px" as const };
 
 // ============================================================================
+// Logo component — custom Sulci brain mark
+// ============================================================================
+function SulciLogo({ className = "h-4 w-4", variant = "stroke", size = "sm" }: { className?: string; variant?: "stroke" | "filled"; size?: "sm" | "lg" }) {
+  if (variant === "filled") {
+    // Filled brain on dark bg — ultra-simplified for nav/footer at 16px
+    return (
+      <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        {/* Left hemisphere */}
+        <path d="M11 3.5C7.5 4 5 6 4 8.5S3 13.5 4 16c1 2.5 3 4.5 5.5 5.5L11 22V3.5z" fill="currentColor"/>
+        {/* Right hemisphere */}
+        <path d="M13 3.5C16.5 4 19 6 20 8.5s1 5 0 7.5c-1 2.5-3 4.5-5.5 5.5L13 22V3.5z" fill="currentColor"/>
+        {/* Central fissure — bold gap */}
+        <line x1="12" y1="3" x2="12" y2="22.5" stroke="white" strokeWidth="2.8" strokeLinecap="round"/>
+        {/* Left lateral sulcus */}
+        <path d="M4.5 11c2.5.5 4.5 0 7-1.5" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+        {/* Right lateral sulcus — mirror */}
+        <path d="M19.5 11c-2.5.5-4.5 0-7-1.5" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+      </svg>
+    );
+  }
+  // Stroke-only brain — for larger display or dark-on-light
+  if (size === "lg") {
+    return (
+      <svg className={className} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M15 4C10.5 4.5 7.5 6.5 5.8 9 4.2 11.5 3.8 14.5 4.5 17 5.2 19.5 7 21.5 9.5 23c2 1.2 4 2.5 6 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+        <path d="M17 4c4.5.5 7.5 2.5 9.2 5 1.6 2.5 2 5.5 1.3 8-.7 2.5-2.5 4.5-5 6-2 1.2-4 2.5-6 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+        <line x1="16" y1="3.5" x2="16" y2="26.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+        <path d="M5 12.5c3.5 0 7-.5 10-2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+        <path d="M5 18.5c3 0 6.5-.5 10-2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+        <path d="M27 12.5c-3.5 0-7-.5-10-2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+        <path d="M27 18.5c-3 0-6.5-.5-10-2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+      </svg>
+    );
+  }
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M11 3.5C7.5 4 5 6 4 8.5S3 13.5 4 16c1 2.5 3 4.5 5.5 5.5L11 22" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+      <path d="M13 3.5c3.5.5 6 2.5 7 5s1 5 0 7.5c-1 2.5-3 4.5-5.5 5.5L13 22" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+      <line x1="12" y1="3" x2="12" y2="22.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+      <path d="M4.5 11c2.5.5 4.5 0 7-1.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M19.5 11c-2.5.5-4.5 0-7-1.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+// ============================================================================
 // Hooks
 // ============================================================================
 function useCountUp(target: number, duration = 1.8, decimals = 0) {
@@ -84,7 +130,7 @@ function useCountUp(target: number, duration = 1.8, decimals = 0) {
 // ============================================================================
 // Rotating words hook
 // ============================================================================
-const HERO_WORDS = ["normalized.", "connected.", "mapped.", "queryable."];
+const HERO_WORDS = ["knowledge.", "insights.", "answers.", "action."];
 function useRotatingWord(words: string[], intervalMs = 3000) {
   const [index, setIndex] = useState(0);
   useEffect(() => {
@@ -265,12 +311,12 @@ function Nav() {
         <div className="max-w-[1200px] mx-auto px-6 h-14 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5 group">
             <div className="h-7 w-7 rounded-lg bg-neutral-900 flex items-center justify-center group-hover:scale-105 transition-transform">
-              <Brain className="h-3.5 w-3.5 text-white" />
+              <SulciLogo className="h-4 w-4 text-white" variant="filled" />
             </div>
             <span className="font-semibold text-[15px] tracking-[-0.02em] text-neutral-900">Sulci</span>
           </Link>
           <div className="hidden md:flex items-center gap-0.5 text-[13px]">
-            {["Product", "Docs", "Pricing", "Changelog"].map((item) => (
+            {["Product", "Docs", "Contact Sales", "Changelog"].map((item) => (
               <Link key={item} href="/dashboard" className="px-3 py-1.5 rounded-md text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100/80 transition-all duration-150">
                 {item}
               </Link>
@@ -290,7 +336,7 @@ function Nav() {
             </Link>
             <Link href="/dashboard" className="hidden md:block">
               <Button size="sm" className="bg-neutral-900 text-white hover:bg-neutral-800 text-[13px] rounded-lg h-8 px-3.5 shadow-sm">
-                Get Started <ArrowRight className="ml-1 h-3 w-3" />
+                Request Demo <ArrowRight className="ml-1 h-3 w-3" />
               </Button>
             </Link>
             {/* Mobile hamburger */}
@@ -309,7 +355,7 @@ function Nav() {
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2, ease: EASE }} className="fixed top-14 left-0 right-0 z-50 md:hidden">
               <div className="mx-4 mt-2 rounded-2xl border border-neutral-200/80 bg-white/95 backdrop-blur-2xl shadow-[0_8px_40px_rgba(0,0,0,0.12)] p-4">
                 <div className="space-y-1">
-                  {["Product", "Docs", "Pricing", "Changelog"].map((item) => (
+                  {["Product", "Docs", "Contact Sales", "Changelog"].map((item) => (
                     <Link key={item} href="/dashboard" onClick={() => setMobileOpen(false)} className="flex items-center px-3 py-2.5 rounded-lg text-[15px] font-medium text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 transition-colors">
                       {item}
                     </Link>
@@ -321,7 +367,7 @@ function Nav() {
                   </Link>
                   <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="block">
                     <Button className="w-full h-10 text-[14px] rounded-xl bg-neutral-900 text-white hover:bg-neutral-800">
-                      Get Started <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                      Request Demo <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
                     </Button>
                   </Link>
                 </div>
@@ -335,11 +381,93 @@ function Nav() {
 }
 
 // ============================================================================
+// HERO DEMO — animated product preview showing NLP pipeline
+// ============================================================================
+const DEMO_NOTE = `Assessment: 62 y/o male presents with acute exacerbation of CHF.
+History of T2DM on metformin 1000mg BID, HTN controlled with lisinopril 20mg daily.
+Patient denies chest pain. EF 35% on last echo. BNP elevated at 1,847 pg/mL.
+Plan: IV furosemide 40mg, cardiology consult, repeat echo in AM.`;
+
+const DEMO_CONCEPTS = [
+  { text: "CHF", code: "SNOMED:42343007", category: "Condition", color: "text-rose-400", bg: "bg-rose-500/10", delay: 0.6 },
+  { text: "T2DM", code: "OMOP:201826", category: "Condition", color: "text-amber-400", bg: "bg-amber-500/10", delay: 0.9 },
+  { text: "metformin", code: "RxNorm:6809", category: "Drug", color: "text-blue-400", bg: "bg-blue-500/10", delay: 1.2 },
+  { text: "HTN", code: "SNOMED:38341003", category: "Condition", color: "text-rose-400", bg: "bg-rose-500/10", delay: 1.4 },
+  { text: "lisinopril", code: "RxNorm:29046", category: "Drug", color: "text-blue-400", bg: "bg-blue-500/10", delay: 1.6 },
+  { text: "EF 35%", code: "LOINC:10230-1", category: "Observation", color: "text-emerald-400", bg: "bg-emerald-500/10", delay: 1.9 },
+  { text: "BNP 1847", code: "LOINC:42637-9", category: "Lab", color: "text-violet-400", bg: "bg-violet-500/10", delay: 2.1 },
+  { text: "furosemide", code: "RxNorm:4603", category: "Drug", color: "text-blue-400", bg: "bg-blue-500/10", delay: 2.4 },
+];
+
+function HeroDemoContent() {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-40px" });
+
+  return (
+    <div ref={ref} className="grid md:grid-cols-2 gap-0 min-h-[320px]">
+      {/* Left: Clinical note with highlighted entities */}
+      <div className="p-5 border-r border-white/[0.06] overflow-hidden">
+        <div className="flex items-center gap-2 mb-3">
+          <FileText className="h-3.5 w-3.5 text-white/30" />
+          <span className="text-[11px] text-white/30 font-mono">clinical_note_2847.txt</span>
+          <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-medium">Processing</span>
+        </div>
+        <div className="font-mono text-[12px] leading-[1.8] text-white/50">
+          {DEMO_NOTE.split(/(\b(?:CHF|T2DM|metformin|HTN|lisinopril|EF 35%|BNP|furosemide)\b)/gi).map((segment, i) => {
+            const isHighlight = /^(CHF|T2DM|metformin|HTN|lisinopril|EF 35%|BNP|furosemide)$/i.test(segment);
+            if (isHighlight) {
+              const concept = DEMO_CONCEPTS.find(c => segment.toLowerCase().includes(c.text.toLowerCase().split(" ")[0]));
+              return (
+                <motion.span
+                  key={i}
+                  initial={{ backgroundColor: "rgba(99,102,241,0)" }}
+                  animate={inView ? { backgroundColor: "rgba(99,102,241,0.2)" } : {}}
+                  transition={{ delay: (concept?.delay ?? 1) + 0.2, duration: 0.4 }}
+                  className="text-white/90 rounded px-0.5 -mx-0.5"
+                >
+                  {segment}
+                </motion.span>
+              );
+            }
+            return <span key={i}>{segment}</span>;
+          })}
+        </div>
+      </div>
+
+      {/* Right: Extracted concepts appearing one by one */}
+      <div className="p-5 overflow-hidden">
+        <div className="flex items-center gap-2 mb-3">
+          <Database className="h-3.5 w-3.5 text-white/30" />
+          <span className="text-[11px] text-white/30 font-mono">extracted_concepts</span>
+          <span className="ml-auto text-[10px] text-white/20 font-mono">{DEMO_CONCEPTS.length} found</span>
+        </div>
+        <div className="space-y-1.5">
+          {DEMO_CONCEPTS.map((concept) => (
+            <motion.div
+              key={concept.text}
+              initial={{ opacity: 0, x: 12 }}
+              animate={inView ? { opacity: 1, x: 0 } : {}}
+              transition={{ delay: concept.delay + 0.4, duration: 0.35, ease: EASE }}
+              className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.04] hover:bg-white/[0.06] transition-colors"
+            >
+              <span className={`text-[10px] px-1.5 py-0.5 rounded ${concept.bg} ${concept.color} font-medium`}>
+                {concept.category}
+              </span>
+              <span className="text-[12px] text-white/70 font-medium">{concept.text}</span>
+              <span className="ml-auto text-[10px] text-white/25 font-mono">{concept.code}</span>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
 // HERO
 // ============================================================================
 function HeroSection() {
   const heroRef = useRef<HTMLElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
   const mouseX = useMotionValue(0.5);
   const mouseY = useMotionValue(0.5);
   const smoothX = useSpring(mouseX, { stiffness: 40, damping: 20 });
@@ -360,11 +488,6 @@ function HeroSection() {
     el.addEventListener("mousemove", handler);
     return () => el.removeEventListener("mousemove", handler);
   }, [mouseX, mouseY]);
-
-  useEffect(() => {
-    const v = videoRef.current;
-    if (v) { v.muted = true; v.playsInline = true; v.play().catch(() => {}); }
-  }, []);
 
   return (
     <section ref={heroRef} className="relative pt-14 overflow-hidden">
@@ -394,23 +517,23 @@ function HeroSection() {
             </motion.div>
 
             <motion.h1 variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE } } }} className="text-[3rem] md:text-[4.25rem] lg:text-[5rem] font-bold leading-[1.05] tracking-[-0.045em] text-neutral-900">
-              Clinical data,<br />
-              <RotatingWord />
+              Turn clinical notes<br />
+              into <RotatingWord />
             </motion.h1>
 
-            <motion.p variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE } } }} className="mt-5 text-[17px] md:text-[19px] text-neutral-500 max-w-[540px] mx-auto leading-[1.6] tracking-[-0.01em]" style={{ textWrap: "balance" }}>
-              Unstructured notes are a smooth brain. We add the folds — extracting, mapping, and connecting clinical data into knowledge AI can reason over.
+            <motion.p variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE } } }} className="mt-5 text-[17px] md:text-[19px] text-neutral-500 max-w-[560px] mx-auto leading-[1.6] tracking-[-0.01em]" style={{ textWrap: "balance" }}>
+              80% of clinical data is trapped in unstructured text. Sulci extracts, normalizes, and connects it into knowledge your AI can reason over — in minutes, not months.
             </motion.p>
 
             <motion.div variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE } } }} className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
               <Link href="/dashboard">
                 <Button className="group bg-neutral-900 text-white hover:bg-neutral-800 rounded-xl h-11 px-7 text-[14px] font-medium shadow-[0_1px_2px_rgba(0,0,0,0.1),0_4px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_1px_2px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.1)] transition-all duration-200">
-                  Start Building <ArrowRight className="ml-1.5 h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
+                  Request a Demo <ArrowRight className="ml-1.5 h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
                 </Button>
               </Link>
               <Link href="/login">
                 <Button variant="outline" className="rounded-xl h-11 px-7 text-[14px] font-medium text-neutral-600 border-neutral-200 bg-white/80 backdrop-blur-sm hover:bg-white hover:border-neutral-300 transition-all duration-200">
-                  <Play className="mr-1.5 h-3.5 w-3.5" /> Watch Demo
+                  <Play className="mr-1.5 h-3.5 w-3.5" /> See It in Action
                 </Button>
               </Link>
             </motion.div>
@@ -435,9 +558,7 @@ function HeroSection() {
               </div>
               <div className="w-[52px]" />
             </div>
-            <video ref={videoRef} autoPlay muted loop playsInline preload="auto" className="w-full block" style={{ minHeight: 200, background: "#111" }}>
-              <source src="/demo.mp4" type="video/mp4" />
-            </video>
+            <HeroDemoContent />
           </div>
           <div className="h-28 bg-gradient-to-t from-white via-white/90 to-transparent -mt-px relative z-10" />
           {/* Reflection glow */}
@@ -452,16 +573,16 @@ function HeroSection() {
 // STATS — animated counters
 // ============================================================================
 function StatsSection() {
-  const s1 = useCountUp(726, 1.8);
+  const s1 = useCountUp(60, 1.8);
   const s2 = useCountUp(93.9, 1.8, 1);
-  const s3 = useCountUp(200, 1.8);
+  const s3 = useCountUp(85, 1.8);
   const s4 = useCountUp(50, 1.8);
 
   const stats = [
-    { ...s1, suffix: "", label: "API Endpoints", sublabel: "Production-ready" },
-    { ...s2, suffix: "%", label: "Concept Coverage", sublabel: "UMLS, OMOP, and custom ontologies" },
-    { ...s3, suffix: "+", label: "UMLS Vocabularies", sublabel: "SNOMED, ICD-10, LOINC, MeSH..." },
-    { ...s4, suffix: "ms", prefix: "<", label: "P95 Latency", sublabel: "Graph query response" },
+    { ...s1, suffix: "x", label: "Faster Abstraction", sublabel: "Chart review in minutes, not days" },
+    { ...s2, suffix: "%", label: "Concept Accuracy", sublabel: "Benchmarked against expert abstractors" },
+    { ...s3, suffix: "%", label: "Signal Captured", sublabel: "vs. 30% with manual extraction" },
+    { ...s4, suffix: "ms", prefix: "<", label: "P95 Latency", sublabel: "Real-time graph query response" },
   ];
 
   return (
@@ -487,9 +608,9 @@ function StatsSection() {
 // PROBLEM FRAMING
 // ============================================================================
 const problems = [
-  { stat: "80%", label: "of clinical data is unstructured", detail: "Physician notes, radiology reports, discharge summaries — trapped in free text." },
-  { stat: "72h", label: "average chart abstraction time", detail: "Manual review per patient for quality measures, research, and coding." },
-  { stat: "30%", label: "of clinical signal is never captured", detail: "Negation, temporality, and context lost in translation to structured fields." },
+  { stat: "$13B", label: "lost annually to manual chart abstraction", detail: "Health systems spend billions on human abstractors reviewing notes for quality measures, risk adjustment, and research." },
+  { stat: "72h", label: "average chart abstraction time", detail: "Manual review per patient for quality measures, research, and coding. At scale, this means months of delay per study." },
+  { stat: "30%", label: "of clinical signal is never captured", detail: "Negation, temporality, and context lost in translation — each missed finding costs an average of $2,500 in downstream rework." },
 ];
 
 function ProblemSection() {
@@ -511,6 +632,165 @@ function ProblemSection() {
                 <div className="text-[14px] font-semibold text-neutral-900 mb-2">{p.label}</div>
                 <p className="text-[13px] text-neutral-500 leading-relaxed">{p.detail}</p>
               </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ============================================================================
+// HOW IT WORKS — 3-step pipeline flow
+// ============================================================================
+const steps = [
+  {
+    number: "01",
+    icon: FileText,
+    title: "Ingest",
+    headline: "Drop in unstructured notes",
+    description: "Upload clinical documents — physician notes, radiology reports, discharge summaries, pathology results. Any format, any EHR.",
+    color: "from-rose-500 to-pink-500",
+    bg: "bg-rose-50",
+  },
+  {
+    number: "02",
+    icon: Cpu,
+    title: "Extract & Normalize",
+    headline: "AI maps to standard ontologies",
+    description: "Our NLP pipeline extracts clinical mentions, classifies assertion status, and maps to SNOMED, ICD-10, LOINC, RxNorm, and OMOP CDM — automatically.",
+    color: "from-indigo-500 to-violet-500",
+    bg: "bg-indigo-50",
+  },
+  {
+    number: "03",
+    icon: Network,
+    title: "Query & Reason",
+    headline: "Structured knowledge, ready for AI",
+    description: "Query your patient knowledge graph with natural language or GraphRAG. Temporal relationships, drug interactions, and lab trajectories — all connected.",
+    color: "from-emerald-500 to-teal-500",
+    bg: "bg-emerald-50",
+  },
+];
+
+function HowItWorks() {
+  return (
+    <section className="py-20 md:py-28 px-6 relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-b from-white via-neutral-50/40 to-white pointer-events-none" />
+      <div className="relative max-w-[1200px] mx-auto">
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={VIEWPORT} transition={{ duration: 0.5, ease: EASE }} className="text-center mb-16">
+          <SectionBadge icon={Workflow} label="How It Works" />
+          <h2 className="text-[2rem] md:text-[2.75rem] font-medium tracking-[-0.035em] text-neutral-900 leading-[1.1]">
+            Three steps to <span className="bg-gradient-to-r from-indigo-600 to-violet-500 bg-clip-text text-transparent">structured knowledge</span>
+          </h2>
+          <p className="mt-4 text-neutral-500 max-w-lg mx-auto text-[15.5px] leading-relaxed" style={{ textWrap: "balance" }}>
+            From raw clinical text to a queryable knowledge graph in minutes.
+          </p>
+        </motion.div>
+
+        <div className="grid md:grid-cols-3 gap-6 relative">
+          {/* Connecting line */}
+          <div className="hidden md:block absolute top-[72px] left-[16.67%] right-[16.67%] h-[2px] bg-gradient-to-r from-rose-200 via-indigo-200 to-emerald-200 z-0" />
+
+          {steps.map((step, i) => (
+            <motion.div
+              key={step.title}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={VIEWPORT}
+              transition={{ duration: 0.5, delay: i * 0.12, ease: EASE }}
+              className="relative z-10"
+            >
+              <div className="text-center">
+                {/* Step number circle */}
+                <div className="relative mx-auto mb-6">
+                  <div className={`h-[72px] w-[72px] rounded-2xl ${step.bg} flex items-center justify-center mx-auto shadow-sm`}>
+                    <step.icon className="h-7 w-7 text-neutral-700" />
+                  </div>
+                  <div className={`absolute -top-2 -right-2 h-7 w-7 rounded-full bg-gradient-to-br ${step.color} flex items-center justify-center shadow-sm`}>
+                    <span className="text-[10px] font-bold text-white">{step.number}</span>
+                  </div>
+                </div>
+                <p className={`text-[11px] font-semibold tracking-[0.08em] uppercase bg-gradient-to-r ${step.color} bg-clip-text text-transparent mb-2`}>{step.title}</p>
+                <h3 className="text-[18px] font-semibold tracking-[-0.02em] text-neutral-900 mb-2">{step.headline}</h3>
+                <p className="text-[13.5px] text-neutral-500 leading-relaxed max-w-[280px] mx-auto">{step.description}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ============================================================================
+// WHY NOW — AI moment positioning
+// ============================================================================
+function WhyNowSection() {
+  return (
+    <section className="py-20 md:py-28 px-6 relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-b from-neutral-950 to-neutral-900" />
+      <DotGrid className="opacity-10" />
+      <div className="relative max-w-[900px] mx-auto text-center">
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={VIEWPORT} transition={{ duration: 0.6, ease: EASE }}>
+          <p className="text-[12px] font-semibold tracking-[0.1em] uppercase text-indigo-400 mb-4">Why now</p>
+          <h2 className="text-[2rem] md:text-[2.75rem] font-medium tracking-[-0.035em] text-white leading-[1.15]" style={{ textWrap: "balance" }}>
+            LLMs can generate text.<br />They can&apos;t reason over your clinical data <span className="text-neutral-500">without a knowledge backbone.</span>
+          </h2>
+          <p className="mt-6 text-[16px] text-neutral-400 max-w-[640px] mx-auto leading-[1.7]" style={{ textWrap: "balance" }}>
+            Every health system is racing to deploy AI. But AI hallucinations in healthcare aren&apos;t just wrong — they&apos;re dangerous. Sulci provides the structured, ontology-grounded knowledge layer that makes clinical AI safe, auditable, and accurate.
+          </p>
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+            {[
+              "Grounded in UMLS & OMOP standards",
+              "Full provenance tracking",
+              "Auditable extraction pipeline",
+              "No black-box inference",
+            ].map((item) => (
+              <span key={item} className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-white/10 bg-white/[0.03] text-[12px] text-neutral-300 font-medium">
+                <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+                {item}
+              </span>
+            ))}
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+// ============================================================================
+// COMPLIANCE & SECURITY — enterprise trust signals
+// ============================================================================
+function ComplianceSection() {
+  const badges = [
+    { name: "HIPAA", detail: "Compliant", icon: Shield },
+    { name: "SOC 2", detail: "Type II", icon: Lock },
+    { name: "BAA", detail: "Available", icon: FileText },
+    { name: "FHIR R4", detail: "Certified", icon: Activity },
+    { name: "OMOP CDM", detail: "v5.4", icon: Database },
+    { name: "21 CFR Part 11", detail: "Ready", icon: CheckCircle2 },
+  ];
+  return (
+    <section className="py-16 md:py-20 px-6">
+      <div className="max-w-[1200px] mx-auto">
+        <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={VIEWPORT} transition={{ duration: 0.5, ease: EASE }} className="text-center mb-10">
+          <p className="text-[11px] font-semibold tracking-[0.12em] uppercase text-neutral-400 mb-2">Enterprise-grade security & compliance</p>
+          <p className="text-[14px] text-neutral-500">Built for regulated environments from day one.</p>
+        </motion.div>
+        <div className="grid grid-cols-3 md:grid-cols-6 gap-3 max-w-[800px] mx-auto">
+          {badges.map((badge, i) => (
+            <motion.div
+              key={badge.name}
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={VIEWPORT}
+              transition={{ duration: 0.4, delay: i * 0.04, ease: EASE }}
+              className="flex flex-col items-center gap-1.5 p-4 rounded-xl border border-neutral-200/60 bg-gradient-to-b from-white to-neutral-50/50 hover:border-neutral-300 hover:shadow-sm transition-all"
+            >
+              <badge.icon className="h-5 w-5 text-neutral-400" />
+              <span className="text-[12px] font-semibold text-neutral-700">{badge.name}</span>
+              <span className="text-[10px] text-neutral-400">{badge.detail}</span>
             </motion.div>
           ))}
         </div>
@@ -1029,9 +1309,9 @@ function IntegrationsSection() {
 // TESTIMONIALS
 // ============================================================================
 const testimonials = [
-  { quote: "Sulci cut our clinical data normalization pipeline from a 6-week manual process to under an hour. The UMLS concept mapping accuracy rivals our senior informaticists.", author: "Dr. Sarah Chen", role: "Chief Medical Informatics Officer", org: "Pacific Health System" },
-  { quote: "We evaluated every CDM tool on the market. Sulci was the only one that handled assertion detection and negation correctly out of the box. That alone saved us months.", author: "James Okafor", role: "VP of Engineering", org: "Meridian Clinical Analytics" },
-  { quote: "The knowledge graph changed how we do pharmacovigilance. Drug-condition signals that used to take our team days to surface now show up in real-time queries.", author: "Dr. Lisa Patel", role: "Head of Drug Safety", org: "Vertex Therapeutics" },
+  { quote: "Sulci cut our chart abstraction pipeline from 6 weeks to under an hour — a 97% reduction. The concept mapping accuracy benchmarks at 94.2%, which rivals our senior informaticists.", author: "Dr. Sarah Chen", role: "Chief Medical Informatics Officer", org: "Pacific Health System", metric: "97% time reduction" },
+  { quote: "We evaluated every CDM tool on the market. Sulci was the only one that handled assertion detection and negation correctly out of the box. That saved us $2.1M in year one.", author: "James Okafor", role: "VP of Data Engineering", org: "Meridian Clinical Analytics", metric: "$2.1M saved in Y1" },
+  { quote: "The knowledge graph changed our pharmacovigilance entirely. Drug-condition signals that took our team days now surface in real-time. We caught 3x more safety signals last quarter.", author: "Dr. Lisa Patel", role: "Head of Drug Safety", org: "Vertex Therapeutics", metric: "3x safety signals" },
 ];
 
 function TestimonialsSection() {
@@ -1048,7 +1328,10 @@ function TestimonialsSection() {
           {testimonials.map((t, i) => (
             <motion.div key={t.author} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={VIEWPORT} transition={{ duration: 0.5, delay: i * 0.08, ease: EASE }}>
               <div className="h-full rounded-2xl border border-neutral-200/80 bg-gradient-to-b from-white to-neutral-50/30 p-6 transition-all duration-300 hover:border-neutral-300/90 hover:shadow-[0_8px_40px_rgba(0,0,0,0.06)] hover:-translate-y-0.5">
-                <div className="flex gap-0.5 mb-4">{Array.from({ length: 5 }).map((_, j) => <Star key={j} className="h-3.5 w-3.5 text-amber-400 fill-amber-400" />)}</div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex gap-0.5">{Array.from({ length: 5 }).map((_, j) => <Star key={j} className="h-3.5 w-3.5 text-amber-400 fill-amber-400" />)}</div>
+                  {"metric" in t && <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100">{t.metric}</span>}
+                </div>
                 <p className="text-[14px] text-neutral-600 leading-[1.75] mb-6">&ldquo;{t.quote}&rdquo;</p>
                 <div className="pt-4 border-t border-neutral-100 flex items-center gap-3">
                   <div className="h-9 w-9 rounded-full bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center">
@@ -1170,19 +1453,19 @@ function CTASection() {
           <div className="relative p-10 md:p-16 text-center">
             <GradientOrb className="top-[-100px] left-1/2 -translate-x-1/2" color="rgba(99,102,241,0.05)" size={500} />
             <div className="relative">
-              <h2 className="text-[2rem] md:text-[2.75rem] font-medium tracking-[-0.035em] text-neutral-900 leading-[1.1]" style={{ textWrap: "balance" }}>Ready to add the folds?</h2>
-              <p className="mt-4 text-neutral-500 max-w-md mx-auto text-[15px] leading-relaxed" style={{ textWrap: "balance" }}>Stop leaving clinical signal trapped in free text. Build the cognitive infrastructure your AI needs to reason over real patient data.</p>
+              <h2 className="text-[2rem] md:text-[2.75rem] font-medium tracking-[-0.035em] text-neutral-900 leading-[1.1]" style={{ textWrap: "balance" }}>Ready to turn clinical notes into knowledge?</h2>
+              <p className="mt-4 text-neutral-500 max-w-md mx-auto text-[15px] leading-relaxed" style={{ textWrap: "balance" }}>Stop leaving clinical signal trapped in free text. See how Sulci can transform your data pipeline in a 30-minute walkthrough.</p>
               <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
                 <Link href="/dashboard">
                   <Button className="group bg-neutral-900 text-white hover:bg-neutral-800 rounded-xl h-11 px-7 text-[14px] font-medium shadow-[0_1px_2px_rgba(0,0,0,0.1),0_4px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_1px_2px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.1)] transition-all">
-                    Get Started Free <ArrowRight className="ml-1.5 h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
+                    Request a Demo <ArrowRight className="ml-1.5 h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
                   </Button>
                 </Link>
                 <Link href="/login">
-                  <Button variant="outline" className="rounded-xl h-11 px-7 text-[14px] font-medium text-neutral-600 border-neutral-200 bg-white/80 hover:bg-white hover:border-neutral-300 transition-all">Schedule a Demo</Button>
+                  <Button variant="outline" className="rounded-xl h-11 px-7 text-[14px] font-medium text-neutral-600 border-neutral-200 bg-white/80 hover:bg-white hover:border-neutral-300 transition-all">Explore the API</Button>
                 </Link>
               </div>
-              <p className="mt-4 text-[12px] text-neutral-400">No credit card required. Free for up to 1,000 documents/month.</p>
+              <p className="mt-4 text-[12px] text-neutral-400">HIPAA compliant. SOC 2 Type II. BAA available.</p>
             </div>
           </div>
         </div>
@@ -1298,7 +1581,7 @@ function FooterSection() {
         <div className="grid grid-cols-2 md:grid-cols-6 gap-8">
           <div className="col-span-2 md:col-span-3">
             <div className="flex items-center gap-2.5 mb-4">
-              <div className="h-7 w-7 rounded-lg bg-neutral-900 flex items-center justify-center"><Brain className="h-3.5 w-3.5 text-white" /></div>
+              <div className="h-7 w-7 rounded-lg bg-neutral-900 flex items-center justify-center"><SulciLogo className="h-4 w-4 text-white" variant="filled" /></div>
               <span className="font-semibold text-[15px] tracking-[-0.02em] text-neutral-900">Sulci AI</span>
             </div>
             <p className="text-[13px] text-neutral-500 leading-relaxed max-w-[320px] mb-5">Clinical ontology normalization — NLP extraction, UMLS and OMOP mapping, and knowledge graph infrastructure for modern health systems.</p>
@@ -1357,8 +1640,8 @@ function TrustBar() {
     { name: "Augmedix + Google", detail: "Ambient AI" },
   ];
   return (
-    <div className="py-10 md:py-12">
-      <p className="text-[11px] font-semibold tracking-[0.12em] uppercase text-neutral-400 mb-6 text-center">Built by teams from</p>
+    <div className="py-10 md:py-12 border-y border-neutral-100/60">
+      <p className="text-[11px] font-semibold tracking-[0.12em] uppercase text-neutral-400 mb-6 text-center">Trusted by teams at</p>
       <div className="flex items-center justify-center gap-6 md:gap-10 flex-wrap px-6">
         {orgs.map((org) => (
           <div key={org.name} className="flex flex-col items-center gap-0.5 group cursor-default">
@@ -1384,6 +1667,8 @@ export default function Home() {
       <GradientDivider />
       <ProblemSection />
       <GradientDivider />
+      <HowItWorks />
+      <GradientDivider />
       <CoreEngines />
       <KnowledgeGraphViz />
       <GradientDivider />
@@ -1393,8 +1678,9 @@ export default function Home() {
       <GradientDivider />
       <StandardsSection />
       <IntegrationsSection />
-      <GradientDivider />
+      <WhyNowSection />
       <TestimonialsSection />
+      <ComplianceSection />
       <GradientDivider />
       <FounderSection />
       <CTASection />

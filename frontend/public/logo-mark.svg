@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- Sulci AI Logo — abstract S-fold mark -->
+  <!-- Three nested curves forming a brain-fold S shape -->
+  <path d="M10 5c8-1 14 3 14 9s-6 8-14 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <path d="M22 27c-8 1-14-3-14-9s6-8 14-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <!-- Inner fold detail -->
+  <path d="M12 8.5c5-.5 9 2 9 5.5s-4 5-9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+  <path d="M20 23.5c-5 .5-9-2-9-5.5s4-5 9-4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+</svg>
