@@ -70,6 +70,7 @@ class _PilotRoute(APIRoute):
         async def _wrapped(request: Request) -> Response:
             response = await original(request)
             response.headers["X-API-Stability"] = "pilot"
+            response.headers["X-Route-Status"] = "canonical"
             return response
 
         return _wrapped

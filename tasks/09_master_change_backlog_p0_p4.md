@@ -93,16 +93,16 @@ Execution rules
 
 - [x] P2-001 Add integration tests with real Neo4j + PostgreSQL for KG/QA pathways. | Owner: QA + CTO | Anchor: `backend/tests/` | Exit: CI integration suite green.
 - [x] P2-002 Add contract tests for answer provenance completeness. | Owner: QA + Clinical AI | Anchor: QA API tests | Exit: tests fail when source IDs missing.
-- [ ] P2-003 Add synthetic canary tests for top 5 clinical workflows. | Owner: Ops + QA | Anchor: monitoring/canary scripts | Exit: canaries run continuously.
-- [ ] P2-004 Add benchmark harness for NLP extraction precision/recall by entity type. | Owner: Clinical AI | Anchor: NLP test framework | Exit: periodic benchmark report.
+- [x] P2-003 Add synthetic canary tests for top 5 clinical workflows. | Owner: Ops + QA | Anchor: monitoring/canary scripts | Exit: canaries run continuously.
+- [x] P2-004 Add benchmark harness for NLP extraction precision/recall by entity type. | Owner: Clinical AI | Anchor: NLP test framework | Exit: periodic benchmark report.
 - [x] P2-005 Add regression tests for negation/experiencer edge cases. | Owner: Clinical AI + QA | Anchor: NLP tests | Exit: edge-case corpus tracked in CI.
-- [ ] P2-006 Add KG completeness scoring model and expose in API/UI. | Owner: Clinical AI + Product | Anchor: KG + clinical agent services | Exit: completeness metric shown per patient.
+- [x] P2-006 Add KG completeness scoring model and expose in API/UI. | Owner: Clinical AI + Product | Anchor: KG + clinical agent services | Exit: completeness metric shown per patient.
 - [x] P2-007 Add uncertainty taxonomy and reason codes for all decline/degraded outputs. | Owner: Clinical AI | Anchor: response schema | Exit: standardized reason catalog.
-- [ ] P2-008 Add chart-level "what system knows vs does not know" summary panel. | Owner: Product | Anchor: frontend clinical pages | Exit: unknown coverage displayed.
-- [ ] P2-009 Add clinician feedback capture and replay pipeline. | Owner: Product + Clinical AI | Anchor: feedback API/storage | Exit: weekly reviewed feedback dataset.
-- [ ] P2-010 Add drift detection for terminology mapping distributions over time. | Owner: Clinical AI + Data | Anchor: mapping analytics jobs | Exit: drift alert thresholds active.
-- [ ] P2-011 Add concept mapping disagreement dashboard (rule vs ML vs ensemble). | Owner: Clinical AI + Product | Anchor: analytics/UI | Exit: disagreement visibility for triage.
-- [ ] P2-012 Add queue partitioning by workload class (ingest/mapping/KG/export). | Owner: CTO + Ops | Anchor: queue config | Exit: isolated queues with quotas.
+- [x] P2-008 Add chart-level "what system knows vs does not know" summary panel. | Owner: Product | Anchor: frontend clinical pages | Exit: unknown coverage displayed.
+- [x] P2-009 Add clinician feedback capture and replay pipeline. | Owner: Product + Clinical AI | Anchor: feedback API/storage | Exit: weekly reviewed feedback dataset.
+- [x] P2-010 Add drift detection for terminology mapping distributions over time. | Owner: Clinical AI + Data | Anchor: mapping analytics jobs | Exit: drift alert thresholds active.
+- [x] P2-011 Add concept mapping disagreement dashboard (rule vs ML vs ensemble). | Owner: Clinical AI + Product | Anchor: analytics/UI | Exit: disagreement visibility for triage.
+- [x] P2-012 Add queue partitioning by workload class (ingest/mapping/KG/export). | Owner: CTO + Ops | Anchor: queue config | Exit: isolated queues with quotas.
 - [ ] P2-013 Add horizontal scaling plan for worker pools with load tests. | Owner: Ops + CTO | Anchor: deployment config + perf tests | Exit: defined scaling thresholds.
 - [ ] P2-014 Add Kafka HA strategy decision (managed service vs multi-broker self-hosted). | Owner: CTO + Ops | Anchor: ops architecture docs | Exit: approved target topology.
 - [ ] P2-015 Add Redis separation for cache vs job queue in production design. | Owner: Ops | Anchor: deployment topology docs | Exit: contention risk reduced.
@@ -111,14 +111,14 @@ Execution rules
 - [ ] P2-018 Add alert fatigue controls and tuned severity thresholds. | Owner: Ops | Anchor: alert policies | Exit: false positive rate reduced.
 - [x] P2-019 Add API budget/timeout policies for hybrid query path. | Owner: CTO + Clinical AI | Anchor: clinical agent service | Exit: bounded execution with fail-safe behavior.
 - [x] P2-020 Add idempotency and retry safety for ingestion endpoints. | Owner: Platform | Anchor: ingestion APIs | Exit: duplicate submissions handled safely.
-- [ ] P2-021 Add deterministic reprocessing mode for failed notes. | Owner: Clinical AI + Ops | Anchor: import pipeline | Exit: failed notes can be replayed safely.
-- [ ] P2-022 Add structured data lineage fields end-to-end (source system to answer). | Owner: Data + Clinical AI | Anchor: models + response schemas | Exit: lineage queryable for audits.
+- [x] P2-021 Add deterministic reprocessing mode for failed notes. | Owner: Clinical AI + Ops | Anchor: import pipeline | Exit: failed notes can be replayed safely.
+- [x] P2-022 Add structured data lineage fields end-to-end (source system to answer). | Owner: Data + Clinical AI | Anchor: models + response schemas | Exit: lineage queryable for audits.
 - [ ] P2-023 Add tenant onboarding automation and preflight validation checks. | Owner: CIO + Interop | Anchor: onboarding scripts/docs | Exit: repeatable onboarding sequence.
 - [x] P2-024 Add endpoint-level RBAC test suite for least privilege. | Owner: Security + QA | Anchor: security tests | Exit: unauthorized access tests enforced.
 - [x] P2-025 Add policy tests to ensure no sensitive defaults in production configs. | Owner: CISO + QA | Anchor: config tests | Exit: CI gate for unsafe defaults.
 - [ ] P2-026 Add threat model update cadence tied to release cycles. | Owner: CISO | Anchor: security governance docs | Exit: quarterly threat model updates.
-- [ ] P2-027 Add OpenEHR profile validation suite for generated payloads. | Owner: Interop + QA | Anchor: connector/export tests | Exit: profile conformance report.
-- [ ] P2-028 Add interoperability conformance suite (FHIR search/profile/capability statement). | Owner: Interop | Anchor: FHIR APIs | Exit: conformance baseline tracked.
+- [x] P2-027 Add OpenEHR profile validation suite for generated payloads. | Owner: Interop + QA | Anchor: connector/export tests | Exit: profile conformance report.
+- [x] P2-028 Add interoperability conformance suite (FHIR search/profile/capability statement). | Owner: Interop | Anchor: FHIR APIs | Exit: conformance baseline tracked.
 - [ ] P2-029 Add business continuity tabletop cadence with action item closure tracking. | Owner: CIO + Ops | Anchor: BCP docs | Exit: monthly tabletop reports.
 - [ ] P2-030 Add monthly executive risk summary with blocker trends. | Owner: Program Lead | Anchor: run logs and boards | Exit: monthly board-level report.
 

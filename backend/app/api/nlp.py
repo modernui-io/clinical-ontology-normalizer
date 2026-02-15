@@ -5,16 +5,23 @@ Provides clinical NLP entity extraction services:
 - Batch extraction for multiple documents
 - List available NLP models
 - Normalize extracted entities to standard codes
+
+NOTE: These routes are DEPRECATED for pilot users. The canonical
+ingestion-to-QA route is /api/v1/clinical-agent which provides
+bulk import, hybrid query, and graph RAG capabilities.
+See P0-020 for details.
 """
 
 from __future__ import annotations
 
 import logging
+import os
 import time
 from enum import Enum
 from uuid import uuid4
 
-from fastapi import APIRouter, Body, Query
+from fastapi import APIRouter, Body, Query, Request, Response
+from fastapi.routing import APIRoute
 from pydantic import BaseModel, Field
 
 from app.api.errors import ErrorCode, InternalError
@@ -22,7 +29,41 @@ from app.api.errors import ErrorCode, InternalError
 logger = logging.getLogger(__name__)
 
 
-router = APIRouter(prefix="/nlp", tags=["NLP"])
+# ---------------------------------------------------------------------------
+# P0-020: Custom route class that marks NLP routes as deprecated and injects
+# the X-API-Stability header on every response.  In production the handler
+# also emits a WARNING-level log so operators can track residual traffic.
+# ---------------------------------------------------------------------------
+
+class _DeprecatedNLPRoute(APIRoute):
+    """APIRoute subclass that adds X-API-Stability: deprecated to responses."""
+
+    def get_route_handler(self):  # type: ignore[override]
+        original = super().get_route_handler()
+
+        async def _wrapped(request: Request) -> Response:
+            # Emit deprecation warning in production
+            if os.getenv("ENV", "development").lower() in ("production", "prod"):
+                logger.warning(
+                    "Deprecated NLP route called: %s %s — "
+                    "migrate to /api/v1/clinical-agent (canonical pilot route)",
+                    request.method,
+                    request.url.path,
+                )
+            response = await original(request)
+            response.headers["X-API-Stability"] = "deprecated"
+            response.headers["X-Route-Status"] = "deprecated"
+            response.headers["Deprecation"] = "true"
+            response.headers["Sunset"] = "2026-06-30"
+            response.headers["Link"] = (
+                '</api/v1/clinical-agent>; rel="successor-version"'
+            )
+            return response
+
+        return _wrapped
+
+
+router = APIRouter(prefix="/nlp", tags=["NLP"], route_class=_DeprecatedNLPRoute)
 
 
 # ============================================================================

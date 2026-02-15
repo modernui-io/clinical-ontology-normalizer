@@ -26,6 +26,7 @@ import {
   RefreshCw,
   FlaskConical,
 } from "lucide-react";
+import { PersonaNavigator } from "@/components/PersonaNavigator";
 
 interface DashboardStats {
   totalDocuments: number;
@@ -171,6 +172,9 @@ export default function DashboardPage() {
           Refresh
         </Button>
       </div>
+
+      {/* Persona Navigation (P3-002) */}
+      <PersonaNavigator />
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
