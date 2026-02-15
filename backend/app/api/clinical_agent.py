@@ -43,6 +43,7 @@ from app.services.nlp_rule_based import RuleBasedNLPService
 from app.services.provenance_db_service import get_provenance_db_service
 from app.services.concept_lookup import lookup_concept_cached
 from app.services.confidence_policy_service import check_action_gate
+from app.services.workflow_confidence_policy import detect_workflow_type, get_policy_for_workflow, get_policy_version
 from app.services.temporal_extractor import TemporalExtractor, extract_entity_dates
 from app.core.config import settings
 from app.schemas.confidence_semantics import (
@@ -2226,6 +2227,14 @@ async def hybrid_query(
         if any(kw in question for kw in keywords):
             query_type = qtype
             break
+
+    # P1-003: Detect workflow type and apply workflow-specific confidence policy
+    workflow_type = detect_workflow_type(request.question, query_type)
+    workflow_policy = get_policy_for_workflow(workflow_type)
+    logger.debug(
+        "P1-003 workflow confidence: type=%s policy_version=%s thresholds=%s",
+        workflow_type.value, get_policy_version(), workflow_policy.thresholds,
+    )
 
     # Check for narrative-related query
     is_narrative_query = query_type in ["admission", "course", "discharge", "causal"]

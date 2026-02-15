@@ -12,8 +12,13 @@ version: '3.8'
 
 services:
   # PostgreSQL Database - Production
+  # P0-012: Encryption-at-rest requirement for HIPAA compliance.
+  # Docker volumes use the host filesystem encryption. Ensure the host OS
+  # has full-disk encryption enabled (e.g., LUKS on Linux, dm-crypt).
+  # For cloud deployments, use encrypted EBS/PD volumes.
   postgres:
     image: postgres:16-alpine
+    restart: unless-stopped
     read_only: true
     security_opt:
       - no-new-privileges:true
@@ -75,6 +80,7 @@ services:
   # Redis Cache - Production
   redis:
     image: redis:7-alpine
+    restart: unless-stopped
     read_only: true
     security_opt:
       - no-new-privileges:true
@@ -90,21 +96,24 @@ services:
         reservations:
           cpus: '0.25'
           memory: 256M
-    command: redis-server --appendonly yes --maxmemory 768mb --maxmemory-policy allkeys-lru
+    # P0-011: Require Redis authentication in production
+    command: redis-server --appendonly yes --maxmemory 768mb --maxmemory-policy allkeys-lru --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
     logging:
       driver: "json-file"
       options:
         max-size: "50m"
         max-file: "3"
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 10s
 
   # Neo4j Graph Database - Production
   neo4j:
     image: neo4j:5
+    restart: unless-stopped
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -137,6 +146,7 @@ services:
 
   # Zookeeper - Production
   zookeeper:
+    restart: unless-stopped
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -159,9 +169,11 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 15s
 
   # Kafka - Production
   kafka:
+    restart: unless-stopped
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -203,6 +215,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile.prod
+    restart: unless-stopped
     read_only: true
     security_opt:
       - no-new-privileges:true
@@ -221,7 +234,7 @@ services:
       replicas: 2
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/${POSTGRES_DB:-clinical_ontology}
-      REDIS_URL: redis://redis:6379
+      REDIS_URL: redis://:${REDIS_PASSWORD:?REDIS_PASSWORD is required}@redis:6379
       NEO4J_URI: bolt://neo4j:7687
       NEO4J_USER: ${NEO4J_USER:-neo4j}
       NEO4J_PASSWORD: ${NEO4J_PASSWORD:?NEO4J_PASSWORD is required}
@@ -246,10 +259,13 @@ services:
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
 
   # RQ Worker - Production
+  # P1-022: Worker healthcheck uses python-based liveness probe instead of HTTP ping.
+  # Workers do not serve HTTP; the old curl-based check always failed silently.
   worker:
     build:
       context: ./backend
       dockerfile: Dockerfile.prod
+    restart: unless-stopped
     read_only: true
     security_opt:
       - no-new-privileges:true
@@ -268,12 +284,13 @@ services:
       replicas: 2
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/${POSTGRES_DB:-clinical_ontology}
-      REDIS_URL: redis://redis:6379
+      REDIS_URL: redis://:${REDIS_PASSWORD:?REDIS_PASSWORD is required}@redis:6379
       NEO4J_URI: bolt://neo4j:7687
       NEO4J_USER: ${NEO4J_USER:-neo4j}
       NEO4J_PASSWORD: ${NEO4J_PASSWORD:?NEO4J_PASSWORD is required}
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       USE_DB_VOCABULARY: "true"
+      WORKER_STUCK_THRESHOLD_SECONDS: "300"
     volumes: []
     logging:
       driver: "json-file"
@@ -281,11 +298,11 @@ services:
         max-size: "50m"
         max-file: "5"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "python", "-c", "from app.core.worker_health import check_worker_health; r = check_worker_health(); exit(0 if r.healthy else 1)"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 60s
 
   # Frontend - Production
   frontend:
@@ -294,6 +311,7 @@ services:
       dockerfile: Dockerfile.prod
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://backend:8000}
+    restart: unless-stopped
     read_only: true
     security_opt:
       - no-new-privileges:true

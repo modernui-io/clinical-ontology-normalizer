@@ -43,6 +43,7 @@ import {
   isDegraded,
   type DegradedState,
 } from "@/components/DegradedBanner";
+import { RefusalCard } from "@/components/RefusalCard";
 
 // ---------------------------------------------------------------------------
 // Types matching backend schema shapes
@@ -589,8 +590,12 @@ export default function ClinicalDashboardPage() {
         </Card>
       )}
 
-      {/* Degraded Mode Banner */}
-      {degradedState && <DegradedBanner state={degradedState} />}
+      {/* P1-004: Refusal card for declined, degraded banner for other issues */}
+      {degradedState?.declined ? (
+        <RefusalCard state={degradedState} />
+      ) : degradedState ? (
+        <DegradedBanner state={degradedState} />
+      ) : null}
 
       {/* Summary Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

@@ -25,6 +25,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
+from app.models.document import Document
 from app.models.knowledge_graph import KGEdge, KGNode
 from app.schemas.knowledge_graph import EdgeType, NodeType
 
@@ -72,6 +73,14 @@ class TemporalContext:
     historical_state: dict[str, Any]  # What was true in the past
 
 
+class SourceRetrievalStatus:
+    """Status constants for document source retrieval (P1-011)."""
+
+    FULL = "full"
+    PARTIAL = "partial"
+    UNAVAILABLE = "unavailable"
+
+
 @dataclass
 class GraphAugmentedContext:
     """Context combining graph traversal with documents."""
@@ -83,6 +92,7 @@ class GraphAugmentedContext:
     retrieved_documents: list[dict[str, Any]]
     policy_constraints: list[dict[str, Any]]
     total_evidence_pieces: int = 0
+    source_retrieval_status: str = field(default=SourceRetrievalStatus.UNAVAILABLE)
 
     def to_llm_prompt(self) -> str:
         """Format all context for LLM consumption."""
@@ -228,10 +238,11 @@ class GraphAugmentedRAGService:
                 query_concepts=query_concepts,
             )
 
-        # Retrieve relevant documents (placeholder - would integrate with SemanticQA)
-        retrieved_documents = self._retrieve_documents(
+        # P1-011: Real document retrieval with status tracking
+        retrieved_documents, source_status = await self._retrieve_documents_async(
             query=query,
             patient_id=patient_id,
+            query_concepts=query_concepts,
         )
 
         return GraphAugmentedContext(
@@ -246,6 +257,7 @@ class GraphAugmentedRAGService:
                 + len(retrieved_documents)
                 + len(policy_constraints)
             ),
+            source_retrieval_status=source_status,
         )
 
     def retrieve_context(
@@ -302,10 +314,11 @@ class GraphAugmentedRAGService:
                 query_concepts=query_concepts,
             )
 
-        # Retrieve relevant documents (placeholder - would integrate with SemanticQA)
-        retrieved_documents = self._retrieve_documents(
+        # P1-011: Real document retrieval with status tracking
+        retrieved_documents, source_status = self._retrieve_documents_sync(
             query=query,
             patient_id=patient_id,
+            query_concepts=query_concepts,
         )
 
         return GraphAugmentedContext(
@@ -320,6 +333,7 @@ class GraphAugmentedRAGService:
                 + len(retrieved_documents)
                 + len(policy_constraints)
             ),
+            source_retrieval_status=source_status,
         )
 
     def _extract_query_concepts(self, query: str) -> list[str]:
@@ -732,17 +746,145 @@ class GraphAugmentedRAGService:
         # Placeholder - would integrate with PolicyComplianceAgent
         return []
 
-    def _retrieve_documents(
+    async def _retrieve_documents_async(
         self,
         query: str,
         patient_id: str,
-    ) -> list[dict[str, Any]]:
-        """Retrieve relevant documents for the query.
+        query_concepts: list[str] | None = None,
+    ) -> tuple[list[dict[str, Any]], str]:
+        """Retrieve real patient documents from the database (P1-011, async).
 
-        In production, this would integrate with SemanticQAService.
+        Returns:
+            Tuple of (documents list, source_retrieval_status).
         """
-        # Placeholder - would integrate with document retrieval
-        return []
+        try:
+            stmt = select(Document).where(Document.patient_id == patient_id)
+            result = await self._session.execute(stmt)
+            docs = list(result.scalars().all())
+
+            if not docs:
+                logger.info(
+                    "P1-011: No documents found for patient %s", patient_id,
+                )
+                return [], SourceRetrievalStatus.UNAVAILABLE
+
+            return self._score_and_format_docs(docs, query, query_concepts)
+
+        except Exception as exc:
+            logger.warning(
+                "P1-011: Document retrieval failed for patient %s: %s",
+                patient_id,
+                exc,
+            )
+            return [], SourceRetrievalStatus.UNAVAILABLE
+
+    def _retrieve_documents_sync(
+        self,
+        query: str,
+        patient_id: str,
+        query_concepts: list[str] | None = None,
+    ) -> tuple[list[dict[str, Any]], str]:
+        """Retrieve real patient documents from the database (P1-011, sync).
+
+        Returns:
+            Tuple of (documents list, source_retrieval_status).
+        """
+        try:
+            stmt = select(Document).where(Document.patient_id == patient_id)
+            result = self._session.execute(stmt)
+            docs = list(result.scalars().all())
+
+            if not docs:
+                logger.info(
+                    "P1-011: No documents found for patient %s", patient_id,
+                )
+                return [], SourceRetrievalStatus.UNAVAILABLE
+
+            return self._score_and_format_docs(docs, query, query_concepts)
+
+        except Exception as exc:
+            logger.warning(
+                "P1-011: Document retrieval failed for patient %s: %s",
+                patient_id,
+                exc,
+            )
+            return [], SourceRetrievalStatus.UNAVAILABLE
+
+    def _score_and_format_docs(
+        self,
+        docs: list[Any],
+        query: str,
+        query_concepts: list[str] | None = None,
+    ) -> tuple[list[dict[str, Any]], str]:
+        """Score documents by relevance and return with retrieval status.
+
+        Returns:
+            Tuple of (formatted docs, source_retrieval_status).
+        """
+        concepts = query_concepts or []
+        query_lower = query.lower()
+        scored: list[tuple[float, Any]] = []
+
+        for doc in docs:
+            try:
+                text_lower = doc.text.lower() if doc.text else ""
+                # Score: keyword overlap + concept overlap
+                score = 0.0
+                query_words = set(query_lower.split())
+                for word in query_words:
+                    if len(word) > 2 and word in text_lower:
+                        score += 1.0
+                for concept in concepts:
+                    if concept.lower() in text_lower:
+                        score += 2.0
+                scored.append((score, doc))
+            except Exception:
+                # Individual doc scoring failure doesn't invalidate batch
+                continue
+
+        if not scored:
+            return [], SourceRetrievalStatus.UNAVAILABLE
+
+        # Sort by score descending, take top 5
+        scored.sort(key=lambda x: x[0], reverse=True)
+        top_docs = scored[:5]
+
+        formatted: list[dict[str, Any]] = []
+        any_failed = False
+        for score, doc in top_docs:
+            if score <= 0:
+                continue
+            try:
+                content = doc.text[:500] if doc.text else ""
+                formatted.append({
+                    "source": f"document:{doc.id}",
+                    "source_available": True,
+                    "note_type": doc.note_type,
+                    "patient_id": doc.patient_id,
+                    "content": content,
+                    "relevance_score": round(score, 2),
+                })
+            except Exception as exc:
+                try:
+                    doc_id = doc.id
+                except Exception:
+                    doc_id = "unknown"
+                logger.warning("P1-011: Failed to format doc %s: %s", doc_id, exc)
+                formatted.append({
+                    "source": f"document:{doc_id}",
+                    "source_available": False,
+                    "content": "",
+                    "relevance_score": 0.0,
+                })
+                any_failed = True
+
+        if not formatted:
+            return [], SourceRetrievalStatus.UNAVAILABLE
+
+        if any_failed:
+            return formatted, SourceRetrievalStatus.PARTIAL
+
+        return formatted, SourceRetrievalStatus.FULL
 
 
 def get_graph_augmented_rag_service(

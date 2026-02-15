@@ -21,6 +21,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 import json
 import logging
+import os
 from pathlib import Path
 import threading
 from typing import TYPE_CHECKING
@@ -157,6 +158,19 @@ class InteractionCheckResult:
     drugs_checked: list[str]
     interactions_found: list[DrugInteraction]
     total_interactions: int
+    # P1-013: Coverage status for each checked pair
+    coverage_status: str = "covered"  # "covered" | "partially_covered" | "uncovered"
+    drug_coverage_warning: str | None = None
+
+
+@dataclass
+class DrugCoverageReport:
+    """Report on drug safety database coverage."""
+
+    total_drugs_known: int
+    total_interactions: int
+    coverage_percent: float
+    known_drug_names: list[str]
 
 
 # Known drug-drug interactions
@@ -1140,7 +1154,12 @@ class DrugSafetyService:
         }
 
     def check_interactions(self, drugs: list[str]) -> InteractionCheckResult:
-        """Check for known drug-drug interactions among a list of medications."""
+        """Check for known drug-drug interactions among a list of medications.
+
+        P1-013: Returns coverage_status indicating whether the checked drug
+        pairs are in the interaction database.  When DRUG_SAFETY_STRICT_MODE
+        is set, uncovered pairs produce an explicit warning.
+        """
         normalized = [self.normalize_drug_name(d) for d in drugs]
         # Check against both original and normalized names for better matching
         all_names = [d.lower() for d in drugs] + [n.lower() for n in normalized]
@@ -1162,8 +1181,100 @@ class DrugSafetyService:
                     management=interaction_data["management"],
                 ))
 
+        # P1-013: Determine coverage status
+        coverage_status, coverage_warning = self._compute_coverage(normalized, found)
+
         return InteractionCheckResult(
             drugs_checked=normalized,
             interactions_found=found,
             total_interactions=len(found),
+            coverage_status=coverage_status,
+            drug_coverage_warning=coverage_warning,
+        )
+
+    # ------------------------------------------------------------------
+    # P1-013 helpers
+    # ------------------------------------------------------------------
+
+    def _compute_coverage(
+        self,
+        normalized_drugs: list[str],
+        found_interactions: list[DrugInteraction],
+    ) -> tuple[str, str | None]:
+        """Determine coverage status and optional warning for a drug list.
+
+        A drug is considered "known" if it appears in either the safety
+        profiles database or the interaction database.
+
+        Returns:
+            (coverage_status, warning_message | None)
+        """
+        # Build set of all drugs the system knows about
+        known_set = {name.lower() for name in self._profiles}
+        for entry in KNOWN_INTERACTIONS:
+            for drug_name in entry["drugs"]:
+                known_set.add(drug_name.lower())
+        # Also include aliases
+        for alias, generic in self._aliases.items():
+            known_set.add(alias.lower())
+            known_set.add(generic.lower())
+
+        checked = {d.lower() for d in normalized_drugs}
+
+        known_count = len(checked & known_set)
+        unknown_drugs = checked - known_set
+
+        if not checked:
+            return "covered", None
+
+        if known_count == len(checked):
+            status = "covered"
+        elif known_count > 0:
+            status = "partially_covered"
+        else:
+            status = "uncovered"
+
+        # Build warning
+        warning: str | None = None
+        strict = os.environ.get("DRUG_SAFETY_STRICT_MODE", "").lower() in (
+            "1", "true", "yes",
+        )
+
+        if unknown_drugs:
+            drug_list = ", ".join(sorted(unknown_drugs))
+            warning = (
+                f"The following drugs are not in the interaction database and "
+                f"their interactions could not be checked: {drug_list}. "
+                f"Consult clinical references for complete information."
+            )
+            if strict:
+                warning = f"[STRICT MODE] {warning}"
+
+        return status, warning
+
+    def get_coverage_report(self) -> DrugCoverageReport:
+        """Return a summary of drug safety database coverage.
+
+        P1-013: Provides total_drugs_known, total_interactions, and
+        coverage_percent (ratio of drugs with at least one profile).
+        """
+        known_drugs = sorted(self._profiles.keys())
+
+        # Collect unique drugs mentioned in the interaction database
+        interaction_drug_set: set[str] = set()
+        for entry in KNOWN_INTERACTIONS:
+            interaction_drug_set.update(entry["drugs"])
+
+        # coverage_percent = drugs in profiles that also appear in interactions
+        if interaction_drug_set:
+            covered = len(interaction_drug_set & set(self._profiles.keys()))
+            coverage_pct = round((covered / len(interaction_drug_set)) * 100, 1)
+        else:
+            coverage_pct = 0.0
+
+        return DrugCoverageReport(
+            total_drugs_known=len(known_drugs),
+            total_interactions=len(KNOWN_INTERACTIONS),
+            coverage_percent=coverage_pct,
+            known_drug_names=known_drugs,
         )

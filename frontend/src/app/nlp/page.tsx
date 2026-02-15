@@ -46,7 +46,14 @@ import {
   ExternalLink,
   Send,
   MessageSquare,
+  Lock,
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import KnowledgeGraph from "@/components/KnowledgeGraph";
@@ -58,6 +65,8 @@ import {
   isActionBlocked,
   type DegradedState,
 } from "@/components/DegradedBanner";
+import { RefusalCard } from "@/components/RefusalCard";
+import { TransparencyHeader } from "@/components/TransparencyHeader";
 import { GuidelineCitationCard, PolicyCitationCard } from "@/components/provenance/CitationCard";
 import { ReasoningChain } from "@/components/provenance/ReasoningChain";
 import type {
@@ -1502,7 +1511,14 @@ interface QAMessage {
   query_id?: string;
   sources?: string[];
   degraded?: DegradedState;
+  // P1-018: Transparency header fields
+  model_provider?: string | null;
+  risk_tier?: string | null;
+  processing_route?: string | null;
 }
+
+// P1-017: Pilot mode — lock UI to sanctioned extraction mode
+const IS_PILOT_MODE = process.env.NEXT_PUBLIC_PILOT_MODE !== "false"; // default true
 
 export default function NLPWorkbenchPage() {
   const router = useRouter();
@@ -2016,6 +2032,19 @@ export default function NLPWorkbenchPage() {
           action_gate: result.action_gate,
         };
 
+        // P1-018: Derive transparency metadata from the response
+        const modelProvider: string | null =
+          result.model_provider || result.llm_model || (result.fallback_used ? "Fallback / Rule-based" : null);
+        const riskTier: string | null =
+          result.action_gate?.risk_tier || null;
+        const processingRoute: string | null =
+          result.processing_route ||
+          (result.sources && result.sources.length > 0
+            ? `hybrid: ${result.sources.join(" + ")}`
+            : result.fallback_used
+            ? "fallback"
+            : null);
+
         const assistantMessage: QAMessage = {
           id: `msg_${Date.now()}_response`,
           role: "assistant",
@@ -2029,6 +2058,9 @@ export default function NLPWorkbenchPage() {
           query_id: result.query_id,
           sources: result.sources || [],
           degraded: isDegraded(degradedState) ? degradedState : undefined,
+          model_provider: modelProvider,
+          risk_tier: riskTier,
+          processing_route: processingRoute,
         };
         setQaMessages((prev) => [...prev, assistantMessage]);
       } else {
@@ -2051,49 +2083,105 @@ export default function NLPWorkbenchPage() {
             <Brain className="h-6 w-6" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">
-              NLP Clinical Analysis Workbench
-            </h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold tracking-tight">
+                NLP Clinical Analysis Workbench
+              </h1>
+              {/* P1-017: Pilot Mode badge */}
+              {IS_PILOT_MODE && (
+                <Badge className="bg-indigo-600 text-white text-xs">
+                  <Lock className="mr-1 h-3 w-3" />
+                  Pilot Mode
+                </Badge>
+              )}
+            </div>
             <p className="text-muted-foreground">
-              Extract entities and analyze clinical notes with AI
+              {IS_PILOT_MODE
+                ? "Standard Clinical Extraction — pilot-sanctioned mode"
+                : "Extract entities and analyze clinical notes with AI"}
             </p>
           </div>
         </div>
 
         {/* Mode Toggle */}
-        <Tabs value={workbenchMode} onValueChange={(v) => setWorkbenchMode(v as WorkbenchMode)}>
-          <TabsList>
-            <TabsTrigger value="extraction" className="gap-2">
-              <Search className="h-4 w-4" />
-              Entity Extraction
-            </TabsTrigger>
-            <TabsTrigger value="hybrid" className="gap-2">
-              <Sparkles className="h-4 w-4" />
-              Hybrid Analyzer
-            </TabsTrigger>
-            <TabsTrigger
-              value="knowledge_graph"
-              className="gap-2"
-              disabled={kgNodes.length === 0}
-            >
-              <Network className="h-4 w-4" />
-              Knowledge Graph
-              {kgNodes.length > 0 && (
-                <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
-                  {kgNodes.length}
-                </Badge>
+        <TooltipProvider>
+          <Tabs value={workbenchMode} onValueChange={(v) => {
+            if (IS_PILOT_MODE && v !== "extraction") return;
+            setWorkbenchMode(v as WorkbenchMode);
+          }}>
+            <TabsList>
+              <TabsTrigger value="extraction" className="gap-2">
+                <Search className="h-4 w-4" />
+                {IS_PILOT_MODE ? "Standard Clinical Extraction" : "Entity Extraction"}
+              </TabsTrigger>
+              {IS_PILOT_MODE ? (
+                <>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span>
+                        <TabsTrigger value="hybrid" className="gap-2" disabled>
+                          <Lock className="h-4 w-4" />
+                          Hybrid Analyzer
+                        </TabsTrigger>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>Contact admin to enable</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span>
+                        <TabsTrigger value="knowledge_graph" className="gap-2" disabled>
+                          <Lock className="h-4 w-4" />
+                          Knowledge Graph
+                        </TabsTrigger>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>Contact admin to enable</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span>
+                        <TabsTrigger value="qa_agent" className="gap-2" disabled>
+                          <Lock className="h-4 w-4" />
+                          Q&A Agent
+                        </TabsTrigger>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>Contact admin to enable</TooltipContent>
+                  </Tooltip>
+                </>
+              ) : (
+                <>
+                  <TabsTrigger value="hybrid" className="gap-2">
+                    <Sparkles className="h-4 w-4" />
+                    Hybrid Analyzer
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="knowledge_graph"
+                    className="gap-2"
+                    disabled={kgNodes.length === 0}
+                  >
+                    <Network className="h-4 w-4" />
+                    Knowledge Graph
+                    {kgNodes.length > 0 && (
+                      <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
+                        {kgNodes.length}
+                      </Badge>
+                    )}
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="qa_agent"
+                    className="gap-2"
+                    disabled={kgNodes.length === 0}
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                    Q&A Agent
+                  </TabsTrigger>
+                </>
               )}
-            </TabsTrigger>
-            <TabsTrigger
-              value="qa_agent"
-              className="gap-2"
-              disabled={kgNodes.length === 0}
-            >
-              <MessageSquare className="h-4 w-4" />
-              Q&A Agent
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+            </TabsList>
+          </Tabs>
+        </TooltipProvider>
       </div>
 
       {/* P0-020: Deprecation banner — canonical route is /clinical-agent */}
@@ -2225,15 +2313,24 @@ export default function NLPWorkbenchPage() {
                             </div>
                           ) : (
                             <div className="max-w-[90%] space-y-3">
-                              {/* Degraded banner when response is degraded/declined */}
-                              {msg.degraded && (
+                              {/* P1-018: Transparency header above every response */}
+                              <TransparencyHeader
+                                modelProvider={msg.model_provider}
+                                riskTier={msg.risk_tier}
+                                processingRoute={msg.processing_route}
+                              />
+
+                              {/* P1-004: Refusal card for declined responses */}
+                              {msg.degraded?.declined ? (
+                                <RefusalCard state={msg.degraded} />
+                              ) : msg.degraded ? (
                                 <DegradedBanner state={msg.degraded} />
-                              )}
+                              ) : null}
 
                               {/* Answer with confidence badge */}
                               <div className={cn(
                                 "rounded-lg px-4 py-3 bg-muted",
-                                msg.degraded?.declined && "opacity-75"
+                                msg.degraded?.declined && "opacity-75 select-none"
                               )}>
                                 <div className="flex items-center gap-2 mb-2">
                                   {msg.confidence != null && (
