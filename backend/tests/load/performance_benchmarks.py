@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from backend.tests.load.load_test_runner import LoadTestResult, results_to_json
+from tests.load.load_test_runner import LoadTestResult, results_to_json
 
 
 # ---------------------------------------------------------------------------

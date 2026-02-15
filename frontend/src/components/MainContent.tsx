@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 
-const FULL_BLEED_PAGES = ["/", "/login", "/register", "/forgot-password"];
+const FULL_BLEED_PAGES = ["/", "/investors", "/login", "/register", "/forgot-password"];
 
 export function MainContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

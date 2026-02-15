@@ -1,0 +1,400 @@
+subtask_id,backlog_id,phase,priority,workstream,owner,summary,sprint,due_date,status
+P0-001-A,P0-001,PLAN,P0,"WS-01 Platform reliability","CTO + Ops","Fail closed in readiness when Neo4j is unavailable.",Sprint-1,2026-02-27,todo
+P0-001-B,P0-001,BUILD,P0,"WS-01 Platform reliability","CTO + Ops","Fail closed in readiness when Neo4j is unavailable.",Sprint-2,2026-03-13,todo
+P0-001-C,P0-001,VERIFY,P0,"WS-01 Platform reliability","CTO + Ops","Fail closed in readiness when Neo4j is unavailable.",Sprint-3,2026-03-27,todo
+P0-002-A,P0-002,PLAN,P0,"WS-01 Platform reliability","CTO + Ops","Fail closed in readiness when Kafka is unavailable for required flows.",Sprint-1,2026-02-27,todo
+P0-002-B,P0-002,BUILD,P0,"WS-01 Platform reliability","CTO + Ops","Fail closed in readiness when Kafka is unavailable for required flows.",Sprint-2,2026-03-13,todo
+P0-002-C,P0-002,VERIFY,P0,"WS-01 Platform reliability","CTO + Ops","Fail closed in readiness when Kafka is unavailable for required flows.",Sprint-3,2026-03-27,todo
+P0-003-A,P0-003,PLAN,P0,"WS-01 Platform reliability","CTO + CISO","Remove ""mock_mode treated as connected"" semantics from production posture checks.",Sprint-1,2026-02-27,todo
+P0-003-B,P0-003,BUILD,P0,"WS-01 Platform reliability","CTO + CISO","Remove ""mock_mode treated as connected"" semantics from production posture checks.",Sprint-2,2026-03-13,todo
+P0-003-C,P0-003,VERIFY,P0,"WS-01 Platform reliability","CTO + CISO","Remove ""mock_mode treated as connected"" semantics from production posture checks.",Sprint-3,2026-03-27,todo
+P0-004-A,P0-004,PLAN,P0,"WS-03 Clinical AI safety","Clinical AI + CTO","Surface `dependency_state` in all clinical query responses.",Sprint-1,2026-02-27,todo
+P0-004-B,P0-004,BUILD,P0,"WS-03 Clinical AI safety","Clinical AI + CTO","Surface `dependency_state` in all clinical query responses.",Sprint-2,2026-03-13,todo
+P0-004-C,P0-004,VERIFY,P0,"WS-03 Clinical AI safety","Clinical AI + CTO","Surface `dependency_state` in all clinical query responses.",Sprint-3,2026-03-27,todo
+P0-005-A,P0-005,PLAN,P0,"WS-03 Clinical AI safety","Clinical AI","Block graph build when ingestion has note-level extraction failures.",Sprint-1,2026-02-27,todo
+P0-005-B,P0-005,BUILD,P0,"WS-03 Clinical AI safety","Clinical AI","Block graph build when ingestion has note-level extraction failures.",Sprint-2,2026-03-13,todo
+P0-005-C,P0-005,VERIFY,P0,"WS-03 Clinical AI safety","Clinical AI","Block graph build when ingestion has note-level extraction failures.",Sprint-3,2026-03-27,todo
+P0-006-A,P0-006,PLAN,P0,"WS-03 Clinical AI safety","Clinical AI","Propagate extraction status (`ok|partial|failed`) across import, KG build, and Q&A.",Sprint-1,2026-02-27,todo
+P0-006-B,P0-006,BUILD,P0,"WS-03 Clinical AI safety","Clinical AI","Propagate extraction status (`ok|partial|failed`) across import, KG build, and Q&A.",Sprint-2,2026-03-13,todo
+P0-006-C,P0-006,VERIFY,P0,"WS-03 Clinical AI safety","Clinical AI","Propagate extraction status (`ok|partial|failed`) across import, KG build, and Q&A.",Sprint-3,2026-03-27,todo
+P0-007-A,P0-007,PLAN,P0,"WS-03 Clinical AI safety","Clinical AI + CISO","Enforce strict narrative grounding prior to KG writes.",Sprint-1,2026-02-27,todo
+P0-007-B,P0-007,BUILD,P0,"WS-03 Clinical AI safety","Clinical AI + CISO","Enforce strict narrative grounding prior to KG writes.",Sprint-2,2026-03-13,todo
+P0-007-C,P0-007,VERIFY,P0,"WS-03 Clinical AI safety","Clinical AI + CISO","Enforce strict narrative grounding prior to KG writes.",Sprint-3,2026-03-27,todo
+P0-008-A,P0-008,PLAN,P0,"WS-03 Clinical AI safety","Clinical AI + CTO","Disable hardcoded ontology edge fallback in production pathways.",Sprint-1,2026-02-27,todo
+P0-008-B,P0-008,BUILD,P0,"WS-03 Clinical AI safety","Clinical AI + CTO","Disable hardcoded ontology edge fallback in production pathways.",Sprint-2,2026-03-13,todo
+P0-008-C,P0-008,VERIFY,P0,"WS-03 Clinical AI safety","Clinical AI + CTO","Disable hardcoded ontology edge fallback in production pathways.",Sprint-3,2026-03-27,todo
+P0-009-A,P0-009,PLAN,P0,"WS-02 Security compliance","CISO","Enforce authentication by default in non-dev environments.",Sprint-1,2026-02-27,todo
+P0-009-B,P0-009,BUILD,P0,"WS-02 Security compliance","CISO","Enforce authentication by default in non-dev environments.",Sprint-2,2026-03-13,todo
+P0-009-C,P0-009,VERIFY,P0,"WS-02 Security compliance","CISO","Enforce authentication by default in non-dev environments.",Sprint-3,2026-03-27,todo
+P0-010-A,P0-010,PLAN,P0,"WS-02 Security compliance","CISO + Platform","Remove insecure credential defaults from deployment templates.",Sprint-1,2026-02-27,todo
+P0-010-B,P0-010,BUILD,P0,"WS-02 Security compliance","CISO + Platform","Remove insecure credential defaults from deployment templates.",Sprint-2,2026-03-13,todo
+P0-010-C,P0-010,VERIFY,P0,"WS-02 Security compliance","CISO + Platform","Remove insecure credential defaults from deployment templates.",Sprint-3,2026-03-27,todo
+P0-011-A,P0-011,PLAN,P0,"WS-02 Security compliance","CISO + Ops","Require Redis authentication and restricted network exposure.",Sprint-1,2026-02-27,todo
+P0-011-B,P0-011,BUILD,P0,"WS-02 Security compliance","CISO + Ops","Require Redis authentication and restricted network exposure.",Sprint-2,2026-03-13,todo
+P0-011-C,P0-011,VERIFY,P0,"WS-02 Security compliance","CISO + Ops","Require Redis authentication and restricted network exposure.",Sprint-3,2026-03-27,todo
+P0-012-A,P0-012,PLAN,P0,"WS-02 Security compliance","CISO + Platform","Enforce encryption-at-rest for PHI stores.",Sprint-1,2026-02-27,todo
+P0-012-B,P0-012,BUILD,P0,"WS-02 Security compliance","CISO + Platform","Enforce encryption-at-rest for PHI stores.",Sprint-2,2026-03-13,todo
+P0-012-C,P0-012,VERIFY,P0,"WS-02 Security compliance","CISO + Platform","Enforce encryption-at-rest for PHI stores.",Sprint-3,2026-03-27,todo
+P0-013-A,P0-013,PLAN,P0,"WS-02 Security compliance","CISO + Ops","Enforce TLS for ingress and service links handling PHI.",Sprint-1,2026-02-27,todo
+P0-013-B,P0-013,BUILD,P0,"WS-02 Security compliance","CISO + Ops","Enforce TLS for ingress and service links handling PHI.",Sprint-2,2026-03-13,todo
+P0-013-C,P0-013,VERIFY,P0,"WS-02 Security compliance","CISO + Ops","Enforce TLS for ingress and service links handling PHI.",Sprint-3,2026-03-27,todo
+P0-014-A,P0-014,PLAN,P0,"WS-02 Security compliance","CISO + Ops","Add audit coverage for worker-based PHI operations.",Sprint-1,2026-02-27,todo
+P0-014-B,P0-014,BUILD,P0,"WS-02 Security compliance","CISO + Ops","Add audit coverage for worker-based PHI operations.",Sprint-2,2026-03-13,todo
+P0-014-C,P0-014,VERIFY,P0,"WS-02 Security compliance","CISO + Ops","Add audit coverage for worker-based PHI operations.",Sprint-3,2026-03-27,todo
+P0-015-A,P0-015,PLAN,P0,"WS-02 Security compliance","CISO + Clinical AI","Add audit tags for graph data access and query provenance.",Sprint-1,2026-02-27,todo
+P0-015-B,P0-015,BUILD,P0,"WS-02 Security compliance","CISO + Clinical AI","Add audit tags for graph data access and query provenance.",Sprint-2,2026-03-13,todo
+P0-015-C,P0-015,VERIFY,P0,"WS-02 Security compliance","CISO + Clinical AI","Add audit tags for graph data access and query provenance.",Sprint-3,2026-03-27,todo
+P0-016-A,P0-016,PLAN,P0,"WS-02 Security compliance","CISO + Platform","Enforce tenant/org boundary checks at query boundaries.",Sprint-1,2026-02-27,todo
+P0-016-B,P0-016,BUILD,P0,"WS-02 Security compliance","CISO + Platform","Enforce tenant/org boundary checks at query boundaries.",Sprint-2,2026-03-13,todo
+P0-016-C,P0-016,VERIFY,P0,"WS-02 Security compliance","CISO + Platform","Enforce tenant/org boundary checks at query boundaries.",Sprint-3,2026-03-27,todo
+P0-017-A,P0-017,PLAN,P0,"WS-02 Security compliance","CISO + Clinical AI","Add explicit policy gate for external model routes handling PHI.",Sprint-1,2026-02-27,todo
+P0-017-B,P0-017,BUILD,P0,"WS-02 Security compliance","CISO + Clinical AI","Add explicit policy gate for external model routes handling PHI.",Sprint-2,2026-03-13,todo
+P0-017-C,P0-017,VERIFY,P0,"WS-02 Security compliance","CISO + Clinical AI","Add explicit policy gate for external model routes handling PHI.",Sprint-3,2026-03-27,todo
+P0-018-A,P0-018,PLAN,P0,"WS-05 OpenEHR interoperability","CIO + CTO","Publish and approve canonical Meditech-to-OpenEHR mapping contract.",Sprint-1,2026-02-27,todo
+P0-018-B,P0-018,BUILD,P0,"WS-05 OpenEHR interoperability","CIO + CTO","Publish and approve canonical Meditech-to-OpenEHR mapping contract.",Sprint-3,2026-03-27,todo
+P0-018-C,P0-018,VERIFY,P0,"WS-05 OpenEHR interoperability","CIO + CTO","Publish and approve canonical Meditech-to-OpenEHR mapping contract.",Sprint-3,2026-03-27,todo
+P0-019-A,P0-019,PLAN,P0,"WS-05 OpenEHR interoperability","CIO + Ops","Add OpenEHR reconciliation and rollback procedure before live onboarding.",Sprint-1,2026-02-27,todo
+P0-019-B,P0-019,BUILD,P0,"WS-05 OpenEHR interoperability","CIO + Ops","Add OpenEHR reconciliation and rollback procedure before live onboarding.",Sprint-3,2026-03-27,todo
+P0-019-C,P0-019,VERIFY,P0,"WS-05 OpenEHR interoperability","CIO + Ops","Add OpenEHR reconciliation and rollback procedure before live onboarding.",Sprint-3,2026-03-27,todo
+P0-020-A,P0-020,PLAN,P0,"WS-01 Platform reliability","CTO + VP Product","Define one canonical ingestion-to-Q&A route for pilot users.",Sprint-1,2026-02-27,todo
+P0-020-B,P0-020,BUILD,P0,"WS-01 Platform reliability","CTO + VP Product","Define one canonical ingestion-to-Q&A route for pilot users.",Sprint-3,2026-03-27,todo
+P0-020-C,P0-020,VERIFY,P0,"WS-01 Platform reliability","CTO + VP Product","Define one canonical ingestion-to-Q&A route for pilot users.",Sprint-3,2026-03-27,todo
+P0-021-A,P0-021,PLAN,P0,"WS-04 Product trust UX","VP Product + Clinical AI","Enforce confidence-to-action policy for high-risk workflows.",Sprint-1,2026-02-27,todo
+P0-021-B,P0-021,BUILD,P0,"WS-04 Product trust UX","VP Product + Clinical AI","Enforce confidence-to-action policy for high-risk workflows.",Sprint-3,2026-03-27,todo
+P0-021-C,P0-021,VERIFY,P0,"WS-04 Product trust UX","VP Product + Clinical AI","Enforce confidence-to-action policy for high-risk workflows.",Sprint-3,2026-03-27,todo
+P0-022-A,P0-022,PLAN,P0,"WS-03 Clinical AI safety","Clinical AI","Require evidence-bound confidence and decline behavior on unsupported claims.",Sprint-1,2026-02-27,todo
+P0-022-B,P0-022,BUILD,P0,"WS-03 Clinical AI safety","Clinical AI","Require evidence-bound confidence and decline behavior on unsupported claims.",Sprint-3,2026-03-27,todo
+P0-022-C,P0-022,VERIFY,P0,"WS-03 Clinical AI safety","Clinical AI","Require evidence-bound confidence and decline behavior on unsupported claims.",Sprint-3,2026-03-27,todo
+P0-023-A,P0-023,PLAN,P0,"WS-03 Clinical AI safety","Clinical AI + Product","Require source document IDs and provenance fields for every non-empty answer.",Sprint-1,2026-02-27,todo
+P0-023-B,P0-023,BUILD,P0,"WS-03 Clinical AI safety","Clinical AI + Product","Require source document IDs and provenance fields for every non-empty answer.",Sprint-3,2026-03-27,todo
+P0-023-C,P0-023,VERIFY,P0,"WS-03 Clinical AI safety","Clinical AI + Product","Require source document IDs and provenance fields for every non-empty answer.",Sprint-3,2026-03-27,todo
+P0-024-A,P0-024,PLAN,P0,"WS-04 Product trust UX","VP Product","Add explicit ""degraded"" UX mode with action block and clinician escalation.",Sprint-1,2026-02-27,todo
+P0-024-B,P0-024,BUILD,P0,"WS-04 Product trust UX","VP Product","Add explicit ""degraded"" UX mode with action block and clinician escalation.",Sprint-3,2026-03-27,todo
+P0-024-C,P0-024,VERIFY,P0,"WS-04 Product trust UX","VP Product","Add explicit ""degraded"" UX mode with action block and clinician escalation.",Sprint-3,2026-03-27,todo
+P0-025-A,P0-025,PLAN,P0,"WS-06 SRE operations","CIO + Ops","Define and staff incident escalation matrix with response SLAs.",Sprint-1,2026-02-27,todo
+P0-025-B,P0-025,BUILD,P0,"WS-06 SRE operations","CIO + Ops","Define and staff incident escalation matrix with response SLAs.",Sprint-3,2026-03-27,todo
+P0-025-C,P0-025,VERIFY,P0,"WS-06 SRE operations","CIO + Ops","Define and staff incident escalation matrix with response SLAs.",Sprint-3,2026-03-27,todo
+P0-026-A,P0-026,PLAN,P0,"WS-06 SRE operations","Ops","Execute one backup restore drill for PostgreSQL and Neo4j.",Sprint-1,2026-02-27,todo
+P0-026-B,P0-026,BUILD,P0,"WS-06 SRE operations","Ops","Execute one backup restore drill for PostgreSQL and Neo4j.",Sprint-3,2026-03-27,todo
+P0-026-C,P0-026,VERIFY,P0,"WS-06 SRE operations","Ops","Execute one backup restore drill for PostgreSQL and Neo4j.",Sprint-3,2026-03-27,todo
+P0-027-A,P0-027,PLAN,P0,"WS-06 SRE operations","Ops + CTO","Execute one failover/dependency outage simulation and record MTTR.",Sprint-1,2026-02-27,todo
+P0-027-B,P0-027,BUILD,P0,"WS-06 SRE operations","Ops + CTO","Execute one failover/dependency outage simulation and record MTTR.",Sprint-3,2026-03-27,todo
+P0-027-C,P0-027,VERIFY,P0,"WS-06 SRE operations","Ops + CTO","Execute one failover/dependency outage simulation and record MTTR.",Sprint-3,2026-03-27,todo
+P0-028-A,P0-028,PLAN,P0,"WS-08 Program governance","Program Lead","Produce final pre-pilot signoff matrix (CTO/CISO/CIO/Clinical AI/Product/Ops).",Sprint-1,2026-02-27,todo
+P0-028-B,P0-028,BUILD,P0,"WS-08 Program governance","Program Lead","Produce final pre-pilot signoff matrix (CTO/CISO/CIO/Clinical AI/Product/Ops).",Sprint-3,2026-03-27,todo
+P0-028-C,P0-028,VERIFY,P0,"WS-08 Program governance","Program Lead","Produce final pre-pilot signoff matrix (CTO/CISO/CIO/Clinical AI/Product/Ops).",Sprint-3,2026-03-27,todo
+P1-001-A,P1-001,PLAN,P1,"WS-03 Clinical AI safety","Clinical AI","Replace heuristic confidence assembly with tiered evidence-weighted scoring.",Sprint-4,2026-04-10,todo
+P1-001-B,P1-001,BUILD,P1,"WS-03 Clinical AI safety","Clinical AI","Replace heuristic confidence assembly with tiered evidence-weighted scoring.",Sprint-4,2026-04-10,todo
+P1-001-C,P1-001,VERIFY,P1,"WS-03 Clinical AI safety","Clinical AI","Replace heuristic confidence assembly with tiered evidence-weighted scoring.",Sprint-5,2026-04-24,todo
+P1-002-A,P1-002,PLAN,P1,"WS-03 Clinical AI safety","Clinical AI + Product","Standardize confidence semantics across extraction, KG, reasoning, and final answer.",Sprint-4,2026-04-10,todo
+P1-002-B,P1-002,BUILD,P1,"WS-03 Clinical AI safety","Clinical AI + Product","Standardize confidence semantics across extraction, KG, reasoning, and final answer.",Sprint-4,2026-04-10,todo
+P1-002-C,P1-002,VERIFY,P1,"WS-03 Clinical AI safety","Clinical AI + Product","Standardize confidence semantics across extraction, KG, reasoning, and final answer.",Sprint-5,2026-04-24,todo
+P1-003-A,P1-003,PLAN,P1,"WS-03 Clinical AI safety","Product + Clinical AI","Add confidence threshold policy object configurable by workflow type.",Sprint-4,2026-04-10,todo
+P1-003-B,P1-003,BUILD,P1,"WS-03 Clinical AI safety","Product + Clinical AI","Add confidence threshold policy object configurable by workflow type.",Sprint-4,2026-04-10,todo
+P1-003-C,P1-003,VERIFY,P1,"WS-03 Clinical AI safety","Product + Clinical AI","Add confidence threshold policy object configurable by workflow type.",Sprint-5,2026-04-24,todo
+P1-004-A,P1-004,PLAN,P1,"WS-03 Clinical AI safety","Product + Clinical AI","Implement refusal mode for critical errors and low-confidence clinical paths.",Sprint-4,2026-04-10,todo
+P1-004-B,P1-004,BUILD,P1,"WS-03 Clinical AI safety","Product + Clinical AI","Implement refusal mode for critical errors and low-confidence clinical paths.",Sprint-4,2026-04-10,todo
+P1-004-C,P1-004,VERIFY,P1,"WS-03 Clinical AI safety","Product + Clinical AI","Implement refusal mode for critical errors and low-confidence clinical paths.",Sprint-5,2026-04-24,todo
+P1-005-A,P1-005,PLAN,P1,"WS-03 Clinical AI safety","Clinical AI","Add missing note and coverage metrics to all query payloads.",Sprint-4,2026-04-10,todo
+P1-005-B,P1-005,BUILD,P1,"WS-03 Clinical AI safety","Clinical AI","Add missing note and coverage metrics to all query payloads.",Sprint-4,2026-04-10,todo
+P1-005-C,P1-005,VERIFY,P1,"WS-03 Clinical AI safety","Clinical AI","Add missing note and coverage metrics to all query payloads.",Sprint-5,2026-04-24,todo
+P1-006-A,P1-006,PLAN,P1,"WS-03 Clinical AI safety","Clinical AI + Ops","Attach data freshness and ingestion timestamp to Q&A responses.",Sprint-4,2026-04-10,todo
+P1-006-B,P1-006,BUILD,P1,"WS-03 Clinical AI safety","Clinical AI + Ops","Attach data freshness and ingestion timestamp to Q&A responses.",Sprint-4,2026-04-10,todo
+P1-006-C,P1-006,VERIFY,P1,"WS-03 Clinical AI safety","Clinical AI + Ops","Attach data freshness and ingestion timestamp to Q&A responses.",Sprint-5,2026-04-24,todo
+P1-007-A,P1-007,PLAN,P1,"WS-03 Clinical AI safety","Clinical AI","Add provenance integrity checks in KG merge stage for near-match entities.",Sprint-4,2026-04-10,todo
+P1-007-B,P1-007,BUILD,P1,"WS-03 Clinical AI safety","Clinical AI","Add provenance integrity checks in KG merge stage for near-match entities.",Sprint-4,2026-04-10,todo
+P1-007-C,P1-007,VERIFY,P1,"WS-03 Clinical AI safety","Clinical AI","Add provenance integrity checks in KG merge stage for near-match entities.",Sprint-5,2026-04-24,todo
+P1-008-A,P1-008,PLAN,P1,"WS-03 Clinical AI safety","Clinical AI","Harden OMOP fallback matching to reduce semantic false positives.",Sprint-4,2026-04-10,todo
+P1-008-B,P1-008,BUILD,P1,"WS-03 Clinical AI safety","Clinical AI","Harden OMOP fallback matching to reduce semantic false positives.",Sprint-4,2026-04-10,todo
+P1-008-C,P1-008,VERIFY,P1,"WS-03 Clinical AI safety","Clinical AI","Harden OMOP fallback matching to reduce semantic false positives.",Sprint-5,2026-04-24,todo
+P1-009-A,P1-009,PLAN,P1,"WS-03 Clinical AI safety","CTO + Clinical AI","Add bounded cache and invalidation on OMOP version change.",Sprint-4,2026-04-10,todo
+P1-009-B,P1-009,BUILD,P1,"WS-03 Clinical AI safety","CTO + Clinical AI","Add bounded cache and invalidation on OMOP version change.",Sprint-4,2026-04-10,todo
+P1-009-C,P1-009,VERIFY,P1,"WS-03 Clinical AI safety","CTO + Clinical AI","Add bounded cache and invalidation on OMOP version change.",Sprint-5,2026-04-24,todo
+P1-010-A,P1-010,PLAN,P1,"WS-03 Clinical AI safety","QA + Clinical AI","Create UMLS/OMOP acceptance corpus with positive and negative concept pairs.",Sprint-4,2026-04-10,todo
+P1-010-B,P1-010,BUILD,P1,"WS-03 Clinical AI safety","QA + Clinical AI","Create UMLS/OMOP acceptance corpus with positive and negative concept pairs.",Sprint-4,2026-04-10,todo
+P1-010-C,P1-010,VERIFY,P1,"WS-03 Clinical AI safety","QA + Clinical AI","Create UMLS/OMOP acceptance corpus with positive and negative concept pairs.",Sprint-5,2026-04-24,todo
+P1-011-A,P1-011,PLAN,P1,"WS-03 Clinical AI safety","CTO + Clinical AI","Add real-source document retrieval in GraphRAG path (remove placeholder behavior).",Sprint-4,2026-04-10,todo
+P1-011-B,P1-011,BUILD,P1,"WS-03 Clinical AI safety","CTO + Clinical AI","Add real-source document retrieval in GraphRAG path (remove placeholder behavior).",Sprint-4,2026-04-10,todo
+P1-011-C,P1-011,VERIFY,P1,"WS-03 Clinical AI safety","CTO + Clinical AI","Add real-source document retrieval in GraphRAG path (remove placeholder behavior).",Sprint-5,2026-04-24,todo
+P1-012-A,P1-012,PLAN,P1,"WS-03 Clinical AI safety","Clinical AI + Compliance","Add guideline corpus versioning, expiration, and update policy.",Sprint-4,2026-04-10,todo
+P1-012-B,P1-012,BUILD,P1,"WS-03 Clinical AI safety","Clinical AI + Compliance","Add guideline corpus versioning, expiration, and update policy.",Sprint-4,2026-04-10,todo
+P1-012-C,P1-012,VERIFY,P1,"WS-03 Clinical AI safety","Clinical AI + Compliance","Add guideline corpus versioning, expiration, and update policy.",Sprint-5,2026-04-24,todo
+P1-013-A,P1-013,PLAN,P1,"WS-03 Clinical AI safety","Clinical AI","Expand drug safety coverage and explicitly label uncovered pairs.",Sprint-4,2026-04-10,todo
+P1-013-B,P1-013,BUILD,P1,"WS-03 Clinical AI safety","Clinical AI","Expand drug safety coverage and explicitly label uncovered pairs.",Sprint-5,2026-04-24,todo
+P1-013-C,P1-013,VERIFY,P1,"WS-03 Clinical AI safety","Clinical AI","Expand drug safety coverage and explicitly label uncovered pairs.",Sprint-5,2026-04-24,todo
+P1-014-A,P1-014,PLAN,P1,"WS-03 Clinical AI safety","Clinical AI","Add clinical plausibility validation to calculator inputs.",Sprint-4,2026-04-10,todo
+P1-014-B,P1-014,BUILD,P1,"WS-03 Clinical AI safety","Clinical AI","Add clinical plausibility validation to calculator inputs.",Sprint-5,2026-04-24,todo
+P1-014-C,P1-014,VERIFY,P1,"WS-03 Clinical AI safety","Clinical AI","Add clinical plausibility validation to calculator inputs.",Sprint-5,2026-04-24,todo
+P1-015-A,P1-015,PLAN,P1,"WS-03 Clinical AI safety","Clinical AI + Product","Label differential diagnosis scores as ranking until calibrated.",Sprint-4,2026-04-10,todo
+P1-015-B,P1-015,BUILD,P1,"WS-03 Clinical AI safety","Clinical AI + Product","Label differential diagnosis scores as ranking until calibrated.",Sprint-5,2026-04-24,todo
+P1-015-C,P1-015,VERIFY,P1,"WS-03 Clinical AI safety","Clinical AI + Product","Label differential diagnosis scores as ranking until calibrated.",Sprint-5,2026-04-24,todo
+P1-016-A,P1-016,PLAN,P1,"WS-04 Product trust UX","VP Product + CIO","Add explicit pilot policy for 77% accuracy classes by workflow.",Sprint-4,2026-04-10,todo
+P1-016-B,P1-016,BUILD,P1,"WS-04 Product trust UX","VP Product + CIO","Add explicit pilot policy for 77% accuracy classes by workflow.",Sprint-5,2026-04-24,todo
+P1-016-C,P1-016,VERIFY,P1,"WS-04 Product trust UX","VP Product + CIO","Add explicit pilot policy for 77% accuracy classes by workflow.",Sprint-5,2026-04-24,todo
+P1-017-A,P1-017,PLAN,P1,"WS-04 Product trust UX","VP Product","Lock pilot UI to single sanctioned extraction mode profile.",Sprint-4,2026-04-10,todo
+P1-017-B,P1-017,BUILD,P1,"WS-04 Product trust UX","VP Product","Lock pilot UI to single sanctioned extraction mode profile.",Sprint-5,2026-04-24,todo
+P1-017-C,P1-017,VERIFY,P1,"WS-04 Product trust UX","VP Product","Lock pilot UI to single sanctioned extraction mode profile.",Sprint-5,2026-04-24,todo
+P1-018-A,P1-018,PLAN,P1,"WS-04 Product trust UX","VP Product + Clinical AI","Show model/provider route and risk tier in every answer header.",Sprint-4,2026-04-10,todo
+P1-018-B,P1-018,BUILD,P1,"WS-04 Product trust UX","VP Product + Clinical AI","Show model/provider route and risk tier in every answer header.",Sprint-5,2026-04-24,todo
+P1-018-C,P1-018,VERIFY,P1,"WS-04 Product trust UX","VP Product + Clinical AI","Show model/provider route and risk tier in every answer header.",Sprint-5,2026-04-24,todo
+P1-019-A,P1-019,PLAN,P1,"WS-04 Product trust UX","Clinical AI","Add fallback_used and reason_code to every degraded response.",Sprint-4,2026-04-10,todo
+P1-019-B,P1-019,BUILD,P1,"WS-04 Product trust UX","Clinical AI","Add fallback_used and reason_code to every degraded response.",Sprint-5,2026-04-24,todo
+P1-019-C,P1-019,VERIFY,P1,"WS-04 Product trust UX","Clinical AI","Add fallback_used and reason_code to every degraded response.",Sprint-5,2026-04-24,todo
+P1-020-A,P1-020,PLAN,P1,"WS-02 Security compliance","CTO + CISO","Add production-safe startup validation for dependency credentials.",Sprint-4,2026-04-10,todo
+P1-020-B,P1-020,BUILD,P1,"WS-02 Security compliance","CTO + CISO","Add production-safe startup validation for dependency credentials.",Sprint-5,2026-04-24,todo
+P1-020-C,P1-020,VERIFY,P1,"WS-02 Security compliance","CTO + CISO","Add production-safe startup validation for dependency credentials.",Sprint-5,2026-04-24,todo
+P1-021-A,P1-021,PLAN,P1,"WS-02 Security compliance","Ops + CTO","Split critical/non-critical dependency classes in health/readiness policies.",Sprint-4,2026-04-10,todo
+P1-021-B,P1-021,BUILD,P1,"WS-02 Security compliance","Ops + CTO","Split critical/non-critical dependency classes in health/readiness policies.",Sprint-5,2026-04-24,todo
+P1-021-C,P1-021,VERIFY,P1,"WS-02 Security compliance","Ops + CTO","Split critical/non-critical dependency classes in health/readiness policies.",Sprint-5,2026-04-24,todo
+P1-022-A,P1-022,PLAN,P1,"WS-02 Security compliance","Ops","Add worker liveness checks based on process and queue health, not API ping.",Sprint-4,2026-04-10,todo
+P1-022-B,P1-022,BUILD,P1,"WS-02 Security compliance","Ops","Add worker liveness checks based on process and queue health, not API ping.",Sprint-5,2026-04-24,todo
+P1-022-C,P1-022,VERIFY,P1,"WS-02 Security compliance","Ops","Add worker liveness checks based on process and queue health, not API ping.",Sprint-5,2026-04-24,todo
+P1-023-A,P1-023,PLAN,P1,"WS-02 Security compliance","Ops + CTO","Add queue depth SLOs and intake throttling/backpressure policy.",Sprint-4,2026-04-10,todo
+P1-023-B,P1-023,BUILD,P1,"WS-02 Security compliance","Ops + CTO","Add queue depth SLOs and intake throttling/backpressure policy.",Sprint-5,2026-04-24,todo
+P1-023-C,P1-023,VERIFY,P1,"WS-02 Security compliance","Ops + CTO","Add queue depth SLOs and intake throttling/backpressure policy.",Sprint-5,2026-04-24,todo
+P1-024-A,P1-024,PLAN,P1,"WS-02 Security compliance","Ops","Add alert routing for degraded or mock dependency states.",Sprint-4,2026-04-10,todo
+P1-024-B,P1-024,BUILD,P1,"WS-02 Security compliance","Ops","Add alert routing for degraded or mock dependency states.",Sprint-5,2026-04-24,todo
+P1-024-C,P1-024,VERIFY,P1,"WS-02 Security compliance","Ops","Add alert routing for degraded or mock dependency states.",Sprint-5,2026-04-24,todo
+P1-025-A,P1-025,PLAN,P1,"WS-02 Security compliance","Ops","Add service restart policy consistency for production stack.",Sprint-4,2026-04-10,todo
+P1-025-B,P1-025,BUILD,P1,"WS-02 Security compliance","Ops","Add service restart policy consistency for production stack.",Sprint-5,2026-04-24,todo
+P1-025-C,P1-025,VERIFY,P1,"WS-02 Security compliance","Ops","Add service restart policy consistency for production stack.",Sprint-5,2026-04-24,todo
+P1-026-A,P1-026,PLAN,P1,"WS-02 Security compliance","CIO + Ops","Formalize support staffing model and on-call rotation for pilot window.",Sprint-4,2026-04-10,todo
+P1-026-B,P1-026,BUILD,P1,"WS-02 Security compliance","CIO + Ops","Formalize support staffing model and on-call rotation for pilot window.",Sprint-5,2026-04-24,todo
+P1-026-C,P1-026,VERIFY,P1,"WS-02 Security compliance","CIO + Ops","Formalize support staffing model and on-call rotation for pilot window.",Sprint-5,2026-04-24,todo
+P1-027-A,P1-027,PLAN,P1,"WS-02 Security compliance","CIO + Compliance","Add Australian residency and consent metadata capture at ingestion.",Sprint-4,2026-04-10,todo
+P1-027-B,P1-027,BUILD,P1,"WS-02 Security compliance","CIO + Compliance","Add Australian residency and consent metadata capture at ingestion.",Sprint-5,2026-04-24,todo
+P1-027-C,P1-027,VERIFY,P1,"WS-02 Security compliance","CIO + Compliance","Add Australian residency and consent metadata capture at ingestion.",Sprint-5,2026-04-24,todo
+P1-028-A,P1-028,PLAN,P1,"WS-02 Security compliance","Compliance + Ops","Add retention policy enforcement and archival controls for PHI paths.",Sprint-4,2026-04-10,todo
+P1-028-B,P1-028,BUILD,P1,"WS-02 Security compliance","Compliance + Ops","Add retention policy enforcement and archival controls for PHI paths.",Sprint-5,2026-04-24,todo
+P1-028-C,P1-028,VERIFY,P1,"WS-02 Security compliance","Compliance + Ops","Add retention policy enforcement and archival controls for PHI paths.",Sprint-5,2026-04-24,todo
+P1-029-A,P1-029,PLAN,P1,"WS-02 Security compliance","Compliance + CISO","Add purpose-of-use tagging in audit events where clinically relevant.",Sprint-4,2026-04-10,todo
+P1-029-B,P1-029,BUILD,P1,"WS-02 Security compliance","Compliance + CISO","Add purpose-of-use tagging in audit events where clinically relevant.",Sprint-5,2026-04-24,todo
+P1-029-C,P1-029,VERIFY,P1,"WS-02 Security compliance","Compliance + CISO","Add purpose-of-use tagging in audit events where clinically relevant.",Sprint-5,2026-04-24,todo
+P1-030-A,P1-030,PLAN,P1,"WS-05 OpenEHR interoperability","CIO + Interop","Add external integration onboarding checklist (data contract, validation, rollback).",Sprint-4,2026-04-10,todo
+P1-030-B,P1-030,BUILD,P1,"WS-05 OpenEHR interoperability","CIO + Interop","Add external integration onboarding checklist (data contract, validation, rollback).",Sprint-5,2026-04-24,todo
+P1-030-C,P1-030,VERIFY,P1,"WS-05 OpenEHR interoperability","CIO + Interop","Add external integration onboarding checklist (data contract, validation, rollback).",Sprint-5,2026-04-24,todo
+P1-031-A,P1-031,PLAN,P1,"WS-05 OpenEHR interoperability","Interop + QA","Add Meditech sample replay validation against OpenEHR contract.",Sprint-4,2026-04-10,todo
+P1-031-B,P1-031,BUILD,P1,"WS-05 OpenEHR interoperability","Interop + QA","Add Meditech sample replay validation against OpenEHR contract.",Sprint-5,2026-04-24,todo
+P1-031-C,P1-031,VERIFY,P1,"WS-05 OpenEHR interoperability","Interop + QA","Add Meditech sample replay validation against OpenEHR contract.",Sprint-5,2026-04-24,todo
+P1-032-A,P1-032,PLAN,P1,"WS-08 Program governance","CIO + Ops + Clinical AI","Add production incident taxonomy and severity rubric for clinical AI failures.",Sprint-4,2026-04-10,todo
+P1-032-B,P1-032,BUILD,P1,"WS-08 Program governance","CIO + Ops + Clinical AI","Add production incident taxonomy and severity rubric for clinical AI failures.",Sprint-5,2026-04-24,todo
+P1-032-C,P1-032,VERIFY,P1,"WS-08 Program governance","CIO + Ops + Clinical AI","Add production incident taxonomy and severity rubric for clinical AI failures.",Sprint-5,2026-04-24,todo
+P1-033-A,P1-033,PLAN,P1,"WS-08 Program governance","Program + CISO","Add risk-acceptance workflow with expiry dates for unresolved P1 items.",Sprint-4,2026-04-10,todo
+P1-033-B,P1-033,BUILD,P1,"WS-08 Program governance","Program + CISO","Add risk-acceptance workflow with expiry dates for unresolved P1 items.",Sprint-5,2026-04-24,todo
+P1-033-C,P1-033,VERIFY,P1,"WS-08 Program governance","Program + CISO","Add risk-acceptance workflow with expiry dates for unresolved P1 items.",Sprint-5,2026-04-24,todo
+P1-034-A,P1-034,PLAN,P1,"WS-02 Security compliance","CISO + Legal","Add legal/provider contract gate for any external LLM with PHI exposure potential.",Sprint-4,2026-04-10,todo
+P1-034-B,P1-034,BUILD,P1,"WS-02 Security compliance","CISO + Legal","Add legal/provider contract gate for any external LLM with PHI exposure potential.",Sprint-5,2026-04-24,todo
+P1-034-C,P1-034,VERIFY,P1,"WS-02 Security compliance","CISO + Legal","Add legal/provider contract gate for any external LLM with PHI exposure potential.",Sprint-5,2026-04-24,todo
+P1-035-A,P1-035,PLAN,P1,"WS-08 Program governance","CTO + Ops","Add immutable release checklist tying deployment SHA to safety checks.",Sprint-4,2026-04-10,todo
+P1-035-B,P1-035,BUILD,P1,"WS-08 Program governance","CTO + Ops","Add immutable release checklist tying deployment SHA to safety checks.",Sprint-5,2026-04-24,todo
+P1-035-C,P1-035,VERIFY,P1,"WS-08 Program governance","CTO + Ops","Add immutable release checklist tying deployment SHA to safety checks.",Sprint-5,2026-04-24,todo
+P2-001-A,P2-001,PLAN,P2,"WS-07 QA validation","QA + CTO","Add integration tests with real Neo4j + PostgreSQL for KG/QA pathways.",Sprint-6,2026-05-08,todo
+P2-001-B,P2-001,BUILD,P2,"WS-07 QA validation","QA + CTO","Add integration tests with real Neo4j + PostgreSQL for KG/QA pathways.",Wave-D,2026-06-05,todo
+P2-001-C,P2-001,VERIFY,P2,"WS-07 QA validation","QA + CTO","Add integration tests with real Neo4j + PostgreSQL for KG/QA pathways.",Wave-D,2026-06-05,todo
+P2-002-A,P2-002,PLAN,P2,"WS-07 QA validation","QA + Clinical AI","Add contract tests for answer provenance completeness.",Sprint-6,2026-05-08,todo
+P2-002-B,P2-002,BUILD,P2,"WS-07 QA validation","QA + Clinical AI","Add contract tests for answer provenance completeness.",Wave-D,2026-06-05,todo
+P2-002-C,P2-002,VERIFY,P2,"WS-07 QA validation","QA + Clinical AI","Add contract tests for answer provenance completeness.",Wave-D,2026-06-05,todo
+P2-003-A,P2-003,PLAN,P2,"WS-07 QA validation","Ops + QA","Add synthetic canary tests for top 5 clinical workflows.",Sprint-6,2026-05-08,todo
+P2-003-B,P2-003,BUILD,P2,"WS-07 QA validation","Ops + QA","Add synthetic canary tests for top 5 clinical workflows.",Wave-D,2026-06-05,todo
+P2-003-C,P2-003,VERIFY,P2,"WS-07 QA validation","Ops + QA","Add synthetic canary tests for top 5 clinical workflows.",Wave-D,2026-06-05,todo
+P2-004-A,P2-004,PLAN,P2,"WS-07 QA validation","Clinical AI","Add benchmark harness for NLP extraction precision/recall by entity type.",Sprint-6,2026-05-08,todo
+P2-004-B,P2-004,BUILD,P2,"WS-07 QA validation","Clinical AI","Add benchmark harness for NLP extraction precision/recall by entity type.",Wave-D,2026-06-05,todo
+P2-004-C,P2-004,VERIFY,P2,"WS-07 QA validation","Clinical AI","Add benchmark harness for NLP extraction precision/recall by entity type.",Wave-D,2026-06-05,todo
+P2-005-A,P2-005,PLAN,P2,"WS-07 QA validation","Clinical AI + QA","Add regression tests for negation/experiencer edge cases.",Sprint-6,2026-05-08,todo
+P2-005-B,P2-005,BUILD,P2,"WS-07 QA validation","Clinical AI + QA","Add regression tests for negation/experiencer edge cases.",Wave-D,2026-06-05,todo
+P2-005-C,P2-005,VERIFY,P2,"WS-07 QA validation","Clinical AI + QA","Add regression tests for negation/experiencer edge cases.",Wave-D,2026-06-05,todo
+P2-006-A,P2-006,PLAN,P2,"WS-07 QA validation","Clinical AI + Product","Add KG completeness scoring model and expose in API/UI.",Sprint-6,2026-05-08,todo
+P2-006-B,P2-006,BUILD,P2,"WS-07 QA validation","Clinical AI + Product","Add KG completeness scoring model and expose in API/UI.",Wave-D,2026-06-05,todo
+P2-006-C,P2-006,VERIFY,P2,"WS-07 QA validation","Clinical AI + Product","Add KG completeness scoring model and expose in API/UI.",Wave-D,2026-06-05,todo
+P2-007-A,P2-007,PLAN,P2,"WS-07 QA validation","Clinical AI","Add uncertainty taxonomy and reason codes for all decline/degraded outputs.",Sprint-6,2026-05-08,todo
+P2-007-B,P2-007,BUILD,P2,"WS-07 QA validation","Clinical AI","Add uncertainty taxonomy and reason codes for all decline/degraded outputs.",Wave-D,2026-06-05,todo
+P2-007-C,P2-007,VERIFY,P2,"WS-07 QA validation","Clinical AI","Add uncertainty taxonomy and reason codes for all decline/degraded outputs.",Wave-D,2026-06-05,todo
+P2-008-A,P2-008,PLAN,P2,"WS-07 QA validation","Product","Add chart-level ""what system knows vs does not know"" summary panel.",Sprint-6,2026-05-08,todo
+P2-008-B,P2-008,BUILD,P2,"WS-07 QA validation","Product","Add chart-level ""what system knows vs does not know"" summary panel.",Wave-D,2026-06-05,todo
+P2-008-C,P2-008,VERIFY,P2,"WS-07 QA validation","Product","Add chart-level ""what system knows vs does not know"" summary panel.",Wave-D,2026-06-05,todo
+P2-009-A,P2-009,PLAN,P2,"WS-07 QA validation","Product + Clinical AI","Add clinician feedback capture and replay pipeline.",Sprint-6,2026-05-08,todo
+P2-009-B,P2-009,BUILD,P2,"WS-07 QA validation","Product + Clinical AI","Add clinician feedback capture and replay pipeline.",Wave-D,2026-06-05,todo
+P2-009-C,P2-009,VERIFY,P2,"WS-07 QA validation","Product + Clinical AI","Add clinician feedback capture and replay pipeline.",Wave-D,2026-06-05,todo
+P2-010-A,P2-010,PLAN,P2,"WS-07 QA validation","Clinical AI + Data","Add drift detection for terminology mapping distributions over time.",Sprint-6,2026-05-08,todo
+P2-010-B,P2-010,BUILD,P2,"WS-07 QA validation","Clinical AI + Data","Add drift detection for terminology mapping distributions over time.",Wave-D,2026-06-05,todo
+P2-010-C,P2-010,VERIFY,P2,"WS-07 QA validation","Clinical AI + Data","Add drift detection for terminology mapping distributions over time.",Wave-D,2026-06-05,todo
+P2-011-A,P2-011,PLAN,P2,"WS-07 QA validation","Clinical AI + Product","Add concept mapping disagreement dashboard (rule vs ML vs ensemble).",Sprint-6,2026-05-08,todo
+P2-011-B,P2-011,BUILD,P2,"WS-07 QA validation","Clinical AI + Product","Add concept mapping disagreement dashboard (rule vs ML vs ensemble).",Wave-D,2026-06-05,todo
+P2-011-C,P2-011,VERIFY,P2,"WS-07 QA validation","Clinical AI + Product","Add concept mapping disagreement dashboard (rule vs ML vs ensemble).",Wave-D,2026-06-05,todo
+P2-012-A,P2-012,PLAN,P2,"WS-06 SRE operations","CTO + Ops","Add queue partitioning by workload class (ingest/mapping/KG/export).",Sprint-6,2026-05-08,todo
+P2-012-B,P2-012,BUILD,P2,"WS-06 SRE operations","CTO + Ops","Add queue partitioning by workload class (ingest/mapping/KG/export).",Wave-D,2026-06-05,todo
+P2-012-C,P2-012,VERIFY,P2,"WS-06 SRE operations","CTO + Ops","Add queue partitioning by workload class (ingest/mapping/KG/export).",Wave-D,2026-06-05,todo
+P2-013-A,P2-013,PLAN,P2,"WS-06 SRE operations","Ops + CTO","Add horizontal scaling plan for worker pools with load tests.",Sprint-6,2026-05-08,todo
+P2-013-B,P2-013,BUILD,P2,"WS-06 SRE operations","Ops + CTO","Add horizontal scaling plan for worker pools with load tests.",Wave-D,2026-06-05,todo
+P2-013-C,P2-013,VERIFY,P2,"WS-06 SRE operations","Ops + CTO","Add horizontal scaling plan for worker pools with load tests.",Wave-D,2026-06-05,todo
+P2-014-A,P2-014,PLAN,P2,"WS-06 SRE operations","CTO + Ops","Add Kafka HA strategy decision (managed service vs multi-broker self-hosted).",Sprint-6,2026-05-08,todo
+P2-014-B,P2-014,BUILD,P2,"WS-06 SRE operations","CTO + Ops","Add Kafka HA strategy decision (managed service vs multi-broker self-hosted).",Wave-D,2026-06-05,todo
+P2-014-C,P2-014,VERIFY,P2,"WS-06 SRE operations","CTO + Ops","Add Kafka HA strategy decision (managed service vs multi-broker self-hosted).",Wave-D,2026-06-05,todo
+P2-015-A,P2-015,PLAN,P2,"WS-06 SRE operations","Ops","Add Redis separation for cache vs job queue in production design.",Sprint-6,2026-05-08,todo
+P2-015-B,P2-015,BUILD,P2,"WS-06 SRE operations","Ops","Add Redis separation for cache vs job queue in production design.",Wave-D,2026-06-05,todo
+P2-015-C,P2-015,VERIFY,P2,"WS-06 SRE operations","Ops","Add Redis separation for cache vs job queue in production design.",Wave-D,2026-06-05,todo
+P2-016-A,P2-016,PLAN,P2,"WS-06 SRE operations","Ops","Add scheduled backup automation and restore verification jobs.",Sprint-6,2026-05-08,todo
+P2-016-B,P2-016,BUILD,P2,"WS-06 SRE operations","Ops","Add scheduled backup automation and restore verification jobs.",Wave-D,2026-06-05,todo
+P2-016-C,P2-016,VERIFY,P2,"WS-06 SRE operations","Ops","Add scheduled backup automation and restore verification jobs.",Wave-D,2026-06-05,todo
+P2-017-A,P2-017,PLAN,P2,"WS-06 SRE operations","Ops + Platform","Add SLO dashboard with p95/p99 latency and error rates by endpoint.",Sprint-6,2026-05-08,todo
+P2-017-B,P2-017,BUILD,P2,"WS-06 SRE operations","Ops + Platform","Add SLO dashboard with p95/p99 latency and error rates by endpoint.",Wave-D,2026-06-05,todo
+P2-017-C,P2-017,VERIFY,P2,"WS-06 SRE operations","Ops + Platform","Add SLO dashboard with p95/p99 latency and error rates by endpoint.",Wave-D,2026-06-05,todo
+P2-018-A,P2-018,PLAN,P2,"WS-06 SRE operations","Ops","Add alert fatigue controls and tuned severity thresholds.",Sprint-6,2026-05-08,todo
+P2-018-B,P2-018,BUILD,P2,"WS-06 SRE operations","Ops","Add alert fatigue controls and tuned severity thresholds.",Wave-D,2026-06-05,todo
+P2-018-C,P2-018,VERIFY,P2,"WS-06 SRE operations","Ops","Add alert fatigue controls and tuned severity thresholds.",Wave-D,2026-06-05,todo
+P2-019-A,P2-019,PLAN,P2,"WS-07 QA validation","CTO + Clinical AI","Add API budget/timeout policies for hybrid query path.",Sprint-6,2026-05-08,todo
+P2-019-B,P2-019,BUILD,P2,"WS-07 QA validation","CTO + Clinical AI","Add API budget/timeout policies for hybrid query path.",Wave-D,2026-06-05,todo
+P2-019-C,P2-019,VERIFY,P2,"WS-07 QA validation","CTO + Clinical AI","Add API budget/timeout policies for hybrid query path.",Wave-D,2026-06-05,todo
+P2-020-A,P2-020,PLAN,P2,"WS-07 QA validation","Platform","Add idempotency and retry safety for ingestion endpoints.",Sprint-6,2026-05-08,todo
+P2-020-B,P2-020,BUILD,P2,"WS-07 QA validation","Platform","Add idempotency and retry safety for ingestion endpoints.",Wave-D,2026-06-05,todo
+P2-020-C,P2-020,VERIFY,P2,"WS-07 QA validation","Platform","Add idempotency and retry safety for ingestion endpoints.",Wave-D,2026-06-05,todo
+P2-021-A,P2-021,PLAN,P2,"WS-07 QA validation","Clinical AI + Ops","Add deterministic reprocessing mode for failed notes.",Sprint-6,2026-05-08,todo
+P2-021-B,P2-021,BUILD,P2,"WS-07 QA validation","Clinical AI + Ops","Add deterministic reprocessing mode for failed notes.",Wave-D,2026-06-05,todo
+P2-021-C,P2-021,VERIFY,P2,"WS-07 QA validation","Clinical AI + Ops","Add deterministic reprocessing mode for failed notes.",Wave-D,2026-06-05,todo
+P2-022-A,P2-022,PLAN,P2,"WS-07 QA validation","Data + Clinical AI","Add structured data lineage fields end-to-end (source system to answer).",Sprint-6,2026-05-08,todo
+P2-022-B,P2-022,BUILD,P2,"WS-07 QA validation","Data + Clinical AI","Add structured data lineage fields end-to-end (source system to answer).",Wave-D,2026-06-05,todo
+P2-022-C,P2-022,VERIFY,P2,"WS-07 QA validation","Data + Clinical AI","Add structured data lineage fields end-to-end (source system to answer).",Wave-D,2026-06-05,todo
+P2-023-A,P2-023,PLAN,P2,"WS-05 OpenEHR interoperability","CIO + Interop","Add tenant onboarding automation and preflight validation checks.",Sprint-6,2026-05-08,todo
+P2-023-B,P2-023,BUILD,P2,"WS-05 OpenEHR interoperability","CIO + Interop","Add tenant onboarding automation and preflight validation checks.",Wave-D,2026-06-05,todo
+P2-023-C,P2-023,VERIFY,P2,"WS-05 OpenEHR interoperability","CIO + Interop","Add tenant onboarding automation and preflight validation checks.",Wave-D,2026-06-05,todo
+P2-024-A,P2-024,PLAN,P2,"WS-07 QA validation","Security + QA","Add endpoint-level RBAC test suite for least privilege.",Sprint-6,2026-05-08,todo
+P2-024-B,P2-024,BUILD,P2,"WS-07 QA validation","Security + QA","Add endpoint-level RBAC test suite for least privilege.",Wave-D,2026-06-05,todo
+P2-024-C,P2-024,VERIFY,P2,"WS-07 QA validation","Security + QA","Add endpoint-level RBAC test suite for least privilege.",Wave-D,2026-06-05,todo
+P2-025-A,P2-025,PLAN,P2,"WS-07 QA validation","CISO + QA","Add policy tests to ensure no sensitive defaults in production configs.",Sprint-6,2026-05-08,todo
+P2-025-B,P2-025,BUILD,P2,"WS-07 QA validation","CISO + QA","Add policy tests to ensure no sensitive defaults in production configs.",Wave-D,2026-06-05,todo
+P2-025-C,P2-025,VERIFY,P2,"WS-07 QA validation","CISO + QA","Add policy tests to ensure no sensitive defaults in production configs.",Wave-D,2026-06-05,todo
+P2-026-A,P2-026,PLAN,P2,"WS-05 OpenEHR interoperability","CISO","Add threat model update cadence tied to release cycles.",Sprint-6,2026-05-08,todo
+P2-026-B,P2-026,BUILD,P2,"WS-05 OpenEHR interoperability","CISO","Add threat model update cadence tied to release cycles.",Wave-D,2026-06-05,todo
+P2-026-C,P2-026,VERIFY,P2,"WS-05 OpenEHR interoperability","CISO","Add threat model update cadence tied to release cycles.",Wave-D,2026-06-05,todo
+P2-027-A,P2-027,PLAN,P2,"WS-05 OpenEHR interoperability","Interop + QA","Add OpenEHR profile validation suite for generated payloads.",Sprint-6,2026-05-08,todo
+P2-027-B,P2-027,BUILD,P2,"WS-05 OpenEHR interoperability","Interop + QA","Add OpenEHR profile validation suite for generated payloads.",Wave-D,2026-06-05,todo
+P2-027-C,P2-027,VERIFY,P2,"WS-05 OpenEHR interoperability","Interop + QA","Add OpenEHR profile validation suite for generated payloads.",Wave-D,2026-06-05,todo
+P2-028-A,P2-028,PLAN,P2,"WS-05 OpenEHR interoperability","Interop","Add interoperability conformance suite (FHIR search/profile/capability statement).",Sprint-6,2026-05-08,todo
+P2-028-B,P2-028,BUILD,P2,"WS-05 OpenEHR interoperability","Interop","Add interoperability conformance suite (FHIR search/profile/capability statement).",Wave-D,2026-06-05,todo
+P2-028-C,P2-028,VERIFY,P2,"WS-05 OpenEHR interoperability","Interop","Add interoperability conformance suite (FHIR search/profile/capability statement).",Wave-D,2026-06-05,todo
+P2-029-A,P2-029,PLAN,P2,"WS-08 Program governance","CIO + Ops","Add business continuity tabletop cadence with action item closure tracking.",Sprint-6,2026-05-08,todo
+P2-029-B,P2-029,BUILD,P2,"WS-08 Program governance","CIO + Ops","Add business continuity tabletop cadence with action item closure tracking.",Wave-D,2026-06-05,todo
+P2-029-C,P2-029,VERIFY,P2,"WS-08 Program governance","CIO + Ops","Add business continuity tabletop cadence with action item closure tracking.",Wave-D,2026-06-05,todo
+P2-030-A,P2-030,PLAN,P2,"WS-08 Program governance","Program Lead","Add monthly executive risk summary with blocker trends.",Sprint-6,2026-05-08,todo
+P2-030-B,P2-030,BUILD,P2,"WS-08 Program governance","Program Lead","Add monthly executive risk summary with blocker trends.",Wave-D,2026-06-05,todo
+P2-030-C,P2-030,VERIFY,P2,"WS-08 Program governance","Program Lead","Add monthly executive risk summary with blocker trends.",Wave-D,2026-06-05,todo
+P3-001-A,P3-001,PLAN,P3,"WS-01 Platform reliability","CTO","Refactor overlapping clinical API routes to reduce duplicate logic paths.",Wave-E,2026-07-31,todo
+P3-001-B,P3-001,BUILD,P3,"WS-01 Platform reliability","CTO","Refactor overlapping clinical API routes to reduce duplicate logic paths.",Wave-E,2026-07-31,todo
+P3-001-C,P3-001,VERIFY,P3,"WS-01 Platform reliability","CTO","Refactor overlapping clinical API routes to reduce duplicate logic paths.",Wave-E,2026-07-31,todo
+P3-002-A,P3-002,PLAN,P3,"WS-04 Product trust UX","VP Product","Improve UI navigation by persona (clinical, RCM, IT) for pilot usability.",Wave-E,2026-07-31,todo
+P3-002-B,P3-002,BUILD,P3,"WS-04 Product trust UX","VP Product","Improve UI navigation by persona (clinical, RCM, IT) for pilot usability.",Wave-E,2026-07-31,todo
+P3-002-C,P3-002,VERIFY,P3,"WS-04 Product trust UX","VP Product","Improve UI navigation by persona (clinical, RCM, IT) for pilot usability.",Wave-E,2026-07-31,todo
+P3-003-A,P3-003,PLAN,P3,"WS-04 Product trust UX","VP Product","Add richer provenance drilldown UI for fast clinician review.",Wave-E,2026-07-31,todo
+P3-003-B,P3-003,BUILD,P3,"WS-04 Product trust UX","VP Product","Add richer provenance drilldown UI for fast clinician review.",Wave-E,2026-07-31,todo
+P3-003-C,P3-003,VERIFY,P3,"WS-04 Product trust UX","VP Product","Add richer provenance drilldown UI for fast clinician review.",Wave-E,2026-07-31,todo
+P3-004-A,P3-004,PLAN,P3,"WS-04 Product trust UX","Clinical AI + Product","Add answer explanation templates tuned by question class.",Wave-E,2026-07-31,todo
+P3-004-B,P3-004,BUILD,P3,"WS-04 Product trust UX","Clinical AI + Product","Add answer explanation templates tuned by question class.",Wave-E,2026-07-31,todo
+P3-004-C,P3-004,VERIFY,P3,"WS-04 Product trust UX","Clinical AI + Product","Add answer explanation templates tuned by question class.",Wave-E,2026-07-31,todo
+P3-005-A,P3-005,PLAN,P3,"WS-04 Product trust UX","Clinical AI","Add confidence calibration plots and reliability diagram reports.",Wave-E,2026-07-31,todo
+P3-005-B,P3-005,BUILD,P3,"WS-04 Product trust UX","Clinical AI","Add confidence calibration plots and reliability diagram reports.",Wave-E,2026-07-31,todo
+P3-005-C,P3-005,VERIFY,P3,"WS-04 Product trust UX","Clinical AI","Add confidence calibration plots and reliability diagram reports.",Wave-E,2026-07-31,todo
+P3-006-A,P3-006,PLAN,P3,"WS-04 Product trust UX","Product + Clinical Ops","Add glossary and training content for confidence/evidence semantics.",Wave-E,2026-07-31,todo
+P3-006-B,P3-006,BUILD,P3,"WS-04 Product trust UX","Product + Clinical Ops","Add glossary and training content for confidence/evidence semantics.",Wave-E,2026-07-31,todo
+P3-006-C,P3-006,VERIFY,P3,"WS-04 Product trust UX","Product + Clinical Ops","Add glossary and training content for confidence/evidence semantics.",Wave-E,2026-07-31,todo
+P3-007-A,P3-007,PLAN,P3,"WS-04 Product trust UX","Interop + Product","Add self-serve integration diagnostics page for onboarding teams.",Wave-E,2026-07-31,todo
+P3-007-B,P3-007,BUILD,P3,"WS-04 Product trust UX","Interop + Product","Add self-serve integration diagnostics page for onboarding teams.",Wave-E,2026-07-31,todo
+P3-007-C,P3-007,VERIFY,P3,"WS-04 Product trust UX","Interop + Product","Add self-serve integration diagnostics page for onboarding teams.",Wave-E,2026-07-31,todo
+P3-008-A,P3-008,PLAN,P3,"WS-06 SRE operations","Ops","Add richer queue and worker observability dashboards.",Wave-E,2026-07-31,todo
+P3-008-B,P3-008,BUILD,P3,"WS-06 SRE operations","Ops","Add richer queue and worker observability dashboards.",Wave-E,2026-07-31,todo
+P3-008-C,P3-008,VERIFY,P3,"WS-06 SRE operations","Ops","Add richer queue and worker observability dashboards.",Wave-E,2026-07-31,todo
+P3-009-A,P3-009,PLAN,P3,"WS-06 SRE operations","Platform","Add selective tracing on expensive endpoints with sampling controls.",Wave-E,2026-07-31,todo
+P3-009-B,P3-009,BUILD,P3,"WS-06 SRE operations","Platform","Add selective tracing on expensive endpoints with sampling controls.",Wave-E,2026-07-31,todo
+P3-009-C,P3-009,VERIFY,P3,"WS-06 SRE operations","Platform","Add selective tracing on expensive endpoints with sampling controls.",Wave-E,2026-07-31,todo
+P3-010-A,P3-010,PLAN,P3,"WS-06 SRE operations","Ops + Security","Add red-team style chaos tests for dependency loss scenarios.",Wave-E,2026-07-31,todo
+P3-010-B,P3-010,BUILD,P3,"WS-06 SRE operations","Ops + Security","Add red-team style chaos tests for dependency loss scenarios.",Wave-E,2026-07-31,todo
+P3-010-C,P3-010,VERIFY,P3,"WS-06 SRE operations","Ops + Security","Add red-team style chaos tests for dependency loss scenarios.",Wave-E,2026-07-31,todo
+P3-011-A,P3-011,PLAN,P3,"WS-06 SRE operations","CISO + QA","Add lint/policy checks for PHI-safe logging patterns.",Wave-E,2026-07-31,todo
+P3-011-B,P3-011,BUILD,P3,"WS-06 SRE operations","CISO + QA","Add lint/policy checks for PHI-safe logging patterns.",Wave-E,2026-07-31,todo
+P3-011-C,P3-011,VERIFY,P3,"WS-06 SRE operations","CISO + QA","Add lint/policy checks for PHI-safe logging patterns.",Wave-E,2026-07-31,todo
+P3-012-A,P3-012,PLAN,P3,"WS-06 SRE operations","Security + Ops","Add stronger secret rotation tooling and operational runbooks.",Wave-E,2026-07-31,todo
+P3-012-B,P3-012,BUILD,P3,"WS-06 SRE operations","Security + Ops","Add stronger secret rotation tooling and operational runbooks.",Wave-E,2026-07-31,todo
+P3-012-C,P3-012,VERIFY,P3,"WS-06 SRE operations","Security + Ops","Add stronger secret rotation tooling and operational runbooks.",Wave-E,2026-07-31,todo
+P3-013-A,P3-013,PLAN,P3,"WS-03 Clinical AI safety","Clinical AI + Compliance","Add automated stale-guideline detection and content owner alerts.",Wave-E,2026-07-31,todo
+P3-013-B,P3-013,BUILD,P3,"WS-03 Clinical AI safety","Clinical AI + Compliance","Add automated stale-guideline detection and content owner alerts.",Wave-E,2026-07-31,todo
+P3-013-C,P3-013,VERIFY,P3,"WS-03 Clinical AI safety","Clinical AI + Compliance","Add automated stale-guideline detection and content owner alerts.",Wave-E,2026-07-31,todo
+P3-014-A,P3-014,PLAN,P3,"WS-03 Clinical AI safety","Product + Clinical AI","Add semantic versioning to clinical policy and confidence rule packs.",Wave-E,2026-07-31,todo
+P3-014-B,P3-014,BUILD,P3,"WS-03 Clinical AI safety","Product + Clinical AI","Add semantic versioning to clinical policy and confidence rule packs.",Wave-E,2026-07-31,todo
+P3-014-C,P3-014,VERIFY,P3,"WS-03 Clinical AI safety","Product + Clinical AI","Add semantic versioning to clinical policy and confidence rule packs.",Wave-E,2026-07-31,todo
+P3-015-A,P3-015,PLAN,P3,"WS-03 Clinical AI safety","Program + CTO","Add structured quality gates for release candidates across roles.",Wave-E,2026-07-31,todo
+P3-015-B,P3-015,BUILD,P3,"WS-03 Clinical AI safety","Program + CTO","Add structured quality gates for release candidates across roles.",Wave-E,2026-07-31,todo
+P3-015-C,P3-015,VERIFY,P3,"WS-03 Clinical AI safety","Program + CTO","Add structured quality gates for release candidates across roles.",Wave-E,2026-07-31,todo
+P3-016-A,P3-016,PLAN,P3,"WS-03 Clinical AI safety","Data + QA","Add synthetic data generation toolkit for safer pre-prod testing.",Wave-E,2026-07-31,todo
+P3-016-B,P3-016,BUILD,P3,"WS-03 Clinical AI safety","Data + QA","Add synthetic data generation toolkit for safer pre-prod testing.",Wave-E,2026-07-31,todo
+P3-016-C,P3-016,VERIFY,P3,"WS-03 Clinical AI safety","Data + QA","Add synthetic data generation toolkit for safer pre-prod testing.",Wave-E,2026-07-31,todo
+P3-017-A,P3-017,PLAN,P3,"WS-08 Program governance","CIO + Ops","Add operational cost dashboard by workload and tenant.",Wave-E,2026-07-31,todo
+P3-017-B,P3-017,BUILD,P3,"WS-08 Program governance","CIO + Ops","Add operational cost dashboard by workload and tenant.",Wave-E,2026-07-31,todo
+P3-017-C,P3-017,VERIFY,P3,"WS-08 Program governance","CIO + Ops","Add operational cost dashboard by workload and tenant.",Wave-E,2026-07-31,todo
+P3-018-A,P3-018,PLAN,P3,"WS-08 Program governance","CIO + Clinical Ops","Add support playbook for off-hours clinical escalation decisions.",Wave-E,2026-07-31,todo
+P3-018-B,P3-018,BUILD,P3,"WS-08 Program governance","CIO + Clinical Ops","Add support playbook for off-hours clinical escalation decisions.",Wave-E,2026-07-31,todo
+P3-018-C,P3-018,VERIFY,P3,"WS-08 Program governance","CIO + Clinical Ops","Add support playbook for off-hours clinical escalation decisions.",Wave-E,2026-07-31,todo
+P3-019-A,P3-019,PLAN,P3,"WS-08 Program governance","Ops + Clinical AI","Add incident postmortem template specific to clinical AI misguidance risk.",Wave-E,2026-07-31,todo
+P3-019-B,P3-019,BUILD,P3,"WS-08 Program governance","Ops + Clinical AI","Add incident postmortem template specific to clinical AI misguidance risk.",Wave-E,2026-07-31,todo
+P3-019-C,P3-019,VERIFY,P3,"WS-08 Program governance","Ops + Clinical AI","Add incident postmortem template specific to clinical AI misguidance risk.",Wave-E,2026-07-31,todo
+P3-020-A,P3-020,PLAN,P3,"WS-08 Program governance","Clinical AI + QA","Add safety regression suite for medication and contraindication scenarios.",Wave-E,2026-07-31,todo
+P3-020-B,P3-020,BUILD,P3,"WS-08 Program governance","Clinical AI + QA","Add safety regression suite for medication and contraindication scenarios.",Wave-E,2026-07-31,todo
+P3-020-C,P3-020,VERIFY,P3,"WS-08 Program governance","Clinical AI + QA","Add safety regression suite for medication and contraindication scenarios.",Wave-E,2026-07-31,todo
+P3-021-A,P3-021,PLAN,P3,"WS-08 Program governance","QA + Platform","Add performance test scenarios for long-note and multi-note encounters.",Wave-E,2026-07-31,todo
+P3-021-B,P3-021,BUILD,P3,"WS-08 Program governance","QA + Platform","Add performance test scenarios for long-note and multi-note encounters.",Wave-E,2026-07-31,todo
+P3-021-C,P3-021,VERIFY,P3,"WS-08 Program governance","QA + Platform","Add performance test scenarios for long-note and multi-note encounters.",Wave-E,2026-07-31,todo
+P3-022-A,P3-022,PLAN,P3,"WS-08 Program governance","Product + Clinical Ops","Add documentation for ""degraded mode operations"" for clinicians.",Wave-E,2026-07-31,todo
+P3-022-B,P3-022,BUILD,P3,"WS-08 Program governance","Product + Clinical Ops","Add documentation for ""degraded mode operations"" for clinicians.",Wave-E,2026-07-31,todo
+P3-022-C,P3-022,VERIFY,P3,"WS-08 Program governance","Product + Clinical Ops","Add documentation for ""degraded mode operations"" for clinicians.",Wave-E,2026-07-31,todo
+P3-023-A,P3-023,PLAN,P3,"WS-08 Program governance","Interop","Add versioned integration compatibility matrix (Meditech/OpenEHR/FHIR variants).",Wave-E,2026-07-31,todo
+P3-023-B,P3-023,BUILD,P3,"WS-08 Program governance","Interop","Add versioned integration compatibility matrix (Meditech/OpenEHR/FHIR variants).",Wave-E,2026-07-31,todo
+P3-023-C,P3-023,VERIFY,P3,"WS-08 Program governance","Interop","Add versioned integration compatibility matrix (Meditech/OpenEHR/FHIR variants).",Wave-E,2026-07-31,todo
+P3-024-A,P3-024,PLAN,P3,"WS-08 Program governance","Compliance","Add compliance evidence binder automation for audits.",Wave-E,2026-07-31,todo
+P3-024-B,P3-024,BUILD,P3,"WS-08 Program governance","Compliance","Add compliance evidence binder automation for audits.",Wave-E,2026-07-31,todo
+P3-024-C,P3-024,VERIFY,P3,"WS-08 Program governance","Compliance","Add compliance evidence binder automation for audits.",Wave-E,2026-07-31,todo
+P3-025-A,P3-025,PLAN,P3,"WS-01 Platform reliability","CTO","Add quarterly architecture review to retire temporary pilot workarounds.",Wave-E,2026-07-31,todo
+P3-025-B,P3-025,BUILD,P3,"WS-01 Platform reliability","CTO","Add quarterly architecture review to retire temporary pilot workarounds.",Wave-E,2026-07-31,todo
+P3-025-C,P3-025,VERIFY,P3,"WS-01 Platform reliability","CTO","Add quarterly architecture review to retire temporary pilot workarounds.",Wave-E,2026-07-31,todo
+P4-001-A,P4-001,PLAN,P4,"WS-03 Clinical AI strategy","VP ML + CTO","Evaluate federated learning only after stable single-site production maturity.",Wave-F,2026-09-30,todo
+P4-001-B,P4-001,BUILD,P4,"WS-03 Clinical AI strategy","VP ML + CTO","Evaluate federated learning only after stable single-site production maturity.",Wave-F,2026-09-30,todo
+P4-001-C,P4-001,VERIFY,P4,"WS-03 Clinical AI strategy","VP ML + CTO","Evaluate federated learning only after stable single-site production maturity.",Wave-F,2026-09-30,todo
+P4-002-A,P4-002,PLAN,P4,"WS-05 Interop strategy","Interop + CIO","Evaluate full TEFCA productionization path and partner strategy.",Wave-F,2026-09-30,todo
+P4-002-B,P4-002,BUILD,P4,"WS-05 Interop strategy","Interop + CIO","Evaluate full TEFCA productionization path and partner strategy.",Wave-F,2026-09-30,todo
+P4-002-C,P4-002,VERIFY,P4,"WS-05 Interop strategy","Interop + CIO","Evaluate full TEFCA productionization path and partner strategy.",Wave-F,2026-09-30,todo
+P4-003-A,P4-003,PLAN,P4,"WS-05 Interop strategy","Compliance + Interop","Build full ONC certification roadmap if target market requires it.",Wave-F,2026-09-30,todo
+P4-003-B,P4-003,BUILD,P4,"WS-05 Interop strategy","Compliance + Interop","Build full ONC certification roadmap if target market requires it.",Wave-F,2026-09-30,todo
+P4-003-C,P4-003,VERIFY,P4,"WS-05 Interop strategy","Compliance + Interop","Build full ONC certification roadmap if target market requires it.",Wave-F,2026-09-30,todo
+P4-004-A,P4-004,PLAN,P4,"WS-01 Platform strategy","CTO + Ops","Evaluate managed graph platform migration options for HA and operations.",Wave-F,2026-09-30,todo
+P4-004-B,P4-004,BUILD,P4,"WS-01 Platform strategy","CTO + Ops","Evaluate managed graph platform migration options for HA and operations.",Wave-F,2026-09-30,todo
+P4-004-C,P4-004,VERIFY,P4,"WS-01 Platform strategy","CTO + Ops","Evaluate managed graph platform migration options for HA and operations.",Wave-F,2026-09-30,todo
+P4-005-A,P4-005,PLAN,P4,"WS-01 Platform strategy","CTO + CISO","Evaluate multi-region architecture for AU resilience and residency constraints.",Wave-F,2026-09-30,todo
+P4-005-B,P4-005,BUILD,P4,"WS-01 Platform strategy","CTO + CISO","Evaluate multi-region architecture for AU resilience and residency constraints.",Wave-F,2026-09-30,todo
+P4-005-C,P4-005,VERIFY,P4,"WS-01 Platform strategy","CTO + CISO","Evaluate multi-region architecture for AU resilience and residency constraints.",Wave-F,2026-09-30,todo
+P4-006-A,P4-006,PLAN,P4,"WS-03 Clinical AI strategy","VP ML","Build model registry and lifecycle governance on persistent infra.",Wave-F,2026-09-30,todo
+P4-006-B,P4-006,BUILD,P4,"WS-03 Clinical AI strategy","VP ML","Build model registry and lifecycle governance on persistent infra.",Wave-F,2026-09-30,todo
+P4-006-C,P4-006,VERIFY,P4,"WS-03 Clinical AI strategy","VP ML","Build model registry and lifecycle governance on persistent infra.",Wave-F,2026-09-30,todo
+P4-007-A,P4-007,PLAN,P4,"WS-04 Product strategy","VP Product","Add advanced clinician copilot UX experiments after safety baseline lock.",Wave-F,2026-09-30,todo
+P4-007-B,P4-007,BUILD,P4,"WS-04 Product strategy","VP Product","Add advanced clinician copilot UX experiments after safety baseline lock.",Wave-F,2026-09-30,todo
+P4-007-C,P4-007,VERIFY,P4,"WS-04 Product strategy","VP Product","Add advanced clinician copilot UX experiments after safety baseline lock.",Wave-F,2026-09-30,todo
+P4-008-A,P4-008,PLAN,P4,"WS-04 Product strategy","Product + Clinical AI","Evaluate ambient voice/documentation integration as separate product track.",Wave-F,2026-09-30,todo
+P4-008-B,P4-008,BUILD,P4,"WS-04 Product strategy","Product + Clinical AI","Evaluate ambient voice/documentation integration as separate product track.",Wave-F,2026-09-30,todo
+P4-008-C,P4-008,VERIFY,P4,"WS-04 Product strategy","Product + Clinical AI","Evaluate ambient voice/documentation integration as separate product track.",Wave-F,2026-09-30,todo
+P4-009-A,P4-009,PLAN,P4,"WS-08 Governance strategy","Clinical AI + Clinical Governance","Expand guideline corpus to specialty depth with editorial governance board.",Wave-F,2026-09-30,todo
+P4-009-B,P4-009,BUILD,P4,"WS-08 Governance strategy","Clinical AI + Clinical Governance","Expand guideline corpus to specialty depth with editorial governance board.",Wave-F,2026-09-30,todo
+P4-009-C,P4-009,VERIFY,P4,"WS-08 Governance strategy","Clinical AI + Clinical Governance","Expand guideline corpus to specialty depth with editorial governance board.",Wave-F,2026-09-30,todo
+P4-010-A,P4-010,PLAN,P4,"WS-03 Clinical AI strategy","Clinical AI","Add advanced causal inference modules only after core trust metrics stabilize.",Wave-F,2026-09-30,todo
+P4-010-B,P4-010,BUILD,P4,"WS-03 Clinical AI strategy","Clinical AI","Add advanced causal inference modules only after core trust metrics stabilize.",Wave-F,2026-09-30,todo
+P4-010-C,P4-010,VERIFY,P4,"WS-03 Clinical AI strategy","Clinical AI","Add advanced causal inference modules only after core trust metrics stabilize.",Wave-F,2026-09-30,todo
+P4-011-A,P4-011,PLAN,P4,"WS-04 Product strategy","Product + Clinical AI","Evaluate adaptive personalization of confidence thresholds by role/workflow.",Wave-F,2026-09-30,todo
+P4-011-B,P4-011,BUILD,P4,"WS-04 Product strategy","Product + Clinical AI","Evaluate adaptive personalization of confidence thresholds by role/workflow.",Wave-F,2026-09-30,todo
+P4-011-C,P4-011,VERIFY,P4,"WS-04 Product strategy","Product + Clinical AI","Evaluate adaptive personalization of confidence thresholds by role/workflow.",Wave-F,2026-09-30,todo
+P4-012-A,P4-012,PLAN,P4,"WS-05 Interop strategy","CTO + Product","Build external developer platform for partner integrations after core hardening.",Wave-F,2026-09-30,todo
+P4-012-B,P4-012,BUILD,P4,"WS-05 Interop strategy","CTO + Product","Build external developer platform for partner integrations after core hardening.",Wave-F,2026-09-30,todo
+P4-012-C,P4-012,VERIFY,P4,"WS-05 Interop strategy","CTO + Product","Build external developer platform for partner integrations after core hardening.",Wave-F,2026-09-30,todo
+P4-013-A,P4-013,PLAN,P4,"WS-08 Governance strategy","Compliance + Legal","Add formal SaMD pathway exploration if feature set crosses regulatory thresholds.",Wave-F,2026-09-30,todo
+P4-013-B,P4-013,BUILD,P4,"WS-08 Governance strategy","Compliance + Legal","Add formal SaMD pathway exploration if feature set crosses regulatory thresholds.",Wave-F,2026-09-30,todo
+P4-013-C,P4-013,VERIFY,P4,"WS-08 Governance strategy","Compliance + Legal","Add formal SaMD pathway exploration if feature set crosses regulatory thresholds.",Wave-F,2026-09-30,todo
+P4-014-A,P4-014,PLAN,P4,"WS-01 Platform strategy","CTO + Data","Evaluate full data mesh architecture only if scale and org maturity justify complexity.",Wave-F,2026-09-30,todo
+P4-014-B,P4-014,BUILD,P4,"WS-01 Platform strategy","CTO + Data","Evaluate full data mesh architecture only if scale and org maturity justify complexity.",Wave-F,2026-09-30,todo
+P4-014-C,P4-014,VERIFY,P4,"WS-01 Platform strategy","CTO + Data","Evaluate full data mesh architecture only if scale and org maturity justify complexity.",Wave-F,2026-09-30,todo
+P4-015-A,P4-015,PLAN,P4,"WS-03 Clinical AI strategy","Clinical AI + CIO","Build long-term clinical outcome feedback loops tied to real-world performance.",Wave-F,2026-09-30,todo
+P4-015-B,P4-015,BUILD,P4,"WS-03 Clinical AI strategy","Clinical AI + CIO","Build long-term clinical outcome feedback loops tied to real-world performance.",Wave-F,2026-09-30,todo
+P4-015-C,P4-015,VERIFY,P4,"WS-03 Clinical AI strategy","Clinical AI + CIO","Build long-term clinical outcome feedback loops tied to real-world performance.",Wave-F,2026-09-30,todo

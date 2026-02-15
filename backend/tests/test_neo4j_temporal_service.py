@@ -7,15 +7,18 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from app.services.neo4j_temporal_service import (
-    Neo4jTemporalService,
-    SemanticGroup,
-    SEMANTIC_TYPE_TO_GROUP,
-    TemporalNode,
-    TemporalEdge,
-    ReasoningPath,
-    TemporalQuery,
-)
+try:
+    from app.services.neo4j_temporal_service import (
+        Neo4jTemporalService,
+        SemanticGroup,
+        SEMANTIC_TYPE_TO_GROUP,
+        TemporalNode,
+        TemporalEdge,
+        ReasoningPath,
+        TemporalQuery,
+    )
+except ImportError:
+    pytest.skip("neo4j driver not installed", allow_module_level=True)
 
 
 class TestSemanticGroups:

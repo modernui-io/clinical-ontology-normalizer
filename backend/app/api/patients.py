@@ -3,14 +3,12 @@
 VP-Compliance-1: All PHI access is logged for HIPAA compliance.
 """
 
-from __future__ import annotations
-
 import logging
 from datetime import datetime, timezone
 from typing import Annotated, Any
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, Request, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 
@@ -68,7 +66,7 @@ class PatientListResponse(BaseModel):
     description="Browse all patients that have clinical data, with summary info.",
 )
 def list_patients(
-    request: Request,
+
     page: Annotated[int, Query(ge=1, description="Page number")] = 1,
     page_size: Annotated[int, Query(ge=1, le=200, description="Items per page")] = 50,
     current_user: CurrentUser = Depends(get_current_user),
@@ -198,7 +196,7 @@ def list_patients(
 )
 def get_patient_graph(
     patient_id: str,
-    request: Request,
+
     current_user: CurrentUser = Depends(get_current_user),
     _perm: None = Depends(PermissionChecker([Permission.READ_PATIENTS])),
 ) -> PatientGraph:
@@ -328,7 +326,7 @@ def get_patient_graph(
 )
 def build_patient_graph(
     patient_id: str,
-    request: Request,
+
     current_user: CurrentUser = Depends(get_current_user),
     _perm: None = Depends(PermissionChecker([Permission.WRITE_PATIENTS])),
 ) -> PatientGraph:
@@ -406,7 +404,7 @@ def build_patient_graph(
 )
 def get_patient_facts(
     patient_id: str,
-    request: Request,
+
     domain: Annotated[Domain | None, Query(description="Filter by domain")] = None,
     assertion: Annotated[Assertion | None, Query(description="Filter by assertion")] = None,
     limit: Annotated[int, Query(ge=1, le=1000, description="Max facts to return")] = 100,

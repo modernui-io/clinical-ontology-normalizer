@@ -3,6 +3,8 @@
 Provides connection management and query execution for the Neo4j
 graph database used to store clinical ontology relationships.
 
+P0-015: Graph access events are audited with user/tenant/patient context.
+
 Features:
 - Connection pool management with neo4j-driver
 - Cypher query execution helpers
@@ -21,6 +23,7 @@ from enum import Enum
 from threading import Lock
 from typing import Any
 
+from app.core.audit import AuditAction, log_audit
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -222,6 +225,9 @@ class GraphDatabaseService:
         query: str,
         parameters: dict[str, Any] | None = None,
         write: bool = False,
+        user_id: str | None = None,
+        tenant_id: str | None = None,
+        patient_id: str | None = None,
     ) -> QueryResult:
         """Execute a Cypher query.
 
@@ -229,6 +235,9 @@ class GraphDatabaseService:
             query: The Cypher query to execute.
             parameters: Optional query parameters.
             write: If True, executes as a write transaction.
+            user_id: P0-015 - User context for audit.
+            tenant_id: P0-015 - Tenant context for audit.
+            patient_id: P0-015 - Patient context for audit.
 
         Returns:
             QueryResult with records and execution details.
@@ -271,6 +280,20 @@ class GraphDatabaseService:
                     self._query_count += 1
                     self._total_query_time_ms += execution_time
 
+                # P0-015: Audit graph database access with context
+                log_audit(
+                    action=AuditAction.UPDATE if write else AuditAction.READ,
+                    resource_type="knowledge_graph",
+                    user_id=user_id,
+                    patient_id=patient_id,
+                    details={
+                        "tenant_id": tenant_id,
+                        "query_type": "write" if write else "read",
+                        "record_count": len(records),
+                        "execution_time_ms": round(execution_time, 2),
+                    },
+                )
+
                 return QueryResult(
                     records=records,
                     summary={"counters": {}},
@@ -280,6 +303,15 @@ class GraphDatabaseService:
                 )
 
         except Exception as e:
+            # P0-015: Audit graph query failure
+            log_audit(
+                action=AuditAction.ERROR,
+                resource_type="knowledge_graph",
+                user_id=user_id,
+                patient_id=patient_id,
+                details={"tenant_id": tenant_id, "error": str(e)[:500]},
+                success=False,
+            )
             logger.error(f"Query execution failed: {e}")
             raise
 

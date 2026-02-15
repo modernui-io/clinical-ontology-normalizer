@@ -119,8 +119,21 @@ class Settings(BaseSettings):
     jwt_access_token_expire_minutes: int = 30
     auth_bypass_dev: bool = False  # Dev bypass for testing without auth
 
+    # Readiness probe: comma-separated list of services that must be real (not mock) to pass.
+    # In production, set to "database,neo4j,kafka,redis" to fail-closed on mock dependencies.
+    # P0-001/002/003: Ensures mock mode is never treated as production-ready.
+    required_services: str = "database"  # dev default; production must include neo4j,kafka,redis
+
     # API Maturity Gating (CTO-2)
     block_scaffold_endpoints: bool = False  # Block SCAFFOLD-tier endpoints (enable in production)
+
+    # P0-012: Encryption-at-rest attestation flag.
+    # Set to true once host/volume encryption is verified for PHI stores.
+    encryption_at_rest_verified: bool = False
+
+    # P0-013: TLS configuration flag.
+    # Set to true once TLS termination is confirmed for production ingress.
+    tls_enabled: bool = False
 
     # LLM Configuration
     openai_api_key: str | None = None
@@ -128,6 +141,18 @@ class Settings(BaseSettings):
     llm_provider: str = "openai"  # "openai" or "anthropic"
     llm_model: str = "gpt-4o-mini"  # Default model
     llm_max_tokens: int = 4096  # Maximum tokens for completion
+
+    # P0-017: Approved external LLM providers for PHI-carrying routes.
+    # Comma-separated list. Only providers on this list may receive PHI data.
+    # If empty, all configured providers are allowed (dev default).
+    approved_llm_providers: str = ""
+
+    @cached_property
+    def approved_llm_providers_set(self) -> set[str]:
+        """Parse approved LLM providers from comma-separated string."""
+        if not self.approved_llm_providers:
+            return set()
+        return {p.strip().lower() for p in self.approved_llm_providers.split(",") if p.strip()}
 
     # Neo4j Configuration (for knowledge graph)
     neo4j_uri: str = "bolt://localhost:7687"
@@ -211,6 +236,14 @@ class Settings(BaseSettings):
     def validate_security_config(self) -> "Settings":
         """Validate security configuration based on environment."""
         is_production = self.environment.lower() == "production"
+        is_staging = self.environment.lower() == "staging"
+
+        # P0-009: Hard-fail if production/staging runs without auth
+        if (is_production or is_staging) and not self.auth_enabled:
+            raise ValueError(
+                f"AUTH_ENABLED must be true when ENVIRONMENT={self.environment}. "
+                f"Running production/staging without authentication is not allowed."
+            )
 
         # In production, all auth credentials are required
         if is_production:
@@ -241,6 +274,36 @@ class Settings(BaseSettings):
                 "NEO4J_PASSWORD not set. Neo4j connections will fail. "
                 "Set via environment variable if using knowledge graph features."
             )
+
+        # P0-012: Warn if encryption-at-rest is not verified in production
+        if is_production and not self.encryption_at_rest_verified:
+            logger.warning(
+                "ENCRYPTION_AT_REST_VERIFIED is not set. HIPAA requires "
+                "encryption-at-rest for all PHI stores (PostgreSQL, Neo4j, Redis). "
+                "Set ENCRYPTION_AT_REST_VERIFIED=true after verifying host/volume encryption."
+            )
+
+        # P0-013: Warn if TLS is not configured in production
+        if is_production and not self.tls_enabled:
+            logger.warning(
+                "TLS_ENABLED is not set. HIPAA requires TLS for all PHI transport. "
+                "Set TLS_ENABLED=true after confirming TLS termination at ingress."
+            )
+
+        # P0-017: Validate LLM provider is on approved list in production
+        if is_production and self.approved_llm_providers:
+            approved = {
+                p.strip().lower()
+                for p in self.approved_llm_providers.split(",")
+                if p.strip()
+            }
+            active_provider = self.llm_provider.lower()
+            if active_provider not in approved:
+                raise ValueError(
+                    f"LLM_PROVIDER '{self.llm_provider}' is not in "
+                    f"APPROVED_LLM_PROVIDERS ({self.approved_llm_providers}). "
+                    f"Only approved providers may handle PHI in production."
+                )
 
         # Log security status
         if is_production:

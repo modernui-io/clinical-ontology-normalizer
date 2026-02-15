@@ -73,9 +73,10 @@ ENDPOINT_MATURITY_REGISTRY: dict[str, EndpointMaturity] = {
     "/coding-assistant": EndpointMaturity.PILOT,
     "/ai-coding": EndpointMaturity.PILOT,
     "/feedback": EndpointMaturity.PILOT,
+    # P0-020: clinical-agent promoted to PILOT (canonical ingestion-to-QA route)
+    "/clinical-agent": EndpointMaturity.PILOT,
     # ── SCAFFOLD: experimental / not wired ──
     "/agent": EndpointMaturity.SCAFFOLD,
-    "/clinical-agent": EndpointMaturity.SCAFFOLD,
     "/guidelines": EndpointMaturity.SCAFFOLD,
     "/federated": EndpointMaturity.SCAFFOLD,
     "/tefca": EndpointMaturity.SCAFFOLD,

@@ -374,3 +374,33 @@ class TestHealthEndpointPerformance:
 
         assert response.status_code == 200
         assert elapsed_ms < 100, f"Liveness check took {elapsed_ms:.2f}ms"
+
+
+# ---------------------------------------------------------------------------
+# P0-020: Verify X-API-Stability headers on canonical vs deprecated routes
+# ---------------------------------------------------------------------------
+
+class TestAPIStabilityHeaders:
+    """Test that X-API-Stability headers are set correctly (P0-020)."""
+
+    @pytest.mark.asyncio
+    async def test_nlp_routes_return_deprecated_header(self, client: AsyncClient) -> None:
+        """NLP routes should include X-API-Stability: deprecated."""
+        response = await client.get("/api/v1/nlp/models")
+        assert response.headers.get("x-api-stability") == "deprecated"
+        assert response.headers.get("deprecation") == "true"
+        assert "sunset" in response.headers
+
+    @pytest.mark.asyncio
+    async def test_nlp_routes_return_link_to_successor(self, client: AsyncClient) -> None:
+        """NLP routes should link to the canonical clinical-agent successor."""
+        response = await client.get("/api/v1/nlp/samples")
+        link = response.headers.get("link", "")
+        assert "clinical-agent" in link
+        assert 'rel="successor-version"' in link
+
+    @pytest.mark.asyncio
+    async def test_clinical_agent_routes_return_pilot_header(self, client: AsyncClient) -> None:
+        """Clinical-agent routes should include X-API-Stability: pilot."""
+        response = await client.get("/api/v1/clinical-agent/patients")
+        assert response.headers.get("x-api-stability") == "pilot"

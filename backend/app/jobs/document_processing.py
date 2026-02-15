@@ -1,4 +1,7 @@
-"""Document processing job functions."""
+"""Document processing job functions.
+
+P0-014: Worker-based PHI operations emit audit events via log_audit / log_data_access.
+"""
 
 from __future__ import annotations
 
@@ -10,6 +13,7 @@ from uuid import UUID, uuid4
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
+from app.core.audit import AuditAction, log_audit, log_data_access
 from app.core.database import get_sync_engine
 from app.models import Document
 from app.models.mention import Mention, MentionConceptCandidate
@@ -115,6 +119,15 @@ def process_document(document_id: str) -> dict:
         Dictionary with processing results including mention count.
     """
     logger.info(f"Starting document processing for document_id={document_id}")
+
+    # P0-014: Audit the start of worker-based PHI processing
+    log_audit(
+        action=AuditAction.READ,
+        resource_type="document",
+        resource_id=document_id,
+        user_id="worker:document_processing",
+        details={"stage": "start"},
+    )
 
     try:
         with Session(get_sync_engine()) as session:
@@ -325,6 +338,21 @@ def process_document(document_id: str) -> dict:
                 f"candidate_count={candidate_count}"
             )
 
+            # P0-014: Audit completion of worker PHI processing
+            log_audit(
+                action=AuditAction.CREATE,
+                resource_type="document",
+                resource_id=document_id,
+                patient_id=document.patient_id,
+                user_id="worker:document_processing",
+                details={
+                    "stage": "completed",
+                    "mention_count": len(mention_records),
+                    "fact_count": fact_count,
+                    "graph_nodes_created": graph_nodes_created,
+                },
+            )
+
             return {
                 "success": True,
                 "document_id": document_id,
@@ -338,6 +366,16 @@ def process_document(document_id: str) -> dict:
 
     except Exception as e:
         logger.exception(f"Error processing document {document_id}: {e}")
+
+        # P0-014: Audit worker PHI processing failure
+        log_audit(
+            action=AuditAction.ERROR,
+            resource_type="document",
+            resource_id=document_id,
+            user_id="worker:document_processing",
+            details={"stage": "failed", "error": str(e)[:500]},
+            success=False,
+        )
 
         # Try to update status to FAILED
         try:

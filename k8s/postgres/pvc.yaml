@@ -10,6 +10,11 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
+  # P0-012: HIPAA requires encryption-at-rest for PHI stores.
+  # Replace 'standard' with an encrypted StorageClass (e.g., 'gp3-encrypted'
+  # on AWS EKS, 'premium-rwo' on GKE with CMEK, or 'managed-csi' on AKS).
+  # Cloud providers encrypt EBS/PD volumes by default in newer clusters,
+  # but explicit StorageClass selection ensures compliance is auditable.
   storageClassName: standard
   resources:
     requests:

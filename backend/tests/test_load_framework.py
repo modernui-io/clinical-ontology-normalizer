@@ -17,7 +17,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from backend.tests.load.load_test_runner import (
+from tests.load.load_test_runner import (
     EndpointConfig,
     HttpResponse,
     LoadTestConfig,
@@ -29,7 +29,7 @@ from backend.tests.load.load_test_runner import (
     generate_markdown_report,
     results_to_json,
 )
-from backend.tests.load.performance_benchmarks import (
+from tests.load.performance_benchmarks import (
     DEFAULT_SLA_TARGETS,
     RegressionCheck,
     SLAEvaluation,
@@ -43,7 +43,7 @@ from backend.tests.load.performance_benchmarks import (
     regression_report_markdown,
     save_baseline,
 )
-from backend.tests.load.scenarios import (
+from tests.load.scenarios import (
     DEFAULT_ENDPOINTS,
     baseline_test,
     get_scenario,

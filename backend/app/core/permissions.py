@@ -18,8 +18,6 @@ Design decisions:
       disabled, the request is allowed through.
 """
 
-from __future__ import annotations
-
 import logging
 from enum import Enum
 from typing import Any

@@ -1,5 +1,9 @@
 # Agents Documentation
 
+## Pilot Readiness Control Plane
+
+For enterprise-readiness and pilot gating work in this workspace, use `/AGENTS.md` (repo root) as the primary control plane before applying the workflow below.
+
 ## Project: Clinical Ontology Normalizer
 
 ### Workflow

@@ -328,7 +328,7 @@ async def create_federation(request: CreateFederationRequest) -> FederationRespo
     except Exception as e:
         raise InternalError(
             message=f"Failed to create federation: {str(e)}",
-            error_code=ErrorCode.INTERNAL_SERVICE_ERROR,
+            error_code=ErrorCode.INTERNAL_ERROR,
         )
 
 
@@ -403,7 +403,7 @@ async def list_federations(
     except Exception as e:
         raise InternalError(
             message=f"Failed to list federations: {str(e)}",
-            error_code=ErrorCode.INTERNAL_SERVICE_ERROR,
+            error_code=ErrorCode.INTERNAL_ERROR,
         )
 
 
@@ -467,7 +467,7 @@ async def get_federation(federation_id: str) -> FederationResponse:
     except Exception as e:
         raise InternalError(
             message=f"Failed to get federation: {str(e)}",
-            error_code=ErrorCode.INTERNAL_SERVICE_ERROR,
+            error_code=ErrorCode.INTERNAL_ERROR,
         )
 
 
@@ -542,7 +542,7 @@ async def join_federation(
     except Exception as e:
         raise InternalError(
             message=f"Failed to join federation: {str(e)}",
-            error_code=ErrorCode.INTERNAL_SERVICE_ERROR,
+            error_code=ErrorCode.INTERNAL_ERROR,
         )
 
 
@@ -609,7 +609,7 @@ async def get_participants(federation_id: str) -> ParticipantListResponse:
     except Exception as e:
         raise InternalError(
             message=f"Failed to get participants: {str(e)}",
-            error_code=ErrorCode.INTERNAL_SERVICE_ERROR,
+            error_code=ErrorCode.INTERNAL_ERROR,
         )
 
 
@@ -667,7 +667,7 @@ async def start_training_round(federation_id: str) -> TrainingRoundResponse:
     except Exception as e:
         raise InternalError(
             message=f"Failed to start training round: {str(e)}",
-            error_code=ErrorCode.INTERNAL_SERVICE_ERROR,
+            error_code=ErrorCode.INTERNAL_ERROR,
         )
 
 
@@ -733,7 +733,7 @@ async def get_training_rounds(federation_id: str) -> TrainingRoundListResponse:
     except Exception as e:
         raise InternalError(
             message=f"Failed to get training rounds: {str(e)}",
-            error_code=ErrorCode.INTERNAL_SERVICE_ERROR,
+            error_code=ErrorCode.INTERNAL_ERROR,
         )
 
 
@@ -790,7 +790,7 @@ async def get_training_round(federation_id: str, round_id: str) -> TrainingRound
     except Exception as e:
         raise InternalError(
             message=f"Failed to get training round: {str(e)}",
-            error_code=ErrorCode.INTERNAL_SERVICE_ERROR,
+            error_code=ErrorCode.INTERNAL_ERROR,
         )
 
 
@@ -856,7 +856,7 @@ async def upload_local_update(
     except Exception as e:
         raise InternalError(
             message=f"Failed to upload update: {str(e)}",
-            error_code=ErrorCode.INTERNAL_SERVICE_ERROR,
+            error_code=ErrorCode.INTERNAL_ERROR,
         )
 
 
@@ -910,7 +910,7 @@ async def get_global_model(federation_id: str) -> GlobalModelResponse:
     except Exception as e:
         raise InternalError(
             message=f"Failed to get global model: {str(e)}",
-            error_code=ErrorCode.INTERNAL_SERVICE_ERROR,
+            error_code=ErrorCode.INTERNAL_ERROR,
         )
 
 
@@ -973,7 +973,7 @@ async def get_training_metrics(federation_id: str) -> TrainingMetricsResponse:
     except Exception as e:
         raise InternalError(
             message=f"Failed to get training metrics: {str(e)}",
-            error_code=ErrorCode.INTERNAL_SERVICE_ERROR,
+            error_code=ErrorCode.INTERNAL_ERROR,
         )
 
 
@@ -1044,7 +1044,7 @@ async def simulate_training_round(federation_id: str) -> SimulateRoundResponse:
     except Exception as e:
         raise InternalError(
             message=f"Failed to simulate training round: {str(e)}",
-            error_code=ErrorCode.INTERNAL_SERVICE_ERROR,
+            error_code=ErrorCode.INTERNAL_ERROR,
         )
 
 
@@ -1098,5 +1098,5 @@ async def download_model(federation_id: str) -> dict[str, Any]:
     except Exception as e:
         raise InternalError(
             message=f"Failed to download model: {str(e)}",
-            error_code=ErrorCode.INTERNAL_SERVICE_ERROR,
+            error_code=ErrorCode.INTERNAL_ERROR,
         )

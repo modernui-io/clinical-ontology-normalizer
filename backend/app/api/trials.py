@@ -21,11 +21,9 @@ Endpoints:
     GET  /api/v1/trials/stats        - Service statistics
 """
 
-from __future__ import annotations
-
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -88,7 +86,7 @@ class EnrollmentListResponse(BaseModel):
     description="Get a paginated list of clinical trials with optional filtering.",
 )
 async def list_trials(
-    request: Request,
+
     status: TrialStatus | None = Query(None, description="Filter by trial status"),
     sponsor: str | None = Query(None, description="Filter by sponsor name"),
     therapeutic_area: str | None = Query(None, description="Filter by therapeutic area"),
@@ -120,7 +118,7 @@ async def list_trials(
     description="Create a new clinical trial with inclusion/exclusion criteria.",
 )
 async def create_trial(
-    request: Request,
+
     create: TrialCreate,
     _perm: None = Depends(PermissionChecker([Permission.WRITE_TRIALS])),
 ) -> TrialResponse:
@@ -137,7 +135,7 @@ async def create_trial(
     description="Get aggregate statistics across all trials.",
 )
 async def get_trial_stats(
-    request: Request,
+
     session: AsyncSession = Depends(get_db),
     _perm: None = Depends(PermissionChecker([Permission.READ_TRIALS])),
 ) -> dict:
@@ -154,7 +152,7 @@ async def get_trial_stats(
 )
 async def get_trial(
     trial_id: str,
-    request: Request,
+
     session: AsyncSession = Depends(get_db),
     _perm: None = Depends(PermissionChecker([Permission.READ_TRIALS])),
 ) -> TrialResponse:
@@ -177,7 +175,7 @@ async def get_trial(
 )
 async def update_trial(
     trial_id: str,
-    request: Request,
+
     update: TrialUpdate,
     _perm: None = Depends(PermissionChecker([Permission.WRITE_TRIALS])),
 ) -> TrialResponse:
@@ -199,7 +197,7 @@ async def update_trial(
 )
 async def delete_trial(
     trial_id: str,
-    request: Request,
+
     _perm: None = Depends(PermissionChecker([Permission.WRITE_TRIALS])),
 ) -> None:
     """Delete a trial."""
@@ -224,7 +222,7 @@ async def delete_trial(
 )
 async def screen_patients(
     trial_id: str,
-    request: Request,
+
     screening_request: ScreeningRequest | None = None,
     session: AsyncSession = Depends(get_db),
     _perm: None = Depends(PermissionChecker([Permission.SCREEN_PATIENTS])),
@@ -249,7 +247,7 @@ async def screen_patients(
 async def check_patient_eligibility(
     trial_id: str,
     patient_id: str,
-    request: Request,
+
     session: AsyncSession = Depends(get_db),
     _perm: None = Depends(PermissionChecker([Permission.SCREEN_PATIENTS])),
 ) -> PatientEligibility:
@@ -284,7 +282,7 @@ async def check_patient_eligibility(
 async def get_match_explanation(
     trial_id: str,
     patient_id: str,
-    request: Request,
+
     session: AsyncSession = Depends(get_db),
     _perm: None = Depends(PermissionChecker([Permission.SCREEN_PATIENTS])),
 ) -> PatientEligibility:
@@ -324,7 +322,7 @@ async def get_match_explanation(
 )
 async def enroll_patient(
     trial_id: str,
-    request: Request,
+
     create: EnrollmentCreate,
     session: AsyncSession = Depends(get_db),
     _perm: None = Depends(PermissionChecker([Permission.WRITE_TRIALS])),
@@ -349,7 +347,7 @@ async def enroll_patient(
 async def update_enrollment(
     trial_id: str,
     patient_id: str,
-    request: Request,
+
     update: EnrollmentUpdate,
     _perm: None = Depends(PermissionChecker([Permission.WRITE_TRIALS])),
 ) -> EnrollmentResponse:
@@ -372,7 +370,7 @@ async def update_enrollment(
 )
 async def list_enrollments(
     trial_id: str,
-    request: Request,
+
     status: EnrollmentStatus | None = Query(None, description="Filter by enrollment status"),
     offset: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
@@ -407,7 +405,7 @@ async def list_enrollments(
 async def flag_false_negative(
     trial_id: str,
     patient_id: str,
-    request: Request,
+
     body: FNFlagCreate,
     session: AsyncSession = Depends(get_db),
     _perm: None = Depends(PermissionChecker([Permission.SCREEN_PATIENTS])),
@@ -448,7 +446,7 @@ async def flag_false_negative(
 )
 async def get_fn_report(
     trial_id: str,
-    request: Request,
+
     session: AsyncSession = Depends(get_db),
     _perm: None = Depends(PermissionChecker([Permission.READ_ANALYTICS])),
 ) -> FNReport:
@@ -479,7 +477,7 @@ async def get_fn_report(
 )
 async def get_trial_dashboard(
     trial_id: str,
-    request: Request,
+
     session: AsyncSession = Depends(get_db),
     _perm: None = Depends(PermissionChecker([Permission.READ_ANALYTICS])),
 ) -> TrialDashboard:

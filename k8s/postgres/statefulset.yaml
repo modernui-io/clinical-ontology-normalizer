@@ -107,6 +107,8 @@ spec:
       spec:
         accessModes:
           - ReadWriteOnce
+        # P0-012: Use encrypted StorageClass for PHI at rest.
+        # See k8s/postgres/pvc.yaml comments for cloud-specific options.
         storageClassName: standard
         resources:
           requests:

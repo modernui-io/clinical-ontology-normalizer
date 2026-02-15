@@ -1,5 +1,7 @@
 """VP-DevOps-5: Pipeline executor job for RQ background processing.
 
+P0-014: Worker-based PHI operations emit audit events.
+
 This module provides the background job that executes data pipeline runs.
 It is called by the RQ worker when a pipeline run is enqueued.
 
@@ -27,6 +29,8 @@ from __future__ import annotations
 import logging
 from datetime import datetime, timezone
 from uuid import UUID
+
+from app.core.audit import AuditAction, log_audit
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +61,15 @@ def execute_pipeline_run(run_id: str) -> dict:
     run_uuid = UUID(run_id)
 
     logger.info(f"Starting pipeline run execution: {run_id}")
+
+    # P0-014: Audit worker-initiated pipeline execution
+    log_audit(
+        action=AuditAction.READ,
+        resource_type="pipeline_run",
+        resource_id=run_id,
+        user_id="worker:pipeline_executor",
+        details={"stage": "start"},
+    )
 
     with Session(get_sync_engine()) as session:
         # Fetch the run
@@ -98,6 +111,19 @@ def execute_pipeline_run(run_id: str) -> dict:
                 f"{records_processed} records in {duration:.2f}s"
             )
 
+            # P0-014: Audit pipeline completion
+            log_audit(
+                action=AuditAction.CREATE,
+                resource_type="pipeline_run",
+                resource_id=run_id,
+                user_id="worker:pipeline_executor",
+                details={
+                    "stage": "completed",
+                    "records_processed": records_processed,
+                    "duration_seconds": duration,
+                },
+            )
+
             return {
                 "status": "completed",
                 "records_processed": records_processed,
@@ -114,6 +140,16 @@ def execute_pipeline_run(run_id: str) -> dict:
 
             duration = (end_time - start_time).total_seconds()
             logger.exception(f"Pipeline run {run_id} failed after {duration:.2f}s: {e}")
+
+            # P0-014: Audit pipeline failure
+            log_audit(
+                action=AuditAction.ERROR,
+                resource_type="pipeline_run",
+                resource_id=run_id,
+                user_id="worker:pipeline_executor",
+                details={"stage": "failed", "error": str(e)[:500]},
+                success=False,
+            )
 
             return {
                 "status": "failed",

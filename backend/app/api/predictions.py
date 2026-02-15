@@ -294,7 +294,7 @@ async def predict_readmission(request: ReadmissionPredictionRequest) -> RiskScor
     except Exception as e:
         raise InternalError(
             message=f"Readmission prediction failed: {str(e)}",
-            error_code=ErrorCode.INTERNAL_SERVICE_ERROR,
+            error_code=ErrorCode.INTERNAL_ERROR,
         )
 
 
@@ -431,7 +431,7 @@ async def predict_deterioration(
     except Exception as e:
         raise InternalError(
             message=f"Deterioration prediction failed: {str(e)}",
-            error_code=ErrorCode.INTERNAL_SERVICE_ERROR,
+            error_code=ErrorCode.INTERNAL_ERROR,
         )
 
 
@@ -562,7 +562,7 @@ async def predict_mortality(request: MortalityPredictionRequest) -> RiskScoreRes
     except Exception as e:
         raise InternalError(
             message=f"Mortality prediction failed: {str(e)}",
-            error_code=ErrorCode.INTERNAL_SERVICE_ERROR,
+            error_code=ErrorCode.INTERNAL_ERROR,
         )
 
 
@@ -660,7 +660,7 @@ async def get_patient_risks(
     except Exception as e:
         raise InternalError(
             message=f"Failed to retrieve patient risks: {str(e)}",
-            error_code=ErrorCode.INTERNAL_SERVICE_ERROR,
+            error_code=ErrorCode.INTERNAL_ERROR,
         )
 
 
@@ -708,7 +708,7 @@ async def list_models() -> ModelListResponse:
     except Exception as e:
         raise InternalError(
             message=f"Failed to list models: {str(e)}",
-            error_code=ErrorCode.INTERNAL_SERVICE_ERROR,
+            error_code=ErrorCode.INTERNAL_ERROR,
         )
 
 
@@ -792,7 +792,7 @@ async def get_model_performance(
     except Exception as e:
         raise InternalError(
             message=f"Failed to get model performance: {str(e)}",
-            error_code=ErrorCode.INTERNAL_SERVICE_ERROR,
+            error_code=ErrorCode.INTERNAL_ERROR,
         )
 
 
@@ -884,7 +884,7 @@ async def explain_prediction(request: ExplainRequest) -> ExplainResponse:
     except Exception as e:
         raise InternalError(
             message=f"Failed to explain prediction: {str(e)}",
-            error_code=ErrorCode.INTERNAL_SERVICE_ERROR,
+            error_code=ErrorCode.INTERNAL_ERROR,
         )
 
 
@@ -976,7 +976,7 @@ async def batch_predict(request: BatchPredictionRequest) -> BatchPredictionRespo
     except Exception as e:
         raise InternalError(
             message=f"Batch prediction failed: {str(e)}",
-            error_code=ErrorCode.INTERNAL_SERVICE_ERROR,
+            error_code=ErrorCode.INTERNAL_ERROR,
         )
 
 
@@ -1154,7 +1154,7 @@ async def list_risk_scores(
     except Exception as e:
         raise InternalError(
             message=f"Failed to list risk scores: {str(e)}",
-            error_code=ErrorCode.INTERNAL_SERVICE_ERROR,
+            error_code=ErrorCode.INTERNAL_ERROR,
         )
 
 
@@ -1304,5 +1304,5 @@ async def get_population_risk() -> PopulationRiskResponse:
     except Exception as e:
         raise InternalError(
             message=f"Failed to get population risk: {str(e)}",
-            error_code=ErrorCode.INTERNAL_SERVICE_ERROR,
+            error_code=ErrorCode.INTERNAL_ERROR,
         )

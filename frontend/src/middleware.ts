@@ -13,6 +13,8 @@ import type { NextRequest } from "next/server";
 
 // Routes that don't require authentication
 const PUBLIC_PATHS = [
+  "/",
+  "/landing",
   "/login",
   "/register",
   "/forgot-password",
@@ -40,7 +42,10 @@ export function middleware(request: NextRequest) {
   }
 
   // Allow public paths
-  if (PUBLIC_PATHS.some((path) => pathname.startsWith(path))) {
+  const isPublicPath =
+    PUBLIC_PATHS.some((path) => (path === "/" ? pathname === "/" : pathname.startsWith(path)));
+
+  if (isPublicPath) {
     return NextResponse.next();
   }
 

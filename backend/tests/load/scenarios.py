@@ -7,7 +7,7 @@ stress, spike).
 
 from __future__ import annotations
 
-from backend.tests.load.load_test_runner import EndpointConfig, LoadTestConfig
+from tests.load.load_test_runner import EndpointConfig, LoadTestConfig
 
 
 # ---------------------------------------------------------------------------

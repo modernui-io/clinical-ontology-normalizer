@@ -12,7 +12,7 @@ Usage (CLI)::
 
 Or programmatically::
 
-    from backend.tests.load.load_test_runner import LoadTestRunner, LoadTestConfig, EndpointConfig
+    from tests.load.load_test_runner import LoadTestRunner, LoadTestConfig, EndpointConfig
 
     cfg = LoadTestConfig(
         base_url="http://localhost:8000",
@@ -494,11 +494,11 @@ def main(argv: list[str] | None = None) -> None:
 
     # If a named scenario is given, import and use it
     if args.scenario:
-        from backend.tests.load.scenarios import get_scenario
+        from tests.load.scenarios import get_scenario
 
         config = get_scenario(args.scenario, base_url=args.base_url, auth_token=args.token)
     else:
-        from backend.tests.load.scenarios import DEFAULT_ENDPOINTS
+        from tests.load.scenarios import DEFAULT_ENDPOINTS
 
         config = LoadTestConfig(
             base_url=args.base_url,

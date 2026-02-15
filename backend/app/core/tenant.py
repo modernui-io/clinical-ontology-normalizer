@@ -1,5 +1,7 @@
 """Tenant and patient isolation for Clinical Ontology Normalizer.
 
+P0-016: Enforces tenant/org boundary checks at query boundaries.
+
 Provides multi-tenant support and patient-level access control.
 Each API key can be associated with a set of allowed patient IDs,
 ensuring data isolation between different clients.
@@ -11,7 +13,9 @@ import logging
 import os
 from functools import lru_cache
 
-from fastapi import HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
+
+from app.core.audit import AuditAction, log_audit
 
 logger = logging.getLogger(__name__)
 
@@ -186,3 +190,71 @@ class TenantContext:
             HTTPException: 403 if access is denied
         """
         verify_patient_access(self.api_key, patient_id, action)
+
+
+# ---------------------------------------------------------------------------
+# P0-016: FastAPI dependency for tenant context extraction and enforcement
+# ---------------------------------------------------------------------------
+
+
+def get_tenant_context(request: Request) -> TenantContext:
+    """Extract tenant context from the current request.
+
+    Reads the API key from request state (set by auth middleware) and
+    builds a TenantContext for downstream tenant isolation checks.
+
+    Args:
+        request: The incoming FastAPI request.
+
+    Returns:
+        TenantContext with the caller's tenant identity.
+    """
+    api_key: str | None = None
+
+    # Try auth middleware user first
+    user = getattr(request.state, "user", None)
+    if user and hasattr(user, "api_key"):
+        api_key = user.api_key
+
+    # Fall back to raw header
+    if api_key is None:
+        api_key = request.headers.get("X-API-Key")
+
+    tenant_id = getattr(request.state, "tenant_id", None) or api_key
+    return TenantContext(api_key=api_key, tenant_id=tenant_id)
+
+
+def require_tenant_isolation(
+    request: Request,
+    tenant: TenantContext = Depends(get_tenant_context),
+) -> TenantContext:
+    """FastAPI dependency that enforces tenant isolation is active.
+
+    P0-016: When tenant mappings are configured, this dependency ensures
+    the caller has a recognized tenant identity. If no mappings are
+    configured (development mode), it passes through.
+
+    Args:
+        request: The incoming FastAPI request.
+        tenant: The resolved TenantContext.
+
+    Returns:
+        The validated TenantContext.
+
+    Raises:
+        HTTPException: 403 if tenant isolation is enabled but caller has
+            no recognized tenant identity.
+    """
+    if is_tenant_isolation_enabled() and tenant.tenant_id is None:
+        log_audit(
+            action=AuditAction.AUTH_FAILURE,
+            resource_type="tenant_isolation",
+            ip_address=request.client.host if request.client else "unknown",
+            details={"reason": "no_tenant_identity"},
+            success=False,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Tenant identity required. Provide a valid API key.",
+        )
+    return tenant

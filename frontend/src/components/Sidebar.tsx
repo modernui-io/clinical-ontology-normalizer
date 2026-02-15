@@ -209,8 +209,15 @@ const navSections: NavSection[] = [
       { title: "Access Control", href: "/admin/access", icon: Shield },
       { title: "SMART Apps", href: "/admin/smart-apps", icon: Key },
       { title: "Billing", href: "/billing", icon: CreditCard },
+      { title: "Diagnostics", href: "/admin/diagnostics", icon: Activity },
       { title: "Audit Log", href: "/audit", icon: ClipboardList },
       { title: "Settings", href: "/settings", icon: Settings },
+    ],
+  },
+  {
+    title: "Reference",
+    items: [
+      { title: "Glossary", href: "/glossary", icon: BookOpen },
     ],
   },
 ];
@@ -221,7 +228,7 @@ interface SidebarProps {
 
 // Pages that should not show the sidebar
 const AUTH_PAGES = ["/login", "/register", "/forgot-password"];
-const FULL_BLEED_PAGES = ["/"];
+const FULL_BLEED_PAGES = ["/", "/investors"];
 const isAuthPage = (pathname: string) => {
   return AUTH_PAGES.includes(pathname) || FULL_BLEED_PAGES.includes(pathname) || pathname.startsWith("/smart/");
 };
