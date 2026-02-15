@@ -103,11 +103,11 @@ Execution rules
 - [x] P2-010 Add drift detection for terminology mapping distributions over time. | Owner: Clinical AI + Data | Anchor: mapping analytics jobs | Exit: drift alert thresholds active.
 - [x] P2-011 Add concept mapping disagreement dashboard (rule vs ML vs ensemble). | Owner: Clinical AI + Product | Anchor: analytics/UI | Exit: disagreement visibility for triage.
 - [x] P2-012 Add queue partitioning by workload class (ingest/mapping/KG/export). | Owner: CTO + Ops | Anchor: queue config | Exit: isolated queues with quotas.
-- [ ] P2-013 Add horizontal scaling plan for worker pools with load tests. | Owner: Ops + CTO | Anchor: deployment config + perf tests | Exit: defined scaling thresholds.
+- [x] P2-013 Add horizontal scaling plan for worker pools with load tests. | Owner: Ops + CTO | Anchor: deployment config + perf tests | Exit: defined scaling thresholds.
 - [ ] P2-014 Add Kafka HA strategy decision (managed service vs multi-broker self-hosted). | Owner: CTO + Ops | Anchor: ops architecture docs | Exit: approved target topology.
-- [ ] P2-015 Add Redis separation for cache vs job queue in production design. | Owner: Ops | Anchor: deployment topology docs | Exit: contention risk reduced.
+- [x] P2-015 Add Redis separation for cache vs job queue in production design. | Owner: Ops | Anchor: deployment topology docs | Exit: contention risk reduced.
 - [ ] P2-016 Add scheduled backup automation and restore verification jobs. | Owner: Ops | Anchor: backup scripts/runbooks | Exit: backup jobs monitored.
-- [ ] P2-017 Add SLO dashboard with p95/p99 latency and error rates by endpoint. | Owner: Ops + Platform | Anchor: metrics stack | Exit: dashboard used in weekly ops review.
+- [x] P2-017 Add SLO dashboard with p95/p99 latency and error rates by endpoint. | Owner: Ops + Platform | Anchor: metrics stack | Exit: dashboard used in weekly ops review.
 - [ ] P2-018 Add alert fatigue controls and tuned severity thresholds. | Owner: Ops | Anchor: alert policies | Exit: false positive rate reduced.
 - [x] P2-019 Add API budget/timeout policies for hybrid query path. | Owner: CTO + Clinical AI | Anchor: clinical agent service | Exit: bounded execution with fail-safe behavior.
 - [x] P2-020 Add idempotency and retry safety for ingestion endpoints. | Owner: Platform | Anchor: ingestion APIs | Exit: duplicate submissions handled safely.
@@ -124,27 +124,27 @@ Execution rules
 
 ## P3 (Optimization)
 
-- [ ] P3-001 Refactor overlapping clinical API routes to reduce duplicate logic paths. | Owner: CTO | Anchor: `backend/app/api/nlp.py`, `backend/app/api/clinical_agent.py` | Exit: reduced route redundancy.
-- [ ] P3-002 Improve UI navigation by persona (clinical, RCM, IT) for pilot usability. | Owner: VP Product | Anchor: frontend nav/layout | Exit: role-focused entry points.
-- [ ] P3-003 Add richer provenance drilldown UI for fast clinician review. | Owner: VP Product | Anchor: frontend provenance components | Exit: one-click evidence review.
-- [ ] P3-004 Add answer explanation templates tuned by question class. | Owner: Clinical AI + Product | Anchor: response formatting layer | Exit: clearer reasoning outputs.
-- [ ] P3-005 Add confidence calibration plots and reliability diagram reports. | Owner: Clinical AI | Anchor: model evaluation suite | Exit: calibration report per release.
+- [x] P3-001 Refactor overlapping clinical API routes to reduce duplicate logic paths. | Owner: CTO | Anchor: `backend/app/api/nlp.py`, `backend/app/api/clinical_agent.py` | Exit: reduced route redundancy.
+- [x] P3-002 Improve UI navigation by persona (clinical, RCM, IT) for pilot usability. | Owner: VP Product | Anchor: frontend nav/layout | Exit: role-focused entry points.
+- [x] P3-003 Add richer provenance drilldown UI for fast clinician review. | Owner: VP Product | Anchor: frontend provenance components | Exit: one-click evidence review.
+- [x] P3-004 Add answer explanation templates tuned by question class. | Owner: Clinical AI + Product | Anchor: response formatting layer | Exit: clearer reasoning outputs.
+- [x] P3-005 Add confidence calibration plots and reliability diagram reports. | Owner: Clinical AI | Anchor: model evaluation suite | Exit: calibration report per release.
 - [ ] P3-006 Add glossary and training content for confidence/evidence semantics. | Owner: Product + Clinical Ops | Anchor: docs/help center | Exit: user education pack published.
 - [ ] P3-007 Add self-serve integration diagnostics page for onboarding teams. | Owner: Interop + Product | Anchor: admin UI | Exit: diagnostics page available.
-- [ ] P3-008 Add richer queue and worker observability dashboards. | Owner: Ops | Anchor: monitoring stack | Exit: queue health visible by class.
-- [ ] P3-009 Add selective tracing on expensive endpoints with sampling controls. | Owner: Platform | Anchor: tracing config/services | Exit: traceability without overhead spike.
+- [x] P3-008 Add richer queue and worker observability dashboards. | Owner: Ops | Anchor: monitoring stack | Exit: queue health visible by class.
+- [x] P3-009 Add selective tracing on expensive endpoints with sampling controls. | Owner: Platform | Anchor: tracing config/services | Exit: traceability without overhead spike.
 - [ ] P3-010 Add red-team style chaos tests for dependency loss scenarios. | Owner: Ops + Security | Anchor: chaos test plans | Exit: quarterly chaos report.
-- [ ] P3-011 Add lint/policy checks for PHI-safe logging patterns. | Owner: CISO + QA | Anchor: CI tooling | Exit: blocked builds on unsafe logs.
+- [x] P3-011 Add lint/policy checks for PHI-safe logging patterns. | Owner: CISO + QA | Anchor: CI tooling | Exit: blocked builds on unsafe logs.
 - [ ] P3-012 Add stronger secret rotation tooling and operational runbooks. | Owner: Security + Ops | Anchor: secrets management docs | Exit: rotation drills executed.
 - [ ] P3-013 Add automated stale-guideline detection and content owner alerts. | Owner: Clinical AI + Compliance | Anchor: guideline management | Exit: stale content SLA enforced.
-- [ ] P3-014 Add semantic versioning to clinical policy and confidence rule packs. | Owner: Product + Clinical AI | Anchor: policy configs | Exit: versioned policy deployments.
+- [x] P3-014 Add semantic versioning to clinical policy and confidence rule packs. | Owner: Product + Clinical AI | Anchor: policy configs | Exit: versioned policy deployments.
 - [ ] P3-015 Add structured quality gates for release candidates across roles. | Owner: Program + CTO | Anchor: release process | Exit: standardized gate checklist.
 - [ ] P3-016 Add synthetic data generation toolkit for safer pre-prod testing. | Owner: Data + QA | Anchor: test tooling | Exit: repeatable anonymized fixtures.
 - [ ] P3-017 Add operational cost dashboard by workload and tenant. | Owner: CIO + Ops | Anchor: metrics/finance views | Exit: cost-to-serve visibility.
 - [ ] P3-018 Add support playbook for off-hours clinical escalation decisions. | Owner: CIO + Clinical Ops | Anchor: support docs | Exit: off-hours protocols approved.
 - [ ] P3-019 Add incident postmortem template specific to clinical AI misguidance risk. | Owner: Ops + Clinical AI | Anchor: incident docs | Exit: template adopted.
-- [ ] P3-020 Add safety regression suite for medication and contraindication scenarios. | Owner: Clinical AI + QA | Anchor: drug safety tests | Exit: regression suite in CI.
-- [ ] P3-021 Add performance test scenarios for long-note and multi-note encounters. | Owner: QA + Platform | Anchor: perf tests | Exit: baseline and limits documented.
+- [x] P3-020 Add safety regression suite for medication and contraindication scenarios. | Owner: Clinical AI + QA | Anchor: drug safety tests | Exit: regression suite in CI.
+- [x] P3-021 Add performance test scenarios for long-note and multi-note encounters. | Owner: QA + Platform | Anchor: perf tests | Exit: baseline and limits documented.
 - [ ] P3-022 Add documentation for "degraded mode operations" for clinicians. | Owner: Product + Clinical Ops | Anchor: user docs | Exit: degraded-mode SOP published.
 - [ ] P3-023 Add versioned integration compatibility matrix (Meditech/OpenEHR/FHIR variants). | Owner: Interop | Anchor: compatibility docs | Exit: matrix maintained quarterly.
 - [ ] P3-024 Add compliance evidence binder automation for audits. | Owner: Compliance | Anchor: audit export tooling | Exit: on-demand evidence bundle generated.
