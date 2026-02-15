@@ -208,6 +208,14 @@ class AuditLog(Base):
         index=True,
     )
 
+    # P1-029: Purpose-of-use tagging for clinically relevant audit events
+    purpose_of_use: Mapped[str | None] = mapped_column(
+        String(50),
+        nullable=True,
+        index=True,
+        doc="treatment | payment | operations | research | public_health | quality_assurance",
+    )
+
     # CISO-8 / CLO-2.5: Tamper-evident hash chain (21 CFR Part 11)
     # Each record stores SHA-256(previous_hash + canonical_record_data)
     record_hash: Mapped[str | None] = mapped_column(

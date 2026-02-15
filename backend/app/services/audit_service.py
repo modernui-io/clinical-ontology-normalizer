@@ -314,6 +314,7 @@ class AuditService:
         session_id: str | None = None,
         success: bool = True,
         error_message: str | None = None,
+        purpose_of_use: str | None = None,
     ) -> AuditLog:
         """Log an audit event with tamper-evident hash chain.
 
@@ -340,6 +341,7 @@ class AuditService:
             session_id: Session identifier
             success: Whether operation succeeded
             error_message: Error message if failed
+            purpose_of_use: P1-029 purpose-of-use tag (treatment, payment, etc.)
 
         Returns:
             The created AuditLog entry
@@ -398,6 +400,7 @@ class AuditService:
             success=success,
             error_message=error_message,
             actor_role=actor_role,
+            purpose_of_use=purpose_of_use,
             record_hash=record_hash,
             previous_hash=previous_hash,
         )

@@ -12,7 +12,7 @@ from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base, SoftDeleteMixin
-from app.schemas.base import JobStatus, ResourceType
+from app.schemas.base import ConsentStatus, JobStatus, ResourceType
 
 if TYPE_CHECKING:
     from app.models.clinical_value import ClinicalValue
@@ -63,6 +63,29 @@ class Document(SoftDeleteMixin, Base):
     processed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
+    )
+
+    # P1-027: Residency and consent metadata
+    residency_country: Mapped[str | None] = mapped_column(
+        String(2),  # ISO 3166-1 alpha-2
+        nullable=True,
+        doc="ISO 3166-1 alpha-2 country code for patient residency (e.g. AU)",
+    )
+    consent_status: Mapped[str | None] = mapped_column(
+        String(20),
+        nullable=True,
+        index=True,
+        doc="Consent status: obtained | pending | declined | not_required",
+    )
+    consent_date: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        doc="Date consent was obtained or last updated",
+    )
+    consent_reference: Mapped[str | None] = mapped_column(
+        String(500),
+        nullable=True,
+        doc="URI or ID linking to the external consent record",
     )
 
     # Relationships

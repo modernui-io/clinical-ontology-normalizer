@@ -51,6 +51,7 @@ from app.schemas.confidence_semantics import (
     ConfidenceComponent,
     ConfidenceSource,
 )
+from app.schemas.uncertainty_taxonomy import classify_uncertainty
 
 logger = logging.getLogger(__name__)
 
@@ -427,6 +428,16 @@ class HybridQueryResponse(BaseModel):
     fallback_reason_code: str | None = Field(
         default=None,
         description="P1-019: Machine-readable reason code for fallback (e.g. 'llm_unavailable')",
+    )
+    # P2-007: Uncertainty reason codes
+    uncertainty_reasons: list[str] = Field(
+        default_factory=list,
+        description="P2-007: Applicable uncertainty reason codes (e.g. UC-001)",
+    )
+    # P2-019: Query budget time breakdown
+    query_budget_ms: dict[str, float] | None = Field(
+        default=None,
+        description="P2-019: Time spent per query phase in milliseconds",
     )
 
 
@@ -3168,6 +3179,20 @@ Provide a clear, evidence-based answer synthesizing the clinical data, graph rel
             data_freshness = latest.isoformat()
             last_ingestion = latest.isoformat()
 
+    # P2-007: Classify uncertainty reasons
+    _dep_state = {
+        "kg_available": len(nodes) > 0,
+        "documents_available": len(documents) > 0,
+        "llm_available": llm_available,
+    }
+    uncertainty_reasons = classify_uncertainty(
+        confidence=confidence,
+        evidence_count=len(evidence_sources),
+        kg_node_count=len(matching_nodes),
+        dependency_state=_dep_state,
+        fallback_used=fallback_used,
+    )
+
     return HybridQueryResponse(
         question=request.question,
         answer=answer,
@@ -3191,11 +3216,7 @@ Provide a clear, evidence-based answer synthesizing the clinical data, graph rel
         source_document_ids=source_document_ids,
         provenance_complete=provenance_complete,
         # P0-004: Surface dependency availability in all query responses
-        dependency_state={
-            "kg_available": len(nodes) > 0,
-            "documents_available": len(documents) > 0,
-            "llm_available": llm_available,
-        },
+        dependency_state=_dep_state,
         # P0-021: Confidence-to-action gate
         action_gate=gate_result.model_dump(),
         # P1-001: Evidence-weighted confidence rationale
@@ -3212,6 +3233,8 @@ Provide a clear, evidence-based answer synthesizing the clinical data, graph rel
         # P1-019: Fallback indicators
         fallback_used=fallback_used,
         fallback_reason_code=fallback_reason_code,
+        # P2-007: Uncertainty reasons
+        uncertainty_reasons=uncertainty_reasons,
     )
 
 

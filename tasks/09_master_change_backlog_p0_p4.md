@@ -55,29 +55,29 @@ Execution rules
 
 - [x] P1-001 Replace heuristic confidence assembly with tiered evidence-weighted scoring. | Owner: Clinical AI | Anchor: `backend/app/api/clinical_agent.py`, `backend/app/services/hybrid_clinical_analyzer.py` | Exit: score rationale emitted in API.
 - [x] P1-002 Standardize confidence semantics across extraction, KG, reasoning, and final answer. | Owner: Clinical AI + Product | Anchor: API and UI confidence fields | Exit: shared schema and docs adopted.
-- [ ] P1-003 Add confidence threshold policy object configurable by workflow type. | Owner: Product + Clinical AI | Anchor: policy/config layer | Exit: policy loaded at runtime and versioned.
-- [ ] P1-004 Implement refusal mode for critical errors and low-confidence clinical paths. | Owner: Product + Clinical AI | Anchor: `frontend/src/app/nlp/page.tsx`, clinical agent API | Exit: refusal responses prevent unsafe actions.
+- [x] P1-003 Add confidence threshold policy object configurable by workflow type. | Owner: Product + Clinical AI | Anchor: policy/config layer | Exit: policy loaded at runtime and versioned.
+- [x] P1-004 Implement refusal mode for critical errors and low-confidence clinical paths. | Owner: Product + Clinical AI | Anchor: `frontend/src/app/nlp/page.tsx`, clinical agent API | Exit: refusal responses prevent unsafe actions.
 - [x] P1-005 Add missing note and coverage metrics to all query payloads. | Owner: Clinical AI | Anchor: `backend/app/api/clinical_agent.py` | Exit: fields include failed note count and coverage percent.
 - [x] P1-006 Attach data freshness and ingestion timestamp to Q&A responses. | Owner: Clinical AI + Ops | Anchor: API response contracts | Exit: freshness metadata present in answer cards.
 - [x] P1-007 Add provenance integrity checks in KG merge stage for near-match entities. | Owner: Clinical AI | Anchor: KG merge functions in clinical agent | Exit: substring-only joins blocked.
 - [x] P1-008 Harden OMOP fallback matching to reduce semantic false positives. | Owner: Clinical AI | Anchor: `backend/app/services/omop_hierarchy_service.py` | Exit: negative corpus precision target met.
 - [x] P1-009 Add bounded cache and invalidation on OMOP version change. | Owner: CTO + Clinical AI | Anchor: `backend/app/services/omop_hierarchy_service.py` | Exit: cache eviction and refresh strategy active.
 - [ ] P1-010 Create UMLS/OMOP acceptance corpus with positive and negative concept pairs. | Owner: QA + Clinical AI | Anchor: `backend/tests/` | Exit: CI threshold gate for mapping quality.
-- [ ] P1-011 Add real-source document retrieval in GraphRAG path (remove placeholder behavior). | Owner: CTO + Clinical AI | Anchor: `backend/app/services/graph_augmented_rag.py` | Exit: source IDs required for supported answers.
-- [ ] P1-012 Add guideline corpus versioning, expiration, and update policy. | Owner: Clinical AI + Compliance | Anchor: guideline services/docs | Exit: stale guideline detection in pipeline.
-- [ ] P1-013 Expand drug safety coverage and explicitly label uncovered pairs. | Owner: Clinical AI | Anchor: `backend/app/services/drug_safety.py` | Exit: coverage report and unknown-pair warning behavior.
+- [x] P1-011 Add real-source document retrieval in GraphRAG path (remove placeholder behavior). | Owner: CTO + Clinical AI | Anchor: `backend/app/services/graph_augmented_rag.py` | Exit: source IDs required for supported answers.
+- [x] P1-012 Add guideline corpus versioning, expiration, and update policy. | Owner: Clinical AI + Compliance | Anchor: guideline services/docs | Exit: stale guideline detection in pipeline.
+- [x] P1-013 Expand drug safety coverage and explicitly label uncovered pairs. | Owner: Clinical AI | Anchor: `backend/app/services/drug_safety.py` | Exit: coverage report and unknown-pair warning behavior.
 - [x] P1-014 Add clinical plausibility validation to calculator inputs. | Owner: Clinical AI | Anchor: `backend/app/services/clinical_calculators.py` | Exit: out-of-range inputs flagged/blocked.
 - [x] P1-015 Label differential diagnosis scores as ranking until calibrated. | Owner: Clinical AI + Product | Anchor: differential diagnosis service/UI | Exit: probability language removed unless calibrated.
 - [ ] P1-016 Add explicit pilot policy for 77% accuracy classes by workflow. | Owner: VP Product + CIO | Anchor: `exec-review/vp-product-review.md` | Exit: approved matrix in governance pack.
-- [ ] P1-017 Lock pilot UI to single sanctioned extraction mode profile. | Owner: VP Product | Anchor: `frontend/src/app/nlp/page.tsx` | Exit: non-approved modes hidden/guarded.
-- [ ] P1-018 Show model/provider route and risk tier in every answer header. | Owner: VP Product + Clinical AI | Anchor: result rendering components | Exit: transparency fields visible by default.
+- [x] P1-017 Lock pilot UI to single sanctioned extraction mode profile. | Owner: VP Product | Anchor: `frontend/src/app/nlp/page.tsx` | Exit: non-approved modes hidden/guarded.
+- [x] P1-018 Show model/provider route and risk tier in every answer header. | Owner: VP Product + Clinical AI | Anchor: result rendering components | Exit: transparency fields visible by default.
 - [x] P1-019 Add fallback_used and reason_code to every degraded response. | Owner: Clinical AI | Anchor: clinical agent API | Exit: all fallback paths machine-readable.
 - [x] P1-020 Add production-safe startup validation for dependency credentials. | Owner: CTO + CISO | Anchor: config/bootstrap path | Exit: startup fails on missing critical credentials.
 - [x] P1-021 Split critical/non-critical dependency classes in health/readiness policies. | Owner: Ops + CTO | Anchor: `backend/app/api/health.py` | Exit: class policy documented and enforced.
-- [ ] P1-022 Add worker liveness checks based on process and queue health, not API ping. | Owner: Ops | Anchor: `docker-compose.prod.yml`, worker setup | Exit: dead worker detected within defined SLA.
-- [ ] P1-023 Add queue depth SLOs and intake throttling/backpressure policy. | Owner: Ops + CTO | Anchor: `backend/app/core/queue.py` | Exit: automatic protective behavior at thresholds.
+- [x] P1-022 Add worker liveness checks based on process and queue health, not API ping. | Owner: Ops | Anchor: `docker-compose.prod.yml`, worker setup | Exit: dead worker detected within defined SLA.
+- [x] P1-023 Add queue depth SLOs and intake throttling/backpressure policy. | Owner: Ops + CTO | Anchor: `backend/app/core/queue.py` | Exit: automatic protective behavior at thresholds.
 - [ ] P1-024 Add alert routing for degraded or mock dependency states. | Owner: Ops | Anchor: metrics/alerting runbook | Exit: paging triggered on defined events.
-- [ ] P1-025 Add service restart policy consistency for production stack. | Owner: Ops | Anchor: `docker-compose.prod.yml` | Exit: restart policy standardized.
+- [x] P1-025 Add service restart policy consistency for production stack. | Owner: Ops | Anchor: `docker-compose.prod.yml` | Exit: restart policy standardized.
 - [ ] P1-026 Formalize support staffing model and on-call rotation for pilot window. | Owner: CIO + Ops | Anchor: operations docs | Exit: approved staffing calendar.
 - [ ] P1-027 Add Australian residency and consent metadata capture at ingestion. | Owner: CIO + Compliance | Anchor: `backend/app/models/clinical_fact.py`, import services | Exit: consent/residency fields required.
 - [ ] P1-028 Add retention policy enforcement and archival controls for PHI paths. | Owner: Compliance + Ops | Anchor: storage and audit policies | Exit: retention jobs and policy docs active.

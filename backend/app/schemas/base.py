@@ -46,6 +46,18 @@ class Domain(str, Enum):
     SPEC_ANATOMIC_SITE = "spec_anatomic_site"
 
 
+class ExtractionStatus(str, Enum):
+    """Extraction status propagated across import, KG build, and Q&A.
+
+    P0-006: Tracks whether NLP extraction succeeded, partially failed, or
+    completely failed at the note or pipeline level.
+    """
+
+    OK = "ok"
+    PARTIAL = "partial"  # Some notes extracted, some failed
+    FAILED = "failed"  # All notes failed extraction
+
+
 class JobStatus(str, Enum):
     """Status of a processing job."""
 
@@ -53,6 +65,26 @@ class JobStatus(str, Enum):
     PROCESSING = "processing"
     COMPLETED = "completed"
     FAILED = "failed"
+
+
+class ConsentStatus(str, Enum):
+    """Consent status for document ingestion (P1-027)."""
+
+    OBTAINED = "obtained"
+    PENDING = "pending"
+    DECLINED = "declined"
+    NOT_REQUIRED = "not_required"
+
+
+class PurposeOfUse(str, Enum):
+    """Standard purpose-of-use values for audit events (P1-029)."""
+
+    TREATMENT = "treatment"
+    PAYMENT = "payment"
+    OPERATIONS = "operations"
+    RESEARCH = "research"
+    PUBLIC_HEALTH = "public_health"
+    QUALITY_ASSURANCE = "quality_assurance"
 
 
 class ResourceType(str, Enum):

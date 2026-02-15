@@ -206,3 +206,38 @@ class ConsentAuditTrail(BaseModel):
         default=0,
         description="Total number of audit entries",
     )
+
+
+# ---------------------------------------------------------------------------
+# P1-027: Ingestion-level consent metadata
+# ---------------------------------------------------------------------------
+
+
+class IngestionConsentMetadata(BaseModel):
+    """Consent metadata captured at document ingestion time.
+
+    P1-027: Tracks residency and consent status for regulatory compliance
+    (e.g. Australian Privacy Act, GDPR, HIPAA).
+    """
+
+    residency_country: str | None = Field(
+        None,
+        min_length=2,
+        max_length=2,
+        description="ISO 3166-1 alpha-2 country code (e.g. AU, US, GB)",
+    )
+    consent_status: str | None = Field(
+        None,
+        description="obtained | pending | declined | not_required",
+    )
+    consent_date: datetime | None = Field(
+        None,
+        description="When consent was obtained or last updated",
+    )
+    consent_reference: str | None = Field(
+        None,
+        max_length=500,
+        description="URI or ID linking to the external consent record",
+    )
+
+    model_config = {"from_attributes": True}

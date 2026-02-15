@@ -194,6 +194,52 @@ class AuditMiddleware(BaseHTTPMiddleware):
             return ",".join(user.roles)
         return None
 
+    # P1-029: Route prefix -> purpose-of-use mapping
+    _PURPOSE_ROUTE_MAP: list[tuple[str, str]] = [
+        ("/api/v1/clinical", "treatment"),
+        ("/api/v1/billing", "payment"),
+        ("/api/v1/admin", "operations"),
+        ("/api/v1/analytics", "quality_assurance"),
+    ]
+
+    _VALID_PURPOSES = frozenset({
+        "treatment",
+        "payment",
+        "operations",
+        "research",
+        "public_health",
+        "quality_assurance",
+    })
+
+    def _determine_purpose_of_use(self, request: Request) -> str | None:
+        """Determine purpose-of-use for audit events (P1-029).
+
+        Priority:
+        1. X-Purpose-Of-Use header (explicit override)
+        2. Auto-detection from API route prefix
+        3. None if no match
+
+        Args:
+            request: The incoming request
+
+        Returns:
+            Purpose-of-use string or None
+        """
+        # Check for explicit header override
+        header_val = request.headers.get("X-Purpose-Of-Use")
+        if header_val:
+            normalized = header_val.strip().lower().replace("-", "_")
+            if normalized in self._VALID_PURPOSES:
+                return normalized
+
+        # Auto-detect from route prefix
+        path = request.url.path.lower()
+        for prefix, purpose in self._PURPOSE_ROUTE_MAP:
+            if path.startswith(prefix):
+                return purpose
+
+        return None
+
     def _extract_ip_address(self, request: Request) -> str:
         """Extract client IP address from request.
 
@@ -392,6 +438,9 @@ class AuditMiddleware(BaseHTTPMiddleware):
         resource_id = self._extract_resource_id(path)
         patient_id = self._extract_patient_id(path, query_params)
 
+        # P1-029: Determine purpose-of-use
+        purpose_of_use = self._determine_purpose_of_use(request)
+
         # Process the request
         response: Response | None = None
         error_message: str | None = None
@@ -453,6 +502,7 @@ class AuditMiddleware(BaseHTTPMiddleware):
                         patient_id=patient_id,
                         success=success,
                         error_message=error_message,
+                        purpose_of_use=purpose_of_use,
                     )
                     await db.commit()
             except Exception as log_error:
