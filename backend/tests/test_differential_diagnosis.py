@@ -228,9 +228,9 @@ class TestDemographicAdjustment:
         young_acs = next((dx for dx in young.differential if "ACS" in dx.name), None)
         old_acs = next((dx for dx in old.differential if "ACS" in dx.name), None)
 
-        # Older patient should have higher probability
+        # Older patient should have higher ranking score
         if young_acs and old_acs:
-            assert old_acs.probability_score >= young_acs.probability_score
+            assert old_acs.ranking_score >= young_acs.ranking_score
 
     def test_gender_adjustment_uti(self):
         """Test gender adjustment for UTI."""
@@ -248,7 +248,7 @@ class TestDemographicAdjustment:
 
         # UTI more common in females
         if male_uti and female_uti:
-            assert female_uti.probability_score >= male_uti.probability_score
+            assert female_uti.ranking_score >= male_uti.ranking_score
 
     def test_gender_adjustment_gout(self):
         """Test gender adjustment for gout."""
@@ -266,7 +266,7 @@ class TestDemographicAdjustment:
 
         # Gout more common in males
         if male_gout and female_gout:
-            assert male_gout.probability_score >= female_gout.probability_score
+            assert male_gout.ranking_score >= female_gout.ranking_score
 
 
 # ============================================================================
@@ -306,19 +306,19 @@ class TestResultStructure:
             assert hasattr(dx, "name")
             assert hasattr(dx, "domain")
             assert hasattr(dx, "urgency")
-            assert hasattr(dx, "probability_score")
+            assert hasattr(dx, "ranking_score")
             assert hasattr(dx, "supporting_findings")
             assert hasattr(dx, "red_flags")
             assert hasattr(dx, "recommended_workup")
 
-    def test_probability_score_range(self):
-        """Test that probability scores are in valid range."""
+    def test_ranking_score_range(self):
+        """Test that ranking scores are in valid range."""
         result = self.service.generate_differential(
             findings=["chest pain", "dyspnea", "nausea"]
         )
 
         for dx in result.differential:
-            assert 0.0 <= dx.probability_score <= 1.0
+            assert 0.0 <= dx.ranking_score <= 1.0
 
     def test_red_flag_diagnoses_identified(self):
         """Test that red flag diagnoses are identified."""

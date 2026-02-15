@@ -89,12 +89,16 @@ class DiagnosisCandidateResponse(BaseModel):
     """A candidate diagnosis."""
 
     name: str
-    probability: float
+    ranking_score: float
     urgency: str
     domain: str
     concept_id: int | None
     cer_citation: CERCitationResponse
     suggested_workup: list[str]
+    calibration_status: str = "uncalibrated_ranking"
+    calibration_disclaimer: str = (
+        "Scores represent relative ranking, not calibrated probabilities"
+    )
 
 
 class DifferentialResponse(BaseModel):
@@ -108,6 +112,10 @@ class DifferentialResponse(BaseModel):
     suggested_history: list[str]
     suggested_exam: list[str]
     processing_time_ms: float
+    calibration_status: str = "uncalibrated_ranking"
+    calibration_disclaimer: str = (
+        "Scores represent relative ranking, not calibrated probabilities"
+    )
 
 
 class DomainListResponse(BaseModel):
@@ -160,7 +168,7 @@ async def generate_differential(request: DifferentialRequest) -> DifferentialRes
         )
         diagnoses.append(DiagnosisCandidateResponse(
             name=d.name,
-            probability=d.probability_score,
+            ranking_score=d.ranking_score,
             urgency=d.urgency.value,
             domain=d.domain.value if d.domain else "unknown",
             concept_id=d.omop_concept_id,

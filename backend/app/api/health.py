@@ -56,6 +56,21 @@ CRITICAL_SERVICES = {"database"}
 NON_CRITICAL_SERVICES = {"redis", "neo4j", "kafka"}
 
 
+def _get_required_services() -> set[str]:
+    """Return the set of services that must be real (not mock) for readiness.
+
+    P0-001/002/003: In production, mock dependencies must fail readiness.
+    Controlled by REQUIRED_SERVICES env var (comma-separated).
+    """
+    raw = settings.required_services if hasattr(settings, "required_services") else "database"
+    return {s.strip() for s in raw.split(",") if s.strip()}
+
+
+def _is_production_like() -> bool:
+    """Return True if this environment should enforce strict dependency checks."""
+    return settings.environment in ("production", "staging")
+
+
 # =============================================================================
 # Models
 # =============================================================================
@@ -101,6 +116,10 @@ class HealthResponse(BaseModel):
     uptime_seconds: float | None = Field(
         default=None, description="Application uptime in seconds"
     )
+    dependency_classes: dict[str, str] = Field(
+        default_factory=dict,
+        description="P1-021: Classification of each dependency (critical / non_critical)",
+    )
 
 
 class LivenessResponse(BaseModel):
@@ -117,6 +136,18 @@ class ReadinessResponse(BaseModel):
     timestamp: str = Field(description="ISO8601 timestamp")
     services_ready: int = Field(description="Number of services ready")
     services_total: int = Field(description="Total number of services checked")
+    degraded: bool = Field(
+        default=False,
+        description="True when all critical deps are up but some non-critical deps are down",
+    )
+    unavailable_non_critical: list[str] = Field(
+        default_factory=list,
+        description="P1-021: Non-critical dependencies that are currently down",
+    )
+    dependency_classes: dict[str, str] = Field(
+        default_factory=dict,
+        description="P1-021: Classification of each checked dependency (critical / non_critical)",
+    )
 
 
 # VP-DevOps: Enhanced system metrics models
@@ -342,7 +373,20 @@ async def check_neo4j() -> ComponentHealth:
 
         latency = (time.perf_counter() - start_time) * 1000
 
-        if health_result.status.value in ("connected", "mock_mode"):
+        is_mock = health_result.status.value == "mock_mode"
+        is_connected = health_result.status.value == "connected"
+
+        # P0-001/003: mock_mode is only acceptable in development.
+        # In production/staging, or when neo4j is in required_services, mock = DOWN.
+        if is_mock and (_is_production_like() or "neo4j" in _get_required_services()):
+            return ComponentHealth(
+                status=ComponentStatus.DOWN,
+                latency_ms=health_result.latency_ms or round(latency, 2),
+                error="Neo4j running in mock mode but required for this environment",
+                details={"mode": "mock_mode", "environment": settings.environment},
+            )
+
+        if is_connected or is_mock:
             return ComponentHealth(
                 status=ComponentStatus.UP,
                 latency_ms=health_result.latency_ms or round(latency, 2),
@@ -394,6 +438,17 @@ async def check_kafka() -> ComponentHealth:
 
         latency = (time.perf_counter() - start_time) * 1000
 
+        is_mock = kafka_service.is_mock_mode()
+
+        # P0-002/003: mock_mode is only acceptable in development.
+        if is_mock and (_is_production_like() or "kafka" in _get_required_services()):
+            return ComponentHealth(
+                status=ComponentStatus.DOWN,
+                latency_ms=round(latency, 2),
+                error="Kafka running in mock mode but required for this environment",
+                details={"mock_mode": True, "environment": settings.environment},
+            )
+
         if health.connected:
             return ComponentHealth(
                 status=ComponentStatus.UP,
@@ -401,7 +456,7 @@ async def check_kafka() -> ComponentHealth:
                 details={
                     "broker_count": health.broker_count,
                     "topic_count": health.topic_count,
-                    "mock_mode": kafka_service.is_mock_mode(),
+                    "mock_mode": is_mock,
                 },
             )
         else:
@@ -563,12 +618,15 @@ async def health_check(response: Response) -> HealthResponse:
     if overall_status == HealthStatus.UNHEALTHY:
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
 
+    from app.core.dependency_classifier import get_all_dependency_classes
+
     return HealthResponse(
         status=overall_status,
         timestamp=datetime.now(timezone.utc).isoformat(),
         version="1.0.0",
         checks=checks,
         uptime_seconds=get_uptime_seconds(),
+        dependency_classes=get_all_dependency_classes(),
     )
 
 
@@ -605,27 +663,65 @@ async def liveness_probe() -> LivenessResponse:
 async def readiness_probe(response: Response) -> ReadinessResponse:
     """Readiness probe endpoint.
 
-    Checks if critical services are available.
+    P0-001/002/003: Checks ALL required services for readiness, not just database.
+    P1-021: Uses dependency classification to distinguish critical vs non-critical.
+    The set of required services is controlled by REQUIRED_SERVICES config.
+    In production/staging, mock dependencies fail readiness.
+
     Use for Kubernetes readiness probes.
 
-    Returns 200 if the database is available, 503 otherwise.
+    Returns 200 if all critical services are UP (possibly degraded), 503 otherwise.
     """
-    # Check only critical services for readiness
-    database_check = await check_database()
+    from app.core.dependency_classifier import classify_health_results
 
-    services_ready = 1 if database_check.status == ComponentStatus.UP else 0
-    services_total = 1
+    required = _get_required_services()
 
-    is_ready = database_check.status == ComponentStatus.UP
+    # Map service names to check functions
+    check_map: dict[str, Any] = {
+        "database": check_database,
+        "redis": check_redis,
+        "neo4j": check_neo4j,
+        "kafka": check_kafka,
+    }
 
-    if not is_ready:
+    # Always check database + any additional required services
+    services_to_check = {"database"} | (required & check_map.keys())
+
+    results = await asyncio.gather(
+        *[check_map[svc]() for svc in sorted(services_to_check)],
+        return_exceptions=True,
+    )
+
+    # Build a name -> is_up mapping for the classifier
+    check_results: dict[str, bool] = {}
+    services_ready = 0
+    services_total = len(services_to_check)
+
+    for i, svc_name in enumerate(sorted(services_to_check)):
+        result = results[i]
+        if isinstance(result, Exception):
+            logger.warning(f"Readiness check for {svc_name} raised: {result}")
+            check_results[svc_name] = False
+        elif result.status == ComponentStatus.UP:
+            check_results[svc_name] = True
+            services_ready += 1
+        else:
+            check_results[svc_name] = False
+
+    # P1-021: Classify and evaluate
+    classified = classify_health_results(check_results, required_services=required)
+
+    if not classified.ready:
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
 
     return ReadinessResponse(
-        status="ready" if is_ready else "not_ready",
+        status="ready" if classified.ready else "not_ready",
         timestamp=datetime.now(timezone.utc).isoformat(),
         services_ready=services_ready,
         services_total=services_total,
+        degraded=classified.degraded,
+        unavailable_non_critical=classified.non_critical_down,
+        dependency_classes=classified.dependency_classes,
     )
 
 
@@ -849,12 +945,18 @@ async def detailed_health_check(response: Response) -> dict[str, Any]:
             timeout=HEALTH_CHECK_TIMEOUT,
         )
         neo4j_latency = (time.perf_counter() - neo4j_start) * 1000
-        is_up = health_result.status.value in ("connected", "mock_mode")
+        is_mock = health_result.status.value == "mock_mode"
+        is_connected = health_result.status.value == "connected"
+        # P0-003: mock is not "up" in production-like environments
+        mock_rejected = is_mock and (_is_production_like() or "neo4j" in _get_required_services())
+        is_up = is_connected or (is_mock and not mock_rejected)
         components["neo4j"] = {
             "status": "up" if is_up else "down",
             "latency_ms": round(neo4j_latency, 2),
             "mode": health_result.status.value,
         }
+        if mock_rejected:
+            components["neo4j"]["error"] = "Mock mode not accepted in this environment"
         if not is_up and health_result.error_message:
             components["neo4j"]["error"] = health_result.error_message
     except Exception as e:

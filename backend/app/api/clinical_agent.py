@@ -45,6 +45,11 @@ from app.services.concept_lookup import lookup_concept_cached
 from app.services.confidence_policy_service import check_action_gate
 from app.services.temporal_extractor import TemporalExtractor, extract_entity_dates
 from app.core.config import settings
+from app.schemas.confidence_semantics import (
+    ConfidenceBreakdown,
+    ConfidenceComponent,
+    ConfidenceSource,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -282,6 +287,10 @@ class KnowledgeGraphSummary(BaseModel):
     procedures: list[str]
     negated_conditions: list[str] = Field(default_factory=list, description="Conditions ruled out")
     extraction_method: str = Field(default="hybrid", description="Method used for extraction")
+    merge_rejected_count: int = Field(
+        default=0,
+        description="P1-007: Number of entity merges rejected by provenance validation",
+    )
 
 
 class KGNodeResponse(BaseModel):
@@ -377,11 +386,113 @@ class HybridQueryResponse(BaseModel):
         default=None,
         description="P0-021: Confidence-to-action gate result",
     )
+    # P1-001: Evidence-weighted confidence rationale
+    confidence_rationale: str | None = Field(
+        default=None,
+        description="P1-001: Human-readable explanation of how confidence was computed",
+    )
+    # P1-002: Structured confidence breakdown
+    confidence_breakdown: ConfidenceBreakdown | None = Field(
+        default=None,
+        description="P1-002: Structured breakdown of confidence components",
+    )
+    # P1-005: Note processing coverage metrics
+    notes_processed: int = Field(
+        default=0,
+        description="P1-005: Number of clinical notes successfully processed",
+    )
+    notes_failed: int = Field(
+        default=0,
+        description="P1-005: Number of clinical notes that failed processing",
+    )
+    coverage_percent: float = Field(
+        default=100.0,
+        description="P1-005: Percentage of available notes successfully processed",
+    )
+    # P1-006: Data freshness and ingestion timestamp
+    data_freshness_iso: str | None = Field(
+        default=None,
+        description="P1-006: ISO-8601 timestamp of the most recently ingested document",
+    )
+    last_ingestion_ts: str | None = Field(
+        default=None,
+        description="P1-006: ISO-8601 timestamp of the last document ingestion run",
+    )
+    # P1-019: Fallback indicator for degraded responses
+    fallback_used: bool = Field(
+        default=False,
+        description="P1-019: True when a fallback path was taken instead of the primary path",
+    )
+    fallback_reason_code: str | None = Field(
+        default=None,
+        description="P1-019: Machine-readable reason code for fallback (e.g. 'llm_unavailable')",
+    )
 
 
 # =============================================================================
 # Helper Functions
 # =============================================================================
+
+
+def compute_evidence_weighted_confidence(
+    kg_node_count: int,
+    document_count: int,
+    guideline_count: int,
+    extraction_quality: float,
+    graph_path_count: int = 0,
+    consensus_strong_count: int = 0,
+    calculator_count: int = 0,
+) -> tuple[float, str]:
+    """P1-001: Compute evidence-weighted confidence with rationale.
+
+    Returns (score, rationale_string).
+    """
+    weights = {
+        "kg_nodes": 0.25,
+        "documents": 0.25,
+        "guidelines": 0.15,
+        "extraction_quality": 0.15,
+        "graph_paths": 0.10,
+        "consensus": 0.05,
+        "calculators": 0.05,
+    }
+
+    # Normalize counts to 0-1 scores (diminishing returns via min/cap)
+    kg_score = min(kg_node_count * 0.05, 1.0)
+    doc_score = min(document_count * 0.15, 1.0)
+    guideline_score = min(guideline_count * 0.25, 1.0)
+    extraction_score = min(max(extraction_quality, 0.0), 1.0)
+    graph_path_score = min(graph_path_count * 0.10, 1.0)
+    consensus_score = min(consensus_strong_count * 0.30, 1.0)
+    calculator_score = min(calculator_count * 0.30, 1.0)
+
+    weighted_sum = (
+        kg_score * weights["kg_nodes"]
+        + doc_score * weights["documents"]
+        + guideline_score * weights["guidelines"]
+        + extraction_score * weights["extraction_quality"]
+        + graph_path_score * weights["graph_paths"]
+        + consensus_score * weights["consensus"]
+        + calculator_score * weights["calculators"]
+    )
+
+    # Apply base offset and cap
+    score = min(0.95, 0.4 + weighted_sum * 0.55)
+
+    parts: list[str] = []
+    parts.append(f"{kg_node_count} KG nodes ({weights['kg_nodes']})")
+    parts.append(f"{document_count} documents ({weights['documents']})")
+    parts.append(f"{guideline_count} guidelines ({weights['guidelines']})")
+    parts.append(f"extraction quality {extraction_score:.2f} ({weights['extraction_quality']})")
+    if graph_path_count:
+        parts.append(f"{graph_path_count} graph paths ({weights['graph_paths']})")
+    if consensus_strong_count:
+        parts.append(f"{consensus_strong_count} strong consensus ({weights['consensus']})")
+    if calculator_count:
+        parts.append(f"{calculator_count} calculators ({weights['calculators']})")
+
+    rationale = f"evidence_weighted: {', '.join(parts)}"
+    return round(score, 4), rationale
 
 
 def _domain_to_node_type(domain: str) -> NodeType:
@@ -2707,6 +2818,8 @@ Knowledge Graph Summary ({len(nodes)} nodes):
 
     # Use LLM to generate answer
     llm_available = False
+    fallback_used = False
+    fallback_reason_code: str | None = None
     llm_start = time.perf_counter()
     try:
         from app.services.llm_service import get_llm_service, LLMProvider
@@ -2834,6 +2947,9 @@ Provide a clear, evidence-based answer synthesizing the clinical data, graph rel
 
     except Exception as e:
         logger.warning(f"LLM query failed, falling back to template: {e}")
+        # P1-019: Record fallback usage
+        fallback_used = True
+        fallback_reason_code = "llm_unavailable"
         # Fallback to simple template if LLM fails
         if query_type == "medication":
             meds_list = [e.text for e in relevant_entities if e.entity_type.upper() == "DRUG"]
@@ -2969,6 +3085,80 @@ Provide a clear, evidence-based answer synthesizing the clinical data, graph rel
     # P0-021: Confidence-to-action policy gate
     gate_result = check_action_gate(confidence, "recommendation")
 
+    # P1-001: Compute evidence-weighted confidence with rationale
+    avg_extraction_quality = (
+        sum(e.confidence for e in relevant_entities) / len(relevant_entities)
+        if relevant_entities else 0.5
+    )
+    mdt_consensus_for_score = mdt_session_summary.get("consensus_results", [])
+    strong_consensus_for_score = sum(
+        1 for r in mdt_consensus_for_score
+        if r.get("consensus_level") in ("unanimous", "strong")
+    )
+    ew_score, ew_rationale = compute_evidence_weighted_confidence(
+        kg_node_count=len(matching_nodes),
+        document_count=len(evidence_sources),
+        guideline_count=len(guideline_citations_data),
+        extraction_quality=avg_extraction_quality,
+        graph_path_count=len(graph_paths_data),
+        consensus_strong_count=strong_consensus_for_score,
+        calculator_count=len(calculator_results_data),
+    )
+
+    # P1-002: Build structured confidence breakdown
+    confidence_components = [
+        ConfidenceComponent(
+            source=ConfidenceSource.EXTRACTION,
+            score=round(min(len(relevant_entities) * 0.03, 1.0), 4),
+            weight=0.25,
+            method="entity_count_heuristic",
+        ),
+        ConfidenceComponent(
+            source=ConfidenceSource.KG,
+            score=round(min(len(graph_paths_data) * 0.10, 1.0), 4),
+            weight=0.25,
+            method="graph_path_count",
+        ),
+        ConfidenceComponent(
+            source=ConfidenceSource.REASONING,
+            score=round(min(len(guideline_citations_data) * 0.25, 1.0), 4),
+            weight=0.25,
+            method="guideline_match_count",
+        ),
+        ConfidenceComponent(
+            source=ConfidenceSource.FINAL,
+            score=round(confidence, 4),
+            weight=0.25,
+            method="aggregate_heuristic",
+        ),
+    ]
+    confidence_bd = ConfidenceBreakdown(
+        components=confidence_components,
+        aggregate_score=round(confidence, 4),
+        aggregate_method="weighted_mean",
+    )
+
+    # P1-005: Compute note processing coverage metrics
+    total_docs = len(documents)
+    processed_docs = sum(
+        1 for d in documents if d.processed_at is not None
+    )
+    failed_docs = total_docs - processed_docs
+    coverage_pct = (processed_docs / total_docs * 100.0) if total_docs > 0 else 100.0
+
+    # P1-006: Determine data freshness from document metadata
+    data_freshness: str | None = None
+    last_ingestion: str | None = None
+    if documents:
+        # Find the most recently processed document
+        processed_timestamps = [
+            d.processed_at for d in documents if d.processed_at is not None
+        ]
+        if processed_timestamps:
+            latest = max(processed_timestamps)
+            data_freshness = latest.isoformat()
+            last_ingestion = latest.isoformat()
+
     return HybridQueryResponse(
         question=request.question,
         answer=answer,
@@ -2999,6 +3189,20 @@ Provide a clear, evidence-based answer synthesizing the clinical data, graph rel
         },
         # P0-021: Confidence-to-action gate
         action_gate=gate_result.model_dump(),
+        # P1-001: Evidence-weighted confidence rationale
+        confidence_rationale=ew_rationale,
+        # P1-002: Structured confidence breakdown
+        confidence_breakdown=confidence_bd,
+        # P1-005: Note processing coverage
+        notes_processed=processed_docs,
+        notes_failed=failed_docs,
+        coverage_percent=round(coverage_pct, 2),
+        # P1-006: Data freshness
+        data_freshness_iso=data_freshness,
+        last_ingestion_ts=last_ingestion,
+        # P1-019: Fallback indicators
+        fallback_used=fallback_used,
+        fallback_reason_code=fallback_reason_code,
     )
 
 

@@ -14,12 +14,17 @@ The OMOP hierarchy includes:
 from __future__ import annotations
 
 import logging
+import time
+from collections import OrderedDict
 from dataclasses import dataclass, field
-from functools import lru_cache
 from threading import Lock
 from typing import Any
 
 logger = logging.getLogger(__name__)
+
+# P1-009: Bounded cache constants
+_CACHE_MAX_SIZE = 10_000
+_DEFAULT_OMOP_VERSION = "v5.4"
 
 # Singleton instance
 _omop_hierarchy_service: "OMOPHierarchyService | None" = None
@@ -55,6 +60,24 @@ class HierarchyMatch:
     distance: int = 0  # 0 = exact, 1+ = via IS_A
     path: list[OMOPConcept] = field(default_factory=list)
     match_type: str = "none"  # exact, ancestor, descendant, mapped
+    # P1-008: match quality tier for downstream consumers
+    match_quality: str = "exact"  # exact | synonym | fuzzy | fallback
+
+
+@dataclass
+class CacheStats:
+    """P1-009: Cache statistics."""
+
+    hits: int = 0
+    misses: int = 0
+    size: int = 0
+    max_size: int = _CACHE_MAX_SIZE
+    omop_version: str = _DEFAULT_OMOP_VERSION
+
+    @property
+    def hit_rate(self) -> float:
+        total = self.hits + self.misses
+        return self.hits / total if total > 0 else 0.0
 
 
 class OMOPHierarchyService:
@@ -64,14 +87,38 @@ class OMOPHierarchyService:
     Falls back to string matching when Neo4j is unavailable.
     """
 
-    def __init__(self) -> None:
-        """Initialize the hierarchy service."""
+    def __init__(
+        self,
+        *,
+        strict_matching_mode: bool = True,
+        omop_version: str = _DEFAULT_OMOP_VERSION,
+        cache_max_size: int = _CACHE_MAX_SIZE,
+    ) -> None:
+        """Initialize the hierarchy service.
+
+        Args:
+            strict_matching_mode: P1-008 - when True, disables fuzzy/substring
+                fallback matching and requires minimum 0.85 similarity for any
+                fallback match. Default True in production.
+            omop_version: P1-009 - OMOP vocabulary version for cache
+                invalidation tracking.
+            cache_max_size: P1-009 - maximum number of entries in each cache
+                (concept cache and ancestor cache independently bounded).
+        """
         self._db_service = None
         self._initialized = False
         self._cache_lock = Lock()
-        # Simple in-memory cache for frequently accessed concepts
-        self._concept_cache: dict[str, list[OMOPConcept]] = {}
-        self._ancestor_cache: dict[int, list[OMOPConcept]] = {}
+        # P1-008: Strict matching mode
+        self.strict_matching_mode = strict_matching_mode
+        self._min_fallback_similarity = 0.85
+        # P1-009: Bounded LRU cache with version tracking
+        self._cache_max_size = cache_max_size
+        self._cache_version = omop_version
+        self._concept_cache: OrderedDict[str, list[OMOPConcept]] = OrderedDict()
+        self._ancestor_cache: OrderedDict[int, list[OMOPConcept]] = OrderedDict()
+        # P1-009: Cache statistics
+        self._cache_hits = 0
+        self._cache_misses = 0
 
     def _get_db_service(self):
         """Get the graph database service lazily."""
@@ -107,11 +154,15 @@ class OMOPHierarchyService:
         Returns:
             List of matching OMOPConcept objects
         """
-        # Check cache first
+        # Check cache first (P1-009: LRU with stats)
         cache_key = f"{name.lower()}:{vocabulary_ids}:{domain_ids}"
         with self._cache_lock:
             if cache_key in self._concept_cache:
+                self._cache_hits += 1
+                # Move to end for LRU ordering
+                self._concept_cache.move_to_end(cache_key)
                 return self._concept_cache[cache_key][:limit]
+            self._cache_misses += 1
 
         db = self._get_db_service()
         if db is None or not db.is_connected:
@@ -166,9 +217,12 @@ class OMOPHierarchyService:
                 for r in result.records
             ]
 
-            # Cache the results
+            # Cache the results (P1-009: bounded LRU)
             with self._cache_lock:
                 self._concept_cache[cache_key] = concepts
+                self._concept_cache.move_to_end(cache_key)
+                while len(self._concept_cache) > self._cache_max_size:
+                    self._concept_cache.popitem(last=False)
 
             return concepts[:limit]
 
@@ -230,14 +284,17 @@ class OMOPHierarchyService:
         Returns:
             List of (concept, distance) tuples ordered by distance
         """
-        # Check cache
+        # Check cache (P1-009: LRU with stats)
         with self._cache_lock:
             if concept_id in self._ancestor_cache:
+                self._cache_hits += 1
+                self._ancestor_cache.move_to_end(concept_id)
                 cached = self._ancestor_cache[concept_id]
                 result = [(c, i) for i, c in enumerate(cached)]
                 if not include_self and result:
                     result = result[1:]
                 return result
+            self._cache_misses += 1
 
         db = self._get_db_service()
         if db is None or not db.is_connected:
@@ -276,9 +333,12 @@ class OMOPHierarchyService:
                 )
                 ancestors.append((concept, r["distance"]))
 
-            # Cache ancestors (just the concepts, not distances)
+            # Cache ancestors (P1-009: bounded LRU)
             with self._cache_lock:
                 self._ancestor_cache[concept_id] = [c for c, _ in ancestors]
+                self._ancestor_cache.move_to_end(concept_id)
+                while len(self._ancestor_cache) > self._cache_max_size:
+                    self._ancestor_cache.popitem(last=False)
 
             if not include_self and ancestors:
                 ancestors = [(c, d) for c, d in ancestors if d > 0]
@@ -321,20 +381,23 @@ class OMOPHierarchyService:
         2. Patient condition IS_A target (patient has specific, target is general)
         3. Target IS_A patient condition (less common, target is specific)
 
+        P1-008: When strict_matching_mode is on, fallback string matching
+        requires minimum 0.85 similarity threshold.
+
         Args:
             patient_condition: Patient's condition (name or concept_id)
             target_condition: Target condition to match (name or concept_id)
             max_distance: Maximum IS_A hops to consider a match
 
         Returns:
-            HierarchyMatch with match details
+            HierarchyMatch with match details and match_quality field
         """
         # Resolve concepts
         patient_concept = self._resolve_concept(patient_condition)
         target_concept = self._resolve_concept(target_condition)
 
         if patient_concept is None or target_concept is None:
-            # Fall back to string matching
+            # Fall back to string matching (P1-008: strict mode applies)
             return self._string_fallback_match(patient_condition, target_condition)
 
         # Check exact match
@@ -345,6 +408,7 @@ class OMOPHierarchyService:
                 target_concept=target_concept,
                 distance=0,
                 match_type="exact",
+                match_quality="exact",
             )
 
         # Check if target is an ancestor of patient
@@ -363,6 +427,7 @@ class OMOPHierarchyService:
                     target_concept=target_concept,
                     distance=distance,
                     match_type="ancestor",
+                    match_quality="synonym",
                 )
 
         # Check if patient is an ancestor of target (less common)
@@ -380,6 +445,7 @@ class OMOPHierarchyService:
                     target_concept=target_concept,
                     distance=distance,
                     match_type="descendant",
+                    match_quality="synonym",
                 )
 
         # No hierarchy match
@@ -388,6 +454,7 @@ class OMOPHierarchyService:
             patient_concept=patient_concept,
             target_concept=target_concept,
             match_type="none",
+            match_quality="exact",
         )
 
     def expand_condition_names(
@@ -485,6 +552,10 @@ class OMOPHierarchyService:
     ) -> HierarchyMatch:
         """Fallback string matching when Neo4j unavailable.
 
+        P1-008: When strict_matching_mode is True, fuzzy/substring fallback
+        matching is disabled. Only exact string matches are accepted. Matches
+        that would have been accepted in non-strict mode are logged as warnings.
+
         Args:
             patient_condition: Patient condition
             target_condition: Target condition
@@ -495,29 +566,125 @@ class OMOPHierarchyService:
         patient_str = str(patient_condition).lower()
         target_str = str(target_condition).lower()
 
-        # Exact match
+        # Exact string match - always accepted
         if patient_str == target_str:
-            return HierarchyMatch(matched=True, distance=0, match_type="exact")
+            return HierarchyMatch(
+                matched=True, distance=0, match_type="exact", match_quality="exact",
+            )
+
+        # Compute similarity for strict mode threshold check
+        similarity = self._compute_string_similarity(patient_str, target_str)
 
         # Substring match
         if target_str in patient_str or patient_str in target_str:
-            return HierarchyMatch(matched=True, distance=1, match_type="substring")
+            if self.strict_matching_mode:
+                if similarity >= self._min_fallback_similarity:
+                    return HierarchyMatch(
+                        matched=True,
+                        distance=1,
+                        match_type="substring",
+                        match_quality="fuzzy",
+                    )
+                else:
+                    logger.warning(
+                        "P1-008 strict mode: rejected substring fallback match "
+                        "'%s' vs '%s' (similarity=%.2f < %.2f threshold)",
+                        patient_condition,
+                        target_condition,
+                        similarity,
+                        self._min_fallback_similarity,
+                    )
+                    return HierarchyMatch(
+                        matched=False,
+                        match_type="substring",
+                        match_quality="fallback",
+                    )
+            return HierarchyMatch(
+                matched=True, distance=1, match_type="substring", match_quality="fuzzy",
+            )
 
         # Word overlap
         patient_words = set(patient_str.split())
         target_words = set(target_str.split())
         common = patient_words & target_words
         if any(len(w) > 3 for w in common):
-            return HierarchyMatch(matched=True, distance=2, match_type="word_overlap")
+            if self.strict_matching_mode:
+                logger.warning(
+                    "P1-008 strict mode: rejected word-overlap fallback match "
+                    "'%s' vs '%s' (similarity=%.2f < %.2f threshold)",
+                    patient_condition,
+                    target_condition,
+                    similarity,
+                    self._min_fallback_similarity,
+                )
+                return HierarchyMatch(
+                    matched=False,
+                    match_type="word_overlap",
+                    match_quality="fallback",
+                )
+            return HierarchyMatch(
+                matched=True, distance=2, match_type="word_overlap", match_quality="fallback",
+            )
 
-        return HierarchyMatch(matched=False, match_type="none")
+        return HierarchyMatch(matched=False, match_type="none", match_quality="exact")
+
+    @staticmethod
+    def _compute_string_similarity(a: str, b: str) -> float:
+        """Compute simple string similarity (Jaccard on character bigrams).
+
+        Returns a score between 0.0 and 1.0.
+        """
+        if not a or not b:
+            return 0.0
+        bigrams_a = {a[i : i + 2] for i in range(len(a) - 1)} if len(a) > 1 else {a}
+        bigrams_b = {b[i : i + 2] for i in range(len(b) - 1)} if len(b) > 1 else {b}
+        intersection = bigrams_a & bigrams_b
+        union = bigrams_a | bigrams_b
+        return len(intersection) / len(union) if union else 0.0
 
     def clear_cache(self) -> None:
-        """Clear the concept caches."""
+        """Clear the concept caches and reset stats."""
         with self._cache_lock:
             self._concept_cache.clear()
             self._ancestor_cache.clear()
+            self._cache_hits = 0
+            self._cache_misses = 0
         logger.info("OMOP hierarchy cache cleared")
+
+    def invalidate_cache(self) -> None:
+        """P1-009: Invalidate cache (alias for clear_cache with logging)."""
+        logger.info(
+            "OMOP cache invalidated (version=%s, entries=%d)",
+            self._cache_version,
+            len(self._concept_cache) + len(self._ancestor_cache),
+        )
+        self.clear_cache()
+
+    def get_cache_stats(self) -> CacheStats:
+        """P1-009: Return cache hit/miss counts and size."""
+        with self._cache_lock:
+            return CacheStats(
+                hits=self._cache_hits,
+                misses=self._cache_misses,
+                size=len(self._concept_cache) + len(self._ancestor_cache),
+                max_size=self._cache_max_size,
+                omop_version=self._cache_version,
+            )
+
+    def set_omop_version(self, version: str) -> None:
+        """P1-009: Update the OMOP version; auto-invalidates if changed.
+
+        Args:
+            version: New OMOP vocabulary version string.
+        """
+        if version != self._cache_version:
+            logger.info(
+                "OMOP version changed from %s to %s - invalidating cache",
+                self._cache_version,
+                version,
+            )
+            self._cache_version = version
+            self.invalidate_cache()
 
 
 def get_omop_hierarchy_service() -> OMOPHierarchyService:

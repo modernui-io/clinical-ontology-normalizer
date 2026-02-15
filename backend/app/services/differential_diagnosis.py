@@ -4,7 +4,7 @@ This module provides clinical decision support by generating ranked
 differential diagnoses based on presenting symptoms, signs, and findings.
 
 Features:
-- Symptom-to-diagnosis mapping with probability estimates
+- Symptom-to-diagnosis mapping with ranking scores (uncalibrated)
 - Support for multiple clinical domains
 - Consideration of red flags and critical diagnoses
 - Age and gender adjustments for prevalence
@@ -47,7 +47,7 @@ class DiagnosisCERCitation:
     """Claim-Evidence-Reasoning citation for a differential diagnosis.
 
     This framework helps clinicians understand WHY a diagnosis is suggested:
-    - Claim: What diagnosis is being considered and its probability
+    - Claim: What diagnosis is being considered and its ranking score
     - Evidence: Clinical findings supporting and opposing this diagnosis
     - Reasoning: Clinical logic connecting findings to the diagnosis
     """
@@ -88,13 +88,17 @@ class DiagnosisCandidate:
     icd10_code: str | None
     domain: ClinicalDomain
     urgency: DiagnosisUrgency
-    probability_score: float  # 0.0 to 1.0
+    ranking_score: float  # 0.0 to 1.0 relative ranking, NOT a calibrated probability
     supporting_findings: list[str]  # Findings that support this diagnosis
     opposing_findings: list[str]  # Findings that argue against
     red_flags: list[str]  # Critical findings to watch for
     recommended_workup: list[str]  # Suggested diagnostic tests
     key_features: list[str]  # Classic presentation features
     prevalence_modifier: str = "average"  # low, average, high for demographics
+    calibration_status: str = "uncalibrated_ranking"
+    calibration_disclaimer: str = (
+        "Scores represent relative ranking, not calibrated probabilities"
+    )
 
     # CER Framework for clinical reasoning transparency
     cer_citation: DiagnosisCERCitation | None = None
@@ -112,6 +116,10 @@ class DifferentialResult:
     cannot_miss_diagnoses: list[str]  # Diagnoses with serious consequences if missed
     suggested_history: list[str]  # Additional history to gather
     suggested_exam: list[str]  # Physical exam maneuvers to perform
+    calibration_status: str = "uncalibrated_ranking"
+    calibration_disclaimer: str = (
+        "Scores represent relative ranking, not calibrated probabilities"
+    )
 
 
 @dataclass
@@ -871,7 +879,7 @@ class DifferentialDiagnosisService:
                 icd10_code=dx.icd10_code,
                 domain=dx.domain,
                 urgency=dx.urgency,
-                probability_score=round(prob_score, 3),
+                ranking_score=round(prob_score, 3),
                 supporting_findings=data["supporting"],
                 opposing_findings=opposing[:5],  # Limit for readability
                 red_flags=dx.red_flags,
@@ -1007,7 +1015,7 @@ class DifferentialDiagnosisService:
 
         claim = (
             f"{dx.name} is {probability_term} given the presenting findings "
-            f"(estimated probability: {prob_score:.0%})"
+            f"(ranking score: {prob_score:.0%})"
         )
 
         # Build supporting evidence

@@ -1064,12 +1064,17 @@ class DiagnosisCandidateResponse(BaseModel):
     icd10_code: str | None = Field(None, description="ICD-10 code")
     domain: str = Field(..., description="Clinical domain (cardiovascular, respiratory, etc.)")
     urgency: str = Field(..., description="Urgency level (emergent, urgent, semi_urgent, routine)")
-    probability_score: float = Field(..., description="Relative probability score (0-1)")
+    ranking_score: float = Field(..., description="Relative ranking score (0-1, not a calibrated probability)")
     supporting_findings: list[str] = Field(..., description="Findings supporting this diagnosis")
     opposing_findings: list[str] = Field(..., description="Findings arguing against")
     red_flags: list[str] = Field(..., description="Warning signs to watch for")
     recommended_workup: list[str] = Field(..., description="Suggested diagnostic tests")
     key_features: list[str] = Field(..., description="Classic features of this diagnosis")
+    calibration_status: str = Field("uncalibrated_ranking", description="Calibration status of the score")
+    calibration_disclaimer: str = Field(
+        "Scores represent relative ranking, not calibrated probabilities",
+        description="Disclaimer about score interpretation",
+    )
 
 
 class DifferentialDiagnosisResponse(BaseModel):
@@ -1085,6 +1090,11 @@ class DifferentialDiagnosisResponse(BaseModel):
     suggested_exam: list[str] = Field(..., description="Physical exam maneuvers")
     generation_time_ms: float = Field(..., description="Time taken in ms")
     database_stats: dict = Field(..., description="Diagnosis database statistics")
+    calibration_status: str = Field("uncalibrated_ranking", description="Calibration status of rankings")
+    calibration_disclaimer: str = Field(
+        "Scores represent relative ranking, not calibrated probabilities",
+        description="Disclaimer about score interpretation",
+    )
 
 
 @router.post(
@@ -1102,14 +1112,14 @@ async def generate_differential_diagnosis(
     symptoms, signs, and findings to generate a ranked list of potential
     diagnoses. Results include:
 
-    - **Probability ranking**: Diagnoses ranked by likelihood based on findings
+    - **Ranking scores**: Diagnoses ranked by relative score based on findings (not calibrated probabilities)
     - **Urgency classification**: Emergent, urgent, semi-urgent, or routine
     - **Supporting evidence**: Which findings support each diagnosis
     - **Red flags**: Warning signs that require immediate attention
     - **Recommended workup**: Suggested diagnostic tests
     - **History/exam suggestions**: Additional data to gather
 
-    Demographics (age, gender) adjust probability estimates based on
+    Demographics (age, gender) adjust ranking scores based on
     disease epidemiology.
 
     **Important**: This is a clinical decision support tool and should not
@@ -1146,7 +1156,7 @@ async def generate_differential_diagnosis(
             icd10_code=dx.icd10_code,
             domain=dx.domain.value,
             urgency=dx.urgency.value,
-            probability_score=dx.probability_score,
+            ranking_score=dx.ranking_score,
             supporting_findings=dx.supporting_findings,
             opposing_findings=dx.opposing_findings,
             red_flags=dx.red_flags,

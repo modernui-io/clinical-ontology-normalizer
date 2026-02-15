@@ -599,6 +599,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         }
     )
 
+    # P1-020: Validate credentials before accepting traffic.
+    # In dev this logs warnings; in production/staging it raises RuntimeError.
+    from app.core.startup_validator import run_startup_validation
+    run_startup_validation()
+
     # Set app start time for health check uptime tracking
     from app.api.health import set_app_start_time
     set_app_start_time(time.time())
