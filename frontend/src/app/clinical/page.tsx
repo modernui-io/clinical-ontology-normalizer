@@ -44,6 +44,10 @@ import {
   type DegradedState,
 } from "@/components/DegradedBanner";
 import { RefusalCard } from "@/components/RefusalCard";
+import {
+  ChartCoverageSummary,
+  type ChartCoverageData,
+} from "@/components/ChartCoverageSummary";
 
 // ---------------------------------------------------------------------------
 // Types matching backend schema shapes
@@ -374,6 +378,9 @@ export default function ClinicalDashboardPage() {
   const [providerStats, setProviderStats] = useState<Record<string, unknown>>(
     {}
   );
+  const [chartCoverage, setChartCoverage] = useState<ChartCoverageData | null>(
+    null
+  );
 
   // -----------------------------------------------------------------------
   // Fetch data from backend dashboard endpoints
@@ -433,6 +440,31 @@ export default function ClinicalDashboardPage() {
         ...biller.action_items,
       ];
       setQualityGaps(mapActionItemsToQualityGaps(allActions));
+
+      // P2-008: Fetch chart coverage data (non-blocking)
+      fetch("/api/v1/kg/completeness/score", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patient_id: provider.metadata?.patient_id || "default",
+          nodes: [],
+          edges: [],
+        }),
+      })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((coverageData) => {
+          if (coverageData) {
+            setChartCoverage({
+              overall_score: coverageData.overall_score,
+              dimensions: coverageData.dimensions,
+              missing_categories: coverageData.missing_categories,
+              category_counts: coverageData.category_counts,
+            });
+          }
+        })
+        .catch(() => {
+          /* chart coverage is best-effort */
+        });
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Failed to load dashboard data";
@@ -596,6 +628,9 @@ export default function ClinicalDashboardPage() {
       ) : degradedState ? (
         <DegradedBanner state={degradedState} />
       ) : null}
+
+      {/* P2-008: Chart Coverage Summary */}
+      <ChartCoverageSummary data={chartCoverage} isLoading={isLoading} />
 
       {/* Summary Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

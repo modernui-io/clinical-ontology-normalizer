@@ -62,7 +62,7 @@ Execution rules
 - [x] P1-007 Add provenance integrity checks in KG merge stage for near-match entities. | Owner: Clinical AI | Anchor: KG merge functions in clinical agent | Exit: substring-only joins blocked.
 - [x] P1-008 Harden OMOP fallback matching to reduce semantic false positives. | Owner: Clinical AI | Anchor: `backend/app/services/omop_hierarchy_service.py` | Exit: negative corpus precision target met.
 - [x] P1-009 Add bounded cache and invalidation on OMOP version change. | Owner: CTO + Clinical AI | Anchor: `backend/app/services/omop_hierarchy_service.py` | Exit: cache eviction and refresh strategy active.
-- [ ] P1-010 Create UMLS/OMOP acceptance corpus with positive and negative concept pairs. | Owner: QA + Clinical AI | Anchor: `backend/tests/` | Exit: CI threshold gate for mapping quality.
+- [x] P1-010 Create UMLS/OMOP acceptance corpus with positive and negative concept pairs. | Owner: QA + Clinical AI | Anchor: `backend/tests/` | Exit: CI threshold gate for mapping quality.
 - [x] P1-011 Add real-source document retrieval in GraphRAG path (remove placeholder behavior). | Owner: CTO + Clinical AI | Anchor: `backend/app/services/graph_augmented_rag.py` | Exit: source IDs required for supported answers.
 - [x] P1-012 Add guideline corpus versioning, expiration, and update policy. | Owner: Clinical AI + Compliance | Anchor: guideline services/docs | Exit: stale guideline detection in pipeline.
 - [x] P1-013 Expand drug safety coverage and explicitly label uncovered pairs. | Owner: Clinical AI | Anchor: `backend/app/services/drug_safety.py` | Exit: coverage report and unknown-pair warning behavior.
@@ -79,9 +79,9 @@ Execution rules
 - [ ] P1-024 Add alert routing for degraded or mock dependency states. | Owner: Ops | Anchor: metrics/alerting runbook | Exit: paging triggered on defined events.
 - [x] P1-025 Add service restart policy consistency for production stack. | Owner: Ops | Anchor: `docker-compose.prod.yml` | Exit: restart policy standardized.
 - [ ] P1-026 Formalize support staffing model and on-call rotation for pilot window. | Owner: CIO + Ops | Anchor: operations docs | Exit: approved staffing calendar.
-- [ ] P1-027 Add Australian residency and consent metadata capture at ingestion. | Owner: CIO + Compliance | Anchor: `backend/app/models/clinical_fact.py`, import services | Exit: consent/residency fields required.
+- [x] P1-027 Add Australian residency and consent metadata capture at ingestion. | Owner: CIO + Compliance | Anchor: `backend/app/models/clinical_fact.py`, import services | Exit: consent/residency fields required.
 - [ ] P1-028 Add retention policy enforcement and archival controls for PHI paths. | Owner: Compliance + Ops | Anchor: storage and audit policies | Exit: retention jobs and policy docs active.
-- [ ] P1-029 Add purpose-of-use tagging in audit events where clinically relevant. | Owner: Compliance + CISO | Anchor: audit middleware/service | Exit: purpose field present in audit exports.
+- [x] P1-029 Add purpose-of-use tagging in audit events where clinically relevant. | Owner: Compliance + CISO | Anchor: audit middleware/service | Exit: purpose field present in audit exports.
 - [ ] P1-030 Add external integration onboarding checklist (data contract, validation, rollback). | Owner: CIO + Interop | Anchor: onboarding docs | Exit: checklist mandatory for each new tenant.
 - [ ] P1-031 Add Meditech sample replay validation against OpenEHR contract. | Owner: Interop + QA | Anchor: connectors + test fixtures | Exit: deterministic replay results recorded.
 - [ ] P1-032 Add production incident taxonomy and severity rubric for clinical AI failures. | Owner: CIO + Ops + Clinical AI | Anchor: incident runbook | Exit: incident classes tied to response SLAs.
@@ -91,13 +91,13 @@ Execution rules
 
 ## P2 (Medium)
 
-- [ ] P2-001 Add integration tests with real Neo4j + PostgreSQL for KG/QA pathways. | Owner: QA + CTO | Anchor: `backend/tests/` | Exit: CI integration suite green.
-- [ ] P2-002 Add contract tests for answer provenance completeness. | Owner: QA + Clinical AI | Anchor: QA API tests | Exit: tests fail when source IDs missing.
+- [x] P2-001 Add integration tests with real Neo4j + PostgreSQL for KG/QA pathways. | Owner: QA + CTO | Anchor: `backend/tests/` | Exit: CI integration suite green.
+- [x] P2-002 Add contract tests for answer provenance completeness. | Owner: QA + Clinical AI | Anchor: QA API tests | Exit: tests fail when source IDs missing.
 - [ ] P2-003 Add synthetic canary tests for top 5 clinical workflows. | Owner: Ops + QA | Anchor: monitoring/canary scripts | Exit: canaries run continuously.
 - [ ] P2-004 Add benchmark harness for NLP extraction precision/recall by entity type. | Owner: Clinical AI | Anchor: NLP test framework | Exit: periodic benchmark report.
-- [ ] P2-005 Add regression tests for negation/experiencer edge cases. | Owner: Clinical AI + QA | Anchor: NLP tests | Exit: edge-case corpus tracked in CI.
+- [x] P2-005 Add regression tests for negation/experiencer edge cases. | Owner: Clinical AI + QA | Anchor: NLP tests | Exit: edge-case corpus tracked in CI.
 - [ ] P2-006 Add KG completeness scoring model and expose in API/UI. | Owner: Clinical AI + Product | Anchor: KG + clinical agent services | Exit: completeness metric shown per patient.
-- [ ] P2-007 Add uncertainty taxonomy and reason codes for all decline/degraded outputs. | Owner: Clinical AI | Anchor: response schema | Exit: standardized reason catalog.
+- [x] P2-007 Add uncertainty taxonomy and reason codes for all decline/degraded outputs. | Owner: Clinical AI | Anchor: response schema | Exit: standardized reason catalog.
 - [ ] P2-008 Add chart-level "what system knows vs does not know" summary panel. | Owner: Product | Anchor: frontend clinical pages | Exit: unknown coverage displayed.
 - [ ] P2-009 Add clinician feedback capture and replay pipeline. | Owner: Product + Clinical AI | Anchor: feedback API/storage | Exit: weekly reviewed feedback dataset.
 - [ ] P2-010 Add drift detection for terminology mapping distributions over time. | Owner: Clinical AI + Data | Anchor: mapping analytics jobs | Exit: drift alert thresholds active.
@@ -109,13 +109,13 @@ Execution rules
 - [ ] P2-016 Add scheduled backup automation and restore verification jobs. | Owner: Ops | Anchor: backup scripts/runbooks | Exit: backup jobs monitored.
 - [ ] P2-017 Add SLO dashboard with p95/p99 latency and error rates by endpoint. | Owner: Ops + Platform | Anchor: metrics stack | Exit: dashboard used in weekly ops review.
 - [ ] P2-018 Add alert fatigue controls and tuned severity thresholds. | Owner: Ops | Anchor: alert policies | Exit: false positive rate reduced.
-- [ ] P2-019 Add API budget/timeout policies for hybrid query path. | Owner: CTO + Clinical AI | Anchor: clinical agent service | Exit: bounded execution with fail-safe behavior.
-- [ ] P2-020 Add idempotency and retry safety for ingestion endpoints. | Owner: Platform | Anchor: ingestion APIs | Exit: duplicate submissions handled safely.
+- [x] P2-019 Add API budget/timeout policies for hybrid query path. | Owner: CTO + Clinical AI | Anchor: clinical agent service | Exit: bounded execution with fail-safe behavior.
+- [x] P2-020 Add idempotency and retry safety for ingestion endpoints. | Owner: Platform | Anchor: ingestion APIs | Exit: duplicate submissions handled safely.
 - [ ] P2-021 Add deterministic reprocessing mode for failed notes. | Owner: Clinical AI + Ops | Anchor: import pipeline | Exit: failed notes can be replayed safely.
 - [ ] P2-022 Add structured data lineage fields end-to-end (source system to answer). | Owner: Data + Clinical AI | Anchor: models + response schemas | Exit: lineage queryable for audits.
 - [ ] P2-023 Add tenant onboarding automation and preflight validation checks. | Owner: CIO + Interop | Anchor: onboarding scripts/docs | Exit: repeatable onboarding sequence.
-- [ ] P2-024 Add endpoint-level RBAC test suite for least privilege. | Owner: Security + QA | Anchor: security tests | Exit: unauthorized access tests enforced.
-- [ ] P2-025 Add policy tests to ensure no sensitive defaults in production configs. | Owner: CISO + QA | Anchor: config tests | Exit: CI gate for unsafe defaults.
+- [x] P2-024 Add endpoint-level RBAC test suite for least privilege. | Owner: Security + QA | Anchor: security tests | Exit: unauthorized access tests enforced.
+- [x] P2-025 Add policy tests to ensure no sensitive defaults in production configs. | Owner: CISO + QA | Anchor: config tests | Exit: CI gate for unsafe defaults.
 - [ ] P2-026 Add threat model update cadence tied to release cycles. | Owner: CISO | Anchor: security governance docs | Exit: quarterly threat model updates.
 - [ ] P2-027 Add OpenEHR profile validation suite for generated payloads. | Owner: Interop + QA | Anchor: connector/export tests | Exit: profile conformance report.
 - [ ] P2-028 Add interoperability conformance suite (FHIR search/profile/capability statement). | Owner: Interop | Anchor: FHIR APIs | Exit: conformance baseline tracked.

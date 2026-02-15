@@ -368,6 +368,8 @@ from app.api.patient_insurance_verification import router as patient_insurance_v
 from app.api.site_resource_planning import router as site_resource_planning_router
 from app.api.adverse_event_reconciliation import router as adverse_event_reconciliation_router
 from app.api.treatment_compliance_monitoring import router as treatment_compliance_monitoring_router
+from app.api.clinician_feedback import router as clinician_feedback_router
+from app.api.kg_completeness import router as kg_completeness_router
 from app.api.data_quality import router as data_quality_router
 from app.api.etl_management import router as etl_management_router
 from app.api.manufacturing_ops import router as manufacturing_ops_router
@@ -680,6 +682,8 @@ __all__ = [
     "site_resource_planning_router",
     "adverse_event_reconciliation_router",
     "treatment_compliance_monitoring_router",
+    "clinician_feedback_router",
+    "kg_completeness_router",
     "data_quality_router",
     "etl_management_router",
     "manufacturing_ops_router",

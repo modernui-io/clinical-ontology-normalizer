@@ -320,6 +320,8 @@ from app.api import (
     site_resource_planning_router,
     adverse_event_reconciliation_router,
     treatment_compliance_monitoring_router,
+    clinician_feedback_router,
+    kg_completeness_router,
     data_quality_router,
     etl_management_router,
     manufacturing_ops_router,
@@ -952,6 +954,8 @@ api_v1_router.include_router(knowledge_graph_fhir_router)
 api_v1_router.include_router(kg_benchmark_router)
 api_v1_router.include_router(kg_health_router)
 api_v1_router.include_router(kg_orchestration_router)
+api_v1_router.include_router(kg_completeness_router)
+api_v1_router.include_router(clinician_feedback_router)
 api_v1_router.include_router(drug_safety_router)
 api_v1_router.include_router(differential_diagnosis_router)
 api_v1_router.include_router(icd10_suggestions_router)
