@@ -328,6 +328,7 @@ from app.api import (
     med_reconciliation_router,
     real_world_evidence_router,
     screen_failure_router,
+    diagnostics_router,
     x12_router,
     batch_router,
 )
@@ -1205,6 +1206,7 @@ api_v1_router.include_router(manufacturing_ops_router)
 api_v1_router.include_router(med_reconciliation_router)
 api_v1_router.include_router(real_world_evidence_router)
 api_v1_router.include_router(screen_failure_router)
+api_v1_router.include_router(diagnostics_router)
 api_v1_router.include_router(x12_router)
 api_v1_router.include_router(batch_router)
 

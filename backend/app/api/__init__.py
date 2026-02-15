@@ -376,6 +376,7 @@ from app.api.manufacturing_ops import router as manufacturing_ops_router
 from app.api.med_reconciliation import router as med_reconciliation_router
 from app.api.real_world_evidence import router as real_world_evidence_router
 from app.api.screen_failure import router as screen_failure_router
+from app.api.diagnostics import router as diagnostics_router
 from app.api.x12 import router as x12_router
 
 __all__ = [
@@ -690,6 +691,7 @@ __all__ = [
     "med_reconciliation_router",
     "real_world_evidence_router",
     "screen_failure_router",
+    "diagnostics_router",
     "x12_router",
     # Middleware
     "AuditMiddleware",

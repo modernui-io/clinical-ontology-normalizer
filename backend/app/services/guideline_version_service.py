@@ -1,8 +1,13 @@
-"""Guideline Corpus Versioning Service (P1-012).
+"""Guideline Corpus Versioning Service (P1-012, P3-013).
 
 Tracks guideline metadata including version, source organization,
 publication date, and expiration. Provides staleness checking so that
 clinical agent responses can flag when underlying guidelines are outdated.
+
+P3-013 additions:
+  - check_all_guidelines_freshness() -- bulk freshness scan
+  - get_guidelines_needing_review() -- approaching-stale within 90 days
+  - GuidelineAlert model + generate_alerts() -- actionable notifications
 
 Staleness rules (configurable via GUIDELINE_STALENESS_DAYS env var):
   - Current: published within staleness threshold (default 730 days / 2 years)
@@ -26,6 +31,8 @@ logger = logging.getLogger(__name__)
 DEFAULT_STALENESS_DAYS = 730
 # Guidelines older than 5 years are expired
 EXPIRY_DAYS = 1825
+# P3-013: alert when a guideline is within this many days of going stale
+APPROACHING_STALE_DAYS = 90
 
 
 class GuidelineStatus(Enum):
@@ -75,6 +82,25 @@ class GuidelineCorpusInfo:
     superseded_count: int
     staleness_threshold_days: int
     guidelines: list[GuidelineMetadata] = field(default_factory=list)
+
+
+class GuidelineAlertType(Enum):
+    """P3-013: Types of guideline freshness alerts."""
+
+    APPROACHING_STALE = "approaching_stale"
+    STALE = "stale"
+    EXPIRED = "expired"
+
+
+@dataclass
+class GuidelineAlert:
+    """P3-013: Actionable alert for a guideline requiring attention."""
+
+    guideline_id: str
+    title: str
+    alert_type: GuidelineAlertType
+    days_until_stale: int | None
+    owner_email: str | None = None
 
 
 # ============================================================================
@@ -271,6 +297,90 @@ class GuidelineVersionService:
             staleness_threshold_days=self._staleness_days,
             guidelines=list(self._guidelines.values()),
         )
+
+    # ------------------------------------------------------------------
+    # P3-013: Stale-guideline detection and alert generation
+    # ------------------------------------------------------------------
+
+    def check_all_guidelines_freshness(self) -> list[GuidelineFreshnessResult]:
+        """Return freshness results for all stale or expired guidelines."""
+        self._refresh_statuses()
+        results: list[GuidelineFreshnessResult] = []
+        for g in self._guidelines.values():
+            if g.status in (GuidelineStatus.STALE, GuidelineStatus.EXPIRED):
+                result = self.check_guideline_freshness(g.guideline_id)
+                if result is not None:
+                    results.append(result)
+        return results
+
+    def get_guidelines_needing_review(self) -> list[GuidelineFreshnessResult]:
+        """Return guidelines approaching staleness (within APPROACHING_STALE_DAYS).
+
+        These are guidelines that are still CURRENT but will become stale
+        within the approaching-stale window (default 90 days).
+        """
+        self._refresh_statuses()
+        today = self._get_today()
+        results: list[GuidelineFreshnessResult] = []
+        for g in self._guidelines.values():
+            if g.status != GuidelineStatus.CURRENT:
+                continue
+            age_days = (today - g.published_date).days
+            days_until_stale = self._staleness_days - age_days
+            if 0 < days_until_stale <= APPROACHING_STALE_DAYS:
+                result = self.check_guideline_freshness(g.guideline_id)
+                if result is not None:
+                    results.append(result)
+        return results
+
+    def generate_alerts(self) -> list[GuidelineAlert]:
+        """Generate actionable alerts for all guidelines needing attention.
+
+        Returns alerts for:
+        - APPROACHING_STALE: current but within 90 days of staleness
+        - STALE: past staleness threshold
+        - EXPIRED: past expiry threshold
+        """
+        self._refresh_statuses()
+        today = self._get_today()
+        alerts: list[GuidelineAlert] = []
+
+        for g in self._guidelines.values():
+            age_days = (today - g.published_date).days
+            days_until_stale = self._staleness_days - age_days
+
+            if g.status == GuidelineStatus.EXPIRED:
+                alerts.append(
+                    GuidelineAlert(
+                        guideline_id=g.guideline_id,
+                        title=g.title,
+                        alert_type=GuidelineAlertType.EXPIRED,
+                        days_until_stale=None,
+                        owner_email=f"{g.source_org.lower().replace('/', '-')}@content-owners.example.com",
+                    )
+                )
+            elif g.status == GuidelineStatus.STALE:
+                alerts.append(
+                    GuidelineAlert(
+                        guideline_id=g.guideline_id,
+                        title=g.title,
+                        alert_type=GuidelineAlertType.STALE,
+                        days_until_stale=days_until_stale,
+                        owner_email=f"{g.source_org.lower().replace('/', '-')}@content-owners.example.com",
+                    )
+                )
+            elif g.status == GuidelineStatus.CURRENT and 0 < days_until_stale <= APPROACHING_STALE_DAYS:
+                alerts.append(
+                    GuidelineAlert(
+                        guideline_id=g.guideline_id,
+                        title=g.title,
+                        alert_type=GuidelineAlertType.APPROACHING_STALE,
+                        days_until_stale=days_until_stale,
+                        owner_email=f"{g.source_org.lower().replace('/', '-')}@content-owners.example.com",
+                    )
+                )
+
+        return alerts
 
     def get_guideline(self, guideline_id: str) -> GuidelineMetadata | None:
         """Look up a single guideline by ID."""
