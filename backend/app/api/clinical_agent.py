@@ -4,6 +4,9 @@ Provides endpoints for:
 - Bulk document import with NLP processing
 - Knowledge graph building from extracted entities
 - Hybrid EHR + Knowledge Graph querying with LLM reasoning
+
+NOTE: This is the CANONICAL pilot route for ingestion-to-QA (P0-020).
+All new pilot integrations should use /api/v1/clinical-agent.
 """
 
 from __future__ import annotations
@@ -15,7 +18,8 @@ from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
+from fastapi.routing import APIRoute
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import func, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -27,7 +31,7 @@ from app.models.knowledge_graph import KGEdge, KGNode
 from app.models.mention import Mention as MentionModel
 from app.models.provenance import ReasoningStepType
 from app.models.vocabulary import ConceptRelationship
-from app.schemas.base import Domain, JobStatus
+from app.schemas.base import Domain, ExtractionStatus, JobStatus
 from app.schemas.knowledge_graph import EdgeType, NodeType
 from app.services.graph_augmented_rag import GraphAugmentedRAGService
 from app.services.multi_agent_orchestrator import (
@@ -38,12 +42,37 @@ from app.services.multi_agent_orchestrator import (
 from app.services.nlp_rule_based import RuleBasedNLPService
 from app.services.provenance_db_service import get_provenance_db_service
 from app.services.concept_lookup import lookup_concept_cached
+from app.services.confidence_policy_service import check_action_gate
 from app.services.temporal_extractor import TemporalExtractor, extract_entity_dates
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/clinical-agent", tags=["Clinical Agent"])
+
+# ---------------------------------------------------------------------------
+# P0-020: Custom route class that marks clinical-agent routes as the
+# canonical pilot route with X-API-Stability: pilot header.
+# ---------------------------------------------------------------------------
+
+class _PilotRoute(APIRoute):
+    """APIRoute subclass that adds X-API-Stability: pilot to responses."""
+
+    def get_route_handler(self):  # type: ignore[override]
+        original = super().get_route_handler()
+
+        async def _wrapped(request: Request) -> Response:
+            response = await original(request)
+            response.headers["X-API-Stability"] = "pilot"
+            return response
+
+        return _wrapped
+
+
+router = APIRouter(
+    prefix="/clinical-agent",
+    tags=["Clinical Agent"],
+    route_class=_PilotRoute,
+)
 
 
 # =============================================================================
@@ -220,6 +249,10 @@ class ImportedNote(BaseModel):
     document_id: UUID
     entity_count: int
     entities: list[ExtractedEntity]
+    extraction_status: ExtractionStatus = Field(
+        ExtractionStatus.OK,
+        description="P0-006: Note-level extraction status (ok, partial, failed)",
+    )
 
 
 class BulkImportResponse(BaseModel):
@@ -231,6 +264,10 @@ class BulkImportResponse(BaseModel):
     notes: list[ImportedNote]
     knowledge_graph: KnowledgeGraphSummary | None = None
     processing_time_ms: float
+    extraction_status: ExtractionStatus = Field(
+        ExtractionStatus.OK,
+        description="P0-006: Pipeline-level extraction status (ok, partial, failed)",
+    )
 
 
 class KnowledgeGraphSummary(BaseModel):
@@ -325,6 +362,21 @@ class HybridQueryResponse(BaseModel):
     entity_provenance: list[dict] = []
     policy_citations: list[dict] = []
     provenance_url: str | None = None
+    # P0-022: Decline behavior when evidence is insufficient
+    declined: bool = False
+    decline_reason: str | None = None
+    escalation_path: str | None = None
+    # P0-023: Mandatory provenance for every non-empty answer
+    source_document_ids: list[str] = []
+    provenance_complete: bool = True
+    dependency_state: dict[str, bool] = Field(
+        default_factory=dict,
+        description="P0-004: Availability flags for KG, document store, and LLM dependencies",
+    )
+    action_gate: dict | None = Field(
+        default=None,
+        description="P0-021: Confidence-to-action gate result",
+    )
 
 
 # =============================================================================
@@ -800,6 +852,7 @@ async def bulk_import_documents(
                 document_id=UUID(doc_id),
                 entity_count=0,
                 entities=[],
+                extraction_status=ExtractionStatus.FAILED,
             ))
 
     # Commit documents and mentions
@@ -837,13 +890,42 @@ async def bulk_import_documents(
     except Exception as e:
         logger.warning(f"Failed to create entity provenance records: {e}")
 
+    # P0-006: Compute pipeline-level extraction status
+    failed_notes = [
+        n for n in imported_notes if n.extraction_status == ExtractionStatus.FAILED
+    ]
+    if len(failed_notes) == len(imported_notes):
+        pipeline_extraction_status = ExtractionStatus.FAILED
+    elif len(failed_notes) > 0:
+        pipeline_extraction_status = ExtractionStatus.PARTIAL
+    else:
+        pipeline_extraction_status = ExtractionStatus.OK
+
     # Build knowledge graph if requested
     kg_summary = None
     if request.build_knowledge_graph:
-        kg_summary = await _build_patient_knowledge_graph(
-            db, request.patient_id, all_entities
-        )
-        await db.commit()
+        # P0-005: Block graph build when extraction has note-level failures
+        if pipeline_extraction_status == ExtractionStatus.FAILED:
+            logger.warning(
+                "P0-005: Blocking graph build for patient %s — "
+                "all %d notes failed extraction",
+                request.patient_id,
+                len(failed_notes),
+            )
+        elif pipeline_extraction_status == ExtractionStatus.PARTIAL:
+            logger.warning(
+                "P0-005: Blocking graph build for patient %s — "
+                "%d/%d notes failed extraction. "
+                "Partial extraction cannot produce complete graph.",
+                request.patient_id,
+                len(failed_notes),
+                len(imported_notes),
+            )
+        else:
+            kg_summary = await _build_patient_knowledge_graph(
+                db, request.patient_id, all_entities
+            )
+            await db.commit()
 
     end_time = datetime.now(timezone.utc)
     processing_time_ms = (end_time - start_time).total_seconds() * 1000
@@ -855,6 +937,7 @@ async def bulk_import_documents(
         notes=imported_notes,
         knowledge_graph=kg_summary,
         processing_time_ms=round(processing_time_ms, 2),
+        extraction_status=pipeline_extraction_status,
     )
 
 
@@ -900,6 +983,37 @@ async def build_graph_from_entities(
     )
 
 
+def _validate_narrative_grounding(
+    link_text: str,
+    link_type: str,
+    seen_entities: dict[str, str],
+    entity_type_filter: str | None = None,
+) -> str | None:
+    """P0-007: Validate that a narrative link is grounded in pre-extracted entities.
+
+    Returns the matched entity node_id if grounded, or None if ungrounded.
+    Logs rejected (ungrounded) links with a reason code.
+    """
+    link_text_lower = link_text.lower()
+    for entity_key, entity_node_id in seen_entities.items():
+        if entity_type_filter and f"|{entity_type_filter}" not in entity_key:
+            continue
+        if link_text_lower in entity_key.lower():
+            return entity_node_id
+
+    # P0-007: Ungrounded link — reject with reason code
+    logger.warning(
+        "P0-007 UNGROUNDED_LINK: Rejecting narrative link "
+        "type=%s text=%r — not traceable to any pre-extracted entity "
+        "(entity_type_filter=%s, available_entities=%d)",
+        link_type,
+        link_text,
+        entity_type_filter,
+        len(seen_entities),
+    )
+    return None
+
+
 async def _create_narrative_nodes(
     db: AsyncSession,
     patient_id: str,
@@ -916,6 +1030,10 @@ async def _create_narrative_nodes(
     - Clinical event nodes with PRECEDES/FOLLOWS temporal edges
     - Hospital course node
     - Discharge node with DISCHARGED_WITH edges
+
+    P0-007: All entity-linking edges are validated for narrative grounding.
+    Ungrounded links (not traceable to source narrative) are rejected with a
+    reason code logged.
 
     Returns:
         Dict with node_count and edge_count created
@@ -984,22 +1102,22 @@ async def _create_narrative_nodes(
         edge_count += 1
 
         # Create ADMITTED_FOR edges to linked conditions
+        # P0-007: Validate grounding before creating edges
         for condition_text in admission_reason.get("linked_condition_texts", []):
-            condition_text_lower = condition_text.lower()
-            # Find matching condition node
-            for entity_key, entity_node_id in seen_entities.items():
-                if "|CONDITION" in entity_key and condition_text_lower in entity_key.lower():
-                    admitted_for_edge = KGEdge(
-                        id=str(uuid4()),
-                        patient_id=patient_id,
-                        source_node_id=admission_node_id,
-                        target_node_id=entity_node_id,
-                        edge_type=EdgeType.ADMITTED_FOR,
-                        properties={"linked_text": condition_text, "narrative_source": True},
-                    )
-                    db.add(admitted_for_edge)
-                    edge_count += 1
-                    break
+            grounded_node_id = _validate_narrative_grounding(
+                condition_text, "ADMITTED_FOR", seen_entities, "CONDITION"
+            )
+            if grounded_node_id:
+                admitted_for_edge = KGEdge(
+                    id=str(uuid4()),
+                    patient_id=patient_id,
+                    source_node_id=admission_node_id,
+                    target_node_id=grounded_node_id,
+                    edge_type=EdgeType.ADMITTED_FOR,
+                    properties={"linked_text": condition_text, "narrative_source": True},
+                )
+                db.add(admitted_for_edge)
+                edge_count += 1
 
     # Create hospital course node and clinical events
     prev_event_node_id = admission_node_id  # For temporal ordering
@@ -1080,37 +1198,40 @@ async def _create_narrative_nodes(
                 edge_count += 1
 
             # Create CAUSED_BY edge if specified
+            # P0-007: Validate grounding before creating causal edges
             if caused_by := event_data.get("caused_by"):
-                # Try to find the causing event/condition in existing entities
-                for entity_key, entity_node_id in seen_entities.items():
-                    if caused_by.lower() in entity_key.lower():
-                        caused_by_edge = KGEdge(
-                            id=str(uuid4()),
-                            patient_id=patient_id,
-                            source_node_id=event_node_id,
-                            target_node_id=entity_node_id,
-                            edge_type=EdgeType.CAUSED_BY,
-                            properties={"cause_text": caused_by, "narrative_source": True},
-                        )
-                        db.add(caused_by_edge)
-                        edge_count += 1
-                        break
+                grounded_cause_id = _validate_narrative_grounding(
+                    caused_by, "CAUSED_BY", seen_entities
+                )
+                if grounded_cause_id:
+                    caused_by_edge = KGEdge(
+                        id=str(uuid4()),
+                        patient_id=patient_id,
+                        source_node_id=event_node_id,
+                        target_node_id=grounded_cause_id,
+                        edge_type=EdgeType.CAUSED_BY,
+                        properties={"cause_text": caused_by, "narrative_source": True},
+                    )
+                    db.add(caused_by_edge)
+                    edge_count += 1
 
             # Create RESULTED_IN edge if specified
+            # P0-007: Validate grounding before creating result edges
             if resulted_in := event_data.get("resulted_in"):
-                for entity_key, entity_node_id in seen_entities.items():
-                    if resulted_in.lower() in entity_key.lower():
-                        resulted_in_edge = KGEdge(
-                            id=str(uuid4()),
-                            patient_id=patient_id,
-                            source_node_id=event_node_id,
-                            target_node_id=entity_node_id,
-                            edge_type=EdgeType.RESULTED_IN,
-                            properties={"result_text": resulted_in, "narrative_source": True},
-                        )
-                        db.add(resulted_in_edge)
-                        edge_count += 1
-                        break
+                grounded_result_id = _validate_narrative_grounding(
+                    resulted_in, "RESULTED_IN", seen_entities
+                )
+                if grounded_result_id:
+                    resulted_in_edge = KGEdge(
+                        id=str(uuid4()),
+                        patient_id=patient_id,
+                        source_node_id=event_node_id,
+                        target_node_id=grounded_result_id,
+                        edge_type=EdgeType.RESULTED_IN,
+                        properties={"result_text": resulted_in, "narrative_source": True},
+                    )
+                    db.add(resulted_in_edge)
+                    edge_count += 1
 
             prev_event_node_id = event_node_id
 
@@ -1460,9 +1581,19 @@ async def _build_patient_knowledge_graph(
     # Create treatment relationships (Drug -> treats -> Condition)
     # Phase 3: When USE_ONTOLOGY_EDGES=true, skip hardcoded mappings (OMOP relationships used instead)
     # When USE_ONTOLOGY_EDGES=false, use hardcoded heuristics as fallback
+    # P0-008: In production, hardcoded/synthetic edges are disabled entirely.
+    # Synthetic edges are only created in dev/test mode with use_ontology_edges=False.
     hardcoded_edge_count = 0
-    if not settings.use_ontology_edges:
-        logger.info("Using hardcoded treatment mappings (USE_ONTOLOGY_EDGES=false)")
+    _allow_synthetic_edges = not settings.use_ontology_edges
+    if settings.is_production and _allow_synthetic_edges:
+        logger.warning(
+            "P0-008: use_ontology_edges=False in production — "
+            "hardcoded synthetic edges are DISABLED in production pathways. "
+            "Set USE_ONTOLOGY_EDGES=true or use OMOP relationships instead."
+        )
+        _allow_synthetic_edges = False
+    if _allow_synthetic_edges:
+        logger.info("Using hardcoded treatment mappings (USE_ONTOLOGY_EDGES=false, non-production)")
         for drug_key, drug_node_id in seen_entities.items():
             if "|DRUG" not in drug_key:
                 continue
@@ -1613,8 +1744,8 @@ async def _build_patient_knowledge_graph(
                         db.add(treats_edge)
                         edge_count += 1
 
-    # Create symptom -> condition associations
-    # This helps connect symptoms (extracted as CONDITIONS) to their likely diagnoses
+    # Create symptom -> condition and measurement -> condition associations
+    # P0-008: All synthetic/hardcoded edges are gated by _allow_synthetic_edges
     symptom_condition_map = {
         # Pain symptoms
         "muscle pain": ["myalgia", "fibromyalgia", "statin", "rhabdomyolysis", "polymyalgia"],
@@ -1655,7 +1786,10 @@ async def _build_patient_knowledge_graph(
     }
 
     # Find symptom-condition relationships within existing entities
-    for symptom_pattern, condition_patterns in symptom_condition_map.items():
+    # P0-008: Only create synthetic edges outside production
+    for symptom_pattern, condition_patterns in (
+        symptom_condition_map.items() if _allow_synthetic_edges else []
+    ):
         # Look for the symptom in conditions (symptoms are often extracted as conditions)
         for entity_key, symptom_node_id in seen_entities.items():
             if "|CONDITION" not in entity_key:
@@ -1720,7 +1854,9 @@ async def _build_patient_knowledge_graph(
         "ef": ["heart failure", "cardiomyopathy", "chf"],
     }
 
-    for measurement_pattern, condition_patterns in measurement_condition_map.items():
+    for measurement_pattern, condition_patterns in (
+        measurement_condition_map.items() if _allow_synthetic_edges else []
+    ):
         for entity_key, measurement_node_id in seen_entities.items():
             if "|MEASUREMENT" not in entity_key:
                 continue
@@ -2570,6 +2706,7 @@ Knowledge Graph Summary ({len(nodes)} nodes):
             logger.warning(f"Failed to record calculator provenance: {e}")
 
     # Use LLM to generate answer
+    llm_available = False
     llm_start = time.perf_counter()
     try:
         from app.services.llm_service import get_llm_service, LLMProvider
@@ -2629,6 +2766,7 @@ Provide a clear, evidence-based answer synthesizing the clinical data, graph rel
 
         answer = response.content
         model_used = response.model
+        llm_available = True
         confidence = min(0.95, 0.6 + len(relevant_entities) * 0.03 + len(evidence_sources) * 0.08)
         # Boost confidence for guideline matches
         confidence = min(0.95, confidence + len(guideline_citations_data) * 0.05)
@@ -2764,11 +2902,72 @@ Provide a clear, evidence-based answer synthesizing the clinical data, graph rel
     for pc in policy_citations_data:
         sources.append(f"Policy: {pc['policy_name']} — {pc['section_title']}")
 
+    # P0-023: Collect source document IDs from documents and KG node provenance
+    source_document_ids: list[str] = []
+    for ev in evidence_sources:
+        if ev.note_id and ev.note_id not in source_document_ids:
+            source_document_ids.append(ev.note_id)
+    for node in matching_nodes:
+        if node.properties:
+            for src_note in node.properties.get("source_notes", []):
+                if src_note and src_note not in source_document_ids:
+                    source_document_ids.append(src_note)
+    # Also include document model IDs used in evidence search
+    for doc in documents:
+        doc_id = doc.extra_metadata.get("original_note_id", str(doc.id)) if doc.extra_metadata else str(doc.id)
+        if doc_id not in source_document_ids and any(
+            ev.note_id == doc_id for ev in evidence_sources
+        ):
+            source_document_ids.append(doc_id)
+
+    # P0-023: Determine provenance completeness
+    provenance_complete = True
+    if answer and answer.strip() and not source_document_ids:
+        provenance_complete = False
+        logger.warning(
+            f"P0-023: Query {query_id} produced non-empty answer but has no source_document_ids. "
+            "Provenance incomplete."
+        )
+
+    # P0-022: Decline behavior — decline when evidence is insufficient
+    declined = False
+    decline_reason: str | None = None
+    escalation_path: str | None = None
+
+    if confidence < 0.3 or (len(evidence_sources) == 0 and len(matching_nodes) == 0):
+        declined = True
+        if confidence < 0.3 and len(evidence_sources) == 0 and len(matching_nodes) == 0:
+            decline_reason = (
+                "Insufficient evidence: no matching clinical documents or knowledge graph "
+                "entities found, and confidence is below the safety threshold (0.3)."
+            )
+        elif confidence < 0.3:
+            decline_reason = (
+                f"Confidence ({confidence:.2f}) is below the safety threshold (0.3). "
+                "The available evidence is not sufficient to support a reliable answer."
+            )
+        else:
+            decline_reason = (
+                "No supporting evidence found in clinical documents or knowledge graph. "
+                "Cannot provide an evidence-bound answer."
+            )
+        escalation_path = "Consult clinical team"
+        # Override answer for declined responses
+        answer = ""
+        reasoning = (reasoning or "") + f" [DECLINED: {decline_reason}]"
+        logger.info(
+            f"P0-022: Query {query_id} declined — confidence={confidence:.2f}, "
+            f"evidence_sources={len(evidence_sources)}, matching_nodes={len(matching_nodes)}"
+        )
+
     # Commit provenance records
     try:
         await db.flush()
     except Exception as e:
         logger.warning(f"Failed to flush provenance records: {e}")
+
+    # P0-021: Confidence-to-action policy gate
+    gate_result = check_action_gate(confidence, "recommendation")
 
     return HybridQueryResponse(
         question=request.question,
@@ -2785,6 +2984,21 @@ Provide a clear, evidence-based answer synthesizing the clinical data, graph rel
         entity_provenance=entity_provenance_data if provenance_depth == "full" else [],
         policy_citations=policy_citations_data,
         provenance_url=f"/api/v1/clinical-agent/provenance/{query_id}",
+        # P0-022: Decline behavior
+        declined=declined,
+        decline_reason=decline_reason,
+        escalation_path=escalation_path,
+        # P0-023: Source document provenance
+        source_document_ids=source_document_ids,
+        provenance_complete=provenance_complete,
+        # P0-004: Surface dependency availability in all query responses
+        dependency_state={
+            "kg_available": len(nodes) > 0,
+            "documents_available": len(documents) > 0,
+            "llm_available": llm_available,
+        },
+        # P0-021: Confidence-to-action gate
+        action_gate=gate_result.model_dump(),
     )
 
 

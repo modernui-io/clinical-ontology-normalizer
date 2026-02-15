@@ -1,0 +1,187 @@
+# Master Change Backlog (P0-P4)
+
+Date anchor
+- Baseline snapshot date: `2026-02-13`
+
+Purpose
+- One exhaustive backlog for all required changes across product, security, clinical AI, interoperability, and operations.
+- Keep this as the primary execution list for the next 30-90+ days.
+- This backlog is intentionally large and includes both immediate blockers and longer-horizon work.
+
+Priority model
+- `P0`: stop-the-line. Must close before external pilot use.
+- `P1`: must close before broad pilot expansion.
+- `P2`: must close before scale-up and multi-tenant growth.
+- `P3`: important optimization and hardening after stable pilot.
+- `P4`: strategic/future investments and deferred bets.
+
+Execution rules
+- Do not mark an item done without an evidence artifact and verification proof.
+- If any `P0` item is open, rollout posture remains `hold` or `controlled_go_only`.
+- If `P1` items remain open, keep pilot narrow and supervised.
+
+## P0 (Critical)
+
+- [x] P0-001 Fail closed in readiness when Neo4j is unavailable. | Owner: CTO + Ops | Anchor: `backend/app/api/health.py`, `backend/app/services/graph_database_service.py` | Exit: `/health/ready` is non-ready in production class when KG unavailable.
+- [x] P0-002 Fail closed in readiness when Kafka is unavailable for required flows. | Owner: CTO + Ops | Anchor: `backend/app/api/health.py`, `backend/app/services/kafka_service.py` | Exit: readiness reflects dependency outage as non-ready or degraded-blocking.
+- [x] P0-003 Remove "mock_mode treated as connected" semantics from production posture checks. | Owner: CTO + CISO | Anchor: `backend/app/services/graph_database_service.py`, `backend/app/services/kafka_service.py` | Exit: no production check reports mock as healthy.
+- [x] P0-004 Surface `dependency_state` in all clinical query responses. | Owner: Clinical AI + CTO | Anchor: `backend/app/api/clinical_agent.py` | Exit: responses include KG/doc/LLM availability flags.
+- [x] P0-005 Block graph build when ingestion has note-level extraction failures. | Owner: Clinical AI | Anchor: `backend/app/api/clinical_agent.py` | Exit: partial extraction cannot produce "complete" pipeline status.
+- [x] P0-006 Propagate extraction status (`ok|partial|failed`) across import, KG build, and Q&A. | Owner: Clinical AI | Anchor: `backend/app/services/narrative_extractor.py`, `backend/app/api/clinical_agent.py` | Exit: status visible in all downstream payloads.
+- [x] P0-007 Enforce strict narrative grounding prior to KG writes. | Owner: Clinical AI + CISO | Anchor: `backend/app/services/narrative_extractor.py` | Exit: ungrounded links rejected with reason code.
+- [x] P0-008 Disable hardcoded ontology edge fallback in production pathways. | Owner: Clinical AI + CTO | Anchor: `backend/app/api/clinical_agent.py` | Exit: synthetic edges only in explicit shadow/test mode.
+- [x] P0-009 Enforce authentication by default in non-dev environments. | Owner: CISO | Anchor: `backend/app/core/config.py` | Exit: service refuses startup if auth disabled outside dev.
+- [x] P0-010 Remove insecure credential defaults from deployment templates. | Owner: CISO + Platform | Anchor: `docker-compose.yml`, `.env.example` | Exit: no hardcoded/placeholder credentials in deploy path.
+- [x] P0-011 Require Redis authentication and restricted network exposure. | Owner: CISO + Ops | Anchor: `docker-compose.yml`, `backend/app/core/queue.py` | Exit: Redis protected and inaccessible from untrusted network.
+- [x] P0-012 Enforce encryption-at-rest for PHI stores. | Owner: CISO + Platform | Anchor: deployment manifests and DB configs | Exit: PostgreSQL/Neo4j storage encryption documented and verified.
+- [x] P0-013 Enforce TLS for ingress and service links handling PHI. | Owner: CISO + Ops | Anchor: `nginx/nginx.conf`, deployment configs | Exit: plaintext clinical transport disabled in production.
+- [x] P0-014 Add audit coverage for worker-based PHI operations. | Owner: CISO + Ops | Anchor: `backend/app/workers/`, `backend/app/middleware/audit_middleware.py` | Exit: worker reads/writes produce auditable events.
+- [x] P0-015 Add audit tags for graph data access and query provenance. | Owner: CISO + Clinical AI | Anchor: `backend/app/services/graph_database_service.py` | Exit: graph access events include user/tenant/patient context.
+- [x] P0-016 Enforce tenant/org boundary checks at query boundaries. | Owner: CISO + Platform | Anchor: `backend/app/core/tenant.py`, `backend/app/security/rbac_service.py` | Exit: cross-tenant data access blocked by policy.
+- [x] P0-017 Add explicit policy gate for external model routes handling PHI. | Owner: CISO + Clinical AI | Anchor: model/agent service configs | Exit: unapproved external providers cannot receive PHI.
+- [ ] P0-018 Publish and approve canonical Meditech-to-OpenEHR mapping contract. | Owner: CIO + CTO | Anchor: `backend/app/connectors/`, governance docs | Exit: signed mapping spec with code-system lineage.
+- [ ] P0-019 Add OpenEHR reconciliation and rollback procedure before live onboarding. | Owner: CIO + Ops | Anchor: `docs/operations/disaster_recovery_plan.md` | Exit: dry-run reconciliation and rollback evidence.
+- [x] P0-020 Define one canonical ingestion-to-Q&A route for pilot users. | Owner: CTO + VP Product | Anchor: `backend/app/api/nlp.py`, `backend/app/api/clinical_agent.py`, `frontend/src/app/nlp/page.tsx` | Exit: non-canonical routes marked non-pilot/deprecated.
+- [x] P0-021 Enforce confidence-to-action policy for high-risk workflows. | Owner: VP Product + Clinical AI | Anchor: `backend/app/services/confidence_policy_service.py`, `backend/app/schemas/confidence_policy.py`, `backend/app/api/clinical_agent.py` | Exit: low-confidence flows cannot trigger risky actions.
+- [x] P0-022 Require evidence-bound confidence and decline behavior on unsupported claims. | Owner: Clinical AI | Anchor: `backend/app/api/clinical_agent.py` | Exit: insufficient evidence returns decline + escalation path.
+- [x] P0-023 Require source document IDs and provenance fields for every non-empty answer. | Owner: Clinical AI + Product | Anchor: `backend/app/api/clinical_agent.py` | Exit: no evidence-less answer accepted in pilot mode.
+- [x] P0-024 Add explicit "degraded" UX mode with action block and clinician escalation. | Owner: VP Product | Anchor: `frontend/src/components/DegradedBanner.tsx`, `frontend/src/app/nlp/page.tsx`, `frontend/src/app/clinical/page.tsx` | Exit: degraded state is visible and blocks unsafe continuation.
+- [ ] P0-025 Define and staff incident escalation matrix with response SLAs. | Owner: CIO + Ops | Anchor: `tasks/05_pilot_todo_list.md`, runbooks | Exit: named owners with paging and response windows.
+- [ ] P0-026 Execute one backup restore drill for PostgreSQL and Neo4j. | Owner: Ops | Anchor: DR runbook | Exit: successful restore evidence with timestamp.
+- [ ] P0-027 Execute one failover/dependency outage simulation and record MTTR. | Owner: Ops + CTO | Anchor: ops runbook and metrics | Exit: simulation report with corrective actions.
+- [ ] P0-028 Produce final pre-pilot signoff matrix (CTO/CISO/CIO/Clinical AI/Product/Ops). | Owner: Program Lead | Anchor: `exec-review/*.md`, `tasks/04_enterprise_readiness_multi_agent_playbook_run.md` | Exit: dated signoff artifact with unresolved-risk list.
+
+## P1 (High)
+
+- [ ] P1-001 Replace heuristic confidence assembly with tiered evidence-weighted scoring. | Owner: Clinical AI | Anchor: `backend/app/api/clinical_agent.py`, `backend/app/services/hybrid_clinical_analyzer.py` | Exit: score rationale emitted in API.
+- [ ] P1-002 Standardize confidence semantics across extraction, KG, reasoning, and final answer. | Owner: Clinical AI + Product | Anchor: API and UI confidence fields | Exit: shared schema and docs adopted.
+- [ ] P1-003 Add confidence threshold policy object configurable by workflow type. | Owner: Product + Clinical AI | Anchor: policy/config layer | Exit: policy loaded at runtime and versioned.
+- [ ] P1-004 Implement refusal mode for critical errors and low-confidence clinical paths. | Owner: Product + Clinical AI | Anchor: `frontend/src/app/nlp/page.tsx`, clinical agent API | Exit: refusal responses prevent unsafe actions.
+- [ ] P1-005 Add missing note and coverage metrics to all query payloads. | Owner: Clinical AI | Anchor: `backend/app/api/clinical_agent.py` | Exit: fields include failed note count and coverage percent.
+- [ ] P1-006 Attach data freshness and ingestion timestamp to Q&A responses. | Owner: Clinical AI + Ops | Anchor: API response contracts | Exit: freshness metadata present in answer cards.
+- [ ] P1-007 Add provenance integrity checks in KG merge stage for near-match entities. | Owner: Clinical AI | Anchor: KG merge functions in clinical agent | Exit: substring-only joins blocked.
+- [ ] P1-008 Harden OMOP fallback matching to reduce semantic false positives. | Owner: Clinical AI | Anchor: `backend/app/services/omop_hierarchy_service.py` | Exit: negative corpus precision target met.
+- [ ] P1-009 Add bounded cache and invalidation on OMOP version change. | Owner: CTO + Clinical AI | Anchor: `backend/app/services/omop_hierarchy_service.py` | Exit: cache eviction and refresh strategy active.
+- [ ] P1-010 Create UMLS/OMOP acceptance corpus with positive and negative concept pairs. | Owner: QA + Clinical AI | Anchor: `backend/tests/` | Exit: CI threshold gate for mapping quality.
+- [ ] P1-011 Add real-source document retrieval in GraphRAG path (remove placeholder behavior). | Owner: CTO + Clinical AI | Anchor: `backend/app/services/graph_augmented_rag.py` | Exit: source IDs required for supported answers.
+- [ ] P1-012 Add guideline corpus versioning, expiration, and update policy. | Owner: Clinical AI + Compliance | Anchor: guideline services/docs | Exit: stale guideline detection in pipeline.
+- [ ] P1-013 Expand drug safety coverage and explicitly label uncovered pairs. | Owner: Clinical AI | Anchor: `backend/app/services/drug_safety.py` | Exit: coverage report and unknown-pair warning behavior.
+- [ ] P1-014 Add clinical plausibility validation to calculator inputs. | Owner: Clinical AI | Anchor: `backend/app/services/clinical_calculators.py` | Exit: out-of-range inputs flagged/blocked.
+- [ ] P1-015 Label differential diagnosis scores as ranking until calibrated. | Owner: Clinical AI + Product | Anchor: differential diagnosis service/UI | Exit: probability language removed unless calibrated.
+- [ ] P1-016 Add explicit pilot policy for 77% accuracy classes by workflow. | Owner: VP Product + CIO | Anchor: `exec-review/vp-product-review.md` | Exit: approved matrix in governance pack.
+- [ ] P1-017 Lock pilot UI to single sanctioned extraction mode profile. | Owner: VP Product | Anchor: `frontend/src/app/nlp/page.tsx` | Exit: non-approved modes hidden/guarded.
+- [ ] P1-018 Show model/provider route and risk tier in every answer header. | Owner: VP Product + Clinical AI | Anchor: result rendering components | Exit: transparency fields visible by default.
+- [ ] P1-019 Add fallback_used and reason_code to every degraded response. | Owner: Clinical AI | Anchor: clinical agent API | Exit: all fallback paths machine-readable.
+- [ ] P1-020 Add production-safe startup validation for dependency credentials. | Owner: CTO + CISO | Anchor: config/bootstrap path | Exit: startup fails on missing critical credentials.
+- [ ] P1-021 Split critical/non-critical dependency classes in health/readiness policies. | Owner: Ops + CTO | Anchor: `backend/app/api/health.py` | Exit: class policy documented and enforced.
+- [ ] P1-022 Add worker liveness checks based on process and queue health, not API ping. | Owner: Ops | Anchor: `docker-compose.prod.yml`, worker setup | Exit: dead worker detected within defined SLA.
+- [ ] P1-023 Add queue depth SLOs and intake throttling/backpressure policy. | Owner: Ops + CTO | Anchor: `backend/app/core/queue.py` | Exit: automatic protective behavior at thresholds.
+- [ ] P1-024 Add alert routing for degraded or mock dependency states. | Owner: Ops | Anchor: metrics/alerting runbook | Exit: paging triggered on defined events.
+- [ ] P1-025 Add service restart policy consistency for production stack. | Owner: Ops | Anchor: `docker-compose.prod.yml` | Exit: restart policy standardized.
+- [ ] P1-026 Formalize support staffing model and on-call rotation for pilot window. | Owner: CIO + Ops | Anchor: operations docs | Exit: approved staffing calendar.
+- [ ] P1-027 Add Australian residency and consent metadata capture at ingestion. | Owner: CIO + Compliance | Anchor: `backend/app/models/clinical_fact.py`, import services | Exit: consent/residency fields required.
+- [ ] P1-028 Add retention policy enforcement and archival controls for PHI paths. | Owner: Compliance + Ops | Anchor: storage and audit policies | Exit: retention jobs and policy docs active.
+- [ ] P1-029 Add purpose-of-use tagging in audit events where clinically relevant. | Owner: Compliance + CISO | Anchor: audit middleware/service | Exit: purpose field present in audit exports.
+- [ ] P1-030 Add external integration onboarding checklist (data contract, validation, rollback). | Owner: CIO + Interop | Anchor: onboarding docs | Exit: checklist mandatory for each new tenant.
+- [ ] P1-031 Add Meditech sample replay validation against OpenEHR contract. | Owner: Interop + QA | Anchor: connectors + test fixtures | Exit: deterministic replay results recorded.
+- [ ] P1-032 Add production incident taxonomy and severity rubric for clinical AI failures. | Owner: CIO + Ops + Clinical AI | Anchor: incident runbook | Exit: incident classes tied to response SLAs.
+- [ ] P1-033 Add risk-acceptance workflow with expiry dates for unresolved P1 items. | Owner: Program + CISO | Anchor: governance docs | Exit: signed exceptions with expiry.
+- [ ] P1-034 Add legal/provider contract gate for any external LLM with PHI exposure potential. | Owner: CISO + Legal | Anchor: provider routing policy | Exit: approved provider registry.
+- [ ] P1-035 Add immutable release checklist tying deployment SHA to safety checks. | Owner: CTO + Ops | Anchor: release process docs | Exit: release blocked unless checklist passes.
+
+## P2 (Medium)
+
+- [ ] P2-001 Add integration tests with real Neo4j + PostgreSQL for KG/QA pathways. | Owner: QA + CTO | Anchor: `backend/tests/` | Exit: CI integration suite green.
+- [ ] P2-002 Add contract tests for answer provenance completeness. | Owner: QA + Clinical AI | Anchor: QA API tests | Exit: tests fail when source IDs missing.
+- [ ] P2-003 Add synthetic canary tests for top 5 clinical workflows. | Owner: Ops + QA | Anchor: monitoring/canary scripts | Exit: canaries run continuously.
+- [ ] P2-004 Add benchmark harness for NLP extraction precision/recall by entity type. | Owner: Clinical AI | Anchor: NLP test framework | Exit: periodic benchmark report.
+- [ ] P2-005 Add regression tests for negation/experiencer edge cases. | Owner: Clinical AI + QA | Anchor: NLP tests | Exit: edge-case corpus tracked in CI.
+- [ ] P2-006 Add KG completeness scoring model and expose in API/UI. | Owner: Clinical AI + Product | Anchor: KG + clinical agent services | Exit: completeness metric shown per patient.
+- [ ] P2-007 Add uncertainty taxonomy and reason codes for all decline/degraded outputs. | Owner: Clinical AI | Anchor: response schema | Exit: standardized reason catalog.
+- [ ] P2-008 Add chart-level "what system knows vs does not know" summary panel. | Owner: Product | Anchor: frontend clinical pages | Exit: unknown coverage displayed.
+- [ ] P2-009 Add clinician feedback capture and replay pipeline. | Owner: Product + Clinical AI | Anchor: feedback API/storage | Exit: weekly reviewed feedback dataset.
+- [ ] P2-010 Add drift detection for terminology mapping distributions over time. | Owner: Clinical AI + Data | Anchor: mapping analytics jobs | Exit: drift alert thresholds active.
+- [ ] P2-011 Add concept mapping disagreement dashboard (rule vs ML vs ensemble). | Owner: Clinical AI + Product | Anchor: analytics/UI | Exit: disagreement visibility for triage.
+- [ ] P2-012 Add queue partitioning by workload class (ingest/mapping/KG/export). | Owner: CTO + Ops | Anchor: queue config | Exit: isolated queues with quotas.
+- [ ] P2-013 Add horizontal scaling plan for worker pools with load tests. | Owner: Ops + CTO | Anchor: deployment config + perf tests | Exit: defined scaling thresholds.
+- [ ] P2-014 Add Kafka HA strategy decision (managed service vs multi-broker self-hosted). | Owner: CTO + Ops | Anchor: ops architecture docs | Exit: approved target topology.
+- [ ] P2-015 Add Redis separation for cache vs job queue in production design. | Owner: Ops | Anchor: deployment topology docs | Exit: contention risk reduced.
+- [ ] P2-016 Add scheduled backup automation and restore verification jobs. | Owner: Ops | Anchor: backup scripts/runbooks | Exit: backup jobs monitored.
+- [ ] P2-017 Add SLO dashboard with p95/p99 latency and error rates by endpoint. | Owner: Ops + Platform | Anchor: metrics stack | Exit: dashboard used in weekly ops review.
+- [ ] P2-018 Add alert fatigue controls and tuned severity thresholds. | Owner: Ops | Anchor: alert policies | Exit: false positive rate reduced.
+- [ ] P2-019 Add API budget/timeout policies for hybrid query path. | Owner: CTO + Clinical AI | Anchor: clinical agent service | Exit: bounded execution with fail-safe behavior.
+- [ ] P2-020 Add idempotency and retry safety for ingestion endpoints. | Owner: Platform | Anchor: ingestion APIs | Exit: duplicate submissions handled safely.
+- [ ] P2-021 Add deterministic reprocessing mode for failed notes. | Owner: Clinical AI + Ops | Anchor: import pipeline | Exit: failed notes can be replayed safely.
+- [ ] P2-022 Add structured data lineage fields end-to-end (source system to answer). | Owner: Data + Clinical AI | Anchor: models + response schemas | Exit: lineage queryable for audits.
+- [ ] P2-023 Add tenant onboarding automation and preflight validation checks. | Owner: CIO + Interop | Anchor: onboarding scripts/docs | Exit: repeatable onboarding sequence.
+- [ ] P2-024 Add endpoint-level RBAC test suite for least privilege. | Owner: Security + QA | Anchor: security tests | Exit: unauthorized access tests enforced.
+- [ ] P2-025 Add policy tests to ensure no sensitive defaults in production configs. | Owner: CISO + QA | Anchor: config tests | Exit: CI gate for unsafe defaults.
+- [ ] P2-026 Add threat model update cadence tied to release cycles. | Owner: CISO | Anchor: security governance docs | Exit: quarterly threat model updates.
+- [ ] P2-027 Add OpenEHR profile validation suite for generated payloads. | Owner: Interop + QA | Anchor: connector/export tests | Exit: profile conformance report.
+- [ ] P2-028 Add interoperability conformance suite (FHIR search/profile/capability statement). | Owner: Interop | Anchor: FHIR APIs | Exit: conformance baseline tracked.
+- [ ] P2-029 Add business continuity tabletop cadence with action item closure tracking. | Owner: CIO + Ops | Anchor: BCP docs | Exit: monthly tabletop reports.
+- [ ] P2-030 Add monthly executive risk summary with blocker trends. | Owner: Program Lead | Anchor: run logs and boards | Exit: monthly board-level report.
+
+## P3 (Optimization)
+
+- [ ] P3-001 Refactor overlapping clinical API routes to reduce duplicate logic paths. | Owner: CTO | Anchor: `backend/app/api/nlp.py`, `backend/app/api/clinical_agent.py` | Exit: reduced route redundancy.
+- [ ] P3-002 Improve UI navigation by persona (clinical, RCM, IT) for pilot usability. | Owner: VP Product | Anchor: frontend nav/layout | Exit: role-focused entry points.
+- [ ] P3-003 Add richer provenance drilldown UI for fast clinician review. | Owner: VP Product | Anchor: frontend provenance components | Exit: one-click evidence review.
+- [ ] P3-004 Add answer explanation templates tuned by question class. | Owner: Clinical AI + Product | Anchor: response formatting layer | Exit: clearer reasoning outputs.
+- [ ] P3-005 Add confidence calibration plots and reliability diagram reports. | Owner: Clinical AI | Anchor: model evaluation suite | Exit: calibration report per release.
+- [ ] P3-006 Add glossary and training content for confidence/evidence semantics. | Owner: Product + Clinical Ops | Anchor: docs/help center | Exit: user education pack published.
+- [ ] P3-007 Add self-serve integration diagnostics page for onboarding teams. | Owner: Interop + Product | Anchor: admin UI | Exit: diagnostics page available.
+- [ ] P3-008 Add richer queue and worker observability dashboards. | Owner: Ops | Anchor: monitoring stack | Exit: queue health visible by class.
+- [ ] P3-009 Add selective tracing on expensive endpoints with sampling controls. | Owner: Platform | Anchor: tracing config/services | Exit: traceability without overhead spike.
+- [ ] P3-010 Add red-team style chaos tests for dependency loss scenarios. | Owner: Ops + Security | Anchor: chaos test plans | Exit: quarterly chaos report.
+- [ ] P3-011 Add lint/policy checks for PHI-safe logging patterns. | Owner: CISO + QA | Anchor: CI tooling | Exit: blocked builds on unsafe logs.
+- [ ] P3-012 Add stronger secret rotation tooling and operational runbooks. | Owner: Security + Ops | Anchor: secrets management docs | Exit: rotation drills executed.
+- [ ] P3-013 Add automated stale-guideline detection and content owner alerts. | Owner: Clinical AI + Compliance | Anchor: guideline management | Exit: stale content SLA enforced.
+- [ ] P3-014 Add semantic versioning to clinical policy and confidence rule packs. | Owner: Product + Clinical AI | Anchor: policy configs | Exit: versioned policy deployments.
+- [ ] P3-015 Add structured quality gates for release candidates across roles. | Owner: Program + CTO | Anchor: release process | Exit: standardized gate checklist.
+- [ ] P3-016 Add synthetic data generation toolkit for safer pre-prod testing. | Owner: Data + QA | Anchor: test tooling | Exit: repeatable anonymized fixtures.
+- [ ] P3-017 Add operational cost dashboard by workload and tenant. | Owner: CIO + Ops | Anchor: metrics/finance views | Exit: cost-to-serve visibility.
+- [ ] P3-018 Add support playbook for off-hours clinical escalation decisions. | Owner: CIO + Clinical Ops | Anchor: support docs | Exit: off-hours protocols approved.
+- [ ] P3-019 Add incident postmortem template specific to clinical AI misguidance risk. | Owner: Ops + Clinical AI | Anchor: incident docs | Exit: template adopted.
+- [ ] P3-020 Add safety regression suite for medication and contraindication scenarios. | Owner: Clinical AI + QA | Anchor: drug safety tests | Exit: regression suite in CI.
+- [ ] P3-021 Add performance test scenarios for long-note and multi-note encounters. | Owner: QA + Platform | Anchor: perf tests | Exit: baseline and limits documented.
+- [ ] P3-022 Add documentation for "degraded mode operations" for clinicians. | Owner: Product + Clinical Ops | Anchor: user docs | Exit: degraded-mode SOP published.
+- [ ] P3-023 Add versioned integration compatibility matrix (Meditech/OpenEHR/FHIR variants). | Owner: Interop | Anchor: compatibility docs | Exit: matrix maintained quarterly.
+- [ ] P3-024 Add compliance evidence binder automation for audits. | Owner: Compliance | Anchor: audit export tooling | Exit: on-demand evidence bundle generated.
+- [ ] P3-025 Add quarterly architecture review to retire temporary pilot workarounds. | Owner: CTO | Anchor: architecture governance docs | Exit: workaround retirement log.
+
+## P4 (Strategic / Deferred Bets)
+
+- [ ] P4-001 Evaluate federated learning only after stable single-site production maturity. | Owner: VP ML + CTO | Anchor: `backend/app/services/federated_learning_service.py` | Exit: go/no-go memo with prerequisites.
+- [ ] P4-002 Evaluate full TEFCA productionization path and partner strategy. | Owner: Interop + CIO | Anchor: `backend/app/services/tefca_service.py` | Exit: strategy decision document.
+- [ ] P4-003 Build full ONC certification roadmap if target market requires it. | Owner: Compliance + Interop | Anchor: interoperability compliance docs | Exit: phased certification plan.
+- [ ] P4-004 Evaluate managed graph platform migration options for HA and operations. | Owner: CTO + Ops | Anchor: platform architecture docs | Exit: cost-risk comparison approved.
+- [ ] P4-005 Evaluate multi-region architecture for AU resilience and residency constraints. | Owner: CTO + CISO | Anchor: deployment strategy docs | Exit: region architecture proposal.
+- [ ] P4-006 Build model registry and lifecycle governance on persistent infra. | Owner: VP ML | Anchor: model registry services | Exit: production-grade registry deployment.
+- [ ] P4-007 Add advanced clinician copilot UX experiments after safety baseline lock. | Owner: VP Product | Anchor: product roadmap | Exit: experiment guardrails approved.
+- [ ] P4-008 Evaluate ambient voice/documentation integration as separate product track. | Owner: Product + Clinical AI | Anchor: voice/transcription scaffolds | Exit: business case and scope.
+- [ ] P4-009 Expand guideline corpus to specialty depth with editorial governance board. | Owner: Clinical AI + Clinical Governance | Anchor: guideline services | Exit: specialty roadmap with owners.
+- [ ] P4-010 Add advanced causal inference modules only after core trust metrics stabilize. | Owner: Clinical AI | Anchor: reasoning roadmap | Exit: safety gate criteria met.
+- [ ] P4-011 Evaluate adaptive personalization of confidence thresholds by role/workflow. | Owner: Product + Clinical AI | Anchor: policy roadmap | Exit: ethics and safety review complete.
+- [ ] P4-012 Build external developer platform for partner integrations after core hardening. | Owner: CTO + Product | Anchor: platform roadmap | Exit: API platform readiness checklist.
+- [ ] P4-013 Add formal SaMD pathway exploration if feature set crosses regulatory thresholds. | Owner: Compliance + Legal | Anchor: regulatory strategy docs | Exit: formal regulatory determination.
+- [ ] P4-014 Evaluate full data mesh architecture only if scale and org maturity justify complexity. | Owner: CTO + Data | Anchor: architecture roadmap | Exit: approved architecture decision record.
+- [ ] P4-015 Build long-term clinical outcome feedback loops tied to real-world performance. | Owner: Clinical AI + CIO | Anchor: quality/outcomes roadmap | Exit: outcome measurement framework live.
+
+## Rollup Counts
+
+- P0: 28 items
+- P1: 35 items
+- P2: 30 items
+- P3: 25 items
+- P4: 15 items
+- Total: 133 items
+
+## Suggested default execution order
+
+1. Complete all `P0` items.
+2. Complete `P1-001` to `P1-020` before expanding pilot scope.
+3. Complete all remaining `P1` before multi-site rollout.
+4. Use `P2` as scale gate and audit hardening track.
+5. Execute `P3` and `P4` as capacity permits after stable operations.
+

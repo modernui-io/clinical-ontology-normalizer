@@ -51,6 +51,13 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import KnowledgeGraph from "@/components/KnowledgeGraph";
 import { ConfidenceBadge } from "@/components/provenance/ConfidenceBadge";
+import {
+  DegradedBanner,
+  EntityConfidenceBadge,
+  isDegraded,
+  isActionBlocked,
+  type DegradedState,
+} from "@/components/DegradedBanner";
 import { GuidelineCitationCard, PolicyCitationCard } from "@/components/provenance/CitationCard";
 import { ReasoningChain } from "@/components/provenance/ReasoningChain";
 import type {
@@ -441,9 +448,7 @@ function EntityCard({
                     style={{ width: `${entity.confidence * 100}%` }}
                   />
                 </div>
-                <span className={cn("text-xs font-medium", getConfidenceColor(entity.confidence))}>
-                  {Math.round(entity.confidence * 100)}%
-                </span>
+                <EntityConfidenceBadge confidence={entity.confidence} />
               </div>
             </div>
           </div>
@@ -1496,6 +1501,7 @@ interface QAMessage {
   reasoning_chain?: ReasoningStep[];
   query_id?: string;
   sources?: string[];
+  degraded?: DegradedState;
 }
 
 export default function NLPWorkbenchPage() {
@@ -1998,10 +2004,22 @@ export default function NLPWorkbenchPage() {
 
       if (response.ok) {
         const result = await response.json();
+
+        // Build degraded state from response fields
+        const degradedState: DegradedState = {
+          declined: result.declined,
+          decline_reason: result.decline_reason,
+          escalation_path: result.escalation_path,
+          confidence: result.confidence,
+          dependency_state: result.dependency_state,
+          provenance_complete: result.provenance_complete,
+          action_gate: result.action_gate,
+        };
+
         const assistantMessage: QAMessage = {
           id: `msg_${Date.now()}_response`,
           role: "assistant",
-          content: result.answer,
+          content: result.declined ? (result.decline_reason || "Response declined due to insufficient evidence.") : result.answer,
           timestamp: new Date(),
           confidence: result.confidence,
           entities_used: result.entities_found?.map((e: { text: string }) => e.text) || [],
@@ -2010,6 +2028,7 @@ export default function NLPWorkbenchPage() {
           reasoning_chain: result.reasoning_chain || [],
           query_id: result.query_id,
           sources: result.sources || [],
+          degraded: isDegraded(degradedState) ? degradedState : undefined,
         };
         setQaMessages((prev) => [...prev, assistantMessage]);
       } else {
@@ -2075,6 +2094,24 @@ export default function NLPWorkbenchPage() {
             </TabsTrigger>
           </TabsList>
         </Tabs>
+      </div>
+
+      {/* P0-020: Deprecation banner — canonical route is /clinical-agent */}
+      <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 flex items-start gap-3">
+        <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+        <div className="text-sm">
+          <p className="font-medium text-amber-800">
+            These NLP endpoints are deprecated for pilot use.
+          </p>
+          <p className="text-amber-700 mt-1">
+            The canonical ingestion-to-QA route is{" "}
+            <code className="rounded bg-amber-100 px-1 py-0.5 font-mono text-xs">
+              /api/v1/clinical-agent
+            </code>
+            . It provides bulk import, hybrid query, and graph RAG capabilities.
+            Existing NLP endpoints remain available but will be sunset on 2026-06-30.
+          </p>
+        </div>
       </div>
 
       {/* Knowledge Graph View - Full Width with Advanced Component */}
@@ -2188,8 +2225,16 @@ export default function NLPWorkbenchPage() {
                             </div>
                           ) : (
                             <div className="max-w-[90%] space-y-3">
+                              {/* Degraded banner when response is degraded/declined */}
+                              {msg.degraded && (
+                                <DegradedBanner state={msg.degraded} />
+                              )}
+
                               {/* Answer with confidence badge */}
-                              <div className="rounded-lg px-4 py-3 bg-muted">
+                              <div className={cn(
+                                "rounded-lg px-4 py-3 bg-muted",
+                                msg.degraded?.declined && "opacity-75"
+                              )}>
                                 <div className="flex items-center gap-2 mb-2">
                                   {msg.confidence != null && (
                                     <ConfidenceBadge confidence={msg.confidence} />
@@ -2197,6 +2242,11 @@ export default function NLPWorkbenchPage() {
                                   {msg.sources && msg.sources.length > 0 && (
                                     <Badge variant="secondary" className="text-xs">
                                       {msg.sources.length} sources
+                                    </Badge>
+                                  )}
+                                  {msg.degraded?.declined && (
+                                    <Badge variant="destructive" className="text-xs">
+                                      Declined
                                     </Badge>
                                   )}
                                 </div>

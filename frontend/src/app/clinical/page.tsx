@@ -38,6 +38,11 @@ import {
   Brain,
   Network,
 } from "lucide-react";
+import {
+  DegradedBanner,
+  isDegraded,
+  type DegradedState,
+} from "@/components/DegradedBanner";
 
 // ---------------------------------------------------------------------------
 // Types matching backend schema shapes
@@ -354,6 +359,7 @@ const issueTypeStyles: Record<string, string> = {
 export default function ClinicalDashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [degradedState, setDegradedState] = useState<DegradedState | null>(null);
 
   // Data derived from API responses
   const [drugAlerts, setDrugAlerts] = useState<DrugAlert[]>([]);
@@ -375,6 +381,7 @@ export default function ClinicalDashboardPage() {
   const refreshData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
+    setDegradedState(null);
 
     try {
       const [providerRes, billerRes] = await Promise.all([
@@ -395,6 +402,23 @@ export default function ClinicalDashboardPage() {
 
       const provider: ProviderDashboardResponse = await providerRes.json();
       const biller: BillerDashboardResponse = await billerRes.json();
+
+      // Check for degraded indicators in the response
+      // The backend may include these fields on dashboard responses
+      const providerAny = provider as unknown as Record<string, unknown>;
+      const billerAny = biller as unknown as Record<string, unknown>;
+      const combined: DegradedState = {
+        declined: (providerAny.declined as boolean) || (billerAny.declined as boolean),
+        decline_reason: (providerAny.decline_reason as string) || (billerAny.decline_reason as string) || null,
+        escalation_path: (providerAny.escalation_path as string) || (billerAny.escalation_path as string) || null,
+        confidence: providerAny.confidence as number | undefined,
+        dependency_state: (providerAny.dependency_state as Record<string, boolean>) || (billerAny.dependency_state as Record<string, boolean>),
+        provenance_complete: providerAny.provenance_complete as boolean | undefined,
+        action_gate: (providerAny.action_gate as DegradedState["action_gate"]) || null,
+      };
+      if (isDegraded(combined)) {
+        setDegradedState(combined);
+      }
 
       // Map backend shapes to UI types
       setDrugAlerts(mapDrugAlerts(provider.drug_alerts));
@@ -564,6 +588,9 @@ export default function ClinicalDashboardPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Degraded Mode Banner */}
+      {degradedState && <DegradedBanner state={degradedState} />}
 
       {/* Summary Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
