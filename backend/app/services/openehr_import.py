@@ -351,6 +351,16 @@ class OpenEHRImportService:
         Returns:
             1 if created, 0 if skipped.
         """
+        # Extract value/unit from properties so ClinicalFact columns
+        # are populated for round-trip export fidelity.
+        fact_value: str | None = None
+        fact_unit: str | None = None
+        if properties:
+            v = properties.get("value")
+            if v is not None:
+                fact_value = str(v)
+            fact_unit = properties.get("unit")
+
         fact = ClinicalFact(
             patient_id=patient_id,
             domain=domain,
@@ -360,6 +370,8 @@ class OpenEHRImportService:
             temporality=temporality,
             experiencer=Experiencer.PATIENT,
             confidence=1.0,
+            value=fact_value,
+            unit=fact_unit,
             start_date=start_date,
             pipeline_version=self._pipeline_version,
         )
@@ -501,9 +513,13 @@ class OpenEHRImportService:
         count = 0
 
         if "blood_pressure" in archetype_key:
-            # Blood pressure produces two measurements
+            # Blood pressure produces two measurements.
+            # Accept both short names ("Systolic") from original compositions
+            # and full names ("Blood Pressure - Systolic") from round-trip exports.
             for name in ("Systolic", "Diastolic"):
                 elem = _find_element_by_name(items, name)
+                if elem is None:
+                    elem = _find_element_by_name(items, f"Blood Pressure - {name}")
                 if elem:
                     mag, unit = _parse_dv_quantity(elem.get("value"))
                     label = f"Blood Pressure - {name}"

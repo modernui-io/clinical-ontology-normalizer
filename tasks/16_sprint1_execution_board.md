@@ -41,7 +41,7 @@ Source
 | P0-016-A | P0-016 | P0 | WS-02 Security compliance | CISO + Platform | Enforce tenant/org boundary checks at query boundaries. | 2026-02-27 | done |
 | P0-017-A | P0-017 | P0 | WS-02 Security compliance | CISO + Clinical AI | Add explicit policy gate for external model routes handling PHI. | 2026-02-27 | done |
 | P0-018-A | P0-018 | P0 | WS-05 OpenEHR interoperability | CIO + CTO | Publish and approve canonical Meditech-to-OpenEHR mapping contract. | 2026-02-27 | done |
-| P0-019-A | P0-019 | P0 | WS-05 OpenEHR interoperability | CIO + Ops | Add OpenEHR reconciliation and rollback procedure before live onboarding. Rollback savepoint fix applied (session-poisoning bug). Evidence: docs/evidence/p0-019/. Re-run against staging to confirm PASS. | 2026-02-27 | in-progress |
+| P0-019-A | P0-019 | P0 | WS-05 OpenEHR interoperability | CIO + Ops | Add OpenEHR reconciliation and rollback procedure before live onboarding. Rollback savepoint fix (session-poisoning), reconcile round-trip fix (measurement value/unit + BP element name). Evidence: docs/evidence/p0-019/. Localhost 5/5 dry-run PASS, 5/5 round-trip PASS. Re-run against staging to confirm. | 2026-02-27 | done |
 | P0-020-A | P0-020 | P0 | WS-01 Platform reliability | CTO + VP Product | Define one canonical ingestion-to-Q&A route for pilot users. | 2026-02-27 | done |
 | P0-021-A | P0-021 | P0 | WS-04 Product trust UX | VP Product + Clinical AI | Enforce confidence-to-action policy for high-risk workflows. | 2026-02-27 | done |
 | P0-022-A | P0-022 | P0 | WS-03 Clinical AI safety | Clinical AI | Require evidence-bound confidence and decline behavior on unsupported claims. | 2026-02-27 | done |

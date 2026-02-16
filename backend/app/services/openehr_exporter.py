@@ -281,23 +281,38 @@ class OpenEHRExporterService:
         # Build observation items
         items = []
 
-        # Check if we have numeric value in properties or as a separate field
-        value = None
-        unit = None
+        # Read measurement value/unit from ClinicalFact columns first,
+        # then fall back to properties dict (KGNode) for backward compat.
+        value = self._get_attr(fact, "value")
+        unit = self._get_attr(fact, "unit")
 
-        # Try properties first (from import)
-        props = self._get_attr(fact, "properties")
-        if isinstance(props, dict):
-            value = props.get("value")
-            unit = props.get("unit")
+        if value is None:
+            props = self._get_attr(fact, "properties")
+            if isinstance(props, dict):
+                value = props.get("value")
+                unit = props.get("unit")
+
+        # For blood_pressure, use the short component name ("Systolic" / "Diastolic")
+        # so that the importer recognizes the element on round-trip re-import.
+        element_name = concept_name
+        if "blood_pressure" in archetype:
+            for component in ("Systolic", "Diastolic"):
+                if component.lower() in concept_lower:
+                    element_name = component
+                    break
 
         if value is not None and unit:
-            items.append(
-                build_element(concept_name, build_dv_quantity(float(value), unit))
-            )
+            try:
+                items.append(
+                    build_element(element_name, build_dv_quantity(float(value), unit))
+                )
+            except (ValueError, TypeError):
+                items.append(
+                    build_element(element_name, build_dv_text(str(concept_name)))
+                )
         else:
             items.append(
-                build_element(concept_name, build_dv_text(str(concept_name)))
+                build_element(element_name, build_dv_text(str(concept_name)))
             )
 
         return {
