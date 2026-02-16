@@ -163,83 +163,83 @@ Execution rules
 ## P4 (Strategic / Deferred Bets)
 
 - [ ] P4-001 Evaluate federated learning only after stable single-site production maturity. | Owner: VP ML + CTO | Risk Owner: CTO | Evidence Owner: VP ML | Anchor: `backend/app/services/federated_learning_service.py` | Exit: go/no-go memo with prerequisites.
-  - [ ] P4-001-D Decision: ADR on federated learning feasibility, privacy framework requirements, and single-site stability gate criteria.
+  - [x] P4-001-D Decision: ADR on federated learning feasibility, privacy framework requirements, and single-site stability gate criteria. Evidence: `docs/decisions/p4-001-federated-learning.md`. Decision: DEFER until 90-day single-site stability gate met.
   - [ ] P4-001-I Implementation: If approved, build privacy-preserving training pipeline with differential privacy guarantees.
   - [ ] P4-001-V Validation: Demonstrate model quality parity between federated and centralized training on test corpus.
 - [ ] P4-002 Evaluate full TEFCA productionization path and partner strategy. | Owner: Interop + CIO | Risk Owner: CIO | Evidence Owner: Interop | Anchor: `backend/app/services/tefca_service.py` | Exit: strategy decision document.
-  - [ ] P4-002-D Decision: ADR on TEFCA participation model (QHIN vs framework participant), partner selection, and timeline.
+  - [x] P4-002-D Decision: ADR on TEFCA participation model (QHIN vs framework participant), partner selection, and timeline. Evidence: `docs/decisions/p4-002-tefca-strategy.md`. Decision: DEFER. Framework Participant via Carequality preferred when US market entry triggered.
   - [ ] P4-002-I Implementation: Build TEFCA-compliant exchange endpoints and credential management.
   - [ ] P4-002-V Validation: End-to-end query/response test with TEFCA sandbox environment.
 - [ ] P4-003 Build full ONC certification roadmap if target market requires it. | Owner: Compliance + Interop | Risk Owner: Compliance | Evidence Owner: Interop | Anchor: interoperability compliance docs | Exit: phased certification plan.
-  - [ ] P4-003-D Decision: Market analysis determining whether ONC certification is required for target customers.
+  - [x] P4-003-D Decision: Market analysis determining whether ONC certification is required for target customers. Evidence: `docs/decisions/p4-003-onc-certification.md`. Decision: CONDITIONAL DEFER. Not required for AU pilot. Readiness gap analysis documented for US entry.
   - [ ] P4-003-I Implementation: Gap analysis and remediation against ONC criteria (API conditions, USCDI data classes).
   - [ ] P4-003-V Validation: Pre-submission conformance testing against ONC test harness.
 - [ ] P4-004 Evaluate managed graph platform migration options for HA and operations. | Owner: CTO + Ops | Risk Owner: CTO | Evidence Owner: Ops | Anchor: platform architecture docs | Exit: cost-risk comparison approved.
-  - [ ] P4-004-D Decision: ADR comparing self-hosted Neo4j, Neo4j Aura, Amazon Neptune, and alternative graph stores on cost/HA/ops burden.
+  - [x] P4-004-D Decision: ADR comparing self-hosted Neo4j, Neo4j Aura, Amazon Neptune, and alternative graph stores on cost/HA/ops burden. Evidence: `docs/decisions/p4-004-graph-platform.md`. Decision: Maintain Community Edition for pilot; Neo4j Aura at 50K patient threshold.
   - [ ] P4-004-I Implementation: Migration plan with data export/import pipeline and zero-downtime cutover strategy.
   - [ ] P4-004-V Validation: Load test on target platform matching production query patterns and throughput.
 - [ ] P4-005 Evaluate multi-region architecture for AU resilience and residency constraints. | Owner: CTO + CISO | Risk Owner: CISO | Evidence Owner: CTO | Anchor: deployment strategy docs | Exit: region architecture proposal.
-  - [ ] P4-005-D Decision: ADR on active-active vs active-passive, data residency boundaries, and latency budget.
+  - [x] P4-005-D Decision: ADR on active-active vs active-passive, data residency boundaries, and latency budget. Evidence: `docs/decisions/p4-005-multi-region.md`. Decision: Single-region AU (ap-southeast-2) for pilot; active-passive to Melbourne when demand justifies.
   - [ ] P4-005-I Implementation: Multi-region deployment topology with cross-region replication and DNS failover.
   - [ ] P4-005-V Validation: Region failover drill with RTO/RPO measurement and data residency compliance check.
 - [ ] P4-006 Build model registry and lifecycle governance on persistent infra. | Owner: VP ML | Risk Owner: VP ML | Evidence Owner: CTO | Anchor: model registry services | Exit: production-grade registry deployment.
-  - [ ] P4-006-D Decision: ADR on registry platform (MLflow, Weights & Biases, custom) and versioning/promotion policy.
+  - [x] P4-006-D Decision: ADR on registry platform (MLflow, Weights & Biases, custom) and versioning/promotion policy. Evidence: `docs/decisions/p4-006-model-registry.md`. Decision: In-process registry for pilot; MLflow evaluation at post-pilot scale.
   - [ ] P4-006-I Implementation: Deploy registry with model versioning, lineage tracking, and approval gates.
   - [ ] P4-006-V Validation: Full model promotion lifecycle test (train → register → stage → promote → rollback).
 - [ ] P4-007 Add advanced clinician copilot UX experiments after safety baseline lock. | Owner: VP Product | Risk Owner: VP Product | Evidence Owner: Clinical AI | Anchor: product roadmap | Exit: experiment guardrails approved.
-  - [ ] P4-007-D Decision: Define experiment scope, safety guardrails, and success/abort criteria before any user exposure.
+  - [x] P4-007-D Decision: Define experiment scope, safety guardrails, and success/abort criteria before any user exposure. Evidence: `docs/decisions/p4-007-clinician-copilot-ux.md`. Decision: No experiments during pilot. Framework and guardrails defined for post-pilot activation.
   - [ ] P4-007-I Implementation: Build experiment framework with feature flags, A/B routing, and clinician feedback capture.
   - [ ] P4-007-V Validation: Controlled experiment with safety monitoring dashboard and predefined abort triggers.
 - [ ] P4-008 Evaluate ambient voice/documentation integration as separate product track. | Owner: Product + Clinical AI | Risk Owner: Product | Evidence Owner: Clinical AI | Anchor: voice/transcription scaffolds | Exit: business case and scope.
-  - [ ] P4-008-D Decision: Business case with build-vs-buy analysis, accuracy requirements, and PHI handling strategy for audio.
+  - [x] P4-008-D Decision: Business case with build-vs-buy analysis, accuracy requirements, and PHI handling strategy for audio. Evidence: `docs/decisions/p4-008-voice-integration.md`. Decision: Separate product track. Buy STT, <5% medical WER required.
   - [ ] P4-008-I Implementation: Integrate speech-to-text pipeline with clinical note structuring and NLP extraction.
   - [ ] P4-008-V Validation: WER benchmark on clinical speech corpus and end-to-end note accuracy measurement.
 - [ ] P4-009 Expand guideline corpus to specialty depth with editorial governance board. | Owner: Clinical AI + Clinical Governance | Risk Owner: Clinical Governance | Evidence Owner: Clinical AI | Anchor: guideline services | Exit: specialty roadmap with owners.
-  - [ ] P4-009-D Decision: Priority ranking of specialties by pilot demand, guideline availability, and clinical risk.
+  - [x] P4-009-D Decision: Priority ranking of specialties by pilot demand, guideline availability, and clinical risk. Evidence: `docs/decisions/p4-009-guideline-corpus.md`. Decision: General IM first, then cardiology, oncology, nephrology, endocrinology. Editorial board charter defined.
   - [ ] P4-009-I Implementation: Ingest specialty guidelines with structured metadata, version tracking, and expiry policy.
   - [ ] P4-009-V Validation: Clinical review board sign-off on each specialty corpus with coverage and accuracy report.
 - [ ] P4-010 Add advanced causal inference modules only after core trust metrics stabilize. | Owner: Clinical AI | Risk Owner: Clinical AI | Evidence Owner: CTO | Anchor: reasoning roadmap | Exit: safety gate criteria met.
-  - [ ] P4-010-D Decision: Define trust metric stability thresholds that gate causal inference activation.
+  - [x] P4-010-D Decision: Define trust metric stability thresholds that gate causal inference activation. Evidence: `docs/decisions/p4-010-causal-inference.md`. Decision: DEFER. 5 trust metric thresholds defined; all must be met simultaneously.
   - [ ] P4-010-I Implementation: Build causal reasoning module with explicit assumption declaration and uncertainty propagation.
   - [ ] P4-010-V Validation: Blinded clinical evaluation comparing causal vs correlation-only outputs on safety-critical cases.
 - [ ] P4-011 Evaluate adaptive personalization of confidence thresholds by role/workflow. | Owner: Product + Clinical AI | Risk Owner: Product | Evidence Owner: Clinical AI | Anchor: policy roadmap | Exit: ethics and safety review complete.
-  - [ ] P4-011-D Decision: Ethics review on whether role-adaptive thresholds create safety disparities. Define guardrail bounds.
+  - [x] P4-011-D Decision: Ethics review on whether role-adaptive thresholds create safety disparities. Define guardrail bounds. Evidence: `docs/decisions/p4-011-adaptive-confidence.md`. Decision: Ethics review required before activation. Immutable safety floor defined per risk tier.
   - [ ] P4-011-I Implementation: Configurable threshold profiles per role with minimum safety floor that cannot be lowered.
   - [ ] P4-011-V Validation: Simulation showing no role profile produces worse safety outcomes than the baseline.
 - [ ] P4-012 Build external developer platform for partner integrations after core hardening. | Owner: CTO + Product | Risk Owner: CTO | Evidence Owner: Product | Anchor: platform roadmap | Exit: API platform readiness checklist.
-  - [ ] P4-012-D Decision: ADR on API surface, rate limiting, tenant isolation model, and partner onboarding requirements.
+  - [x] P4-012-D Decision: ADR on API surface, rate limiting, tenant isolation model, and partner onboarding requirements. Evidence: `docs/decisions/p4-012-developer-platform.md`. Decision: DEFER. API surface categorized. Activation gated on first external partner LOI.
   - [ ] P4-012-I Implementation: Build developer portal with sandboxed API keys, usage dashboards, and documentation.
   - [ ] P4-012-V Validation: Onboard one external partner end-to-end and measure time-to-first-integration.
 - [ ] P4-013 Add formal SaMD pathway exploration if feature set crosses regulatory thresholds. | Owner: Compliance + Legal | Risk Owner: Legal | Evidence Owner: Compliance | Anchor: regulatory strategy docs | Exit: formal regulatory determination.
-  - [ ] P4-013-D Decision: Regulatory determination on whether current/planned features meet SaMD definition (IEC 62304, FDA guidance).
+  - [x] P4-013-D Decision: Regulatory determination on whether current/planned features meet SaMD definition (IEC 62304, FDA guidance). Evidence: `docs/decisions/p4-013-samd-pathway.md`. Decision: Current features do NOT meet SaMD definition. Threshold triggers defined for monitoring.
   - [ ] P4-013-I Implementation: If SaMD applies, build quality management system and design history file.
   - [ ] P4-013-V Validation: Pre-submission meeting or regulatory sandbox feedback on classification and pathway.
 - [ ] P4-014 Evaluate full data mesh architecture only if scale and org maturity justify complexity. | Owner: CTO + Data | Risk Owner: CTO | Evidence Owner: Data | Anchor: architecture roadmap | Exit: approved architecture decision record.
-  - [ ] P4-014-D Decision: ADR with quantified complexity cost vs benefit at current and projected scale.
+  - [x] P4-014-D Decision: ADR with quantified complexity cost vs benefit at current and projected scale. Evidence: `docs/decisions/p4-014-data-mesh.md`. Decision: PREMATURE. Maintain monolith with domain boundaries in code. Revisit at 100K patients or 10+ engineers.
   - [ ] P4-014-I Implementation: Pilot one domain as self-serve data product with contracts and SLOs.
   - [ ] P4-014-V Validation: Measure data product consumer satisfaction and operational overhead vs monolithic baseline.
 - [ ] P4-015 Build long-term clinical outcome feedback loops tied to real-world performance. | Owner: Clinical AI + CIO | Risk Owner: CIO | Evidence Owner: Clinical AI | Anchor: quality/outcomes roadmap | Exit: outcome measurement framework live.
-  - [ ] P4-015-D Decision: Define outcome metrics, measurement windows, and attribution methodology with clinical advisors.
+  - [x] P4-015-D Decision: Define outcome metrics, measurement windows, and attribution methodology with clinical advisors. Evidence: `docs/decisions/p4-015-outcome-feedback.md`. Decision: Framework defined. Direct metrics at pilot launch; indirect metrics deferred to EHR outcome feed.
   - [ ] P4-015-I Implementation: Build outcome data capture pipeline with linkage to system recommendations.
   - [ ] P4-015-V Validation: First quarterly outcome report demonstrating measurable signal (positive, negative, or inconclusive).
 - [ ] P4-016 Build a Trust/Proof Center for external viewers and pilots (production evidence first, claims second). | Owner: VP Product + CISO | Risk Owner: VP Product | Evidence Owner: CISO | Anchor: `frontend/src/app/page.tsx`, `frontend/src/app/docs/page.tsx`, `frontend/src/app/changelog/page.tsx`, `frontend/src/app/security/page.tsx`, `docs/operations`, `tasks/16_sprint1_execution_board.md` | Exit: external-facing route with no unbacked claims and evidence cards linked to execution artifacts.
-  - [ ] P4-016-D Decision: Define evidence model: one claim → one or more evidence artifacts, freshness SLA, and review owner.
+  - [x] P4-016-D Decision: Define evidence model: one claim → one or more evidence artifacts, freshness SLA, and review owner. Evidence: `docs/decisions/p4-016-trust-proof-center.md`. Decision: Evidence model defined with per-category freshness SLAs and review owners.
   - [ ] P4-016-I Implementation: Build `/trust` + `/proof` pages with real-time API health snapshot, P0 evidence status, audit/control evidence links, and release evidence timeline.
   - [ ] P4-016-V Validation: One human-run review of each trust section confirms every statement has evidence path and timestamp.
 - [ ] P4-017 Remove mock-only operational surfaces for production confidence. | Owner: CTO + Ops | Risk Owner: Ops | Evidence Owner: CTO | Anchor: `frontend/src/app/admin/dashboard/page.tsx`, `frontend/src/app/admin/audit/page.tsx` | Exit: operator-facing pages are evidence-backed and explicitly flag simulation data.
-  - [ ] P4-017-D Decision: Define production-only vs demonstration-mode metrics and explicit “simulated” labeling rules.
+  - [x] P4-017-D Decision: Define production-only vs demonstration-mode metrics and explicit "simulated" labeling rules. Evidence: `docs/decisions/p4-017-mock-surface-removal.md`. Decision: Live/Mixed/Simulation modes defined. Labeling standard documented per surface.
   - [ ] P4-017-I Implementation: Replace mock audit tables, replace simulated resource gauges/charts in dashboard with API-driven telemetry or explicit demo-mode state + opt-in switch.
   - [ ] P4-017-V Validation: QA walk through that every confidence/health card resolves to live API or explicitly shows fallback reason and timestamp.
 - [ ] P4-018 Build a production demo workspace for sales with role-specific scenarios and auditable run history. | Owner: VP Product + Clinical AI + CTO | Risk Owner: VP Product | Evidence Owner: Clinical AI | Anchor: `frontend/src/app/clinical/page.tsx`, `frontend/src/app/clinical/intelligence/page.tsx`, `frontend/src/app/pipelines/openehr/operations/page.tsx` | Exit: repeatable demo path that uses real services and outputs evidence artifacts.
-  - [ ] P4-018-D Decision: Define 3 sales scenarios (clinical, interoperability, quality/ops) with required output bundle and acceptance criteria.
+  - [x] P4-018-D Decision: Define 3 sales scenarios (clinical, interoperability, quality/ops) with required output bundle and acceptance criteria. Evidence: `docs/decisions/p4-018-demo-workspace.md`. Decision: 3 scenarios defined with reviewer checklist and acceptance criteria.
   - [ ] P4-018-I Implementation: Add role-specific demo launcher, scenario manifest, and one-click evidence exporter (query inputs, API responses, provenance summary).
   - [ ] P4-018-V Validation: 3 external-facing dry runs complete with exported evidence bundle and no blocker issues.
 - [ ] P4-019 Convert report and export pages from mock datasets to production report pipelines. | Owner: CTO + CISO + Ops | Risk Owner: CTO | Evidence Owner: Ops | Anchor: `frontend/src/app/reports/page.tsx`, `frontend/src/app/reports/export/page.tsx`, backend reporting endpoints (P2-016 / reports automation anchor) | Exit: report pages can be generated from real data with audit trail and export integrity checks.
-  - [ ] P4-019-D Decision: Define report contracts (template, params, owner, retention, signing) and required export evidence metadata.
+  - [x] P4-019-D Decision: Define report contracts (template, params, owner, retention, signing) and required export evidence metadata. Evidence: `docs/decisions/p4-019-production-reports.md`. Decision: 5 report types defined with contracts, retention, signing requirements, and export metadata schema.
   - [ ] P4-019-I Implementation: Wire to production report endpoints/scheduler, remove seeded mock templates/jobs, and add immutable export artifact metadata.
   - [ ] P4-019-V Validation: Generate one cohort and one billing-quality report from production data and verify downloadable artifact plus audit record.
 - [ ] P4-020 Replace static docs/changelog pages with evidence-indexed knowledge map. | Owner: VP Product + CISO | Risk Owner: VP Product | Evidence Owner: CISO | Anchor: `frontend/src/app/docs/page.tsx`, `frontend/src/app/changelog/page.tsx`, `docs/operations` | Exit: every claim/version has artifact links and runbook traceability.
-  - [ ] P4-020-D Decision: Define canonical artifact index schema for operations docs, evidence packs, and release decisions.
+  - [x] P4-020-D Decision: Define canonical artifact index schema for operations docs, evidence packs, and release decisions. Evidence: `docs/decisions/p4-020-evidence-indexed-docs.md`. Decision: EvidenceEntry schema defined. 3-click navigation target. Source registries mapped.
   - [ ] P4-020-I Implementation: Refactor docs and changelog routes to load from source registry (`tasks` + docs) with deep links and last-updated evidence.
   - [ ] P4-020-V Validation: New hire and investor can navigate from feature statement to supporting evidence and run records in <=3 clicks.
 
@@ -249,7 +249,8 @@ Execution rules
 - P1: 35 items (all closed)
 - P2: 30 items (all closed)
 - P3: 25 items (all closed)
-- P4: 20 items (all open, 60 sub-tasks: 20 Decision + 20 Implementation + 20 Validation)
+- P4: 20 items (all open, 60 sub-tasks: **20 Decision CLOSED** + 20 Implementation open + 20 Validation open)
+- P4-D completion: 20/20 (100%) — all Decision ADRs written with evidence paths as of 2026-02-16
 - Total: 138 top-level items + 70 sub-tasks
 
 ## P0 Closure Execution Sequence (Week 1 Focus)

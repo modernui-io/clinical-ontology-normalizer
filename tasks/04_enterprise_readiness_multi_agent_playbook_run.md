@@ -3,7 +3,7 @@
 Run metadata
 - Run ID: `enterprise-readiness-openehr-pilot-v1`
 - Started: `2026-02-13`
-- Last Updated: `2026-02-16T17:50Z`
+- Last Updated: `2026-02-16T19:30Z`
 - Mode: implementation (non-blocking handoff + execution)
 - Region context: Ramsey Health Australia
 - Canonical target model: OpenEHR
@@ -93,14 +93,14 @@ next_required_artifacts:
 | Backend health | degraded (Kafka down expected, PG up, Redis up, Neo4j mock) | `http://localhost:8000/api/v1/health` |
 
 **Staging blockers (5 conditions from P0-028 signoff — cannot execute without staging):**
-1. OpenEHR round-trip staging confirmation — blocked (no staging URL)
-2. Redis containerized failover — blocked (Redis native, not Docker)
-3. Neo4j restore drill — blocked (mock_mode, no staging Neo4j)
-4. Cascade failover simulation — blocked (requires all deps containerized)
-5. 30-day review — scheduled 2026-03-16
+1. OpenEHR round-trip staging confirmation — `blocked_by_infrastructure` | Owner: CIO + Ops | ETA: when staging URL provisioned | No staging URL available
+2. Redis containerized failover — `blocked_by_infrastructure` | Owner: Ops + CTO | ETA: when Redis containerized in staging | Redis native process, not Docker-controlled
+3. Neo4j restore drill — `blocked_by_infrastructure` | Owner: Ops | ETA: when staging Neo4j provisioned | Running mock_mode, no staging Neo4j instance
+4. Cascade failover simulation — `blocked_by_infrastructure` | Owner: Ops + CTO | ETA: when all deps containerized in staging | Requires Redis + Neo4j + Kafka in Docker
+5. 30-day review — scheduled 2026-03-16 | Owner: Program Lead + all role leads | Escalation: auto-trigger if no staging by 2026-03-02
 
-**Operator:** closure-operator-2
-**Conclusion:** All P0 gates that can be closed on localhost are closed. Remaining 5 conditions require staging infrastructure provisioning. No gate marked done without evidence path.
+**Operator:** continuation-operator-3
+**Conclusion (2026-02-16):** All P0 gates that can be closed on localhost are closed. Remaining 5 conditions require staging infrastructure provisioning. No gate marked done without evidence path. Status: `blocked_by_infrastructure`. Focus shifted to P4 backlog execution (Decision phases) while staging is provisioned.
 
 ## Cross-Role Blocking Themes (P0/P1)
 1. Mock/fallback behavior in core dependencies is not consistently fail-closed for production posture.
@@ -170,3 +170,6 @@ next_required_artifacts:
 - 2026-02-16: P0-018 completed (Meditech-to-OpenEHR adapter contract + lineage enrichment + API metadata path). Evidence: `backend/app/connectors/meditech_openehr_contract.py`, `backend/app/connectors/__init__.py`, `backend/app/services/openehr_import.py`, `backend/app/api/openehr.py`, `backend/tests/test_openehr_import_export.py`.
 - 2026-02-16: `backend/tests/test_openehr_import_export.py` passes (66 passed). Existing broader test/lint status remains unchanged from earlier session.
 - 2026-02-16: Backlog execution status re-synced with Sprint 1 board: `P0-019`, `P0-025`, `P0-026`, `P0-027`, and `P0-028` remain open in `tasks/09_master_change_backlog_p0_p4.md` until operational rehearsal evidence is completed.
+- 2026-02-16: Continuation operator-3 confirmed 5 staging conditions are `blocked_by_infrastructure`. No staging provisioned in-session. Named owners and ETAs recorded. No previously blocked gate marked final GO. P4 backlog execution initiated (Decision phases).
+- 2026-02-16: P4 Decision phase execution started: P4-001-D through P4-020-D. ADRs being written for each item based on codebase evidence.
+- 2026-02-16: P4 Decision phase completed: 20/20 ADRs written at `docs/decisions/p4-001-*.md` through `docs/decisions/p4-020-*.md`. All Decision sub-tasks checked in master backlog. Implementation and Validation phases remain open pending activation triggers defined in each ADR.

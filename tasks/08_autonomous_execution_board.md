@@ -73,8 +73,45 @@ Status legend
 | BLK-03 | Confidence policy not enforced consistently across workflows | VP Product + Clinical AI | 2026-02-13 | ~~2026-02-21~~ **CLOSED 2026-02-15** | P0-021/022/023 done. Risk-tier gating, decline behavior, provenance detection all enforced in /query endpoint. |
 | BLK-04 | Auth/secrets/audit readiness gaps for external access | CISO | 2026-02-13 | ~~2026-02-21~~ **CLOSED 2026-02-15** | P0-009 through P0-017 done. Auth, secrets, encryption, TLS, audit, tenant boundaries all enforced. |
 
+## Staging Infrastructure Blockers (blocked_by_infrastructure)
+| Condition | Owner | ETA | Status |
+|-----------|-------|-----|--------|
+| OpenEHR round-trip staging confirmation | CIO + Ops | When staging URL provisioned | blocked_by_infrastructure |
+| Redis containerized failover drill | Ops + CTO | When Redis containerized in staging | blocked_by_infrastructure |
+| Neo4j restore drill on staging | Ops | When staging Neo4j provisioned | blocked_by_infrastructure |
+| Cascade failover simulation | Ops + CTO | When all deps containerized | blocked_by_infrastructure |
+| 30-day signoff review | Program Lead + all leads | 2026-03-16 (auto-escalate if no staging by 2026-03-02) | scheduled |
+
+**Rule:** No previously blocked gate may be marked final GO until staging evidence is captured. If staging not provisioned by 2026-03-02, escalate to CTO + CIO for infrastructure decision.
+
+## P4 Decision Execution Track (20/20 COMPLETE)
+| P4 ID | Decision Status | Evidence Path | Decision Summary |
+|-------|----------------|---------------|-----------------|
+| P4-001-D | done | `docs/decisions/p4-001-federated-learning.md` | DEFER — 90-day stability gate |
+| P4-002-D | done | `docs/decisions/p4-002-tefca-strategy.md` | DEFER — Framework Participant via Carequality when US entry |
+| P4-003-D | done | `docs/decisions/p4-003-onc-certification.md` | CONDITIONAL DEFER — not required for AU pilot |
+| P4-004-D | done | `docs/decisions/p4-004-graph-platform.md` | Neo4j Community for pilot; Aura at 50K patients |
+| P4-005-D | done | `docs/decisions/p4-005-multi-region.md` | Single-region AU (Sydney); active-passive to Melbourne later |
+| P4-006-D | done | `docs/decisions/p4-006-model-registry.md` | In-process for pilot; MLflow post-pilot |
+| P4-007-D | done | `docs/decisions/p4-007-clinician-copilot-ux.md` | No experiments during pilot; guardrails defined |
+| P4-008-D | done | `docs/decisions/p4-008-voice-integration.md` | Separate product track; buy STT, <5% medical WER |
+| P4-009-D | done | `docs/decisions/p4-009-guideline-corpus.md` | General IM first; editorial board charter defined |
+| P4-010-D | done | `docs/decisions/p4-010-causal-inference.md` | DEFER — 5 trust metric thresholds gate activation |
+| P4-011-D | done | `docs/decisions/p4-011-adaptive-confidence.md` | Ethics review required; immutable safety floor defined |
+| P4-012-D | done | `docs/decisions/p4-012-developer-platform.md` | DEFER — API surface categorized; gated on partner LOI |
+| P4-013-D | done | `docs/decisions/p4-013-samd-pathway.md` | Current features NOT SaMD; threshold triggers monitored |
+| P4-014-D | done | `docs/decisions/p4-014-data-mesh.md` | PREMATURE — monolith with code boundaries; revisit at 100K |
+| P4-015-D | done | `docs/decisions/p4-015-outcome-feedback.md` | Framework defined; direct metrics at pilot launch |
+| P4-016-D | done | `docs/decisions/p4-016-trust-proof-center.md` | Evidence model + freshness SLAs defined |
+| P4-017-D | done | `docs/decisions/p4-017-mock-surface-removal.md` | Live/Mixed/Simulation labeling standard |
+| P4-018-D | done | `docs/decisions/p4-018-demo-workspace.md` | 3 scenarios + reviewer checklist defined |
+| P4-019-D | done | `docs/decisions/p4-019-production-reports.md` | 5 report contracts + export metadata schema |
+| P4-020-D | done | `docs/decisions/p4-020-evidence-indexed-docs.md` | EvidenceEntry schema + 3-click navigation target |
+
 ## Current posture
 - Pilot posture as of `2026-02-16`: `conditional_go` (ALL 28 P0 items closed with evidence. Signoff: CONDITIONAL GO with 5 staging conditions. P1: all 35 closed.)
+- Staging posture as of `2026-02-16`: `blocked_by_infrastructure` (5 conditions require staging provisioning — no gate marked final GO)
 - Broad rollout posture as of `2026-02-16`: `hold` (staging confirmation required for OpenEHR round-trip, Redis failover, Neo4j restore, and cascade simulation)
+- P4 execution posture as of `2026-02-16`: `decision_complete` (20/20 Decision ADRs closed; Implementation and Validation pending activation triggers)
 - Previous: Pilot posture as of `2026-02-16` (earlier): `controlled_go_only`
 - Previous: Pilot posture as of `2026-02-13`: `controlled_go_only`
