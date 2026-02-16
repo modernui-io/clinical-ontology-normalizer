@@ -138,7 +138,7 @@ class VocabularyService:
                 concept = OMOPConcept(
                     concept_id=concept_data["concept_id"],
                     concept_name=concept_data["concept_name"],
-                    concept_code=concept_data["concept_code"],
+                    concept_code=concept_data.get("concept_code", str(concept_data["concept_id"])),
                     vocabulary_id=concept_data["vocabulary_id"],
                     domain_id=concept_data["domain_id"],
                     synonyms=synonyms,

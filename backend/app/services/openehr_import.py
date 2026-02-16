@@ -157,22 +157,23 @@ class OpenEHRImportService:
     ) -> None:
         """Record lineage for a ClinicalFact created from an OpenEHR entry."""
         try:
-            await record_lineage(
-                session=session,
-                fact_id=fact.id,
-                source_type=SourceType.OPENEHR_IMPORT,
-                source_resource_type=archetype_id,
-                source_resource_id=entry_data.get("archetype_node_id"),
-                extraction_method="openehr_composition_mapping",
-                extraction_confidence=1.0,
-                transformation_chain=[
-                    {
-                        "step": "openehr_composition_import",
-                        "archetype": archetype_id,
-                        "pipeline_version": self._pipeline_version,
-                    }
-                ],
-            )
+            async with session.begin_nested():
+                await record_lineage(
+                    session=session,
+                    fact_id=fact.id,
+                    source_type=SourceType.OPENEHR_IMPORT,
+                    source_resource_type=archetype_id,
+                    source_resource_id=entry_data.get("archetype_node_id"),
+                    extraction_method="openehr_composition_mapping",
+                    extraction_confidence=1.0,
+                    transformation_chain=[
+                        {
+                            "step": "openehr_composition_import",
+                            "archetype": archetype_id,
+                            "pipeline_version": self._pipeline_version,
+                        }
+                    ],
+                )
         except Exception as e:
             logger.warning(
                 f"Failed to record lineage for fact {fact.id} from "
