@@ -38,6 +38,8 @@ class LLMProvider(str, Enum):
 
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
+    GOOGLE = "google"
+    XAI = "xai"
 
 
 class LLMModel(str, Enum):
@@ -331,15 +333,17 @@ class BaseLLMClient(ABC):
 
 
 class OpenAIClient(BaseLLMClient):
-    """Client for OpenAI API."""
+    """Client for OpenAI API (also used for xAI Grok via base_url)."""
 
-    def __init__(self, api_key: str | None = None):
+    def __init__(self, api_key: str | None = None, base_url: str | None = None):
         """Initialize OpenAI client.
 
         Args:
             api_key: OpenAI API key. If None, uses config.
+            base_url: Custom API base URL (e.g. for xAI Grok).
         """
         self._api_key = api_key or getattr(settings, "openai_api_key", None)
+        self._base_url = base_url
         self._client = None
 
     def _get_client(self) -> Any:
@@ -348,7 +352,10 @@ class OpenAIClient(BaseLLMClient):
             try:
                 from openai import AsyncOpenAI
 
-                self._client = AsyncOpenAI(api_key=self._api_key)
+                kwargs: dict[str, Any] = {"api_key": self._api_key}
+                if self._base_url:
+                    kwargs["base_url"] = self._base_url
+                self._client = AsyncOpenAI(**kwargs)
             except ImportError:
                 raise ImportError(
                     "openai package not installed. Install with: pip install openai"
@@ -520,6 +527,75 @@ class AnthropicClient(BaseLLMClient):
 
 
 # ============================================================================
+# Google Gemini Client (BYOK only)
+# ============================================================================
+
+
+class _GoogleMarkerClient(BaseLLMClient):
+    """Marker client for Google Gemini — uses google-genai SDK."""
+
+    def __init__(self, api_key: str):
+        self._api_key = api_key
+
+    def is_available(self) -> bool:
+        return bool(self._api_key)
+
+    async def generate(
+        self,
+        messages: list[LLMMessage],
+        model: str,
+        max_tokens: int,
+        temperature: float,
+        timeout: int,
+    ) -> LLMResponse:
+        """Generate response using Google Gemini API."""
+        start_time = time.perf_counter()
+
+        try:
+            from google import genai
+        except ImportError:
+            raise ImportError(
+                "google-genai package not installed. Install with: pip install google-genai"
+            )
+
+        client = genai.Client(api_key=self._api_key)
+
+        # Build prompt from messages
+        system_text = ""
+        user_text = ""
+        for msg in messages:
+            if msg.role == "system":
+                system_text = msg.content
+            else:
+                user_text += msg.content
+
+        contents = f"{system_text}\n\n{user_text}" if system_text else user_text
+
+        # google-genai is sync — run in thread
+        response = await asyncio.to_thread(
+            client.models.generate_content,
+            model=model,
+            contents=contents,
+        )
+
+        latency_ms = (time.perf_counter() - start_time) * 1000
+
+        content = response.text or ""
+        token_usage = TokenUsage()
+
+        return LLMResponse(
+            content=content,
+            model=model,
+            provider=LLMProvider.GOOGLE,
+            token_usage=token_usage,
+            cost_estimate=0.0,
+            latency_ms=round(latency_ms, 2),
+            finish_reason="stop",
+            metadata={},
+        )
+
+
+# ============================================================================
 # Main LLM Service
 # ============================================================================
 
@@ -578,8 +654,19 @@ class LLMService:
             max_tokens=getattr(settings, "llm_max_tokens", 4096),
         )
 
+    def _get_byok_config(self) -> dict | None:
+        """Check for BYOK (Bring Your Own Key) override."""
+        try:
+            from app.api.llm_settings import get_byok_config
+            return get_byok_config()
+        except ImportError:
+            return None
+
     def _get_client(self, provider: LLMProvider | None = None) -> BaseLLMClient:
         """Get the appropriate client for the provider.
+
+        Checks BYOK config first — if the user has configured a custom API key,
+        creates an ad-hoc client with that key instead of the system default.
 
         Args:
             provider: Provider to use. If None, uses config default.
@@ -590,9 +677,25 @@ class LLMService:
         Raises:
             ValueError: If the provider is not configured.
         """
-        provider = provider or self.config.provider
+        byok = self._get_byok_config()
+
+        # Use BYOK provider if no explicit override
+        if provider is None and byok and byok.get("provider"):
+            try:
+                provider = LLMProvider(byok["provider"])
+            except ValueError:
+                provider = self.config.provider
+        else:
+            provider = provider or self.config.provider
+
+        # Check for BYOK API key for this provider
+        byok_key = None
+        if byok and byok.get("api_key") and byok.get("provider") == provider.value:
+            byok_key = byok["api_key"]
 
         if provider == LLMProvider.OPENAI:
+            if byok_key:
+                return OpenAIClient(api_key=byok_key)
             if not self._openai_client.is_available():
                 raise ValueError(
                     "OpenAI API key not configured. Set OPENAI_API_KEY environment variable."
@@ -600,11 +703,26 @@ class LLMService:
             return self._openai_client
 
         if provider == LLMProvider.ANTHROPIC:
+            if byok_key:
+                return AnthropicClient(api_key=byok_key)
             if not self._anthropic_client.is_available():
                 raise ValueError(
                     "Anthropic API key not configured. Set ANTHROPIC_API_KEY environment variable."
                 )
             return self._anthropic_client
+
+        if provider == LLMProvider.XAI:
+            # xAI uses OpenAI-compatible API with different base URL
+            if byok_key:
+                return OpenAIClient(api_key=byok_key, base_url="https://api.x.ai/v1")
+            raise ValueError("xAI requires a BYOK API key. Configure one in Settings > AI / LLM.")
+
+        if provider == LLMProvider.GOOGLE:
+            # Google Gemini needs its own SDK — handled specially in generate()
+            if not byok_key:
+                raise ValueError("Google Gemini requires a BYOK API key. Configure one in Settings > AI / LLM.")
+            # Return a marker; generate() handles Google directly
+            return _GoogleMarkerClient(api_key=byok_key)
 
         raise ValueError(f"Unknown provider: {provider}")
 
@@ -633,10 +751,23 @@ class LLMService:
         Raises:
             Exception: If generation fails after all retries.
         """
-        model = model or self.config.model
+        # Check BYOK overrides for model/provider
+        byok = self._get_byok_config()
+        if byok and byok.get("provider") and provider is None:
+            try:
+                provider = LLMProvider(byok["provider"])
+            except ValueError:
+                provider = self.config.provider
+        else:
+            provider = provider or self.config.provider
+
+        if byok and byok.get("model") and model is None:
+            model = byok["model"]
+        else:
+            model = model or self.config.model
+
         max_tokens = max_tokens or self.config.max_tokens
         temperature = temperature if temperature is not None else self.config.temperature
-        provider = provider or self.config.provider
 
         # Build messages
         messages = []
@@ -758,6 +889,10 @@ class LLMService:
             return "gpt-4o-mini"  # Cost-effective default
         elif provider == LLMProvider.ANTHROPIC:
             return "claude-opus-4-6"  # Most capable default
+        elif provider == LLMProvider.GOOGLE:
+            return "gemini-2.0-flash"
+        elif provider == LLMProvider.XAI:
+            return "grok-3-mini-fast"
         return "claude-opus-4-6"
 
     async def generate_chat(
@@ -780,10 +915,23 @@ class LLMService:
         Returns:
             LLMResponse with generated content.
         """
-        model = model or self.config.model
+        # Check BYOK overrides for model/provider
+        byok = self._get_byok_config()
+        if byok and byok.get("provider") and provider is None:
+            try:
+                provider = LLMProvider(byok["provider"])
+            except ValueError:
+                provider = self.config.provider
+        else:
+            provider = provider or self.config.provider
+
+        if byok and byok.get("model") and model is None:
+            model = byok["model"]
+        else:
+            model = model or self.config.model
+
         max_tokens = max_tokens or self.config.max_tokens
         temperature = temperature if temperature is not None else self.config.temperature
-        provider = provider or self.config.provider
 
         # Estimate tokens
         total_text = " ".join(msg.content for msg in messages)

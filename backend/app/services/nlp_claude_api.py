@@ -194,11 +194,22 @@ class LLMNLPService:
         except Exception as e:
             logger.warning(f"Ollama not available: {e}")
 
-        # Try Claude API as fallback
+        # Try Claude API as fallback — check BYOK override first
         try:
             import anthropic
 
             api_key = self.config.anthropic_api_key or os.environ.get("ANTHROPIC_API_KEY")
+
+            # Check BYOK override
+            try:
+                from app.api.llm_settings import get_byok_config
+                byok = get_byok_config()
+                if byok and byok.get("api_key") and byok.get("provider") == "anthropic":
+                    api_key = byok["api_key"]
+                    logger.info("NLP Claude API: using BYOK API key")
+            except ImportError:
+                pass
+
             if api_key:
                 self._claude_client = anthropic.Anthropic(api_key=api_key)
                 self._claude_available = True
