@@ -48,6 +48,7 @@ from app.api import (
     job_queue_router,
     llm_router,
     llm_finetuning_router,
+    llm_settings_router,
     metrics_router,
     nlp_router,
     notes_router,
@@ -928,6 +929,7 @@ api_v1_router.include_router(jobs_router)
 api_v1_router.include_router(job_queue_router)
 api_v1_router.include_router(llm_router)
 api_v1_router.include_router(llm_finetuning_router)
+api_v1_router.include_router(llm_settings_router)
 api_v1_router.include_router(nlp_router)
 api_v1_router.include_router(notes_router)
 api_v1_router.include_router(notifications_router)

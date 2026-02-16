@@ -21,6 +21,11 @@ import {
   Check,
   Shield,
   RefreshCw,
+  Sparkles,
+  Key,
+  Zap,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -857,6 +862,397 @@ function DangerZoneSection() {
 }
 
 // ============================================================================
+// AI / LLM Configuration Section (BYOK)
+// ============================================================================
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api/v1";
+
+interface LLMSettingsData {
+  provider: string;
+  model: string;
+  is_byok: boolean;
+  has_system_key: boolean;
+  key_hint: string | null;
+  available_providers: string[];
+}
+
+interface ModelInfo {
+  id: string;
+  name: string;
+  tier: string;
+}
+
+interface ModelsData {
+  providers: Record<string, ModelInfo[]>;
+}
+
+function LLMSettingsSection() {
+  const [config, setConfig] = useState<LLMSettingsData | null>(null);
+  const [models, setModels] = useState<ModelsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{
+    success: boolean;
+    latency_ms?: number;
+    error?: string;
+  } | null>(null);
+
+  // Form state
+  const [selectedProvider, setSelectedProvider] = useState("anthropic");
+  const [selectedModel, setSelectedModel] = useState("claude-opus-4-6");
+  const [apiKey, setApiKey] = useState("");
+  const [showApiKey, setShowApiKey] = useState(false);
+
+  const fetchConfig = useCallback(async () => {
+    try {
+      const [settingsRes, modelsRes] = await Promise.all([
+        fetch(`${API_BASE}/llm-settings`),
+        fetch(`${API_BASE}/llm-settings/models`),
+      ]);
+      if (settingsRes.ok) {
+        const data: LLMSettingsData = await settingsRes.json();
+        setConfig(data);
+        setSelectedProvider(data.provider);
+        setSelectedModel(data.model);
+      }
+      if (modelsRes.ok) {
+        setModels(await modelsRes.json());
+      }
+    } catch {
+      // non-fatal
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchConfig();
+  }, [fetchConfig]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    setTestResult(null);
+    try {
+      const res = await fetch(`${API_BASE}/llm-settings`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider: selectedProvider,
+          model: selectedModel,
+          api_key: apiKey || null,
+        }),
+      });
+      if (res.ok) {
+        const data: LLMSettingsData = await res.json();
+        setConfig(data);
+        setApiKey("");
+        toast.success("LLM configuration saved", {
+          description: apiKey
+            ? `Using your ${selectedProvider} API key with ${selectedModel}`
+            : `Using system default for ${selectedProvider}`,
+        });
+      } else {
+        const err = await res.json().catch(() => ({ detail: "Save failed" }));
+        toast.error("Failed to save", { description: err.detail });
+      }
+    } catch {
+      toast.error("Failed to save configuration");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleTest = async () => {
+    setTesting(true);
+    setTestResult(null);
+    try {
+      const res = await fetch(`${API_BASE}/llm-settings/test`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider: selectedProvider,
+          model: selectedModel,
+          api_key: apiKey || null,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setTestResult(data);
+      }
+    } catch {
+      setTestResult({ success: false, error: "Network error" });
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  const handleClearByok = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/llm-settings`, { method: "DELETE" });
+      if (res.ok) {
+        setApiKey("");
+        setTestResult(null);
+        await fetchConfig();
+        toast.success("Reverted to system defaults");
+      }
+    } catch {
+      toast.error("Failed to clear configuration");
+    }
+  };
+
+  const providerModels = models?.providers?.[selectedProvider] ?? [];
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5" />
+            AI / LLM Configuration
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            <span className="ml-2 text-sm text-muted-foreground">Loading...</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Status card */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5" />
+            AI / LLM Configuration
+          </CardTitle>
+          <CardDescription>
+            Configure which AI provider and model powers your clinical analysis.
+            Bring your own API key or use the system default.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Current status badge */}
+          {config && (
+            <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
+              {config.is_byok ? (
+                <Key className="h-5 w-5 text-primary" />
+              ) : (
+                <Shield className="h-5 w-5 text-muted-foreground" />
+              )}
+              <div className="flex-1">
+                <p className="text-sm font-medium">
+                  {config.is_byok ? "Using your API key" : "Using system default"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {config.provider} / {config.model}
+                  {config.key_hint && ` (key ${config.key_hint})`}
+                </p>
+              </div>
+              {config.is_byok && (
+                <Button variant="ghost" size="sm" onClick={handleClearByok}>
+                  Revert to default
+                </Button>
+              )}
+            </div>
+          )}
+
+          {/* Provider selection */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Provider</Label>
+            <div className="grid grid-cols-2 gap-3">
+              {["anthropic", "openai"].map((provider) => (
+                <button
+                  key={provider}
+                  type="button"
+                  onClick={() => {
+                    setSelectedProvider(provider);
+                    // Auto-select first model for provider
+                    const firstModel = models?.providers?.[provider]?.[0];
+                    if (firstModel) setSelectedModel(firstModel.id);
+                    setTestResult(null);
+                  }}
+                  className={`flex items-center gap-3 p-4 rounded-lg border-2 transition-colors ${
+                    selectedProvider === provider
+                      ? "border-primary bg-primary/5"
+                      : "border-input hover:border-muted-foreground/50"
+                  }`}
+                >
+                  <div
+                    className={`p-2 rounded-full ${
+                      selectedProvider === provider
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted"
+                    }`}
+                  >
+                    <Sparkles className="h-4 w-4" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-medium capitalize">{provider}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {provider === "anthropic" ? "Claude models" : "GPT models"}
+                    </p>
+                  </div>
+                  {selectedProvider === provider && (
+                    <Check className="h-4 w-4 text-primary ml-auto" />
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Model selection */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Model</Label>
+            <div className="grid gap-2">
+              {providerModels.map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedModel(m.id);
+                    setTestResult(null);
+                  }}
+                  className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${
+                    selectedModel === m.id
+                      ? "border-primary bg-primary/5"
+                      : "border-input hover:border-muted-foreground/50"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    {selectedModel === m.id ? (
+                      <Check className="h-4 w-4 text-primary" />
+                    ) : (
+                      <div className="h-4 w-4" />
+                    )}
+                    <div className="text-left">
+                      <p className="text-sm font-medium">{m.name}</p>
+                      <p className="text-xs text-muted-foreground font-mono">
+                        {m.id}
+                      </p>
+                    </div>
+                  </div>
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full border ${
+                      m.tier === "flagship"
+                        ? "border-amber-500/50 text-amber-600 bg-amber-500/10"
+                        : m.tier === "balanced"
+                        ? "border-blue-500/50 text-blue-600 bg-blue-500/10"
+                        : "border-green-500/50 text-green-600 bg-green-500/10"
+                    }`}
+                  >
+                    {m.tier}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* API Key input */}
+          <div className="space-y-2">
+            <Label htmlFor="api-key" className="text-sm font-medium">
+              API Key{" "}
+              <span className="text-muted-foreground font-normal">
+                (optional — leave blank for system default)
+              </span>
+            </Label>
+            <div className="relative">
+              <Input
+                id="api-key"
+                type={showApiKey ? "text" : "password"}
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                placeholder={
+                  selectedProvider === "anthropic"
+                    ? "sk-ant-api03-..."
+                    : "sk-..."
+                }
+                className="pr-10 font-mono text-sm"
+              />
+              <button
+                type="button"
+                onClick={() => setShowApiKey(!showApiKey)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                {showApiKey ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Your key is stored in server memory only and not persisted to disk.
+              It will be cleared on server restart.
+            </p>
+          </div>
+
+          {/* Test result */}
+          {testResult && (
+            <div
+              className={`flex items-center gap-3 p-3 rounded-lg border ${
+                testResult.success
+                  ? "border-green-500/50 bg-green-500/5"
+                  : "border-destructive/50 bg-destructive/5"
+              }`}
+            >
+              {testResult.success ? (
+                <CheckCircle2 className="h-5 w-5 text-green-600" />
+              ) : (
+                <XCircle className="h-5 w-5 text-destructive" />
+              )}
+              <div className="flex-1">
+                <p className="text-sm font-medium">
+                  {testResult.success ? "Connection successful" : "Connection failed"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {testResult.success
+                    ? `Response in ${testResult.latency_ms?.toFixed(0)}ms`
+                    : testResult.error}
+                </p>
+              </div>
+            </div>
+          )}
+        </CardContent>
+        <CardFooter className="flex gap-3">
+          <Button onClick={handleTest} variant="outline" disabled={testing}>
+            {testing ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Testing...
+              </>
+            ) : (
+              <>
+                <Zap className="mr-2 h-4 w-4" />
+                Test Connection
+              </>
+            )}
+          </Button>
+          <Button onClick={handleSave} disabled={saving}>
+            {saving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="mr-2 h-4 w-4" />
+                Save Configuration
+              </>
+            )}
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
+  );
+}
+
+// ============================================================================
 // Settings Page Component
 // ============================================================================
 
@@ -885,7 +1281,7 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
+        <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-grid">
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="h-4 w-4" />
             <span className="hidden sm:inline">Profile</span>
@@ -893,6 +1289,10 @@ export default function SettingsPage() {
           <TabsTrigger value="security" className="flex items-center gap-2">
             <Lock className="h-4 w-4" />
             <span className="hidden sm:inline">Security</span>
+          </TabsTrigger>
+          <TabsTrigger value="ai" className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4" />
+            <span className="hidden sm:inline">AI / LLM</span>
           </TabsTrigger>
           <TabsTrigger
             value="notifications"
@@ -914,6 +1314,10 @@ export default function SettingsPage() {
         <TabsContent value="security" className="space-y-6">
           <PasswordSection />
           <DangerZoneSection />
+        </TabsContent>
+
+        <TabsContent value="ai" className="space-y-6">
+          <LLMSettingsSection />
         </TabsContent>
 
         <TabsContent value="notifications" className="space-y-6">

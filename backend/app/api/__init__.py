@@ -51,6 +51,7 @@ from app.api.jobs import router as jobs_router
 from app.api.job_queue import router as job_queue_router
 from app.api.llm import router as llm_router
 from app.api.llm_finetuning import router as llm_finetuning_router
+from app.api.llm_settings import router as llm_settings_router
 from app.api.metrics import router as metrics_router
 from app.api.nlp import router as nlp_router
 from app.api.notifications import router as notifications_router
@@ -412,6 +413,7 @@ __all__ = [
     "job_queue_router",
     "llm_router",
     "llm_finetuning_router",
+    "llm_settings_router",
     "metrics_router",
     "nlp_router",
     "notifications_router",

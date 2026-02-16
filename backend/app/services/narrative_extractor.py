@@ -293,11 +293,21 @@ class NarrativeExtractorService:
         except Exception as e:
             logger.warning(f"Ollama not available for narrative extraction: {e}")
 
-        # Try Claude API
-        if settings.anthropic_api_key:
+        # Try Claude API — check BYOK override first, then system default
+        api_key = settings.anthropic_api_key
+        try:
+            from app.api.llm_settings import get_byok_config
+            byok = get_byok_config()
+            if byok and byok.get("api_key") and byok.get("provider") == "anthropic":
+                api_key = byok["api_key"]
+                logger.info("Narrative extractor: using BYOK API key")
+        except ImportError:
+            pass  # llm_settings not available yet during early init
+
+        if api_key:
             try:
                 import anthropic
-                self._claude_client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+                self._claude_client = anthropic.Anthropic(api_key=api_key)
                 self._claude_available = True
                 logger.info("Narrative extractor: Claude API available")
             except Exception as e:
@@ -357,9 +367,19 @@ class NarrativeExtractorService:
         if not self._claude_client:
             return None
 
+        # Check for BYOK model override
+        model = settings.llm_model
+        try:
+            from app.api.llm_settings import get_byok_config
+            byok = get_byok_config()
+            if byok and byok.get("model") and byok.get("provider") == "anthropic":
+                model = byok["model"]
+        except ImportError:
+            pass
+
         try:
             message = self._claude_client.messages.create(
-                model=settings.llm_model,
+                model=model,
                 max_tokens=16384,
                 temperature=0.0,
                 messages=[{"role": "user", "content": prompt}],
