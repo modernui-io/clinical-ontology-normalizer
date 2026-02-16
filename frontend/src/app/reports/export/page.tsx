@@ -26,6 +26,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
+import DataSourceModeBanner from "@/components/readiness/DataSourceModeBanner";
 import {
   FileText,
   Download,
@@ -66,6 +67,9 @@ interface ExportJob {
   completedAt?: string;
   fileSize?: string;
   downloadUrl?: string;
+  templateId?: string;
+  operator?: string;
+  parameters?: Record<string, unknown>;
 }
 
 // Mock data
@@ -81,10 +85,10 @@ const mockTemplates: ReportTemplate[] = [
 ];
 
 const mockExportJobs: ExportJob[] = [
-  { id: "job-1", reportName: "Data Quality Dashboard", format: "pdf", status: "completed", progress: 100, createdAt: "2026-01-24T10:15:00Z", completedAt: "2026-01-24T10:16:30Z", fileSize: "2.4 MB", downloadUrl: "#" },
-  { id: "job-2", reportName: "Risk Stratification Report", format: "xlsx", status: "generating", progress: 65, createdAt: "2026-01-24T10:18:00Z" },
-  { id: "job-3", reportName: "Patient Demographics Summary", format: "csv", status: "queued", progress: 0, createdAt: "2026-01-24T10:19:00Z" },
-  { id: "job-4", reportName: "Cohort Analysis Results", format: "pdf", status: "failed", progress: 45, createdAt: "2026-01-24T09:30:00Z" },
+  { id: "job-1", reportName: "Data Quality Dashboard", format: "pdf", status: "completed", progress: 100, createdAt: "2026-01-24T10:15:00Z", completedAt: "2026-01-24T10:16:30Z", fileSize: "2.4 MB", downloadUrl: "#", templateId: "rpt-2", operator: "Quality Team", parameters: { dateRange: "last30days" } },
+  { id: "job-2", reportName: "Risk Stratification Report", format: "xlsx", status: "generating", progress: 65, createdAt: "2026-01-24T10:18:00Z", templateId: "rpt-3", operator: "Analytics", parameters: { dateRange: "lastQuarter" } },
+  { id: "job-3", reportName: "Patient Demographics Summary", format: "csv", status: "queued", progress: 0, createdAt: "2026-01-24T10:19:00Z", templateId: "rpt-1", operator: "Data Team", parameters: { dateRange: "last7days" } },
+  { id: "job-4", reportName: "Cohort Analysis Results", format: "pdf", status: "failed", progress: 45, createdAt: "2026-01-24T09:30:00Z", templateId: "rpt-4", operator: "Research", parameters: { dateRange: "lastYear" } },
 ];
 
 const categoryIcons: Record<string, React.ReactNode> = {
@@ -206,6 +210,16 @@ export default function ReportExportPage() {
           </Button>
         </div>
       </div>
+
+      <DataSourceModeBanner
+        mode="simulation"
+        title="Export data source mode"
+        description="Report templates, exports, and queue behavior are simulated placeholders. Connect this workspace to production report jobs and parameterized run metadata before external use."
+        evidencePath="tasks/09_master_change_backlog_p0_p4.md"
+        lastUpdatedAt="2026-02-16"
+        signoffText="Simulation only — export actions on this page do not generate real files or write to the backend."
+        backendEndpoints={["/api/v1/reports/export", "/api/v1/reports/export/{job_id}/status", "/api/v1/reports/export/{job_id}/download"]}
+      />
 
       {/* Summary Cards */}
       <div className="grid grid-cols-4 gap-4">
@@ -531,6 +545,7 @@ export default function ReportExportPage() {
                 <TableHead>Format</TableHead>
                 <TableHead>Progress</TableHead>
                 <TableHead>Created</TableHead>
+                <TableHead>Provenance</TableHead>
                 <TableHead>Size</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -552,6 +567,10 @@ export default function ReportExportPage() {
                     </div>
                   </TableCell>
                   <TableCell className="text-sm">{formatDate(job.createdAt)}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground">
+                    {job.templateId && <div>Tmpl: <span className="font-mono">{job.templateId}</span></div>}
+                    {job.operator && <div>Op: {job.operator}</div>}
+                  </TableCell>
                   <TableCell>{job.fileSize || "-"}</TableCell>
                   <TableCell>
                     {job.status === "completed" && (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
+import DataSourceModeBanner from "@/components/readiness/DataSourceModeBanner";
 import {
   FileText,
   Plus,
@@ -95,6 +96,15 @@ interface TemplateParameter {
   default?: string | string[];
 }
 
+interface ReportProvenance {
+  templateId: string;
+  reportTimestamp: string;
+  operator: string;
+  sourcePatientSet?: string;
+  sourceFilters?: Record<string, unknown>;
+  sourceTaskLink?: string;
+}
+
 interface Report {
   id: string;
   name: string;
@@ -108,6 +118,7 @@ interface Report {
   scheduledAt?: string;
   parameters: Record<string, unknown>;
   createdBy: string;
+  provenance: ReportProvenance;
 }
 
 // Mock Templates
@@ -288,7 +299,7 @@ const mockTemplates: ReportTemplate[] = [
   },
 ];
 
-// Mock Reports
+// Mock Reports (simulation fallback — replaced by backend data when API available)
 const mockReports: Report[] = [
   {
     id: "rpt-001",
@@ -302,6 +313,7 @@ const mockReports: Report[] = [
     lastRunAt: "2026-01-10T14:35:00Z",
     parameters: { cohort_id: "coh-001", include_charts: "yes" },
     createdBy: "Dr. Smith",
+    provenance: { templateId: "tmpl-001", reportTimestamp: "2026-01-10T14:35:00Z", operator: "Dr. Smith", sourcePatientSet: "coh-001 (Diabetes Cohort, n=1250)", sourceFilters: { cohort_id: "coh-001" } },
   },
   {
     id: "rpt-002",
@@ -315,6 +327,7 @@ const mockReports: Report[] = [
     lastRunAt: "2026-01-05T09:12:00Z",
     parameters: { measures: ["dm-hba1c", "bp-control"] },
     createdBy: "Quality Team",
+    provenance: { templateId: "tmpl-002", reportTimestamp: "2026-01-05T09:12:00Z", operator: "Quality Team", sourceFilters: { measures: ["dm-hba1c", "bp-control"] } },
   },
   {
     id: "rpt-003",
@@ -328,6 +341,7 @@ const mockReports: Report[] = [
     scheduledAt: "2026-01-27T06:00:00Z",
     parameters: { payer_types: ["medicare", "commercial"] },
     createdBy: "Finance Team",
+    provenance: { templateId: "tmpl-003", reportTimestamp: "2026-01-01T00:00:00Z", operator: "Finance Team", sourceFilters: { payer_types: ["medicare", "commercial"] } },
   },
   {
     id: "rpt-004",
@@ -340,6 +354,7 @@ const mockReports: Report[] = [
     createdAt: "2026-01-24T10:00:00Z",
     parameters: { departments: ["primary-care", "cardiology"] },
     createdBy: "Dr. Johnson",
+    provenance: { templateId: "tmpl-004", reportTimestamp: "2026-01-24T10:00:00Z", operator: "Dr. Johnson", sourceFilters: { departments: ["primary-care", "cardiology"] } },
   },
   {
     id: "rpt-005",
@@ -353,6 +368,7 @@ const mockReports: Report[] = [
     lastRunAt: "2026-01-20T15:18:00Z",
     parameters: { tables: ["person", "condition_occurrence", "drug_exposure"] },
     createdBy: "Data Team",
+    provenance: { templateId: "tmpl-006", reportTimestamp: "2026-01-20T15:18:00Z", operator: "Data Team", sourceFilters: { tables: ["person", "condition_occurrence", "drug_exposure"] } },
   },
 ];
 
@@ -404,14 +420,42 @@ export default function ReportsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<ReportTemplate | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [backendAvailable, setBackendAvailable] = useState<boolean | null>(null);
+  const [reports, setReports] = useState<Report[]>(mockReports);
 
   // New report form state
   const [newReportName, setNewReportName] = useState("");
   const [newReportFormat, setNewReportFormat] = useState<ReportFormat>("pdf");
 
+  // Attempt to load reports from backend; fall back to mock data
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchReports() {
+      try {
+        const res = await fetch("/api/v1/reports", { signal: AbortSignal.timeout(4000) });
+        if (!cancelled && res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data?.reports)) {
+            setReports(data.reports);
+            setBackendAvailable(true);
+            return;
+          }
+        }
+      } catch {
+        // expected when backend is unavailable
+      }
+      if (!cancelled) {
+        setBackendAvailable(false);
+        setReports(mockReports);
+      }
+    }
+    fetchReports();
+    return () => { cancelled = true; };
+  }, []);
+
   // Filter reports
   const filteredReports = useMemo(() => {
-    return mockReports.filter((report) => {
+    return reports.filter((report) => {
       const matchesSearch =
         report.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         report.templateName.toLowerCase().includes(searchQuery.toLowerCase());
@@ -472,6 +516,24 @@ export default function ReportsPage() {
         </div>
       </div>
 
+      <DataSourceModeBanner
+        mode={backendAvailable === true ? "live" : "simulation"}
+        title="Report data source mode"
+        description={
+          backendAvailable === true
+            ? "Connected to live backend. Report data and execution status are served from production endpoints."
+            : "Backend reporting API is unavailable. This page shows mock templates and simulated report status. No report actions write to the backend."
+        }
+        evidencePath="tasks/09_master_change_backlog_p0_p4.md"
+        lastUpdatedAt="2026-02-16"
+        signoffText={
+          backendAvailable === true
+            ? undefined
+            : "Simulation only — report creation, scheduling, and downloads on this page are non-functional placeholders."
+        }
+        backendEndpoints={["/api/v1/reports", "/api/v1/reports/{id}/run", "/api/v1/reports/{id}/download"]}
+      />
+
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
@@ -481,7 +543,7 @@ export default function ReportsPage() {
                 <FileText className="h-4 w-4 text-blue-600" />
               </div>
               <div>
-                <div className="text-2xl font-bold">{mockReports.length}</div>
+                <div className="text-2xl font-bold">{reports.length}</div>
                 <p className="text-xs text-muted-foreground">Total Reports</p>
               </div>
             </div>
@@ -495,7 +557,7 @@ export default function ReportsPage() {
               </div>
               <div>
                 <div className="text-2xl font-bold">
-                  {mockReports.filter((r) => r.status === "completed").length}
+                  {reports.filter((r) => r.status === "completed").length}
                 </div>
                 <p className="text-xs text-muted-foreground">Completed</p>
               </div>
@@ -510,7 +572,7 @@ export default function ReportsPage() {
               </div>
               <div>
                 <div className="text-2xl font-bold">
-                  {mockReports.filter((r) => r.status === "scheduled").length}
+                  {reports.filter((r) => r.status === "scheduled").length}
                 </div>
                 <p className="text-xs text-muted-foreground">Scheduled</p>
               </div>
@@ -602,6 +664,7 @@ export default function ReportsPage() {
                     <TableHead>Status</TableHead>
                     <TableHead>Format</TableHead>
                     <TableHead>Created</TableHead>
+                    <TableHead>Provenance</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -617,6 +680,15 @@ export default function ReportsPage() {
                       <TableCell className="uppercase text-xs font-mono">{report.format}</TableCell>
                       <TableCell className="text-muted-foreground text-sm">
                         {formatDate(report.createdAt)}
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground max-w-[200px]">
+                        <div className="space-y-0.5">
+                          <div>Tmpl: <span className="font-mono">{report.provenance.templateId}</span></div>
+                          <div>Op: {report.provenance.operator}</div>
+                          {report.provenance.sourcePatientSet && (
+                            <div>Set: {report.provenance.sourcePatientSet}</div>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
@@ -726,7 +798,7 @@ export default function ReportsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {mockReports
+                  {reports
                     .filter((r) => r.status === "scheduled")
                     .map((report) => (
                       <TableRow key={report.id}>
