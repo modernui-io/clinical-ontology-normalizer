@@ -234,7 +234,7 @@ describe("Auth API Functions", () => {
 
       expect(result).toEqual(mockUser);
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining("/api/v1/auth/me"),
+        expect.stringContaining("/api/auth/me"),
         expect.objectContaining({
           headers: { Authorization: "Bearer test-access-token" },
         })
@@ -270,7 +270,7 @@ describe("Auth API Functions", () => {
 
       expect(result.name).toBe("Updated Name");
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining("/api/v1/auth/profile"),
+        expect.stringContaining("/api/auth/profile"),
         expect.objectContaining({
           method: "PATCH",
           headers: expect.objectContaining({
@@ -301,7 +301,7 @@ describe("Auth API Functions", () => {
       ).resolves.not.toThrow();
 
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining("/api/v1/auth/change-password"),
+        expect.stringContaining("/api/auth/change-password"),
         expect.objectContaining({
           method: "POST",
           body: JSON.stringify({
@@ -331,7 +331,7 @@ describe("Auth API Functions", () => {
       await expect(apiForgotPassword("test@example.com")).resolves.not.toThrow();
 
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining("/api/v1/auth/forgot-password"),
+        expect.stringContaining("/api/auth/forgot-password"),
         expect.objectContaining({
           method: "POST",
           body: JSON.stringify({ email: "test@example.com" }),

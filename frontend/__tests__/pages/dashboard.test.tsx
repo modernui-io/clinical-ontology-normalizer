@@ -10,7 +10,7 @@
  * - Refresh functionality
  */
 
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import DashboardPage from '@/app/dashboard/page';
 
@@ -23,7 +23,98 @@ jest.mock('next/link', () => {
   );
 });
 
+// Mock PersonaNavigator to avoid side effects
+jest.mock('@/components/PersonaNavigator', () => ({
+  PersonaNavigator: () => <div data-testid="persona-navigator" />,
+}));
+
+// --- Mock fetch data for dashboard API calls ---
+const MOCK_NOW = 1700000000000;
+
+const mockDocumentsPage1 = { total: 1247, documents: [] };
+const mockDocuments100 = {
+  documents: [
+    { id: '1', status: 'completed' },
+    { id: '2', status: 'processing' },
+    { id: '3', status: 'completed' },
+    { id: '4', status: 'failed' },
+    { id: '5', status: 'queued' },
+    { id: '6', status: 'processing' },
+  ],
+};
+const mockPatients = { total: 342 };
+const mockTrials = {
+  trials: [
+    { id: 't1', status: 'recruiting' },
+    { id: 't2', status: 'completed' },
+  ],
+};
+const mockAuditLogs = {
+  logs: [
+    {
+      id: 'log-1',
+      action: 'read',
+      resource_type: 'document',
+      request_path: '/api/documents/doc-123',
+      timestamp: new Date(MOCK_NOW - 5 * 60000).toISOString(),
+      resource_id: 'doc-123',
+    },
+    {
+      id: 'log-2',
+      action: 'create',
+      resource_type: 'document',
+      request_path: '/api/documents',
+      timestamp: new Date(MOCK_NOW - 12 * 60000).toISOString(),
+      resource_id: 'doc-456',
+    },
+    {
+      id: 'log-3',
+      action: 'create',
+      resource_type: 'patient',
+      request_path: '/api/patients',
+      timestamp: new Date(MOCK_NOW - 60 * 60000).toISOString(),
+      patient_id: 'pat-789',
+    },
+  ],
+};
+
+function createMockFetch() {
+  return jest.fn((url: string) => {
+    if (url.includes('/api/documents') && url.includes('page_size=100')) {
+      return Promise.resolve({ ok: true, json: () => Promise.resolve(mockDocuments100) });
+    }
+    if (url.includes('/api/documents') && url.includes('page_size=1')) {
+      return Promise.resolve({ ok: true, json: () => Promise.resolve(mockDocumentsPage1) });
+    }
+    if (url.includes('/api/patients')) {
+      return Promise.resolve({ ok: true, json: () => Promise.resolve(mockPatients) });
+    }
+    if (url.includes('/api/trials')) {
+      return Promise.resolve({ ok: true, json: () => Promise.resolve(mockTrials) });
+    }
+    if (url.includes('/api/audit/logs')) {
+      return Promise.resolve({ ok: true, json: () => Promise.resolve(mockAuditLogs) });
+    }
+    return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+  }) as jest.Mock;
+}
+
 describe('Dashboard Page', () => {
+  let dateSpy: jest.SpyInstance;
+  const originalFetch = global.fetch;
+
+  beforeEach(() => {
+    dateSpy = jest.spyOn(Date, 'now').mockReturnValue(MOCK_NOW);
+    global.fetch = createMockFetch() as unknown as typeof fetch;
+  });
+
+  afterEach(() => {
+    dateSpy.mockRestore();
+    global.fetch = originalFetch;
+    jest.useRealTimers();
+    jest.restoreAllMocks();
+  });
+
   describe('Rendering', () => {
     it('renders dashboard heading', () => {
       render(<DashboardPage />);
@@ -54,9 +145,9 @@ describe('Dashboard Page', () => {
       expect(screen.getByText('Total Patients')).toBeInTheDocument();
     });
 
-    it('renders processing jobs card', () => {
+    it('renders active trials card', () => {
       render(<DashboardPage />);
-      expect(screen.getByText('Processing Jobs')).toBeInTheDocument();
+      expect(screen.getByText('Active Trials')).toBeInTheDocument();
     });
 
     it('renders success rate card', () => {
@@ -64,21 +155,20 @@ describe('Dashboard Page', () => {
       expect(screen.getByText('Success Rate')).toBeInTheDocument();
     });
 
-    it('displays document count', () => {
+    it('displays document count', async () => {
       render(<DashboardPage />);
-      // Check for the mock value
-      expect(screen.getByText('1,247')).toBeInTheDocument();
+      expect(await screen.findByText('1,247')).toBeInTheDocument();
     });
 
-    it('displays patient count', () => {
+    it('displays patient count', async () => {
       render(<DashboardPage />);
-      expect(screen.getByText('342')).toBeInTheDocument();
+      expect(await screen.findByText('342')).toBeInTheDocument();
     });
 
-    it('displays weekly changes', () => {
+    it('displays stats detail text', async () => {
       render(<DashboardPage />);
-      expect(screen.getByText('+89')).toBeInTheDocument();
-      expect(screen.getByText('+12')).toBeInTheDocument();
+      expect(await screen.findByText('2 completed')).toBeInTheDocument();
+      expect(await screen.findByText('in knowledge graph')).toBeInTheDocument();
     });
   });
 
@@ -88,28 +178,32 @@ describe('Dashboard Page', () => {
       expect(screen.getByText('Recent Activity')).toBeInTheDocument();
     });
 
-    it('displays activity items', () => {
+    it('displays activity items', async () => {
       render(<DashboardPage />);
-      expect(screen.getByText('Discharge Summary Processed')).toBeInTheDocument();
-      expect(screen.getByText('Progress Note Uploaded')).toBeInTheDocument();
+      expect(await screen.findByText('Read Document')).toBeInTheDocument();
+      expect(await screen.findByText('Create Document')).toBeInTheDocument();
     });
 
-    it('shows activity timestamps', () => {
+    it('shows activity timestamps', async () => {
       render(<DashboardPage />);
-      expect(screen.getByText('5 minutes ago')).toBeInTheDocument();
-      expect(screen.getByText('12 minutes ago')).toBeInTheDocument();
+      expect(await screen.findByText('5m ago')).toBeInTheDocument();
+      expect(await screen.findByText('12m ago')).toBeInTheDocument();
     });
 
-    it('renders view document links for activities with documents', () => {
+    it('renders view document links for activities with documents', async () => {
       render(<DashboardPage />);
-      const viewDocLinks = screen.getAllByText('View Document');
-      expect(viewDocLinks.length).toBeGreaterThan(0);
+      await waitFor(() => {
+        const viewDocLinks = screen.getAllByText('View Document');
+        expect(viewDocLinks.length).toBeGreaterThan(0);
+      });
     });
 
-    it('renders view patient links for activities with patients', () => {
+    it('renders view patient links for activities with patients', async () => {
       render(<DashboardPage />);
-      const viewPatientLinks = screen.getAllByText('View Patient');
-      expect(viewPatientLinks.length).toBeGreaterThan(0);
+      await waitFor(() => {
+        const viewPatientLinks = screen.getAllByText('View Patient');
+        expect(viewPatientLinks.length).toBeGreaterThan(0);
+      });
     });
 
     it('renders view all activity button', () => {
@@ -186,18 +280,26 @@ describe('Dashboard Page', () => {
       expect(screen.getByText('Connected')).toBeInTheDocument();
     });
 
-    it('displays Job Queue status', () => {
+    it('displays Job Queue status', async () => {
       render(<DashboardPage />);
       expect(screen.getByText('Job Queue')).toBeInTheDocument();
-      expect(screen.getByText('3 pending')).toBeInTheDocument();
+      expect(await screen.findByText('3 pending')).toBeInTheDocument();
     });
   });
 
   describe('Refresh Functionality', () => {
     it('shows loading state when refreshing', async () => {
-      const user = userEvent.setup();
       render(<DashboardPage />);
 
+      // Wait for initial data load to complete
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /refresh/i })).not.toBeDisabled();
+      });
+
+      // Replace fetch with a non-resolving mock so loading state persists
+      global.fetch = jest.fn(() => new Promise(() => {})) as unknown as typeof fetch;
+
+      const user = userEvent.setup();
       const refreshButton = screen.getByRole('button', { name: /refresh/i });
       await user.click(refreshButton);
 
@@ -211,28 +313,31 @@ describe('Dashboard Page', () => {
 
       render(<DashboardPage />);
 
+      // Advance to complete initial load
+      await jest.advanceTimersByTimeAsync(100);
+
       const refreshButton = screen.getByRole('button', { name: /refresh/i });
       await user.click(refreshButton);
 
-      // Fast-forward past the simulated API call
-      await jest.advanceTimersByTimeAsync(1500);
+      // Advance to complete refresh
+      await jest.advanceTimersByTimeAsync(100);
 
-      await waitFor(() => {
-        expect(refreshButton).not.toBeDisabled();
-      });
+      expect(refreshButton).not.toBeDisabled();
 
       jest.useRealTimers();
     });
   });
 
   describe('Activity Icons', () => {
-    it('renders appropriate icons for activity types', () => {
+    it('renders appropriate icons for activity types', async () => {
       render(<DashboardPage />);
 
       // The component should render different icons for different activity types
       // We check for the presence of the activity items which should include icons
-      const activities = screen.getAllByText(/minutes ago|hour ago/);
-      expect(activities.length).toBeGreaterThan(0);
+      await waitFor(() => {
+        const activities = screen.getAllByText(/m ago|h ago/);
+        expect(activities.length).toBeGreaterThan(0);
+      });
     });
   });
 
@@ -244,8 +349,13 @@ describe('Dashboard Page', () => {
       expect(mainHeading).toBeInTheDocument();
     });
 
-    it('buttons are focusable', () => {
+    it('buttons are focusable', async () => {
       render(<DashboardPage />);
+
+      // Wait for loading to complete so button is enabled
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /refresh/i })).not.toBeDisabled();
+      });
 
       const refreshButton = screen.getByRole('button', { name: /refresh/i });
       refreshButton.focus();
