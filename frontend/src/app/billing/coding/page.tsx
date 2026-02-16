@@ -17,7 +17,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   FileText,
   Search,
-  Filter,
   ArrowLeft,
   CheckCircle,
   XCircle,
@@ -30,10 +29,10 @@ import {
   ChevronUp,
   ThumbsUp,
   ThumbsDown,
-  ExternalLink,
   BookOpen,
   RefreshCw,
 } from "lucide-react";
+import { toast } from "sonner";
 
 // Mock data interfaces
 interface CERCitation {
@@ -425,12 +424,16 @@ export default function CodingSuggestionsPage() {
     setSuggestions((prev) =>
       prev.map((s) => (s.id === id ? { ...s, status: "accepted" as const } : s))
     );
+    const suggestion = suggestions.find((s) => s.id === id);
+    toast.success(`Accepted ${suggestion?.code || "suggestion"}`);
   };
 
   const handleReject = (id: string) => {
     setSuggestions((prev) =>
       prev.map((s) => (s.id === id ? { ...s, status: "rejected" as const } : s))
     );
+    const suggestion = suggestions.find((s) => s.id === id);
+    toast.info(`Rejected ${suggestion?.code || "suggestion"}`);
   };
 
   return (
@@ -454,6 +457,15 @@ export default function CodingSuggestionsPage() {
           <RefreshCw className="mr-2 h-4 w-4" />
           Refresh Suggestions
         </Button>
+      </div>
+
+      {/* Demo mode banner */}
+      <div className="flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
+        <AlertCircle className="h-4 w-4 shrink-0" />
+        <span>
+          <strong>Client-side demo mode</strong> — Showing built-in coding
+          suggestions. Connect the backend for live data.
+        </span>
       </div>
 
       {/* Summary Stats */}

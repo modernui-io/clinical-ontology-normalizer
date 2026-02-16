@@ -40,6 +40,31 @@ import {
   ChevronRight,
   Eye,
 } from "lucide-react";
+import { toast } from "sonner";
+
+// ---------------------------------------------------------------------------
+// Auth helpers
+// ---------------------------------------------------------------------------
+
+function getStoredToken(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const stored = localStorage.getItem("auth_tokens");
+    if (stored) {
+      const tokens = JSON.parse(stored);
+      return tokens.access_token || null;
+    }
+  } catch {
+    // Ignore
+  }
+  return null;
+}
+
+function authHeaders(token: string | null): HeadersInit {
+  const h: HeadersInit = { "Content-Type": "application/json" };
+  if (token) h["Authorization"] = `Bearer ${token}`;
+  return h;
+}
 
 // ============================================================================
 // Types
@@ -451,6 +476,7 @@ export default function ClinicalIntelligencePage() {
   const urlTab = searchParams.get("tab");
 
   const [activeTab, setActiveTab] = useState(urlTab || "import");
+  const [demoMode, setDemoMode] = useState(false);
 
   // Import state
   const [patientId, setPatientId] = useState(urlPatient || "TEST12345");
@@ -501,12 +527,13 @@ export default function ClinicalIntelligencePage() {
   const handleImport = async () => {
     const notes = parseNotes(notesInput);
     if (notes.length === 0) {
-      alert("Please enter valid clinical notes");
+      toast.error("Please enter valid clinical notes");
       return;
     }
 
     setIsImporting(true);
     setImportProgress(0);
+    setDemoMode(false);
 
     try {
       // Simulate progress
@@ -514,9 +541,10 @@ export default function ClinicalIntelligencePage() {
         setImportProgress(p => Math.min(p + 10, 90));
       }, 200);
 
+      const token = getStoredToken();
       const response = await fetch("/api/clinical-agent/import", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(token),
         body: JSON.stringify({
           patient_id: patientId,
           notes: notes,
@@ -530,6 +558,7 @@ export default function ClinicalIntelligencePage() {
       if (response.ok) {
         const result: BulkImportResponse = await response.json();
         setImportResult(result);
+        toast.success(`Imported ${result.total_notes} notes, extracted ${result.total_entities} entities`);
 
         // Auto-load the knowledge graph
         if (result.knowledge_graph) {
@@ -537,12 +566,14 @@ export default function ClinicalIntelligencePage() {
           await loadPatientGraph(patientId);
         }
       } else {
-        const error = await response.text();
-        alert(`Import failed: ${error}`);
+        throw new Error("Import failed");
       }
-    } catch (error) {
-      console.error("Import error:", error);
-      alert("Import failed. Check console for details.");
+    } catch {
+      setDemoMode(true);
+      toast.info("Demo mode — API unavailable");
+      // Load mock graph for demo
+      loadMockGraphData();
+      setActiveTab("graph");
     } finally {
       setIsImporting(false);
     }
@@ -552,17 +583,20 @@ export default function ClinicalIntelligencePage() {
   const loadPatientGraph = async (pid: string) => {
     setIsLoadingGraph(true);
     try {
-      const response = await fetch(`/api/v1/clinical-agent/graph/${pid}`);
+      const token = getStoredToken();
+      const response = await fetch(`/api/clinical-agent/graph/${pid}`, {
+        headers: authHeaders(token),
+      });
       if (response.ok) {
         const data = await response.json();
         setKgNodes(data.nodes || []);
         setKgEdges(data.edges || []);
       } else {
-        // Load mock data for demo
+        setDemoMode(true);
         loadMockGraphData();
       }
-    } catch (error) {
-      console.error("Failed to load graph:", error);
+    } catch {
+      setDemoMode(true);
       loadMockGraphData();
     } finally {
       setIsLoadingGraph(false);
@@ -633,9 +667,10 @@ export default function ClinicalIntelligencePage() {
     setIsQuerying(true);
 
     try {
-      const response = await fetch(`/api/v1/clinical-agent/query/${patientId}`, {
+      const token = getStoredToken();
+      const response = await fetch(`/api/clinical-agent/query/${patientId}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(token),
         body: JSON.stringify({
           question: currentQuestion,
           include_evidence: true,
@@ -654,12 +689,12 @@ export default function ClinicalIntelligencePage() {
         };
         setMessages(prev => [...prev, assistantMessage]);
       } else {
-        // Mock response for demo
+        setDemoMode(true);
         const mockResponse = generateMockResponse(currentQuestion);
         setMessages(prev => [...prev, mockResponse]);
       }
-    } catch (error) {
-      console.error("Query error:", error);
+    } catch {
+      setDemoMode(true);
       const mockResponse = generateMockResponse(currentQuestion);
       setMessages(prev => [...prev, mockResponse]);
     } finally {
@@ -770,6 +805,17 @@ export default function ClinicalIntelligencePage() {
           </Badge>
         </div>
       </div>
+
+      {/* Demo mode banner */}
+      {demoMode && (
+        <div className="flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          <span>
+            <strong>Client-side demo mode</strong> — API is unavailable. Showing
+            simulated results.
+          </span>
+        </div>
+      )}
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
