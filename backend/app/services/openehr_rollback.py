@@ -67,6 +67,37 @@ class RollbackVerification:
 class OpenEHRRollbackService:
     """Batch rollback of OpenEHR imports by patient + time range."""
 
+    async def _load_lineage_fact_ids(
+        self,
+        session: AsyncSession,
+        batch_start: datetime,
+        batch_end: datetime,
+    ) -> set[str] | None:
+        """Read affected clinical fact IDs from lineage.
+
+        Uses a savepoint so that if the data_lineage table doesn't exist
+        (e.g. not yet migrated), the failed query is rolled back within
+        the savepoint and the parent transaction stays valid for the
+        patient/time fallback path.
+
+        Returns:
+            Set of fact IDs when lineage table is available.
+            None when lineage is unavailable in this environment.
+        """
+        try:
+            async with session.begin_nested():
+                lineage_result = await session.execute(
+                    select(DataLineageRecord.clinical_fact_id).where(
+                        DataLineageRecord.source_type == SourceType.OPENEHR_IMPORT,
+                        DataLineageRecord.created_at >= batch_start,
+                        DataLineageRecord.created_at <= batch_end,
+                    )
+                )
+                return set(lineage_result.scalars().all())
+        except Exception:
+            logger.exception("Lineage-based rollback failed; using patient/time fallback")
+            return None
+
     async def rollback_import_batch(
         self,
         session: AsyncSession,
@@ -88,14 +119,10 @@ class OpenEHRRollbackService:
         """
         try:
             # Step 1: Find fact IDs from OpenEHR imports in the time range via lineage
-            lineage_result = await session.execute(
-                select(DataLineageRecord.clinical_fact_id).where(
-                    DataLineageRecord.source_type == SourceType.OPENEHR_IMPORT,
-                    DataLineageRecord.created_at >= batch_start,
-                    DataLineageRecord.created_at <= batch_end,
-                )
+            lineage_fact_ids = await self._load_lineage_fact_ids(
+                session, batch_start, batch_end
             )
-            batch_fact_ids = set(lineage_result.scalars().all())
+            batch_fact_ids = set() if lineage_fact_ids is None else lineage_fact_ids
 
             if not batch_fact_ids:
                 # Fallback: find facts directly by patient + time range
@@ -191,14 +218,10 @@ class OpenEHRRollbackService:
         Returns pass/fail with residual counts.
         """
         # Check for active facts from OpenEHR import in the time range
-        lineage_result = await session.execute(
-            select(DataLineageRecord.clinical_fact_id).where(
-                DataLineageRecord.source_type == SourceType.OPENEHR_IMPORT,
-                DataLineageRecord.created_at >= batch_start,
-                DataLineageRecord.created_at <= batch_end,
-            )
+        lineage_fact_ids = await self._load_lineage_fact_ids(
+            session, batch_start, batch_end
         )
-        batch_fact_ids = set(lineage_result.scalars().all())
+        batch_fact_ids = set() if lineage_fact_ids is None else lineage_fact_ids
 
         residual_facts = 0
         residual_edges = 0

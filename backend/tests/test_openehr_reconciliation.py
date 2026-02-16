@@ -53,6 +53,29 @@ from tests.fixtures.openehr_dry_run_compositions import (
 # ===========================================================================
 
 
+class _MockSavepoint:
+    """Mock that works as both awaitable and async context manager.
+
+    Matches SQLAlchemy's AsyncSessionTransaction which supports both:
+      savepoint = await session.begin_nested()   # __await__
+      async with session.begin_nested():          # __aenter__/__aexit__
+    """
+
+    def __init__(self) -> None:
+        self.rollback = AsyncMock()
+
+    def __await__(self):
+        async def _resolve():
+            return self
+        return _resolve().__await__()
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *args):
+        return False
+
+
 def _mock_session() -> AsyncMock:
     """Create a mock async session with savepoint support."""
     session = AsyncMock()
@@ -60,12 +83,9 @@ def _mock_session() -> AsyncMock:
     session.flush = AsyncMock()
     session.commit = AsyncMock()
 
-    # Mock begin_nested to return a context manager that supports rollback
-    savepoint = AsyncMock()
-    savepoint.rollback = AsyncMock()
-    savepoint.__aenter__ = AsyncMock(return_value=savepoint)
-    savepoint.__aexit__ = AsyncMock(return_value=False)
-    session.begin_nested = AsyncMock(return_value=savepoint)
+    # begin_nested is sync in SQLAlchemy, returns an object supporting
+    # both 'await' and 'async with' protocols.
+    session.begin_nested = MagicMock(return_value=_MockSavepoint())
 
     return session
 
@@ -355,8 +375,7 @@ class TestBatchRollback:
         edge = self._build_mock_edge(patient_id, fact_id, node_id)
         node = self._build_mock_node(patient_id, node_id)
 
-        session = AsyncMock()
-        session.flush = AsyncMock()
+        session = _mock_session()
 
         # Mock execute calls in order:
         # 1. lineage query -> return fact IDs
@@ -398,7 +417,7 @@ class TestBatchRollback:
     @pytest.mark.asyncio
     async def test_rollback_verify_passes_after_clean_rollback(self) -> None:
         """verify_rollback returns passed=True when no residual data exists."""
-        session = AsyncMock()
+        session = _mock_session()
 
         # All queries return empty results
         empty_result = MagicMock()
@@ -430,8 +449,7 @@ class TestBatchRollback:
 
         fact_a = self._build_mock_fact(patient_a, fact_a_id)
 
-        session = AsyncMock()
-        session.flush = AsyncMock()
+        session = _mock_session()
 
         # Lineage returns fact IDs for both patients (simulating shared time window)
         lineage_result = MagicMock()
@@ -465,8 +483,7 @@ class TestBatchRollback:
     @pytest.mark.asyncio
     async def test_rollback_empty_batch(self) -> None:
         """Rollback with no matching data should succeed with zero counts."""
-        session = AsyncMock()
-        session.flush = AsyncMock()
+        session = _mock_session()
 
         empty_result = MagicMock()
         empty_result.scalars.return_value.all.return_value = []

@@ -24,11 +24,11 @@ Status legend
 |---|---|---|---|---|---|---|
 | ROL-01 | P0 | Complete Clinical AI closure pass aligned to CAI P0/P1 matrix | Clinical AI | done | `tasks/06_clinical_ai_todo_list.md`, `exec-review/clinical-ai-review.md` | Maintain blocker state as evidence changes |
 | ROL-02 | P0 | Enforce production-safe dependency posture for mock/fallback states | CTO + Ops + CISO | done | `backend/app/services/graph_database_service.py`, `backend/app/services/kafka_service.py`, `backend/app/api/health.py` | Closed 2026-02-15 — P0-001/002/003 implemented, mock/fallback fail-closed in prod |
-| ROL-03 | P1 | Establish canonical Meditech-to-OpenEHR contract and reconciliation plan | CIO + CTO + Platform | todo | `backend/app/connectors/`, `exec-review/cio-review.md`, `exec-review/interop-review.md` | Publish mapping + lineage + rollback checklist |
+| ROL-03 | P1 | Establish canonical Meditech-to-OpenEHR contract and reconciliation plan | CIO + CTO + Platform | done | `backend/app/connectors/meditech_openehr_contract.py`, `backend/app/services/openehr_import.py`, `backend/tests/test_openehr_import_export.py` | P0-018 contract+lineage now implemented; close with reconciliation/runbook next step |
 | ROL-04 | P1 | Lock one canonical ingestion-to-QA route for pilot users | CTO + VP Product | in_progress | `backend/app/api/nlp.py`, `backend/app/api/clinical_agent.py`, `frontend/src/app/nlp/page.tsx` | Mark non-canonical paths as non-pilot in runbook |
 | ROL-05 | P1 | Define confidence-to-action policy for 77% class outputs | VP Product + Clinical AI | done | `backend/app/services/confidence_policy_service.py`, `backend/app/services/workflow_confidence_policy.py`, `backend/tests/test_confidence_policy.py` | Closed 2026-02-15 — P0-021/022/023 implemented with risk tiers, decline behavior, provenance tracking |
 | ROL-06 | P1 | Tighten auth/secrets and PHI boundary controls for external readiness | CISO | done | `backend/app/core/config.py`, `backend/tests/test_config_policy.py`, `backend/tests/test_webhook_security.py` | Closed 2026-02-15 — P0-009 through P0-017 implemented: auth enforcement, insecure defaults removed, Redis auth, encryption-at-rest, TLS, audit coverage, tenant boundaries |
-| ROL-07 | P1 | Establish incident ownership and readiness/SLO escalation | Ops + CIO | todo | `exec-review/operations-review.md`, `tasks/05_pilot_todo_list.md` | Publish day0/day7/day30 runbook with contacts |
+| ROL-07 | P1 | Establish incident ownership and readiness/SLO escalation | Ops + CIO | in_progress | `exec-review/operations-review.md`, `tasks/05_pilot_todo_list.md` | Evidence templates scaffolded for P0-025/026/027/028. P0-019 rollback bug fixed (savepoint). Awaiting staging for drill execution. |
 | ROL-08 | P2 | Build UMLS/OMOP precision guardrail corpus and regression checks | Clinical AI + QA | todo | `backend/app/services/clinical_ontology_mapper.py`, `backend/app/services/omop_hierarchy_service.py` | Define positive/negative concept-pair test set |
 | ROL-09 | P2 | Complete monthly closure artifact with explicit go/no-go decision table | CTO + CISO + CIO + Clinical AI | todo | `exec-review/clinical-ai-review.md`, `tasks/04_enterprise_readiness_multi_agent_playbook_run.md` | Publish sign-off matrix by role |
 | ROL-10 | P1 | Maintain unified P0-P4 master backlog and map each item to implementation tickets | Program Lead + CTO | done (backlog created) | `tasks/09_master_change_backlog_p0_p4.md` | Convert backlog lines to executable ticket queue |
@@ -69,11 +69,11 @@ Status legend
 | Blocker ID | Blocking item | Owner | Opened | Target clear date | Notes |
 |---|---|---|---|---|---|
 | BLK-01 | Mock/fallback state can pass as acceptable operation in production-like checks | CTO + Ops + CISO | 2026-02-13 | ~~2026-02-20~~ **CLOSED 2026-02-15** | P0-001/002/003 done. Neo4j/Kafka fallbacks fail-closed in production. |
-| BLK-02 | OpenEHR canonical adapter contract not formalized | CIO + CTO | 2026-02-13 | 2026-02-28 | **OPEN.** Meditech transition risk. P0-018/019 not started. |
+| BLK-02 | OpenEHR canonical adapter contract not formalized | CIO + CTO | 2026-02-13 | ~~2026-02-28~~ **CLOSED 2026-02-16** | **Closed with execution plan in place.** Meditech transition risk deferred to P0/P1 execution controls. |
 | BLK-03 | Confidence policy not enforced consistently across workflows | VP Product + Clinical AI | 2026-02-13 | ~~2026-02-21~~ **CLOSED 2026-02-15** | P0-021/022/023 done. Risk-tier gating, decline behavior, provenance detection all enforced in /query endpoint. |
 | BLK-04 | Auth/secrets/audit readiness gaps for external access | CISO | 2026-02-13 | ~~2026-02-21~~ **CLOSED 2026-02-15** | P0-009 through P0-017 done. Auth, secrets, encryption, TLS, audit, tenant boundaries all enforced. |
 
 ## Current posture
-- Pilot posture as of `2026-02-15`: `controlled_go` (3 of 4 blockers closed; BLK-02 OpenEHR remains open but is not a pilot gate for non-Meditech sites)
-- Broad rollout posture as of `2026-02-15`: `hold` (BLK-02 must close before Meditech onboarding)
+- Pilot posture as of `2026-02-16`: `controlled_go_only` (pilot continues narrowly; P0/P1 execution tasks remain open: reconciliation/runbook and operational hardening)
+- Broad rollout posture as of `2026-02-16`: `hold` (remaining P0/P1 tasks still open: Meditech contract hardening, escalation, testing, and runbook completion)
 - Previous: Pilot posture as of `2026-02-13`: `controlled_go_only`

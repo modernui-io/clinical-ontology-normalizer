@@ -40,24 +40,24 @@ Execution rules
 - [x] P0-016 Enforce tenant/org boundary checks at query boundaries. | Owner: CISO + Platform | Anchor: `backend/app/core/tenant.py`, `backend/app/security/rbac_service.py` | Exit: cross-tenant data access blocked by policy.
 - [x] P0-017 Add explicit policy gate for external model routes handling PHI. | Owner: CISO + Clinical AI | Anchor: model/agent service configs | Exit: unapproved external providers cannot receive PHI.
 - [x] P0-018 Publish and approve canonical Meditech-to-OpenEHR mapping contract. | Owner: CIO + CTO | Anchor: `backend/app/connectors/`, governance docs | Exit: signed mapping spec with code-system lineage.
-- [ ] P0-019 Add OpenEHR reconciliation and rollback procedure before live onboarding. | Owner: CIO + Ops | Anchor: `docs/operations/openehr_reconciliation_rollback.md` | Exit: dry-run reconciliation and rollback evidence.
-  - [ ] P0-019-A Run 5 mixed-domain OpenEHR dry-runs (conditions, meds, labs, procedures, allergies) with mapping parity checks. Verify versioning/audit semantics on commit paths and replay correctness under live-like load.
-  - [ ] P0-019-B Round-trip validation with deterministic hash/row-count diff checks. Execute rollback drill and record evidence showing data can be fully reverted without orphans or partial state.
+- [ ] P0-019 Add OpenEHR reconciliation and rollback procedure before live onboarding. | Owner: CIO + Ops | Anchor: `docs/operations/openehr_reconciliation_rollback.md` | Exit: dry-run reconciliation and rollback evidence. Evidence: `docs/evidence/p0-019/`. Bug fix applied 2026-02-16: savepoint wrapping in `_load_lineage_fact_ids` to prevent session-poisoning when `data_lineage` table is absent. Awaiting staging re-run.
+  - [x] P0-019-A Run 5 mixed-domain OpenEHR dry-runs — 5/5 PASS (evidence: `docs/evidence/p0-019/p0-019-evidence-20260216T145309Z.json`).
+  - [ ] P0-019-B Round-trip + rollback validation — rollback bug fixed, needs staging re-run to validate.
 - [x] P0-020 Define one canonical ingestion-to-Q&A route for pilot users. | Owner: CTO + VP Product | Anchor: `backend/app/api/nlp.py`, `backend/app/api/clinical_agent.py`, `frontend/src/app/nlp/page.tsx` | Exit: non-canonical routes marked non-pilot/deprecated.
 - [x] P0-021 Enforce confidence-to-action policy for high-risk workflows. | Owner: VP Product + Clinical AI | Anchor: `backend/app/services/confidence_policy_service.py`, `backend/app/schemas/confidence_policy.py`, `backend/app/api/clinical_agent.py` | Exit: low-confidence flows cannot trigger risky actions.
 - [x] P0-022 Require evidence-bound confidence and decline behavior on unsupported claims. | Owner: Clinical AI | Anchor: `backend/app/api/clinical_agent.py` | Exit: insufficient evidence returns decline + escalation path.
 - [x] P0-023 Require source document IDs and provenance fields for every non-empty answer. | Owner: Clinical AI + Product | Anchor: `backend/app/api/clinical_agent.py` | Exit: no evidence-less answer accepted in pilot mode.
 - [x] P0-024 Add explicit "degraded" UX mode with action block and clinician escalation. | Owner: VP Product | Anchor: `frontend/src/components/DegradedBanner.tsx`, `frontend/src/app/nlp/page.tsx`, `frontend/src/app/clinical/page.tsx` | Exit: degraded state is visible and blocks unsafe continuation.
-- [ ] P0-025 Define and staff incident escalation matrix with response SLAs. | Owner: CIO + Ops | Anchor: `docs/operations/incident_escalation_matrix.md` | Exit: named owners with paging and response windows.
+- [ ] P0-025 Define and staff incident escalation matrix with response SLAs. | Owner: CIO + Ops | Anchor: `docs/operations/incident_escalation_matrix.md` | Exit: named owners with paging and response windows. Evidence template: `docs/evidence/p0-025/p0-025-tabletop-template.md`.
   - [ ] P0-025-A Publish and execute escalation drill with paging roster, SLA thresholds by severity (SEV1-4), and handoff discipline. Record who was paged, response time, and resolution path.
   - [ ] P0-025-B Add response-clock evidence (detect → page → assign → recover) and external notification path for breach-like events. Must cover HIPAA 60-day discovery clock and severity-based media/authority notification paths.
-- [ ] P0-026 Execute one backup restore drill for PostgreSQL and Neo4j. | Owner: Ops | Anchor: `docs/operations/backup_restore_drill.md` | Exit: procedure and evidence template published, ready for execution.
+- [ ] P0-026 Execute one backup restore drill for PostgreSQL and Neo4j. | Owner: Ops | Anchor: `docs/operations/backup_restore_drill.md` | Exit: procedure and evidence template published, ready for execution. Evidence template: `docs/evidence/p0-026/p0-026-restore-template.md`.
   - [ ] P0-026-A Execute PostgreSQL restore drill using PITR workflow (WAL archive + base backup + restore command). Record RTO/RPO achieved and validate row-count/integrity post-restore.
   - [ ] P0-026-B Execute Neo4j backup restore drill (backup chain, restore per server/cluster, consistency check). Verify backup chain metadata and run neo4j-admin consistency-checker post-restore.
-- [ ] P0-027 Execute one failover/dependency outage simulation and record MTTR. | Owner: Ops + CTO | Anchor: `docs/operations/failover_simulation.md` | Exit: procedure and MTTR template published, ready for execution.
+- [ ] P0-027 Execute one failover/dependency outage simulation and record MTTR. | Owner: Ops + CTO | Anchor: `docs/operations/failover_simulation.md` | Exit: procedure and MTTR template published, ready for execution. Evidence template: `docs/evidence/p0-027/p0-027-failover-template.md`.
   - [ ] P0-027-A Run dependency-outage failover simulation for each critical dependency (LLM provider, Neo4j, PostgreSQL, Kafka/network). Record MTTR per scenario and compare against SLA targets.
   - [ ] P0-027-B Add no-data-loss assertion checklist and degraded-mode UX check for each failure scenario. Verify clinical safety fallback path works (clinician sees degraded banner, unsafe actions blocked).
-- [ ] P0-028 Produce final pre-pilot signoff matrix (CTO/CISO/CIO/Clinical AI/Product/Ops). | Owner: Program Lead | Anchor: `docs/operations/pre_pilot_signoff_matrix.md` | Exit: dated signoff artifact with unresolved-risk list.
+- [ ] P0-028 Produce final pre-pilot signoff matrix (CTO/CISO/CIO/Clinical AI/Product/Ops). | Owner: Program Lead | Anchor: `docs/operations/pre_pilot_signoff_matrix.md` | Exit: dated signoff artifact with unresolved-risk list. Evidence template: `docs/evidence/p0-028/p0-028-signoff-template.md`.
   - [ ] P0-028-A Complete pre-pilot signoff matrix with named approvers, signature date, expiry date, residual risks accepted, and explicit go/conditional-go/no-go decision row. Must reference evidence artifacts from P0-019, P0-025, P0-026, P0-027.
   - [ ] P0-028-B Define rollback decision criteria — explicit "when do we roll back" triggers with severity thresholds, data-integrity checks, and who has authority to call rollback during pilot.
 
@@ -222,6 +222,26 @@ Execution rules
   - [ ] P4-015-D Decision: Define outcome metrics, measurement windows, and attribution methodology with clinical advisors.
   - [ ] P4-015-I Implementation: Build outcome data capture pipeline with linkage to system recommendations.
   - [ ] P4-015-V Validation: First quarterly outcome report demonstrating measurable signal (positive, negative, or inconclusive).
+- [ ] P4-016 Build a Trust/Proof Center for external viewers and pilots (production evidence first, claims second). | Owner: VP Product + CISO | Risk Owner: VP Product | Evidence Owner: CISO | Anchor: `frontend/src/app/page.tsx`, `frontend/src/app/docs/page.tsx`, `frontend/src/app/changelog/page.tsx`, `frontend/src/app/security/page.tsx`, `docs/operations`, `tasks/16_sprint1_execution_board.md` | Exit: external-facing route with no unbacked claims and evidence cards linked to execution artifacts.
+  - [ ] P4-016-D Decision: Define evidence model: one claim → one or more evidence artifacts, freshness SLA, and review owner.
+  - [ ] P4-016-I Implementation: Build `/trust` + `/proof` pages with real-time API health snapshot, P0 evidence status, audit/control evidence links, and release evidence timeline.
+  - [ ] P4-016-V Validation: One human-run review of each trust section confirms every statement has evidence path and timestamp.
+- [ ] P4-017 Remove mock-only operational surfaces for production confidence. | Owner: CTO + Ops | Risk Owner: Ops | Evidence Owner: CTO | Anchor: `frontend/src/app/admin/dashboard/page.tsx`, `frontend/src/app/admin/audit/page.tsx` | Exit: operator-facing pages are evidence-backed and explicitly flag simulation data.
+  - [ ] P4-017-D Decision: Define production-only vs demonstration-mode metrics and explicit “simulated” labeling rules.
+  - [ ] P4-017-I Implementation: Replace mock audit tables, replace simulated resource gauges/charts in dashboard with API-driven telemetry or explicit demo-mode state + opt-in switch.
+  - [ ] P4-017-V Validation: QA walk through that every confidence/health card resolves to live API or explicitly shows fallback reason and timestamp.
+- [ ] P4-018 Build a production demo workspace for sales with role-specific scenarios and auditable run history. | Owner: VP Product + Clinical AI + CTO | Risk Owner: VP Product | Evidence Owner: Clinical AI | Anchor: `frontend/src/app/clinical/page.tsx`, `frontend/src/app/clinical/intelligence/page.tsx`, `frontend/src/app/pipelines/openehr/operations/page.tsx` | Exit: repeatable demo path that uses real services and outputs evidence artifacts.
+  - [ ] P4-018-D Decision: Define 3 sales scenarios (clinical, interoperability, quality/ops) with required output bundle and acceptance criteria.
+  - [ ] P4-018-I Implementation: Add role-specific demo launcher, scenario manifest, and one-click evidence exporter (query inputs, API responses, provenance summary).
+  - [ ] P4-018-V Validation: 3 external-facing dry runs complete with exported evidence bundle and no blocker issues.
+- [ ] P4-019 Convert report and export pages from mock datasets to production report pipelines. | Owner: CTO + CISO + Ops | Risk Owner: CTO | Evidence Owner: Ops | Anchor: `frontend/src/app/reports/page.tsx`, `frontend/src/app/reports/export/page.tsx`, backend reporting endpoints (P2-016 / reports automation anchor) | Exit: report pages can be generated from real data with audit trail and export integrity checks.
+  - [ ] P4-019-D Decision: Define report contracts (template, params, owner, retention, signing) and required export evidence metadata.
+  - [ ] P4-019-I Implementation: Wire to production report endpoints/scheduler, remove seeded mock templates/jobs, and add immutable export artifact metadata.
+  - [ ] P4-019-V Validation: Generate one cohort and one billing-quality report from production data and verify downloadable artifact plus audit record.
+- [ ] P4-020 Replace static docs/changelog pages with evidence-indexed knowledge map. | Owner: VP Product + CISO | Risk Owner: VP Product | Evidence Owner: CISO | Anchor: `frontend/src/app/docs/page.tsx`, `frontend/src/app/changelog/page.tsx`, `docs/operations` | Exit: every claim/version has artifact links and runbook traceability.
+  - [ ] P4-020-D Decision: Define canonical artifact index schema for operations docs, evidence packs, and release decisions.
+  - [ ] P4-020-I Implementation: Refactor docs and changelog routes to load from source registry (`tasks` + docs) with deep links and last-updated evidence.
+  - [ ] P4-020-V Validation: New hire and investor can navigate from feature statement to supporting evidence and run records in <=3 clicks.
 
 ## Rollup Counts
 
@@ -229,8 +249,8 @@ Execution rules
 - P1: 35 items (all closed)
 - P2: 30 items (all closed)
 - P3: 25 items (all closed)
-- P4: 15 items (all open, 45 sub-tasks: 15 Decision + 15 Implementation + 15 Validation)
-- Total: 133 top-level items + 55 sub-tasks
+- P4: 20 items (all open, 60 sub-tasks: 20 Decision + 20 Implementation + 20 Validation)
+- Total: 138 top-level items + 70 sub-tasks
 
 ## P0 Closure Execution Sequence (Week 1 Focus)
 
@@ -257,12 +277,12 @@ Weekly evidence quality check: no P4 should have stale TODOs older than 2 weeks 
 
 | Role | Primary P4 items | Advisory/Blocking for |
 |---|---|---|
-| CTO | P4-004, P4-005, P4-012, P4-014 | P4-001, P4-006, P4-010 |
-| CISO | P4-005 | P4-001, P4-012, P4-013 |
-| Clinical AI | P4-009, P4-010, P4-015 | P4-007, P4-008, P4-011 |
-| Product | P4-007, P4-008, P4-011, P4-012 | P4-009, P4-015 |
+| CTO | P4-004, P4-005, P4-012, P4-014, P4-016, P4-017, P4-018, P4-019, P4-020 | P4-001, P4-006, P4-010 |
+| CISO | P4-005, P4-016, P4-020 | P4-001, P4-012, P4-013 |
+| Clinical AI | P4-009, P4-010, P4-015, P4-018 | P4-007, P4-008, P4-011 |
+| Product | P4-007, P4-008, P4-011, P4-012, P4-016, P4-018, P4-020 | P4-009, P4-015 |
 | Compliance | P4-003, P4-013 | P4-002, P4-009 |
-| Ops | P4-004 | P4-005, P4-006 |
+| Ops | P4-004, P4-017, P4-019 | P4-005, P4-006 |
 | Interop | P4-002, P4-003 | P4-009 |
 
 ## Suggested default execution order
