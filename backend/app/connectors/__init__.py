@@ -51,6 +51,7 @@ from app.connectors.database_connector import (
 )
 from app.connectors.fhir_connector import FHIRConnector, FHIRConnectorConfig
 from app.connectors.hl7v2_connector import HL7v2Connector, HL7v2ConnectorConfig
+from app.connectors.openehr_connector import OpenEHRConnector, OpenEHRConnectorConfig
 
 # Concept mappings for shared healthcare data mappings
 from app.connectors.concept_mappings import (
@@ -109,6 +110,9 @@ __all__ = [
     # FHIR R4 Connector
     "FHIRConnector",
     "FHIRConnectorConfig",
+    # OpenEHR Connector
+    "OpenEHRConnector",
+    "OpenEHRConnectorConfig",
     # Database Connector
     "DatabaseConnector",
     "DatabaseConnectorConfig",

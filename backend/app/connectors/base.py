@@ -32,6 +32,7 @@ class ConnectorType(str, Enum):
     CCDA = "ccda"
     CSV = "csv"
     DATABASE = "database"
+    OPENEHR = "openehr"
 
 
 class Gender(str, Enum):

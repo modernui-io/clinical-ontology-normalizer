@@ -30,6 +30,7 @@ class SourceType(str, Enum):
     MANUAL_ENTRY = "manual_entry"
     DERIVED = "derived"
     EXTERNAL_API = "external_api"
+    OPENEHR_IMPORT = "openehr_import"
 
 
 class DataLineageRecord(Base):

@@ -93,7 +93,7 @@ class TestSourceTypeEnum:
 
     def test_all_source_types_exist(self) -> None:
         """All expected source types are present."""
-        expected = {"fhir_import", "nlp_extraction", "manual_entry", "derived", "external_api"}
+        expected = {"fhir_import", "nlp_extraction", "manual_entry", "derived", "external_api", "openehr_import"}
         actual = {st.value for st in SourceType}
         assert actual == expected
 
