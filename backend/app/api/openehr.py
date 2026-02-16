@@ -5,6 +5,9 @@ Provides:
 - Import a raw COMPOSITION dict
 - Export patient facts as OpenEHR COMPOSITION
 - List supported archetypes
+- Dry-run import (P0-019)
+- Round-trip reconciliation (P0-019)
+- Batch rollback (P0-019)
 
 VP-Security-5: SSRF protection on base_url fields.
 """
@@ -14,6 +17,7 @@ from __future__ import annotations
 import ipaddress
 import logging
 import re
+from datetime import datetime
 from typing import Any
 from urllib.parse import urlparse
 
@@ -28,6 +32,8 @@ from app.core.database import get_db
 from app.models.clinical_fact import ClinicalFact
 from app.services.openehr_import import OpenEHRImportService, ARCHETYPE_DOMAIN_MAP
 from app.services.openehr_exporter import OpenEHRExporterService
+from app.services.openehr_reconciliation import OpenEHRReconciliationService
+from app.services.openehr_rollback import OpenEHRRollbackService
 
 logger = logging.getLogger(__name__)
 
@@ -174,6 +180,53 @@ class ArchetypeListResponse(BaseModel):
 
     archetypes: list[ArchetypeInfo]
     count: int
+
+
+class DryRunResponse(BaseModel):
+    """Response from a dry-run import (P0-019)."""
+
+    success: bool
+    patient_id: str | None = None
+    conditions: int = 0
+    medications: int = 0
+    measurements: int = 0
+    procedures: int = 0
+    allergies: int = 0
+    nodes: int = 0
+    edges: int = 0
+    skipped: int = 0
+    error: str | None = None
+
+
+class ReconciliationReportResponse(BaseModel):
+    """Response from round-trip reconciliation (P0-019)."""
+
+    patient_id: str
+    match: bool
+    import_fingerprint: str
+    export_reimport_fingerprint: str
+    import_row_counts: dict[str, int] = {}
+    reimport_row_counts: dict[str, int] = {}
+    mismatches: list[str] = []
+
+
+class RollbackRequest(BaseModel):
+    """Request for batch rollback of OpenEHR imports (P0-019)."""
+
+    patient_id: str = Field(..., description="Patient whose imports to roll back")
+    batch_start: datetime = Field(..., description="Start of batch time window")
+    batch_end: datetime = Field(..., description="End of batch time window")
+
+
+class RollbackResponse(BaseModel):
+    """Response from batch rollback (P0-019)."""
+
+    patient_id: str
+    success: bool
+    facts_deleted: int = 0
+    nodes_deleted: int = 0
+    edges_deleted: int = 0
+    error: str | None = None
 
 
 # =============================================================================
@@ -360,3 +413,98 @@ async def list_supported_archetypes() -> ArchetypeListResponse:
         archetypes=archetypes,
         count=len(archetypes),
     )
+
+
+# =============================================================================
+# P0-019: Reconciliation & Rollback Endpoints
+# =============================================================================
+
+
+@router.post("/dry-run", response_model=DryRunResponse)
+async def dry_run_import(
+    request: OpenEHRCompositionImportRequest,
+    session: AsyncSession = Depends(get_db),
+) -> DryRunResponse:
+    """Dry-run import: runs the full import pipeline without persisting.
+
+    Accepts the same payload as /openehr/composition but uses a savepoint
+    to roll back after collecting stats. Returns import statistics and
+    validation without any database side effects.
+    """
+    logger.info(f"Dry-run import for patient {request.patient_id}")
+
+    try:
+        service = OpenEHRReconciliationService()
+        result = await service.dry_run_import(
+            session,
+            request.composition,
+            request.patient_id,
+            source_metadata=request.source_metadata,
+        )
+        return DryRunResponse(**result.to_dict())
+    except Exception as e:
+        raise log_and_raise_internal_error(
+            exception=e,
+            endpoint="/openehr/dry-run",
+            user_message="OpenEHR dry-run import failed",
+        )
+
+
+@router.post("/reconcile/{patient_id}", response_model=ReconciliationReportResponse)
+async def reconcile_patient(
+    patient_id: str,
+    session: AsyncSession = Depends(get_db),
+) -> ReconciliationReportResponse:
+    """Round-trip reconciliation for a patient.
+
+    Reads existing facts, exports them to a COMPOSITION, re-imports via
+    dry-run, and compares row counts + content hashes. Returns a
+    ReconciliationReport with match/mismatch details.
+    """
+    logger.info(f"Reconciliation check for patient {patient_id}")
+
+    try:
+        service = OpenEHRReconciliationService()
+        report = await service.reconcile_round_trip(session, patient_id)
+        return ReconciliationReportResponse(**report.to_dict())
+    except Exception as e:
+        raise log_and_raise_internal_error(
+            exception=e,
+            endpoint=f"/openehr/reconcile/{patient_id}",
+            user_message="OpenEHR reconciliation failed",
+        )
+
+
+@router.post("/rollback", response_model=RollbackResponse)
+async def rollback_import_batch(
+    request: RollbackRequest,
+    session: AsyncSession = Depends(get_db),
+) -> RollbackResponse:
+    """Batch rollback of OpenEHR imports for a patient + time range.
+
+    Identifies affected ClinicalFacts via lineage (source_type=OPENEHR_IMPORT),
+    soft-deletes facts, and removes KG nodes/edges. Returns a rollback report
+    with counts.
+    """
+    logger.info(
+        f"Rollback for patient {request.patient_id} "
+        f"[{request.batch_start} - {request.batch_end}]"
+    )
+
+    try:
+        service = OpenEHRRollbackService()
+        report = await service.rollback_import_batch(
+            session,
+            request.patient_id,
+            request.batch_start,
+            request.batch_end,
+        )
+        if report.success:
+            await session.commit()
+        return RollbackResponse(**report.to_dict())
+    except Exception as e:
+        raise log_and_raise_internal_error(
+            exception=e,
+            endpoint="/openehr/rollback",
+            user_message="OpenEHR rollback failed",
+        )
