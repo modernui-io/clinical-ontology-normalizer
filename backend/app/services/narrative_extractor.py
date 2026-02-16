@@ -360,7 +360,7 @@ class NarrativeExtractorService:
         try:
             message = self._claude_client.messages.create(
                 model=settings.llm_model,
-                max_tokens=4096,
+                max_tokens=16384,
                 temperature=0.0,
                 messages=[{"role": "user", "content": prompt}],
             )
@@ -381,7 +381,22 @@ class NarrativeExtractorService:
         except json.JSONDecodeError:
             pass
 
-        # Try to find JSON in response
+        # Strip markdown code fences (```json ... ``` or ``` ... ```)
+        stripped = response.strip()
+        if stripped.startswith("```"):
+            # Remove opening fence (```json or ```)
+            first_newline = stripped.find("\n")
+            if first_newline > 0:
+                stripped = stripped[first_newline + 1:]
+            # Remove closing fence
+            if stripped.rstrip().endswith("```"):
+                stripped = stripped.rstrip()[:-3].rstrip()
+            try:
+                return json.loads(stripped)
+            except json.JSONDecodeError:
+                pass
+
+        # Try to find JSON object in response (greedy match)
         json_match = re.search(r'\{[\s\S]*\}', response)
         if json_match:
             try:
@@ -389,7 +404,10 @@ class NarrativeExtractorService:
             except json.JSONDecodeError:
                 pass
 
-        logger.warning(f"Failed to parse LLM response as JSON")
+        logger.warning(
+            "Failed to parse LLM response as JSON (length=%d, first 200 chars: %s)",
+            len(response), response[:200]
+        )
         return None
 
     def extract_narrative(
@@ -416,7 +434,7 @@ class NarrativeExtractorService:
         entities_context = self._format_entities_context(entities or [])
         prompt = NARRATIVE_EXTRACTION_PROMPT.format(
             entities_context=entities_context,
-            text=text[:30000],  # Limit text length (increased for multi-document datasets)
+            text=text[:80000],  # Limit text length (supports ~50 clinical notes)
         )
 
         # Determine which service to use
