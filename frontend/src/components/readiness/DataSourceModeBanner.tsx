@@ -9,6 +9,8 @@ interface DataSourceModeBannerProps {
   description: string;
   evidencePath?: string;
   lastUpdatedAt?: string;
+  signoffText?: string;
+  backendEndpoints?: string[];
 }
 
 function modeCopy(mode: DataSourceMode) {
@@ -44,6 +46,8 @@ export default function DataSourceModeBanner({
   description,
   evidencePath,
   lastUpdatedAt,
+  signoffText,
+  backendEndpoints,
 }: DataSourceModeBannerProps) {
   const info = modeCopy(mode);
 
@@ -65,6 +69,22 @@ export default function DataSourceModeBanner({
           {lastUpdatedAt ? (
             <p className="mt-1 text-[11px] text-slate-500">
               Evidence freshness: {lastUpdatedAt}
+            </p>
+          ) : null}
+          {signoffText ? (
+            <p className="mt-1.5 text-[11px] font-medium text-slate-700 italic">
+              {signoffText}
+            </p>
+          ) : null}
+          {backendEndpoints && backendEndpoints.length > 0 ? (
+            <p className="mt-1 text-[11px] text-slate-500">
+              Backend endpoints:{" "}
+              {backendEndpoints.map((ep, i) => (
+                <span key={ep}>
+                  <code className="font-mono text-[10px] bg-slate-100 px-1 rounded">{ep}</code>
+                  {i < backendEndpoints.length - 1 ? ", " : ""}
+                </span>
+              ))}
             </p>
           ) : null}
         </div>

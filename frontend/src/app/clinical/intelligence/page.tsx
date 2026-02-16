@@ -41,6 +41,7 @@ import {
   Eye,
 } from "lucide-react";
 import { toast } from "sonner";
+import DataSourceModeBanner from "@/components/readiness/DataSourceModeBanner";
 
 // ---------------------------------------------------------------------------
 // Auth helpers
@@ -806,16 +807,28 @@ export default function ClinicalIntelligencePage() {
         </div>
       </div>
 
-      {/* Demo mode banner */}
-      {demoMode && (
-        <div className="flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
-          <AlertCircle className="h-4 w-4 shrink-0" />
-          <span>
-            <strong>Client-side demo mode</strong> — API is unavailable. Showing
-            simulated results.
-          </span>
-        </div>
-      )}
+      {/* Source mode banner */}
+      <DataSourceModeBanner
+        mode={demoMode ? "simulation" : "live"}
+        title="Clinical Intelligence data source"
+        description={
+          demoMode
+            ? "Backend API is unavailable. All graph data, Q&A responses, and import results shown on this page are client-side simulations. No actions on this page write to the backend."
+            : "Connected to live backend. Import, graph, and Q&A operations are writing to and reading from production endpoints."
+        }
+        evidencePath="tasks/09_master_change_backlog_p0_p4.md"
+        lastUpdatedAt="2026-02-16"
+        signoffText={
+          demoMode
+            ? "Simulation only — user actions on this page do not persist to any backend store."
+            : undefined
+        }
+        backendEndpoints={[
+          "/api/clinical-agent/import",
+          "/api/clinical-agent/graph/{patient_id}",
+          "/api/clinical-agent/query/{patient_id}",
+        ]}
+      />
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
