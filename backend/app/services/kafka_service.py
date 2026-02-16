@@ -12,6 +12,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
 import threading
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -32,7 +33,7 @@ class KafkaConfig(BaseModel):
     """Kafka configuration settings."""
 
     bootstrap_servers: str = Field(
-        default="localhost:9092",
+        default_factory=lambda: os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092"),
         description="Kafka bootstrap servers (comma-separated)",
     )
     client_id: str = Field(

@@ -34,10 +34,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONFAULTHANDLER=1
 
-# Install only runtime dependencies
+# Install runtime + build dependencies (build-essential needed for dev volume mounts
+# where uv may need to compile packages like pyahocorasick at runtime)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
+    libpq-dev \
     curl \
+    build-essential \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 

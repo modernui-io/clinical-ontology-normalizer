@@ -433,6 +433,10 @@ async def check_kafka() -> ComponentHealth:
 
         kafka_service = get_kafka_service()
 
+        # Lazy-connect on first health check
+        if not kafka_service._is_connected and not kafka_service._mock_mode:
+            await kafka_service.connect()
+
         # Get health status
         health = kafka_service.get_health()
 
