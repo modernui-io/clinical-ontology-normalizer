@@ -394,6 +394,8 @@ class ClinicalNERService(BaseNLPService):
     def _chunk_text(self, text: str, overlap: int = 50) -> list[str]:
         """Split text into overlapping chunks for processing."""
         chunk_size = int(self.config.max_sequence_length * 3 * 0.75)
+        if len(text) <= chunk_size:
+            return [text]
         chunks = []
         start = 0
         while start < len(text):
@@ -406,7 +408,10 @@ class ClinicalNERService(BaseNLPService):
                         end = start + last_punct + len(punct)
                         break
             chunks.append(text[start:end])
-            start = end - overlap
+            next_start = end - overlap
+            if next_start <= start:
+                break
+            start = next_start
         return chunks
 
     def _extract_with_spacy(self, text: str) -> list[dict]:

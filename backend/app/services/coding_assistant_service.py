@@ -14,6 +14,7 @@ with existing vocabulary services (SNOMED, ICD-10, CPT, RxNorm).
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import threading
@@ -853,9 +854,15 @@ class CodingAssistantService:
 
         if llm_service:
             try:
-                response_text, suggestions, citations, tokens_used, cost_usd = await self._process_with_llm(
-                    session, message, intent, extracted, llm_service
+                response_text, suggestions, citations, tokens_used, cost_usd = await asyncio.wait_for(
+                    self._process_with_llm(
+                        session, message, intent, extracted, llm_service
+                    ),
+                    timeout=30.0,
                 )
+            except asyncio.TimeoutError:
+                logger.warning("LLM processing timed out after 30s, using mock")
+                response_text, suggestions = self._mock_generator.generate_response(message, session.context)
             except Exception as e:
                 logger.warning(f"LLM processing failed, using mock: {e}")
                 response_text, suggestions = self._mock_generator.generate_response(message, session.context)

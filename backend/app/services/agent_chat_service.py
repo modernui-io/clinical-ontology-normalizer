@@ -76,7 +76,7 @@ class ClinicalAgentChatService:
         patient_id: str | None = None,
     ) -> AgentChatResponse:
         client = self._get_client()
-        model = model or "claude-sonnet-4-5-20250929"
+        model = model or settings.llm_model
 
         # Build Anthropic message list
         anthropic_messages: list[dict[str, Any]] = []

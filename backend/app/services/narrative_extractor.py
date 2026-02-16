@@ -359,7 +359,7 @@ class NarrativeExtractorService:
 
         try:
             message = self._claude_client.messages.create(
-                model="claude-sonnet-4-20250514",
+                model=settings.llm_model,
                 max_tokens=4096,
                 temperature=0.0,
                 messages=[{"role": "user", "content": prompt}],

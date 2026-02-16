@@ -51,6 +51,9 @@ class LLMModel(str, Enum):
     GPT35_TURBO = "gpt-3.5-turbo"
 
     # Anthropic models
+    CLAUDE_OPUS_4_6 = "claude-opus-4-6"
+    CLAUDE_SONNET_4_5 = "claude-sonnet-4-5-20250929"
+    CLAUDE_HAIKU_4_5 = "claude-haiku-4-5-20251001"
     CLAUDE_3_5_SONNET = "claude-3-5-sonnet-20241022"
     CLAUDE_3_OPUS = "claude-3-opus-20240229"
     CLAUDE_3_SONNET = "claude-3-sonnet-20240229"
@@ -61,8 +64,8 @@ class LLMModel(str, Enum):
 class LLMConfig:
     """Configuration for LLM service."""
 
-    provider: LLMProvider = LLMProvider.OPENAI
-    model: str = "gpt-4o-mini"
+    provider: LLMProvider = LLMProvider.ANTHROPIC
+    model: str = "claude-opus-4-6"
     max_tokens: int = 4096
     temperature: float = 0.3
     timeout_seconds: int = 60
@@ -144,7 +147,10 @@ PRICING: dict[str, dict[str, float]] = {
     "gpt-4-turbo": {"input": 0.01, "output": 0.03},
     "gpt-4": {"input": 0.03, "output": 0.06},
     "gpt-3.5-turbo": {"input": 0.0005, "output": 0.0015},
-    # Anthropic pricing
+    # Anthropic pricing (per 1K tokens)
+    "claude-opus-4-6": {"input": 0.015, "output": 0.075},
+    "claude-sonnet-4-5-20250929": {"input": 0.003, "output": 0.015},
+    "claude-haiku-4-5-20251001": {"input": 0.0008, "output": 0.004},
     "claude-3-5-sonnet-20241022": {"input": 0.003, "output": 0.015},
     "claude-3-opus-20240229": {"input": 0.015, "output": 0.075},
     "claude-3-sonnet-20240229": {"input": 0.003, "output": 0.015},
@@ -568,7 +574,7 @@ class LLMService:
 
         return LLMConfig(
             provider=provider,
-            model=getattr(settings, "llm_model", "gpt-4o-mini"),
+            model=getattr(settings, "llm_model", "claude-opus-4-6"),
             max_tokens=getattr(settings, "llm_max_tokens", 4096),
         )
 
@@ -751,8 +757,8 @@ class LLMService:
         if provider == LLMProvider.OPENAI:
             return "gpt-4o-mini"  # Cost-effective default
         elif provider == LLMProvider.ANTHROPIC:
-            return "claude-3-haiku-20240307"  # Cost-effective default
-        return "gpt-4o-mini"
+            return "claude-opus-4-6"  # Most capable default
+        return "claude-opus-4-6"
 
     async def generate_chat(
         self,

@@ -138,8 +138,8 @@ class Settings(BaseSettings):
     # LLM Configuration
     openai_api_key: str | None = None
     anthropic_api_key: str | None = None
-    llm_provider: str = "openai"  # "openai" or "anthropic"
-    llm_model: str = "gpt-4o-mini"  # Default model
+    llm_provider: str = "anthropic"  # "openai" or "anthropic"
+    llm_model: str = "claude-opus-4-6"  # Default model (change here to swap models globally)
     llm_max_tokens: int = 4096  # Maximum tokens for completion
 
     # P0-017: Approved external LLM providers for PHI-carrying routes.

@@ -818,21 +818,66 @@ class ICD10SuggesterService:
     """Service for suggesting ICD-10 codes from clinical text."""
 
     def __init__(self) -> None:
-        """Initialize the ICD-10 suggester service."""
+        """Initialize the ICD-10 suggester service.
+
+        Heavy fixture loading and trie building are deferred to first use
+        via _ensure_loaded() to avoid blocking startup.
+        """
         self._codes: dict[str, ICD10Code] = {}
         self._synonym_index: dict[str, list[str]] = {}
+        self._trie_index: TrieIndex | None = None
+        self._loaded: bool = False
 
-        # Trie index for fast O(m) prefix/partial matching
-        self._trie_index: TrieIndex = TrieIndex(index_words=True, index_ngrams=False)
+        # Eagerly load core codes (fast, no fixture file)
+        for code in ICD10_CODES:
+            self._codes[code.code] = code
+            for syn in code.synonyms:
+                syn_lower = syn.lower()
+                if syn_lower not in self._synonym_index:
+                    self._synonym_index[syn_lower] = []
+                if code.code not in self._synonym_index[syn_lower]:
+                    self._synonym_index[syn_lower].append(code.code)
+
+        logger.info(f"ICD-10 suggester initialized with {len(self._codes)} core codes (extended loading deferred)")
+
+    # Module-level cache shared across singleton resets to avoid
+    # rebuilding the 1.7M-node trie on each reset (3.6s per build).
+    _shared_cache: dict | None = None
+
+    def _ensure_loaded(self) -> None:
+        """Lazy-load the extended fixture and build trie on first use."""
+        if self._loaded:
+            return
+        self._loaded = True
+
+        # Reuse cached data if available (survives singleton resets)
+        if ICD10SuggesterService._shared_cache is not None:
+            cache = ICD10SuggesterService._shared_cache
+            self._codes = dict(cache["codes"])
+            self._synonym_index = {k: list(v) for k, v in cache["synonyms"].items()}
+            self._trie_index = cache["trie"]
+            logger.info(f"ICD-10 loaded from cache: {len(self._codes)} codes")
+            return
+
+        # Build trie index (word indexing disabled — synonym_index handles
+        # word-level matching, and word-trie with 83K codes causes 200s+ build)
+        self._trie_index = TrieIndex(index_words=False, index_ngrams=False)
 
         # Load extended codes from fixture
-        codes, self._synonym_index = load_extended_icd10_codes()
+        codes, synonym_idx = load_extended_icd10_codes()
+
+        # Merge extended synonym index
+        for syn, code_list in synonym_idx.items():
+            if syn not in self._synonym_index:
+                self._synonym_index[syn] = code_list
+            else:
+                for c in code_list:
+                    if c not in self._synonym_index[syn]:
+                        self._synonym_index[syn].append(c)
 
         # Index codes by code and build trie
         for code in codes:
             self._codes[code.code] = code
-
-            # Add to trie index for fast prefix/partial matching
             self._trie_index.add_term(
                 code=code.code,
                 display=code.description,
@@ -842,10 +887,17 @@ class ICD10SuggesterService:
 
         trie_stats = self._trie_index.get_stats()
         logger.info(
-            f"ICD-10 suggester initialized with {len(self._codes)} codes, "
+            f"ICD-10 extended loading complete: {len(self._codes)} codes, "
             f"{len(self._synonym_index)} synonyms, "
             f"trie: {trie_stats['node_count']} nodes"
         )
+
+        # Cache for future singleton resets
+        ICD10SuggesterService._shared_cache = {
+            "codes": dict(self._codes),
+            "synonyms": {k: list(v) for k, v in self._synonym_index.items()},
+            "trie": self._trie_index,
+        }
 
     def suggest_codes(
         self,
@@ -861,6 +913,7 @@ class ICD10SuggesterService:
         Returns:
             SuggestionResult with matched codes.
         """
+        self._ensure_loaded()
         query_lower = query.lower().strip()
         suggestions: list[CodeSuggestion] = []
         seen_codes: set[str] = set()
@@ -881,7 +934,7 @@ class ICD10SuggesterService:
             trie_results = self._trie_index.search(
                 query_lower,
                 limit=max_suggestions * 2,
-                match_types=["prefix", "word"],
+                match_types=["prefix"],
             )
 
             for trie_match in trie_results:
@@ -1110,6 +1163,7 @@ class ICD10SuggesterService:
 
     def search_codes(self, query: str, limit: int = 20) -> list[ICD10Code]:
         """Search for codes by description or synonym."""
+        self._ensure_loaded()
         query_lower = query.lower()
         matches: list[ICD10Code] = []
 
@@ -1124,10 +1178,12 @@ class ICD10SuggesterService:
 
     def get_codes_by_category(self, category: CodeCategory) -> list[ICD10Code]:
         """Get all codes in a category."""
+        self._ensure_loaded()
         return [code for code in self._codes.values() if code.category == category]
 
     def get_stats(self) -> dict:
         """Get statistics about the code database."""
+        self._ensure_loaded()
         by_category: dict[str, int] = {}
         billable_count = 0
         with_omop = 0

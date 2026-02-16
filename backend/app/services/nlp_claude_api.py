@@ -130,7 +130,7 @@ class LLMNLPConfig:
     ollama_model: str = "cniongolo/biomistral:latest"  # Medical model, fast
 
     # Claude API settings (fallback)
-    claude_model: str = "claude-sonnet-4-20250514"
+    claude_model: str = "claude-opus-4-6"
     anthropic_api_key: str | None = None
 
     max_tokens: int = 8192

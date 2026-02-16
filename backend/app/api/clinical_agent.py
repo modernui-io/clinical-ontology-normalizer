@@ -2901,7 +2901,7 @@ Provide a clear, evidence-based answer synthesizing the clinical data, graph rel
             prompt=user_prompt,
             system_prompt=system_prompt,
             provider=LLMProvider.ANTHROPIC,
-            model="claude-sonnet-4-20250514",
+            model=settings.llm_model,
             max_tokens=1024,
             temperature=0.2,
         )
