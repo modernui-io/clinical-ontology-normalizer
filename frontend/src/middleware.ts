@@ -22,6 +22,15 @@ const PUBLIC_PATHS = [
   "/smart/launch",
   "/smart/callback",
   "/smart/authorize",
+  "/proof",
+  "/trust",
+  "/about",
+  "/terms",
+  "/privacy",
+  "/security",
+  "/changelog",
+  "/docs",
+  "/careers",
 ];
 
 // Static assets and API routes to skip
