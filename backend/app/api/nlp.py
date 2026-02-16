@@ -1675,8 +1675,16 @@ async def hybrid_analyze(request: HybridAnalyzeRequest) -> HybridAnalyzeResponse
         llm_available = False
         narrative_response = None
 
-        # Extract clinical narrative if requested
-        if request.extract_narrative:
+        # Run narrative extraction and LLM analysis in PARALLEL
+        # Both are independent Claude API calls, so concurrent execution
+        # cuts total time nearly in half for large note sets.
+        import asyncio
+
+        async def _extract_narrative_async():
+            """Run narrative extraction in a thread (sync Claude client)."""
+            nonlocal narrative_response
+            if not request.extract_narrative:
+                return
             try:
                 from app.services.narrative_extractor import get_narrative_extractor
                 from app.core.config import settings
@@ -1697,9 +1705,11 @@ async def hybrid_analyze(request: HybridAnalyzeRequest) -> HybridAnalyzeResponse
                         for p in context.procedures:
                             entities_for_narrative.append({"text": p.get("name", ""), "entity_type": "procedure", "assertion": "present"})
 
-                        narrative = narrative_extractor.extract_narrative(
-                            text=request.text,
-                            entities=entities_for_narrative,
+                        # Run synchronous Claude call in thread to not block event loop
+                        narrative = await asyncio.to_thread(
+                            narrative_extractor.extract_narrative,
+                            request.text,
+                            entities_for_narrative,
                         )
 
                         narrative_response = NarrativeResponse(
@@ -1713,8 +1723,11 @@ async def hybrid_analyze(request: HybridAnalyzeRequest) -> HybridAnalyzeResponse
             except Exception as narr_error:
                 logger.warning(f"Narrative extraction failed: {narr_error}")
 
-        # Try LLM analysis if requested
-        if request.use_llm:
+        async def _run_llm_analysis():
+            """Run LLM hybrid analysis."""
+            nonlocal analysis, llm_time, llm_model, llm_available
+            if not request.use_llm:
+                return
             try:
                 analysis_type = AnalysisType(request.analysis_type.value)
 
@@ -1734,9 +1747,14 @@ async def hybrid_analyze(request: HybridAnalyzeRequest) -> HybridAnalyzeResponse
                 llm_available = True
 
             except Exception as llm_error:
-                # LLM not available - continue with extraction only
                 llm_available = False
                 analysis = f"LLM analysis unavailable: {str(llm_error)}. Structured extraction completed successfully."
+
+        # Run both LLM calls concurrently
+        await asyncio.gather(
+            _extract_narrative_async(),
+            _run_llm_analysis(),
+        )
 
         total_time = (time_module.perf_counter() - start_time) * 1000
 

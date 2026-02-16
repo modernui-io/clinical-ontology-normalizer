@@ -3011,7 +3011,7 @@ export async function nlpHybridAnalyze(request: HybridAnalyzeRequest): Promise<H
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(request),
-    timeout: 120000, // Longer timeout for LLM analysis
+    timeout: 300000, // 5 min timeout for LLM analysis + narrative on large note sets
   });
 }
 
