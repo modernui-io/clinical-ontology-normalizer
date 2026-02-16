@@ -20,7 +20,7 @@ from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from fastapi.routing import APIRoute
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from sqlalchemy import func, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -208,11 +208,19 @@ class BuildGraphFromEntitiesRequest(BaseModel):
     """Request to build knowledge graph from pre-extracted entities."""
 
     patient_id: str = Field(..., description="Patient identifier")
-    entities: list[ExtractedEntity] = Field(..., min_length=1, max_length=5000, description="Pre-extracted entities")
+    entities: list[ExtractedEntity] = Field(default_factory=list, max_length=5000, description="Pre-extracted entities")
+    clinical_text: str | None = Field(default=None, description="Raw clinical text for extraction")
     extraction_method: str = Field(
         default="hybrid",
         description="Method used for extraction: rule_based, llm, hybrid"
     )
+
+    @model_validator(mode="after")
+    def require_entities_or_text(self) -> "BuildGraphFromEntitiesRequest":
+        """At least one of entities or clinical_text must be provided."""
+        if not self.entities and not self.clinical_text:
+            raise ValueError("At least one of 'entities' (non-empty) or 'clinical_text' must be provided")
+        return self
 
     model_config = {
         "json_schema_extra": {

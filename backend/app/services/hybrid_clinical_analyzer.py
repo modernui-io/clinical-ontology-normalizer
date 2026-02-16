@@ -89,6 +89,7 @@ from app.services.llm_service import (
     LLMProvider,
 )
 # Import the unified NLP Entity Service for extraction
+from app.services.nlp_coverage import calculate_token_coverage
 from app.services.nlp_entity_service import (
     get_nlp_entity_service,
     EntityType as NLPEntityType,
@@ -625,8 +626,16 @@ class HybridClinicalAnalyzer:
         # Extract entities using the unified NLP service
         result = self._nlp_service.extract_entities(text=note_text)
 
+        # Calculate actual token coverage from entity spans
+        spans = [
+            (e.span.start, e.span.end)
+            for e in result.entities
+            if e.span is not None
+        ]
+        coverage = calculate_token_coverage(note_text, spans)
+
         context = StructuredContext(
-            coverage_pct=100.0,  # NLP service processes full text
+            coverage_pct=coverage.coverage_pct,
             entity_count=result.entity_count,
         )
 
