@@ -179,6 +179,34 @@ const ASSERTION_BADGES: Record<
   family_history: { label: "Family Hx", variant: "outline" },
 };
 
+const HYBRID_REASONER_MATRIX = [
+  {
+    path: "/api/v1/clinical-agent/query/{patient_id}",
+    status: "canonical",
+    note: "Graph-backed clinical reasoning for patient-scoped Q&A with provenance.",
+  },
+  {
+    path: "/api/v1/clinical-agent/import",
+    status: "canonical",
+    note: "Canonical ingest and extraction entrypoint.",
+  },
+  {
+    path: "/api/v1/clinical-agent/build-graph",
+    status: "canonical",
+    note: "Canonical graph construction endpoint for hybrid workflows.",
+  },
+  {
+    path: "/api/v1/nlp/analyze",
+    status: "compat mode",
+    note: "Legacy text + hybrid analysis path used by this workbench compatibility mode.",
+  },
+  {
+    path: "/api/v1/nlp/extract",
+    status: "compat mode",
+    note: "Legacy entity extraction route retained for older clients.",
+  },
+];
+
 const SAMPLE_NOTES = [
   {
     id: "hpi",
@@ -2187,6 +2215,37 @@ export default function NLPWorkbenchPage() {
         </TooltipProvider>
       </div>
 
+      {/* P0-020: Hybrid reasoner routing */}
+      <div className="rounded-lg border border-sky-200 bg-sky-50 p-4 space-y-3">
+        <p className="font-medium text-sky-900">Hybrid reasoner routing (production + compatibility)</p>
+        <p className="text-sm text-sky-800">
+          Pilot production paths are now under <code className="rounded bg-sky-100 px-1 py-0.5 font-mono text-xs">/api/v1/clinical-agent</code>.
+          This workbench keeps compatibility with legacy NLP endpoints for continuity.
+        </p>
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {HYBRID_REASONER_MATRIX.map((route) => (
+            <article
+              key={route.path}
+              className="rounded border border-white/80 bg-white/50 p-2"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <code className="text-[11px] text-slate-700">{route.path}</code>
+                <span
+                  className={`inline-flex rounded-full px-2 py-0.5 text-[10px] ${
+                    route.status === "canonical"
+                      ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
+                      : "border border-amber-200 bg-amber-50 text-amber-700"
+                  }`}
+                >
+                  {route.status}
+                </span>
+              </div>
+              <p className="mt-1 text-[11px] text-slate-600">{route.note}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+
       {/* P0-020: Deprecation banner — canonical route is /clinical-agent */}
       <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 flex items-start gap-3">
         <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
@@ -3038,4 +3097,3 @@ export default function NLPWorkbenchPage() {
     </div>
   );
 }
-
