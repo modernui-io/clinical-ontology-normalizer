@@ -156,7 +156,8 @@ class TestInternalErrorSafety:
     def test_500_no_stack_trace_in_production(self, client):
         response = client.get("/error")
         data = response.json()
-        assert "traceback" not in str(data).lower() or "debug" not in data
+        # Stack trace details should not appear in the top-level message field
+        assert "traceback" not in data.get("message", "").lower()
 
     def test_500_has_error_code(self, client):
         response = client.get("/error")

@@ -309,7 +309,7 @@ class ProbabilisticAssertionClassifier:
         text_lower = text.lower()
         trigger_pattern = trigger.pattern
 
-        # Find all occurrences of the trigger
+        # Find all occurrences of the trigger with word-boundary checking
         pos = 0
         best_match = None
         best_distance = float("inf")
@@ -320,6 +320,13 @@ class ProbabilisticAssertionClassifier:
                 break
 
             trigger_end = pos + len(trigger_pattern)
+
+            # Word-boundary check: trigger must not be embedded inside a larger word
+            left_ok = pos == 0 or not text_lower[pos - 1].isalnum()
+            right_ok = trigger_end >= len(text_lower) or not text_lower[trigger_end].isalnum()
+            if not (left_ok and right_ok):
+                pos += 1
+                continue
 
             # Check scope direction
             in_scope = False

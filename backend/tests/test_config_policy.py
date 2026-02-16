@@ -148,6 +148,7 @@ class TestProductionRequirements:
             auth_enabled=True,
             jwt_secret_key="secure-random-key-12345",
             api_key="secure-api-key-12345",
+            metriport_webhook_key="webhook-signing-key-12345",
         )
         assert s.environment == "production"
 

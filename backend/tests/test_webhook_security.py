@@ -670,6 +670,7 @@ class TestProductionConfigValidation:
         with pytest.raises(ValidationError) as exc_info:
             Settings(
                 environment="production",
+                auth_enabled=True,
                 jwt_secret_key="secure-jwt-secret-prod-only",
                 api_key="secure-api-key-prod-only",
                 metriport_webhook_key=None,
@@ -684,6 +685,7 @@ class TestProductionConfigValidation:
         # Should not raise
         s = Settings(
             environment="production",
+            auth_enabled=True,
             jwt_secret_key="secure-jwt-secret-prod-only",
             api_key="secure-api-key-prod-only",
             metriport_webhook_key="secure-webhook-key-prod-only",

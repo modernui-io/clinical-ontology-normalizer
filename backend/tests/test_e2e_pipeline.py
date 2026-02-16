@@ -34,6 +34,7 @@ from sqlalchemy.pool import StaticPool
 
 from app.core.database import Base
 from app.models.clinical_fact import ClinicalFact
+from app.models.data_lineage import DataLineageRecord
 from app.models.knowledge_graph import KGEdge, KGNode
 from app.schemas.base import Assertion, Domain
 from app.schemas.knowledge_graph import NodeType
@@ -86,6 +87,7 @@ async def engine():
         ClinicalFact.__table__,
         KGNode.__table__,
         KGEdge.__table__,
+        DataLineageRecord.__table__,
     ]
     async with eng.begin() as conn:
         await conn.run_sync(_create_tables_ignoring_index_errors, tables)
@@ -103,11 +105,10 @@ async def session(engine) -> AsyncSession:
         class_=AsyncSession,
         expire_on_commit=False,
         autocommit=False,
-        autoflush=False,
+        autoflush=True,
     )
     async with factory() as sess:
         yield sess
-        await sess.rollback()
 
 
 @pytest.fixture

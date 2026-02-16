@@ -1160,6 +1160,10 @@ class ClinicalOntologyMapper:
 
         return tokens
 
+    def tokenize_text(self, text: str) -> list[TokenSpan]:
+        """Public interface for tokenizing text into spans."""
+        return self._tokenize(text)
+
     def _classify_token(
         self,
         token: TokenSpan,

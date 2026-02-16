@@ -272,6 +272,11 @@ class _FakeGraphService:
 class TestNeo4jConceptGraphIntegration:
     """Test Neo4j concept graph interaction lookups."""
 
+    def setup_method(self):
+        """Create service for each test."""
+        reset_drug_interaction_service()
+        self.service = DrugInteractionService(use_rxnorm=False)
+
     def test_check_pair_uses_concept_graph(self):
         service = DrugInteractionService(use_rxnorm=False, use_graph=False)
         service._rxnorm_service = _FakeRxNormService({

@@ -276,18 +276,20 @@ class TestDecoratorInstrumentation:
         assert len(traces) == 1
         assert traces[0].status == SpanStatus.ERROR
 
-    def test_async_decorator_creates_span(self):
+    @pytest.mark.asyncio
+    async def test_async_decorator_creates_span(self):
         tracing = get_tracing_service()
 
         @trace_operation("decorated_async")
         async def async_func(x: int) -> int:
             return x * 3
 
-        result = asyncio.get_event_loop().run_until_complete(async_func(4))
+        result = await async_func(4)
         assert result == 12
         assert tracing.get_span_count() == 1
 
-    def test_async_decorator_captures_error(self):
+    @pytest.mark.asyncio
+    async def test_async_decorator_captures_error(self):
         tracing = get_tracing_service()
 
         @trace_operation("async_error")
@@ -295,7 +297,7 @@ class TestDecoratorInstrumentation:
             raise RuntimeError("async boom")
 
         with pytest.raises(RuntimeError, match="async boom"):
-            asyncio.get_event_loop().run_until_complete(async_fail())
+            await async_fail()
 
         traces = tracing.get_traces()
         assert len(traces) == 1
