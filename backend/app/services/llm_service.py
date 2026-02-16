@@ -46,20 +46,28 @@ class LLMModel(str, Enum):
     """Supported LLM models."""
 
     # OpenAI models
+    GPT52 = "gpt-5.2"
+    GPT52_PRO = "gpt-5.2-pro"
+    GPT52_INSTANT = "gpt-5.2-chat-latest"
+    GPT5_CODEX = "gpt-5-codex"
     GPT4O = "gpt-4o"
     GPT4O_MINI = "gpt-4o-mini"
-    GPT4_TURBO = "gpt-4-turbo"
-    GPT4 = "gpt-4"
-    GPT35_TURBO = "gpt-3.5-turbo"
 
     # Anthropic models
     CLAUDE_OPUS_4_6 = "claude-opus-4-6"
     CLAUDE_SONNET_4_5 = "claude-sonnet-4-5-20250929"
     CLAUDE_HAIKU_4_5 = "claude-haiku-4-5-20251001"
-    CLAUDE_3_5_SONNET = "claude-3-5-sonnet-20241022"
-    CLAUDE_3_OPUS = "claude-3-opus-20240229"
-    CLAUDE_3_SONNET = "claude-3-sonnet-20240229"
-    CLAUDE_3_HAIKU = "claude-3-haiku-20240307"
+
+    # Google models
+    GEMINI_3_PRO = "gemini-3-pro-preview"
+    GEMINI_3_FLASH = "gemini-3-flash-preview"
+    GEMINI_25_PRO = "gemini-2.5-pro"
+    GEMINI_25_FLASH = "gemini-2.5-flash"
+
+    # xAI models
+    GROK_41_FAST = "grok-4-1-fast-reasoning"
+    GROK_4 = "grok-4-0709"
+    GROK_3 = "grok-3"
 
 
 @dataclass
@@ -886,13 +894,13 @@ class LLMService:
             Default model name for the provider.
         """
         if provider == LLMProvider.OPENAI:
-            return "gpt-4o-mini"  # Cost-effective default
+            return "gpt-5.2-chat-latest"  # Cost-effective default
         elif provider == LLMProvider.ANTHROPIC:
             return "claude-opus-4-6"  # Most capable default
         elif provider == LLMProvider.GOOGLE:
-            return "gemini-2.0-flash"
+            return "gemini-3-flash-preview"
         elif provider == LLMProvider.XAI:
-            return "grok-3-mini-fast"
+            return "grok-3-mini"
         return "claude-opus-4-6"
 
     async def generate_chat(
