@@ -1,0 +1,3153 @@
+{
+  "metadata": {
+    "run_id": "20260216T162723Z",
+    "started_at": "2026-02-16T16:27:23Z",
+    "base_url": "http://localhost:8000/api/v1",
+    "operator": "ops-exec",
+    "skip_rollback": false,
+    "scenarios": [
+      "mixed_all",
+      "labs_only",
+      "medications_heavy",
+      "procedures_vitals",
+      "allergies_conditions"
+    ]
+  },
+  "dry_runs": [
+    {
+      "step": "dry-run",
+      "scenario": "mixed_all",
+      "patient_id": "p0-019-dryrun-mixed_all-20260216T162723Z",
+      "status_code": 200,
+      "status": "PASS",
+      "duration_seconds": 0.066,
+      "payload": {
+        "composition": {
+          "_type": "COMPOSITION",
+          "archetype_node_id": "openEHR-EHR-COMPOSITION.encounter.v1",
+          "name": {
+            "_type": "DV_TEXT",
+            "value": "Mixed-All Encounter"
+          },
+          "language": {
+            "_type": "CODE_PHRASE",
+            "terminology_id": {
+              "value": "ISO_639-1"
+            },
+            "code_string": "en"
+          },
+          "territory": {
+            "_type": "CODE_PHRASE",
+            "terminology_id": {
+              "value": "ISO_3166-1"
+            },
+            "code_string": "US"
+          },
+          "category": {
+            "_type": "DV_CODED_TEXT",
+            "value": "event",
+            "defining_code": {
+              "terminology_id": {
+                "value": "openehr"
+              },
+              "code_string": "433"
+            }
+          },
+          "composer": {
+            "_type": "PARTY_IDENTIFIED",
+            "name": "Dr. Reconcile"
+          },
+          "context": {
+            "_type": "EVENT_CONTEXT",
+            "start_time": {
+              "_type": "DV_DATE_TIME",
+              "value": "2026-01-20T08:00:00Z"
+            },
+            "setting": {
+              "_type": "DV_CODED_TEXT",
+              "value": "primary medical care",
+              "defining_code": {
+                "terminology_id": {
+                  "value": "openehr"
+                },
+                "code_string": "228"
+              }
+            }
+          },
+          "content": [
+            {
+              "_type": "EVALUATION",
+              "archetype_node_id": "openEHR-EHR-EVALUATION.problem_diagnosis.v1",
+              "name": {
+                "_type": "DV_TEXT",
+                "value": "Problem/Diagnosis"
+              },
+              "data": {
+                "_type": "ITEM_TREE",
+                "items": [
+                  {
+                    "_type": "ELEMENT",
+                    "name": {
+                      "_type": "DV_TEXT",
+                      "value": "Problem/Diagnosis name"
+                    },
+                    "value": {
+                      "_type": "DV_CODED_TEXT",
+                      "value": "Asthma",
+                      "defining_code": {
+                        "terminology_id": {
+                          "value": "SNOMED-CT"
+                        },
+                        "code_string": "195967001"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "_type": "INSTRUCTION",
+              "archetype_node_id": "openEHR-EHR-INSTRUCTION.medication_order.v3",
+              "name": {
+                "_type": "DV_TEXT",
+                "value": "Medication order"
+              },
+              "activities": [
+                {
+                  "_type": "ACTIVITY",
+                  "description": {
+                    "_type": "ITEM_TREE",
+                    "items": [
+                      {
+                        "_type": "ELEMENT",
+                        "name": {
+                          "_type": "DV_TEXT",
+                          "value": "Medication item"
+                        },
+                        "value": {
+                          "_type": "DV_CODED_TEXT",
+                          "value": "Salbutamol 100mcg",
+                          "defining_code": {
+                            "terminology_id": {
+                              "value": "RXNORM"
+                            },
+                            "code_string": "435"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "_type": "OBSERVATION",
+              "archetype_node_id": "openEHR-EHR-OBSERVATION.blood_pressure.v2",
+              "name": {
+                "_type": "DV_TEXT",
+                "value": "Blood Pressure"
+              },
+              "data": {
+                "_type": "HISTORY",
+                "events": [
+                  {
+                    "_type": "POINT_EVENT",
+                    "time": {
+                      "_type": "DV_DATE_TIME",
+                      "value": "2026-01-20T08:10:00Z"
+                    },
+                    "data": {
+                      "_type": "ITEM_TREE",
+                      "items": [
+                        {
+                          "_type": "ELEMENT",
+                          "name": {
+                            "_type": "DV_TEXT",
+                            "value": "Systolic"
+                          },
+                          "value": {
+                            "_type": "DV_QUANTITY",
+                            "magnitude": 118.0,
+                            "units": "mm[Hg]"
+                          }
+                        },
+                        {
+                          "_type": "ELEMENT",
+                          "name": {
+                            "_type": "DV_TEXT",
+                            "value": "Diastolic"
+                          },
+                          "value": {
+                            "_type": "DV_QUANTITY",
+                            "magnitude": 76.0,
+                            "units": "mm[Hg]"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "_type": "ACTION",
+              "archetype_node_id": "openEHR-EHR-ACTION.procedure.v1",
+              "name": {
+                "_type": "DV_TEXT",
+                "value": "Procedure"
+              },
+              "description": {
+                "_type": "ITEM_TREE",
+                "items": [
+                  {
+                    "_type": "ELEMENT",
+                    "name": {
+                      "_type": "DV_TEXT",
+                      "value": "Procedure name"
+                    },
+                    "value": {
+                      "_type": "DV_CODED_TEXT",
+                      "value": "Spirometry",
+                      "defining_code": {
+                        "terminology_id": {
+                          "value": "SNOMED-CT"
+                        },
+                        "code_string": "127783003"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "_type": "EVALUATION",
+              "archetype_node_id": "openEHR-EHR-EVALUATION.adverse_reaction_risk.v1",
+              "name": {
+                "_type": "DV_TEXT",
+                "value": "Adverse reaction risk"
+              },
+              "data": {
+                "_type": "ITEM_TREE",
+                "items": [
+                  {
+                    "_type": "ELEMENT",
+                    "name": {
+                      "_type": "DV_TEXT",
+                      "value": "Substance"
+                    },
+                    "value": {
+                      "_type": "DV_CODED_TEXT",
+                      "value": "Aspirin",
+                      "defining_code": {
+                        "terminology_id": {
+                          "value": "SNOMED-CT"
+                        },
+                        "code_string": "387458008"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "patient_id": "p0-019-dryrun-mixed_all-20260216T162723Z",
+        "source_metadata": {
+          "scenario": "mixed_all",
+          "run_id": "20260216T162723Z",
+          "source_system": "meditech",
+          "site_id": "ops-staging"
+        }
+      },
+      "response": {
+        "status": 200,
+        "data": {
+          "success": true,
+          "patient_id": "p0-019-dryrun-mixed_all-20260216T162723Z",
+          "conditions": 1,
+          "medications": 1,
+          "measurements": 2,
+          "procedures": 1,
+          "allergies": 1,
+          "nodes": 7,
+          "edges": 6,
+          "skipped": 0,
+          "error": null
+        }
+      },
+      "checks": {
+        "http_200": true,
+        "success_flag": true,
+        "counts_match": true,
+        "response_has_expected_fields": true
+      }
+    },
+    {
+      "step": "dry-run",
+      "scenario": "labs_only",
+      "patient_id": "p0-019-dryrun-labs_only-20260216T162723Z",
+      "status_code": 200,
+      "status": "PASS",
+      "duration_seconds": 0.042,
+      "payload": {
+        "composition": {
+          "_type": "COMPOSITION",
+          "archetype_node_id": "openEHR-EHR-COMPOSITION.encounter.v1",
+          "name": {
+            "_type": "DV_TEXT",
+            "value": "Lab Results"
+          },
+          "language": {
+            "_type": "CODE_PHRASE",
+            "terminology_id": {
+              "value": "ISO_639-1"
+            },
+            "code_string": "en"
+          },
+          "territory": {
+            "_type": "CODE_PHRASE",
+            "terminology_id": {
+              "value": "ISO_3166-1"
+            },
+            "code_string": "US"
+          },
+          "category": {
+            "_type": "DV_CODED_TEXT",
+            "value": "event",
+            "defining_code": {
+              "terminology_id": {
+                "value": "openehr"
+              },
+              "code_string": "433"
+            }
+          },
+          "composer": {
+            "_type": "PARTY_IDENTIFIED",
+            "name": "Lab System"
+          },
+          "context": {
+            "_type": "EVENT_CONTEXT",
+            "start_time": {
+              "_type": "DV_DATE_TIME",
+              "value": "2026-01-21T09:00:00Z"
+            },
+            "setting": {
+              "_type": "DV_CODED_TEXT",
+              "value": "secondary medical care",
+              "defining_code": {
+                "terminology_id": {
+                  "value": "openehr"
+                },
+                "code_string": "232"
+              }
+            }
+          },
+          "content": [
+            {
+              "_type": "OBSERVATION",
+              "archetype_node_id": "openEHR-EHR-OBSERVATION.laboratory_test_result.v1",
+              "name": {
+                "_type": "DV_TEXT",
+                "value": "Laboratory test result"
+              },
+              "data": {
+                "_type": "HISTORY",
+                "events": [
+                  {
+                    "_type": "POINT_EVENT",
+                    "time": {
+                      "_type": "DV_DATE_TIME",
+                      "value": "2026-01-21T09:30:00Z"
+                    },
+                    "data": {
+                      "_type": "ITEM_TREE",
+                      "items": [
+                        {
+                          "_type": "ELEMENT",
+                          "name": {
+                            "_type": "DV_TEXT",
+                            "value": "Hemoglobin"
+                          },
+                          "value": {
+                            "_type": "DV_QUANTITY",
+                            "magnitude": 14.2,
+                            "units": "g/dL"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "_type": "OBSERVATION",
+              "archetype_node_id": "openEHR-EHR-OBSERVATION.laboratory_test_result.v1",
+              "name": {
+                "_type": "DV_TEXT",
+                "value": "Laboratory test result"
+              },
+              "data": {
+                "_type": "HISTORY",
+                "events": [
+                  {
+                    "_type": "POINT_EVENT",
+                    "time": {
+                      "_type": "DV_DATE_TIME",
+                      "value": "2026-01-21T09:30:00Z"
+                    },
+                    "data": {
+                      "_type": "ITEM_TREE",
+                      "items": [
+                        {
+                          "_type": "ELEMENT",
+                          "name": {
+                            "_type": "DV_TEXT",
+                            "value": "White blood cell count"
+                          },
+                          "value": {
+                            "_type": "DV_QUANTITY",
+                            "magnitude": 7.5,
+                            "units": "10*9/L"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "_type": "OBSERVATION",
+              "archetype_node_id": "openEHR-EHR-OBSERVATION.laboratory_test_result.v1",
+              "name": {
+                "_type": "DV_TEXT",
+                "value": "Laboratory test result"
+              },
+              "data": {
+                "_type": "HISTORY",
+                "events": [
+                  {
+                    "_type": "POINT_EVENT",
+                    "time": {
+                      "_type": "DV_DATE_TIME",
+                      "value": "2026-01-21T09:30:00Z"
+                    },
+                    "data": {
+                      "_type": "ITEM_TREE",
+                      "items": [
+                        {
+                          "_type": "ELEMENT",
+                          "name": {
+                            "_type": "DV_TEXT",
+                            "value": "Platelet count"
+                          },
+                          "value": {
+                            "_type": "DV_QUANTITY",
+                            "magnitude": 250.0,
+                            "units": "10*9/L"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "patient_id": "p0-019-dryrun-labs_only-20260216T162723Z",
+        "source_metadata": {
+          "scenario": "labs_only",
+          "run_id": "20260216T162723Z",
+          "source_system": "meditech",
+          "site_id": "ops-staging"
+        }
+      },
+      "response": {
+        "status": 200,
+        "data": {
+          "success": true,
+          "patient_id": "p0-019-dryrun-labs_only-20260216T162723Z",
+          "conditions": 0,
+          "medications": 0,
+          "measurements": 3,
+          "procedures": 0,
+          "allergies": 0,
+          "nodes": 4,
+          "edges": 3,
+          "skipped": 0,
+          "error": null
+        }
+      },
+      "checks": {
+        "http_200": true,
+        "success_flag": true,
+        "counts_match": true,
+        "response_has_expected_fields": true
+      }
+    },
+    {
+      "step": "dry-run",
+      "scenario": "medications_heavy",
+      "patient_id": "p0-019-dryrun-medications_heavy-20260216T162723Z",
+      "status_code": 200,
+      "status": "PASS",
+      "duration_seconds": 0.027,
+      "payload": {
+        "composition": {
+          "_type": "COMPOSITION",
+          "archetype_node_id": "openEHR-EHR-COMPOSITION.encounter.v1",
+          "name": {
+            "_type": "DV_TEXT",
+            "value": "Polypharmacy Review"
+          },
+          "language": {
+            "_type": "CODE_PHRASE",
+            "terminology_id": {
+              "value": "ISO_639-1"
+            },
+            "code_string": "en"
+          },
+          "territory": {
+            "_type": "CODE_PHRASE",
+            "terminology_id": {
+              "value": "ISO_3166-1"
+            },
+            "code_string": "US"
+          },
+          "category": {
+            "_type": "DV_CODED_TEXT",
+            "value": "event",
+            "defining_code": {
+              "terminology_id": {
+                "value": "openehr"
+              },
+              "code_string": "433"
+            }
+          },
+          "composer": {
+            "_type": "PARTY_IDENTIFIED",
+            "name": "Dr. Pharmacy"
+          },
+          "context": {
+            "_type": "EVENT_CONTEXT",
+            "start_time": {
+              "_type": "DV_DATE_TIME",
+              "value": "2026-01-22T10:00:00Z"
+            },
+            "setting": {
+              "_type": "DV_CODED_TEXT",
+              "value": "primary medical care",
+              "defining_code": {
+                "terminology_id": {
+                  "value": "openehr"
+                },
+                "code_string": "228"
+              }
+            }
+          },
+          "content": [
+            {
+              "_type": "EVALUATION",
+              "archetype_node_id": "openEHR-EHR-EVALUATION.problem_diagnosis.v1",
+              "name": {
+                "_type": "DV_TEXT",
+                "value": "Problem/Diagnosis"
+              },
+              "data": {
+                "_type": "ITEM_TREE",
+                "items": [
+                  {
+                    "_type": "ELEMENT",
+                    "name": {
+                      "_type": "DV_TEXT",
+                      "value": "Problem/Diagnosis name"
+                    },
+                    "value": {
+                      "_type": "DV_CODED_TEXT",
+                      "value": "Heart failure",
+                      "defining_code": {
+                        "terminology_id": {
+                          "value": "SNOMED-CT"
+                        },
+                        "code_string": "84114007"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "_type": "INSTRUCTION",
+              "archetype_node_id": "openEHR-EHR-INSTRUCTION.medication_order.v3",
+              "name": {
+                "_type": "DV_TEXT",
+                "value": "Medication order"
+              },
+              "activities": [
+                {
+                  "_type": "ACTIVITY",
+                  "description": {
+                    "_type": "ITEM_TREE",
+                    "items": [
+                      {
+                        "_type": "ELEMENT",
+                        "name": {
+                          "_type": "DV_TEXT",
+                          "value": "Medication item"
+                        },
+                        "value": {
+                          "_type": "DV_CODED_TEXT",
+                          "value": "Furosemide 40mg",
+                          "defining_code": {
+                            "terminology_id": {
+                              "value": "RXNORM"
+                            },
+                            "code_string": "4603"
+                          }
+                        }
+                      },
+                      {
+                        "_type": "ELEMENT",
+                        "name": {
+                          "_type": "DV_TEXT",
+                          "value": "Dose amount"
+                        },
+                        "value": {
+                          "_type": "DV_QUANTITY",
+                          "magnitude": 40.0,
+                          "units": "mg"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "_type": "INSTRUCTION",
+              "archetype_node_id": "openEHR-EHR-INSTRUCTION.medication_order.v3",
+              "name": {
+                "_type": "DV_TEXT",
+                "value": "Medication order"
+              },
+              "activities": [
+                {
+                  "_type": "ACTIVITY",
+                  "description": {
+                    "_type": "ITEM_TREE",
+                    "items": [
+                      {
+                        "_type": "ELEMENT",
+                        "name": {
+                          "_type": "DV_TEXT",
+                          "value": "Medication item"
+                        },
+                        "value": {
+                          "_type": "DV_CODED_TEXT",
+                          "value": "Lisinopril 10mg",
+                          "defining_code": {
+                            "terminology_id": {
+                              "value": "RXNORM"
+                            },
+                            "code_string": "29046"
+                          }
+                        }
+                      },
+                      {
+                        "_type": "ELEMENT",
+                        "name": {
+                          "_type": "DV_TEXT",
+                          "value": "Dose amount"
+                        },
+                        "value": {
+                          "_type": "DV_QUANTITY",
+                          "magnitude": 10.0,
+                          "units": "mg"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "_type": "INSTRUCTION",
+              "archetype_node_id": "openEHR-EHR-INSTRUCTION.medication_order.v3",
+              "name": {
+                "_type": "DV_TEXT",
+                "value": "Medication order"
+              },
+              "activities": [
+                {
+                  "_type": "ACTIVITY",
+                  "description": {
+                    "_type": "ITEM_TREE",
+                    "items": [
+                      {
+                        "_type": "ELEMENT",
+                        "name": {
+                          "_type": "DV_TEXT",
+                          "value": "Medication item"
+                        },
+                        "value": {
+                          "_type": "DV_CODED_TEXT",
+                          "value": "Carvedilol 12.5mg",
+                          "defining_code": {
+                            "terminology_id": {
+                              "value": "RXNORM"
+                            },
+                            "code_string": "20352"
+                          }
+                        }
+                      },
+                      {
+                        "_type": "ELEMENT",
+                        "name": {
+                          "_type": "DV_TEXT",
+                          "value": "Dose amount"
+                        },
+                        "value": {
+                          "_type": "DV_QUANTITY",
+                          "magnitude": 12.5,
+                          "units": "mg"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "_type": "INSTRUCTION",
+              "archetype_node_id": "openEHR-EHR-INSTRUCTION.medication_order.v3",
+              "name": {
+                "_type": "DV_TEXT",
+                "value": "Medication order"
+              },
+              "activities": [
+                {
+                  "_type": "ACTIVITY",
+                  "description": {
+                    "_type": "ITEM_TREE",
+                    "items": [
+                      {
+                        "_type": "ELEMENT",
+                        "name": {
+                          "_type": "DV_TEXT",
+                          "value": "Medication item"
+                        },
+                        "value": {
+                          "_type": "DV_CODED_TEXT",
+                          "value": "Spironolactone 25mg",
+                          "defining_code": {
+                            "terminology_id": {
+                              "value": "RXNORM"
+                            },
+                            "code_string": "9997"
+                          }
+                        }
+                      },
+                      {
+                        "_type": "ELEMENT",
+                        "name": {
+                          "_type": "DV_TEXT",
+                          "value": "Dose amount"
+                        },
+                        "value": {
+                          "_type": "DV_QUANTITY",
+                          "magnitude": 25.0,
+                          "units": "mg"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "patient_id": "p0-019-dryrun-medications_heavy-20260216T162723Z",
+        "source_metadata": {
+          "scenario": "medications_heavy",
+          "run_id": "20260216T162723Z",
+          "source_system": "meditech",
+          "site_id": "ops-staging"
+        }
+      },
+      "response": {
+        "status": 200,
+        "data": {
+          "success": true,
+          "patient_id": "p0-019-dryrun-medications_heavy-20260216T162723Z",
+          "conditions": 1,
+          "medications": 4,
+          "measurements": 0,
+          "procedures": 0,
+          "allergies": 0,
+          "nodes": 6,
+          "edges": 5,
+          "skipped": 0,
+          "error": null
+        }
+      },
+      "checks": {
+        "http_200": true,
+        "success_flag": true,
+        "counts_match": true,
+        "response_has_expected_fields": true
+      }
+    },
+    {
+      "step": "dry-run",
+      "scenario": "procedures_vitals",
+      "patient_id": "p0-019-dryrun-procedures_vitals-20260216T162723Z",
+      "status_code": 200,
+      "status": "PASS",
+      "duration_seconds": 0.033,
+      "payload": {
+        "composition": {
+          "_type": "COMPOSITION",
+          "archetype_node_id": "openEHR-EHR-COMPOSITION.encounter.v1",
+          "name": {
+            "_type": "DV_TEXT",
+            "value": "Pre-Op Assessment"
+          },
+          "language": {
+            "_type": "CODE_PHRASE",
+            "terminology_id": {
+              "value": "ISO_639-1"
+            },
+            "code_string": "en"
+          },
+          "territory": {
+            "_type": "CODE_PHRASE",
+            "terminology_id": {
+              "value": "ISO_3166-1"
+            },
+            "code_string": "US"
+          },
+          "category": {
+            "_type": "DV_CODED_TEXT",
+            "value": "event",
+            "defining_code": {
+              "terminology_id": {
+                "value": "openehr"
+              },
+              "code_string": "433"
+            }
+          },
+          "composer": {
+            "_type": "PARTY_IDENTIFIED",
+            "name": "Surgical Team"
+          },
+          "context": {
+            "_type": "EVENT_CONTEXT",
+            "start_time": {
+              "_type": "DV_DATE_TIME",
+              "value": "2026-01-23T06:00:00Z"
+            },
+            "setting": {
+              "_type": "DV_CODED_TEXT",
+              "value": "secondary medical care",
+              "defining_code": {
+                "terminology_id": {
+                  "value": "openehr"
+                },
+                "code_string": "232"
+              }
+            }
+          },
+          "content": [
+            {
+              "_type": "ACTION",
+              "archetype_node_id": "openEHR-EHR-ACTION.procedure.v1",
+              "name": {
+                "_type": "DV_TEXT",
+                "value": "Procedure"
+              },
+              "description": {
+                "_type": "ITEM_TREE",
+                "items": [
+                  {
+                    "_type": "ELEMENT",
+                    "name": {
+                      "_type": "DV_TEXT",
+                      "value": "Procedure name"
+                    },
+                    "value": {
+                      "_type": "DV_CODED_TEXT",
+                      "value": "Appendectomy",
+                      "defining_code": {
+                        "terminology_id": {
+                          "value": "SNOMED-CT"
+                        },
+                        "code_string": "80146002"
+                      }
+                    }
+                  }
+                ]
+              },
+              "time": {
+                "_type": "DV_DATE_TIME",
+                "value": "2026-01-23T07:00:00Z"
+              }
+            },
+            {
+              "_type": "ACTION",
+              "archetype_node_id": "openEHR-EHR-ACTION.procedure.v1",
+              "name": {
+                "_type": "DV_TEXT",
+                "value": "Procedure"
+              },
+              "description": {
+                "_type": "ITEM_TREE",
+                "items": [
+                  {
+                    "_type": "ELEMENT",
+                    "name": {
+                      "_type": "DV_TEXT",
+                      "value": "Procedure name"
+                    },
+                    "value": {
+                      "_type": "DV_CODED_TEXT",
+                      "value": "Wound closure",
+                      "defining_code": {
+                        "terminology_id": {
+                          "value": "SNOMED-CT"
+                        },
+                        "code_string": "385949008"
+                      }
+                    }
+                  }
+                ]
+              },
+              "time": {
+                "_type": "DV_DATE_TIME",
+                "value": "2026-01-23T07:45:00Z"
+              }
+            },
+            {
+              "_type": "OBSERVATION",
+              "archetype_node_id": "openEHR-EHR-OBSERVATION.blood_pressure.v2",
+              "name": {
+                "_type": "DV_TEXT",
+                "value": "Blood Pressure"
+              },
+              "data": {
+                "_type": "HISTORY",
+                "events": [
+                  {
+                    "_type": "POINT_EVENT",
+                    "time": {
+                      "_type": "DV_DATE_TIME",
+                      "value": "2026-01-23T06:05:00Z"
+                    },
+                    "data": {
+                      "_type": "ITEM_TREE",
+                      "items": [
+                        {
+                          "_type": "ELEMENT",
+                          "name": {
+                            "_type": "DV_TEXT",
+                            "value": "Systolic"
+                          },
+                          "value": {
+                            "_type": "DV_QUANTITY",
+                            "magnitude": 130.0,
+                            "units": "mm[Hg]"
+                          }
+                        },
+                        {
+                          "_type": "ELEMENT",
+                          "name": {
+                            "_type": "DV_TEXT",
+                            "value": "Diastolic"
+                          },
+                          "value": {
+                            "_type": "DV_QUANTITY",
+                            "magnitude": 82.0,
+                            "units": "mm[Hg]"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "_type": "OBSERVATION",
+              "archetype_node_id": "openEHR-EHR-OBSERVATION.pulse_oximetry.v1",
+              "name": {
+                "_type": "DV_TEXT",
+                "value": "SpO2"
+              },
+              "data": {
+                "_type": "HISTORY",
+                "events": [
+                  {
+                    "_type": "POINT_EVENT",
+                    "time": {
+                      "_type": "DV_DATE_TIME",
+                      "value": "2026-01-23T06:05:00Z"
+                    },
+                    "data": {
+                      "_type": "ITEM_TREE",
+                      "items": [
+                        {
+                          "_type": "ELEMENT",
+                          "name": {
+                            "_type": "DV_TEXT",
+                            "value": "SpO2"
+                          },
+                          "value": {
+                            "_type": "DV_QUANTITY",
+                            "magnitude": 99.0,
+                            "units": "%"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "_type": "OBSERVATION",
+              "archetype_node_id": "openEHR-EHR-OBSERVATION.body_weight.v2",
+              "name": {
+                "_type": "DV_TEXT",
+                "value": "Body weight"
+              },
+              "data": {
+                "_type": "HISTORY",
+                "events": [
+                  {
+                    "_type": "POINT_EVENT",
+                    "time": {
+                      "_type": "DV_DATE_TIME",
+                      "value": "2026-01-23T06:03:00Z"
+                    },
+                    "data": {
+                      "_type": "ITEM_TREE",
+                      "items": [
+                        {
+                          "_type": "ELEMENT",
+                          "name": {
+                            "_type": "DV_TEXT",
+                            "value": "Weight"
+                          },
+                          "value": {
+                            "_type": "DV_QUANTITY",
+                            "magnitude": 72.0,
+                            "units": "kg"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "patient_id": "p0-019-dryrun-procedures_vitals-20260216T162723Z",
+        "source_metadata": {
+          "scenario": "procedures_vitals",
+          "run_id": "20260216T162723Z",
+          "source_system": "meditech",
+          "site_id": "ops-staging"
+        }
+      },
+      "response": {
+        "status": 200,
+        "data": {
+          "success": true,
+          "patient_id": "p0-019-dryrun-procedures_vitals-20260216T162723Z",
+          "conditions": 0,
+          "medications": 0,
+          "measurements": 4,
+          "procedures": 2,
+          "allergies": 0,
+          "nodes": 7,
+          "edges": 6,
+          "skipped": 0,
+          "error": null
+        }
+      },
+      "checks": {
+        "http_200": true,
+        "success_flag": true,
+        "counts_match": true,
+        "response_has_expected_fields": true
+      }
+    },
+    {
+      "step": "dry-run",
+      "scenario": "allergies_conditions",
+      "patient_id": "p0-019-dryrun-allergies_conditions-20260216T162723Z",
+      "status_code": 200,
+      "status": "PASS",
+      "duration_seconds": 0.027,
+      "payload": {
+        "composition": {
+          "_type": "COMPOSITION",
+          "archetype_node_id": "openEHR-EHR-COMPOSITION.encounter.v1",
+          "name": {
+            "_type": "DV_TEXT",
+            "value": "Allergy Intake"
+          },
+          "language": {
+            "_type": "CODE_PHRASE",
+            "terminology_id": {
+              "value": "ISO_639-1"
+            },
+            "code_string": "en"
+          },
+          "territory": {
+            "_type": "CODE_PHRASE",
+            "terminology_id": {
+              "value": "ISO_3166-1"
+            },
+            "code_string": "US"
+          },
+          "category": {
+            "_type": "DV_CODED_TEXT",
+            "value": "event",
+            "defining_code": {
+              "terminology_id": {
+                "value": "openehr"
+              },
+              "code_string": "433"
+            }
+          },
+          "composer": {
+            "_type": "PARTY_IDENTIFIED",
+            "name": "Intake Nurse"
+          },
+          "context": {
+            "_type": "EVENT_CONTEXT",
+            "start_time": {
+              "_type": "DV_DATE_TIME",
+              "value": "2026-01-24T14:00:00Z"
+            },
+            "setting": {
+              "_type": "DV_CODED_TEXT",
+              "value": "primary medical care",
+              "defining_code": {
+                "terminology_id": {
+                  "value": "openehr"
+                },
+                "code_string": "228"
+              }
+            }
+          },
+          "content": [
+            {
+              "_type": "EVALUATION",
+              "archetype_node_id": "openEHR-EHR-EVALUATION.adverse_reaction_risk.v1",
+              "name": {
+                "_type": "DV_TEXT",
+                "value": "Adverse reaction risk"
+              },
+              "data": {
+                "_type": "ITEM_TREE",
+                "items": [
+                  {
+                    "_type": "ELEMENT",
+                    "name": {
+                      "_type": "DV_TEXT",
+                      "value": "Substance"
+                    },
+                    "value": {
+                      "_type": "DV_CODED_TEXT",
+                      "value": "Penicillin",
+                      "defining_code": {
+                        "terminology_id": {
+                          "value": "SNOMED-CT"
+                        },
+                        "code_string": "91936005"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "_type": "EVALUATION",
+              "archetype_node_id": "openEHR-EHR-EVALUATION.adverse_reaction_risk.v1",
+              "name": {
+                "_type": "DV_TEXT",
+                "value": "Adverse reaction risk"
+              },
+              "data": {
+                "_type": "ITEM_TREE",
+                "items": [
+                  {
+                    "_type": "ELEMENT",
+                    "name": {
+                      "_type": "DV_TEXT",
+                      "value": "Substance"
+                    },
+                    "value": {
+                      "_type": "DV_CODED_TEXT",
+                      "value": "Sulfonamides",
+                      "defining_code": {
+                        "terminology_id": {
+                          "value": "SNOMED-CT"
+                        },
+                        "code_string": "91939003"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "_type": "EVALUATION",
+              "archetype_node_id": "openEHR-EHR-EVALUATION.adverse_reaction_risk.v1",
+              "name": {
+                "_type": "DV_TEXT",
+                "value": "Adverse reaction risk"
+              },
+              "data": {
+                "_type": "ITEM_TREE",
+                "items": [
+                  {
+                    "_type": "ELEMENT",
+                    "name": {
+                      "_type": "DV_TEXT",
+                      "value": "Substance"
+                    },
+                    "value": {
+                      "_type": "DV_CODED_TEXT",
+                      "value": "Latex",
+                      "defining_code": {
+                        "terminology_id": {
+                          "value": "SNOMED-CT"
+                        },
+                        "code_string": "111088007"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "_type": "EVALUATION",
+              "archetype_node_id": "openEHR-EHR-EVALUATION.problem_diagnosis.v1",
+              "name": {
+                "_type": "DV_TEXT",
+                "value": "Problem/Diagnosis"
+              },
+              "data": {
+                "_type": "ITEM_TREE",
+                "items": [
+                  {
+                    "_type": "ELEMENT",
+                    "name": {
+                      "_type": "DV_TEXT",
+                      "value": "Problem/Diagnosis name"
+                    },
+                    "value": {
+                      "_type": "DV_CODED_TEXT",
+                      "value": "Allergic rhinitis",
+                      "defining_code": {
+                        "terminology_id": {
+                          "value": "SNOMED-CT"
+                        },
+                        "code_string": "61582004"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "_type": "EVALUATION",
+              "archetype_node_id": "openEHR-EHR-EVALUATION.problem_diagnosis.v1",
+              "name": {
+                "_type": "DV_TEXT",
+                "value": "Problem/Diagnosis"
+              },
+              "data": {
+                "_type": "ITEM_TREE",
+                "items": [
+                  {
+                    "_type": "ELEMENT",
+                    "name": {
+                      "_type": "DV_TEXT",
+                      "value": "Problem/Diagnosis name"
+                    },
+                    "value": {
+                      "_type": "DV_CODED_TEXT",
+                      "value": "Eczema",
+                      "defining_code": {
+                        "terminology_id": {
+                          "value": "SNOMED-CT"
+                        },
+                        "code_string": "43116000"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "patient_id": "p0-019-dryrun-allergies_conditions-20260216T162723Z",
+        "source_metadata": {
+          "scenario": "allergies_conditions",
+          "run_id": "20260216T162723Z",
+          "source_system": "meditech",
+          "site_id": "ops-staging"
+        }
+      },
+      "response": {
+        "status": 200,
+        "data": {
+          "success": true,
+          "patient_id": "p0-019-dryrun-allergies_conditions-20260216T162723Z",
+          "conditions": 2,
+          "medications": 0,
+          "measurements": 0,
+          "procedures": 0,
+          "allergies": 3,
+          "nodes": 6,
+          "edges": 5,
+          "skipped": 0,
+          "error": null
+        }
+      },
+      "checks": {
+        "http_200": true,
+        "success_flag": true,
+        "counts_match": true,
+        "response_has_expected_fields": true
+      }
+    }
+  ],
+  "round_trip_runs": [
+    {
+      "scenario": "mixed_all",
+      "patient_id": "p0-019-trip-mixed_all-20260216T162723Z",
+      "composition_import": {
+        "step": "composition-import",
+        "scenario": "mixed_all",
+        "patient_id": "p0-019-trip-mixed_all-20260216T162723Z",
+        "status_code": 200,
+        "status": "PASS",
+        "duration_seconds": 0.052,
+        "payload": {
+          "composition": {
+            "_type": "COMPOSITION",
+            "archetype_node_id": "openEHR-EHR-COMPOSITION.encounter.v1",
+            "name": {
+              "_type": "DV_TEXT",
+              "value": "Mixed-All Encounter"
+            },
+            "language": {
+              "_type": "CODE_PHRASE",
+              "terminology_id": {
+                "value": "ISO_639-1"
+              },
+              "code_string": "en"
+            },
+            "territory": {
+              "_type": "CODE_PHRASE",
+              "terminology_id": {
+                "value": "ISO_3166-1"
+              },
+              "code_string": "US"
+            },
+            "category": {
+              "_type": "DV_CODED_TEXT",
+              "value": "event",
+              "defining_code": {
+                "terminology_id": {
+                  "value": "openehr"
+                },
+                "code_string": "433"
+              }
+            },
+            "composer": {
+              "_type": "PARTY_IDENTIFIED",
+              "name": "Dr. Reconcile"
+            },
+            "context": {
+              "_type": "EVENT_CONTEXT",
+              "start_time": {
+                "_type": "DV_DATE_TIME",
+                "value": "2026-01-20T08:00:00Z"
+              },
+              "setting": {
+                "_type": "DV_CODED_TEXT",
+                "value": "primary medical care",
+                "defining_code": {
+                  "terminology_id": {
+                    "value": "openehr"
+                  },
+                  "code_string": "228"
+                }
+              }
+            },
+            "content": [
+              {
+                "_type": "EVALUATION",
+                "archetype_node_id": "openEHR-EHR-EVALUATION.problem_diagnosis.v1",
+                "name": {
+                  "_type": "DV_TEXT",
+                  "value": "Problem/Diagnosis"
+                },
+                "data": {
+                  "_type": "ITEM_TREE",
+                  "items": [
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Problem/Diagnosis name"
+                      },
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "Asthma",
+                        "defining_code": {
+                          "terminology_id": {
+                            "value": "SNOMED-CT"
+                          },
+                          "code_string": "195967001"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "_type": "INSTRUCTION",
+                "archetype_node_id": "openEHR-EHR-INSTRUCTION.medication_order.v3",
+                "name": {
+                  "_type": "DV_TEXT",
+                  "value": "Medication order"
+                },
+                "activities": [
+                  {
+                    "_type": "ACTIVITY",
+                    "description": {
+                      "_type": "ITEM_TREE",
+                      "items": [
+                        {
+                          "_type": "ELEMENT",
+                          "name": {
+                            "_type": "DV_TEXT",
+                            "value": "Medication item"
+                          },
+                          "value": {
+                            "_type": "DV_CODED_TEXT",
+                            "value": "Salbutamol 100mcg",
+                            "defining_code": {
+                              "terminology_id": {
+                                "value": "RXNORM"
+                              },
+                              "code_string": "435"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "_type": "OBSERVATION",
+                "archetype_node_id": "openEHR-EHR-OBSERVATION.blood_pressure.v2",
+                "name": {
+                  "_type": "DV_TEXT",
+                  "value": "Blood Pressure"
+                },
+                "data": {
+                  "_type": "HISTORY",
+                  "events": [
+                    {
+                      "_type": "POINT_EVENT",
+                      "time": {
+                        "_type": "DV_DATE_TIME",
+                        "value": "2026-01-20T08:10:00Z"
+                      },
+                      "data": {
+                        "_type": "ITEM_TREE",
+                        "items": [
+                          {
+                            "_type": "ELEMENT",
+                            "name": {
+                              "_type": "DV_TEXT",
+                              "value": "Systolic"
+                            },
+                            "value": {
+                              "_type": "DV_QUANTITY",
+                              "magnitude": 118.0,
+                              "units": "mm[Hg]"
+                            }
+                          },
+                          {
+                            "_type": "ELEMENT",
+                            "name": {
+                              "_type": "DV_TEXT",
+                              "value": "Diastolic"
+                            },
+                            "value": {
+                              "_type": "DV_QUANTITY",
+                              "magnitude": 76.0,
+                              "units": "mm[Hg]"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "_type": "ACTION",
+                "archetype_node_id": "openEHR-EHR-ACTION.procedure.v1",
+                "name": {
+                  "_type": "DV_TEXT",
+                  "value": "Procedure"
+                },
+                "description": {
+                  "_type": "ITEM_TREE",
+                  "items": [
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Procedure name"
+                      },
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "Spirometry",
+                        "defining_code": {
+                          "terminology_id": {
+                            "value": "SNOMED-CT"
+                          },
+                          "code_string": "127783003"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "_type": "EVALUATION",
+                "archetype_node_id": "openEHR-EHR-EVALUATION.adverse_reaction_risk.v1",
+                "name": {
+                  "_type": "DV_TEXT",
+                  "value": "Adverse reaction risk"
+                },
+                "data": {
+                  "_type": "ITEM_TREE",
+                  "items": [
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Substance"
+                      },
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "Aspirin",
+                        "defining_code": {
+                          "terminology_id": {
+                            "value": "SNOMED-CT"
+                          },
+                          "code_string": "387458008"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "patient_id": "p0-019-trip-mixed_all-20260216T162723Z",
+          "source_metadata": {
+            "scenario": "mixed_all",
+            "run_id": "20260216T162723Z",
+            "source_system": "meditech",
+            "site_id": "ops-staging"
+          }
+        },
+        "response": {
+          "status": 200,
+          "data": {
+            "success": true,
+            "patient_id": "p0-019-trip-mixed_all-20260216T162723Z",
+            "conditions": 1,
+            "medications": 1,
+            "measurements": 2,
+            "procedures": 1,
+            "allergies": 1,
+            "nodes": 7,
+            "edges": 6,
+            "skipped": 0,
+            "error": null
+          }
+        },
+        "checks": {
+          "http_200": true,
+          "success_flag": true,
+          "counts_match": true
+        }
+      },
+      "reconcile": {
+        "step": "reconcile",
+        "scenario": "mixed_all",
+        "patient_id": "p0-019-trip-mixed_all-20260216T162723Z",
+        "status_code": 200,
+        "status": "PASS",
+        "duration_seconds": 0.051,
+        "payload": {},
+        "response": {
+          "status": 200,
+          "data": {
+            "patient_id": "p0-019-trip-mixed_all-20260216T162723Z",
+            "match": true,
+            "import_fingerprint": "24c1d1e3c3f870ed575c06aa4e3d33ad1bec29492f4cf57b92e8857f28f1418a",
+            "export_reimport_fingerprint": "24c1d1e3c3f870ed575c06aa4e3d33ad1bec29492f4cf57b92e8857f28f1418a",
+            "import_row_counts": {
+              "conditions": 1,
+              "medications": 1,
+              "measurements": 2,
+              "procedures": 1,
+              "allergies": 1
+            },
+            "reimport_row_counts": {
+              "conditions": 1,
+              "medications": 1,
+              "measurements": 2,
+              "procedures": 1,
+              "allergies": 1
+            },
+            "mismatches": []
+          }
+        },
+        "checks": {
+          "http_200": true,
+          "match": true,
+          "fingerprint_present": true,
+          "fingerprint_equal": true
+        }
+      },
+      "rollback": {
+        "step": "rollback",
+        "scenario": "mixed_all",
+        "patient_id": "p0-019-trip-mixed_all-20260216T162723Z",
+        "status_code": 200,
+        "status": "PASS",
+        "duration_seconds": 0.033,
+        "payload": {
+          "patient_id": "p0-019-trip-mixed_all-20260216T162723Z",
+          "batch_start": "2026-02-16T16:26:23Z",
+          "batch_end": "2026-02-16T16:30:23Z"
+        },
+        "response": {
+          "status": 200,
+          "data": {
+            "patient_id": "p0-019-trip-mixed_all-20260216T162723Z",
+            "success": true,
+            "facts_deleted": 6,
+            "nodes_deleted": 6,
+            "edges_deleted": 6,
+            "error": null
+          }
+        },
+        "checks": {
+          "http_200": true,
+          "rollback_success": true
+        }
+      },
+      "reconcile_after_rollback": {
+        "step": "reconcile-after-rollback",
+        "scenario": "mixed_all",
+        "patient_id": "p0-019-trip-mixed_all-20260216T162723Z",
+        "status_code": 200,
+        "status": "PASS",
+        "duration_seconds": 0.019,
+        "payload": {},
+        "response": {
+          "status": 200,
+          "data": {
+            "patient_id": "p0-019-trip-mixed_all-20260216T162723Z",
+            "match": false,
+            "import_fingerprint": "",
+            "export_reimport_fingerprint": "",
+            "import_row_counts": {},
+            "reimport_row_counts": {},
+            "mismatches": [
+              "No facts found for patient"
+            ]
+          }
+        },
+        "checks": {
+          "http_200_or_404": true,
+          "residual_gone": true
+        }
+      },
+      "batch_window": {
+        "start": "2026-02-16T16:26:23Z",
+        "end": "2026-02-16T16:30:23Z"
+      }
+    },
+    {
+      "scenario": "labs_only",
+      "patient_id": "p0-019-trip-labs_only-20260216T162723Z",
+      "composition_import": {
+        "step": "composition-import",
+        "scenario": "labs_only",
+        "patient_id": "p0-019-trip-labs_only-20260216T162723Z",
+        "status_code": 200,
+        "status": "PASS",
+        "duration_seconds": 0.039,
+        "payload": {
+          "composition": {
+            "_type": "COMPOSITION",
+            "archetype_node_id": "openEHR-EHR-COMPOSITION.encounter.v1",
+            "name": {
+              "_type": "DV_TEXT",
+              "value": "Lab Results"
+            },
+            "language": {
+              "_type": "CODE_PHRASE",
+              "terminology_id": {
+                "value": "ISO_639-1"
+              },
+              "code_string": "en"
+            },
+            "territory": {
+              "_type": "CODE_PHRASE",
+              "terminology_id": {
+                "value": "ISO_3166-1"
+              },
+              "code_string": "US"
+            },
+            "category": {
+              "_type": "DV_CODED_TEXT",
+              "value": "event",
+              "defining_code": {
+                "terminology_id": {
+                  "value": "openehr"
+                },
+                "code_string": "433"
+              }
+            },
+            "composer": {
+              "_type": "PARTY_IDENTIFIED",
+              "name": "Lab System"
+            },
+            "context": {
+              "_type": "EVENT_CONTEXT",
+              "start_time": {
+                "_type": "DV_DATE_TIME",
+                "value": "2026-01-21T09:00:00Z"
+              },
+              "setting": {
+                "_type": "DV_CODED_TEXT",
+                "value": "secondary medical care",
+                "defining_code": {
+                  "terminology_id": {
+                    "value": "openehr"
+                  },
+                  "code_string": "232"
+                }
+              }
+            },
+            "content": [
+              {
+                "_type": "OBSERVATION",
+                "archetype_node_id": "openEHR-EHR-OBSERVATION.laboratory_test_result.v1",
+                "name": {
+                  "_type": "DV_TEXT",
+                  "value": "Laboratory test result"
+                },
+                "data": {
+                  "_type": "HISTORY",
+                  "events": [
+                    {
+                      "_type": "POINT_EVENT",
+                      "time": {
+                        "_type": "DV_DATE_TIME",
+                        "value": "2026-01-21T09:30:00Z"
+                      },
+                      "data": {
+                        "_type": "ITEM_TREE",
+                        "items": [
+                          {
+                            "_type": "ELEMENT",
+                            "name": {
+                              "_type": "DV_TEXT",
+                              "value": "Hemoglobin"
+                            },
+                            "value": {
+                              "_type": "DV_QUANTITY",
+                              "magnitude": 14.2,
+                              "units": "g/dL"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "_type": "OBSERVATION",
+                "archetype_node_id": "openEHR-EHR-OBSERVATION.laboratory_test_result.v1",
+                "name": {
+                  "_type": "DV_TEXT",
+                  "value": "Laboratory test result"
+                },
+                "data": {
+                  "_type": "HISTORY",
+                  "events": [
+                    {
+                      "_type": "POINT_EVENT",
+                      "time": {
+                        "_type": "DV_DATE_TIME",
+                        "value": "2026-01-21T09:30:00Z"
+                      },
+                      "data": {
+                        "_type": "ITEM_TREE",
+                        "items": [
+                          {
+                            "_type": "ELEMENT",
+                            "name": {
+                              "_type": "DV_TEXT",
+                              "value": "White blood cell count"
+                            },
+                            "value": {
+                              "_type": "DV_QUANTITY",
+                              "magnitude": 7.5,
+                              "units": "10*9/L"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "_type": "OBSERVATION",
+                "archetype_node_id": "openEHR-EHR-OBSERVATION.laboratory_test_result.v1",
+                "name": {
+                  "_type": "DV_TEXT",
+                  "value": "Laboratory test result"
+                },
+                "data": {
+                  "_type": "HISTORY",
+                  "events": [
+                    {
+                      "_type": "POINT_EVENT",
+                      "time": {
+                        "_type": "DV_DATE_TIME",
+                        "value": "2026-01-21T09:30:00Z"
+                      },
+                      "data": {
+                        "_type": "ITEM_TREE",
+                        "items": [
+                          {
+                            "_type": "ELEMENT",
+                            "name": {
+                              "_type": "DV_TEXT",
+                              "value": "Platelet count"
+                            },
+                            "value": {
+                              "_type": "DV_QUANTITY",
+                              "magnitude": 250.0,
+                              "units": "10*9/L"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "patient_id": "p0-019-trip-labs_only-20260216T162723Z",
+          "source_metadata": {
+            "scenario": "labs_only",
+            "run_id": "20260216T162723Z",
+            "source_system": "meditech",
+            "site_id": "ops-staging"
+          }
+        },
+        "response": {
+          "status": 200,
+          "data": {
+            "success": true,
+            "patient_id": "p0-019-trip-labs_only-20260216T162723Z",
+            "conditions": 0,
+            "medications": 0,
+            "measurements": 3,
+            "procedures": 0,
+            "allergies": 0,
+            "nodes": 4,
+            "edges": 3,
+            "skipped": 0,
+            "error": null
+          }
+        },
+        "checks": {
+          "http_200": true,
+          "success_flag": true,
+          "counts_match": true
+        }
+      },
+      "reconcile": {
+        "step": "reconcile",
+        "scenario": "labs_only",
+        "patient_id": "p0-019-trip-labs_only-20260216T162723Z",
+        "status_code": 200,
+        "status": "PASS",
+        "duration_seconds": 0.037,
+        "payload": {},
+        "response": {
+          "status": 200,
+          "data": {
+            "patient_id": "p0-019-trip-labs_only-20260216T162723Z",
+            "match": true,
+            "import_fingerprint": "d2ce2d4bcff01065bb7cd6522e191a79bf326235bee6f28b1d6cde21a34dad54",
+            "export_reimport_fingerprint": "d2ce2d4bcff01065bb7cd6522e191a79bf326235bee6f28b1d6cde21a34dad54",
+            "import_row_counts": {
+              "conditions": 0,
+              "medications": 0,
+              "measurements": 3,
+              "procedures": 0,
+              "allergies": 0
+            },
+            "reimport_row_counts": {
+              "conditions": 0,
+              "medications": 0,
+              "measurements": 3,
+              "procedures": 0,
+              "allergies": 0
+            },
+            "mismatches": []
+          }
+        },
+        "checks": {
+          "http_200": true,
+          "match": true,
+          "fingerprint_present": true,
+          "fingerprint_equal": true
+        }
+      },
+      "rollback": {
+        "step": "rollback",
+        "scenario": "labs_only",
+        "patient_id": "p0-019-trip-labs_only-20260216T162723Z",
+        "status_code": 200,
+        "status": "PASS",
+        "duration_seconds": 0.03,
+        "payload": {
+          "patient_id": "p0-019-trip-labs_only-20260216T162723Z",
+          "batch_start": "2026-02-16T16:26:23Z",
+          "batch_end": "2026-02-16T16:30:24Z"
+        },
+        "response": {
+          "status": 200,
+          "data": {
+            "patient_id": "p0-019-trip-labs_only-20260216T162723Z",
+            "success": true,
+            "facts_deleted": 3,
+            "nodes_deleted": 3,
+            "edges_deleted": 3,
+            "error": null
+          }
+        },
+        "checks": {
+          "http_200": true,
+          "rollback_success": true
+        }
+      },
+      "reconcile_after_rollback": {
+        "step": "reconcile-after-rollback",
+        "scenario": "labs_only",
+        "patient_id": "p0-019-trip-labs_only-20260216T162723Z",
+        "status_code": 200,
+        "status": "PASS",
+        "duration_seconds": 0.016,
+        "payload": {},
+        "response": {
+          "status": 200,
+          "data": {
+            "patient_id": "p0-019-trip-labs_only-20260216T162723Z",
+            "match": false,
+            "import_fingerprint": "",
+            "export_reimport_fingerprint": "",
+            "import_row_counts": {},
+            "reimport_row_counts": {},
+            "mismatches": [
+              "No facts found for patient"
+            ]
+          }
+        },
+        "checks": {
+          "http_200_or_404": true,
+          "residual_gone": true
+        }
+      },
+      "batch_window": {
+        "start": "2026-02-16T16:26:23Z",
+        "end": "2026-02-16T16:30:24Z"
+      }
+    },
+    {
+      "scenario": "medications_heavy",
+      "patient_id": "p0-019-trip-medications_heavy-20260216T162723Z",
+      "composition_import": {
+        "step": "composition-import",
+        "scenario": "medications_heavy",
+        "patient_id": "p0-019-trip-medications_heavy-20260216T162723Z",
+        "status_code": 200,
+        "status": "PASS",
+        "duration_seconds": 0.026,
+        "payload": {
+          "composition": {
+            "_type": "COMPOSITION",
+            "archetype_node_id": "openEHR-EHR-COMPOSITION.encounter.v1",
+            "name": {
+              "_type": "DV_TEXT",
+              "value": "Polypharmacy Review"
+            },
+            "language": {
+              "_type": "CODE_PHRASE",
+              "terminology_id": {
+                "value": "ISO_639-1"
+              },
+              "code_string": "en"
+            },
+            "territory": {
+              "_type": "CODE_PHRASE",
+              "terminology_id": {
+                "value": "ISO_3166-1"
+              },
+              "code_string": "US"
+            },
+            "category": {
+              "_type": "DV_CODED_TEXT",
+              "value": "event",
+              "defining_code": {
+                "terminology_id": {
+                  "value": "openehr"
+                },
+                "code_string": "433"
+              }
+            },
+            "composer": {
+              "_type": "PARTY_IDENTIFIED",
+              "name": "Dr. Pharmacy"
+            },
+            "context": {
+              "_type": "EVENT_CONTEXT",
+              "start_time": {
+                "_type": "DV_DATE_TIME",
+                "value": "2026-01-22T10:00:00Z"
+              },
+              "setting": {
+                "_type": "DV_CODED_TEXT",
+                "value": "primary medical care",
+                "defining_code": {
+                  "terminology_id": {
+                    "value": "openehr"
+                  },
+                  "code_string": "228"
+                }
+              }
+            },
+            "content": [
+              {
+                "_type": "EVALUATION",
+                "archetype_node_id": "openEHR-EHR-EVALUATION.problem_diagnosis.v1",
+                "name": {
+                  "_type": "DV_TEXT",
+                  "value": "Problem/Diagnosis"
+                },
+                "data": {
+                  "_type": "ITEM_TREE",
+                  "items": [
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Problem/Diagnosis name"
+                      },
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "Heart failure",
+                        "defining_code": {
+                          "terminology_id": {
+                            "value": "SNOMED-CT"
+                          },
+                          "code_string": "84114007"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "_type": "INSTRUCTION",
+                "archetype_node_id": "openEHR-EHR-INSTRUCTION.medication_order.v3",
+                "name": {
+                  "_type": "DV_TEXT",
+                  "value": "Medication order"
+                },
+                "activities": [
+                  {
+                    "_type": "ACTIVITY",
+                    "description": {
+                      "_type": "ITEM_TREE",
+                      "items": [
+                        {
+                          "_type": "ELEMENT",
+                          "name": {
+                            "_type": "DV_TEXT",
+                            "value": "Medication item"
+                          },
+                          "value": {
+                            "_type": "DV_CODED_TEXT",
+                            "value": "Furosemide 40mg",
+                            "defining_code": {
+                              "terminology_id": {
+                                "value": "RXNORM"
+                              },
+                              "code_string": "4603"
+                            }
+                          }
+                        },
+                        {
+                          "_type": "ELEMENT",
+                          "name": {
+                            "_type": "DV_TEXT",
+                            "value": "Dose amount"
+                          },
+                          "value": {
+                            "_type": "DV_QUANTITY",
+                            "magnitude": 40.0,
+                            "units": "mg"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "_type": "INSTRUCTION",
+                "archetype_node_id": "openEHR-EHR-INSTRUCTION.medication_order.v3",
+                "name": {
+                  "_type": "DV_TEXT",
+                  "value": "Medication order"
+                },
+                "activities": [
+                  {
+                    "_type": "ACTIVITY",
+                    "description": {
+                      "_type": "ITEM_TREE",
+                      "items": [
+                        {
+                          "_type": "ELEMENT",
+                          "name": {
+                            "_type": "DV_TEXT",
+                            "value": "Medication item"
+                          },
+                          "value": {
+                            "_type": "DV_CODED_TEXT",
+                            "value": "Lisinopril 10mg",
+                            "defining_code": {
+                              "terminology_id": {
+                                "value": "RXNORM"
+                              },
+                              "code_string": "29046"
+                            }
+                          }
+                        },
+                        {
+                          "_type": "ELEMENT",
+                          "name": {
+                            "_type": "DV_TEXT",
+                            "value": "Dose amount"
+                          },
+                          "value": {
+                            "_type": "DV_QUANTITY",
+                            "magnitude": 10.0,
+                            "units": "mg"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "_type": "INSTRUCTION",
+                "archetype_node_id": "openEHR-EHR-INSTRUCTION.medication_order.v3",
+                "name": {
+                  "_type": "DV_TEXT",
+                  "value": "Medication order"
+                },
+                "activities": [
+                  {
+                    "_type": "ACTIVITY",
+                    "description": {
+                      "_type": "ITEM_TREE",
+                      "items": [
+                        {
+                          "_type": "ELEMENT",
+                          "name": {
+                            "_type": "DV_TEXT",
+                            "value": "Medication item"
+                          },
+                          "value": {
+                            "_type": "DV_CODED_TEXT",
+                            "value": "Carvedilol 12.5mg",
+                            "defining_code": {
+                              "terminology_id": {
+                                "value": "RXNORM"
+                              },
+                              "code_string": "20352"
+                            }
+                          }
+                        },
+                        {
+                          "_type": "ELEMENT",
+                          "name": {
+                            "_type": "DV_TEXT",
+                            "value": "Dose amount"
+                          },
+                          "value": {
+                            "_type": "DV_QUANTITY",
+                            "magnitude": 12.5,
+                            "units": "mg"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "_type": "INSTRUCTION",
+                "archetype_node_id": "openEHR-EHR-INSTRUCTION.medication_order.v3",
+                "name": {
+                  "_type": "DV_TEXT",
+                  "value": "Medication order"
+                },
+                "activities": [
+                  {
+                    "_type": "ACTIVITY",
+                    "description": {
+                      "_type": "ITEM_TREE",
+                      "items": [
+                        {
+                          "_type": "ELEMENT",
+                          "name": {
+                            "_type": "DV_TEXT",
+                            "value": "Medication item"
+                          },
+                          "value": {
+                            "_type": "DV_CODED_TEXT",
+                            "value": "Spironolactone 25mg",
+                            "defining_code": {
+                              "terminology_id": {
+                                "value": "RXNORM"
+                              },
+                              "code_string": "9997"
+                            }
+                          }
+                        },
+                        {
+                          "_type": "ELEMENT",
+                          "name": {
+                            "_type": "DV_TEXT",
+                            "value": "Dose amount"
+                          },
+                          "value": {
+                            "_type": "DV_QUANTITY",
+                            "magnitude": 25.0,
+                            "units": "mg"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "patient_id": "p0-019-trip-medications_heavy-20260216T162723Z",
+          "source_metadata": {
+            "scenario": "medications_heavy",
+            "run_id": "20260216T162723Z",
+            "source_system": "meditech",
+            "site_id": "ops-staging"
+          }
+        },
+        "response": {
+          "status": 200,
+          "data": {
+            "success": true,
+            "patient_id": "p0-019-trip-medications_heavy-20260216T162723Z",
+            "conditions": 1,
+            "medications": 4,
+            "measurements": 0,
+            "procedures": 0,
+            "allergies": 0,
+            "nodes": 6,
+            "edges": 5,
+            "skipped": 0,
+            "error": null
+          }
+        },
+        "checks": {
+          "http_200": true,
+          "success_flag": true,
+          "counts_match": true
+        }
+      },
+      "reconcile": {
+        "step": "reconcile",
+        "scenario": "medications_heavy",
+        "patient_id": "p0-019-trip-medications_heavy-20260216T162723Z",
+        "status_code": 200,
+        "status": "PASS",
+        "duration_seconds": 0.027,
+        "payload": {},
+        "response": {
+          "status": 200,
+          "data": {
+            "patient_id": "p0-019-trip-medications_heavy-20260216T162723Z",
+            "match": true,
+            "import_fingerprint": "2a15c9847a58843a12bdc8a03f1e153964b9946617379f0b0539bc8789e932b1",
+            "export_reimport_fingerprint": "2a15c9847a58843a12bdc8a03f1e153964b9946617379f0b0539bc8789e932b1",
+            "import_row_counts": {
+              "conditions": 1,
+              "medications": 4,
+              "measurements": 0,
+              "procedures": 0,
+              "allergies": 0
+            },
+            "reimport_row_counts": {
+              "conditions": 1,
+              "medications": 4,
+              "measurements": 0,
+              "procedures": 0,
+              "allergies": 0
+            },
+            "mismatches": []
+          }
+        },
+        "checks": {
+          "http_200": true,
+          "match": true,
+          "fingerprint_present": true,
+          "fingerprint_equal": true
+        }
+      },
+      "rollback": {
+        "step": "rollback",
+        "scenario": "medications_heavy",
+        "patient_id": "p0-019-trip-medications_heavy-20260216T162723Z",
+        "status_code": 200,
+        "status": "PASS",
+        "duration_seconds": 0.018,
+        "payload": {
+          "patient_id": "p0-019-trip-medications_heavy-20260216T162723Z",
+          "batch_start": "2026-02-16T16:26:24Z",
+          "batch_end": "2026-02-16T16:30:24Z"
+        },
+        "response": {
+          "status": 200,
+          "data": {
+            "patient_id": "p0-019-trip-medications_heavy-20260216T162723Z",
+            "success": true,
+            "facts_deleted": 5,
+            "nodes_deleted": 5,
+            "edges_deleted": 5,
+            "error": null
+          }
+        },
+        "checks": {
+          "http_200": true,
+          "rollback_success": true
+        }
+      },
+      "reconcile_after_rollback": {
+        "step": "reconcile-after-rollback",
+        "scenario": "medications_heavy",
+        "patient_id": "p0-019-trip-medications_heavy-20260216T162723Z",
+        "status_code": 200,
+        "status": "PASS",
+        "duration_seconds": 0.01,
+        "payload": {},
+        "response": {
+          "status": 200,
+          "data": {
+            "patient_id": "p0-019-trip-medications_heavy-20260216T162723Z",
+            "match": false,
+            "import_fingerprint": "",
+            "export_reimport_fingerprint": "",
+            "import_row_counts": {},
+            "reimport_row_counts": {},
+            "mismatches": [
+              "No facts found for patient"
+            ]
+          }
+        },
+        "checks": {
+          "http_200_or_404": true,
+          "residual_gone": true
+        }
+      },
+      "batch_window": {
+        "start": "2026-02-16T16:26:24Z",
+        "end": "2026-02-16T16:30:24Z"
+      }
+    },
+    {
+      "scenario": "procedures_vitals",
+      "patient_id": "p0-019-trip-procedures_vitals-20260216T162723Z",
+      "composition_import": {
+        "step": "composition-import",
+        "scenario": "procedures_vitals",
+        "patient_id": "p0-019-trip-procedures_vitals-20260216T162723Z",
+        "status_code": 200,
+        "status": "PASS",
+        "duration_seconds": 0.034,
+        "payload": {
+          "composition": {
+            "_type": "COMPOSITION",
+            "archetype_node_id": "openEHR-EHR-COMPOSITION.encounter.v1",
+            "name": {
+              "_type": "DV_TEXT",
+              "value": "Pre-Op Assessment"
+            },
+            "language": {
+              "_type": "CODE_PHRASE",
+              "terminology_id": {
+                "value": "ISO_639-1"
+              },
+              "code_string": "en"
+            },
+            "territory": {
+              "_type": "CODE_PHRASE",
+              "terminology_id": {
+                "value": "ISO_3166-1"
+              },
+              "code_string": "US"
+            },
+            "category": {
+              "_type": "DV_CODED_TEXT",
+              "value": "event",
+              "defining_code": {
+                "terminology_id": {
+                  "value": "openehr"
+                },
+                "code_string": "433"
+              }
+            },
+            "composer": {
+              "_type": "PARTY_IDENTIFIED",
+              "name": "Surgical Team"
+            },
+            "context": {
+              "_type": "EVENT_CONTEXT",
+              "start_time": {
+                "_type": "DV_DATE_TIME",
+                "value": "2026-01-23T06:00:00Z"
+              },
+              "setting": {
+                "_type": "DV_CODED_TEXT",
+                "value": "secondary medical care",
+                "defining_code": {
+                  "terminology_id": {
+                    "value": "openehr"
+                  },
+                  "code_string": "232"
+                }
+              }
+            },
+            "content": [
+              {
+                "_type": "ACTION",
+                "archetype_node_id": "openEHR-EHR-ACTION.procedure.v1",
+                "name": {
+                  "_type": "DV_TEXT",
+                  "value": "Procedure"
+                },
+                "description": {
+                  "_type": "ITEM_TREE",
+                  "items": [
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Procedure name"
+                      },
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "Appendectomy",
+                        "defining_code": {
+                          "terminology_id": {
+                            "value": "SNOMED-CT"
+                          },
+                          "code_string": "80146002"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "time": {
+                  "_type": "DV_DATE_TIME",
+                  "value": "2026-01-23T07:00:00Z"
+                }
+              },
+              {
+                "_type": "ACTION",
+                "archetype_node_id": "openEHR-EHR-ACTION.procedure.v1",
+                "name": {
+                  "_type": "DV_TEXT",
+                  "value": "Procedure"
+                },
+                "description": {
+                  "_type": "ITEM_TREE",
+                  "items": [
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Procedure name"
+                      },
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "Wound closure",
+                        "defining_code": {
+                          "terminology_id": {
+                            "value": "SNOMED-CT"
+                          },
+                          "code_string": "385949008"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "time": {
+                  "_type": "DV_DATE_TIME",
+                  "value": "2026-01-23T07:45:00Z"
+                }
+              },
+              {
+                "_type": "OBSERVATION",
+                "archetype_node_id": "openEHR-EHR-OBSERVATION.blood_pressure.v2",
+                "name": {
+                  "_type": "DV_TEXT",
+                  "value": "Blood Pressure"
+                },
+                "data": {
+                  "_type": "HISTORY",
+                  "events": [
+                    {
+                      "_type": "POINT_EVENT",
+                      "time": {
+                        "_type": "DV_DATE_TIME",
+                        "value": "2026-01-23T06:05:00Z"
+                      },
+                      "data": {
+                        "_type": "ITEM_TREE",
+                        "items": [
+                          {
+                            "_type": "ELEMENT",
+                            "name": {
+                              "_type": "DV_TEXT",
+                              "value": "Systolic"
+                            },
+                            "value": {
+                              "_type": "DV_QUANTITY",
+                              "magnitude": 130.0,
+                              "units": "mm[Hg]"
+                            }
+                          },
+                          {
+                            "_type": "ELEMENT",
+                            "name": {
+                              "_type": "DV_TEXT",
+                              "value": "Diastolic"
+                            },
+                            "value": {
+                              "_type": "DV_QUANTITY",
+                              "magnitude": 82.0,
+                              "units": "mm[Hg]"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "_type": "OBSERVATION",
+                "archetype_node_id": "openEHR-EHR-OBSERVATION.pulse_oximetry.v1",
+                "name": {
+                  "_type": "DV_TEXT",
+                  "value": "SpO2"
+                },
+                "data": {
+                  "_type": "HISTORY",
+                  "events": [
+                    {
+                      "_type": "POINT_EVENT",
+                      "time": {
+                        "_type": "DV_DATE_TIME",
+                        "value": "2026-01-23T06:05:00Z"
+                      },
+                      "data": {
+                        "_type": "ITEM_TREE",
+                        "items": [
+                          {
+                            "_type": "ELEMENT",
+                            "name": {
+                              "_type": "DV_TEXT",
+                              "value": "SpO2"
+                            },
+                            "value": {
+                              "_type": "DV_QUANTITY",
+                              "magnitude": 99.0,
+                              "units": "%"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "_type": "OBSERVATION",
+                "archetype_node_id": "openEHR-EHR-OBSERVATION.body_weight.v2",
+                "name": {
+                  "_type": "DV_TEXT",
+                  "value": "Body weight"
+                },
+                "data": {
+                  "_type": "HISTORY",
+                  "events": [
+                    {
+                      "_type": "POINT_EVENT",
+                      "time": {
+                        "_type": "DV_DATE_TIME",
+                        "value": "2026-01-23T06:03:00Z"
+                      },
+                      "data": {
+                        "_type": "ITEM_TREE",
+                        "items": [
+                          {
+                            "_type": "ELEMENT",
+                            "name": {
+                              "_type": "DV_TEXT",
+                              "value": "Weight"
+                            },
+                            "value": {
+                              "_type": "DV_QUANTITY",
+                              "magnitude": 72.0,
+                              "units": "kg"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "patient_id": "p0-019-trip-procedures_vitals-20260216T162723Z",
+          "source_metadata": {
+            "scenario": "procedures_vitals",
+            "run_id": "20260216T162723Z",
+            "source_system": "meditech",
+            "site_id": "ops-staging"
+          }
+        },
+        "response": {
+          "status": 200,
+          "data": {
+            "success": true,
+            "patient_id": "p0-019-trip-procedures_vitals-20260216T162723Z",
+            "conditions": 0,
+            "medications": 0,
+            "measurements": 4,
+            "procedures": 2,
+            "allergies": 0,
+            "nodes": 7,
+            "edges": 6,
+            "skipped": 0,
+            "error": null
+          }
+        },
+        "checks": {
+          "http_200": true,
+          "success_flag": true,
+          "counts_match": true
+        }
+      },
+      "reconcile": {
+        "step": "reconcile",
+        "scenario": "procedures_vitals",
+        "patient_id": "p0-019-trip-procedures_vitals-20260216T162723Z",
+        "status_code": 200,
+        "status": "PASS",
+        "duration_seconds": 0.033,
+        "payload": {},
+        "response": {
+          "status": 200,
+          "data": {
+            "patient_id": "p0-019-trip-procedures_vitals-20260216T162723Z",
+            "match": true,
+            "import_fingerprint": "c7cca47c31c30d0834f96a395d46ef9af00ffbfbd1c059696d2c3b8d824a30d9",
+            "export_reimport_fingerprint": "c7cca47c31c30d0834f96a395d46ef9af00ffbfbd1c059696d2c3b8d824a30d9",
+            "import_row_counts": {
+              "conditions": 0,
+              "medications": 0,
+              "measurements": 4,
+              "procedures": 2,
+              "allergies": 0
+            },
+            "reimport_row_counts": {
+              "conditions": 0,
+              "medications": 0,
+              "measurements": 4,
+              "procedures": 2,
+              "allergies": 0
+            },
+            "mismatches": []
+          }
+        },
+        "checks": {
+          "http_200": true,
+          "match": true,
+          "fingerprint_present": true,
+          "fingerprint_equal": true
+        }
+      },
+      "rollback": {
+        "step": "rollback",
+        "scenario": "procedures_vitals",
+        "patient_id": "p0-019-trip-procedures_vitals-20260216T162723Z",
+        "status_code": 200,
+        "status": "PASS",
+        "duration_seconds": 0.019,
+        "payload": {
+          "patient_id": "p0-019-trip-procedures_vitals-20260216T162723Z",
+          "batch_start": "2026-02-16T16:26:24Z",
+          "batch_end": "2026-02-16T16:30:24Z"
+        },
+        "response": {
+          "status": 200,
+          "data": {
+            "patient_id": "p0-019-trip-procedures_vitals-20260216T162723Z",
+            "success": true,
+            "facts_deleted": 6,
+            "nodes_deleted": 6,
+            "edges_deleted": 6,
+            "error": null
+          }
+        },
+        "checks": {
+          "http_200": true,
+          "rollback_success": true
+        }
+      },
+      "reconcile_after_rollback": {
+        "step": "reconcile-after-rollback",
+        "scenario": "procedures_vitals",
+        "patient_id": "p0-019-trip-procedures_vitals-20260216T162723Z",
+        "status_code": 200,
+        "status": "PASS",
+        "duration_seconds": 0.009,
+        "payload": {},
+        "response": {
+          "status": 200,
+          "data": {
+            "patient_id": "p0-019-trip-procedures_vitals-20260216T162723Z",
+            "match": false,
+            "import_fingerprint": "",
+            "export_reimport_fingerprint": "",
+            "import_row_counts": {},
+            "reimport_row_counts": {},
+            "mismatches": [
+              "No facts found for patient"
+            ]
+          }
+        },
+        "checks": {
+          "http_200_or_404": true,
+          "residual_gone": true
+        }
+      },
+      "batch_window": {
+        "start": "2026-02-16T16:26:24Z",
+        "end": "2026-02-16T16:30:24Z"
+      }
+    },
+    {
+      "scenario": "allergies_conditions",
+      "patient_id": "p0-019-trip-allergies_conditions-20260216T162723Z",
+      "composition_import": {
+        "step": "composition-import",
+        "scenario": "allergies_conditions",
+        "patient_id": "p0-019-trip-allergies_conditions-20260216T162723Z",
+        "status_code": 200,
+        "status": "PASS",
+        "duration_seconds": 0.027,
+        "payload": {
+          "composition": {
+            "_type": "COMPOSITION",
+            "archetype_node_id": "openEHR-EHR-COMPOSITION.encounter.v1",
+            "name": {
+              "_type": "DV_TEXT",
+              "value": "Allergy Intake"
+            },
+            "language": {
+              "_type": "CODE_PHRASE",
+              "terminology_id": {
+                "value": "ISO_639-1"
+              },
+              "code_string": "en"
+            },
+            "territory": {
+              "_type": "CODE_PHRASE",
+              "terminology_id": {
+                "value": "ISO_3166-1"
+              },
+              "code_string": "US"
+            },
+            "category": {
+              "_type": "DV_CODED_TEXT",
+              "value": "event",
+              "defining_code": {
+                "terminology_id": {
+                  "value": "openehr"
+                },
+                "code_string": "433"
+              }
+            },
+            "composer": {
+              "_type": "PARTY_IDENTIFIED",
+              "name": "Intake Nurse"
+            },
+            "context": {
+              "_type": "EVENT_CONTEXT",
+              "start_time": {
+                "_type": "DV_DATE_TIME",
+                "value": "2026-01-24T14:00:00Z"
+              },
+              "setting": {
+                "_type": "DV_CODED_TEXT",
+                "value": "primary medical care",
+                "defining_code": {
+                  "terminology_id": {
+                    "value": "openehr"
+                  },
+                  "code_string": "228"
+                }
+              }
+            },
+            "content": [
+              {
+                "_type": "EVALUATION",
+                "archetype_node_id": "openEHR-EHR-EVALUATION.adverse_reaction_risk.v1",
+                "name": {
+                  "_type": "DV_TEXT",
+                  "value": "Adverse reaction risk"
+                },
+                "data": {
+                  "_type": "ITEM_TREE",
+                  "items": [
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Substance"
+                      },
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "Penicillin",
+                        "defining_code": {
+                          "terminology_id": {
+                            "value": "SNOMED-CT"
+                          },
+                          "code_string": "91936005"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "_type": "EVALUATION",
+                "archetype_node_id": "openEHR-EHR-EVALUATION.adverse_reaction_risk.v1",
+                "name": {
+                  "_type": "DV_TEXT",
+                  "value": "Adverse reaction risk"
+                },
+                "data": {
+                  "_type": "ITEM_TREE",
+                  "items": [
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Substance"
+                      },
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "Sulfonamides",
+                        "defining_code": {
+                          "terminology_id": {
+                            "value": "SNOMED-CT"
+                          },
+                          "code_string": "91939003"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "_type": "EVALUATION",
+                "archetype_node_id": "openEHR-EHR-EVALUATION.adverse_reaction_risk.v1",
+                "name": {
+                  "_type": "DV_TEXT",
+                  "value": "Adverse reaction risk"
+                },
+                "data": {
+                  "_type": "ITEM_TREE",
+                  "items": [
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Substance"
+                      },
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "Latex",
+                        "defining_code": {
+                          "terminology_id": {
+                            "value": "SNOMED-CT"
+                          },
+                          "code_string": "111088007"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "_type": "EVALUATION",
+                "archetype_node_id": "openEHR-EHR-EVALUATION.problem_diagnosis.v1",
+                "name": {
+                  "_type": "DV_TEXT",
+                  "value": "Problem/Diagnosis"
+                },
+                "data": {
+                  "_type": "ITEM_TREE",
+                  "items": [
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Problem/Diagnosis name"
+                      },
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "Allergic rhinitis",
+                        "defining_code": {
+                          "terminology_id": {
+                            "value": "SNOMED-CT"
+                          },
+                          "code_string": "61582004"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "_type": "EVALUATION",
+                "archetype_node_id": "openEHR-EHR-EVALUATION.problem_diagnosis.v1",
+                "name": {
+                  "_type": "DV_TEXT",
+                  "value": "Problem/Diagnosis"
+                },
+                "data": {
+                  "_type": "ITEM_TREE",
+                  "items": [
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Problem/Diagnosis name"
+                      },
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "Eczema",
+                        "defining_code": {
+                          "terminology_id": {
+                            "value": "SNOMED-CT"
+                          },
+                          "code_string": "43116000"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "patient_id": "p0-019-trip-allergies_conditions-20260216T162723Z",
+          "source_metadata": {
+            "scenario": "allergies_conditions",
+            "run_id": "20260216T162723Z",
+            "source_system": "meditech",
+            "site_id": "ops-staging"
+          }
+        },
+        "response": {
+          "status": 200,
+          "data": {
+            "success": true,
+            "patient_id": "p0-019-trip-allergies_conditions-20260216T162723Z",
+            "conditions": 2,
+            "medications": 0,
+            "measurements": 0,
+            "procedures": 0,
+            "allergies": 3,
+            "nodes": 6,
+            "edges": 5,
+            "skipped": 0,
+            "error": null
+          }
+        },
+        "checks": {
+          "http_200": true,
+          "success_flag": true,
+          "counts_match": true
+        }
+      },
+      "reconcile": {
+        "step": "reconcile",
+        "scenario": "allergies_conditions",
+        "patient_id": "p0-019-trip-allergies_conditions-20260216T162723Z",
+        "status_code": 200,
+        "status": "PASS",
+        "duration_seconds": 0.025,
+        "payload": {},
+        "response": {
+          "status": 200,
+          "data": {
+            "patient_id": "p0-019-trip-allergies_conditions-20260216T162723Z",
+            "match": true,
+            "import_fingerprint": "6d08464f798ee922883fde3b747867eb8b7a624b6e0d4c721d0a9f3ffb44ed57",
+            "export_reimport_fingerprint": "6d08464f798ee922883fde3b747867eb8b7a624b6e0d4c721d0a9f3ffb44ed57",
+            "import_row_counts": {
+              "conditions": 2,
+              "medications": 0,
+              "measurements": 0,
+              "procedures": 0,
+              "allergies": 3
+            },
+            "reimport_row_counts": {
+              "conditions": 2,
+              "medications": 0,
+              "measurements": 0,
+              "procedures": 0,
+              "allergies": 3
+            },
+            "mismatches": []
+          }
+        },
+        "checks": {
+          "http_200": true,
+          "match": true,
+          "fingerprint_present": true,
+          "fingerprint_equal": true
+        }
+      },
+      "rollback": {
+        "step": "rollback",
+        "scenario": "allergies_conditions",
+        "patient_id": "p0-019-trip-allergies_conditions-20260216T162723Z",
+        "status_code": 200,
+        "status": "PASS",
+        "duration_seconds": 0.015,
+        "payload": {
+          "patient_id": "p0-019-trip-allergies_conditions-20260216T162723Z",
+          "batch_start": "2026-02-16T16:26:24Z",
+          "batch_end": "2026-02-16T16:30:24Z"
+        },
+        "response": {
+          "status": 200,
+          "data": {
+            "patient_id": "p0-019-trip-allergies_conditions-20260216T162723Z",
+            "success": true,
+            "facts_deleted": 5,
+            "nodes_deleted": 5,
+            "edges_deleted": 5,
+            "error": null
+          }
+        },
+        "checks": {
+          "http_200": true,
+          "rollback_success": true
+        }
+      },
+      "reconcile_after_rollback": {
+        "step": "reconcile-after-rollback",
+        "scenario": "allergies_conditions",
+        "patient_id": "p0-019-trip-allergies_conditions-20260216T162723Z",
+        "status_code": 200,
+        "status": "PASS",
+        "duration_seconds": 0.009,
+        "payload": {},
+        "response": {
+          "status": 200,
+          "data": {
+            "patient_id": "p0-019-trip-allergies_conditions-20260216T162723Z",
+            "match": false,
+            "import_fingerprint": "",
+            "export_reimport_fingerprint": "",
+            "import_row_counts": {},
+            "reimport_row_counts": {},
+            "mismatches": [
+              "No facts found for patient"
+            ]
+          }
+        },
+        "checks": {
+          "http_200_or_404": true,
+          "residual_gone": true
+        }
+      },
+      "batch_window": {
+        "start": "2026-02-16T16:26:24Z",
+        "end": "2026-02-16T16:30:24Z"
+      }
+    }
+  ]
+}
