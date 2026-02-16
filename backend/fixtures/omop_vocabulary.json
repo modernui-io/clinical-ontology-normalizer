@@ -1,110 +1,269 @@
 {
   "metadata": {
-    "version": "1.0",
-    "description": "Subset of OMOP concepts for local development and testing",
-    "vocabularies": ["SNOMED", "RxNorm", "LOINC"],
+    "version": "2.0",
+    "description": "Merged OMOP vocabulary — base (34) + expanded (246) = comprehensive clinical NLP fixture",
+    "vocabularies": [
+      "SNOMED",
+      "RxNorm",
+      "LOINC"
+    ],
     "note": "Concept IDs are based on real OMOP concept_ids where available"
   },
   "concepts": [
     {
-      "concept_id": 254761,
-      "concept_name": "Cough",
-      "concept_code": "49727002",
-      "vocabulary_id": "SNOMED",
+      "concept_id": 75344,
+      "concept_name": "Osteoporosis",
       "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
       "concept_class_id": "Clinical Finding",
       "standard_concept": "S",
-      "synonyms": ["cough", "coughing"]
+      "synonyms": [
+        "osteoporosis",
+        "osteopenia",
+        "low bone density"
+      ]
     },
     {
-      "concept_id": 437663,
-      "concept_name": "Fever",
-      "concept_code": "386661006",
-      "vocabulary_id": "SNOMED",
+      "concept_id": 75576,
+      "concept_name": "Peptic ulcer",
       "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
       "concept_class_id": "Clinical Finding",
       "standard_concept": "S",
-      "synonyms": ["fever", "pyrexia", "febrile"]
+      "synonyms": [
+        "peptic ulcer",
+        "gastric ulcer",
+        "duodenal ulcer",
+        "stomach ulcer"
+      ]
     },
     {
-      "concept_id": 255848,
-      "concept_name": "Pneumonia",
-      "concept_code": "233604007",
-      "vocabulary_id": "SNOMED",
+      "concept_id": 77670,
+      "concept_name": "Chest pain",
       "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
       "concept_class_id": "Clinical Finding",
       "standard_concept": "S",
-      "synonyms": ["pneumonia", "lung infection"]
+      "synonyms": [
+        "chest pain",
+        "chest discomfort",
+        "substernal chest pain",
+        "precordial pain",
+        "angina",
+        "anginal chest pain",
+        "thoracic pain"
+      ],
+      "concept_code": "29857009"
     },
     {
-      "concept_id": 316139,
-      "concept_name": "Congestive heart failure",
-      "concept_code": "42343007",
-      "vocabulary_id": "SNOMED",
+      "concept_id": 80004,
+      "concept_name": "Back pain",
       "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
       "concept_class_id": "Clinical Finding",
       "standard_concept": "S",
-      "synonyms": ["congestive heart failure", "CHF", "heart failure"]
+      "synonyms": [
+        "back pain",
+        "low back pain",
+        "lbp",
+        "lumbar pain"
+      ]
     },
     {
-      "concept_id": 4089661,
-      "concept_name": "Colon cancer",
-      "concept_code": "93761005",
-      "vocabulary_id": "SNOMED",
+      "concept_id": 80180,
+      "concept_name": "Osteoarthritis",
       "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
       "concept_class_id": "Clinical Finding",
       "standard_concept": "S",
-      "synonyms": ["colon cancer", "colorectal cancer", "colorectal carcinoma"]
+      "synonyms": [
+        "osteoarthritis",
+        "oa",
+        "degenerative joint disease",
+        "djd",
+        "arthritis"
+      ]
     },
     {
-      "concept_id": 201826,
-      "concept_name": "Type 2 diabetes mellitus",
-      "concept_code": "44054006",
-      "vocabulary_id": "SNOMED",
+      "concept_id": 80502,
+      "concept_name": "Gout",
       "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
       "concept_class_id": "Clinical Finding",
       "standard_concept": "S",
-      "synonyms": ["type 2 diabetes mellitus", "type 2 diabetes", "T2DM", "diabetes mellitus type 2", "diabetes"]
+      "synonyms": [
+        "gout",
+        "gouty arthritis",
+        "gout flare"
+      ]
     },
     {
-      "concept_id": 320128,
-      "concept_name": "Essential hypertension",
-      "concept_code": "59621000",
-      "vocabulary_id": "SNOMED",
+      "concept_id": 80809,
+      "concept_name": "Rheumatoid arthritis",
       "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
       "concept_class_id": "Clinical Finding",
       "standard_concept": "S",
-      "synonyms": ["hypertension", "high blood pressure", "HTN"]
-    },
-    {
-      "concept_id": 4185932,
-      "concept_name": "Acute distress",
-      "concept_code": "53737009",
-      "vocabulary_id": "SNOMED",
-      "domain_id": "Condition",
-      "concept_class_id": "Clinical Finding",
-      "standard_concept": "S",
-      "synonyms": ["acute distress", "distress"]
-    },
-    {
-      "concept_id": 4291005,
-      "concept_name": "Gastrointestinal symptom",
-      "concept_code": "386618008",
-      "vocabulary_id": "SNOMED",
-      "domain_id": "Condition",
-      "concept_class_id": "Clinical Finding",
-      "standard_concept": "S",
-      "synonyms": ["GI symptoms", "gastrointestinal symptoms"]
+      "synonyms": [
+        "rheumatoid arthritis",
+        "ra"
+      ]
     },
     {
       "concept_id": 81902,
       "concept_name": "Urinary tract infection",
-      "concept_code": "68566005",
-      "vocabulary_id": "SNOMED",
       "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
       "concept_class_id": "Clinical Finding",
       "standard_concept": "S",
-      "synonyms": ["urinary tract infection", "UTI", "bladder infection"]
+      "synonyms": [
+        "urinary tract infection",
+        "uti",
+        "bladder infection",
+        "cystitis",
+        "pyelonephritis",
+        "kidney infection"
+      ],
+      "concept_code": "68566005"
+    },
+    {
+      "concept_id": 132797,
+      "concept_name": "Sepsis",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "sepsis",
+        "septicemia",
+        "septic",
+        "severe sepsis",
+        "septic shock",
+        "bacteremia"
+      ]
+    },
+    {
+      "concept_id": 134057,
+      "concept_name": "Coagulopathy",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "coagulopathy",
+        "coagulation disorder",
+        "bleeding disorder"
+      ]
+    },
+    {
+      "concept_id": 140168,
+      "concept_name": "Breast cancer",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "breast cancer",
+        "breast carcinoma"
+      ]
+    },
+    {
+      "concept_id": 140214,
+      "concept_name": "Hypothyroidism",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "hypothyroidism",
+        "underactive thyroid",
+        "low thyroid",
+        "hashimoto thyroiditis"
+      ]
+    },
+    {
+      "concept_id": 192671,
+      "concept_name": "Gastrointestinal hemorrhage",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "gastrointestinal hemorrhage",
+        "gi bleed",
+        "gi bleeding",
+        "gastrointestinal bleeding",
+        "upper gi bleed",
+        "lower gi bleed",
+        "melena",
+        "hematemesis",
+        "hematochezia"
+      ]
+    },
+    {
+      "concept_id": 193782,
+      "concept_name": "Chronic kidney disease",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "chronic kidney disease",
+        "ckd",
+        "chronic renal disease",
+        "chronic renal failure",
+        "crf",
+        "chronic renal insufficiency",
+        "ckd stage 3",
+        "ckd stage 4",
+        "ckd stage 5",
+        "esrd",
+        "end stage renal disease"
+      ]
+    },
+    {
+      "concept_id": 196523,
+      "concept_name": "Diarrhea",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "diarrhea",
+        "loose stool",
+        "loose stools",
+        "watery stool"
+      ]
+    },
+    {
+      "concept_id": 197320,
+      "concept_name": "Acute kidney injury",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "acute kidney injury",
+        "aki",
+        "acute renal failure",
+        "arf",
+        "acute renal injury",
+        "acute on chronic kidney disease"
+      ]
+    },
+    {
+      "concept_id": 197508,
+      "concept_name": "Colon cancer",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "colon cancer",
+        "colorectal cancer",
+        "rectal cancer",
+        "colon carcinoma"
+      ]
     },
     {
       "concept_id": 197684,
@@ -114,57 +273,860 @@
       "domain_id": "Condition",
       "concept_class_id": "Clinical Finding",
       "standard_concept": "S",
-      "synonyms": ["dysuria", "painful urination"]
+      "synonyms": [
+        "dysuria",
+        "painful urination"
+      ]
     },
     {
-      "concept_id": 4012368,
-      "concept_name": "Urinary frequency",
-      "concept_code": "162116003",
-      "vocabulary_id": "SNOMED",
+      "concept_id": 199074,
+      "concept_name": "Pancreatitis",
       "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
       "concept_class_id": "Clinical Finding",
       "standard_concept": "S",
-      "synonyms": ["frequency", "urinary frequency", "frequent urination"]
+      "synonyms": [
+        "pancreatitis",
+        "acute pancreatitis",
+        "chronic pancreatitis"
+      ]
     },
     {
-      "concept_id": 77670,
-      "concept_name": "Chest pain",
-      "concept_code": "29857009",
-      "vocabulary_id": "SNOMED",
+      "concept_id": 200219,
+      "concept_name": "Abdominal pain",
       "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
       "concept_class_id": "Clinical Finding",
       "standard_concept": "S",
-      "synonyms": ["chest pain", "thoracic pain"]
+      "synonyms": [
+        "abdominal pain",
+        "stomach pain",
+        "belly pain",
+        "abd pain",
+        "epigastric pain",
+        "rlq pain",
+        "ruq pain",
+        "llq pain",
+        "luq pain"
+      ]
+    },
+    {
+      "concept_id": 200962,
+      "concept_name": "Prostate cancer",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "prostate cancer",
+        "prostate carcinoma"
+      ]
+    },
+    {
+      "concept_id": 201254,
+      "concept_name": "Type 1 diabetes mellitus",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "type 1 diabetes mellitus",
+        "type 1 diabetes",
+        "dm1",
+        "t1dm",
+        "diabetes mellitus type 1",
+        "iddm",
+        "juvenile diabetes"
+      ]
+    },
+    {
+      "concept_id": 201826,
+      "concept_name": "Type 2 diabetes mellitus",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "type 2 diabetes mellitus",
+        "type 2 diabetes",
+        "dm2",
+        "t2dm",
+        "diabetes mellitus type 2",
+        "niddm",
+        "adult onset diabetes",
+        "diabetes"
+      ],
+      "concept_code": "44054006"
+    },
+    {
+      "concept_id": 254761,
+      "concept_name": "Cough",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "cough",
+        "coughing",
+        "productive cough",
+        "dry cough",
+        "chronic cough"
+      ],
+      "concept_code": "49727002"
+    },
+    {
+      "concept_id": 255573,
+      "concept_name": "Chronic obstructive pulmonary disease",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "chronic obstructive pulmonary disease",
+        "copd",
+        "chronic obstructive lung disease",
+        "cold",
+        "emphysema",
+        "chronic bronchitis",
+        "copd exacerbation"
+      ]
+    },
+    {
+      "concept_id": 255848,
+      "concept_name": "Pneumonia",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "pneumonia",
+        "pna",
+        "lung infection",
+        "community acquired pneumonia",
+        "community-acquired pneumonia",
+        "cap",
+        "hospital acquired pneumonia",
+        "hap",
+        "aspiration pneumonia"
+      ],
+      "concept_code": "233604007"
+    },
+    {
+      "concept_id": 256451,
+      "concept_name": "Pleural effusion",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "pleural effusion",
+        "fluid around lung",
+        "pleural fluid"
+      ]
     },
     {
       "concept_id": 312327,
-      "concept_name": "Acute coronary syndrome",
-      "concept_code": "394659003",
-      "vocabulary_id": "SNOMED",
+      "concept_name": "Acute myocardial infarction",
       "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
       "concept_class_id": "Clinical Finding",
       "standard_concept": "S",
-      "synonyms": ["acute coronary syndrome", "ACS"]
-    },
-    {
-      "concept_id": 4329847,
-      "concept_name": "Myocardial infarction",
-      "concept_code": "22298006",
-      "vocabulary_id": "SNOMED",
-      "domain_id": "Condition",
-      "concept_class_id": "Clinical Finding",
-      "standard_concept": "S",
-      "synonyms": ["myocardial infarction", "MI", "heart attack"]
+      "synonyms": [
+        "myocardial infarction",
+        "mi",
+        "heart attack",
+        "stemi",
+        "nstemi",
+        "acute mi",
+        "acute coronary syndrome",
+        "ACS"
+      ],
+      "concept_code": "394659003"
     },
     {
       "concept_id": 312437,
       "concept_name": "Dyspnea",
-      "concept_code": "267036007",
-      "vocabulary_id": "SNOMED",
       "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
       "concept_class_id": "Clinical Finding",
       "standard_concept": "S",
-      "synonyms": ["dyspnea", "shortness of breath", "SOB", "breathlessness"]
+      "synonyms": [
+        "dyspnea",
+        "shortness of breath",
+        "sob",
+        "breathlessness",
+        "difficulty breathing",
+        "labored breathing",
+        "respiratory distress"
+      ],
+      "concept_code": "267036007"
+    },
+    {
+      "concept_id": 313217,
+      "concept_name": "Atrial fibrillation",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "atrial fibrillation",
+        "afib",
+        "a-fib",
+        "af",
+        "atrial fib",
+        "paroxysmal atrial fibrillation",
+        "persistent atrial fibrillation",
+        "permanent atrial fibrillation"
+      ]
+    },
+    {
+      "concept_id": 314665,
+      "concept_name": "Peripheral vascular disease",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "peripheral vascular disease",
+        "pvd",
+        "peripheral artery disease",
+        "pad",
+        "peripheral arterial disease"
+      ]
+    },
+    {
+      "concept_id": 315286,
+      "concept_name": "Palpitations",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "palpitations",
+        "heart palpitations",
+        "racing heart",
+        "pounding heart",
+        "fluttering heart"
+      ]
+    },
+    {
+      "concept_id": 316139,
+      "concept_name": "Heart failure",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "heart failure",
+        "hf",
+        "chf",
+        "congestive heart failure",
+        "cardiac failure",
+        "hfref",
+        "hfpef",
+        "systolic heart failure",
+        "diastolic heart failure",
+        "acute heart failure",
+        "chronic heart failure",
+        "decompensated heart failure"
+      ],
+      "concept_code": "42343007"
+    },
+    {
+      "concept_id": 316995,
+      "concept_name": "Cardiac arrhythmia",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "arrhythmia",
+        "cardiac arrhythmia",
+        "dysrhythmia",
+        "irregular heartbeat",
+        "irregular heart rhythm"
+      ]
+    },
+    {
+      "concept_id": 317009,
+      "concept_name": "Asthma",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "asthma",
+        "bronchial asthma",
+        "reactive airway disease",
+        "rad",
+        "asthma exacerbation"
+      ]
+    },
+    {
+      "concept_id": 317302,
+      "concept_name": "Tachycardia",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "tachycardia",
+        "rapid heart rate",
+        "fast heart rate",
+        "elevated heart rate",
+        "rvr",
+        "rapid ventricular response"
+      ]
+    },
+    {
+      "concept_id": 320128,
+      "concept_name": "Essential hypertension",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "hypertension",
+        "htn",
+        "high blood pressure",
+        "elevated blood pressure",
+        "essential hypertension",
+        "primary hypertension"
+      ],
+      "concept_code": "59621000"
+    },
+    {
+      "concept_id": 321588,
+      "concept_name": "Coronary artery disease",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "coronary artery disease",
+        "cad",
+        "coronary heart disease",
+        "chd",
+        "ischemic heart disease",
+        "ihd",
+        "atherosclerotic heart disease",
+        "ashd"
+      ]
+    },
+    {
+      "concept_id": 376337,
+      "concept_name": "Syncope",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "syncope",
+        "fainting",
+        "passed out",
+        "loss of consciousness",
+        "loc",
+        "fainted",
+        "syncopal episode"
+      ]
+    },
+    {
+      "concept_id": 377091,
+      "concept_name": "Altered mental status",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "altered mental status",
+        "ams",
+        "confusion",
+        "confused",
+        "disoriented",
+        "encephalopathy",
+        "delirium"
+      ]
+    },
+    {
+      "concept_id": 378143,
+      "concept_name": "Headache",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "headache",
+        "head pain",
+        "cephalalgia"
+      ]
+    },
+    {
+      "concept_id": 378253,
+      "concept_name": "Epilepsy",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "epilepsy",
+        "seizure disorder",
+        "epileptic"
+      ]
+    },
+    {
+      "concept_id": 378419,
+      "concept_name": "Parkinson disease",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "parkinson disease",
+        "parkinsons",
+        "parkinsonism"
+      ]
+    },
+    {
+      "concept_id": 378427,
+      "concept_name": "Dementia",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "dementia",
+        "alzheimer disease",
+        "alzheimers",
+        "vascular dementia",
+        "cognitive impairment",
+        "memory loss"
+      ]
+    },
+    {
+      "concept_id": 381591,
+      "concept_name": "Transient ischemic attack",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "transient ischemic attack",
+        "tia",
+        "mini stroke"
+      ]
+    },
+    {
+      "concept_id": 432250,
+      "concept_name": "Skin rash",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "rash",
+        "skin rash",
+        "dermatitis",
+        "skin eruption"
+      ]
+    },
+    {
+      "concept_id": 432303,
+      "concept_name": "Alcohol abuse",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "alcohol abuse",
+        "alcoholism",
+        "alcohol use disorder",
+        "aud",
+        "alcohol dependence",
+        "etoh abuse"
+      ]
+    },
+    {
+      "concept_id": 432571,
+      "concept_name": "Thrombocytopenia",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "thrombocytopenia",
+        "low platelets",
+        "low platelet count"
+      ]
+    },
+    {
+      "concept_id": 432867,
+      "concept_name": "Hyperlipidemia",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "hyperlipidemia",
+        "dyslipidemia",
+        "high cholesterol",
+        "hypercholesterolemia",
+        "elevated cholesterol",
+        "elevated lipids"
+      ]
+    },
+    {
+      "concept_id": 432881,
+      "concept_name": "Hypokalemia",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "hypokalemia",
+        "low potassium",
+        "low k"
+      ]
+    },
+    {
+      "concept_id": 433257,
+      "concept_name": "Hypernatremia",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "hypernatremia",
+        "high sodium",
+        "elevated sodium",
+        "high na"
+      ]
+    },
+    {
+      "concept_id": 433527,
+      "concept_name": "Leukocytosis",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "leukocytosis",
+        "elevated wbc",
+        "high white count",
+        "elevated white count"
+      ]
+    },
+    {
+      "concept_id": 433595,
+      "concept_name": "Edema",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "edema",
+        "oedema",
+        "swelling",
+        "peripheral edema",
+        "leg edema",
+        "lower extremity edema",
+        "le edema",
+        "pedal edema",
+        "ankle edema",
+        "pitting edema",
+        "bilateral edema"
+      ]
+    },
+    {
+      "concept_id": 433736,
+      "concept_name": "Anemia",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "anemia",
+        "anaemia",
+        "low hemoglobin",
+        "low hgb",
+        "iron deficiency anemia"
+      ]
+    },
+    {
+      "concept_id": 433753,
+      "concept_name": "Bipolar disorder",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "bipolar disorder",
+        "bipolar",
+        "manic depressive"
+      ]
+    },
+    {
+      "concept_id": 434203,
+      "concept_name": "Hypercalcemia",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "hypercalcemia",
+        "high calcium",
+        "elevated calcium"
+      ]
+    },
+    {
+      "concept_id": 434610,
+      "concept_name": "Hyperkalemia",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "hyperkalemia",
+        "high potassium",
+        "elevated potassium",
+        "high k"
+      ]
+    },
+    {
+      "concept_id": 435515,
+      "concept_name": "Hyponatremia",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "hyponatremia",
+        "low sodium",
+        "low na"
+      ]
+    },
+    {
+      "concept_id": 435524,
+      "concept_name": "Metabolic acidosis",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "metabolic acidosis",
+        "acidosis"
+      ]
+    },
+    {
+      "concept_id": 435783,
+      "concept_name": "Substance abuse",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "substance abuse",
+        "drug abuse",
+        "substance use disorder",
+        "sud",
+        "addiction"
+      ]
+    },
+    {
+      "concept_id": 436073,
+      "concept_name": "Schizophrenia",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "schizophrenia",
+        "schizophrenic"
+      ]
+    },
+    {
+      "concept_id": 436093,
+      "concept_name": "Dehydration",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "dehydration",
+        "volume depletion",
+        "hypovolemia"
+      ]
+    },
+    {
+      "concept_id": 436409,
+      "concept_name": "Nausea",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "nausea",
+        "nauseous",
+        "queasy"
+      ]
+    },
+    {
+      "concept_id": 436659,
+      "concept_name": "Obesity",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "obesity",
+        "obese",
+        "morbid obesity",
+        "morbidly obese"
+      ]
+    },
+    {
+      "concept_id": 436665,
+      "concept_name": "Seizure",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "seizure",
+        "seizures",
+        "convulsion",
+        "epileptic seizure",
+        "generalized seizure",
+        "focal seizure"
+      ]
+    },
+    {
+      "concept_id": 437312,
+      "concept_name": "Shock",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "shock",
+        "cardiogenic shock",
+        "hypovolemic shock",
+        "distributive shock"
+      ]
+    },
+    {
+      "concept_id": 437663,
+      "concept_name": "Fever",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "fever",
+        "febrile",
+        "elevated temperature",
+        "pyrexia",
+        "high temperature"
+      ],
+      "concept_code": "386661006"
+    },
+    {
+      "concept_id": 439727,
+      "concept_name": "Tobacco use",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "tobacco use",
+        "smoker",
+        "smoking",
+        "tobacco dependence",
+        "cigarette smoking"
+      ]
+    },
+    {
+      "concept_id": 440383,
+      "concept_name": "Depression",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "depression",
+        "major depression",
+        "depressive disorder",
+        "mdd",
+        "depressed"
+      ]
+    },
+    {
+      "concept_id": 440417,
+      "concept_name": "Pulmonary embolism",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "pulmonary embolism",
+        "pe",
+        "pulmonary embolus",
+        "lung clot"
+      ],
+      "concept_code": "59282003"
+    },
+    {
+      "concept_id": 441202,
+      "concept_name": "Anaphylaxis",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "anaphylaxis",
+        "anaphylactic reaction",
+        "anaphylactic shock"
+      ]
+    },
+    {
+      "concept_id": 441408,
+      "concept_name": "Vomiting",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "vomiting",
+        "emesis",
+        "vomited",
+        "throwing up"
+      ]
+    },
+    {
+      "concept_id": 441542,
+      "concept_name": "Anxiety",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "anxiety",
+        "anxiety disorder",
+        "anxious",
+        "generalized anxiety disorder",
+        "gad"
+      ]
+    },
+    {
+      "concept_id": 443238,
+      "concept_name": "Diabetic ketoacidosis",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "diabetic ketoacidosis",
+        "dka"
+      ]
     },
     {
       "concept_id": 443454,
@@ -174,57 +1136,214 @@
       "domain_id": "Condition",
       "concept_class_id": "Clinical Finding",
       "standard_concept": "S",
-      "synonyms": ["stroke", "CVA", "cerebrovascular accident"]
+      "synonyms": [
+        "stroke",
+        "CVA",
+        "cerebrovascular accident"
+      ]
     },
     {
-      "concept_id": 440417,
-      "concept_name": "Pulmonary embolism",
-      "concept_code": "59282003",
-      "vocabulary_id": "SNOMED",
+      "concept_id": 443904,
+      "concept_name": "Stroke",
       "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
       "concept_class_id": "Clinical Finding",
       "standard_concept": "S",
-      "synonyms": ["pulmonary embolism", "PE", "lung clot"]
+      "synonyms": [
+        "stroke",
+        "cva",
+        "cerebrovascular accident",
+        "ischemic stroke",
+        "hemorrhagic stroke",
+        "brain attack"
+      ]
     },
     {
-      "concept_id": 4144111,
-      "concept_name": "Pleuritic chest pain",
-      "concept_code": "2237002",
-      "vocabulary_id": "SNOMED",
-      "domain_id": "Condition",
-      "concept_class_id": "Clinical Finding",
-      "standard_concept": "S",
-      "synonyms": ["pleuritic chest pain", "pleurisy", "pleuritic pain"]
-    },
-    {
-      "concept_id": 1503297,
-      "concept_name": "Metformin",
-      "concept_code": "6809",
-      "vocabulary_id": "RxNorm",
+      "concept_id": 755695,
+      "concept_name": "Fluoxetine",
       "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
       "concept_class_id": "Ingredient",
       "standard_concept": "S",
-      "synonyms": ["metformin", "glucophage"]
+      "synonyms": [
+        "fluoxetine",
+        "prozac"
+      ]
     },
     {
-      "concept_id": 1308216,
-      "concept_name": "Lisinopril",
-      "concept_code": "29046",
-      "vocabulary_id": "RxNorm",
+      "concept_id": 797399,
+      "concept_name": "Pregabalin",
       "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
       "concept_class_id": "Ingredient",
       "standard_concept": "S",
-      "synonyms": ["lisinopril", "zestril", "prinivil"]
+      "synonyms": [
+        "pregabalin",
+        "lyrica"
+      ]
+    },
+    {
+      "concept_id": 961047,
+      "concept_name": "Pantoprazole",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "pantoprazole",
+        "protonix"
+      ]
+    },
+    {
+      "concept_id": 974166,
+      "concept_name": "Hydrochlorothiazide",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "hydrochlorothiazide",
+        "hctz"
+      ]
+    },
+    {
+      "concept_id": 1103314,
+      "concept_name": "Alprazolam",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "alprazolam",
+        "xanax"
+      ]
+    },
+    {
+      "concept_id": 1103640,
+      "concept_name": "Fentanyl",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "fentanyl",
+        "duragesic"
+      ]
+    },
+    {
+      "concept_id": 1110410,
+      "concept_name": "Morphine",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "morphine",
+        "ms contin"
+      ]
+    },
+    {
+      "concept_id": 1111220,
+      "concept_name": "Prednisone",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "prednisone",
+        "deltasone"
+      ]
+    },
+    {
+      "concept_id": 1112807,
+      "concept_name": "Aspirin",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "aspirin",
+        "asa",
+        "acetylsalicylic acid"
+      ]
+    },
+    {
+      "concept_id": 1113648,
+      "concept_name": "Levothyroxine",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "levothyroxine",
+        "synthroid",
+        "levoxyl"
+      ]
     },
     {
       "concept_id": 1119119,
-      "concept_name": "Atorvastatin",
-      "concept_code": "83367",
-      "vocabulary_id": "RxNorm",
+      "concept_name": "Acetaminophen",
       "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
       "concept_class_id": "Ingredient",
       "standard_concept": "S",
-      "synonyms": ["atorvastatin", "lipitor"]
+      "synonyms": [
+        "acetaminophen",
+        "tylenol",
+        "apap",
+        "paracetamol"
+      ],
+      "concept_code": "83367"
+    },
+    {
+      "concept_id": 1124300,
+      "concept_name": "Oxycodone",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "oxycodone",
+        "oxycontin",
+        "percocet"
+      ]
+    },
+    {
+      "concept_id": 1124957,
+      "concept_name": "Naproxen",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "naproxen",
+        "aleve",
+        "naprosyn"
+      ]
+    },
+    {
+      "concept_id": 1125315,
+      "concept_name": "Omeprazole",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "omeprazole",
+        "prilosec"
+      ]
+    },
+    {
+      "concept_id": 1126658,
+      "concept_name": "Hydromorphone",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "hydromorphone",
+        "dilaudid"
+      ]
     },
     {
       "concept_id": 1127433,
@@ -234,7 +1353,529 @@
       "domain_id": "Drug",
       "concept_class_id": "Ingredient",
       "standard_concept": "S",
-      "synonyms": ["aspirin", "ASA", "acetylsalicylic acid"]
+      "synonyms": [
+        "aspirin",
+        "ASA",
+        "acetylsalicylic acid"
+      ]
+    },
+    {
+      "concept_id": 1129625,
+      "concept_name": "Lorazepam",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "lorazepam",
+        "ativan"
+      ]
+    },
+    {
+      "concept_id": 1134439,
+      "concept_name": "Albuterol",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "albuterol",
+        "salbutamol",
+        "ventolin",
+        "proventil",
+        "albuterol nebulizer"
+      ]
+    },
+    {
+      "concept_id": 1140088,
+      "concept_name": "Trazodone",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "trazodone",
+        "desyrel"
+      ]
+    },
+    {
+      "concept_id": 1149196,
+      "concept_name": "Sertraline",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "sertraline",
+        "zoloft"
+      ]
+    },
+    {
+      "concept_id": 1154029,
+      "concept_name": "Escitalopram",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "escitalopram",
+        "lexapro"
+      ]
+    },
+    {
+      "concept_id": 1177480,
+      "concept_name": "Ondansetron",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "ondansetron",
+        "zofran"
+      ]
+    },
+    {
+      "concept_id": 1301125,
+      "concept_name": "Heparin",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "heparin",
+        "heparin drip",
+        "heparin infusion"
+      ]
+    },
+    {
+      "concept_id": 1305447,
+      "concept_name": "Allopurinol",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "allopurinol",
+        "zyloprim"
+      ]
+    },
+    {
+      "concept_id": 1307046,
+      "concept_name": "Amiodarone",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "amiodarone",
+        "cordarone",
+        "pacerone"
+      ]
+    },
+    {
+      "concept_id": 1307542,
+      "concept_name": "Nitroglycerin",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "nitroglycerin",
+        "nitro",
+        "ntg",
+        "nitroglycerine"
+      ]
+    },
+    {
+      "concept_id": 1307863,
+      "concept_name": "Enalapril",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "enalapril",
+        "vasotec"
+      ]
+    },
+    {
+      "concept_id": 1308216,
+      "concept_name": "Lisinopril",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "lisinopril",
+        "zestril",
+        "prinivil"
+      ],
+      "concept_code": "29046"
+    },
+    {
+      "concept_id": 1310149,
+      "concept_name": "Clopidogrel",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "clopidogrel",
+        "plavix"
+      ]
+    },
+    {
+      "concept_id": 1317967,
+      "concept_name": "Valsartan",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "valsartan",
+        "diovan"
+      ]
+    },
+    {
+      "concept_id": 1319998,
+      "concept_name": "Metoprolol",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "metoprolol",
+        "lopressor",
+        "toprol",
+        "metoprolol succinate",
+        "metoprolol tartrate"
+      ]
+    },
+    {
+      "concept_id": 1332418,
+      "concept_name": "Amlodipine",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "amlodipine",
+        "norvasc"
+      ]
+    },
+    {
+      "concept_id": 1341927,
+      "concept_name": "Atorvastatin",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "atorvastatin",
+        "lipitor"
+      ]
+    },
+    {
+      "concept_id": 1344965,
+      "concept_name": "Bumetanide",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "bumetanide",
+        "bumex"
+      ]
+    },
+    {
+      "concept_id": 1346823,
+      "concept_name": "Carvedilol",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "carvedilol",
+        "coreg"
+      ]
+    },
+    {
+      "concept_id": 1347384,
+      "concept_name": "Losartan",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "losartan",
+        "cozaar"
+      ]
+    },
+    {
+      "concept_id": 1353766,
+      "concept_name": "Spironolactone",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "spironolactone",
+        "aldactone"
+      ]
+    },
+    {
+      "concept_id": 1395058,
+      "concept_name": "Furosemide",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "furosemide",
+        "lasix"
+      ]
+    },
+    {
+      "concept_id": 1503297,
+      "concept_name": "Metformin",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "metformin",
+        "glucophage"
+      ],
+      "concept_code": "6809"
+    },
+    {
+      "concept_id": 1529331,
+      "concept_name": "Insulin",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "insulin",
+        "insulin lispro",
+        "humalog",
+        "novolog",
+        "lantus",
+        "insulin glargine",
+        "insulin aspart"
+      ]
+    },
+    {
+      "concept_id": 1545958,
+      "concept_name": "Rosuvastatin",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "rosuvastatin",
+        "crestor"
+      ]
+    },
+    {
+      "concept_id": 1550557,
+      "concept_name": "Methylprednisolone",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "methylprednisolone",
+        "solumedrol",
+        "medrol"
+      ]
+    },
+    {
+      "concept_id": 1592180,
+      "concept_name": "Warfarin",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "warfarin",
+        "coumadin"
+      ]
+    },
+    {
+      "concept_id": 1713332,
+      "concept_name": "Digoxin",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "digoxin",
+        "lanoxin"
+      ]
+    },
+    {
+      "concept_id": 1713869,
+      "concept_name": "Azithromycin",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "azithromycin",
+        "zithromax",
+        "z-pack",
+        "zpack"
+      ]
+    },
+    {
+      "concept_id": 1714165,
+      "concept_name": "Gabapentin",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "gabapentin",
+        "neurontin"
+      ]
+    },
+    {
+      "concept_id": 1716903,
+      "concept_name": "Meropenem",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "meropenem",
+        "merrem"
+      ]
+    },
+    {
+      "concept_id": 1717963,
+      "concept_name": "Ceftriaxone",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "ceftriaxone",
+        "rocephin"
+      ]
+    },
+    {
+      "concept_id": 1718198,
+      "concept_name": "Dexamethasone",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "dexamethasone",
+        "decadron"
+      ]
+    },
+    {
+      "concept_id": 1722117,
+      "concept_name": "Metronidazole",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "metronidazole",
+        "flagyl"
+      ]
+    },
+    {
+      "concept_id": 1734104,
+      "concept_name": "Amoxicillin",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "amoxicillin",
+        "amoxil"
+      ]
+    },
+    {
+      "concept_id": 1742253,
+      "concept_name": "Ciprofloxacin",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "ciprofloxacin",
+        "cipro"
+      ]
+    },
+    {
+      "concept_id": 1746940,
+      "concept_name": "Levofloxacin",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "levofloxacin",
+        "levaquin"
+      ]
+    },
+    {
+      "concept_id": 1747157,
+      "concept_name": "Piperacillin",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "piperacillin",
+        "zosyn",
+        "piperacillin-tazobactam",
+        "pip-tazo"
+      ]
+    },
+    {
+      "concept_id": 1774932,
+      "concept_name": "Vancomycin",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "vancomycin",
+        "vanc"
+      ]
+    },
+    {
+      "concept_id": 1778262,
+      "concept_name": "Diltiazem",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "diltiazem",
+        "cardizem",
+        "tiazac"
+      ]
+    },
+    {
+      "concept_id": 3004249,
+      "concept_name": "Diastolic blood pressure",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Clinical Observation",
+      "standard_concept": "S",
+      "synonyms": [
+        "diastolic blood pressure",
+        "dbp",
+        "diastolic bp"
+      ],
+      "concept_code": "8462-4"
     },
     {
       "concept_id": 3004410,
@@ -244,47 +1885,397 @@
       "domain_id": "Measurement",
       "concept_class_id": "Lab Test",
       "standard_concept": "S",
-      "synonyms": ["hemoglobin A1c", "HbA1c", "glycated hemoglobin", "A1C"]
+      "synonyms": [
+        "hemoglobin A1c",
+        "HbA1c",
+        "glycated hemoglobin",
+        "A1C"
+      ]
     },
     {
       "concept_id": 3004501,
-      "concept_name": "Fasting glucose",
-      "concept_code": "1558-6",
-      "vocabulary_id": "LOINC",
+      "concept_name": "GFR",
       "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
       "concept_class_id": "Lab Test",
       "standard_concept": "S",
-      "synonyms": ["fasting glucose", "FBS", "fasting blood sugar"]
+      "synonyms": [
+        "gfr",
+        "glomerular filtration rate",
+        "egfr",
+        "estimated gfr",
+        "fasting glucose",
+        "FBS",
+        "fasting blood sugar"
+      ],
+      "concept_code": "1558-6"
     },
     {
-      "concept_id": 3016723,
-      "concept_name": "Creatinine",
-      "concept_code": "2160-0",
-      "vocabulary_id": "LOINC",
+      "concept_id": 3006140,
+      "concept_name": "Hemoglobin",
       "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
       "concept_class_id": "Lab Test",
       "standard_concept": "S",
-      "synonyms": ["creatinine", "serum creatinine"]
+      "synonyms": [
+        "hemoglobin",
+        "hgb",
+        "hb"
+      ]
+    },
+    {
+      "concept_id": 3006906,
+      "concept_name": "Chloride",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Lab Test",
+      "standard_concept": "S",
+      "synonyms": [
+        "chloride",
+        "cl",
+        "serum chloride"
+      ]
+    },
+    {
+      "concept_id": 3006923,
+      "concept_name": "Calcium",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Lab Test",
+      "standard_concept": "S",
+      "synonyms": [
+        "calcium",
+        "ca",
+        "serum calcium"
+      ]
+    },
+    {
+      "concept_id": 3007070,
+      "concept_name": "Hemoglobin A1c",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Lab Test",
+      "standard_concept": "S",
+      "synonyms": [
+        "hemoglobin a1c",
+        "hba1c",
+        "a1c",
+        "glycated hemoglobin"
+      ]
+    },
+    {
+      "concept_id": 3010813,
+      "concept_name": "WBC",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Lab Test",
+      "standard_concept": "S",
+      "synonyms": [
+        "wbc",
+        "white blood cell count",
+        "white blood cells",
+        "leukocytes"
+      ]
     },
     {
       "concept_id": 3012888,
       "concept_name": "Systolic blood pressure",
-      "concept_code": "8480-6",
-      "vocabulary_id": "LOINC",
       "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
       "concept_class_id": "Clinical Observation",
       "standard_concept": "S",
-      "synonyms": ["systolic blood pressure", "SBP", "blood pressure"]
+      "synonyms": [
+        "systolic blood pressure",
+        "sbp",
+        "systolic bp",
+        "blood pressure"
+      ],
+      "concept_code": "8480-6"
     },
     {
-      "concept_id": 3004249,
-      "concept_name": "Diastolic blood pressure",
-      "concept_code": "8462-4",
-      "vocabulary_id": "LOINC",
+      "concept_id": 3013682,
+      "concept_name": "D-dimer",
       "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Lab Test",
+      "standard_concept": "S",
+      "synonyms": [
+        "d-dimer",
+        "d dimer",
+        "ddimer"
+      ]
+    },
+    {
+      "concept_id": 3013721,
+      "concept_name": "PTT",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Lab Test",
+      "standard_concept": "S",
+      "synonyms": [
+        "ptt",
+        "partial thromboplastin time",
+        "aptt"
+      ]
+    },
+    {
+      "concept_id": 3013762,
+      "concept_name": "Magnesium",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Lab Test",
+      "standard_concept": "S",
+      "synonyms": [
+        "magnesium",
+        "mg",
+        "serum magnesium"
+      ]
+    },
+    {
+      "concept_id": 3015632,
+      "concept_name": "Bicarbonate",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Lab Test",
+      "standard_concept": "S",
+      "synonyms": [
+        "bicarbonate",
+        "co2",
+        "serum bicarbonate",
+        "hco3"
+      ]
+    },
+    {
+      "concept_id": 3016502,
+      "concept_name": "Oxygen saturation",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
       "concept_class_id": "Clinical Observation",
       "standard_concept": "S",
-      "synonyms": ["diastolic blood pressure", "DBP"]
+      "synonyms": [
+        "oxygen saturation",
+        "o2 sat",
+        "spo2",
+        "pulse ox",
+        "o2 saturation"
+      ]
+    },
+    {
+      "concept_id": 3016723,
+      "concept_name": "Creatinine",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Lab Test",
+      "standard_concept": "S",
+      "synonyms": [
+        "creatinine",
+        "cr",
+        "serum creatinine",
+        "creat"
+      ],
+      "concept_code": "2160-0"
+    },
+    {
+      "concept_id": 3018677,
+      "concept_name": "Ejection fraction",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Clinical Observation",
+      "standard_concept": "S",
+      "synonyms": [
+        "ejection fraction",
+        "ef",
+        "lvef",
+        "left ventricular ejection fraction"
+      ]
+    },
+    {
+      "concept_id": 3019550,
+      "concept_name": "Sodium",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Lab Test",
+      "standard_concept": "S",
+      "synonyms": [
+        "sodium",
+        "na",
+        "serum sodium"
+      ]
+    },
+    {
+      "concept_id": 3019909,
+      "concept_name": "TSH",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Lab Test",
+      "standard_concept": "S",
+      "synonyms": [
+        "tsh",
+        "thyroid stimulating hormone"
+      ]
+    },
+    {
+      "concept_id": 3020564,
+      "concept_name": "BUN",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Lab Test",
+      "standard_concept": "S",
+      "synonyms": [
+        "bun",
+        "blood urea nitrogen",
+        "urea nitrogen"
+      ]
+    },
+    {
+      "concept_id": 3020630,
+      "concept_name": "Albumin",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Lab Test",
+      "standard_concept": "S",
+      "synonyms": [
+        "albumin",
+        "serum albumin",
+        "alb"
+      ]
+    },
+    {
+      "concept_id": 3020891,
+      "concept_name": "Body temperature",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Clinical Observation",
+      "standard_concept": "S",
+      "synonyms": [
+        "body temperature",
+        "temperature",
+        "temp"
+      ]
+    },
+    {
+      "concept_id": 3022192,
+      "concept_name": "Troponin",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Lab Test",
+      "standard_concept": "S",
+      "synonyms": [
+        "troponin",
+        "troponin i",
+        "troponin t",
+        "cardiac troponin",
+        "trop"
+      ]
+    },
+    {
+      "concept_id": 3023103,
+      "concept_name": "Potassium",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Lab Test",
+      "standard_concept": "S",
+      "synonyms": [
+        "potassium",
+        "k",
+        "serum potassium"
+      ]
+    },
+    {
+      "concept_id": 3023314,
+      "concept_name": "Body weight",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Clinical Observation",
+      "standard_concept": "S",
+      "synonyms": [
+        "body weight",
+        "weight"
+      ]
+    },
+    {
+      "concept_id": 3024128,
+      "concept_name": "Glucose",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Lab Test",
+      "standard_concept": "S",
+      "synonyms": [
+        "glucose",
+        "blood glucose",
+        "blood sugar",
+        "serum glucose",
+        "fasting glucose",
+        "random glucose"
+      ]
+    },
+    {
+      "concept_id": 3024171,
+      "concept_name": "Respiratory rate",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Clinical Observation",
+      "standard_concept": "S",
+      "synonyms": [
+        "respiratory rate",
+        "rr",
+        "resp rate",
+        "breathing rate"
+      ]
+    },
+    {
+      "concept_id": 3024561,
+      "concept_name": "Bilirubin",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Lab Test",
+      "standard_concept": "S",
+      "synonyms": [
+        "bilirubin",
+        "total bilirubin",
+        "tbili",
+        "direct bilirubin"
+      ]
+    },
+    {
+      "concept_id": 3024929,
+      "concept_name": "Phosphorus",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Lab Test",
+      "standard_concept": "S",
+      "synonyms": [
+        "phosphorus",
+        "phos",
+        "phosphate",
+        "serum phosphorus"
+      ]
+    },
+    {
+      "concept_id": 3026361,
+      "concept_name": "PT",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Lab Test",
+      "standard_concept": "S",
+      "synonyms": [
+        "pt",
+        "prothrombin time"
+      ]
+    },
+    {
+      "concept_id": 3027018,
+      "concept_name": "Heart rate",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Clinical Observation",
+      "standard_concept": "S",
+      "synonyms": [
+        "heart rate",
+        "hr",
+        "pulse",
+        "pulse rate"
+      ]
     },
     {
       "concept_id": 3028437,
@@ -294,27 +2285,131 @@
       "domain_id": "Measurement",
       "concept_class_id": "Lab Test",
       "standard_concept": "S",
-      "synonyms": ["D-dimer", "D dimer", "fibrin degradation product"]
+      "synonyms": [
+        "D-dimer",
+        "D dimer",
+        "fibrin degradation product"
+      ]
     },
     {
-      "concept_id": 4090651,
-      "concept_name": "Colonoscopy",
-      "concept_code": "73761001",
-      "vocabulary_id": "SNOMED",
-      "domain_id": "Procedure",
-      "concept_class_id": "Procedure",
+      "concept_id": 3034426,
+      "concept_name": "INR",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Lab Test",
       "standard_concept": "S",
-      "synonyms": ["colonoscopy"]
+      "synonyms": [
+        "inr",
+        "international normalized ratio",
+        "pt/inr"
+      ]
     },
     {
-      "concept_id": 4198190,
-      "concept_name": "Chest X-ray",
-      "concept_code": "399208008",
-      "vocabulary_id": "SNOMED",
+      "concept_id": 3035941,
+      "concept_name": "BNP",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Lab Test",
+      "standard_concept": "S",
+      "synonyms": [
+        "bnp",
+        "brain natriuretic peptide",
+        "b-type natriuretic peptide",
+        "nt-probnp",
+        "pro-bnp"
+      ]
+    },
+    {
+      "concept_id": 3036277,
+      "concept_name": "Body mass index",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Clinical Observation",
+      "standard_concept": "S",
+      "synonyms": [
+        "body mass index",
+        "bmi"
+      ]
+    },
+    {
+      "concept_id": 3037556,
+      "concept_name": "Lactate",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Lab Test",
+      "standard_concept": "S",
+      "synonyms": [
+        "lactate",
+        "lactic acid"
+      ]
+    },
+    {
+      "concept_id": 4011765,
+      "concept_name": "Ultrasound",
       "domain_id": "Procedure",
+      "vocabulary_id": "SNOMED",
       "concept_class_id": "Procedure",
       "standard_concept": "S",
-      "synonyms": ["chest X-ray", "chest x-ray", "CXR", "chest radiograph"]
+      "synonyms": [
+        "ultrasound",
+        "us",
+        "sonogram",
+        "ultrasonography"
+      ]
+    },
+    {
+      "concept_id": 4012368,
+      "concept_name": "Urinary frequency",
+      "concept_code": "162116003",
+      "vocabulary_id": "SNOMED",
+      "domain_id": "Condition",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "frequency",
+        "urinary frequency",
+        "frequent urination"
+      ]
+    },
+    {
+      "concept_id": 4012381,
+      "concept_name": "Dizziness",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "dizziness",
+        "dizzy",
+        "lightheaded",
+        "lightheadedness",
+        "vertigo"
+      ]
+    },
+    {
+      "concept_id": 4012570,
+      "concept_name": "Appendicitis",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "appendicitis",
+        "acute appendicitis"
+      ]
+    },
+    {
+      "concept_id": 4012934,
+      "concept_name": "Cholelithiasis",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "cholelithiasis",
+        "gallstones",
+        "gallstone"
+      ]
     },
     {
       "concept_id": 4013513,
@@ -324,7 +2419,122 @@
       "domain_id": "Procedure",
       "concept_class_id": "Procedure",
       "standard_concept": "S",
-      "synonyms": ["electrocardiogram", "ECG", "EKG"]
+      "synonyms": [
+        "electrocardiogram",
+        "ECG",
+        "EKG"
+      ]
+    },
+    {
+      "concept_id": 4013636,
+      "concept_name": "CT angiography",
+      "domain_id": "Procedure",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Procedure",
+      "standard_concept": "S",
+      "synonyms": [
+        "ct angiography",
+        "cta",
+        "ct angiogram"
+      ]
+    },
+    {
+      "concept_id": 4021769,
+      "concept_name": "Colonoscopy",
+      "domain_id": "Procedure",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Procedure",
+      "standard_concept": "S",
+      "synonyms": [
+        "colonoscopy"
+      ]
+    },
+    {
+      "concept_id": 4027396,
+      "concept_name": "Cholecystitis",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "cholecystitis",
+        "gallbladder inflammation",
+        "acute cholecystitis"
+      ]
+    },
+    {
+      "concept_id": 4029488,
+      "concept_name": "Hyperglycemia",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "hyperglycemia",
+        "high blood sugar",
+        "elevated blood sugar",
+        "elevated glucose",
+        "high glucose"
+      ]
+    },
+    {
+      "concept_id": 4029715,
+      "concept_name": "EGD",
+      "domain_id": "Procedure",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Procedure",
+      "standard_concept": "S",
+      "synonyms": [
+        "egd",
+        "esophagogastroduodenoscopy",
+        "upper endoscopy",
+        "upper gi endoscopy"
+      ]
+    },
+    {
+      "concept_id": 4030840,
+      "concept_name": "S3 gallop",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "s3 gallop",
+        "s3",
+        "third heart sound",
+        "gallop rhythm",
+        "gallop"
+      ]
+    },
+    {
+      "concept_id": 4049389,
+      "concept_name": "Cardiac arrest",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "cardiac arrest",
+        "code blue",
+        "pea",
+        "asystole",
+        "vfib",
+        "ventricular fibrillation"
+      ]
+    },
+    {
+      "concept_id": 4058029,
+      "concept_name": "Chest X-ray",
+      "domain_id": "Procedure",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Procedure",
+      "standard_concept": "S",
+      "synonyms": [
+        "chest x-ray",
+        "cxr",
+        "chest radiograph",
+        "chest xray"
+      ]
     },
     {
       "concept_id": 4063043,
@@ -334,17 +2544,1060 @@
       "domain_id": "Procedure",
       "concept_class_id": "Procedure",
       "standard_concept": "S",
-      "synonyms": ["CT angiography", "CTA", "CT angio"]
+      "synonyms": [
+        "CT angiography",
+        "CTA",
+        "CT angio"
+      ]
     },
     {
-      "concept_id": 4119134,
-      "concept_name": "Carotid ultrasound",
-      "concept_code": "241573003",
+      "concept_id": 4066005,
+      "concept_name": "Fracture",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "fracture",
+        "broken bone",
+        "fx",
+        "bone fracture"
+      ]
+    },
+    {
+      "concept_id": 4068155,
+      "concept_name": "Bradycardia",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "bradycardia",
+        "slow heart rate",
+        "slow pulse"
+      ]
+    },
+    {
+      "concept_id": 4079844,
+      "concept_name": "MRI",
+      "domain_id": "Procedure",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Procedure",
+      "standard_concept": "S",
+      "synonyms": [
+        "mri",
+        "magnetic resonance imaging"
+      ]
+    },
+    {
+      "concept_id": 4080305,
+      "concept_name": "Electrocardiogram",
+      "domain_id": "Procedure",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Procedure",
+      "standard_concept": "S",
+      "synonyms": [
+        "electrocardiogram",
+        "ecg",
+        "ekg",
+        "12-lead ecg"
+      ]
+    },
+    {
+      "concept_id": 4084167,
+      "concept_name": "Hemodialysis",
+      "domain_id": "Procedure",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Procedure",
+      "standard_concept": "S",
+      "synonyms": [
+        "hemodialysis",
+        "dialysis",
+        "hd"
+      ]
+    },
+    {
+      "concept_id": 4089661,
+      "concept_name": "Colon cancer",
+      "concept_code": "93761005",
+      "vocabulary_id": "SNOMED",
+      "domain_id": "Condition",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "colon cancer",
+        "colorectal cancer",
+        "colorectal carcinoma"
+      ]
+    },
+    {
+      "concept_id": 4090651,
+      "concept_name": "Colonoscopy",
+      "concept_code": "73761001",
       "vocabulary_id": "SNOMED",
       "domain_id": "Procedure",
       "concept_class_id": "Procedure",
       "standard_concept": "S",
-      "synonyms": ["carotid ultrasound", "carotid doppler"]
+      "synonyms": [
+        "colonoscopy"
+      ]
+    },
+    {
+      "concept_id": 4103295,
+      "concept_name": "Cardiomyopathy",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "cardiomyopathy",
+        "dilated cardiomyopathy",
+        "hypertrophic cardiomyopathy",
+        "ischemic cardiomyopathy"
+      ]
+    },
+    {
+      "concept_id": 4108356,
+      "concept_name": "Mitral regurgitation",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "mitral regurgitation",
+        "mr",
+        "mitral insufficiency",
+        "mitral valve regurgitation"
+      ]
+    },
+    {
+      "concept_id": 4112752,
+      "concept_name": "Cellulitis",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "cellulitis",
+        "skin infection",
+        "soft tissue infection"
+      ]
+    },
+    {
+      "concept_id": 4119134,
+      "concept_name": "Aortic stenosis",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "aortic stenosis",
+        "as",
+        "aortic valve stenosis",
+        "carotid ultrasound",
+        "carotid doppler"
+      ],
+      "concept_code": "241573003"
+    },
+    {
+      "concept_id": 4120121,
+      "concept_name": "Mechanical ventilation",
+      "domain_id": "Procedure",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Procedure",
+      "standard_concept": "S",
+      "synonyms": [
+        "mechanical ventilation",
+        "ventilator",
+        "vent",
+        "on the vent"
+      ]
+    },
+    {
+      "concept_id": 4128888,
+      "concept_name": "Tachypnea",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "tachypnea",
+        "rapid breathing",
+        "increased respiratory rate"
+      ]
+    },
+    {
+      "concept_id": 4133004,
+      "concept_name": "Migraine",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "migraine",
+        "migraine headache",
+        "migraines"
+      ]
+    },
+    {
+      "concept_id": 4140478,
+      "concept_name": "Cardiac catheterization",
+      "domain_id": "Procedure",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Procedure",
+      "standard_concept": "S",
+      "synonyms": [
+        "cardiac catheterization",
+        "cardiac cath",
+        "heart cath",
+        "coronary angiography",
+        "left heart cath"
+      ]
+    },
+    {
+      "concept_id": 4141537,
+      "concept_name": "Echocardiogram",
+      "domain_id": "Procedure",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Procedure",
+      "standard_concept": "S",
+      "synonyms": [
+        "echocardiogram",
+        "echo",
+        "tte",
+        "transthoracic echocardiogram",
+        "tee",
+        "transesophageal echocardiogram"
+      ]
+    },
+    {
+      "concept_id": 4142479,
+      "concept_name": "Hyperthyroidism",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "hyperthyroidism",
+        "overactive thyroid",
+        "graves disease",
+        "thyrotoxicosis"
+      ]
+    },
+    {
+      "concept_id": 4142879,
+      "concept_name": "Thoracentesis",
+      "domain_id": "Procedure",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Procedure",
+      "standard_concept": "S",
+      "synonyms": [
+        "thoracentesis",
+        "pleural tap"
+      ]
+    },
+    {
+      "concept_id": 4143251,
+      "concept_name": "Paracentesis",
+      "domain_id": "Procedure",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Procedure",
+      "standard_concept": "S",
+      "synonyms": [
+        "paracentesis",
+        "abdominal tap"
+      ]
+    },
+    {
+      "concept_id": 4144111,
+      "concept_name": "Pleuritic chest pain",
+      "concept_code": "2237002",
+      "vocabulary_id": "SNOMED",
+      "domain_id": "Condition",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "pleuritic chest pain",
+        "pleurisy",
+        "pleuritic pain"
+      ]
+    },
+    {
+      "concept_id": 4145906,
+      "concept_name": "Hip fracture",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "hip fracture",
+        "fractured hip",
+        "femoral neck fracture"
+      ]
+    },
+    {
+      "concept_id": 4148765,
+      "concept_name": "Lumbar puncture",
+      "domain_id": "Procedure",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Procedure",
+      "standard_concept": "S",
+      "synonyms": [
+        "lumbar puncture",
+        "lp",
+        "spinal tap"
+      ]
+    },
+    {
+      "concept_id": 4149299,
+      "concept_name": "Cardioversion",
+      "domain_id": "Procedure",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Procedure",
+      "standard_concept": "S",
+      "synonyms": [
+        "cardioversion",
+        "electrical cardioversion",
+        "dccv"
+      ]
+    },
+    {
+      "concept_id": 4154290,
+      "concept_name": "Acute respiratory failure",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "respiratory failure",
+        "acute respiratory failure",
+        "hypoxic respiratory failure",
+        "hypercapnic respiratory failure"
+      ]
+    },
+    {
+      "concept_id": 4167233,
+      "concept_name": "Blood transfusion",
+      "domain_id": "Procedure",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Procedure",
+      "standard_concept": "S",
+      "synonyms": [
+        "blood transfusion",
+        "transfusion",
+        "prbc",
+        "packed red blood cells",
+        "rbc transfusion"
+      ]
+    },
+    {
+      "concept_id": 4167439,
+      "concept_name": "Central line placement",
+      "domain_id": "Procedure",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Procedure",
+      "standard_concept": "S",
+      "synonyms": [
+        "central line",
+        "central venous catheter",
+        "cvc",
+        "central line placement",
+        "picc line"
+      ]
+    },
+    {
+      "concept_id": 4167804,
+      "concept_name": "CABG",
+      "domain_id": "Procedure",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Procedure",
+      "standard_concept": "S",
+      "synonyms": [
+        "cabg",
+        "coronary artery bypass graft",
+        "bypass surgery",
+        "coronary bypass"
+      ]
+    },
+    {
+      "concept_id": 4169095,
+      "concept_name": "Allergic reaction",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "allergic reaction",
+        "allergy",
+        "allergies",
+        "hypersensitivity"
+      ]
+    },
+    {
+      "concept_id": 4178769,
+      "concept_name": "Malignancy",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "malignancy",
+        "cancer",
+        "neoplasm",
+        "tumor",
+        "carcinoma"
+      ]
+    },
+    {
+      "concept_id": 4178904,
+      "concept_name": "Hypoxia",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "hypoxia",
+        "hypoxemia",
+        "low oxygen",
+        "decreased oxygen saturation",
+        "desaturation"
+      ]
+    },
+    {
+      "concept_id": 4180790,
+      "concept_name": "Lung cancer",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "lung cancer",
+        "lung carcinoma",
+        "nsclc",
+        "sclc",
+        "lung malignancy"
+      ]
+    },
+    {
+      "concept_id": 4184142,
+      "concept_name": "Decreased appetite",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "decreased appetite",
+        "poor appetite",
+        "loss of appetite",
+        "anorexia"
+      ]
+    },
+    {
+      "concept_id": 4184347,
+      "concept_name": "Jugular venous distension",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "jugular venous distension",
+        "jvd",
+        "elevated jvp",
+        "jugular venous pressure"
+      ]
+    },
+    {
+      "concept_id": 4185607,
+      "concept_name": "Cardiorenal syndrome",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "cardiorenal syndrome",
+        "cardiorenal"
+      ]
+    },
+    {
+      "concept_id": 4185932,
+      "concept_name": "Deep vein thrombosis",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "deep vein thrombosis",
+        "dvt",
+        "deep venous thrombosis",
+        "leg clot",
+        "venous thrombosis",
+        "acute distress",
+        "distress"
+      ],
+      "concept_code": "53737009"
+    },
+    {
+      "concept_id": 4190076,
+      "concept_name": "Paroxysmal nocturnal dyspnea",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "paroxysmal nocturnal dyspnea",
+        "pnd",
+        "paroxysmal nocturnal dyspnoea"
+      ]
+    },
+    {
+      "concept_id": 4193704,
+      "concept_name": "Bowel obstruction",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "bowel obstruction",
+        "intestinal obstruction",
+        "sbo",
+        "small bowel obstruction",
+        "ileus"
+      ]
+    },
+    {
+      "concept_id": 4195694,
+      "concept_name": "Wheezing",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "wheezing",
+        "wheeze",
+        "wheezes",
+        "bronchospasm"
+      ]
+    },
+    {
+      "concept_id": 4196141,
+      "concept_name": "Heart murmur",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "heart murmur",
+        "murmur",
+        "cardiac murmur",
+        "systolic murmur",
+        "diastolic murmur"
+      ]
+    },
+    {
+      "concept_id": 4196636,
+      "concept_name": "Orthopnea",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "orthopnea",
+        "orthopnoea"
+      ]
+    },
+    {
+      "concept_id": 4198190,
+      "concept_name": "Chest X-ray",
+      "concept_code": "399208008",
+      "vocabulary_id": "SNOMED",
+      "domain_id": "Procedure",
+      "concept_class_id": "Procedure",
+      "standard_concept": "S",
+      "synonyms": [
+        "chest X-ray",
+        "chest x-ray",
+        "CXR",
+        "chest radiograph"
+      ]
+    },
+    {
+      "concept_id": 4200801,
+      "concept_name": "Weight loss",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "weight loss",
+        "unintentional weight loss",
+        "unexplained weight loss"
+      ]
+    },
+    {
+      "concept_id": 4201339,
+      "concept_name": "Intubation",
+      "domain_id": "Procedure",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Procedure",
+      "standard_concept": "S",
+      "synonyms": [
+        "intubation",
+        "endotracheal intubation",
+        "eti",
+        "intubated"
+      ]
+    },
+    {
+      "concept_id": 4211001,
+      "concept_name": "Pain",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "pain",
+        "painful"
+      ]
+    },
+    {
+      "concept_id": 4215499,
+      "concept_name": "CPR",
+      "domain_id": "Procedure",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Procedure",
+      "standard_concept": "S",
+      "synonyms": [
+        "cpr",
+        "cardiopulmonary resuscitation",
+        "chest compressions",
+        "code"
+      ]
+    },
+    {
+      "concept_id": 4215685,
+      "concept_name": "Defibrillation",
+      "domain_id": "Procedure",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Procedure",
+      "standard_concept": "S",
+      "synonyms": [
+        "defibrillation",
+        "defib",
+        "shocked"
+      ]
+    },
+    {
+      "concept_id": 4217975,
+      "concept_name": "Hypotension",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "hypotension",
+        "low blood pressure",
+        "decreased blood pressure"
+      ]
+    },
+    {
+      "concept_id": 4228112,
+      "concept_name": "Hypoglycemia",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "hypoglycemia",
+        "low blood sugar",
+        "low glucose",
+        "hypoglycemic episode"
+      ]
+    },
+    {
+      "concept_id": 4229881,
+      "concept_name": "Fatigue",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "fatigue",
+        "tired",
+        "weakness",
+        "malaise",
+        "lethargy"
+      ]
+    },
+    {
+      "concept_id": 4230536,
+      "concept_name": "BiPAP",
+      "domain_id": "Procedure",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Procedure",
+      "standard_concept": "S",
+      "synonyms": [
+        "bipap",
+        "bilevel positive airway pressure",
+        "nippv",
+        "non-invasive ventilation"
+      ]
+    },
+    {
+      "concept_id": 4230670,
+      "concept_name": "Volume overload",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "volume overload",
+        "fluid overload",
+        "hypervolemia"
+      ]
+    },
+    {
+      "concept_id": 4232487,
+      "concept_name": "Hypocalcemia",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "hypocalcemia",
+        "low calcium"
+      ]
+    },
+    {
+      "concept_id": 4232919,
+      "concept_name": "ICD",
+      "domain_id": "Procedure",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Procedure",
+      "standard_concept": "S",
+      "synonyms": [
+        "icd",
+        "implantable cardioverter defibrillator",
+        "aicd"
+      ]
+    },
+    {
+      "concept_id": 4245614,
+      "concept_name": "Constipation",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "constipation",
+        "constipated",
+        "no bowel movement"
+      ]
+    },
+    {
+      "concept_id": 4272240,
+      "concept_name": "Crackles",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "crackles",
+        "rales",
+        "bibasilar crackles",
+        "lung crackles",
+        "pulmonary crackles"
+      ]
+    },
+    {
+      "concept_id": 4290245,
+      "concept_name": "Fall",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "fall",
+        "fell",
+        "falling",
+        "mechanical fall"
+      ]
+    },
+    {
+      "concept_id": 4291005,
+      "concept_name": "GERD",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "gerd",
+        "gastroesophageal reflux disease",
+        "acid reflux",
+        "reflux",
+        "heartburn",
+        "GI symptoms",
+        "gastrointestinal symptoms"
+      ],
+      "concept_code": "386618008"
+    },
+    {
+      "concept_id": 4291649,
+      "concept_name": "Cirrhosis",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "cirrhosis",
+        "liver cirrhosis",
+        "hepatic cirrhosis",
+        "alcoholic cirrhosis",
+        "end stage liver disease"
+      ]
+    },
+    {
+      "concept_id": 4302537,
+      "concept_name": "COVID-19",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "covid-19",
+        "covid",
+        "coronavirus",
+        "sars-cov-2",
+        "coronavirus disease"
+      ]
+    },
+    {
+      "concept_id": 4324124,
+      "concept_name": "CT scan",
+      "domain_id": "Procedure",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Procedure",
+      "standard_concept": "S",
+      "synonyms": [
+        "ct scan",
+        "ct",
+        "computed tomography",
+        "cat scan"
+      ]
+    },
+    {
+      "concept_id": 4329847,
+      "concept_name": "Myocardial infarction",
+      "concept_code": "22298006",
+      "vocabulary_id": "SNOMED",
+      "domain_id": "Condition",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "myocardial infarction",
+        "MI",
+        "heart attack"
+      ]
+    },
+    {
+      "concept_id": 4337741,
+      "concept_name": "Pacemaker",
+      "domain_id": "Procedure",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Procedure",
+      "standard_concept": "S",
+      "synonyms": [
+        "pacemaker",
+        "ppm",
+        "permanent pacemaker",
+        "pacemaker implantation"
+      ]
+    },
+    {
+      "concept_id": 4338257,
+      "concept_name": "PCI",
+      "domain_id": "Procedure",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Procedure",
+      "standard_concept": "S",
+      "synonyms": [
+        "pci",
+        "percutaneous coronary intervention",
+        "angioplasty",
+        "stent",
+        "stenting",
+        "ptca"
+      ]
+    },
+    {
+      "concept_id": 4340390,
+      "concept_name": "Hepatic encephalopathy",
+      "domain_id": "Condition",
+      "vocabulary_id": "SNOMED",
+      "concept_class_id": "Clinical Finding",
+      "standard_concept": "S",
+      "synonyms": [
+        "hepatic encephalopathy",
+        "he"
+      ]
+    },
+    {
+      "concept_id": 9000001,
+      "concept_name": "Enoxaparin",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "enoxaparin",
+        "lovenox"
+      ]
+    },
+    {
+      "concept_id": 9000002,
+      "concept_name": "Ibuprofen",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "ibuprofen",
+        "advil",
+        "motrin"
+      ]
+    },
+    {
+      "concept_id": 9000003,
+      "concept_name": "Colchicine",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "colchicine",
+        "colcrys"
+      ]
+    },
+    {
+      "concept_id": 9000004,
+      "concept_name": "Hematocrit",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Lab Test",
+      "standard_concept": "S",
+      "synonyms": [
+        "hematocrit",
+        "hct"
+      ]
+    },
+    {
+      "concept_id": 9000005,
+      "concept_name": "Platelet count",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Lab Test",
+      "standard_concept": "S",
+      "synonyms": [
+        "platelet count",
+        "platelets",
+        "plt"
+      ]
+    },
+    {
+      "concept_id": 9000006,
+      "concept_name": "AST",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Lab Test",
+      "standard_concept": "S",
+      "synonyms": [
+        "ast",
+        "aspartate aminotransferase",
+        "sgot"
+      ]
+    },
+    {
+      "concept_id": 9000007,
+      "concept_name": "ALT",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Lab Test",
+      "standard_concept": "S",
+      "synonyms": [
+        "alt",
+        "alanine aminotransferase",
+        "sgpt"
+      ]
+    },
+    {
+      "concept_id": 9000008,
+      "concept_name": "Alkaline phosphatase",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Lab Test",
+      "standard_concept": "S",
+      "synonyms": [
+        "alkaline phosphatase",
+        "alk phos",
+        "alkp"
+      ]
+    },
+    {
+      "concept_id": 9000009,
+      "concept_name": "Lipase",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Lab Test",
+      "standard_concept": "S",
+      "synonyms": [
+        "lipase"
+      ]
+    },
+    {
+      "concept_id": 9000010,
+      "concept_name": "Amylase",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Lab Test",
+      "standard_concept": "S",
+      "synonyms": [
+        "amylase"
+      ]
+    },
+    {
+      "concept_id": 9000011,
+      "concept_name": "Procalcitonin",
+      "domain_id": "Measurement",
+      "vocabulary_id": "LOINC",
+      "concept_class_id": "Lab Test",
+      "standard_concept": "S",
+      "synonyms": [
+        "procalcitonin",
+        "procal"
+      ]
+    },
+    {
+      "concept_id": 40228152,
+      "concept_name": "Rivaroxaban",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "rivaroxaban",
+        "xarelto"
+      ]
+    },
+    {
+      "concept_id": 40244464,
+      "concept_name": "Apixaban",
+      "domain_id": "Drug",
+      "vocabulary_id": "RxNorm",
+      "concept_class_id": "Ingredient",
+      "standard_concept": "S",
+      "synonyms": [
+        "apixaban",
+        "eliquis"
+      ]
     }
   ]
 }

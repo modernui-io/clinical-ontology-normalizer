@@ -155,7 +155,7 @@ class TestDatabaseMappingServiceWithDB:
         assert service.concept_count > 0
 
     def test_concept_count_after_load(self, service: DatabaseMappingService) -> None:
-        assert service.concept_count == 34
+        assert service.concept_count == 259
 
     def test_map_mention_exact_match(self, service: DatabaseMappingService) -> None:
         candidates = service.map_mention("fever")
@@ -293,7 +293,7 @@ class TestConceptsInDatabase:
     def test_concepts_loaded_in_db(self, vocab_session) -> None:
         result = vocab_session.execute(select(Concept))
         concepts = result.scalars().all()
-        assert len(concepts) == 34
+        assert len(concepts) == 259
 
     def test_synonyms_loaded_in_db(self, vocab_session) -> None:
         result = vocab_session.execute(select(ConceptSynonym))
