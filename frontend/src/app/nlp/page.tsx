@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -1537,7 +1538,7 @@ export default function NLPWorkbenchPage() {
   const [ontologyResult, setOntologyResult] = useState<OntologyMapResponse | null>(null);
   const [analysisType, setAnalysisType] = useState<AnalysisType>("clinical_summary");
   const [useLLM, setUseLLM] = useState(true);
-  const [extractNarrative, setExtractNarrative] = useState(false);
+  const [extractNarrative, setExtractNarrative] = useState(true);
   const [useMLModels, setUseMLModels] = useState(false); // Ensemble NLP (ClinicalBERT + ModernBERT)
   const [selectedModelId, setSelectedModelId] = useState<string>("rule_based");
   const [availableModels, setAvailableModels] = useState<Array<{model_id: string; name: string; description: string; is_available: boolean}>>([]);
@@ -1941,13 +1942,15 @@ export default function NLPWorkbenchPage() {
       console.log("Building KG from hybrid for patient:", patientId);
       console.log("Sending", entities.length, "entities to backend");
 
-      // Use the /build-graph endpoint
+      // Use the /build-graph endpoint with both entities and raw text
+      // Sending clinical_text lets the backend do additional extraction
       const response = await fetch("/api/clinical-agent/build-graph", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           patient_id: patientId,
           entities: entities,
+          clinical_text: inputText,
         }),
       });
 
@@ -2347,7 +2350,15 @@ export default function NLPWorkbenchPage() {
                                     </Badge>
                                   )}
                                 </div>
-                                <p className="whitespace-pre-wrap text-sm">{msg.content}</p>
+                                <div className="prose prose-sm dark:prose-invert max-w-none
+                                  prose-headings:text-foreground prose-headings:font-semibold
+                                  prose-h2:text-base prose-h2:mt-4 prose-h2:mb-2 prose-h2:border-b prose-h2:pb-1
+                                  prose-h3:text-sm prose-h3:mt-3 prose-h3:mb-1
+                                  prose-strong:text-foreground prose-strong:font-semibold
+                                  prose-li:my-0.5 prose-ul:my-1 prose-ol:my-1
+                                  prose-p:my-1.5 prose-p:leading-relaxed">
+                                  <ReactMarkdown>{msg.content}</ReactMarkdown>
+                                </div>
                               </div>
 
                               {/* Guideline Citations */}
@@ -2429,51 +2440,68 @@ export default function NLPWorkbenchPage() {
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm">Patient Overview</CardTitle>
                   </CardHeader>
-                  <CardContent className="text-sm space-y-3">
+                  <CardContent className="text-sm space-y-4">
                     <div>
                       <span className="text-muted-foreground">Patient ID:</span>{" "}
                       <span className="font-mono">{kgPatientId}</span>
                     </div>
                     {kgSummary && (
                       <>
+                        {/* Active Conditions — clean numbered list */}
                         <div>
-                          <span className="text-muted-foreground block mb-1">Conditions:</span>
-                          <div className="flex flex-wrap gap-1">
-                            {kgSummary.conditions.map((c, i) => (
-                              <Badge key={i} className="bg-blue-500 text-white text-xs">
-                                {c}
-                              </Badge>
-                            ))}
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="h-2 w-2 rounded-full bg-blue-500" />
+                            <span className="font-medium text-sm">Active Conditions</span>
+                            <span className="text-xs text-muted-foreground">({kgSummary.conditions.length})</span>
                           </div>
+                          <ul className="space-y-1 pl-4">
+                            {kgSummary.conditions.map((c, i) => (
+                              <li key={i} className="text-sm text-foreground flex items-start gap-2">
+                                <span className="text-muted-foreground text-xs mt-0.5">{i + 1}.</span>
+                                <span className="capitalize">{c.toLowerCase()}</span>
+                              </li>
+                            ))}
+                          </ul>
                         </div>
+
+                        {/* Ruled Out — compact strikethrough list */}
                         {kgSummary.negated_conditions && kgSummary.negated_conditions.length > 0 && (
                           <div>
-                            <span className="text-muted-foreground block mb-1">Ruled Out:</span>
-                            <div className="flex flex-wrap gap-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="h-2 w-2 rounded-full bg-gray-400" />
+                              <span className="font-medium text-sm text-muted-foreground">Ruled Out</span>
+                              <span className="text-xs text-muted-foreground">({kgSummary.negated_conditions.length})</span>
+                            </div>
+                            <div className="pl-4 flex flex-wrap gap-x-3 gap-y-1">
                               {kgSummary.negated_conditions.map((c, i) => (
-                                <Badge key={i} variant="outline" className="text-xs line-through text-gray-500">
-                                  {c.replace("[RULED OUT] ", "")}
-                                </Badge>
+                                <span key={i} className="text-xs text-gray-400 line-through capitalize">
+                                  {c.replace("[RULED OUT] ", "").toLowerCase()}
+                                </span>
                               ))}
                             </div>
                           </div>
                         )}
+
+                        {/* Medications — clean list with pill icon */}
                         <div>
-                          <span className="text-muted-foreground block mb-1">Medications:</span>
-                          <div className="flex flex-wrap gap-1">
-                            {kgSummary.medications.map((m, i) => (
-                              <Badge key={i} className="bg-green-500 text-white text-xs">
-                                {m}
-                              </Badge>
-                            ))}
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="h-2 w-2 rounded-full bg-green-500" />
+                            <span className="font-medium text-sm">Medications</span>
+                            <span className="text-xs text-muted-foreground">({kgSummary.medications.length})</span>
                           </div>
+                          <ul className="space-y-1 pl-4">
+                            {kgSummary.medications.map((m, i) => (
+                              <li key={i} className="text-sm text-foreground flex items-start gap-2">
+                                <span className="text-green-500 text-xs mt-0.5">Rx</span>
+                                <span>{m}</span>
+                              </li>
+                            ))}
+                          </ul>
                         </div>
+
                         {kgSummary.extraction_method && (
-                          <div className="text-xs text-muted-foreground mt-2">
-                            <span>Extraction: </span>
-                            <Badge variant="outline" className="text-xs">
-                              {kgSummary.extraction_method}
-                            </Badge>
+                          <div className="text-xs text-muted-foreground pt-2 border-t">
+                            Extraction method: {kgSummary.extraction_method}
                           </div>
                         )}
                       </>

@@ -47,7 +47,12 @@ export function isDegraded(state: DegradedState): boolean {
   if (state.provenance_complete === false) return true;
   if (state.action_gate && !state.action_gate.allowed) return true;
   if (state.dependency_state) {
-    const anyDown = Object.values(state.dependency_state).some((v) => !v);
+    // Don't count documents_available as degraded when KG is available
+    // (patient may have been built from extraction, not document ingestion)
+    const meaningfulDeps = Object.entries(state.dependency_state).filter(
+      ([name, up]) => !(name === "documents_available" && !up && state.dependency_state?.["kg_available"])
+    );
+    const anyDown = meaningfulDeps.some(([, up]) => !up);
     if (anyDown) return true;
   }
   return false;

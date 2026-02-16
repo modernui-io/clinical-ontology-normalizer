@@ -1091,9 +1091,44 @@ async def build_graph_from_entities(
     start_time = datetime.now(timezone.utc)
 
     try:
-        # Build the knowledge graph directly from provided entities
+        all_entities = list(request.entities)
+
+        # If clinical_text provided, do additional rule-based extraction
+        # to capture entities the frontend might have missed
+        if request.clinical_text:
+            try:
+                rule_nlp = RuleBasedNLPService()
+                mentions = rule_nlp.extract_mentions(request.clinical_text, document_id=uuid4())
+                # Map domain_hint from ExtractedMention to KG entity types
+                domain_map = {
+                    "Condition": "CONDITION",
+                    "Drug": "DRUG",
+                    "Procedure": "PROCEDURE",
+                    "Measurement": "MEASUREMENT",
+                    "Observation": "OBSERVATION",
+                }
+                existing_texts = {e.text.lower() for e in all_entities}
+                for m in mentions:
+                    kg_type = domain_map.get(m.domain_hint or "", "OBSERVATION")
+                    if m.text.lower() not in existing_texts:
+                        assertion_str = "ABSENT" if m.assertion.value == "absent" else "PRESENT"
+                        all_entities.append(ExtractedEntity(
+                            text=m.text,
+                            entity_type=kg_type,
+                            confidence=m.confidence,
+                            assertion=assertion_str,
+                            omop_concept_id=m.omop_concept_id,
+                            note_id="rule_based_supplement",
+                            document_date=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+                        ))
+                        existing_texts.add(m.text.lower())
+                logger.info(f"Supplemental extraction added {len(all_entities) - len(request.entities)} entities from clinical text")
+            except Exception as text_err:
+                logger.warning(f"Supplemental text extraction failed: {text_err}")
+
+        # Build the knowledge graph from all entities
         kg_summary = await _build_patient_knowledge_graph(
-            db, request.patient_id, request.entities, request.extraction_method
+            db, request.patient_id, all_entities, request.extraction_method
         )
         await db.commit()
     except Exception as e:
@@ -1109,7 +1144,7 @@ async def build_graph_from_entities(
 
     return BuildGraphResponse(
         patient_id=request.patient_id,
-        entities_processed=len(request.entities),
+        entities_processed=len(all_entities),
         knowledge_graph=kg_summary,
         processing_time_ms=round(processing_time_ms, 2),
     )
