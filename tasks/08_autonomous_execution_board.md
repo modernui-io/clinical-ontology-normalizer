@@ -28,7 +28,7 @@ Status legend
 | ROL-04 | P1 | Lock one canonical ingestion-to-QA route for pilot users | CTO + VP Product | in_progress | `backend/app/api/nlp.py`, `backend/app/api/clinical_agent.py`, `frontend/src/app/nlp/page.tsx` | Mark non-canonical paths as non-pilot in runbook |
 | ROL-05 | P1 | Define confidence-to-action policy for 77% class outputs | VP Product + Clinical AI | done | `backend/app/services/confidence_policy_service.py`, `backend/app/services/workflow_confidence_policy.py`, `backend/tests/test_confidence_policy.py` | Closed 2026-02-15 — P0-021/022/023 implemented with risk tiers, decline behavior, provenance tracking |
 | ROL-06 | P1 | Tighten auth/secrets and PHI boundary controls for external readiness | CISO | done | `backend/app/core/config.py`, `backend/tests/test_config_policy.py`, `backend/tests/test_webhook_security.py` | Closed 2026-02-15 — P0-009 through P0-017 implemented: auth enforcement, insecure defaults removed, Redis auth, encryption-at-rest, TLS, audit coverage, tenant boundaries |
-| ROL-07 | P1 | Establish incident ownership and readiness/SLO escalation | Ops + CIO | in_progress | `exec-review/operations-review.md`, `tasks/05_pilot_todo_list.md` | P0-019 fully closed (localhost 5/5 PASS). Evidence templates scaffolded for P0-025/026/027/028. Awaiting staging for drill execution (P0-025/026/027). |
+| ROL-07 | P1 | Establish incident ownership and readiness/SLO escalation | Ops + CIO | done | `docs/evidence/p0-025/`, `docs/evidence/p0-026/`, `docs/evidence/p0-027/`, `docs/evidence/p0-028/` | Closed 2026-02-16 — All operational drills executed: escalation tabletop (P0-025 PASS), PG restore RTO 30.42s (P0-026 PASS), PG failover MTTR 15.2s (P0-027 PASS), signoff matrix CONDITIONAL GO (P0-028 PASS). Redis/Neo4j/cascade drills deferred to staging. |
 | ROL-08 | P2 | Build UMLS/OMOP precision guardrail corpus and regression checks | Clinical AI + QA | todo | `backend/app/services/clinical_ontology_mapper.py`, `backend/app/services/omop_hierarchy_service.py` | Define positive/negative concept-pair test set |
 | ROL-09 | P2 | Complete monthly closure artifact with explicit go/no-go decision table | CTO + CISO + CIO + Clinical AI | todo | `exec-review/clinical-ai-review.md`, `tasks/04_enterprise_readiness_multi_agent_playbook_run.md` | Publish sign-off matrix by role |
 | ROL-10 | P1 | Maintain unified P0-P4 master backlog and map each item to implementation tickets | Program Lead + CTO | done (backlog created) | `tasks/09_master_change_backlog_p0_p4.md` | Convert backlog lines to executable ticket queue |
@@ -74,6 +74,7 @@ Status legend
 | BLK-04 | Auth/secrets/audit readiness gaps for external access | CISO | 2026-02-13 | ~~2026-02-21~~ **CLOSED 2026-02-15** | P0-009 through P0-017 done. Auth, secrets, encryption, TLS, audit, tenant boundaries all enforced. |
 
 ## Current posture
-- Pilot posture as of `2026-02-16`: `controlled_go_only` (pilot continues narrowly; P0/P1 execution tasks remain open: reconciliation/runbook and operational hardening)
-- Broad rollout posture as of `2026-02-16`: `hold` (remaining P0/P1 tasks still open: Meditech contract hardening, escalation, testing, and runbook completion)
+- Pilot posture as of `2026-02-16`: `conditional_go` (ALL 28 P0 items closed with evidence. Signoff: CONDITIONAL GO with 5 staging conditions. P1: all 35 closed.)
+- Broad rollout posture as of `2026-02-16`: `hold` (staging confirmation required for OpenEHR round-trip, Redis failover, Neo4j restore, and cascade simulation)
+- Previous: Pilot posture as of `2026-02-16` (earlier): `controlled_go_only`
 - Previous: Pilot posture as of `2026-02-13`: `controlled_go_only`

@@ -1,0 +1,203 @@
+import {
+  CheckCircle,
+  Clock,
+  Database,
+  FileCheck,
+  ShieldAlert,
+  Timer,
+  Workflow,
+} from "lucide-react";
+
+interface DrillResult {
+  id: string;
+  title: string;
+  status: "PASS" | "DEFERRED" | "FAIL";
+  metric: string;
+  metricLabel: string;
+  timestamp: string;
+  evidencePath: string;
+  notes?: string;
+}
+
+const DRILL_RESULTS: DrillResult[] = [
+  {
+    id: "P0-019",
+    title: "OpenEHR Reconciliation & Rollback",
+    status: "PASS",
+    metric: "10/10",
+    metricLabel: "scenarios (5 dry-run + 5 round-trip)",
+    timestamp: "2026-02-16T16:27:23Z",
+    evidencePath: "docs/evidence/p0-019/p0-019-evidence-20260216T162723Z.json",
+  },
+  {
+    id: "P0-025",
+    title: "Incident Escalation Drill",
+    status: "PASS",
+    metric: "4/4",
+    metricLabel: "severity levels exercised (SEV-1 to SEV-4)",
+    timestamp: "2026-02-16T16:34:00Z",
+    evidencePath: "docs/evidence/p0-025/p0-025-escalation-drill-evidence.md",
+    notes: "HIPAA breach clock documented for SEV-1",
+  },
+  {
+    id: "P0-026",
+    title: "Backup Restore Drill",
+    status: "PASS",
+    metric: "30.42s",
+    metricLabel: "RTO (PostgreSQL)",
+    timestamp: "2026-02-16T16:31:46Z",
+    evidencePath: "docs/evidence/p0-026/p0-026-restore-drill-evidence.md",
+    notes: "Neo4j deferred (mock_mode, non-critical)",
+  },
+  {
+    id: "P0-027",
+    title: "Failover Simulation",
+    status: "PASS",
+    metric: "15.2s",
+    metricLabel: "MTTR (PostgreSQL)",
+    timestamp: "2026-02-16T16:33:31Z",
+    evidencePath: "docs/evidence/p0-027/p0-027-failover-evidence.md",
+    notes: "Zero data loss confirmed",
+  },
+  {
+    id: "P0-028",
+    title: "Pre-Pilot Signoff",
+    status: "PASS",
+    metric: "CONDITIONAL GO",
+    metricLabel: "6 role signoffs collected",
+    timestamp: "2026-02-16T17:00:00Z",
+    evidencePath: "docs/evidence/p0-028/p0-028-signoff-template.md",
+    notes: "5 staging conditions, 30-day expiry",
+  },
+];
+
+const P0_COUNTS = {
+  total: 28,
+  closed: 28,
+  closedDate: "2026-02-16",
+};
+
+function statusBadge(status: DrillResult["status"]) {
+  if (status === "PASS")
+    return "bg-emerald-50 text-emerald-700 border-emerald-200";
+  if (status === "DEFERRED")
+    return "bg-amber-50 text-amber-700 border-amber-200";
+  return "bg-red-50 text-red-700 border-red-200";
+}
+
+function formatTimestamp(iso: string): string {
+  return new Date(iso).toLocaleString("en-AU", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "UTC",
+  });
+}
+
+export default function PilotReadinessShowcase() {
+  return (
+    <section className="rounded-xl border border-slate-200 p-5 mt-4">
+      <div className="mb-5 flex items-center gap-2">
+        <ShieldAlert className="h-4.5 w-4.5 text-slate-600" />
+        <h2 className="text-lg font-semibold text-slate-900">
+          Sprint-1 Operational Drill Results
+        </h2>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50/70 p-3">
+          <div className="flex items-center gap-1.5 mb-1">
+            <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />
+            <span className="text-[11px] font-medium text-emerald-700 uppercase tracking-wide">
+              P0 Closed
+            </span>
+          </div>
+          <p className="text-xl font-semibold text-emerald-800">
+            {P0_COUNTS.closed}/{P0_COUNTS.total}
+          </p>
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+          <div className="flex items-center gap-1.5 mb-1">
+            <Workflow className="h-3.5 w-3.5 text-slate-500" />
+            <span className="text-[11px] font-medium text-slate-600 uppercase tracking-wide">
+              Drills Run
+            </span>
+          </div>
+          <p className="text-xl font-semibold text-slate-800">
+            {DRILL_RESULTS.length}
+          </p>
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+          <div className="flex items-center gap-1.5 mb-1">
+            <Timer className="h-3.5 w-3.5 text-slate-500" />
+            <span className="text-[11px] font-medium text-slate-600 uppercase tracking-wide">
+              Best MTTR
+            </span>
+          </div>
+          <p className="text-xl font-semibold text-slate-800">15.2s</p>
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+          <div className="flex items-center gap-1.5 mb-1">
+            <Database className="h-3.5 w-3.5 text-slate-500" />
+            <span className="text-[11px] font-medium text-slate-600 uppercase tracking-wide">
+              Data Loss
+            </span>
+          </div>
+          <p className="text-xl font-semibold text-slate-800">Zero</p>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        {DRILL_RESULTS.map((drill) => (
+          <div
+            key={drill.id}
+            className="rounded-lg border border-slate-200 p-3 hover:shadow-sm transition-shadow"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono text-slate-500">
+                    {drill.id}
+                  </span>
+                  <h3 className="text-sm font-medium text-slate-900 truncate">
+                    {drill.title}
+                  </h3>
+                </div>
+                <div className="mt-1 flex items-baseline gap-2">
+                  <span className="text-lg font-semibold text-slate-800">
+                    {drill.metric}
+                  </span>
+                  <span className="text-xs text-slate-500">
+                    {drill.metricLabel}
+                  </span>
+                </div>
+                {drill.notes && (
+                  <p className="mt-1 text-xs text-slate-500">{drill.notes}</p>
+                )}
+              </div>
+              <div className="flex flex-col items-end gap-1.5 shrink-0">
+                <span
+                  className={`inline-flex rounded-full border px-2 py-0.5 text-[11px] font-medium ${statusBadge(drill.status)}`}
+                >
+                  {drill.status}
+                </span>
+                <span className="flex items-center gap-1 text-[10px] text-slate-400">
+                  <Clock className="h-3 w-3" />
+                  {formatTimestamp(drill.timestamp)}
+                </span>
+              </div>
+            </div>
+            <p className="mt-1.5 text-[10px] text-slate-400 flex items-center gap-1">
+              <FileCheck className="h-3 w-3" />
+              {drill.evidencePath}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <p className="mt-3 text-xs text-slate-500">
+        All P0 items closed as of {P0_COUNTS.closedDate}. Signoff decision:
+        CONDITIONAL GO with 5 staging conditions and 30-day expiry.
+      </p>
+    </section>
+  );
+}

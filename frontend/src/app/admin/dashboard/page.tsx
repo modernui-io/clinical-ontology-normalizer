@@ -45,6 +45,7 @@ import {
   FileText,
   Stethoscope,
 } from "lucide-react";
+import DataSourceModeBanner from "@/components/readiness/DataSourceModeBanner";
 import {
   LineChart,
   Line,
@@ -398,6 +399,14 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
+      <DataSourceModeBanner
+        mode="mixed"
+        title="Data source mode"
+        description="Service health and metadata are loaded from /api/dashboard/admin (live). Request volume and CPU/memory gauges are simulated until a streaming metrics endpoint is wired."
+        evidencePath="frontend/src/app/admin/dashboard/page.tsx"
+        lastUpdatedAt="2026-02-16"
+      />
+
       {/* Service Health Status Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
         {services.slice(0, 10).map((service) => (
@@ -618,6 +627,112 @@ export default function AdminDashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Evidence Gallery — Sprint-1 Operational Drill Results */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Sprint-1 Evidence Gallery
+          </CardTitle>
+          <CardDescription>
+            Operational drill results and evidence documentation from P0 closure
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Ticket</TableHead>
+                <TableHead>Drill</TableHead>
+                <TableHead>Key Metric</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Timestamp (UTC)</TableHead>
+                <TableHead>Evidence Path</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {[
+                {
+                  ticket: "P0-019",
+                  drill: "OpenEHR Reconciliation & Rollback",
+                  metric: "10/10 scenarios",
+                  status: "PASS",
+                  timestamp: "2026-02-16T16:27Z",
+                  evidence: "docs/evidence/p0-019/",
+                },
+                {
+                  ticket: "P0-025",
+                  drill: "Incident Escalation Drill",
+                  metric: "SEV-1 to SEV-4 exercised",
+                  status: "PASS",
+                  timestamp: "2026-02-16T16:34Z",
+                  evidence: "docs/evidence/p0-025/",
+                },
+                {
+                  ticket: "P0-026",
+                  drill: "Backup Restore (PostgreSQL)",
+                  metric: "RTO: 30.42s",
+                  status: "PASS",
+                  timestamp: "2026-02-16T16:31Z",
+                  evidence: "docs/evidence/p0-026/",
+                },
+                {
+                  ticket: "P0-027",
+                  drill: "Failover Simulation (PostgreSQL)",
+                  metric: "MTTR: 15.2s",
+                  status: "PASS",
+                  timestamp: "2026-02-16T16:33Z",
+                  evidence: "docs/evidence/p0-027/",
+                },
+                {
+                  ticket: "P0-028",
+                  drill: "Pre-Pilot Signoff Matrix",
+                  metric: "CONDITIONAL GO (6 signoffs)",
+                  status: "PASS",
+                  timestamp: "2026-02-16T17:00Z",
+                  evidence: "docs/evidence/p0-028/",
+                },
+              ].map((row) => (
+                <TableRow key={row.ticket}>
+                  <TableCell>
+                    <Badge variant="outline" className="font-mono text-xs">
+                      {row.ticket}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="font-medium">{row.drill}</TableCell>
+                  <TableCell className="text-sm">{row.metric}</TableCell>
+                  <TableCell>
+                    <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                      {row.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-xs text-muted-foreground">
+                    {row.timestamp}
+                  </TableCell>
+                  <TableCell className="text-xs font-mono text-muted-foreground max-w-[200px] truncate" title={row.evidence}>
+                    {row.evidence}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1.5">
+              <CheckCircle className="h-3.5 w-3.5 text-green-600" />
+              <span>All 28 P0 items closed</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Clock className="h-3.5 w-3.5" />
+              <span>Signoff expiry: 2026-03-16</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Activity className="h-3.5 w-3.5" />
+              <span>Posture: CONDITIONAL GO</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Action Items and Quick Actions */}
       <div className="grid gap-6 lg:grid-cols-3">

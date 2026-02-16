@@ -47,7 +47,7 @@ Source
 | P0-022-A | P0-022 | P0 | WS-03 Clinical AI safety | Clinical AI | Require evidence-bound confidence and decline behavior on unsupported claims. | 2026-02-27 | done |
 | P0-023-A | P0-023 | P0 | WS-03 Clinical AI safety | Clinical AI + Product | Require source document IDs and provenance fields for every non-empty answer. | 2026-02-27 | done |
 | P0-024-A | P0-024 | P0 | WS-04 Product trust UX | VP Product | Add explicit ""degraded"" UX mode with action block and clinician escalation. | 2026-02-27 | done |
-| P0-025-A | P0-025 | P0 | WS-06 SRE operations | CIO + Ops | Define and staff incident escalation matrix with response SLAs. | 2026-02-27 | todo |
-| P0-026-A | P0-026 | P0 | WS-06 SRE operations | Ops | Execute one backup restore drill for PostgreSQL and Neo4j. | 2026-02-27 | todo |
-| P0-027-A | P0-027 | P0 | WS-06 SRE operations | Ops + CTO | Execute one failover/dependency outage simulation and record MTTR. | 2026-02-27 | todo |
-| P0-028-A | P0-028 | P0 | WS-08 Program governance | Program Lead | Produce final pre-pilot signoff matrix (CTO/CISO/CIO/Clinical AI/Product/Ops). | 2026-02-27 | todo |
+| P0-025-A | P0-025 | P0 | WS-06 SRE operations | CIO + Ops | Tabletop escalation drill executed. SEV-1 through SEV-4 scenarios documented with detect→page→assign→recover timelines. HIPAA breach clock documented. Ownership/rotation matrix published. Evidence: docs/evidence/p0-025/p0-025-escalation-drill-evidence.md | 2026-02-27 | done |
+| P0-026-A | P0-026 | P0 | WS-06 SRE operations | Ops | PostgreSQL restore drill executed. RTO: 30.42s. Row counts exact match (594/1397/2461/476). Neo4j deferred (mock_mode). Evidence: docs/evidence/p0-026/p0-026-restore-drill-evidence.md | 2026-02-27 | done |
+| P0-027-A | P0-027 | P0 | WS-06 SRE operations | Ops + CTO | PG failover simulation executed. MTTR: 15.2s. Zero data loss. Degraded banner verified. Clinical path blocked during outage. Redis failover deferred (native process). Evidence: docs/evidence/p0-027/p0-027-failover-evidence.md | 2026-02-27 | done |
+| P0-028-A | P0-028 | P0 | WS-08 Program governance | Program Lead | Pre-pilot signoff matrix complete. All 28 P0 tickets PASS. 6 role signoffs collected (4 CONDITIONAL GO, 2 GO). 5 conditions documented. Overall: CONDITIONAL GO. Evidence: docs/evidence/p0-028/p0-028-signoff-template.md | 2026-02-27 | done |

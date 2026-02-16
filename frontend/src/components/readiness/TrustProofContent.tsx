@@ -15,6 +15,7 @@ import {
 import { getReadinessSnapshot, type BacklogTask, type EvidenceArtifact } from "@/lib/readinessEvidence.server";
 import BackendHealthProbe from "@/components/readiness/BackendHealthProbe";
 import EvidenceBundleButton from "@/components/readiness/EvidenceBundleButton";
+import PilotReadinessShowcase from "@/components/readiness/PilotReadinessShowcase";
 
 type SectionId = "p0" | "p4" | "evidence" | "demo";
 
@@ -391,6 +392,8 @@ export default async function TrustProofContent() {
             )}
           </section>
         </div>
+
+        <PilotReadinessShowcase />
 
         <section className="mt-4 rounded-xl border border-slate-200 p-5">
           <div className="mb-4 flex items-center justify-between gap-2">
