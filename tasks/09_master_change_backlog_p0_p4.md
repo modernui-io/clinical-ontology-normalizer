@@ -40,16 +40,26 @@ Execution rules
 - [x] P0-016 Enforce tenant/org boundary checks at query boundaries. | Owner: CISO + Platform | Anchor: `backend/app/core/tenant.py`, `backend/app/security/rbac_service.py` | Exit: cross-tenant data access blocked by policy.
 - [x] P0-017 Add explicit policy gate for external model routes handling PHI. | Owner: CISO + Clinical AI | Anchor: model/agent service configs | Exit: unapproved external providers cannot receive PHI.
 - [x] P0-018 Publish and approve canonical Meditech-to-OpenEHR mapping contract. | Owner: CIO + CTO | Anchor: `backend/app/connectors/`, governance docs | Exit: signed mapping spec with code-system lineage.
-- [x] P0-019 Add OpenEHR reconciliation and rollback procedure before live onboarding. | Owner: CIO + Ops | Anchor: `docs/operations/openehr_reconciliation_rollback.md` | Exit: dry-run reconciliation and rollback evidence.
+- [ ] P0-019 Add OpenEHR reconciliation and rollback procedure before live onboarding. | Owner: CIO + Ops | Anchor: `docs/operations/openehr_reconciliation_rollback.md` | Exit: dry-run reconciliation and rollback evidence.
+  - [ ] P0-019-A Run 5 mixed-domain OpenEHR dry-runs (conditions, meds, labs, procedures, allergies) with mapping parity checks. Verify versioning/audit semantics on commit paths and replay correctness under live-like load.
+  - [ ] P0-019-B Round-trip validation with deterministic hash/row-count diff checks. Execute rollback drill and record evidence showing data can be fully reverted without orphans or partial state.
 - [x] P0-020 Define one canonical ingestion-to-Q&A route for pilot users. | Owner: CTO + VP Product | Anchor: `backend/app/api/nlp.py`, `backend/app/api/clinical_agent.py`, `frontend/src/app/nlp/page.tsx` | Exit: non-canonical routes marked non-pilot/deprecated.
 - [x] P0-021 Enforce confidence-to-action policy for high-risk workflows. | Owner: VP Product + Clinical AI | Anchor: `backend/app/services/confidence_policy_service.py`, `backend/app/schemas/confidence_policy.py`, `backend/app/api/clinical_agent.py` | Exit: low-confidence flows cannot trigger risky actions.
 - [x] P0-022 Require evidence-bound confidence and decline behavior on unsupported claims. | Owner: Clinical AI | Anchor: `backend/app/api/clinical_agent.py` | Exit: insufficient evidence returns decline + escalation path.
 - [x] P0-023 Require source document IDs and provenance fields for every non-empty answer. | Owner: Clinical AI + Product | Anchor: `backend/app/api/clinical_agent.py` | Exit: no evidence-less answer accepted in pilot mode.
 - [x] P0-024 Add explicit "degraded" UX mode with action block and clinician escalation. | Owner: VP Product | Anchor: `frontend/src/components/DegradedBanner.tsx`, `frontend/src/app/nlp/page.tsx`, `frontend/src/app/clinical/page.tsx` | Exit: degraded state is visible and blocks unsafe continuation.
-- [x] P0-025 Define and staff incident escalation matrix with response SLAs. | Owner: CIO + Ops | Anchor: `docs/operations/incident_escalation_matrix.md` | Exit: named owners with paging and response windows.
-- [x] P0-026 Execute one backup restore drill for PostgreSQL and Neo4j. | Owner: Ops | Anchor: `docs/operations/backup_restore_drill.md` | Exit: procedure and evidence template published, ready for execution.
-- [x] P0-027 Execute one failover/dependency outage simulation and record MTTR. | Owner: Ops + CTO | Anchor: `docs/operations/failover_simulation.md` | Exit: procedure and MTTR template published, ready for execution.
-- [x] P0-028 Produce final pre-pilot signoff matrix (CTO/CISO/CIO/Clinical AI/Product/Ops). | Owner: Program Lead | Anchor: `docs/operations/pre_pilot_signoff_matrix.md` | Exit: dated signoff artifact with unresolved-risk list.
+- [ ] P0-025 Define and staff incident escalation matrix with response SLAs. | Owner: CIO + Ops | Anchor: `docs/operations/incident_escalation_matrix.md` | Exit: named owners with paging and response windows.
+  - [ ] P0-025-A Publish and execute escalation drill with paging roster, SLA thresholds by severity (SEV1-4), and handoff discipline. Record who was paged, response time, and resolution path.
+  - [ ] P0-025-B Add response-clock evidence (detect → page → assign → recover) and external notification path for breach-like events. Must cover HIPAA 60-day discovery clock and severity-based media/authority notification paths.
+- [ ] P0-026 Execute one backup restore drill for PostgreSQL and Neo4j. | Owner: Ops | Anchor: `docs/operations/backup_restore_drill.md` | Exit: procedure and evidence template published, ready for execution.
+  - [ ] P0-026-A Execute PostgreSQL restore drill using PITR workflow (WAL archive + base backup + restore command). Record RTO/RPO achieved and validate row-count/integrity post-restore.
+  - [ ] P0-026-B Execute Neo4j backup restore drill (backup chain, restore per server/cluster, consistency check). Verify backup chain metadata and run neo4j-admin consistency-checker post-restore.
+- [ ] P0-027 Execute one failover/dependency outage simulation and record MTTR. | Owner: Ops + CTO | Anchor: `docs/operations/failover_simulation.md` | Exit: procedure and MTTR template published, ready for execution.
+  - [ ] P0-027-A Run dependency-outage failover simulation for each critical dependency (LLM provider, Neo4j, PostgreSQL, Kafka/network). Record MTTR per scenario and compare against SLA targets.
+  - [ ] P0-027-B Add no-data-loss assertion checklist and degraded-mode UX check for each failure scenario. Verify clinical safety fallback path works (clinician sees degraded banner, unsafe actions blocked).
+- [ ] P0-028 Produce final pre-pilot signoff matrix (CTO/CISO/CIO/Clinical AI/Product/Ops). | Owner: Program Lead | Anchor: `docs/operations/pre_pilot_signoff_matrix.md` | Exit: dated signoff artifact with unresolved-risk list.
+  - [ ] P0-028-A Complete pre-pilot signoff matrix with named approvers, signature date, expiry date, residual risks accepted, and explicit go/conditional-go/no-go decision row. Must reference evidence artifacts from P0-019, P0-025, P0-026, P0-027.
+  - [ ] P0-028-B Define rollback decision criteria — explicit "when do we roll back" triggers with severity thresholds, data-integrity checks, and who has authority to call rollback during pilot.
 
 ## P1 (High)
 
@@ -152,35 +162,126 @@ Execution rules
 
 ## P4 (Strategic / Deferred Bets)
 
-- [ ] P4-001 Evaluate federated learning only after stable single-site production maturity. | Owner: VP ML + CTO | Anchor: `backend/app/services/federated_learning_service.py` | Exit: go/no-go memo with prerequisites.
-- [ ] P4-002 Evaluate full TEFCA productionization path and partner strategy. | Owner: Interop + CIO | Anchor: `backend/app/services/tefca_service.py` | Exit: strategy decision document.
-- [ ] P4-003 Build full ONC certification roadmap if target market requires it. | Owner: Compliance + Interop | Anchor: interoperability compliance docs | Exit: phased certification plan.
-- [ ] P4-004 Evaluate managed graph platform migration options for HA and operations. | Owner: CTO + Ops | Anchor: platform architecture docs | Exit: cost-risk comparison approved.
-- [ ] P4-005 Evaluate multi-region architecture for AU resilience and residency constraints. | Owner: CTO + CISO | Anchor: deployment strategy docs | Exit: region architecture proposal.
-- [ ] P4-006 Build model registry and lifecycle governance on persistent infra. | Owner: VP ML | Anchor: model registry services | Exit: production-grade registry deployment.
-- [ ] P4-007 Add advanced clinician copilot UX experiments after safety baseline lock. | Owner: VP Product | Anchor: product roadmap | Exit: experiment guardrails approved.
-- [ ] P4-008 Evaluate ambient voice/documentation integration as separate product track. | Owner: Product + Clinical AI | Anchor: voice/transcription scaffolds | Exit: business case and scope.
-- [ ] P4-009 Expand guideline corpus to specialty depth with editorial governance board. | Owner: Clinical AI + Clinical Governance | Anchor: guideline services | Exit: specialty roadmap with owners.
-- [ ] P4-010 Add advanced causal inference modules only after core trust metrics stabilize. | Owner: Clinical AI | Anchor: reasoning roadmap | Exit: safety gate criteria met.
-- [ ] P4-011 Evaluate adaptive personalization of confidence thresholds by role/workflow. | Owner: Product + Clinical AI | Anchor: policy roadmap | Exit: ethics and safety review complete.
-- [ ] P4-012 Build external developer platform for partner integrations after core hardening. | Owner: CTO + Product | Anchor: platform roadmap | Exit: API platform readiness checklist.
-- [ ] P4-013 Add formal SaMD pathway exploration if feature set crosses regulatory thresholds. | Owner: Compliance + Legal | Anchor: regulatory strategy docs | Exit: formal regulatory determination.
-- [ ] P4-014 Evaluate full data mesh architecture only if scale and org maturity justify complexity. | Owner: CTO + Data | Anchor: architecture roadmap | Exit: approved architecture decision record.
-- [ ] P4-015 Build long-term clinical outcome feedback loops tied to real-world performance. | Owner: Clinical AI + CIO | Anchor: quality/outcomes roadmap | Exit: outcome measurement framework live.
+- [ ] P4-001 Evaluate federated learning only after stable single-site production maturity. | Owner: VP ML + CTO | Risk Owner: CTO | Evidence Owner: VP ML | Anchor: `backend/app/services/federated_learning_service.py` | Exit: go/no-go memo with prerequisites.
+  - [ ] P4-001-D Decision: ADR on federated learning feasibility, privacy framework requirements, and single-site stability gate criteria.
+  - [ ] P4-001-I Implementation: If approved, build privacy-preserving training pipeline with differential privacy guarantees.
+  - [ ] P4-001-V Validation: Demonstrate model quality parity between federated and centralized training on test corpus.
+- [ ] P4-002 Evaluate full TEFCA productionization path and partner strategy. | Owner: Interop + CIO | Risk Owner: CIO | Evidence Owner: Interop | Anchor: `backend/app/services/tefca_service.py` | Exit: strategy decision document.
+  - [ ] P4-002-D Decision: ADR on TEFCA participation model (QHIN vs framework participant), partner selection, and timeline.
+  - [ ] P4-002-I Implementation: Build TEFCA-compliant exchange endpoints and credential management.
+  - [ ] P4-002-V Validation: End-to-end query/response test with TEFCA sandbox environment.
+- [ ] P4-003 Build full ONC certification roadmap if target market requires it. | Owner: Compliance + Interop | Risk Owner: Compliance | Evidence Owner: Interop | Anchor: interoperability compliance docs | Exit: phased certification plan.
+  - [ ] P4-003-D Decision: Market analysis determining whether ONC certification is required for target customers.
+  - [ ] P4-003-I Implementation: Gap analysis and remediation against ONC criteria (API conditions, USCDI data classes).
+  - [ ] P4-003-V Validation: Pre-submission conformance testing against ONC test harness.
+- [ ] P4-004 Evaluate managed graph platform migration options for HA and operations. | Owner: CTO + Ops | Risk Owner: CTO | Evidence Owner: Ops | Anchor: platform architecture docs | Exit: cost-risk comparison approved.
+  - [ ] P4-004-D Decision: ADR comparing self-hosted Neo4j, Neo4j Aura, Amazon Neptune, and alternative graph stores on cost/HA/ops burden.
+  - [ ] P4-004-I Implementation: Migration plan with data export/import pipeline and zero-downtime cutover strategy.
+  - [ ] P4-004-V Validation: Load test on target platform matching production query patterns and throughput.
+- [ ] P4-005 Evaluate multi-region architecture for AU resilience and residency constraints. | Owner: CTO + CISO | Risk Owner: CISO | Evidence Owner: CTO | Anchor: deployment strategy docs | Exit: region architecture proposal.
+  - [ ] P4-005-D Decision: ADR on active-active vs active-passive, data residency boundaries, and latency budget.
+  - [ ] P4-005-I Implementation: Multi-region deployment topology with cross-region replication and DNS failover.
+  - [ ] P4-005-V Validation: Region failover drill with RTO/RPO measurement and data residency compliance check.
+- [ ] P4-006 Build model registry and lifecycle governance on persistent infra. | Owner: VP ML | Risk Owner: VP ML | Evidence Owner: CTO | Anchor: model registry services | Exit: production-grade registry deployment.
+  - [ ] P4-006-D Decision: ADR on registry platform (MLflow, Weights & Biases, custom) and versioning/promotion policy.
+  - [ ] P4-006-I Implementation: Deploy registry with model versioning, lineage tracking, and approval gates.
+  - [ ] P4-006-V Validation: Full model promotion lifecycle test (train → register → stage → promote → rollback).
+- [ ] P4-007 Add advanced clinician copilot UX experiments after safety baseline lock. | Owner: VP Product | Risk Owner: VP Product | Evidence Owner: Clinical AI | Anchor: product roadmap | Exit: experiment guardrails approved.
+  - [ ] P4-007-D Decision: Define experiment scope, safety guardrails, and success/abort criteria before any user exposure.
+  - [ ] P4-007-I Implementation: Build experiment framework with feature flags, A/B routing, and clinician feedback capture.
+  - [ ] P4-007-V Validation: Controlled experiment with safety monitoring dashboard and predefined abort triggers.
+- [ ] P4-008 Evaluate ambient voice/documentation integration as separate product track. | Owner: Product + Clinical AI | Risk Owner: Product | Evidence Owner: Clinical AI | Anchor: voice/transcription scaffolds | Exit: business case and scope.
+  - [ ] P4-008-D Decision: Business case with build-vs-buy analysis, accuracy requirements, and PHI handling strategy for audio.
+  - [ ] P4-008-I Implementation: Integrate speech-to-text pipeline with clinical note structuring and NLP extraction.
+  - [ ] P4-008-V Validation: WER benchmark on clinical speech corpus and end-to-end note accuracy measurement.
+- [ ] P4-009 Expand guideline corpus to specialty depth with editorial governance board. | Owner: Clinical AI + Clinical Governance | Risk Owner: Clinical Governance | Evidence Owner: Clinical AI | Anchor: guideline services | Exit: specialty roadmap with owners.
+  - [ ] P4-009-D Decision: Priority ranking of specialties by pilot demand, guideline availability, and clinical risk.
+  - [ ] P4-009-I Implementation: Ingest specialty guidelines with structured metadata, version tracking, and expiry policy.
+  - [ ] P4-009-V Validation: Clinical review board sign-off on each specialty corpus with coverage and accuracy report.
+- [ ] P4-010 Add advanced causal inference modules only after core trust metrics stabilize. | Owner: Clinical AI | Risk Owner: Clinical AI | Evidence Owner: CTO | Anchor: reasoning roadmap | Exit: safety gate criteria met.
+  - [ ] P4-010-D Decision: Define trust metric stability thresholds that gate causal inference activation.
+  - [ ] P4-010-I Implementation: Build causal reasoning module with explicit assumption declaration and uncertainty propagation.
+  - [ ] P4-010-V Validation: Blinded clinical evaluation comparing causal vs correlation-only outputs on safety-critical cases.
+- [ ] P4-011 Evaluate adaptive personalization of confidence thresholds by role/workflow. | Owner: Product + Clinical AI | Risk Owner: Product | Evidence Owner: Clinical AI | Anchor: policy roadmap | Exit: ethics and safety review complete.
+  - [ ] P4-011-D Decision: Ethics review on whether role-adaptive thresholds create safety disparities. Define guardrail bounds.
+  - [ ] P4-011-I Implementation: Configurable threshold profiles per role with minimum safety floor that cannot be lowered.
+  - [ ] P4-011-V Validation: Simulation showing no role profile produces worse safety outcomes than the baseline.
+- [ ] P4-012 Build external developer platform for partner integrations after core hardening. | Owner: CTO + Product | Risk Owner: CTO | Evidence Owner: Product | Anchor: platform roadmap | Exit: API platform readiness checklist.
+  - [ ] P4-012-D Decision: ADR on API surface, rate limiting, tenant isolation model, and partner onboarding requirements.
+  - [ ] P4-012-I Implementation: Build developer portal with sandboxed API keys, usage dashboards, and documentation.
+  - [ ] P4-012-V Validation: Onboard one external partner end-to-end and measure time-to-first-integration.
+- [ ] P4-013 Add formal SaMD pathway exploration if feature set crosses regulatory thresholds. | Owner: Compliance + Legal | Risk Owner: Legal | Evidence Owner: Compliance | Anchor: regulatory strategy docs | Exit: formal regulatory determination.
+  - [ ] P4-013-D Decision: Regulatory determination on whether current/planned features meet SaMD definition (IEC 62304, FDA guidance).
+  - [ ] P4-013-I Implementation: If SaMD applies, build quality management system and design history file.
+  - [ ] P4-013-V Validation: Pre-submission meeting or regulatory sandbox feedback on classification and pathway.
+- [ ] P4-014 Evaluate full data mesh architecture only if scale and org maturity justify complexity. | Owner: CTO + Data | Risk Owner: CTO | Evidence Owner: Data | Anchor: architecture roadmap | Exit: approved architecture decision record.
+  - [ ] P4-014-D Decision: ADR with quantified complexity cost vs benefit at current and projected scale.
+  - [ ] P4-014-I Implementation: Pilot one domain as self-serve data product with contracts and SLOs.
+  - [ ] P4-014-V Validation: Measure data product consumer satisfaction and operational overhead vs monolithic baseline.
+- [ ] P4-015 Build long-term clinical outcome feedback loops tied to real-world performance. | Owner: Clinical AI + CIO | Risk Owner: CIO | Evidence Owner: Clinical AI | Anchor: quality/outcomes roadmap | Exit: outcome measurement framework live.
+  - [ ] P4-015-D Decision: Define outcome metrics, measurement windows, and attribution methodology with clinical advisors.
+  - [ ] P4-015-I Implementation: Build outcome data capture pipeline with linkage to system recommendations.
+  - [ ] P4-015-V Validation: First quarterly outcome report demonstrating measurable signal (positive, negative, or inconclusive).
 
 ## Rollup Counts
 
-- P0: 28 items
-- P1: 35 items
-- P2: 30 items
-- P3: 25 items
-- P4: 15 items
-- Total: 133 items
+- P0: 28 items (23 closed, 5 open with 10 sub-tasks)
+- P1: 35 items (all closed)
+- P2: 30 items (all closed)
+- P3: 25 items (all closed)
+- P4: 15 items (all open, 45 sub-tasks: 15 Decision + 15 Implementation + 15 Validation)
+- Total: 133 top-level items + 55 sub-tasks
+
+## P0 Closure Execution Sequence (Week 1 Focus)
+
+All 5 open P0 items must close with evidence before pilot. Recommended order:
+
+| Phase | Items | Why this order | Can parallelize? |
+|---|---|---|---|
+| 1 (start here) | P0-019-A, P0-019-B | Longest lead time. OpenEHR dry-runs will surface surprises earliest. | No — B depends on A |
+| 2 | P0-026-A + P0-025-A | Postgres restore drill and escalation drill are independent. Run simultaneously. | Yes — independent |
+| 3 | P0-026-B + P0-025-B | Neo4j restore and breach-notification path. Run after phase 2 completes. | Yes — independent |
+| 4 | P0-027-A, P0-027-B | Failover simulation needs working backup/restore (phase 2-3) as safety net. | No — B depends on A |
+| 5 (last) | P0-028-A, P0-028-B | Signoff matrix and rollback criteria. Collects evidence from all prior phases. | No — depends on 1-4 |
+
+## P4 Execution Guidance
+
+P4 items do not block deployment. Each follows a three-phase gate:
+1. **Decision (D)**: ADR or decision document — can proceed without code changes.
+2. **Implementation (I)**: Only after Decision is approved.
+3. **Validation (V)**: Only after Implementation is complete.
+
+Weekly evidence quality check: no P4 should have stale TODOs older than 2 weeks without a status update or explicit deferral note.
+
+### P4 Dependency Matrix by Role
+
+| Role | Primary P4 items | Advisory/Blocking for |
+|---|---|---|
+| CTO | P4-004, P4-005, P4-012, P4-014 | P4-001, P4-006, P4-010 |
+| CISO | P4-005 | P4-001, P4-012, P4-013 |
+| Clinical AI | P4-009, P4-010, P4-015 | P4-007, P4-008, P4-011 |
+| Product | P4-007, P4-008, P4-011, P4-012 | P4-009, P4-015 |
+| Compliance | P4-003, P4-013 | P4-002, P4-009 |
+| Ops | P4-004 | P4-005, P4-006 |
+| Interop | P4-002, P4-003 | P4-009 |
 
 ## Suggested default execution order
 
-1. Complete all `P0` items.
+1. Complete all `P0` items (follow P0 Closure Execution Sequence above).
 2. Complete `P1-001` to `P1-020` before expanding pilot scope.
 3. Complete all remaining `P1` before multi-site rollout.
 4. Use `P2` as scale gate and audit hardening track.
 5. Execute `P3` and `P4` as capacity permits after stable operations.
+6. For `P4` items: complete Decision phase first, then batch Implementation and Validation by role availability.
+
+## External References
+
+- NIST SP 800-34 Rev.1 — Contingency planning: https://csrc.nist.gov/pubs/sp/800/34/r1/upd1/final
+- NIST SP 800-61 Rev.2 — Incident response: https://csrc.nist.gov/pubs/sp/800/61/r2/final
+- AWS Well-Architected Reliability — Failure injection: https://docs.aws.amazon.com/wellarchitected/2025-02-25/framework/rel_testing_resiliency_failure_injection_resiliency.html
+- Google SRE Incident Response: https://sre.google/workbook/incident-response/
+- OpenEHR ITS REST versioning/audit: https://specifications.openehr.org/releases/ITS-REST/development/overview.html
+- PostgreSQL PITR/recovery: https://www.postgresql.org/docs/17/continuous-archiving.html
+- Neo4j backup/restore/consistency: https://neo4j.com/docs/operations-manual/current/backup-restore/inspect/
+- HIPAA breach notification timing: https://www.hhs.gov/hipaa/for-professionals/breach-notification/index.html
+- FHIR AuditEvent: https://hl7.org/fhir/R4/auditevent.html
