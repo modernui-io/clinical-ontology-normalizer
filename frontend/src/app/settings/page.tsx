@@ -1066,26 +1066,31 @@ function LLMSettingsSection() {
           <div className="space-y-2">
             <Label className="text-sm font-medium">Provider</Label>
             <div className="grid grid-cols-2 gap-3">
-              {["anthropic", "openai"].map((provider) => (
+              {[
+                { id: "anthropic", name: "Anthropic", desc: "Claude models" },
+                { id: "openai", name: "OpenAI", desc: "GPT models" },
+                { id: "google", name: "Google", desc: "Gemini models" },
+                { id: "xai", name: "xAI", desc: "Grok models" },
+              ].map((provider) => (
                 <button
-                  key={provider}
+                  key={provider.id}
                   type="button"
                   onClick={() => {
-                    setSelectedProvider(provider);
+                    setSelectedProvider(provider.id);
                     // Auto-select first model for provider
-                    const firstModel = models?.providers?.[provider]?.[0];
+                    const firstModel = models?.providers?.[provider.id]?.[0];
                     if (firstModel) setSelectedModel(firstModel.id);
                     setTestResult(null);
                   }}
                   className={`flex items-center gap-3 p-4 rounded-lg border-2 transition-colors ${
-                    selectedProvider === provider
+                    selectedProvider === provider.id
                       ? "border-primary bg-primary/5"
                       : "border-input hover:border-muted-foreground/50"
                   }`}
                 >
                   <div
                     className={`p-2 rounded-full ${
-                      selectedProvider === provider
+                      selectedProvider === provider.id
                         ? "bg-primary text-primary-foreground"
                         : "bg-muted"
                     }`}
@@ -1093,12 +1098,12 @@ function LLMSettingsSection() {
                     <Sparkles className="h-4 w-4" />
                   </div>
                   <div className="text-left">
-                    <p className="text-sm font-medium capitalize">{provider}</p>
+                    <p className="text-sm font-medium">{provider.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {provider === "anthropic" ? "Claude models" : "GPT models"}
+                      {provider.desc}
                     </p>
                   </div>
-                  {selectedProvider === provider && (
+                  {selectedProvider === provider.id && (
                     <Check className="h-4 w-4 text-primary ml-auto" />
                   )}
                 </button>
@@ -1170,6 +1175,10 @@ function LLMSettingsSection() {
                 placeholder={
                   selectedProvider === "anthropic"
                     ? "sk-ant-api03-..."
+                    : selectedProvider === "google"
+                    ? "AIzaSy..."
+                    : selectedProvider === "xai"
+                    ? "xai-..."
                     : "sk-..."
                 }
                 className="pr-10 font-mono text-sm"

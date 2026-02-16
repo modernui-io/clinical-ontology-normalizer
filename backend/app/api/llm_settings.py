@@ -80,6 +80,8 @@ def get_byok_config() -> dict | None:
 class LLMProviderEnum(str, Enum):
     ANTHROPIC = "anthropic"
     OPENAI = "openai"
+    GOOGLE = "google"
+    XAI = "xai"
 
 
 PROVIDER_MODELS = {
@@ -97,6 +99,19 @@ PROVIDER_MODELS = {
         {"id": "gpt-4-turbo", "name": "GPT-4 Turbo", "tier": "balanced"},
         {"id": "gpt-4", "name": "GPT-4", "tier": "flagship"},
         {"id": "gpt-3.5-turbo", "name": "GPT-3.5 Turbo", "tier": "fast"},
+    ],
+    "google": [
+        {"id": "gemini-2.0-flash", "name": "Gemini 2.0 Flash", "tier": "fast"},
+        {"id": "gemini-2.0-flash-lite", "name": "Gemini 2.0 Flash Lite", "tier": "fast"},
+        {"id": "gemini-1.5-pro", "name": "Gemini 1.5 Pro", "tier": "flagship"},
+        {"id": "gemini-1.5-flash", "name": "Gemini 1.5 Flash", "tier": "balanced"},
+    ],
+    "xai": [
+        {"id": "grok-3", "name": "Grok 3", "tier": "flagship"},
+        {"id": "grok-3-fast", "name": "Grok 3 Fast", "tier": "balanced"},
+        {"id": "grok-3-mini", "name": "Grok 3 Mini", "tier": "fast"},
+        {"id": "grok-3-mini-fast", "name": "Grok 3 Mini Fast", "tier": "fast"},
+        {"id": "grok-2", "name": "Grok 2", "tier": "balanced"},
     ],
 }
 
@@ -159,8 +174,8 @@ async def get_llm_settings() -> LLMSettingsResponse:
         available.append("anthropic")
     if settings.openai_api_key or (is_byok and provider == "openai"):
         available.append("openai")
-    # Always show both as options — user can bring their own key
-    for p in ["anthropic", "openai"]:
+    # Always show all providers as options — user can bring their own key
+    for p in ["anthropic", "openai", "google", "xai"]:
         if p not in available:
             available.append(p)
 
@@ -262,6 +277,43 @@ async def test_llm_connection(request: LLMTestRequest) -> LLMTestResponse:
             import openai
 
             client = openai.OpenAI(api_key=api_key)
+            response = client.chat.completions.create(
+                model=request.model,
+                max_tokens=10,
+                messages=[{"role": "user", "content": "Say OK"}],
+            )
+            latency_ms = (time.perf_counter() - start) * 1000
+            return LLMTestResponse(
+                success=True,
+                provider=request.provider.value,
+                model=request.model,
+                latency_ms=round(latency_ms, 1),
+            )
+
+        elif request.provider == LLMProviderEnum.GOOGLE:
+            from google import genai
+
+            client = genai.Client(api_key=api_key)
+            response = client.models.generate_content(
+                model=request.model,
+                contents="Say OK",
+            )
+            latency_ms = (time.perf_counter() - start) * 1000
+            return LLMTestResponse(
+                success=True,
+                provider=request.provider.value,
+                model=request.model,
+                latency_ms=round(latency_ms, 1),
+            )
+
+        elif request.provider == LLMProviderEnum.XAI:
+            # xAI Grok uses OpenAI-compatible API
+            import openai
+
+            client = openai.OpenAI(
+                api_key=api_key,
+                base_url="https://api.x.ai/v1",
+            )
             response = client.chat.completions.create(
                 model=request.model,
                 max_tokens=10,
