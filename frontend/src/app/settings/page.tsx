@@ -1155,6 +1155,13 @@ function LLMSettingsSection() {
                   </span>
                 </button>
               ))}
+              <a
+                href={`mailto:alex@sulci.ai?subject=Model%20Request%20%E2%80%94%20${encodeURIComponent(selectedProvider)}&body=Hi%20Alex%2C%0A%0AI%E2%80%99d%20like%20to%20request%20support%20for%20a%20new%20model%3A%0A%0AProvider%3A%20${encodeURIComponent(selectedProvider)}%0AModel%3A%20%0A%0AThanks!`}
+                className="flex items-center justify-center gap-2 p-3 rounded-lg border border-dashed border-muted-foreground/30 text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+              >
+                <span className="text-lg leading-none">+</span>
+                <span className="text-sm">Request new model</span>
+              </a>
             </div>
           </div>
 
