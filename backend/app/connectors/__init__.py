@@ -52,6 +52,19 @@ from app.connectors.database_connector import (
 from app.connectors.fhir_connector import FHIRConnector, FHIRConnectorConfig
 from app.connectors.hl7v2_connector import HL7v2Connector, HL7v2ConnectorConfig
 from app.connectors.openehr_connector import OpenEHRConnector, OpenEHRConnectorConfig
+from app.connectors.meditech_openehr_contract import (
+    MEDITECH_CANONICAL_CONTRACT,
+    MEDITECH_CANONICAL_CONTRACT_SIGNATURE,
+    MEDITECH_CODE_SYSTEM_NORMALIZATION,
+    MEDITECH_OPENEHR_CONTRACT_EFFECTIVE_DATE,
+    MEDITECH_OPENEHR_CONTRACT_ID,
+    MEDITECH_OPENEHR_CONTRACT_VERSION,
+    MEDITECH_SOURCE_IDENTIFIERS,
+    MEDITECH_TO_OPENEHR_MAP,
+    MEDITECH_EXCEPTION_POLICY,
+    build_meditech_contract_lineage_step,
+    normalize_meditech_code_system,
+)
 
 # Concept mappings for shared healthcare data mappings
 from app.connectors.concept_mappings import (
@@ -113,6 +126,17 @@ __all__ = [
     # OpenEHR Connector
     "OpenEHRConnector",
     "OpenEHRConnectorConfig",
+    "MEDITECH_CANONICAL_CONTRACT",
+    "MEDITECH_CANONICAL_CONTRACT_SIGNATURE",
+    "MEDITECH_CODE_SYSTEM_NORMALIZATION",
+    "MEDITECH_EXCEPTION_POLICY",
+    "MEDITECH_OPENEHR_CONTRACT_EFFECTIVE_DATE",
+    "MEDITECH_OPENEHR_CONTRACT_ID",
+    "MEDITECH_OPENEHR_CONTRACT_VERSION",
+    "MEDITECH_SOURCE_IDENTIFIERS",
+    "MEDITECH_TO_OPENEHR_MAP",
+    "build_meditech_contract_lineage_step",
+    "normalize_meditech_code_system",
     # Database Connector
     "DatabaseConnector",
     "DatabaseConnectorConfig",

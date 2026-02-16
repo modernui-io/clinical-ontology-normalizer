@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import inspect
 from datetime import datetime
 from typing import Any, Self
 from uuid import UUID
@@ -10,6 +11,7 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.pipeline_version import get_current_pipeline_version
+from app.connectors import build_meditech_contract_lineage_step
 from app.models.clinical_fact import ClinicalFact
 from app.models.data_lineage import SourceType
 from app.models.knowledge_graph import KGEdge, KGNode
@@ -154,10 +156,44 @@ class OpenEHRImportService:
         fact: ClinicalFact,
         archetype_id: str,
         entry_data: dict[str, Any],
+        *,
+        source_metadata: dict[str, Any] | None = None,
     ) -> None:
         """Record lineage for a ClinicalFact created from an OpenEHR entry."""
         try:
-            async with session.begin_nested():
+            transformation_chain: list[dict[str, Any]] = [
+                {
+                    "step": "openehr_composition_import",
+                    "archetype": archetype_id,
+                    "pipeline_version": self._pipeline_version,
+                }
+            ]
+
+            contract_step = build_meditech_contract_lineage_step(
+                source_metadata=source_metadata,
+                entry=entry_data,
+                archetype_key=archetype_id,
+            )
+            if contract_step:
+                transformation_chain.insert(0, contract_step)
+
+            nested_ctx = session.begin_nested()
+            if inspect.isawaitable(nested_ctx):
+                nested_ctx = await nested_ctx
+
+            if hasattr(nested_ctx, "__aenter__") and hasattr(nested_ctx, "__aexit__"):
+                async with nested_ctx:
+                    await record_lineage(
+                        session=session,
+                        fact_id=fact.id,
+                        source_type=SourceType.OPENEHR_IMPORT,
+                        source_resource_type=archetype_id,
+                        source_resource_id=entry_data.get("archetype_node_id"),
+                        extraction_method="openehr_composition_mapping",
+                        extraction_confidence=1.0,
+                        transformation_chain=transformation_chain,
+                    )
+            else:
                 await record_lineage(
                     session=session,
                     fact_id=fact.id,
@@ -166,13 +202,7 @@ class OpenEHRImportService:
                     source_resource_id=entry_data.get("archetype_node_id"),
                     extraction_method="openehr_composition_mapping",
                     extraction_confidence=1.0,
-                    transformation_chain=[
-                        {
-                            "step": "openehr_composition_import",
-                            "archetype": archetype_id,
-                            "pipeline_version": self._pipeline_version,
-                        }
-                    ],
+                    transformation_chain=transformation_chain,
                 )
         except Exception as e:
             logger.warning(
@@ -185,6 +215,7 @@ class OpenEHRImportService:
         session: AsyncSession,
         composition: dict[str, Any],
         patient_id: str,
+        source_metadata: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Import an OpenEHR COMPOSITION into ClinicalFacts and KG.
 
@@ -249,6 +280,7 @@ class OpenEHRImportService:
                     count = await self._import_condition(
                         session, patient_id, patient_node.id,
                         entry, archetype_key, node_type, edge_type,
+                        source_metadata=source_metadata,
                     )
                     stats["conditions"] += count
                     stats["nodes"] += count
@@ -257,6 +289,7 @@ class OpenEHRImportService:
                     count = await self._import_medication(
                         session, patient_id, patient_node.id,
                         entry, archetype_key, node_type, edge_type,
+                        source_metadata=source_metadata,
                     )
                     stats["medications"] += count
                     stats["nodes"] += count
@@ -265,6 +298,7 @@ class OpenEHRImportService:
                     count = await self._import_measurement(
                         session, patient_id, patient_node.id,
                         entry, archetype_key, node_type, edge_type,
+                        source_metadata=source_metadata,
                     )
                     stats["measurements"] += count
                     stats["nodes"] += count
@@ -273,6 +307,7 @@ class OpenEHRImportService:
                     count = await self._import_procedure(
                         session, patient_id, patient_node.id,
                         entry, archetype_key, node_type, edge_type,
+                        source_metadata=source_metadata,
                     )
                     stats["procedures"] += count
                     stats["nodes"] += count
@@ -281,6 +316,7 @@ class OpenEHRImportService:
                     count = await self._import_allergy(
                         session, patient_id, patient_node.id,
                         entry, archetype_key, node_type, edge_type,
+                        source_metadata=source_metadata,
                     )
                     stats["allergies"] += count
                     stats["nodes"] += count
@@ -302,6 +338,7 @@ class OpenEHRImportService:
         edge_type: EdgeType,
         archetype_key: str,
         entry: dict[str, Any],
+        source_metadata: dict[str, Any] | None = None,
         *,
         assertion: Assertion = Assertion.PRESENT,
         temporality: Temporality = Temporality.CURRENT,
@@ -329,7 +366,13 @@ class OpenEHRImportService:
         session.add(fact)
         await session.flush()
 
-        await self._record_openehr_lineage(session, fact, archetype_key, entry)
+        await self._record_openehr_lineage(
+            session,
+            fact,
+            archetype_key,
+            entry,
+            source_metadata=source_metadata,
+        )
 
         node = KGNode(
             patient_id=patient_id,
@@ -362,6 +405,7 @@ class OpenEHRImportService:
         archetype_key: str,
         node_type: NodeType,
         edge_type: EdgeType,
+        source_metadata: dict[str, Any] | None = None,
     ) -> int:
         """Import a problem_diagnosis entry."""
         items = entry.get("data", {}).get("items", [])
@@ -379,7 +423,7 @@ class OpenEHRImportService:
         return await self._create_fact_and_node(
             session, patient_id, patient_node_id,
             Domain.CONDITION, display, node_type, edge_type,
-            archetype_key, entry,
+            archetype_key, entry, source_metadata=source_metadata,
             omop_concept_id=int(code) if code and code.isdigit() else 0,
             start_date=onset,
             temporality=Temporality.PAST if onset else Temporality.CURRENT,
@@ -400,6 +444,7 @@ class OpenEHRImportService:
         archetype_key: str,
         node_type: NodeType,
         edge_type: EdgeType,
+        source_metadata: dict[str, Any] | None = None,
     ) -> int:
         """Import a medication_order entry."""
         activities = entry.get("activities", [])
@@ -423,7 +468,7 @@ class OpenEHRImportService:
         return await self._create_fact_and_node(
             session, patient_id, patient_node_id,
             Domain.DRUG, display, node_type, edge_type,
-            archetype_key, entry,
+            archetype_key, entry, source_metadata=source_metadata,
             omop_concept_id=int(code) if code and code.isdigit() else 0,
             properties={
                 "archetype": archetype_key,
@@ -443,6 +488,7 @@ class OpenEHRImportService:
         archetype_key: str,
         node_type: NodeType,
         edge_type: EdgeType,
+        source_metadata: dict[str, Any] | None = None,
     ) -> int:
         """Import an OBSERVATION measurement entry (may produce multiple facts)."""
         data = entry.get("data", {})
@@ -464,7 +510,7 @@ class OpenEHRImportService:
                     count += await self._create_fact_and_node(
                         session, patient_id, patient_node_id,
                         Domain.MEASUREMENT, label, node_type, edge_type,
-                        archetype_key, entry,
+                        archetype_key, entry, source_metadata=source_metadata,
                         properties={
                             "archetype": archetype_key,
                             "component": name.lower(),
@@ -482,7 +528,7 @@ class OpenEHRImportService:
                     count += await self._create_fact_and_node(
                         session, patient_id, patient_node_id,
                         Domain.MEASUREMENT, label, node_type, edge_type,
-                        archetype_key, entry,
+                        archetype_key, entry, source_metadata=source_metadata,
                         properties={
                             "archetype": archetype_key,
                             "value": mag,
@@ -502,6 +548,7 @@ class OpenEHRImportService:
         archetype_key: str,
         node_type: NodeType,
         edge_type: EdgeType,
+        source_metadata: dict[str, Any] | None = None,
     ) -> int:
         """Import a procedure entry."""
         items = entry.get("description", {}).get("items", [])
@@ -519,7 +566,7 @@ class OpenEHRImportService:
         return await self._create_fact_and_node(
             session, patient_id, patient_node_id,
             Domain.PROCEDURE, display, node_type, edge_type,
-            archetype_key, entry,
+            archetype_key, entry, source_metadata=source_metadata,
             omop_concept_id=int(code) if code and code.isdigit() else 0,
             start_date=performed,
             properties={
@@ -539,6 +586,7 @@ class OpenEHRImportService:
         archetype_key: str,
         node_type: NodeType,
         edge_type: EdgeType,
+        source_metadata: dict[str, Any] | None = None,
     ) -> int:
         """Import an adverse_reaction_risk entry."""
         items = entry.get("data", {}).get("items", [])
@@ -562,7 +610,7 @@ class OpenEHRImportService:
         return await self._create_fact_and_node(
             session, patient_id, patient_node_id,
             Domain.OBSERVATION, display, node_type, edge_type,
-            archetype_key, entry,
+            archetype_key, entry, source_metadata=source_metadata,
             properties={
                 "archetype": archetype_key,
                 "code": code,

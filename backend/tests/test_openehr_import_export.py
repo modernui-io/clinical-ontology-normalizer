@@ -39,6 +39,10 @@ from app.services.openehr_exporter import (
     build_dv_text,
     build_element,
 )
+from app.connectors.meditech_openehr_contract import (
+    MEDITECH_OPENEHR_CONTRACT_ID,
+    MEDITECH_CANONICAL_CONTRACT_SIGNATURE,
+)
 from app.models.data_lineage import SourceType
 from app.schemas.base import Domain
 
@@ -596,11 +600,51 @@ class TestOpenEHRImportService:
     ) -> None:
         """Verify lineage is recorded via record_lineage call."""
         comp = _build_composition([_build_condition_entry()])
-        with patch("app.services.openehr_import.record_lineage", new_callable=AsyncMock) as mock_lineage:
+        with patch(
+            "app.services.openehr_import.record_lineage",
+            new_callable=AsyncMock,
+        ) as mock_lineage:
             await service.import_composition(mock_session, comp, "patient-1")
             assert mock_lineage.called
             call_kwargs = mock_lineage.call_args
             assert call_kwargs.kwargs["source_type"] == SourceType.OPENEHR_IMPORT
+
+    @pytest.mark.asyncio
+    async def test_import_meditech_lineage_contract_step(
+        self, service: OpenEHRImportService, mock_session: AsyncMock
+    ) -> None:
+        """Meditech metadata should add contract lineage step."""
+        metadata = {
+            "source_system": "meditech",
+            "source_record_id": "rec-007",
+            "encounter_id": "enc-009",
+            "pipeline_id": "pipeline-aus",
+            "source_record_type": "encounter",
+        }
+        comp = _build_composition([_build_condition_entry()])
+
+        with patch(
+            "app.services.openehr_import.record_lineage",
+            new_callable=AsyncMock,
+        ) as mock_lineage:
+            await service.import_composition(
+                mock_session, comp, "patient-1", source_metadata=metadata
+            )
+
+            assert mock_lineage.called
+            call_kwargs = mock_lineage.call_args.kwargs
+            chain = call_kwargs["transformation_chain"]
+
+            assert isinstance(chain, list)
+            assert chain[0]["step"] == "meditech_to_openehr_adapter"
+            assert chain[1]["step"] == "openehr_composition_import"
+
+            contract_step = chain[0]
+            assert contract_step["source_system"] == "meditech"
+            assert contract_step["source_record_id"] == "rec-007"
+            assert contract_step["source_encounter_id"] == "enc-009"
+            assert contract_step["contract_id"] == MEDITECH_OPENEHR_CONTRACT_ID
+            assert contract_step["contract_signature"] == MEDITECH_CANONICAL_CONTRACT_SIGNATURE
 
     @pytest.mark.asyncio
     async def test_import_unknown_archetype_skipped(
@@ -929,6 +973,17 @@ class TestAPIModels:
         )
         assert req.patient_id == "test-patient"
         assert req.composition["_type"] == "COMPOSITION"
+
+    def test_import_request_with_source_metadata(self) -> None:
+        from app.api.openehr import OpenEHRCompositionImportRequest
+
+        req = OpenEHRCompositionImportRequest(
+            composition=_build_composition([_build_condition_entry()]),
+            patient_id="test-patient",
+            source_metadata={"source_system": "meditech", "pipeline_id": "pipeline-aus"},
+        )
+        assert req.source_metadata is not None
+        assert req.source_metadata["source_system"] == "meditech"
 
     def test_export_request_defaults(self) -> None:
         from app.api.openehr import OpenEHRExportRequest

@@ -128,6 +128,12 @@ class OpenEHRCompositionImportRequest(BaseModel):
         ..., description="OpenEHR COMPOSITION JSON"
     )
     patient_id: str = Field(..., description="Internal patient ID")
+    source_metadata: dict[str, Any] | None = Field(
+        default=None,
+        description=(
+            "Optional source metadata for lineage and interoperability contract tracking."
+        ),
+    )
 
 
 class OpenEHRExportRequest(BaseModel):
@@ -263,7 +269,10 @@ async def import_composition(
     try:
         service = OpenEHRImportService()
         result = await service.import_composition(
-            session, request.composition, request.patient_id
+            session,
+            request.composition,
+            request.patient_id,
+            source_metadata=request.source_metadata,
         )
         await session.commit()
         return OpenEHRImportResponse(**result)
