@@ -111,6 +111,10 @@ class ErrorCode(str, Enum):
     SERVICE_NLP_UNAVAILABLE = "SERVICE_NLP_UNAVAILABLE"
     SERVICE_TIMEOUT = "SERVICE_TIMEOUT"
 
+    # Degradation Tracking (Phase 1 Safety Envelope)
+    DEGRADED_RESPONSE = "DEGRADED_RESPONSE"
+    CRITICAL_PREWARM_FAILURE = "CRITICAL_PREWARM_FAILURE"
+
 
 # ============================================================================
 # Error Response Models

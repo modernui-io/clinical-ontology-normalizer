@@ -46,6 +46,8 @@ from app.services.confidence_policy_service import check_action_gate
 from app.services.workflow_confidence_policy import detect_workflow_type, get_policy_for_workflow, get_policy_version
 from app.services.temporal_extractor import TemporalExtractor, extract_entity_dates
 from app.core.config import settings
+from app.core.degradation_context import DegradationContext
+from app.schemas.degradation import DegradationMetadata
 from app.schemas.confidence_semantics import (
     ConfidenceBreakdown,
     ConfidenceComponent,
@@ -448,6 +450,8 @@ class HybridQueryResponse(BaseModel):
         default=None,
         description="P2-019: Time spent per query phase in milliseconds",
     )
+    # Phase 1 Safety Envelope: Degradation tracking
+    degradation: DegradationMetadata | None = None
 
 
 # =============================================================================
@@ -824,6 +828,7 @@ async def _query_omop_relationships(
         logger.info(f"Found {len(relationships)} OMOP relationships between {len(concept_ids)} entities")
 
     except Exception as e:
+        DegradationContext.record_stage_failure("omop_relationships", e, [])
         logger.warning(f"Failed to query OMOP relationships: {e}")
 
     return relationships
@@ -860,6 +865,7 @@ async def bulk_import_documents(
     all_entities: list[ExtractedEntity] = []
 
     # Process each note
+    failed_extractions = 0
     for note in request.notes:
         # Create document record
         doc_id = str(uuid4())
@@ -909,6 +915,7 @@ async def bulk_import_documents(
                     if entity_dates:
                         logger.debug(f"Extracted {len(entity_dates)} temporal bindings for note {note.note_id}")
                 except Exception as te:
+                    DegradationContext.record_stage_failure("temporal_extraction", te, {})
                     logger.warning(f"Temporal extraction failed for note {note.note_id}: {te}")
 
             note_entities: list[ExtractedEntity] = []
@@ -978,6 +985,8 @@ async def bulk_import_documents(
             ))
 
         except Exception as e:
+            DegradationContext.record_stage_failure("nlp_extraction", e, [])
+            failed_extractions += 1
             logger.error(f"NLP extraction failed for note {note.note_id}: {e}")
             imported_notes.append(ImportedNote(
                 note_id=note.note_id,
@@ -986,6 +995,13 @@ async def bulk_import_documents(
                 entities=[],
                 extraction_status=ExtractionStatus.FAILED,
             ))
+
+    if failed_extractions > 0:
+        DegradationContext.record_stage_failure(
+            "bulk_nlp_extraction",
+            RuntimeError(f"{failed_extractions} of {len(request.notes)} extraction(s) failed"),
+            None,
+        )
 
     # Commit documents and mentions
     await db.commit()
@@ -1020,6 +1036,7 @@ async def bulk_import_documents(
             )
         await db.flush()
     except Exception as e:
+        DegradationContext.record_stage_failure("entity_provenance", e, None)
         logger.warning(f"Failed to create entity provenance records: {e}")
 
     # P0-006: Compute pipeline-level extraction status
@@ -1124,6 +1141,7 @@ async def build_graph_from_entities(
                         existing_texts.add(m.text.lower())
                 logger.info(f"Supplemental extraction added {len(all_entities) - len(request.entities)} entities from clinical text")
             except Exception as text_err:
+                DegradationContext.record_stage_failure("supplemental_extraction", text_err, [])
                 logger.warning(f"Supplemental text extraction failed: {text_err}")
 
         # Build the knowledge graph from all entities
@@ -1132,6 +1150,7 @@ async def build_graph_from_entities(
         )
         await db.commit()
     except Exception as e:
+        DegradationContext.record_stage_failure("graph_build", e, None)
         await db.rollback()
         logger.error(f"Failed to build graph for patient {request.patient_id}: {e}")
         raise HTTPException(
@@ -1564,6 +1583,7 @@ async def _build_patient_knowledge_graph(
                             f"({concept_match.concept_name}, {concept_match.vocabulary_id})"
                         )
             except Exception as e:
+                DegradationContext.record_stage_failure("concept_lookup", e, None)
                 logger.warning(f"Concept lookup failed for '{entity.text}': {e}")
 
         # Map assertion to temporality for bi-temporal tracking
@@ -2353,6 +2373,7 @@ async def hybrid_query(
             "details": {"total_nodes": len(nodes), "matching": len(matching_nodes)},
         })
     except Exception as e:
+        DegradationContext.record_stage_failure("kg_provenance", e, None)
         logger.warning(f"Failed to record KG provenance: {e}")
 
     # Step: Multi-hop Graph RAG Retrieval for enriched context
@@ -2423,6 +2444,7 @@ async def hybrid_query(
             f"Graph RAG retrieved {len(graph_paths_data)} paths for patient {patient_id}"
         )
     except Exception as e:
+        DegradationContext.record_stage_failure("graph_rag", e, [])
         logger.warning(f"Graph RAG retrieval failed, continuing without: {e}")
         graph_rag_duration = (time.perf_counter() - graph_rag_start) * 1000
 
@@ -2599,6 +2621,7 @@ Knowledge Graph Summary ({len(nodes)} nodes):
             logger.info(f"Retrieved {len(citations)} guideline sections for query")
 
     except Exception as e:
+        DegradationContext.record_stage_failure("guideline_rag", e, [])
         logger.warning(f"Guideline RAG retrieval failed, proceeding without: {e}")
 
     # Policy RAG search (Step 25 integration point)
@@ -2628,8 +2651,9 @@ Knowledge Graph Summary ({len(nodes)} nodes):
                     "section_title": pr["section_title"],
                     "relevance_score": pr["relevance_score"],
                 })
-    except Exception:
-        pass  # Policy service may not be initialized yet
+    except Exception as e:
+        DegradationContext.record_stage_failure("policy_rag", e, None)
+        logger.debug(f"Policy RAG unavailable: {e}")
 
     rag_duration = (time.perf_counter() - rag_start) * 1000
 
@@ -2679,9 +2703,11 @@ Knowledge Graph Summary ({len(nodes)} nodes):
                     evidence_grade=gc.get("evidence_grade"),
                     recommendation_level=gc.get("recommendation_level"),
                 )
-            except Exception:
-                pass
+            except Exception as e:
+                DegradationContext.record_stage_failure("rag_provenance_inner", e, None)
+                logger.debug(f"Failed to record individual RAG provenance entry: {e}")
     except Exception as e:
+        DegradationContext.record_stage_failure("rag_provenance", e, None)
         logger.warning(f"Failed to record RAG provenance: {e}")
 
     # =============================================================================
@@ -2752,6 +2778,7 @@ Knowledge Graph Summary ({len(nodes)} nodes):
         )
 
     except Exception as e:
+        DegradationContext.record_stage_failure("multi_agent_orchestration", e, {})
         logger.warning(f"Multi-agent orchestration failed, proceeding without: {e}")
 
     orchestrator_duration = (time.perf_counter() - orchestrator_start) * 1000
@@ -2794,6 +2821,7 @@ Knowledge Graph Summary ({len(nodes)} nodes):
             },
         })
     except Exception as e:
+        DegradationContext.record_stage_failure("orchestrator_provenance", e, None)
         logger.warning(f"Failed to record orchestrator provenance: {e}")
 
     # =============================================================================
@@ -2847,6 +2875,7 @@ Knowledge Graph Summary ({len(nodes)} nodes):
             )
 
     except Exception as e:
+        DegradationContext.record_stage_failure("calculator_reasoning", e, [])
         logger.warning(f"Calculator reasoning failed, proceeding without: {e}")
 
     calculator_duration = (time.perf_counter() - calculator_start) * 1000
@@ -2881,6 +2910,7 @@ Knowledge Graph Summary ({len(nodes)} nodes):
                 },
             })
         except Exception as e:
+            DegradationContext.record_stage_failure("calculator_provenance", e, None)
             logger.warning(f"Failed to record calculator provenance: {e}")
 
     # Use LLM to generate answer
@@ -3010,9 +3040,11 @@ Provide a clear, evidence-based answer synthesizing the clinical data, graph rel
                 },
             })
         except Exception as e:
+            DegradationContext.record_stage_failure("llm_provenance", e, None)
             logger.warning(f"Failed to record LLM provenance: {e}")
 
     except Exception as e:
+        DegradationContext.record_stage_failure("llm_generation", e, None)
         logger.warning(f"LLM query failed, falling back to template: {e}")
         # P1-019: Record fallback usage
         fallback_used = True
@@ -3066,6 +3098,7 @@ Provide a clear, evidence-based answer synthesizing the clinical data, graph rel
                     db, trace.id, round(base_confidence, 4)
                 )
     except Exception as e:
+        DegradationContext.record_stage_failure("confidence_update", e, None)
         logger.warning(f"Failed to update confidence contributions: {e}")
 
     # Build entity provenance (if depth != none)
@@ -3147,6 +3180,7 @@ Provide a clear, evidence-based answer synthesizing the clinical data, graph rel
     try:
         await db.flush()
     except Exception as e:
+        DegradationContext.record_stage_failure("provenance_flush", e, None)
         logger.warning(f"Failed to flush provenance records: {e}")
 
     # P0-021: Confidence-to-action policy gate
@@ -3282,6 +3316,8 @@ Provide a clear, evidence-based answer synthesizing the clinical data, graph rel
         fallback_reason_code=fallback_reason_code,
         # P2-007: Uncertainty reasons
         uncertainty_reasons=uncertainty_reasons,
+        # Phase 1 Safety Envelope: Degradation snapshot
+        degradation=DegradationContext.snapshot(),
     )
 
 

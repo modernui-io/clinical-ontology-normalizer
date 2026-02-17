@@ -134,8 +134,8 @@ class GuidelineRAGService:
             path = Path(__file__).resolve().parent.parent.parent / self.DEFAULT_FIXTURE_PATH
 
         if not path.exists():
-            logger.warning(f"Guideline fixture not found: {path}")
-            self._loaded = True
+            logger.warning(f"Guideline fixture not found: {path} — service will remain unloaded")
+            self._loaded = False
             return
 
         # Load JSON

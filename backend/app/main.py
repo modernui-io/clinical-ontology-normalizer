@@ -362,8 +362,24 @@ def prewarm_all_services() -> dict[str, Any]:
     Returns:
         Dictionary with service names and their stats.
     """
+    from app.core.dependency_classifier import DependencyClass
+
     start_time = time.perf_counter()
     services_loaded = {}
+
+    # Phase 1 Safety Envelope: Prewarm service classification.
+    # CRITICAL infrastructure (PostgreSQL, Redis) is initialized in lifespan()
+    # and already raises on failure — that is the critical startup gate.
+    # All services in prewarm_all_services() are application-level singletons
+    # classified as NON_CRITICAL: failure degrades functionality but does not
+    # prevent the system from starting.
+    #
+    # If a future service is added that MUST succeed for safe operation,
+    # add it to CRITICAL_PREWARM_SERVICES and use the critical pattern below.
+    CRITICAL_PREWARM_SERVICES: set[str] = set()
+    # When adding a critical service, use this pattern in its except block:
+    #   logger.error(f"CRITICAL prewarm failure for {name}: {e}")
+    #   raise SystemExit(f"Cannot start: {name} failed prewarm") from e
 
     # Clinical Decision Support Services
     try:
@@ -371,28 +387,28 @@ def prewarm_all_services() -> dict[str, Any]:
         svc = get_differential_diagnosis_service()
         services_loaded["differential_diagnosis"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
     except Exception as e:
-        logger.warning(f"Failed to prewarm differential_diagnosis: {e}")
+        logger.warning(f"Non-critical prewarm failure for differential_diagnosis: {e}")
 
     try:
         from app.services.clinical_calculators import get_clinical_calculator_service
         svc = get_clinical_calculator_service()
         services_loaded["clinical_calculators"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
     except Exception as e:
-        logger.warning(f"Failed to prewarm clinical_calculators: {e}")
+        logger.warning(f"Non-critical prewarm failure for clinical_calculators: {e}")
 
     try:
         from app.services.calculator_builder import get_calculator_builder_service
         svc = get_calculator_builder_service()
         services_loaded["calculator_builder"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
     except Exception as e:
-        logger.warning(f"Failed to prewarm calculator_builder: {e}")
+        logger.warning(f"Non-critical prewarm failure for calculator_builder: {e}")
 
     try:
         from app.services.lab_reference import get_lab_reference_service
         svc = get_lab_reference_service()
         services_loaded["lab_reference"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
     except Exception as e:
-        logger.warning(f"Failed to prewarm lab_reference: {e}")
+        logger.warning(f"Non-critical prewarm failure for lab_reference: {e}")
 
     # Drug Safety Services
     try:
@@ -400,14 +416,14 @@ def prewarm_all_services() -> dict[str, Any]:
         svc = get_drug_interaction_service()
         services_loaded["drug_interactions"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
     except Exception as e:
-        logger.warning(f"Failed to prewarm drug_interactions: {e}")
+        logger.warning(f"Non-critical prewarm failure for drug_interactions: {e}")
 
     try:
         from app.services.drug_safety import get_drug_safety_service
         svc = get_drug_safety_service()
         services_loaded["drug_safety"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
     except Exception as e:
-        logger.warning(f"Failed to prewarm drug_safety: {e}")
+        logger.warning(f"Non-critical prewarm failure for drug_safety: {e}")
 
     # Billing & Coding Services
     try:
@@ -415,35 +431,35 @@ def prewarm_all_services() -> dict[str, Any]:
         svc = get_icd10_suggester_service()
         services_loaded["icd10_suggester"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
     except Exception as e:
-        logger.warning(f"Failed to prewarm icd10_suggester: {e}")
+        logger.warning(f"Non-critical prewarm failure for icd10_suggester: {e}")
 
     try:
         from app.services.cpt_suggester import get_cpt_suggester_service
         svc = get_cpt_suggester_service()
         services_loaded["cpt_suggester"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
     except Exception as e:
-        logger.warning(f"Failed to prewarm cpt_suggester: {e}")
+        logger.warning(f"Non-critical prewarm failure for cpt_suggester: {e}")
 
     try:
         from app.services.hcc_analyzer import get_hcc_analyzer_service
         svc = get_hcc_analyzer_service()
         services_loaded["hcc_analyzer"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
     except Exception as e:
-        logger.warning(f"Failed to prewarm hcc_analyzer: {e}")
+        logger.warning(f"Non-critical prewarm failure for hcc_analyzer: {e}")
 
     try:
         from app.services.billing_optimizer import get_billing_optimization_service
         svc = get_billing_optimization_service()
         services_loaded["billing_optimizer"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
     except Exception as e:
-        logger.warning(f"Failed to prewarm billing_optimizer: {e}")
+        logger.warning(f"Non-critical prewarm failure for billing_optimizer: {e}")
 
     try:
         from app.services.coding_query_generator import get_coding_query_generator_service
         svc = get_coding_query_generator_service()
         services_loaded["coding_query_generator"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
     except Exception as e:
-        logger.warning(f"Failed to prewarm coding_query_generator: {e}")
+        logger.warning(f"Non-critical prewarm failure for coding_query_generator: {e}")
 
     # NLP Services
     try:
@@ -451,28 +467,28 @@ def prewarm_all_services() -> dict[str, Any]:
         svc = get_advanced_nlp_service()
         services_loaded["nlp_advanced"] = "loaded"
     except Exception as e:
-        logger.warning(f"Failed to prewarm nlp_advanced: {e}")
+        logger.warning(f"Non-critical prewarm failure for nlp_advanced: {e}")
 
     try:
         from app.services.vocabulary_enhanced import get_enhanced_vocabulary_service
         svc = get_enhanced_vocabulary_service()
         services_loaded["vocabulary_enhanced"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
     except Exception as e:
-        logger.warning(f"Failed to prewarm vocabulary_enhanced: {e}")
+        logger.warning(f"Non-critical prewarm failure for vocabulary_enhanced: {e}")
 
     try:
         from app.services.value_extraction import get_value_extraction_service
         svc = get_value_extraction_service()
         services_loaded["value_extraction"] = "loaded"
     except Exception as e:
-        logger.warning(f"Failed to prewarm value_extraction: {e}")
+        logger.warning(f"Non-critical prewarm failure for value_extraction: {e}")
 
     try:
         from app.services.nlp_entity_service import get_nlp_entity_service
         svc = get_nlp_entity_service()
         services_loaded["nlp_entity_service"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
     except Exception as e:
-        logger.warning(f"Failed to prewarm nlp_entity_service: {e}")
+        logger.warning(f"Non-critical prewarm failure for nlp_entity_service: {e}")
 
     # Audit Service (HIPAA compliance)
     try:
@@ -480,7 +496,7 @@ def prewarm_all_services() -> dict[str, Any]:
         svc = get_audit_service()
         services_loaded["audit_service"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
     except Exception as e:
-        logger.warning(f"Failed to prewarm audit_service: {e}")
+        logger.warning(f"Non-critical prewarm failure for audit_service: {e}")
 
     # Quality Measure Service (HEDIS/CQM)
     try:
@@ -488,7 +504,7 @@ def prewarm_all_services() -> dict[str, Any]:
         svc = get_quality_measure_service()
         services_loaded["quality_measures"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
     except Exception as e:
-        logger.warning(f"Failed to prewarm quality_measures: {e}")
+        logger.warning(f"Non-critical prewarm failure for quality_measures: {e}")
 
     # Patient Timeline Service
     try:
@@ -496,7 +512,7 @@ def prewarm_all_services() -> dict[str, Any]:
         svc = get_patient_timeline_service()
         services_loaded["patient_timeline"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
     except Exception as e:
-        logger.warning(f"Failed to prewarm patient_timeline: {e}")
+        logger.warning(f"Non-critical prewarm failure for patient_timeline: {e}")
 
     # Value Set Service (Terminology Management)
     try:
@@ -504,7 +520,7 @@ def prewarm_all_services() -> dict[str, Any]:
         svc = get_value_set_service()
         services_loaded["value_set_service"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
     except Exception as e:
-        logger.warning(f"Failed to prewarm value_set_service: {e}")
+        logger.warning(f"Non-critical prewarm failure for value_set_service: {e}")
 
     # CDS Hooks Service
     try:
@@ -512,7 +528,7 @@ def prewarm_all_services() -> dict[str, Any]:
         svc = get_cds_hooks_service()
         services_loaded["cds_hooks"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
     except Exception as e:
-        logger.warning(f"Failed to prewarm cds_hooks: {e}")
+        logger.warning(f"Non-critical prewarm failure for cds_hooks: {e}")
 
     # Bulk Export Service
     try:
@@ -520,7 +536,7 @@ def prewarm_all_services() -> dict[str, Any]:
         svc = get_bulk_export_service()
         services_loaded["bulk_export"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
     except Exception as e:
-        logger.warning(f"Failed to prewarm bulk_export: {e}")
+        logger.warning(f"Non-critical prewarm failure for bulk_export: {e}")
 
     # Graph Database Service (Neo4j Knowledge Graph)
     try:
@@ -528,7 +544,7 @@ def prewarm_all_services() -> dict[str, Any]:
         svc = get_graph_database_service()
         services_loaded["graph_database"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
     except Exception as e:
-        logger.warning(f"Failed to prewarm graph_database: {e}")
+        logger.warning(f"Non-critical prewarm failure for graph_database: {e}")
 
     # Graph Analytics Service
     try:
@@ -536,7 +552,7 @@ def prewarm_all_services() -> dict[str, Any]:
         svc = get_graph_analytics_service()
         services_loaded["graph_analytics"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
     except Exception as e:
-        logger.warning(f"Failed to prewarm graph_analytics: {e}")
+        logger.warning(f"Non-critical prewarm failure for graph_analytics: {e}")
 
     # ML Model Service (Predictive Analytics)
     try:
@@ -544,7 +560,7 @@ def prewarm_all_services() -> dict[str, Any]:
         svc = get_ml_model_service()
         services_loaded["ml_model_service"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
     except Exception as e:
-        logger.warning(f"Failed to prewarm ml_model_service: {e}")
+        logger.warning(f"Non-critical prewarm failure for ml_model_service: {e}")
 
     # Risk Prediction Service
     try:
@@ -552,7 +568,7 @@ def prewarm_all_services() -> dict[str, Any]:
         svc = get_risk_prediction_service()
         services_loaded["risk_prediction"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
     except Exception as e:
-        logger.warning(f"Failed to prewarm risk_prediction: {e}")
+        logger.warning(f"Non-critical prewarm failure for risk_prediction: {e}")
 
     # Federated Learning Service
     try:
@@ -560,7 +576,7 @@ def prewarm_all_services() -> dict[str, Any]:
         svc = get_federated_learning_service()
         services_loaded["federated_learning"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
     except Exception as e:
-        logger.warning(f"Failed to prewarm federated_learning: {e}")
+        logger.warning(f"Non-critical prewarm failure for federated_learning: {e}")
 
     # Synthetic Data Service
     try:
@@ -568,7 +584,7 @@ def prewarm_all_services() -> dict[str, Any]:
         svc = get_synthetic_data_service()
         services_loaded["synthetic_data"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
     except Exception as e:
-        logger.warning(f"Failed to prewarm synthetic_data: {e}")
+        logger.warning(f"Non-critical prewarm failure for synthetic_data: {e}")
 
     total_time_ms = (time.perf_counter() - start_time) * 1000
 

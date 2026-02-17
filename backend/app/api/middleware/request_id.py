@@ -31,6 +31,7 @@ from starlette.responses import Response as StarletteResponse
 
 # Import database context for integration
 from app.core.database import DatabaseRequestContext, set_db_request_context
+from app.core.degradation_context import DegradationContext
 
 logger = logging.getLogger(__name__)
 
@@ -177,6 +178,8 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
 
         # Set context variables
         set_request_id(request_id)
+        # Phase 1 Safety Envelope: Reset degradation accumulator for new request
+        DegradationContext.reset()
         set_request_context({
             "request_id": request_id,
             "correlation_id": correlation_id,

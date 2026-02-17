@@ -25,6 +25,7 @@ from app.services.graph_builder import (
     GraphResult,
     NodeInput,
 )
+from app.core.degradation_context import DegradationContext
 from app.services.graph_database_service import get_graph_database_service
 
 logger = logging.getLogger(__name__)
@@ -541,6 +542,7 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
 
         except Exception as e:
             # Log error but don't fail - PostgreSQL graph is still valid
+            DegradationContext.record_stage_failure("neo4j_sync", e, None)
             logger.error(
                 f"Failed to sync graph to Neo4j for patient {patient_id}: {e}"
             )
