@@ -206,7 +206,7 @@ class TestNeo4jTemporalService:
         service = Neo4jTemporalService()
         assert service.uri == "bolt://localhost:7687"
         assert service.user == "neo4j"
-        assert service.password == "clinical123"
+        assert service.password == ""  # must be provided via settings/env
         assert service._driver is None
 
     def test_service_custom_config(self) -> None:
