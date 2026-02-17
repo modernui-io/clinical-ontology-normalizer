@@ -1,0 +1,60 @@
+{
+  "evidence_id": "test-suite-2026-02-17",
+  "executed_at": "2026-02-17T04:39:00Z",
+  "operator": "closure-sweep-agent",
+  "context": "Final P4 closure sweep — full frontend + backend test validation",
+  "frontend": {
+    "runner": "jest",
+    "command": "npx jest --no-coverage",
+    "result": "PASS",
+    "suites": 20,
+    "tests_passed": 393,
+    "tests_failed": 0,
+    "tests_skipped": 0,
+    "duration_seconds": 2.265,
+    "framework": "Next.js 16.1.2 (Turbopack)",
+    "node_version": "v23.11.0",
+    "key_suites": [
+      "__tests__/readiness/p4-017-mode-evidence.test.tsx (14 tests — SectionEvidenceTag + useSimulationGuard)",
+      "__tests__/lib/evidence-consistency.test.ts (14 tests — evidence validation + status colors + cross-page consistency)",
+      "__tests__/hooks/authApi.test.ts (18 tests)",
+      "__tests__/lib/api.test.ts (8 tests)",
+      "__tests__/components/ (multiple suites — UI rendering + interaction)"
+    ]
+  },
+  "backend": {
+    "runner": "pytest",
+    "command": "python3 -m pytest backend/tests/ -x --tb=short -q",
+    "result": "PASS",
+    "tests_passed": 42431,
+    "tests_failed": 0,
+    "tests_skipped": 4,
+    "tests_xfailed": 3,
+    "duration_seconds": 692.09,
+    "python_version": "3.13.7",
+    "skipped_reasons": [
+      "test_neo4j_temporal_service.py: neo4j driver not installed (mock mode)",
+      "test_omop_acceptance.py: Mapping service unavailable — no concepts mapped",
+      "test_vocabulary_enhanced.py (x2): ahocorasick optional dependency not installed"
+    ],
+    "xfail_reasons": [
+      "test_nlp_benchmarks.py::test_anatomical_site_f1: Rule-based NLP does not yet extract anatomical sites",
+      "test_negation_experiencer_regression.py::test_no_change_in_diabetes: Pseudo-negation scope limitation",
+      "test_negation_experiencer_regression.py::test_no_worsening_of_heart_failure: Pseudo-negation scope limitation"
+    ],
+    "warnings_summary": "250 warnings — async resource cleanup (cosmetic), duplicate OpenAPI operation IDs (patient_stipend.py), PHI-safe logging scanner detections (40 findings tracked as P3-011)"
+  },
+  "build": {
+    "command": "cd frontend && npm run build",
+    "result": "PASS",
+    "pages_generated": 166,
+    "build_time_seconds": 5.0,
+    "warnings": "Recharts SSR chart dimension (cosmetic), deprecated middleware file convention"
+  },
+  "summary": {
+    "total_tests": 42824,
+    "total_passed": 42824,
+    "total_failed": 0,
+    "all_pass": true
+  }
+}
