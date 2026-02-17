@@ -55,6 +55,25 @@ Status legend
 | ROL-31 | P4 | P4-009-I/V: Guideline ingestion framework | Clinical AI + Clinical Governance | done | `docs/evidence/p4-009/p4-009-guideline-ingestion-framework.md`, `docs/evidence/p4-009/p4-009-evidence-2026-02-17.md` | Framework: ingestion pipeline, metadata schema, OMOP linkage, coverage scoring, expiry policy, editorial board charter, specialty priority queue, quality gate. Validation: board validation path, coverage/accuracy report templates, service reference verification. Deferred activation per ADR. 2026-02-17. |
 | ROL-32 | P4 | P4-010-I/V: Causal reasoning constraints | Clinical AI + CTO | done | `docs/evidence/p4-010/p4-010-causal-reasoning-constraints.md`, `docs/evidence/p4-010/p4-010-evidence-2026-02-17.md` | Constraints: 5 trust metric thresholds, 3-phase activation plan, explicit labeling requirements, prohibited labels. Validation: blinded safety comparison plan (50 cases, 3 clinicians, 4-dimension rubric), results template, adverse finding template. Deferred activation per ADR. 2026-02-17. |
 
+## P4 Deferred Gate Tracker (ADR-Blocked Items)
+
+The following 10 P4 items have approved ADR decisions (DEFER / CONDITIONAL DEFER) with I/V subtasks gated by specific activation conditions. These items are NOT stale — they are intentionally blocked pending defined triggers.
+
+| P4 ID | ADR Decision | Activation Trigger | Gate Owner | Evidence Dir | Next Review |
+|-------|-------------|-------------------|------------|-------------|-------------|
+| P4-001 | DEFER — 90-day stability gate | Single-site stability (90d zero SEV-1) + privacy counsel + 2 partner orgs | VP ML | `docs/evidence/p4-001/` | 2026-05-17 |
+| P4-002 | DEFER — US market entry | US customer LOI signed + QHIN partner selected | Interop | `docs/evidence/p4-002/` | 2026-05-17 |
+| P4-003 | CONDITIONAL DEFER — not required for AU | US customer requires ONC OR product marketed as EHR module | Interop | `docs/evidence/p4-003/` | 2026-05-17 |
+| P4-004 | Maintain Community for pilot | 50K patient threshold OR graph SLO violations | Ops | `docs/evidence/p4-004/` | 2026-05-17 |
+| P4-005 | Single-region AU for pilot | Second AU customer OR non-AU customer with data residency | CTO | `docs/evidence/p4-005/` | 2026-05-17 |
+| P4-011 | Ethics review required | Clinical user demand + ethics review completed + simulation sign-off | Clinical AI | `docs/evidence/p4-011/` | 2026-05-17 |
+| P4-012 | DEFER — gated on partner LOI | First external partner LOI + sandbox provisioning capability | Product | `docs/evidence/p4-012/` | 2026-05-17 |
+| P4-013 | NOT SaMD — threshold monitored | Any of 6 SaMD threshold triggers confirmed | Compliance | `docs/evidence/p4-013/` | 2026-05-17 |
+| P4-014 | PREMATURE — monolith maintained | 100K patients + 10 engineers + cross-domain bottleneck | Data | `docs/evidence/p4-014/` | 2026-05-17 |
+| P4-015 | Framework defined — data deferred | 90-day pilot + EHR outcome data feed + advisor sign-off | Clinical AI | `docs/evidence/p4-015/` | 2026-05-17 |
+
+**Rule:** No deferred gate may be activated without the activation trigger being met and documented. 90-day review cycle applies to all gates. If a trigger fires between reviews, the gate owner must initiate activation review within 5 business days.
+
 ## Autopilot Sequence
 1. Implementation approved 2026-02-14. Code edits are now authorized for P0/P1 closure.
 2. Close `ROL-01` first with updated Clinical AI closure notes.

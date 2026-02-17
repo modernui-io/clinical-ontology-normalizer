@@ -202,3 +202,4 @@ next_required_artifacts:
   - `/trust` (public): PASS — 23143 chars, 9 evidence terms, 94 links. Full evidence map with drill outcomes, MTTR/RTO, signoff status, staging blockers.
   - `/proof` (public): PASS — same as /trust (shared TrustProofContent component).
   - Evidence: `docs/evidence/demo-rehearsal/demo-rehearsal-evidence.json` + 3 full-page screenshots.
+- 2026-02-17: Deferred P4 closure sweep executed. 10 tickets reviewed (P4-001-005, P4-011-015). All DEFER/CONDITIONAL DEFER per ADR. Deferred-gate evidence artifacts created in docs/evidence/p4-00X/. Owners assigned. Gating conditions documented. Next audit date: 2026-05-17 (90-day review).
