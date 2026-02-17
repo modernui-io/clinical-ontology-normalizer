@@ -1088,7 +1088,9 @@ class TestPortfolioDashboard:
     async def test_dashboard_upcoming_gates_within_90_days(self, client: AsyncClient):
         resp = await client.get(f"{API_PREFIX}/dashboard")
         data = resp.json()
-        cutoff = (today + timedelta(days=90)).isoformat()
+        # Use date.today() at assertion time to match the service's runtime cutoff,
+        # avoiding stale module-level `today` when tests run across midnight.
+        cutoff = (date.today() + timedelta(days=90)).isoformat()
         for gate in data["upcoming_gates"]:
             assert gate["scheduled_date"] <= cutoff
             assert gate["decision"] is None
