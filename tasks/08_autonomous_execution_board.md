@@ -103,13 +103,15 @@ The following 5 P4 items have approved ADR decisions (DEFER / CONDITIONAL DEFER)
 | BLK-04 | Auth/secrets/audit readiness gaps for external access | CISO | 2026-02-13 | ~~2026-02-21~~ **CLOSED 2026-02-15** | P0-009 through P0-017 done. Auth, secrets, encryption, TLS, audit, tenant boundaries all enforced. |
 
 ## Staging Infrastructure Blockers (blocked_by_infrastructure)
-| Condition | Owner | ETA | Status |
-|-----------|-------|-----|--------|
-| OpenEHR round-trip staging confirmation | CIO + Ops | When staging URL provisioned | blocked_by_infrastructure |
-| Redis containerized failover drill | Ops + CTO | When Redis containerized in staging | blocked_by_infrastructure |
-| Neo4j restore drill on staging | Ops | When staging Neo4j provisioned | blocked_by_infrastructure |
-| Cascade failover simulation | Ops + CTO | When all deps containerized | blocked_by_infrastructure |
-| 30-day signoff review | Program Lead + all leads | 2026-03-16 (auto-escalate if no staging by 2026-03-02) | scheduled |
+| Condition | Owner | ETA | Status | Checklist Reference |
+|-----------|-------|-----|--------|-------------------|
+| OpenEHR round-trip staging confirmation | CIO + Ops | When staging URL provisioned | blocked_by_infrastructure | Checklist 4.1 |
+| Redis containerized failover drill | Ops + CTO | When Redis containerized in staging | blocked_by_infrastructure | Checklist 4.2 |
+| Neo4j restore drill on staging | Ops | When staging Neo4j provisioned | blocked_by_infrastructure | Checklist 4.3 |
+| Cascade failover simulation | Ops + CTO | When all deps containerized | blocked_by_infrastructure | Checklist 4.4 |
+| 30-day signoff review | Program Lead + all leads | 2026-03-16 (auto-escalate if no staging by 2026-03-02) | scheduled | Checklist 4.5 |
+
+**Staging provisioning checklist**: `docs/operations/staging_provisioning_checklist.md` — covers infrastructure, secrets, deployment, all 5 drill procedures with acceptance criteria, and evidence file targets in `docs/evidence/staging/`.
 
 **Rule:** No previously blocked gate may be marked final GO until staging evidence is captured. If staging not provisioned by 2026-03-02, escalate to CTO + CIO for infrastructure decision.
 
