@@ -109,6 +109,7 @@ Execution rules
 - [x] P2-006 Add KG completeness scoring model and expose in API/UI. | Owner: Clinical AI + Product | Anchor: KG + clinical agent services | Exit: completeness metric shown per patient.
 - [x] P2-007 Add uncertainty taxonomy and reason codes for all decline/degraded outputs. | Owner: Clinical AI | Anchor: response schema | Exit: standardized reason catalog.
 - [x] P2-008 Add chart-level "what system knows vs does not know" summary panel. | Owner: Product | Anchor: frontend clinical pages | Exit: unknown coverage displayed.
+  - [x] P2-008-ROL08 OMOP hierarchy string-fallback guardrail corpus + regression suite. Evidence: `docs/evidence/p2-008/`.
 - [x] P2-009 Add clinician feedback capture and replay pipeline. | Owner: Product + Clinical AI | Anchor: feedback API/storage | Exit: weekly reviewed feedback dataset.
 - [x] P2-010 Add drift detection for terminology mapping distributions over time. | Owner: Clinical AI + Data | Anchor: mapping analytics jobs | Exit: drift alert thresholds active.
 - [x] P2-011 Add concept mapping disagreement dashboard (rule vs ML vs ensemble). | Owner: Clinical AI + Product | Anchor: analytics/UI | Exit: disagreement visibility for triage.
