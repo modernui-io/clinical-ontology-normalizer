@@ -181,9 +181,9 @@ export default function DocsPage() {
                 {s.supportingLinks && s.supportingLinks.length > 0 && (
                   <div className="mt-1 flex items-center gap-2">
                     {s.supportingLinks.map((link) => (
-                      <a key={link.href} href={link.href} className="inline-flex items-center gap-1 text-[10px] text-blue-600 hover:text-blue-800 underline underline-offset-2">
+                      <span key={link.href} className="inline-flex items-center gap-1 text-[10px] text-blue-600 underline underline-offset-2">
                         {link.label}
-                      </a>
+                      </span>
                     ))}
                   </div>
                 )}

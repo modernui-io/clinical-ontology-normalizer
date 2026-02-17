@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -218,13 +218,35 @@ const navSections: NavSection[] = [
     ],
   },
   {
-      title: "Reference",
-      items: [
-        { title: "Glossary", href: "/glossary", icon: BookOpen },
-        { title: "Sales Demo", href: "/sales-demo", icon: FileText },
-        { title: "Trust Center", href: "/trust", icon: ShieldCheck },
-        { title: "Proof", href: "/proof", icon: FileCheck },
-      ],
+    title: "Enterprise Readiness",
+    subGroups: [
+      {
+        title: "Trust & Evidence",
+        icon: ShieldCheck,
+        items: [
+          { title: "Trust Center", href: "/trust", icon: ShieldCheck },
+          { title: "Proof", href: "/proof", icon: FileCheck },
+          { title: "Security", href: "/security", icon: Lock },
+          { title: "Sales Demo", href: "/sales-demo", icon: Sparkles },
+        ],
+      },
+      {
+        title: "Docs & Reports",
+        icon: FileText,
+        items: [
+          { title: "Documentation", href: "/docs", icon: BookOpen },
+          { title: "Changelog", href: "/changelog", icon: ScrollText },
+          { title: "Reports", href: "/reports", icon: BarChart3 },
+          { title: "Report Export", href: "/reports/export", icon: FileCheck },
+        ],
+      },
+    ],
+  },
+  {
+    title: "Reference",
+    items: [
+      { title: "Glossary", href: "/glossary", icon: BookOpen },
+    ],
   },
 ];
 
@@ -244,6 +266,26 @@ export function Sidebar({ className }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [openSubGroups, setOpenSubGroups] = useState<Record<string, boolean>>({});
+  const desktopNavRef = useRef<HTMLElement>(null);
+  const mobileNavRef = useRef<HTMLElement>(null);
+  const savedScrollTop = useRef(0);
+
+  // Save sidebar scroll position before navigation changes it
+  const handleNavScroll = useCallback((e: React.UIEvent<HTMLElement>) => {
+    savedScrollTop.current = e.currentTarget.scrollTop;
+  }, []);
+
+  // Restore sidebar scroll position after route change
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      if (desktopNavRef.current) {
+        desktopNavRef.current.scrollTop = savedScrollTop.current;
+      }
+      if (mobileNavRef.current) {
+        mobileNavRef.current.scrollTop = savedScrollTop.current;
+      }
+    });
+  }, [pathname]);
 
   // Auto-open the subgroup that contains the current path
   useEffect(() => {
@@ -297,6 +339,7 @@ export function Sidebar({ className }: SidebarProps) {
       <li role="listitem">
         <Link
           href={item.href}
+          scroll={false}
           className={cn(
             "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
             active
@@ -315,7 +358,7 @@ export function Sidebar({ className }: SidebarProps) {
     );
   };
 
-  const SidebarContent = () => (
+  const renderSidebarContent = (navRef: React.RefObject<HTMLElement | null>) => (
     <div className="flex h-full flex-col">
       {/* Logo/Brand */}
       <div className="flex h-16 items-center border-b px-4">
@@ -338,6 +381,8 @@ export function Sidebar({ className }: SidebarProps) {
 
       {/* Navigation */}
       <nav
+        ref={navRef}
+        onScroll={handleNavScroll}
         className="flex-1 overflow-y-auto p-3"
         role="navigation"
         aria-label="Main navigation"
@@ -491,7 +536,7 @@ export function Sidebar({ className }: SidebarProps) {
         aria-hidden={!isMobileOpen}
         {...(!isMobileOpen && { inert: true })}
       >
-        <SidebarContent />
+        {renderSidebarContent(mobileNavRef)}
       </aside>
 
       {/* Desktop Sidebar */}
@@ -503,7 +548,7 @@ export function Sidebar({ className }: SidebarProps) {
         )}
         aria-label="Desktop navigation"
       >
-        <SidebarContent />
+        {renderSidebarContent(desktopNavRef)}
       </aside>
 
       {/* Spacer for main content */}
