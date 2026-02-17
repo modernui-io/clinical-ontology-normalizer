@@ -1,0 +1,114 @@
+{
+  "rehearsal_id": "demo-rehearsal-2026-02-17T0441Z",
+  "executed_at": "2026-02-17T04:41:23.533Z",
+  "operator": "closure-sweep-agent",
+  "routes_audited": 3,
+  "overall_pass": true,
+  "notes": [
+    "/sales-demo is auth-gated (correct for sales tool) — rehearsal used has_auth cookie",
+    "/trust and /proof are public-facing (in PUBLIC_PATHS middleware) — correct for external trust surfaces",
+    "All 3 routes render evidence-backed content with zero unbacked claims"
+  ],
+  "results": [
+    {
+      "route": "/sales-demo",
+      "url": "http://localhost:3000/sales-demo",
+      "timestamp": "2026-02-17T04:41:13.507Z",
+      "httpStatus": 200,
+      "auth_required": true,
+      "renderSuccess": true,
+      "screenshotPath": "docs/evidence/demo-rehearsal/rehearsal-sales-demo-authed.png",
+      "evidenceTermsFound": [
+        "evidence", "artifact", "freshness", "verified", "provenance",
+        "drill", "signoff", "simulation", "scenario", "reviewer", "checklist"
+      ],
+      "riskTermsFound": [],
+      "textLength": 3911,
+      "linkCount": 96,
+      "headings_summary": [
+        "H1: Production-facing demo workspace",
+        "H2: Scenario launch deck",
+        "H3: Clinical safety + provenance",
+        "H3: Interop + OpenEHR replay",
+        "H3: Operations resilience",
+        "H2: Evidence pack for this run",
+        "H2: Readiness links",
+        "H2: Deterministic scenario runners",
+        "H2: Reviewer Checklist"
+      ],
+      "key_features": [
+        "3 scenario cards with acceptance criteria (5 items each)",
+        "Run deterministic scenario buttons per card",
+        "Evidence bundle download / Copy JSON / Refresh snapshot",
+        "Readiness links to Trust & Proof, Proof log, Security posture",
+        "P0 blockers clear badge (computed live)",
+        "Deterministic scenario runner cross-references to target pages",
+        "6-item reviewer checklist with signoff export"
+      ],
+      "errorMessages": []
+    },
+    {
+      "route": "/trust",
+      "url": "http://localhost:3000/trust",
+      "timestamp": "2026-02-17T04:41:16.363Z",
+      "httpStatus": 200,
+      "auth_required": false,
+      "renderSuccess": true,
+      "screenshotPath": "docs/evidence/demo-rehearsal/rehearsal-trust.png",
+      "evidenceTermsFound": [
+        "evidence", "artifact", "provenance", "drill", "PASS",
+        "MTTR", "RTO", "signoff", "simulation"
+      ],
+      "riskTermsFound": [],
+      "textLength": 23143,
+      "linkCount": 94,
+      "headings_summary": [
+        "H1: Clinical evidence map for live confidence",
+        "H2: Product-facing demoability for sales",
+        "H2: P0 blockers to close before external pilot",
+        "H2: Live readiness signal",
+        "H2: Evidence map",
+        "H2: P4 visibility progress",
+        "H2: Operational Drill Outcomes",
+        "H3: MTTR / RTO Summary",
+        "H3: Breach Notification Window (HIPAA)",
+        "H2: Pre-Pilot Signoff Status",
+        "H3: 5 Blocking Conditions for Full GO",
+        "H2: Sprint-1 Operational Drill Results",
+        "H2: Hybrid reasoner contract status",
+        "H2: External-facing demo pack"
+      ],
+      "errorMessages": []
+    },
+    {
+      "route": "/proof",
+      "url": "http://localhost:3000/proof",
+      "timestamp": "2026-02-17T04:41:20.079Z",
+      "httpStatus": 200,
+      "auth_required": false,
+      "renderSuccess": true,
+      "screenshotPath": "docs/evidence/demo-rehearsal/rehearsal-proof.png",
+      "evidenceTermsFound": [
+        "evidence", "artifact", "provenance", "drill", "PASS",
+        "MTTR", "RTO", "signoff", "simulation"
+      ],
+      "riskTermsFound": [],
+      "textLength": 23143,
+      "linkCount": 94,
+      "headings_summary": "Same as /trust (shared TrustProofContent component)",
+      "errorMessages": []
+    }
+  ],
+  "summary": {
+    "all_routes_render": true,
+    "all_http_200": true,
+    "total_evidence_terms": 29,
+    "total_risk_terms": 0,
+    "unbacked_claims": [],
+    "auth_model": {
+      "/sales-demo": "auth-gated (has_auth cookie required)",
+      "/trust": "public (in PUBLIC_PATHS)",
+      "/proof": "public (in PUBLIC_PATHS)"
+    }
+  }
+}

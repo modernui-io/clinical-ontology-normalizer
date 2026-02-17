@@ -147,9 +147,12 @@
 
 - [x] **Sprint-1 P0 close sequence (in order):** ALL CLOSED as of 2026-02-16. Evidence in `docs/evidence/p0-019/`, `docs/evidence/p0-025/`, `docs/evidence/p0-026/`, `docs/evidence/p0-027/`, `docs/evidence/p0-028/`.
 - [x] **Frontend P4 closure (no behavior break):** ALL CLOSED as of 2026-02-16. P4-016/017/018/019/020 I+V complete. Final closure sweep: build 166/166 PASS, tests 28/28 PASS, all 11 routes evidence-backed.
-- [ ] **Publish external-readiness package:** (pending live demo rehearsal)
-  - run a 20-minute investor demo rehearsal against `/sales-demo`, `/trust`, and `/proof`.
-  - capture evidence bundle with route links, timestamps, and fallback status for every screen shown.
+- [x] **Publish external-readiness package:** Done 2026-02-16. Playwright-driven rehearsal executed.
+  - `/sales-demo`: PASS — 3911 chars, 11 evidence terms, 3 scenario cards, reviewer checklist, evidence bundle export. Auth-gated (correct).
+  - `/trust`: PASS — 23143 chars, 9 evidence terms, 94 links. Public route. Full evidence map with drill outcomes, signoff status, staging blockers.
+  - `/proof`: PASS — Same as /trust (shared TrustProofContent). Public route.
+  - Zero unbacked claims found across all 3 routes.
+  - Evidence: `docs/evidence/demo-rehearsal/demo-rehearsal-evidence.json` + screenshots.
 
 ## 5) Exit criteria (before external show/pilot narrative)
 - All 5 P0 items marked `done` in `tasks/16_sprint1_execution_board.md`.

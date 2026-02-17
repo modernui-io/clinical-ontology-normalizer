@@ -191,3 +191,8 @@ next_required_artifacts:
   - Frontend build: 166/166 pages PASS. Tests: 28/28 PASS (p4-017-mode-evidence + evidence-consistency).
   - P4 execution posture updated: `partial_implementation` → `sales_readiness_complete`.
   - 5 staging blockers remain `blocked_by_infrastructure` — no change. Next escalation: 2026-03-02.
+- 2026-02-16: **External-readiness demo rehearsal executed (Playwright).** 3 routes audited:
+  - `/sales-demo` (auth-gated): PASS — 3911 chars, 11 evidence terms, 3 scenario cards, reviewer checklist, evidence bundle export. Zero unbacked claims.
+  - `/trust` (public): PASS — 23143 chars, 9 evidence terms, 94 links. Full evidence map with drill outcomes, MTTR/RTO, signoff status, staging blockers.
+  - `/proof` (public): PASS — same as /trust (shared TrustProofContent component).
+  - Evidence: `docs/evidence/demo-rehearsal/demo-rehearsal-evidence.json` + 3 full-page screenshots.
