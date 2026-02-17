@@ -19,6 +19,8 @@ import {
   Activity,
   ChevronDown,
   ChevronRight,
+  Brain,
+  Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -38,7 +40,9 @@ type Category =
   | "Confidence & Scoring"
   | "Evidence & Provenance"
   | "Safety & Controls"
-  | "Data Quality";
+  | "Data Quality"
+  | "NLP & Extraction"
+  | "Interoperability";
 
 // =============================================================================
 // Glossary data
@@ -52,6 +56,8 @@ const CATEGORY_META: Record<
   "Evidence & Provenance": { icon: Database, color: "bg-purple-500/10 text-purple-700 border-purple-200" },
   "Safety & Controls": { icon: Shield, color: "bg-red-500/10 text-red-700 border-red-200" },
   "Data Quality": { icon: Activity, color: "bg-emerald-500/10 text-emerald-700 border-emerald-200" },
+  "NLP & Extraction": { icon: Brain, color: "bg-amber-500/10 text-amber-700 border-amber-200" },
+  "Interoperability": { icon: Globe, color: "bg-cyan-500/10 text-cyan-700 border-cyan-200" },
 };
 
 const GLOSSARY_TERMS: GlossaryTerm[] = [
@@ -239,6 +245,302 @@ const GLOSSARY_TERMS: GlossaryTerm[] = [
       "The gold standard is created by clinical experts and represents the 'correct answer'. It is how we measure whether the system is performing accurately.",
     category: "Data Quality",
   },
+  // Confidence & Scoring (additional)
+  {
+    term: "Precision & Recall",
+    definition:
+      "Precision measures how many of the system's positive identifications were correct; recall measures how many actual positives the system found.",
+    systemUsage:
+      "Computed per NLP model and per concept domain. Precision/recall trade-offs inform threshold tuning — higher thresholds increase precision at the cost of recall.",
+    clinicianNote:
+      "High precision means fewer false alarms. High recall means fewer missed findings. The right balance depends on clinical context — screening favors recall, diagnosis favors precision.",
+    category: "Confidence & Scoring",
+  },
+  {
+    term: "F1 Score",
+    definition:
+      "The harmonic mean of precision and recall, providing a single metric that balances both. Ranges from 0.0 (worst) to 1.0 (perfect).",
+    systemUsage:
+      "Primary evaluation metric for NLP extraction models. Reported per entity type (conditions, medications, procedures) in model evaluation dashboards.",
+    clinicianNote:
+      "An F1 of 0.90 means the system is doing well at both finding relevant concepts and avoiding false positives. Below 0.80 may warrant caution for that entity type.",
+    category: "Confidence & Scoring",
+  },
+  {
+    term: "Ensemble Agreement",
+    definition:
+      "The degree of consensus among multiple independent models or extraction methods when identifying the same clinical concept.",
+    systemUsage:
+      "The NLP pipeline runs rule-based and ML extractors in parallel. Ensemble agreement boosts confidence scores when methods converge and flags disagreements for review.",
+    clinicianNote:
+      "When multiple independent methods agree on a finding, it is more likely correct. Disagreements are flagged and may require your review.",
+    category: "Confidence & Scoring",
+  },
+  {
+    term: "Threshold",
+    definition:
+      "A configurable confidence cutoff that determines whether the system accepts, flags for review, or declines a particular extraction or mapping.",
+    systemUsage:
+      "Configured per risk tier and per domain. Thresholds can be adjusted via the admin dashboard without redeploying the system.",
+    clinicianNote:
+      "Thresholds control how cautious the system is. Tighter thresholds mean more items are routed for human review but fewer errors slip through.",
+    category: "Confidence & Scoring",
+  },
+  // Evidence & Provenance (additional)
+  {
+    term: "Assertion Status",
+    definition:
+      "A classification of whether a clinical finding is present, absent, possible, conditional, or hypothetical based on the linguistic context in which it appears.",
+    systemUsage:
+      "Extracted by NLP assertion detection. Each mention carries an assertion attribute (present, negated, possible, conditional, hypothetical) that affects downstream fact building.",
+    clinicianNote:
+      "Assertion status is critical — 'patient denies chest pain' and 'patient reports chest pain' reference the same concept but have opposite clinical meanings.",
+    category: "Evidence & Provenance",
+  },
+  {
+    term: "Temporality",
+    definition:
+      "The time-related context of a clinical mention — whether it refers to a current, historical, or future/planned event.",
+    systemUsage:
+      "Detected by NLP temporal classifiers. Temporality attributes (current, historical, future) are stored on mentions and used to build accurate patient timelines in the knowledge graph.",
+    clinicianNote:
+      "Temporality distinguishes 'has diabetes' (current) from 'history of diabetes' (past). Getting this right is essential for accurate patient summaries.",
+    category: "Evidence & Provenance",
+  },
+  {
+    term: "Concept Hierarchy",
+    definition:
+      "The parent-child relationships between clinical concepts in a terminology, representing levels of specificity from general to detailed.",
+    systemUsage:
+      "Used in vocabulary navigation, concept rollup for analytics, and ancestor/descendant queries. The OMOP vocabulary provides hierarchy data for SNOMED, ICD, RxNorm, and others.",
+    clinicianNote:
+      "Hierarchies let you query at any level of detail — for example, searching for 'cardiovascular disease' can include all subtypes like heart failure, atrial fibrillation, and hypertension.",
+    category: "Evidence & Provenance",
+  },
+  {
+    term: "Semantic Similarity",
+    definition:
+      "A numerical measure of how closely related two clinical concepts are in meaning, computed using embedding models or ontological distance in concept hierarchies.",
+    systemUsage:
+      "Powers concept search, fuzzy vocabulary matching, and deduplication of near-identical findings. The graph embedding service generates concept vectors for similarity computation.",
+    clinicianNote:
+      "Semantic similarity helps the system recognize that 'heart attack' and 'myocardial infarction' mean the same thing, even though they use different words.",
+    category: "Evidence & Provenance",
+  },
+  // Safety & Controls (additional)
+  {
+    term: "Audit Trail",
+    definition:
+      "A tamper-evident chronological record of all system actions, user interactions, and data transformations performed on clinical data.",
+    systemUsage:
+      "Every API call, data modification, and pipeline action is logged with user identity, timestamp, and affected resources. Required for HIPAA compliance and clinical accountability.",
+    clinicianNote:
+      "The audit trail answers 'who did what, when, and why' for any piece of data. It provides accountability and supports regulatory compliance reviews.",
+    category: "Safety & Controls",
+  },
+  {
+    term: "Circuit Breaker",
+    definition:
+      "A fault-tolerance pattern that stops calling a failing service after repeated errors, preventing cascading failures across the system.",
+    systemUsage:
+      "Wraps calls to external services (NLP models, graph database, terminology APIs). After a configurable number of failures, the breaker opens and the system enters degraded mode for that dependency.",
+    clinicianNote:
+      "Circuit breakers ensure that one failing component does not bring down the entire system. Core functionality continues while the failing part recovers.",
+    category: "Safety & Controls",
+  },
+  {
+    term: "Safety Envelope",
+    definition:
+      "The set of all safety constraints, confidence thresholds, and validation rules that collectively define the boundaries of safe automated operation.",
+    systemUsage:
+      "Implemented across the pipeline: input validation at ingestion, confidence gates at extraction, risk-tier checks at fact building, and action gates at output. All critical paths fail loudly rather than silently.",
+    clinicianNote:
+      "The safety envelope defines what the system can do autonomously vs. what requires human oversight. Operating within the envelope means all safety checks have passed.",
+    category: "Safety & Controls",
+  },
+  {
+    term: "Consent Management",
+    definition:
+      "The tracking and enforcement of patient consent preferences governing how their clinical data may be processed, shared, or used in analytics.",
+    systemUsage:
+      "Consent records are checked at data access points. Processing pipelines filter or redact data based on active consent directives. Audit logging captures all consent-gated access.",
+    clinicianNote:
+      "The system respects patient consent at every step. If a patient has restricted certain data sharing, those restrictions are automatically enforced across all system functions.",
+    category: "Safety & Controls",
+  },
+  // Data Quality (additional)
+  {
+    term: "Completeness",
+    definition:
+      "The proportion of expected data fields that are present and populated in a clinical record, measuring whether the record contains all required information.",
+    systemUsage:
+      "Evaluated per document and per patient record. Missing required fields (diagnosis codes, medication dosages) are flagged with severity levels in data quality reports.",
+    clinicianNote:
+      "Incomplete records can lead to missed findings. A completeness score below 80% suggests the source note may be missing important clinical details.",
+    category: "Data Quality",
+  },
+  {
+    term: "Deduplication",
+    definition:
+      "The process of identifying and merging duplicate clinical findings that refer to the same underlying concept, often extracted from multiple documents or encounters.",
+    systemUsage:
+      "Performed by the fact builder during ClinicalFact creation. Uses concept identity, temporal overlap, and source provenance to determine whether two mentions represent the same clinical fact.",
+    clinicianNote:
+      "Deduplication prevents the same condition from appearing multiple times in a patient summary, ensuring a clean and accurate clinical picture.",
+    category: "Data Quality",
+  },
+  {
+    term: "Conformance",
+    definition:
+      "The degree to which clinical data adheres to expected formats, value sets, and structural rules defined by standards like OMOP, FHIR, or institutional policies.",
+    systemUsage:
+      "Checked during ingestion and mapping. Non-conformant data (wrong value sets, invalid codes, structural violations) is logged and routed for correction.",
+    clinicianNote:
+      "Conformant data follows the expected rules and standards. Non-conformant data may be processed incorrectly or rejected, so it needs correction at the source.",
+    category: "Data Quality",
+  },
+  {
+    term: "Plausibility",
+    definition:
+      "The assessment of whether clinical data values fall within medically reasonable ranges and are consistent with expected physiological parameters.",
+    systemUsage:
+      "Plausibility checks flag values outside clinical ranges (e.g., heart rate of 500, age of 200). Implements OHDSI-style plausibility rules across numeric and categorical fields.",
+    clinicianNote:
+      "Implausible values are almost always data entry errors. The system flags these automatically so they can be corrected before affecting analysis or clinical decisions.",
+    category: "Data Quality",
+  },
+  // NLP & Extraction
+  {
+    term: "Named Entity Recognition",
+    definition:
+      "The NLP task of identifying and classifying spans of text that refer to clinical entities such as conditions, medications, procedures, anatomical sites, and lab tests.",
+    systemUsage:
+      "The core extraction step in the pipeline. Both rule-based (pattern matching, dictionary lookup) and ML (transformer, ensemble) NER models run in parallel to maximize coverage.",
+    clinicianNote:
+      "NER is how the system finds clinical concepts in free-text notes. It highlights phrases like 'type 2 diabetes' or 'metformin 500mg' and labels them by type.",
+    category: "NLP & Extraction",
+  },
+  {
+    term: "Negation Detection",
+    definition:
+      "The identification of linguistic cues indicating that a clinical concept is denied, absent, or ruled out rather than present or confirmed.",
+    systemUsage:
+      "Applied after NER to set assertion status. Uses NegEx-style rules and contextual ML models to detect negation scopes in clinical text. Critical for accurate fact building.",
+    clinicianNote:
+      "Negation detection ensures 'no evidence of cancer' is not misinterpreted as a cancer diagnosis. It is one of the most important accuracy checks in clinical NLP.",
+    category: "NLP & Extraction",
+  },
+  {
+    term: "Span",
+    definition:
+      "The exact character range (start and end offsets) in a source document where a clinical concept mention was identified by the NLP system.",
+    systemUsage:
+      "Stored on every Mention record. Enables precise highlighting in the document viewer and supports provenance tracing back to exact source text.",
+    clinicianNote:
+      "Spans let you click on any extracted concept and see exactly where in the original note it came from, making it easy to verify the system's work.",
+    category: "NLP & Extraction",
+  },
+  {
+    term: "Experiencer",
+    definition:
+      "The person to whom a clinical finding applies — typically the patient, but potentially a family member (family history) or someone else mentioned in the note.",
+    systemUsage:
+      "Classified per mention as patient, family, or other. Family history mentions are tagged differently from patient findings to avoid incorrect attribution in the knowledge graph.",
+    clinicianNote:
+      "Experiencer detection distinguishes 'patient has diabetes' from 'father had diabetes'. Getting this right is essential for accurate personal vs. family medical histories.",
+    category: "NLP & Extraction",
+  },
+  {
+    term: "Section Detection",
+    definition:
+      "The identification of structural sections within a clinical document (e.g., Chief Complaint, Medications, Assessment/Plan) to provide context for extracted concepts.",
+    systemUsage:
+      "Section headers are detected using pattern matching and layout analysis. Section context improves extraction accuracy — a medication name in the 'Allergies' section has different meaning than in 'Current Medications'.",
+    clinicianNote:
+      "Where a concept appears in a note matters. The system uses section context to correctly interpret findings — 'aspirin' under Allergies is very different from 'aspirin' under Medications.",
+    category: "NLP & Extraction",
+  },
+  {
+    term: "Tokenization",
+    definition:
+      "The process of breaking clinical text into individual units (tokens) such as words, punctuation, and abbreviations for downstream NLP processing.",
+    systemUsage:
+      "First step in the NLP pipeline. Uses a clinical-aware tokenizer that handles medical abbreviations, dosage formats, and special characters common in clinical notes.",
+    clinicianNote:
+      "Clinical text has unique challenges — abbreviations like 'q.i.d.' and dosage formats like '500mg/5mL' need special handling to be processed correctly.",
+    category: "NLP & Extraction",
+  },
+  // Interoperability
+  {
+    term: "FHIR Resource",
+    definition:
+      "A standardized data unit in the HL7 FHIR (Fast Healthcare Interoperability Resources) specification, representing a clinical concept such as a Patient, Condition, Observation, or MedicationRequest.",
+    systemUsage:
+      "The FHIR import/export service converts between internal ClinicalFacts and FHIR Resources. Supports FHIR R4 for integration with EHR systems and health information exchanges.",
+    clinicianNote:
+      "FHIR is the modern standard for sharing healthcare data between systems. It allows the platform to exchange data with your EHR and other clinical systems seamlessly.",
+    category: "Interoperability",
+  },
+  {
+    term: "SNOMED CT",
+    definition:
+      "A comprehensive clinical terminology providing standardized codes for diseases, symptoms, procedures, body structures, and other clinical concepts used worldwide.",
+    systemUsage:
+      "One of the primary target vocabularies for concept mapping. SNOMED concepts are mapped to OMOP standard concepts and used for clinical reasoning in the knowledge graph.",
+    clinicianNote:
+      "SNOMED CT provides the detailed clinical language the system uses internally. It ensures that clinical concepts are represented precisely and consistently.",
+    category: "Interoperability",
+  },
+  {
+    term: "ICD-10",
+    definition:
+      "The International Classification of Diseases, 10th Revision — a coding system used primarily for billing, epidemiology, and public health reporting of diagnoses and procedures.",
+    systemUsage:
+      "Supported as both a source vocabulary (from billing data) and a mapping target. Cross-mapped with SNOMED CT through the OMOP vocabulary. Used in the billing/coding stack.",
+    clinicianNote:
+      "ICD-10 codes are what you see on billing records and problem lists. The system maps between ICD-10 and more detailed clinical terminologies automatically.",
+    category: "Interoperability",
+  },
+  {
+    term: "RxNorm",
+    definition:
+      "A standardized naming system for medications maintained by the NLM, providing normalized names and codes for clinical drugs at multiple levels of specificity.",
+    systemUsage:
+      "The primary vocabulary for medication mapping. Used by the drug safety and drug interaction services. Supports ingredient, clinical drug, and branded drug levels.",
+    clinicianNote:
+      "RxNorm standardizes medication names so 'Lipitor 20mg tablet' and 'atorvastatin calcium 20mg oral tablet' are recognized as the same drug.",
+    category: "Interoperability",
+  },
+  {
+    term: "Value Set",
+    definition:
+      "A defined collection of codes from one or more terminologies that represent a specific clinical concept group, such as 'all diabetes diagnoses' or 'cardiovascular medications'.",
+    systemUsage:
+      "Managed via the value set editor. Used in quality measures, clinical decision support rules, and cohort definitions. Supports expansion, versioning, and comparison.",
+    clinicianNote:
+      "Value sets define clinical groupings — for example, a 'Diabetes' value set includes all the different codes that represent diabetes, making it easy to query across coding systems.",
+    category: "Interoperability",
+  },
+  {
+    term: "CDS Hooks",
+    definition:
+      "A standard for integrating clinical decision support into EHR workflows, triggering automated advice at specific points in the clinician's workflow.",
+    systemUsage:
+      "The CDS Hooks service exposes platform intelligence (drug interactions, clinical calculators, guideline recommendations) as hook responses that EHR systems can consume in real time.",
+    clinicianNote:
+      "CDS Hooks deliver the platform's insights directly into your EHR workflow — for example, alerting you to a drug interaction right when you are placing an order.",
+    category: "Interoperability",
+  },
+  {
+    term: "SMART on FHIR",
+    definition:
+      "An open standard for launching third-party applications within an EHR, providing secure OAuth2-based authorization and access to patient data through FHIR APIs.",
+    systemUsage:
+      "Enables the platform to be launched from within an EHR as a SMART app, receiving patient context and authorization automatically. Supports standalone and EHR-launch workflows.",
+    clinicianNote:
+      "SMART on FHIR means you can access the platform directly from your EHR without logging in separately — it opens with the right patient already loaded.",
+    category: "Interoperability",
+  },
 ];
 
 // =============================================================================
@@ -258,6 +560,8 @@ export default function GlossaryPage() {
     "Evidence & Provenance",
     "Safety & Controls",
     "Data Quality",
+    "NLP & Extraction",
+    "Interoperability",
   ];
 
   const filteredTerms = useMemo(() => {
