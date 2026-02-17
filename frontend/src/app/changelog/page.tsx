@@ -2,40 +2,7 @@
 
 import Link from "next/link";
 import { Brain, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
-
-type EvidenceStatus = "verified" | "stale" | "unverified" | "disputed";
-type FreshnessSLA = "quarterly" | "monthly" | "per-release" | "real-time";
-
-function getEvidenceStatusColor(
-  status: EvidenceStatus,
-  freshness_sla: FreshnessSLA,
-  last_verified: string
-): { bg: string; text: string; border: string; label: string } {
-  const now = new Date("2026-02-16");
-  const verified = new Date(last_verified);
-  const daysSince = Math.floor((now.getTime() - verified.getTime()) / (1000 * 60 * 60 * 24));
-
-  const slaMaxDays: Record<FreshnessSLA, number> = {
-    "real-time": 1,
-    "per-release": 14,
-    "monthly": 30,
-    "quarterly": 90,
-  };
-
-  const isStale = daysSince > slaMaxDays[freshness_sla];
-  const effectiveStatus = isStale && status === "verified" ? "stale" : status;
-
-  switch (effectiveStatus) {
-    case "verified":
-      return { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200", label: "Verified" };
-    case "stale":
-      return { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200", label: "Stale" };
-    case "unverified":
-      return { bg: "bg-red-50", text: "text-red-700", border: "border-red-200", label: "Unverified" };
-    case "disputed":
-      return { bg: "bg-red-50", text: "text-red-700", border: "border-red-200", label: "Disputed" };
-  }
-}
+import { type EvidenceStatus, type FreshnessSLA, type SupportingLink, getEvidenceStatusColor } from "@/lib/evidence";
 
 function StatusIcon({ status }: { status: string }) {
   switch (status) {
@@ -56,6 +23,7 @@ interface ChangeEntry {
   verified_by: string;
   status: EvidenceStatus;
   freshness_sla: FreshnessSLA;
+  supportingLinks?: SupportingLink[];
 }
 
 export default function ChangelogPage() {
@@ -66,7 +34,7 @@ export default function ChangelogPage() {
       evidence: "tasks/09_master_change_backlog_p0_p4.md",
       updated: "2026-02-16",
       changes: [
-        { text: "Knowledge graph builder with full provenance tracking", artifact: "backend/app/services/graph_builder_service.py", freshness: "2026-02-14", claim_id: "CLAIM-CL-001", verified_by: "CTO", status: "verified" as EvidenceStatus, freshness_sla: "per-release" as FreshnessSLA },
+        { text: "Knowledge graph builder with full provenance tracking", artifact: "backend/app/services/graph_builder_service.py", freshness: "2026-02-14", claim_id: "CLAIM-CL-001", verified_by: "CTO", status: "verified" as EvidenceStatus, freshness_sla: "per-release" as FreshnessSLA, supportingLinks: [{ label: "KG Docs", href: "/docs" }] },
         { text: "GraphRAG query engine for clinical reasoning", artifact: "backend/app/services/graph_augmented_rag.py", freshness: "2026-02-15", claim_id: "CLAIM-CL-002", verified_by: "VP Engineering", status: "verified" as EvidenceStatus, freshness_sla: "per-release" as FreshnessSLA },
         { text: "Clinical decision support (CDS Hooks) integration", artifact: "backend/app/api/cds_hooks.py", freshness: "2026-02-14", claim_id: "CLAIM-CL-003", verified_by: "VP Engineering", status: "verified" as EvidenceStatus, freshness_sla: "per-release" as FreshnessSLA },
         { text: "Drug interaction checker with severity scoring", artifact: "backend/app/services/drug_safety.py", freshness: "2026-02-15", claim_id: "CLAIM-CL-004", verified_by: "CISO", status: "verified" as EvidenceStatus, freshness_sla: "per-release" as FreshnessSLA },
@@ -78,7 +46,7 @@ export default function ChangelogPage() {
       evidence: "tasks/09_master_change_backlog_p0_p4.md",
       updated: "2026-01-24",
       changes: [
-        { text: "FHIR R4 import/export with Condition, MedicationRequest, and Observation resources", artifact: "backend/app/services/fhir_export_service.py", freshness: "2026-01-20", claim_id: "CLAIM-CL-005", verified_by: "VP Engineering", status: "verified" as EvidenceStatus, freshness_sla: "per-release" as FreshnessSLA },
+        { text: "FHIR R4 import/export with Condition, MedicationRequest, and Observation resources", artifact: "backend/app/services/fhir_export_service.py", freshness: "2026-01-20", claim_id: "CLAIM-CL-005", verified_by: "VP Engineering", status: "verified" as EvidenceStatus, freshness_sla: "per-release" as FreshnessSLA, supportingLinks: [{ label: "Interop Docs", href: "/docs" }] },
         { text: "Assertion detection engine (negation, hypothetical, family history)", artifact: "backend/app/services/narrative_extractor.py", freshness: "2026-01-18", claim_id: "CLAIM-CL-006", verified_by: "VP Engineering", status: "verified" as EvidenceStatus, freshness_sla: "per-release" as FreshnessSLA },
         { text: "Bulk document ingestion API", artifact: "backend/app/api/documents.py", freshness: "2026-01-15", claim_id: "CLAIM-CL-007", verified_by: "CTO", status: "verified" as EvidenceStatus, freshness_sla: "monthly" as FreshnessSLA },
         { text: "Clinical calculators (CHA2DS2-VASc, MELD, Wells, CURB-65)", artifact: "backend/app/services/clinical_calculators.py", freshness: "2026-01-22", claim_id: "CLAIM-CL-008", verified_by: "VP Engineering", status: "verified" as EvidenceStatus, freshness_sla: "monthly" as FreshnessSLA },
@@ -168,6 +136,16 @@ export default function ChangelogPage() {
                             Verified by {change.verified_by}
                             <span className="mx-1">·</span>
                             SLA: {change.freshness_sla}
+                            {change.supportingLinks && change.supportingLinks.length > 0 && (
+                              <>
+                                <span className="mx-1">·</span>
+                                {change.supportingLinks.map((link) => (
+                                  <a key={link.href} href={link.href} className="inline-flex items-center gap-1 text-[10px] text-blue-600 hover:text-blue-800 underline underline-offset-2 ml-1">
+                                    {link.label}
+                                  </a>
+                                ))}
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>

@@ -128,6 +128,7 @@
 - [x] Add evidence index surfaces to `frontend/src/app/docs/page.tsx` and `frontend/src/app/changelog/page.tsx`.
 - [x] Convert all claim blocks on these pages to per-entry supporting artifact path + update date + freshness. Done 2026-02-16: Docs sections now include per-card `evidenceArtifact` + `evidenceFreshness`. Changelog entries now have per-change `artifact` + `freshness` rendered below each line.
 - [x] Add a "supporting artifact" verification note for every claim block (not just section-level summaries). Done 2026-02-16: Both docs and changelog now render artifact path + freshness date at each individual claim level.
+- [x] Extract shared evidence types/utilities to `frontend/src/lib/evidence.ts` and add consistency test at `frontend/__tests__/lib/evidence-consistency.test.ts`. Done 2026-02-16.
 
 ## 3) Suggested owners and sequencing
 

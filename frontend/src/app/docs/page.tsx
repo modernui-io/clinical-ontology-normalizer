@@ -2,21 +2,7 @@
 
 import Link from "next/link";
 import { Brain, FileText, Code, Zap, Database, GitBranch, ArrowRight, ShieldCheck, Play, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
-
-type EvidenceStatus = "verified" | "stale" | "unverified" | "disputed";
-type FreshnessSLA = "quarterly" | "monthly" | "per-release" | "real-time";
-type EvidenceCategory = "security" | "clinical" | "operational" | "interop" | "product";
-
-interface EvidenceEntry {
-  claim_id: string;
-  claim_text: string;
-  category: EvidenceCategory;
-  evidence_paths: string[];
-  last_verified: string;
-  verified_by: string;
-  freshness_sla: FreshnessSLA;
-  status: EvidenceStatus;
-}
+import { type EvidenceStatus, type FreshnessSLA, type EvidenceCategory, type EvidenceEntry, type SupportingLink, getEvidenceStatusColor } from "@/lib/evidence";
 
 type DocSection = {
   icon: React.ComponentType<{ className?: string }>;
@@ -30,39 +16,8 @@ type DocSection = {
   status: EvidenceStatus;
   freshness_sla: FreshnessSLA;
   verified_by: string;
+  supportingLinks?: SupportingLink[];
 };
-
-function getEvidenceStatusColor(
-  status: EvidenceStatus,
-  freshness_sla: FreshnessSLA,
-  last_verified: string
-): { bg: string; text: string; border: string; label: string } {
-  // Check if stale based on SLA
-  const now = new Date("2026-02-16");
-  const verified = new Date(last_verified);
-  const daysSince = Math.floor((now.getTime() - verified.getTime()) / (1000 * 60 * 60 * 24));
-
-  const slaMaxDays: Record<FreshnessSLA, number> = {
-    "real-time": 1,
-    "per-release": 14,
-    "monthly": 30,
-    "quarterly": 90,
-  };
-
-  const isStale = daysSince > slaMaxDays[freshness_sla];
-  const effectiveStatus = isStale && status === "verified" ? "stale" : status;
-
-  switch (effectiveStatus) {
-    case "verified":
-      return { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200", label: "Verified" };
-    case "stale":
-      return { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200", label: "Stale" };
-    case "unverified":
-      return { bg: "bg-red-50", text: "text-red-700", border: "border-red-200", label: "Unverified" };
-    case "disputed":
-      return { bg: "bg-red-50", text: "text-red-700", border: "border-red-200", label: "Disputed" };
-  }
-}
 
 function StatusIcon({ status }: { status: "verified" | "stale" | "unverified" | "disputed" }) {
   switch (status) {
@@ -87,6 +42,7 @@ export default function DocsPage() {
       verified_by: "CTO",
       freshness_sla: "per-release",
       status: "verified",
+      supporting_links: [{ label: "Trust Center", href: "/trust" }],
     },
     {
       claim_id: "CLAIM-DOC-002",
@@ -97,6 +53,7 @@ export default function DocsPage() {
       verified_by: "VP Sales",
       freshness_sla: "per-release",
       status: "verified",
+      supporting_links: [{ label: "Sales Demo", href: "/sales-demo" }],
     },
     {
       claim_id: "CLAIM-DOC-003",
@@ -107,6 +64,7 @@ export default function DocsPage() {
       verified_by: "CTO",
       freshness_sla: "per-release",
       status: "verified",
+      supporting_links: [{ label: "Changelog", href: "/changelog" }],
     },
     {
       claim_id: "CLAIM-DOC-004",
@@ -127,8 +85,8 @@ export default function DocsPage() {
     { icon: Database, title: "Ontology Mapping", description: "Mapping clinical concepts to UMLS, OMOP CDM, SNOMED CT, ICD-10, and RxNorm with confidence scoring.", href: "/login?next=/vocabularies", evidenceArtifact: "backend/app/services/clinical_ontology_mapper.py", evidenceFreshness: "2026-02-15", owner: "Clinical Engineering", claim_id: "CLAIM-DOC-ONTO1", status: "verified", freshness_sla: "per-release", verified_by: "VP Engineering" },
     { icon: GitBranch, title: "Knowledge Graph", description: "Building and querying clinical knowledge graphs. Node types, edge semantics, and graph query patterns.", href: "/login?next=/clinical", evidenceArtifact: "backend/app/services/graph_builder_service.py", evidenceFreshness: "2026-02-14", owner: "Engineering", claim_id: "CLAIM-DOC-KG1", status: "verified", freshness_sla: "per-release", verified_by: "CTO" },
     { icon: FileText, title: "FHIR & Interoperability", description: "FHIR R4 import/export, resource mapping, and EHR integration.", href: "/login?next=/exports", evidenceArtifact: "backend/app/services/fhir_export_service.py", evidenceFreshness: "2026-02-14", owner: "Interop Engineering", claim_id: "CLAIM-DOC-FHIR1", status: "verified", freshness_sla: "per-release", verified_by: "VP Engineering" },
-    { icon: ShieldCheck, title: "Trust Center", description: "Evidence-backed pilot readiness and proof links.", href: "/trust", evidenceArtifact: "docs/operations/pre_pilot_signoff_matrix.md", evidenceFreshness: "2026-02-16", owner: "CTO Office", claim_id: "CLAIM-DOC-TRUST1", status: "verified", freshness_sla: "monthly", verified_by: "CTO" },
-    { icon: Play, title: "Sales Demo", description: "Clinical and interoperability walkthroughs for sales and partner demos.", href: "/sales-demo", evidenceArtifact: "frontend/src/app/sales-demo/page.tsx", evidenceFreshness: "2026-02-16", owner: "Sales Engineering", claim_id: "CLAIM-DOC-DEMO1", status: "verified", freshness_sla: "per-release", verified_by: "VP Sales" },
+    { icon: ShieldCheck, title: "Trust Center", description: "Evidence-backed pilot readiness and proof links.", href: "/trust", evidenceArtifact: "docs/operations/pre_pilot_signoff_matrix.md", evidenceFreshness: "2026-02-16", owner: "CTO Office", claim_id: "CLAIM-DOC-TRUST1", status: "verified", freshness_sla: "monthly", verified_by: "CTO", supportingLinks: [{ label: "Proof Center", href: "/proof" }] },
+    { icon: Play, title: "Sales Demo", description: "Clinical and interoperability walkthroughs for sales and partner demos.", href: "/sales-demo", evidenceArtifact: "frontend/src/app/sales-demo/page.tsx", evidenceFreshness: "2026-02-16", owner: "Sales Engineering", claim_id: "CLAIM-DOC-DEMO1", status: "verified", freshness_sla: "per-release", verified_by: "VP Sales", supportingLinks: [{ label: "Evidence Export", href: "/sales-demo" }] },
   ];
 
   return (
@@ -176,6 +134,15 @@ export default function DocsPage() {
                     <span className="text-[11px] text-neutral-400">
                       Verified by {item.verified_by} on {item.last_verified} | SLA: {item.freshness_sla}
                     </span>
+                    {item.supporting_links && item.supporting_links.length > 0 && (
+                      <div className="mt-0.5 flex items-center gap-2">
+                        {item.supporting_links.map((link) => (
+                          <a key={link.href} href={link.href} className="inline-flex items-center gap-1 text-[10px] text-blue-600 hover:text-blue-800 underline underline-offset-2">
+                            {link.label}
+                          </a>
+                        ))}
+                      </div>
+                    )}
                   </span>
                 </li>
               );
@@ -211,6 +178,15 @@ export default function DocsPage() {
                   <span className="mx-1.5">·</span>
                   SLA: {s.freshness_sla}
                 </p>
+                {s.supportingLinks && s.supportingLinks.length > 0 && (
+                  <div className="mt-1 flex items-center gap-2">
+                    {s.supportingLinks.map((link) => (
+                      <a key={link.href} href={link.href} className="inline-flex items-center gap-1 text-[10px] text-blue-600 hover:text-blue-800 underline underline-offset-2">
+                        {link.label}
+                      </a>
+                    ))}
+                  </div>
+                )}
               </Link>
             );
           })}
