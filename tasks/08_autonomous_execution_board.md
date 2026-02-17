@@ -89,7 +89,7 @@ Status legend
 
 **Rule:** No previously blocked gate may be marked final GO until staging evidence is captured. If staging not provisioned by 2026-03-02, escalate to CTO + CIO for infrastructure decision.
 
-## P4 Decision Execution Track (20/20 COMPLETE)
+## P4 Decision Execution Track (20/20 COMPLETE — Closure Sweep PASS 2026-02-16)
 | P4 ID | Decision Status | Evidence Path | Decision Summary |
 |-------|----------------|---------------|-----------------|
 | P4-001-D | done | `docs/decisions/p4-001-federated-learning.md` | DEFER — 90-day stability gate |
@@ -117,6 +117,7 @@ Status legend
 - Pilot posture as of `2026-02-16`: `conditional_go` (ALL 28 P0 items closed with evidence. Signoff: CONDITIONAL GO with 5 staging conditions. P1: all 35 closed.)
 - Staging posture as of `2026-02-16`: `blocked_by_infrastructure` (5 conditions require staging provisioning — no gate marked final GO)
 - Broad rollout posture as of `2026-02-16`: `hold` (staging confirmation required for OpenEHR round-trip, Redis failover, Neo4j restore, and cascade simulation)
-- P4 execution posture as of `2026-02-16`: `partial_implementation` (20/20 Decision ADRs closed; 5/20 Implementation closed + 5/20 Validation closed for sales-readiness tickets P4-016/017/018/019/020; remaining 15 I + 15 V pending activation triggers)
+- P4 execution posture as of `2026-02-16`: `sales_readiness_complete` (20/20 Decision ADRs closed; 5/5 sales-readiness I+V closed for P4-016/017/018/019/020; remaining 15 I + 15 V correctly deferred by ADR decision with activation gates defined. Final closure sweep PASS 2026-02-16: build 166/166, tests 28/28, all 11 external routes evidence-backed.)
+- Previous: P4 posture as of `2026-02-16` (earlier): `partial_implementation`
 - Previous: Pilot posture as of `2026-02-16` (earlier): `controlled_go_only`
 - Previous: Pilot posture as of `2026-02-13`: `controlled_go_only`

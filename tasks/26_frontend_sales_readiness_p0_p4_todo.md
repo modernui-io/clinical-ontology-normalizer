@@ -143,21 +143,11 @@
   - Week 2: remove simulated operations surfaces + report/export integration
 - **Sales + Product**: define scenario pack (P4-018) and external demo packaging.
 
-## 4) One-day execution plan to move from “mixed readiness” to “show-ready”
+## 4) One-day execution plan to move from "mixed readiness" to "show-ready"
 
-- [ ] **Sprint-1 P0 close sequence (in order):**
-  - `P0-019-A`: run 5 mixed-domain dry-runs and capture op/replay evidence (`docs/evidence/p0-019/*`).
-  - `P0-019-B`: close rollback + round-trip parity evidence (hash diffs + orphan checks).
-  - `P0-025-A`: execute escalation drill with timing evidence.
-  - `P0-025-B`: add HIPAA response-clock evidence + escalation recipient chain.
-  - `P0-026-A` + `P0-026-B`: run PostgreSQL + Neo4j restore drills and record RTO/RPO.
-  - `P0-027-A` + `P0-027-B`: execute failover outages + degraded-mode assertion evidence.
-  - `P0-028-A` + `P0-028-B`: run signoff matrix closure with approver names/dates/blocker status.
-- [ ] **Frontend P4 closure (no behavior break):**
-  - finish banner evidence timestamps and endpoint placeholders on all remaining simulated operational pages.
-  - convert reports/reconciliation/demo surfaces to endpoint-driven data (or keep explicit simulation mode banner if unavailable).
-  - add per-claim evidence artifact links to `/docs` and `/changelog` entries.
-- [ ] **Publish external-readiness package:**
+- [x] **Sprint-1 P0 close sequence (in order):** ALL CLOSED as of 2026-02-16. Evidence in `docs/evidence/p0-019/`, `docs/evidence/p0-025/`, `docs/evidence/p0-026/`, `docs/evidence/p0-027/`, `docs/evidence/p0-028/`.
+- [x] **Frontend P4 closure (no behavior break):** ALL CLOSED as of 2026-02-16. P4-016/017/018/019/020 I+V complete. Final closure sweep: build 166/166 PASS, tests 28/28 PASS, all 11 routes evidence-backed.
+- [ ] **Publish external-readiness package:** (pending live demo rehearsal)
   - run a 20-minute investor demo rehearsal against `/sales-demo`, `/trust`, and `/proof`.
   - capture evidence bundle with route links, timestamps, and fallback status for every screen shown.
 

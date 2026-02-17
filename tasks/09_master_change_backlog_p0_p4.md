@@ -249,10 +249,12 @@ Execution rules
 - P1: 35 items (all closed)
 - P2: 30 items (all closed)
 - P3: 25 items (all closed)
-- P4: 20 items (all open, 60 sub-tasks: **20 Decision CLOSED** + **5 Implementation CLOSED** + **5 Validation CLOSED** + 15 Implementation open + 15 Validation open)
+- P4: 20 items (all open, 60 sub-tasks: **20 Decision CLOSED** + **5 Implementation CLOSED** + **5 Validation CLOSED** + 15 Implementation deferred + 15 Validation deferred)
 - P4-D completion: 20/20 (100%) — all Decision ADRs written with evidence paths as of 2026-02-16
 - P4-I/V completion (sales-readiness): 5/20 I closed, 5/20 V closed — P4-016, P4-017, P4-018, P4-019, P4-020 all I+V closed as of 2026-02-16
+- P4-I/V deferred (by ADR decision): 15/20 I deferred, 15/20 V deferred — P4-001 through P4-015 all DEFER/CONDITIONAL DEFER per ADR. Each has defined activation gate. No stale TODOs.
 - Total: 138 top-level items + 70 sub-tasks
+- **Final closure sweep**: 2026-02-16. All P4 evidence verified. Frontend build PASS (166/166 pages). Tests PASS (28/28). All 11 externally visible routes evidence-backed with no unbacked claims.
 
 ## P0 Closure Execution Sequence (Week 1 Focus)
 

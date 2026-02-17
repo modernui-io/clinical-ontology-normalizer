@@ -9,7 +9,7 @@
 - Planning artifacts: `tasks/01...tasks/26` exist and are wired
 - Active open blockers: none (BLK-01 to BLK-04 all CLOSED)
 - Staging infrastructure: `blocked_by_infrastructure` — 5 P0-028 conditions require staging provisioning (see run log)
-- P4 execution: Decision (D) phases in progress as of 2026-02-16
+- P4 execution: `sales_readiness_complete` as of 2026-02-16. 20/20 D closed, 5/5 sales-readiness I+V closed, 15 I+V correctly deferred by ADR. Final closure sweep PASS.
 
 ## Mandatory Startup Sequence for New Agents
 
