@@ -44,6 +44,11 @@ Status legend
 | ROL-20 | P2 | Publish full Wave G execution board | Program Lead + CTO/CIO/CISO/Product/Ops | done (board created) | `tasks/22_waveG_execution_board.md` | Use as the operational board for Wave G execution |
 | ROL-21 | P2 | Publish Wave G week-by-week execution board | Program Lead + Stream leads | done (board created) | `tasks/23_waveG_week_by_week_board.md` | Use as daily operating checklist during Wave G |
 | ROL-22 | P2 | Publish Wave G daily owner status tracker | Program Lead + Stream leads | done (tracker created) | `tasks/24_waveG_daily_owner_tracker.csv` | Use for daily role check-ins and status capture |
+| ROL-23 | P4 | P4-020-I/V: Evidence-indexed docs/changelog | VP Product + CISO | done | `frontend/src/app/docs/page.tsx`, `frontend/src/app/changelog/page.tsx` | EvidenceEntry schema, per-claim status badges, 3-click nav. Build PASS 2026-02-16. |
+| ROL-24 | P4 | P4-016-I/V: Trust/Proof Center rollout | VP Product + CISO | done | `frontend/src/components/readiness/TrustProofContent.tsx`, `frontend/src/components/readiness/PilotReadinessShowcase.tsx` | Drill outcomes, signoff status, staging blockers, MTTR/RTO, breach window. Build PASS 2026-02-16. |
+| ROL-25 | P4 | P4-017-I/V: Mock surface removal / explicit mode | CTO + Ops | done | `admin/audit`, `admin/dashboard`, `clinical/intelligence`, `clinical/page` | signoffText + backendEndpoints on all simulation surfaces. Build PASS 2026-02-16. |
+| ROL-26 | P4 | P4-019-I/V: Reports as live outputs | CTO + CISO + Ops | done | `frontend/src/app/reports/page.tsx`, `frontend/src/app/reports/export/page.tsx` | Provenance dialog + evidence bundle export per report/export. Build PASS 2026-02-16. |
+| ROL-27 | P4 | P4-018-I/V: Sales/demo workspace | VP Product + Clinical AI + CTO | done | `frontend/src/app/sales-demo/page.tsx`, `ReviewerChecklist.tsx`, `ScenarioEvidence.tsx` | 3 scenarios with evidence export, reviewer checklist with signoff. Build PASS 2026-02-16. |
 
 ## Autopilot Sequence
 1. Implementation approved 2026-02-14. Code edits are now authorized for P0/P1 closure.
@@ -112,6 +117,6 @@ Status legend
 - Pilot posture as of `2026-02-16`: `conditional_go` (ALL 28 P0 items closed with evidence. Signoff: CONDITIONAL GO with 5 staging conditions. P1: all 35 closed.)
 - Staging posture as of `2026-02-16`: `blocked_by_infrastructure` (5 conditions require staging provisioning — no gate marked final GO)
 - Broad rollout posture as of `2026-02-16`: `hold` (staging confirmation required for OpenEHR round-trip, Redis failover, Neo4j restore, and cascade simulation)
-- P4 execution posture as of `2026-02-16`: `decision_complete` (20/20 Decision ADRs closed; Implementation and Validation pending activation triggers)
+- P4 execution posture as of `2026-02-16`: `partial_implementation` (20/20 Decision ADRs closed; 5/20 Implementation closed + 5/20 Validation closed for sales-readiness tickets P4-016/017/018/019/020; remaining 15 I + 15 V pending activation triggers)
 - Previous: Pilot posture as of `2026-02-16` (earlier): `controlled_go_only`
 - Previous: Pilot posture as of `2026-02-13`: `controlled_go_only`

@@ -1,8 +1,11 @@
+import Link from "next/link";
 import {
   CheckCircle,
   Clock,
   Database,
   FileCheck,
+  ArrowRight,
+  PlayCircle,
   ShieldAlert,
   Timer,
   Workflow,
@@ -71,6 +74,44 @@ const DRILL_RESULTS: DrillResult[] = [
   },
 ];
 
+const STAGING_BLOCKERS = [
+  "OpenEHR round-trip staging confirmation",
+  "Redis containerized failover simulation",
+  "Neo4j restore drill (staging-only)",
+  "Cascade failover simulation (all dependencies)",
+  "30-day post-pilot review date (scheduled)",
+];
+
+const SALES_SCENES = [
+  {
+    title: "Clinical safety walkthrough",
+    description:
+      "Confidence scoring, provenance links, and safe decline path for unsafe assertions.",
+    href: "/clinical/intelligence",
+    evidence: "P0-019 + clinical safety controls",
+    state: "ready",
+    stateLabel: "Production-ready logic",
+  },
+  {
+    title: "Interop + OpenEHR replay",
+    description:
+      "End-to-end import, reconcile, and rollback with audit evidence.",
+    href: "/pipelines/openehr",
+    evidence: "P0-019 evidence and operations runbook",
+    state: "ready",
+    stateLabel: "Demo-ready",
+  },
+  {
+    title: "Ops + resiliency proof",
+    description:
+      "Escalation drills, restore/failover metrics, and conditional-go posture.",
+    href: "/pipelines/openehr/operations",
+    evidence: "P0-025 / P0-026 / P0-027 records",
+    state: "conditional",
+    stateLabel: "Conditional GO",
+  },
+];
+
 const P0_COUNTS = {
   total: 28,
   closed: 28,
@@ -96,12 +137,16 @@ function formatTimestamp(iso: string): string {
 export default function PilotReadinessShowcase() {
   return (
     <section className="rounded-xl border border-slate-200 p-5 mt-4">
-      <div className="mb-5 flex items-center gap-2">
+      <div className="mb-3 flex items-center gap-2">
         <ShieldAlert className="h-4.5 w-4.5 text-slate-600" />
         <h2 className="text-lg font-semibold text-slate-900">
           Sprint-1 Operational Drill Results
         </h2>
       </div>
+      <p className="mb-5 inline-flex items-center gap-1.5 rounded-md border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-medium text-amber-700">
+        <Clock className="h-3 w-3" />
+        Simulation fallback — data captured 2026-02-16T17:00:00Z
+      </p>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
         <div className="rounded-lg border border-emerald-200 bg-emerald-50/70 p-3">
@@ -144,6 +189,65 @@ export default function PilotReadinessShowcase() {
           </div>
           <p className="text-xl font-semibold text-slate-800">Zero</p>
         </div>
+      </div>
+
+      <div className="rounded-lg border border-slate-200 bg-white p-4 mb-5">
+        <div className="flex items-center gap-2 mb-3">
+          <PlayCircle className="h-4 w-4 text-slate-700" />
+          <h3 className="text-sm font-semibold text-slate-900">
+            External demo lanes (for sales)
+          </h3>
+        </div>
+        <p className="text-xs text-slate-600 mb-3">
+          Concrete product paths to show during meetings. Each card maps to an evidence
+          anchor and an operational gate.
+        </p>
+        <div className="grid sm:grid-cols-3 gap-2">
+          {SALES_SCENES.map((scenario) => (
+            <article
+              key={scenario.title}
+              className="rounded-lg border border-slate-200 bg-slate-50 p-3"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <h4 className="text-xs font-medium text-slate-900">
+                  {scenario.title}
+                </h4>
+                <span
+                  className={`inline-flex rounded-full px-2 py-0.5 text-[10px] border ${
+                    scenario.state === "ready"
+                      ? "border-emerald-200 text-emerald-700 bg-emerald-50"
+                      : "border-amber-200 text-amber-700 bg-amber-50"
+                  }`}
+                >
+                  {scenario.stateLabel}
+                </span>
+              </div>
+              <p className="mt-2 text-xs text-slate-600">{scenario.description}</p>
+              <p className="mt-2 text-[11px] text-slate-500">Evidence: {scenario.evidence}</p>
+              <Link
+                href={scenario.href}
+                className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-900"
+              >
+                Open scenario
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </article>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-amber-200 bg-amber-50/60 p-4 mb-5">
+        <div className="flex items-center gap-2 mb-2">
+          <ShieldAlert className="h-4 w-4 text-amber-700" />
+          <h3 className="text-sm font-semibold text-amber-900">
+            Staging Blockers — Full GO holdouts (staging dependency required)
+          </h3>
+        </div>
+        <ul className="list-disc pl-5 text-sm text-amber-800 space-y-1">
+          {STAGING_BLOCKERS.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
       </div>
 
       <div className="space-y-2">

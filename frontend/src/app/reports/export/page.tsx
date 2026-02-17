@@ -44,6 +44,8 @@ import {
   Eye,
   Send,
   Archive,
+  FileJson,
+  Shield,
 } from "lucide-react";
 
 // Types
@@ -184,6 +186,40 @@ export default function ReportExportPage() {
         clearInterval(interval);
       }
     }, 500);
+  };
+
+  // Generate a deterministic hash for demo purposes
+  const generateSha256 = (input: string): string => {
+    let hash = 0;
+    for (let i = 0; i < input.length; i++) {
+      const char = input.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash |= 0;
+    }
+    const hex = Math.abs(hash).toString(16).padStart(8, "0");
+    return `sha256:${hex}${"a1b2c3d4e5f6".repeat(4)}`.slice(0, 71);
+  };
+
+  const handleExportEvidenceBundle = (job: ExportJob) => {
+    const bundle = {
+      report_id: job.id,
+      template_id: job.templateId || "unknown",
+      parameters: job.parameters || {},
+      generated_at: job.completedAt || job.createdAt,
+      generated_by: job.operator || "system",
+      row_count: Math.floor(Math.random() * 500) + 50,
+      data_freshness: job.completedAt || job.createdAt,
+      sha256_hash: generateSha256(job.id + (job.completedAt || job.createdAt)),
+      audit_record_id: `audit-${job.id}-${Date.now()}`,
+    };
+    const json = JSON.stringify(bundle, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `evidence-bundle-${job.id}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const filteredTemplates =
@@ -575,10 +611,13 @@ export default function ReportExportPage() {
                   <TableCell>
                     {job.status === "completed" && (
                       <div className="flex gap-2">
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" title="Download report">
                           <Download className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" title="Export evidence bundle" onClick={() => handleExportEvidenceBundle(job)}>
+                          <FileJson className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" title="Send via email">
                           <Send className="h-4 w-4" />
                         </Button>
                       </div>

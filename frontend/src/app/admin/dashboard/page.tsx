@@ -405,6 +405,8 @@ export default function AdminDashboardPage() {
         description="Service health and metadata are loaded from /api/dashboard/admin (live). Request volume and CPU/memory gauges are simulated until a streaming metrics endpoint is wired."
         evidencePath="frontend/src/app/admin/dashboard/page.tsx"
         lastUpdatedAt="2026-02-16"
+        signoffText="Simulation only — resource gauges and request volumes are seeded demonstration data. Connect to metrics API for live telemetry."
+        backendEndpoints={["/api/v1/health", "/api/v1/metrics"]}
       />
 
       {/* Service Health Status Cards */}

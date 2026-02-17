@@ -1,13 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { Brain, FileText, Code, Zap, Database, GitBranch, ArrowRight, ShieldCheck, Play } from "lucide-react";
+import { Brain, FileText, Code, Zap, Database, GitBranch, ArrowRight, ShieldCheck, Play, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
 
-type EvidenceClaim = {
-  claim: string;
-  artifact: string;
-  updated: string;
-};
+type EvidenceStatus = "verified" | "stale" | "unverified" | "disputed";
+type FreshnessSLA = "quarterly" | "monthly" | "per-release" | "real-time";
+type EvidenceCategory = "security" | "clinical" | "operational" | "interop" | "product";
+
+interface EvidenceEntry {
+  claim_id: string;
+  claim_text: string;
+  category: EvidenceCategory;
+  evidence_paths: string[];
+  last_verified: string;
+  verified_by: string;
+  freshness_sla: FreshnessSLA;
+  status: EvidenceStatus;
+}
 
 type DocSection = {
   icon: React.ComponentType<{ className?: string }>;
@@ -16,41 +25,110 @@ type DocSection = {
   href: string;
   evidenceArtifact: string;
   evidenceFreshness: string;
+  owner: string;
+  claim_id: string;
+  status: EvidenceStatus;
+  freshness_sla: FreshnessSLA;
+  verified_by: string;
 };
 
+function getEvidenceStatusColor(
+  status: EvidenceStatus,
+  freshness_sla: FreshnessSLA,
+  last_verified: string
+): { bg: string; text: string; border: string; label: string } {
+  // Check if stale based on SLA
+  const now = new Date("2026-02-16");
+  const verified = new Date(last_verified);
+  const daysSince = Math.floor((now.getTime() - verified.getTime()) / (1000 * 60 * 60 * 24));
+
+  const slaMaxDays: Record<FreshnessSLA, number> = {
+    "real-time": 1,
+    "per-release": 14,
+    "monthly": 30,
+    "quarterly": 90,
+  };
+
+  const isStale = daysSince > slaMaxDays[freshness_sla];
+  const effectiveStatus = isStale && status === "verified" ? "stale" : status;
+
+  switch (effectiveStatus) {
+    case "verified":
+      return { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200", label: "Verified" };
+    case "stale":
+      return { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200", label: "Stale" };
+    case "unverified":
+      return { bg: "bg-red-50", text: "text-red-700", border: "border-red-200", label: "Unverified" };
+    case "disputed":
+      return { bg: "bg-red-50", text: "text-red-700", border: "border-red-200", label: "Disputed" };
+  }
+}
+
+function StatusIcon({ status }: { status: "verified" | "stale" | "unverified" | "disputed" }) {
+  switch (status) {
+    case "verified":
+      return <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />;
+    case "stale":
+      return <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />;
+    case "unverified":
+    case "disputed":
+      return <XCircle className="h-3.5 w-3.5 text-red-600" />;
+  }
+}
+
 export default function DocsPage() {
-  const evidenceClaims: EvidenceClaim[] = [
+  const evidenceClaims: EvidenceEntry[] = [
     {
-      claim: "Trust/Readiness claim routing",
-      artifact: "frontend/src/app/docs/page.tsx → /trust",
-      updated: "2026-02-16",
+      claim_id: "CLAIM-DOC-001",
+      claim_text: "Trust/Readiness claim routing",
+      category: "product",
+      evidence_paths: ["frontend/src/app/docs/page.tsx", "frontend/src/app/trust/page.tsx"],
+      last_verified: "2026-02-16",
+      verified_by: "CTO",
+      freshness_sla: "per-release",
+      status: "verified",
     },
     {
-      claim: "Sales demo discoverability",
-      artifact: "frontend/src/app/sales-demo/page.tsx",
-      updated: "2026-02-16",
+      claim_id: "CLAIM-DOC-002",
+      claim_text: "Sales demo discoverability",
+      category: "product",
+      evidence_paths: ["frontend/src/app/sales-demo/page.tsx"],
+      last_verified: "2026-02-16",
+      verified_by: "VP Sales",
+      freshness_sla: "per-release",
+      status: "verified",
     },
     {
-      claim: "Operational docs + changelog anchors",
-      artifact: "frontend/src/app/changelog/page.tsx",
-      updated: "2026-02-16",
+      claim_id: "CLAIM-DOC-003",
+      claim_text: "Operational docs + changelog anchors",
+      category: "operational",
+      evidence_paths: ["frontend/src/app/changelog/page.tsx"],
+      last_verified: "2026-02-16",
+      verified_by: "CTO",
+      freshness_sla: "per-release",
+      status: "verified",
     },
     {
-      claim: "Per-section evidence artifact coverage",
-      artifact: "tasks/26_frontend_sales_readiness_p0_p4_todo.md (P4-020)",
-      updated: "2026-02-16",
+      claim_id: "CLAIM-DOC-004",
+      claim_text: "Per-section evidence artifact coverage",
+      category: "operational",
+      evidence_paths: ["tasks/26_frontend_sales_readiness_p0_p4_todo.md"],
+      last_verified: "2026-02-16",
+      verified_by: "CTO",
+      freshness_sla: "monthly",
+      status: "verified",
     },
   ];
 
   const sections: DocSection[] = [
-    { icon: Zap, title: "Quickstart", description: "Ingest your first document, extract concepts, and query the knowledge graph.", href: "/login?next=/dashboard", evidenceArtifact: "backend/app/api/documents.py", evidenceFreshness: "2026-02-14" },
-    { icon: Code, title: "API Reference", description: "REST API documentation with authentication guides and rate limit details.", href: "/login?next=/dashboard", evidenceArtifact: "backend/app/main.py (OpenAPI spec)", evidenceFreshness: "2026-02-16" },
-    { icon: FileText, title: "NLP Pipeline", description: "Extraction engine — rule-based patterns, ML models, assertion detection, and negation handling.", href: "/login?next=/nlp", evidenceArtifact: "backend/app/services/narrative_extractor.py", evidenceFreshness: "2026-02-15" },
-    { icon: Database, title: "Ontology Mapping", description: "Mapping clinical concepts to UMLS, OMOP CDM, SNOMED CT, ICD-10, and RxNorm with confidence scoring.", href: "/login?next=/vocabularies", evidenceArtifact: "backend/app/services/clinical_ontology_mapper.py", evidenceFreshness: "2026-02-15" },
-    { icon: GitBranch, title: "Knowledge Graph", description: "Building and querying clinical knowledge graphs. Node types, edge semantics, and graph query patterns.", href: "/login?next=/clinical", evidenceArtifact: "backend/app/services/graph_builder_service.py", evidenceFreshness: "2026-02-14" },
-    { icon: FileText, title: "FHIR & Interoperability", description: "FHIR R4 import/export, resource mapping, and EHR integration.", href: "/login?next=/exports", evidenceArtifact: "backend/app/services/fhir_export_service.py", evidenceFreshness: "2026-02-14" },
-    { icon: ShieldCheck, title: "Trust Center", description: "Evidence-backed pilot readiness and proof links.", href: "/trust", evidenceArtifact: "docs/operations/pre_pilot_signoff_matrix.md", evidenceFreshness: "2026-02-16" },
-    { icon: Play, title: "Sales Demo", description: "Clinical and interoperability walkthroughs for sales and partner demos.", href: "/sales-demo", evidenceArtifact: "frontend/src/app/sales-demo/page.tsx", evidenceFreshness: "2026-02-16" },
+    { icon: Zap, title: "Quickstart", description: "Ingest your first document, extract concepts, and query the knowledge graph.", href: "/login?next=/dashboard", evidenceArtifact: "backend/app/api/documents.py", evidenceFreshness: "2026-02-14", owner: "Engineering", claim_id: "CLAIM-DOC-QS1", status: "verified", freshness_sla: "per-release", verified_by: "CTO" },
+    { icon: Code, title: "API Reference", description: "REST API documentation with authentication guides and rate limit details.", href: "/login?next=/dashboard", evidenceArtifact: "backend/app/main.py (OpenAPI spec)", evidenceFreshness: "2026-02-16", owner: "Engineering", claim_id: "CLAIM-DOC-API1", status: "verified", freshness_sla: "per-release", verified_by: "CTO" },
+    { icon: FileText, title: "NLP Pipeline", description: "Extraction engine — rule-based patterns, ML models, assertion detection, and negation handling.", href: "/login?next=/nlp", evidenceArtifact: "backend/app/services/narrative_extractor.py", evidenceFreshness: "2026-02-15", owner: "ML Engineering", claim_id: "CLAIM-DOC-NLP1", status: "verified", freshness_sla: "per-release", verified_by: "VP Engineering" },
+    { icon: Database, title: "Ontology Mapping", description: "Mapping clinical concepts to UMLS, OMOP CDM, SNOMED CT, ICD-10, and RxNorm with confidence scoring.", href: "/login?next=/vocabularies", evidenceArtifact: "backend/app/services/clinical_ontology_mapper.py", evidenceFreshness: "2026-02-15", owner: "Clinical Engineering", claim_id: "CLAIM-DOC-ONTO1", status: "verified", freshness_sla: "per-release", verified_by: "VP Engineering" },
+    { icon: GitBranch, title: "Knowledge Graph", description: "Building and querying clinical knowledge graphs. Node types, edge semantics, and graph query patterns.", href: "/login?next=/clinical", evidenceArtifact: "backend/app/services/graph_builder_service.py", evidenceFreshness: "2026-02-14", owner: "Engineering", claim_id: "CLAIM-DOC-KG1", status: "verified", freshness_sla: "per-release", verified_by: "CTO" },
+    { icon: FileText, title: "FHIR & Interoperability", description: "FHIR R4 import/export, resource mapping, and EHR integration.", href: "/login?next=/exports", evidenceArtifact: "backend/app/services/fhir_export_service.py", evidenceFreshness: "2026-02-14", owner: "Interop Engineering", claim_id: "CLAIM-DOC-FHIR1", status: "verified", freshness_sla: "per-release", verified_by: "VP Engineering" },
+    { icon: ShieldCheck, title: "Trust Center", description: "Evidence-backed pilot readiness and proof links.", href: "/trust", evidenceArtifact: "docs/operations/pre_pilot_signoff_matrix.md", evidenceFreshness: "2026-02-16", owner: "CTO Office", claim_id: "CLAIM-DOC-TRUST1", status: "verified", freshness_sla: "monthly", verified_by: "CTO" },
+    { icon: Play, title: "Sales Demo", description: "Clinical and interoperability walkthroughs for sales and partner demos.", href: "/sales-demo", evidenceArtifact: "frontend/src/app/sales-demo/page.tsx", evidenceFreshness: "2026-02-16", owner: "Sales Engineering", claim_id: "CLAIM-DOC-DEMO1", status: "verified", freshness_sla: "per-release", verified_by: "VP Sales" },
   ];
 
   return (
@@ -77,39 +155,65 @@ export default function DocsPage() {
           <h2 className="text-sm font-semibold text-neutral-900 uppercase tracking-[0.08em] mb-3">
             Evidence index
           </h2>
-          <ul className="space-y-2 text-[13px] text-neutral-600">
-            {evidenceClaims.map((item) => (
-              <li key={item.claim} className="flex items-start gap-2">
-                <span className="text-neutral-300 mt-1">&#8226;</span>
-                <span>
-                  <span className="font-medium text-neutral-900">{item.claim}</span>
-                  <span className="ml-2 text-neutral-400">•</span>
-                  <span className="font-mono text-[12px]">{item.artifact}</span>
-                  <span className="ml-2 text-neutral-400">Updated {item.updated}</span>
-                </span>
-              </li>
-            ))}
+          <ul className="space-y-3 text-[13px] text-neutral-600">
+            {evidenceClaims.map((item) => {
+              const color = getEvidenceStatusColor(item.status, item.freshness_sla, item.last_verified);
+              return (
+                <li key={item.claim_id} className="flex items-start gap-2">
+                  <StatusIcon status={color.label.toLowerCase() as EvidenceStatus} />
+                  <span className="flex-1">
+                    <span className="font-mono text-[11px] text-neutral-400">{item.claim_id}</span>
+                    <span className="ml-2 font-medium text-neutral-900">{item.claim_text}</span>
+                    <span className={`ml-2 inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${color.bg} ${color.text} ${color.border}`}>
+                      {color.label}
+                    </span>
+                    <span className="ml-2 text-[11px] text-neutral-400">{item.category}</span>
+                    <div className="mt-0.5">
+                      {item.evidence_paths.map((path) => (
+                        <span key={path} className="block font-mono text-[11px] text-neutral-500">{path}</span>
+                      ))}
+                    </div>
+                    <span className="text-[11px] text-neutral-400">
+                      Verified by {item.verified_by} on {item.last_verified} | SLA: {item.freshness_sla}
+                    </span>
+                  </span>
+                </li>
+              );
+            })}
           </ul>
         </section>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {sections.map((s) => (
-            <Link key={s.title} href={s.href} className="group p-6 rounded-xl border border-neutral-200/80 hover:border-neutral-300 hover:shadow-[0_2px_12px_rgba(0,0,0,0.04)] transition-all">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="h-9 w-9 rounded-lg bg-neutral-100 flex items-center justify-center">
-                  <s.icon className="h-4.5 w-4.5 text-neutral-600" />
+          {sections.map((s) => {
+            const color = getEvidenceStatusColor(s.status, s.freshness_sla, s.evidenceFreshness);
+            return (
+              <Link key={s.title} href={s.href} className="group p-6 rounded-xl border border-neutral-200/80 hover:border-neutral-300 hover:shadow-[0_2px_12px_rgba(0,0,0,0.04)] transition-all">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="h-9 w-9 rounded-lg bg-neutral-100 flex items-center justify-center">
+                    <s.icon className="h-4.5 w-4.5 text-neutral-600" />
+                  </div>
+                  <h3 className="text-[15px] font-semibold text-neutral-900">{s.title}</h3>
+                  <ArrowRight className="h-3.5 w-3.5 text-neutral-300 group-hover:text-neutral-600 ml-auto transition-colors" />
                 </div>
-                <h3 className="text-[15px] font-semibold text-neutral-900">{s.title}</h3>
-                <ArrowRight className="h-3.5 w-3.5 text-neutral-300 group-hover:text-neutral-600 ml-auto transition-colors" />
-              </div>
-              <p className="text-[14px] text-neutral-500 leading-relaxed">{s.description}</p>
-              <p className="mt-2 text-[11px] text-neutral-400">
-                Artifact: <span className="font-mono">{s.evidenceArtifact}</span>
-                <span className="mx-1.5">·</span>
-                Updated {s.evidenceFreshness}
-              </p>
-            </Link>
-          ))}
+                <p className="text-[14px] text-neutral-500 leading-relaxed">{s.description}</p>
+                <div className="mt-2 flex items-center gap-1.5">
+                  <StatusIcon status={color.label.toLowerCase() as EvidenceStatus} />
+                  <span className={`inline-flex rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${color.bg} ${color.text} ${color.border}`}>
+                    {color.label}
+                  </span>
+                  <span className="text-[11px] text-neutral-400">{s.owner}</span>
+                  <span className="text-[11px] text-neutral-400 ml-auto">{s.verified_by}</span>
+                </div>
+                <p className="mt-1 text-[11px] text-neutral-400">
+                  <span className="font-mono">{s.evidenceArtifact}</span>
+                  <span className="mx-1.5">·</span>
+                  Updated {s.evidenceFreshness}
+                  <span className="mx-1.5">·</span>
+                  SLA: {s.freshness_sla}
+                </p>
+              </Link>
+            );
+          })}
         </div>
       </main>
     </div>

@@ -43,6 +43,7 @@ import {
   isDegraded,
   type DegradedState,
 } from "@/components/DegradedBanner";
+import DataSourceModeBanner from "@/components/readiness/DataSourceModeBanner";
 import { RefusalCard } from "@/components/RefusalCard";
 import {
   ChartCoverageSummary,
@@ -628,6 +629,24 @@ export default function ClinicalDashboardPage() {
       ) : degradedState ? (
         <DegradedBanner state={degradedState} />
       ) : null}
+
+      <DataSourceModeBanner
+        mode={error ? "simulation" : "live"}
+        title="Clinical decision support data source"
+        description={
+          error
+            ? "Backend API is unavailable. Clinical alerts, HCC opportunities, and quality gaps cannot be loaded. Retry or check backend connectivity."
+            : "Connected to live backend. Drug alerts, HCC gaps, quality measures, and clinical calculator data are served from production endpoints."
+        }
+        evidencePath="docs/decisions/p4-017-mock-surface-removal.md"
+        lastUpdatedAt="2026-02-16"
+        signoffText={
+          error
+            ? "Simulation only — clinical data could not be loaded from production APIs. No live data is displayed."
+            : undefined
+        }
+        backendEndpoints={["/api/dashboard/provider", "/api/dashboard/biller", "/api/v1/kg/completeness/score"]}
+      />
 
       {/* P2-008: Chart Coverage Summary */}
       <ChartCoverageSummary data={chartCoverage} isLoading={isLoading} />

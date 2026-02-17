@@ -809,25 +809,21 @@ export default function ClinicalIntelligencePage() {
 
       {/* Source mode banner */}
       <DataSourceModeBanner
-        mode={demoMode ? "simulation" : "live"}
-        title="Clinical Intelligence data source"
+        mode={demoMode ? "simulation" : "mixed"}
+        title="Clinical intelligence data source"
         description={
           demoMode
             ? "Backend API is unavailable. All graph data, Q&A responses, and import results shown on this page are client-side simulations. No actions on this page write to the backend."
-            : "Connected to live backend. Import, graph, and Q&A operations are writing to and reading from production endpoints."
+            : "Knowledge graph visualization uses live API when connected. Falls back to demonstration graph view when clinical agent API is unavailable."
         }
-        evidencePath="tasks/09_master_change_backlog_p0_p4.md"
+        evidencePath="docs/decisions/p4-017-mock-surface-removal.md"
         lastUpdatedAt="2026-02-16"
         signoffText={
           demoMode
-            ? "Simulation only — user actions on this page do not persist to any backend store."
-            : undefined
+            ? "Graph display is demonstration-only when API returns non-200. Query actions are blocked in simulation mode."
+            : "Graph display is demonstration-only when API returns non-200. Query actions are blocked in simulation mode."
         }
-        backendEndpoints={[
-          "/api/clinical-agent/import",
-          "/api/clinical-agent/graph/{patient_id}",
-          "/api/clinical-agent/query/{patient_id}",
-        ]}
+        backendEndpoints={["/api/v1/clinical/query", "/api/v1/clinical/graph"]}
       />
 
       {/* Main Tabs */}

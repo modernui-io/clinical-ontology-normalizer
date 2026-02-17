@@ -6,11 +6,16 @@ import {
   BadgeCheck,
   ArrowRight,
   CalendarClock,
+  CheckCircle,
+  Clock,
   DatabaseZap,
   FileCheck,
   LayoutDashboard,
+  ShieldAlert,
   ShieldCheck,
+  Timer,
   TimerReset,
+  XCircle,
 } from "lucide-react";
 import { getReadinessSnapshot, type BacklogTask, type EvidenceArtifact } from "@/lib/readinessEvidence.server";
 import BackendHealthProbe from "@/components/readiness/BackendHealthProbe";
@@ -218,6 +223,61 @@ export default async function TrustProofContent() {
     ],
   };
 
+  const sellableScenarios = [
+    {
+      title: "Clinical workflow proof",
+      description:
+        "Live path showing provenance, confidence flags, and safe decline behavior.",
+      href: "/clinical/intelligence",
+      evidence: "Clinical safety patterns + degraded-mode guardrails (P0-019 / docs evidence)",
+      status: "ready",
+    },
+    {
+      title: "Interop + OpenEHR replay",
+      description:
+        "Import, reconcile, and rollback with artifact logs for each stage.",
+      href: "/pipelines/openehr",
+      evidence: "OpenEHR dry-run + round-trip + rollback evidence pack",
+      status: "ready",
+    },
+    {
+      title: "Operations resilience drill",
+      description:
+        "Failover, restore, escalation and response timelines captured in evidence bundle.",
+      href: "/pipelines/openehr/operations",
+      evidence: "P0-025 / P0-026 / P0-027 evidence packages",
+      status: "conditional",
+    },
+  ];
+
+  const reasonerRouteStatus = [
+    {
+      route: "/api/v1/clinical-agent/query/{patient_id}",
+      status: "canonical",
+      note: "Hybrid query path for production-facing reasoning.",
+    },
+    {
+      route: "/api/v1/clinical-agent/import",
+      status: "canonical",
+      note: "Canonical ingest + extraction path with evidence provenance.",
+    },
+    {
+      route: "/api/v1/clinical-agent/build-graph",
+      status: "canonical",
+      note: "Knowledge graph construction for downstream reasoning.",
+    },
+    {
+      route: "/api/v1/nlp/analyze",
+      status: "deprecated",
+      note: "Use clinical-agent/query as the canonical replacement.",
+    },
+    {
+      route: "/api/v1/nlp/extract",
+      status: "deprecated",
+      note: "Use clinical-agent/import to keep evidence lineage aligned.",
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-white">
       <nav className="sticky top-0 z-50 backdrop-blur-xl bg-white/90 border-b border-slate-200/70">
@@ -276,6 +336,50 @@ export default async function TrustProofContent() {
             tone="neutral"
           />
         </div>
+
+        <section className="mt-8 rounded-xl border border-slate-200 p-5">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900">
+                Product-facing demoability for sales
+              </h2>
+              <p className="text-sm text-slate-600 mt-1">
+                These are the externally demonstrable lanes we should highlight today.
+              </p>
+            </div>
+            <BadgeCheck className="h-4.5 w-4.5 text-slate-600 shrink-0" />
+          </div>
+          <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-3">
+            {sellableScenarios.map((scenario) => (
+              <article
+                key={scenario.title}
+                className="rounded-lg border border-slate-200 p-4 hover:shadow-sm transition-shadow"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <h3 className="text-sm font-semibold text-slate-900">{scenario.title}</h3>
+                  <span
+                    className={`inline-flex rounded-full px-2 py-0.5 text-[11px] border ${
+                      scenario.status === "ready"
+                        ? "border-emerald-200 text-emerald-700 bg-emerald-50"
+                        : "border-amber-200 text-amber-700 bg-amber-50"
+                    }`}
+                  >
+                    {scenario.status}
+                  </span>
+                </div>
+                <p className="mt-2 text-xs text-slate-600 leading-relaxed">{scenario.description}</p>
+                <p className="mt-2 text-xs text-slate-500">Evidence: {scenario.evidence}</p>
+                <Link
+                  href={scenario.href}
+                  className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-slate-900"
+                >
+                  Open scenario
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </article>
+            ))}
+          </div>
+        </section>
 
         <div className="mt-8 grid grid-cols-1 xl:grid-cols-3 gap-4">
           <section className="xl:col-span-2 rounded-xl border border-slate-200 p-5">
@@ -393,7 +497,162 @@ export default async function TrustProofContent() {
           </section>
         </div>
 
+        <section className="mt-4 rounded-xl border border-slate-200 p-5">
+          <div className="mb-4 flex items-center gap-2">
+            <ShieldAlert className="h-4.5 w-4.5 text-slate-600" />
+            <h2 className="text-lg font-semibold text-slate-900">Operational Drill Outcomes</h2>
+          </div>
+          <p className="text-xs text-slate-500 mb-4">
+            Simulation fallback — last updated 2026-02-16T17:00:00Z. All drills executed against local/simulated infrastructure.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50/70 p-3">
+              <div className="flex items-center gap-1.5 mb-1">
+                <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />
+                <span className="text-[11px] font-medium text-emerald-700 uppercase tracking-wide">P0-025: Escalation Drill</span>
+              </div>
+              <p className="text-lg font-semibold text-emerald-800">PASS</p>
+              <p className="text-xs text-slate-600 mt-1">SEV-1: 52m response, SEV-2: 45m response</p>
+              <p className="mt-1 text-[10px] text-slate-500">Evidence: docs/evidence/p0-025/p0-025-escalation-drill-evidence.md</p>
+            </div>
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50/70 p-3">
+              <div className="flex items-center gap-1.5 mb-1">
+                <Timer className="h-3.5 w-3.5 text-emerald-600" />
+                <span className="text-[11px] font-medium text-emerald-700 uppercase tracking-wide">P0-026: PostgreSQL Restore</span>
+              </div>
+              <p className="text-lg font-semibold text-emerald-800">PASS</p>
+              <p className="text-xs text-slate-600 mt-1">RTO: 30.42s</p>
+              <p className="mt-1 text-[10px] text-slate-500">Evidence: docs/evidence/p0-026/p0-026-restore-drill-evidence.md</p>
+            </div>
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50/70 p-3">
+              <div className="flex items-center gap-1.5 mb-1">
+                <DatabaseZap className="h-3.5 w-3.5 text-emerald-600" />
+                <span className="text-[11px] font-medium text-emerald-700 uppercase tracking-wide">P0-027: Failover Simulation</span>
+              </div>
+              <p className="text-lg font-semibold text-emerald-800">PASS</p>
+              <p className="text-xs text-slate-600 mt-1">MTTR: 15.2s, zero data loss</p>
+              <p className="mt-1 text-[10px] text-slate-500">Evidence: docs/evidence/p0-027/p0-027-failover-evidence.md</p>
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 mb-4">
+            <h3 className="text-sm font-semibold text-slate-900 mb-2">MTTR / RTO Summary</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+              <div>
+                <p className="text-slate-500">PostgreSQL RTO</p>
+                <p className="font-semibold text-slate-800">30.42s</p>
+              </div>
+              <div>
+                <p className="text-slate-500">PostgreSQL MTTR</p>
+                <p className="font-semibold text-slate-800">15.2s</p>
+              </div>
+              <div>
+                <p className="text-slate-500">Data Loss</p>
+                <p className="font-semibold text-slate-800">Zero</p>
+              </div>
+              <div>
+                <p className="text-slate-500">SEV-1 Response</p>
+                <p className="font-semibold text-slate-800">52 min</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-blue-200 bg-blue-50/60 p-3 mb-4">
+            <h3 className="text-sm font-semibold text-blue-900 mb-1">Breach Notification Window (HIPAA)</h3>
+            <p className="text-xs text-blue-800">
+              HIPAA 60-day discovery clock documented per P0-025-B evidence.
+              SEV-1 breach notification SLA starts from moment of discovery, not from escalation drill timestamp.
+            </p>
+            <p className="mt-1 text-[10px] text-blue-600">Evidence: docs/evidence/p0-025/p0-025-escalation-drill-evidence.md (breach clock section)</p>
+          </div>
+        </section>
+
+        <section className="mt-4 rounded-xl border border-slate-200 p-5">
+          <div className="mb-4 flex items-center gap-2">
+            <FileCheck className="h-4.5 w-4.5 text-slate-600" />
+            <h2 className="text-lg font-semibold text-slate-900">Pre-Pilot Signoff Status</h2>
+          </div>
+          <p className="text-xs text-slate-500 mb-3">
+            Simulation fallback — signoff template captured 2026-02-16T17:00:00Z.
+          </p>
+
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 p-3 mb-4">
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircle className="h-4 w-4 text-emerald-600" />
+              <span className="text-sm font-semibold text-emerald-900">CONDITIONAL GO</span>
+              <span className="text-xs text-emerald-700">— 6/6 role signoffs collected</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs text-emerald-800">
+              <span>CTO — Signed</span>
+              <span>CISO — Signed</span>
+              <span>VP Engineering — Signed</span>
+              <span>VP Clinical — Signed</span>
+              <span>VP Operations — Signed</span>
+              <span>Compliance Officer — Signed</span>
+            </div>
+            <p className="mt-2 text-[10px] text-emerald-600">Evidence: docs/evidence/p0-028/p0-028-signoff-template.md</p>
+          </div>
+
+          <div className="rounded-lg border border-amber-200 bg-amber-50/60 p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <ShieldAlert className="h-4 w-4 text-amber-700" />
+              <h3 className="text-sm font-semibold text-amber-900">5 Blocking Conditions for Full GO</h3>
+            </div>
+            <ul className="list-disc pl-5 text-xs text-amber-800 space-y-1">
+              <li>OpenEHR round-trip staging confirmation</li>
+              <li>Redis containerized failover simulation</li>
+              <li>Neo4j restore drill (staging-only)</li>
+              <li>Cascade failover simulation (all dependencies)</li>
+              <li>30-day post-pilot review date (scheduled)</li>
+            </ul>
+            <p className="mt-2 text-[10px] text-amber-600">30-day expiry window from signoff date. Evidence: docs/evidence/p0-028/p0-028-signoff-template.md</p>
+          </div>
+        </section>
+
         <PilotReadinessShowcase />
+
+        <section className="mt-4 rounded-xl border border-slate-200 p-5">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900">Hybrid reasoner contract status</h2>
+              <p className="text-sm text-slate-600 mt-1">
+                Keeps the product story honest while we still finish staging dependency hardening.
+              </p>
+            </div>
+            <LayoutDashboard className="h-4.5 w-4.5 text-slate-600 shrink-0" />
+          </div>
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full text-xs border border-slate-200">
+              <thead className="bg-slate-50">
+                <tr>
+                  <th className="text-left font-medium text-slate-700 p-2">Route</th>
+                  <th className="text-left font-medium text-slate-700 p-2">Status</th>
+                  <th className="text-left font-medium text-slate-700 p-2">Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {reasonerRouteStatus.map((entry) => (
+                  <tr key={entry.route} className="border-t border-slate-200">
+                    <td className="p-2 font-mono text-slate-700">{entry.route}</td>
+                    <td className="p-2">
+                      <span
+                        className={`inline-flex rounded-full px-2 py-0.5 text-[11px] border ${
+                          entry.status === "canonical"
+                            ? "border-emerald-200 text-emerald-700 bg-emerald-50"
+                            : "border-amber-200 text-amber-700 bg-amber-50"
+                        }`}
+                      >
+                        {entry.status}
+                      </span>
+                    </td>
+                    <td className="p-2 text-slate-500">{entry.note}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
 
         <section className="mt-4 rounded-xl border border-slate-200 p-5">
           <div className="mb-4 flex items-center justify-between gap-2">

@@ -27,6 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import DataSourceModeBanner from "@/components/readiness/DataSourceModeBanner";
 import {
   Shield,
   Download,
@@ -637,6 +638,16 @@ export default function AdminAuditLogPage() {
           </Button>
         </div>
       </div>
+
+      <DataSourceModeBanner
+        mode="simulation"
+        title="Audit evidence source mode"
+        description="Audit entries and statistics are currently sourced from seeded mock records for UI demonstration only. Validate every row and summary metric against production audit APIs before compliance presentations."
+        evidencePath="tasks/09_master_change_backlog_p0_p4.md"
+        lastUpdatedAt="2026-02-16"
+        signoffText="Simulation only — audit events from demonstration data. No write actions are persisted to production audit trail."
+        backendEndpoints={["/api/v1/audit/events"]}
+      />
 
       {/* Summary Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
