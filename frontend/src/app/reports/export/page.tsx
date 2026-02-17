@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -72,6 +72,8 @@ interface ExportJob {
   templateId?: string;
   operator?: string;
   parameters?: Record<string, unknown>;
+  runId?: string;
+  signature?: string;
 }
 
 // Mock data
@@ -87,10 +89,10 @@ const mockTemplates: ReportTemplate[] = [
 ];
 
 const mockExportJobs: ExportJob[] = [
-  { id: "job-1", reportName: "Data Quality Dashboard", format: "pdf", status: "completed", progress: 100, createdAt: "2026-01-24T10:15:00Z", completedAt: "2026-01-24T10:16:30Z", fileSize: "2.4 MB", downloadUrl: "#", templateId: "rpt-2", operator: "Quality Team", parameters: { dateRange: "last30days" } },
-  { id: "job-2", reportName: "Risk Stratification Report", format: "xlsx", status: "generating", progress: 65, createdAt: "2026-01-24T10:18:00Z", templateId: "rpt-3", operator: "Analytics", parameters: { dateRange: "lastQuarter" } },
-  { id: "job-3", reportName: "Patient Demographics Summary", format: "csv", status: "queued", progress: 0, createdAt: "2026-01-24T10:19:00Z", templateId: "rpt-1", operator: "Data Team", parameters: { dateRange: "last7days" } },
-  { id: "job-4", reportName: "Cohort Analysis Results", format: "pdf", status: "failed", progress: 45, createdAt: "2026-01-24T09:30:00Z", templateId: "rpt-4", operator: "Research", parameters: { dateRange: "lastYear" } },
+  { id: "job-1", reportName: "Data Quality Dashboard", format: "pdf", status: "completed", progress: 100, createdAt: "2026-01-24T10:15:00Z", completedAt: "2026-01-24T10:16:30Z", fileSize: "2.4 MB", downloadUrl: "#", templateId: "rpt-2", operator: "Quality Team", parameters: { dateRange: "last30days" }, runId: "run-export-2026-01-24-001", signature: "ed25519:exp-abc123def" },
+  { id: "job-2", reportName: "Risk Stratification Report", format: "xlsx", status: "generating", progress: 65, createdAt: "2026-01-24T10:18:00Z", templateId: "rpt-3", operator: "Analytics", parameters: { dateRange: "lastQuarter" }, runId: "run-export-2026-01-24-002", signature: "ed25519:exp-ghi456jkl" },
+  { id: "job-3", reportName: "Patient Demographics Summary", format: "csv", status: "queued", progress: 0, createdAt: "2026-01-24T10:19:00Z", templateId: "rpt-1", operator: "Data Team", parameters: { dateRange: "last7days" }, runId: "run-export-2026-01-24-003", signature: "ed25519:exp-mno789pqr" },
+  { id: "job-4", reportName: "Cohort Analysis Results", format: "pdf", status: "failed", progress: 45, createdAt: "2026-01-24T09:30:00Z", templateId: "rpt-4", operator: "Research", parameters: { dateRange: "lastYear" }, runId: "run-export-2026-01-24-004", signature: "ed25519:exp-stu012vwx" },
 ];
 
 const categoryIcons: Record<string, React.ReactNode> = {
@@ -111,6 +113,33 @@ const formatIcons: Record<string, React.ReactNode> = {
 export default function ReportExportPage() {
   const [templates] = useState<ReportTemplate[]>(mockTemplates);
   const [exportJobs, setExportJobs] = useState<ExportJob[]>(mockExportJobs);
+  const [backendAvailable, setBackendAvailable] = useState<boolean | null>(null);
+
+  // Attempt to load export jobs from backend; fall back to mock data
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchExportJobs() {
+      try {
+        const res = await fetch("/api/v1/reports/export/jobs", { signal: AbortSignal.timeout(4000) });
+        if (!cancelled && res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data?.jobs)) {
+            setExportJobs(data.jobs);
+            setBackendAvailable(true);
+            return;
+          }
+        }
+      } catch {
+        // expected when backend is unavailable
+      }
+      if (!cancelled) {
+        setBackendAvailable(false);
+        setExportJobs(mockExportJobs);
+      }
+    }
+    fetchExportJobs();
+    return () => { cancelled = true; };
+  }, []);
   const [selectedTemplate, setSelectedTemplate] = useState<ReportTemplate | null>(null);
   const [exportConfig, setExportConfig] = useState({
     format: "pdf",
@@ -204,12 +233,16 @@ export default function ReportExportPage() {
     const bundle = {
       report_id: job.id,
       template_id: job.templateId || "unknown",
+      run_id: job.runId || null,
       parameters: job.parameters || {},
       generated_at: job.completedAt || job.createdAt,
       generated_by: job.operator || "system",
+      source_patient_set: null,
+      filter_criteria: job.parameters || {},
       row_count: Math.floor(Math.random() * 500) + 50,
       data_freshness: job.completedAt || job.createdAt,
       sha256_hash: generateSha256(job.id + (job.completedAt || job.createdAt)),
+      signature: job.signature || null,
       audit_record_id: `audit-${job.id}-${Date.now()}`,
     };
     const json = JSON.stringify(bundle, null, 2);
@@ -248,12 +281,20 @@ export default function ReportExportPage() {
       </div>
 
       <DataSourceModeBanner
-        mode="simulation"
+        mode={backendAvailable === true ? "live" : "simulation"}
         title="Export data source mode"
-        description="Report templates, exports, and queue behavior are simulated placeholders. Connect this workspace to production report jobs and parameterized run metadata before external use."
+        description={
+          backendAvailable === true
+            ? "Connected to live backend. Export jobs and queue status are served from production endpoints."
+            : `Backend /api/v1/reports/export/jobs unreachable after 4s timeout — fell back to simulation at ${new Date().toISOString()}. Report templates, exports, and queue behavior are simulated placeholders.`
+        }
         evidencePath="tasks/09_master_change_backlog_p0_p4.md"
-        lastUpdatedAt="2026-02-16"
-        signoffText="Simulation only — export actions on this page do not generate real files or write to the backend."
+        lastUpdatedAt={backendAvailable === true ? "2026-02-16" : new Date().toISOString()}
+        signoffText={
+          backendAvailable === true
+            ? undefined
+            : "Simulation only — export actions on this page do not generate real files or write to the backend."
+        }
         backendEndpoints={["/api/v1/reports/export", "/api/v1/reports/export/{job_id}/status", "/api/v1/reports/export/{job_id}/download"]}
       />
 
@@ -606,6 +647,7 @@ export default function ReportExportPage() {
                   <TableCell className="text-xs text-muted-foreground">
                     {job.templateId && <div>Tmpl: <span className="font-mono">{job.templateId}</span></div>}
                     {job.operator && <div>Op: {job.operator}</div>}
+                    {job.runId && <div>Run: <span className="font-mono">{job.runId}</span></div>}
                   </TableCell>
                   <TableCell>{job.fileSize || "-"}</TableCell>
                   <TableCell>

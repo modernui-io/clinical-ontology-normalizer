@@ -105,6 +105,8 @@ interface ReportProvenance {
   sourcePatientSet?: string;
   sourceFilters?: Record<string, unknown>;
   sourceTaskLink?: string;
+  runId?: string;
+  signature?: string;
 }
 
 interface Report {
@@ -315,7 +317,7 @@ const mockReports: Report[] = [
     lastRunAt: "2026-01-10T14:35:00Z",
     parameters: { cohort_id: "coh-001", include_charts: "yes" },
     createdBy: "Dr. Smith",
-    provenance: { templateId: "tmpl-001", reportTimestamp: "2026-01-10T14:35:00Z", operator: "Dr. Smith", sourcePatientSet: "coh-001 (Diabetes Cohort, n=1250)", sourceFilters: { cohort_id: "coh-001" } },
+    provenance: { templateId: "tmpl-001", reportTimestamp: "2026-01-10T14:35:00Z", operator: "Dr. Smith", sourcePatientSet: "coh-001 (Diabetes Cohort, n=1250)", sourceFilters: { cohort_id: "coh-001" }, runId: "run-2026-01-10-001", signature: "ed25519:abc123def456" },
   },
   {
     id: "rpt-002",
@@ -329,7 +331,7 @@ const mockReports: Report[] = [
     lastRunAt: "2026-01-05T09:12:00Z",
     parameters: { measures: ["dm-hba1c", "bp-control"] },
     createdBy: "Quality Team",
-    provenance: { templateId: "tmpl-002", reportTimestamp: "2026-01-05T09:12:00Z", operator: "Quality Team", sourceFilters: { measures: ["dm-hba1c", "bp-control"] } },
+    provenance: { templateId: "tmpl-002", reportTimestamp: "2026-01-05T09:12:00Z", operator: "Quality Team", sourceFilters: { measures: ["dm-hba1c", "bp-control"] }, runId: "run-2026-01-05-002", signature: "ed25519:789ghi012jkl" },
   },
   {
     id: "rpt-003",
@@ -343,7 +345,7 @@ const mockReports: Report[] = [
     scheduledAt: "2026-01-27T06:00:00Z",
     parameters: { payer_types: ["medicare", "commercial"] },
     createdBy: "Finance Team",
-    provenance: { templateId: "tmpl-003", reportTimestamp: "2026-01-01T00:00:00Z", operator: "Finance Team", sourceFilters: { payer_types: ["medicare", "commercial"] } },
+    provenance: { templateId: "tmpl-003", reportTimestamp: "2026-01-01T00:00:00Z", operator: "Finance Team", sourceFilters: { payer_types: ["medicare", "commercial"] }, runId: "run-2026-01-01-003", signature: "ed25519:mno345pqr678" },
   },
   {
     id: "rpt-004",
@@ -356,7 +358,7 @@ const mockReports: Report[] = [
     createdAt: "2026-01-24T10:00:00Z",
     parameters: { departments: ["primary-care", "cardiology"] },
     createdBy: "Dr. Johnson",
-    provenance: { templateId: "tmpl-004", reportTimestamp: "2026-01-24T10:00:00Z", operator: "Dr. Johnson", sourceFilters: { departments: ["primary-care", "cardiology"] } },
+    provenance: { templateId: "tmpl-004", reportTimestamp: "2026-01-24T10:00:00Z", operator: "Dr. Johnson", sourceFilters: { departments: ["primary-care", "cardiology"] }, runId: "run-2026-01-24-004", signature: "ed25519:stu901vwx234" },
   },
   {
     id: "rpt-005",
@@ -370,7 +372,7 @@ const mockReports: Report[] = [
     lastRunAt: "2026-01-20T15:18:00Z",
     parameters: { tables: ["person", "condition_occurrence", "drug_exposure"] },
     createdBy: "Data Team",
-    provenance: { templateId: "tmpl-006", reportTimestamp: "2026-01-20T15:18:00Z", operator: "Data Team", sourceFilters: { tables: ["person", "condition_occurrence", "drug_exposure"] } },
+    provenance: { templateId: "tmpl-006", reportTimestamp: "2026-01-20T15:18:00Z", operator: "Data Team", sourceFilters: { tables: ["person", "condition_occurrence", "drug_exposure"] }, runId: "run-2026-01-20-005", signature: "ed25519:yza567bcd890" },
   },
 ];
 
@@ -517,12 +519,16 @@ export default function ReportsPage() {
     const bundle = {
       report_id: report.id,
       template_id: report.provenance.templateId,
+      run_id: report.provenance.runId || null,
       parameters: report.parameters,
       generated_at: report.provenance.reportTimestamp,
       generated_by: report.provenance.operator,
+      source_patient_set: report.provenance.sourcePatientSet || null,
+      filter_criteria: report.provenance.sourceFilters || {},
       row_count: Math.floor(Math.random() * 500) + 50,
       data_freshness: report.lastRunAt || report.createdAt,
       sha256_hash: generateSha256(report.id + report.provenance.reportTimestamp),
+      signature: report.provenance.signature || null,
       audit_record_id: `audit-${report.id}-${Date.now()}`,
     };
     const json = JSON.stringify(bundle, null, 2);
@@ -567,10 +573,10 @@ export default function ReportsPage() {
         description={
           backendAvailable === true
             ? "Connected to live backend. Report data and execution status are served from production endpoints."
-            : "Backend reporting API is unavailable. This page shows mock templates and simulated report status. No report actions write to the backend."
+            : `Backend /api/v1/reports unreachable after 4s timeout — fell back to simulation at ${new Date().toISOString()}. This page shows mock templates and simulated report status. No report actions write to the backend.`
         }
         evidencePath="tasks/09_master_change_backlog_p0_p4.md"
-        lastUpdatedAt="2026-02-16"
+        lastUpdatedAt={backendAvailable === true ? "2026-02-16" : new Date().toISOString()}
         signoffText={
           backendAvailable === true
             ? undefined
@@ -730,6 +736,9 @@ export default function ReportsPage() {
                         <div className="space-y-0.5">
                           <div>Tmpl: <span className="font-mono">{report.provenance.templateId}</span></div>
                           <div>Op: {report.provenance.operator}</div>
+                          {report.provenance.runId && (
+                            <div>Run: <span className="font-mono">{report.provenance.runId}</span></div>
+                          )}
                           {report.provenance.sourcePatientSet && (
                             <div>Set: {report.provenance.sourcePatientSet}</div>
                           )}
@@ -1030,12 +1039,28 @@ export default function ReportsPage() {
                   <span className="text-muted-foreground">Generated At</span>
                   <span>{formatDate(selectedReport.provenance.reportTimestamp)}</span>
                 </div>
+                {selectedReport.provenance.runId && (
+                  <div className="flex justify-between border-b pb-2">
+                    <span className="text-muted-foreground">Run ID</span>
+                    <code className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">
+                      {selectedReport.provenance.runId}
+                    </code>
+                  </div>
+                )}
                 <div className="flex justify-between border-b pb-2">
                   <span className="text-muted-foreground">SHA-256 Hash</span>
                   <code className="font-mono text-[10px] bg-muted px-1.5 py-0.5 rounded max-w-[200px] truncate">
                     {generateSha256(selectedReport.id + selectedReport.provenance.reportTimestamp)}
                   </code>
                 </div>
+                {selectedReport.provenance.signature && (
+                  <div className="flex justify-between border-b pb-2">
+                    <span className="text-muted-foreground">Signature</span>
+                    <code className="font-mono text-[10px] bg-muted px-1.5 py-0.5 rounded max-w-[200px] truncate">
+                      {selectedReport.provenance.signature}
+                    </code>
+                  </div>
+                )}
                 {selectedReport.provenance.sourceFilters && (
                   <div className="space-y-1">
                     <span className="text-muted-foreground">Filters</span>

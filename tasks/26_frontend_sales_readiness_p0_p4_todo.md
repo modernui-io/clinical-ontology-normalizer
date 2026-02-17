@@ -123,8 +123,8 @@
     `frontend/src/app/docs/page.tsx`.
 
 ### P4-019 Reporting from real pipeline
-- [x] Replace mock report tables with backend-backed report generation. Done 2026-02-16: Reports page now attempts `/api/v1/reports` fetch on mount, falls back to mock data with explicit Simulation banner when backend unavailable.
-- [x] Add provenance metadata per export: template id, report timestamp, operator, parameters, source patient set. Done 2026-02-16: Added `ReportProvenance` type and provenance column to both `/reports` and `/reports/export` tables.
+- [x] Replace mock report tables with backend-backed report generation. Done 2026-02-16: Reports page now attempts `/api/v1/reports` fetch on mount, falls back to mock data with explicit Simulation banner when backend unavailable. Export page now also attempts `/api/v1/reports/export/jobs` fetch with 4s timeout.
+- [x] Add provenance metadata per export: template id, report timestamp, operator, parameters, source patient set, runId, sha256, signature. Done 2026-02-16: Added `ReportProvenance` type with runId/signature fields. Provenance dialog shows all 8 fields. Evidence bundle includes run_id, source_patient_set, filter_criteria, signature. Dynamic simulation banner with timestamp+reason on both pages. Evidence: `docs/evidence/p4-019/p4-019-evidence-2026-02-16.md`.
   - Anchors: `frontend/src/app/reports/page.tsx`, `frontend/src/app/reports/export/page.tsx`, `backend` report endpoints.
 
 ### P4-020 Evidence-indexed docs/changelog
