@@ -115,10 +115,13 @@ class CalculatorReasoningService:
         # Determine relevant categories from clinical context
         relevant_categories: set[CalculatorCategory] = set()
 
-        # From conditions
+        # From conditions — use word-boundary matching to avoid false
+        # positives (e.g., "pe" matching "peripheral artery disease")
+        from app.services.condition_matching_service import _word_boundary_match
+
         for condition in conditions_lower:
             for keyword, categories in self.CONTEXT_CALCULATOR_MAP.items():
-                if keyword in condition:
+                if _word_boundary_match(keyword, condition) or keyword == condition:
                     relevant_categories.update(categories)
 
         # From clinical question
@@ -139,7 +142,13 @@ class CalculatorReasoningService:
                 relevance_score += 3.0
                 reasons.append(f"Category match: {definition.category.value}")
 
-            # Condition-based relevance - bidirectional fuzzy matching
+            # Condition-based relevance — uses word-boundary matching to avoid
+            # false positives (e.g., "anemia" ≠ "sickle cell anemia")
+            from app.services.condition_matching_service import (
+                _word_boundary_match as _wb_match,
+                _is_compound_term_conflict,
+            )
+
             calc_name_lower = definition.name.lower()
             calc_desc_lower = definition.description.lower()
             calc_text = f"{calc_name_lower} {calc_desc_lower}"
@@ -147,7 +156,7 @@ class CalculatorReasoningService:
             condition_matched = False
             for condition in conditions_lower:
                 # Direct: patient condition appears in calculator name/description
-                if condition in calc_text:
+                if _wb_match(condition, calc_text):
                     relevance_score += 2.5
                     reasons.append(f"Condition match: {condition}")
                     condition_matched = True
@@ -159,7 +168,11 @@ class CalculatorReasoningService:
                                 "diabetes", "hypertension", "stroke", "tia", "renal",
                                 "kidney", "liver", "cirrhosis", "sepsis", "pneumonia",
                                 "pe", "dvt", "anemia", "cancer", "malignancy"]:
-                    if keyword in condition and keyword in calc_text:
+                    if (
+                        _wb_match(keyword, condition)
+                        and not _is_compound_term_conflict(keyword, condition)
+                        and _wb_match(keyword, calc_text)
+                    ):
                         relevance_score += 2.0
                         reasons.append(f"Keyword match: {keyword}")
                         condition_matched = True

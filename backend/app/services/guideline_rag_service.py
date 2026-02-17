@@ -76,6 +76,8 @@ class GuidelineSection:
     applies_to_medications: list[str] = field(default_factory=list)
     applies_to_measurements: list[str] = field(default_factory=list)
     keywords: list[str] = field(default_factory=list)
+    primary_conditions: list[str] = field(default_factory=list)
+    omop_concept_ids: list[int] = field(default_factory=list)
     embedding: list[float] = field(default_factory=list, repr=False)
 
 
@@ -162,6 +164,8 @@ class GuidelineRAGService:
                 applies_to_medications=entry.get("applies_to_medications", []),
                 applies_to_measurements=entry.get("applies_to_measurements", []),
                 keywords=entry.get("keywords", []),
+                primary_conditions=entry.get("primary_conditions", []),
+                omop_concept_ids=entry.get("omop_concept_ids", []),
             )
             sections.append(section)
 
@@ -321,9 +325,14 @@ class GuidelineRAGService:
                 section_keywords | section_conditions | section_medications
                 | section_measurements | title_words | guideline_words
             )
-            # Decompose multi-word terms into individual words
+            # Decompose multi-word terms into individual words.
+            # NOTE: We intentionally exclude applies_to_conditions from
+            # decomposition — splitting "sickle cell anemia" into individual
+            # words causes false matches (e.g., "anemia" matching a patient
+            # who has a different type of anemia). Condition matching is
+            # handled by ConditionMatchingService instead.
             for term_source in [
-                section.keywords, section.applies_to_conditions,
+                section.keywords,
                 section.applies_to_medications, section.applies_to_measurements,
             ]:
                 for term in term_source:
@@ -393,46 +402,35 @@ class GuidelineRAGService:
                 )
 
             # Condition match: up to +0.25 (scaled by match quality)
-            # First check exact matches
-            condition_overlap = conditions & section_conditions
-            partial_condition_matches: set[str] = set()
+            # Uses ConditionMatchingService for tiered matching with
+            # compound-term protection and primary-condition gating.
+            from app.services.condition_matching_service import match_conditions
 
-            # Then check partial/fuzzy matches for conditions not exactly matched
-            # E.g., patient "type 2 diabetes mellitus" should match guideline "diabetes"
-            if not condition_overlap:
-                for pc in conditions:
-                    for sc in section_conditions:
-                        # Skip if already matched exactly
-                        if pc == sc:
-                            continue
-                        # Check if guideline condition is substring of patient condition
-                        # or patient condition is substring of guideline condition
-                        if sc in pc or pc in sc:
-                            partial_condition_matches.add(f"{pc}~{sc}")
-                        # Also check word-level overlap (e.g., "diabetes" word in both)
-                        pc_words = set(pc.split())
-                        sc_words = set(sc.split())
-                        common_words = pc_words & sc_words
-                        # If they share a meaningful word (length > 3), consider it a match
-                        if any(len(w) > 3 for w in common_words):
-                            partial_condition_matches.add(f"{pc}~{sc}")
-
-            if condition_overlap:
-                # Exact match gets higher score
-                cond_score = min(0.20, len(condition_overlap) * 0.07)
+            cond_result = match_conditions(
+                list(conditions),
+                list(section_conditions),
+                primary_conditions=section.primary_conditions or None,
+                use_hierarchy=False,  # hierarchy is slow; skip in scoring loop
+            )
+            if cond_result.has_match:
+                # Scale score by match quality tier
+                best = cond_result.best_score
+                n_matches = len(cond_result.matches)
+                if best >= 1.0:
+                    # Exact match
+                    cond_score = min(0.20, n_matches * 0.07)
+                    match_display = [m.target_condition for m in cond_result.matches]
+                    reasons[idx].append(
+                        f"Condition match: {', '.join(sorted(set(match_display)))}"
+                    )
+                else:
+                    # Partial/qualified match
+                    cond_score = min(0.15, n_matches * 0.05)
+                    match_display = [m.target_condition for m in cond_result.matches]
+                    reasons[idx].append(
+                        f"Partial condition match: {', '.join(sorted(set(match_display)))}"
+                    )
                 scored[idx] += cond_score
-                reasons[idx].append(
-                    f"Condition match: {', '.join(sorted(condition_overlap))}"
-                )
-            elif partial_condition_matches:
-                # Partial matches get slightly lower score
-                cond_score = min(0.15, len(partial_condition_matches) * 0.05)
-                scored[idx] += cond_score
-                # Format the partial matches for display
-                match_display = [m.split('~')[1] for m in partial_condition_matches]
-                reasons[idx].append(
-                    f"Partial condition match: {', '.join(sorted(set(match_display)))}"
-                )
 
             # Medication match: up to +0.12 (scaled by match quality)
             medication_overlap = medications & section_medications

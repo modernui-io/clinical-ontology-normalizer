@@ -161,15 +161,20 @@ class PolicyService:
             except Exception:
                 continue
 
-            # Boost for condition match
+            # Boost for condition match — uses ConditionMatchingService to
+            # prevent false positives from naive substring matching.
+            from app.services.condition_matching_service import match_conditions
+
             boost = 0.0
             if patient_conditions and section.applies_to_conditions:
-                for cond in patient_conditions:
-                    if any(
-                        cond.lower() in ac.lower()
-                        for ac in section.applies_to_conditions
-                    ):
-                        boost += 0.1
+                cond_result = match_conditions(
+                    patient_conditions,
+                    list(section.applies_to_conditions),
+                    use_hierarchy=False,
+                )
+                if cond_result.has_match:
+                    # Cap boost: 0.1 per match, max 0.3
+                    boost = min(0.3, len(cond_result.matches) * 0.1)
 
             final_score = similarity + boost
 

@@ -2522,18 +2522,21 @@ Knowledge Graph Summary ({len(nodes)} nodes):
                 seen_ids.add(c.section.section_id)
 
                 # Relevance filter: guideline must apply to at least one
-                # of the patient's conditions or medications
+                # of the patient's conditions or medications.
+                # Uses ConditionMatchingService for safe condition matching
+                # that prevents false positives (e.g., "anemia" ≠ "sickle cell anemia").
+                from app.services.condition_matching_service import match_conditions
+
                 section_conditions = {cond.lower() for cond in c.section.applies_to_conditions}
                 section_medications = {med.lower() for med in c.section.applies_to_medications}
 
-                # Check for any overlap with patient's conditions
-                has_condition_match = bool(patient_conditions_lower & section_conditions)
-
-                # Also check for partial condition matches (e.g., "diabetes" in "diabetes mellitus type 2")
-                has_partial_condition_match = any(
-                    any(pc in sc or sc in pc for sc in section_conditions)
-                    for pc in patient_conditions_lower
-                ) if not has_condition_match else False
+                cond_result = match_conditions(
+                    list(patient_conditions_lower),
+                    list(section_conditions),
+                    primary_conditions=getattr(c.section, "primary_conditions", None) or None,
+                    use_hierarchy=False,
+                )
+                has_condition_match = cond_result.has_match
 
                 # Check for medication matches (excluding common medications)
                 specific_section_meds = section_medications - common_medications
@@ -2547,7 +2550,7 @@ Knowledge Graph Summary ({len(nodes)} nodes):
                 ) if not has_specific_medication_match else False
 
                 # Categorize the citation
-                if has_condition_match or has_partial_condition_match:
+                if has_condition_match:
                     # Strong match: condition-based
                     condition_matched_citations.append(c)
                 elif has_specific_medication_match or has_partial_medication_match:

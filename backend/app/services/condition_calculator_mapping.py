@@ -159,11 +159,22 @@ def get_calculators_for_condition(
         except Exception as e:
             logger.warning(f"Hierarchy lookup failed, falling back to string: {e}")
 
-    # Fallback: Fuzzy string matching
+    # Fallback: Qualified string matching with compound-term protection.
+    # Replaces naive ``if key in normalized or normalized in key`` which
+    # caused false matches (e.g., "anemia" matching "sickle cell anemia").
     if not matches:
+        from app.services.condition_matching_service import (
+            _is_compound_term_conflict,
+            _word_boundary_match,
+        )
+
         for key, calculators in CONDITION_CALCULATOR_MAP.items():
-            if key in normalized or normalized in key:
+            if key == normalized:
                 matches.extend(calculators)
+            elif (key in normalized or normalized in key):
+                short, long = (key, normalized) if len(key) <= len(normalized) else (normalized, key)
+                if not _is_compound_term_conflict(short, long) and _word_boundary_match(short, long):
+                    matches.extend(calculators)
 
     # Deduplicate while preserving order
     seen = set()
