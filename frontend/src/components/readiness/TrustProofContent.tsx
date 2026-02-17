@@ -19,8 +19,10 @@ import {
 } from "lucide-react";
 import { getReadinessSnapshot, type BacklogTask, type EvidenceArtifact } from "@/lib/readinessEvidence.server";
 import BackendHealthProbe from "@/components/readiness/BackendHealthProbe";
+import CollapsibleList from "@/components/readiness/CollapsibleList";
 import EvidenceBundleButton from "@/components/readiness/EvidenceBundleButton";
 import PilotReadinessShowcase from "@/components/readiness/PilotReadinessShowcase";
+import SectionNav from "@/components/readiness/SectionNav";
 
 type SectionId = "p0" | "p4" | "evidence" | "demo";
 
@@ -306,7 +308,9 @@ export default async function TrustProofContent() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <SectionNav />
+
+        <div id="summary" className="scroll-mt-28 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mt-6">
           <SummaryCard
             title="Pilot posture"
             description={readinessText}
@@ -337,7 +341,7 @@ export default async function TrustProofContent() {
           />
         </div>
 
-        <section className="mt-8 rounded-xl border border-slate-200 p-5">
+        <section id="demos" className="scroll-mt-28 mt-8 rounded-xl border border-slate-200 p-5">
           <div className="flex items-center justify-between gap-3">
             <div>
               <h2 className="text-lg font-semibold text-slate-900">
@@ -381,7 +385,7 @@ export default async function TrustProofContent() {
           </div>
         </section>
 
-        <div className="mt-8 grid grid-cols-1 xl:grid-cols-3 gap-4">
+        <div id="p0-blockers" className="scroll-mt-28 mt-8 grid grid-cols-1 xl:grid-cols-3 gap-4">
           <section className="xl:col-span-2 rounded-xl border border-slate-200 p-5">
             <div className="mb-4 flex items-center gap-2">
               <Activity className="h-4 w-4 text-slate-600" />
@@ -447,57 +451,67 @@ export default async function TrustProofContent() {
         </div>
 
         <div className="mt-4 grid grid-cols-1 xl:grid-cols-2 gap-4">
-          <section className="rounded-xl border border-slate-200 p-5">
+          <section id="evidence-map" className="scroll-mt-28 rounded-xl border border-slate-200 p-5">
             <div className="mb-4 flex items-center gap-2">
               <LayoutDashboard className="h-4 w-4 text-slate-600" />
               <h2 className="text-lg font-semibold text-slate-900">Evidence map</h2>
+              {snapshot.evidenceArtifacts.length > 0 && (
+                <span className="text-xs text-slate-400 ml-auto">{snapshot.evidenceArtifacts.length} artifacts</span>
+              )}
             </div>
             {snapshot.evidenceArtifacts.length === 0 ? (
               <p className="text-sm text-slate-500">No mapped evidence artifact paths were found yet.</p>
             ) : (
               <ul className="space-y-2">
-                {snapshot.evidenceArtifacts.map((artifact) => (
-                  <EvidenceStatus key={artifact.path} artifact={artifact} />
-                ))}
+                <CollapsibleList initialCount={5} itemLabel="artifacts">
+                  {snapshot.evidenceArtifacts.map((artifact) => (
+                    <EvidenceStatus key={artifact.path} artifact={artifact} />
+                  ))}
+                </CollapsibleList>
               </ul>
             )}
           </section>
 
-          <section className="rounded-xl border border-slate-200 p-5">
+          <section id="p4-progress" className="scroll-mt-28 rounded-xl border border-slate-200 p-5">
             <div className="mb-4 flex items-center gap-2">
               <DatabaseZap className="h-4 w-4 text-slate-600" />
               <h2 className="text-lg font-semibold text-slate-900">P4 visibility progress</h2>
+              {openP4.length > 0 && (
+                <span className="text-xs text-slate-400 ml-auto">{openP4.length} open</span>
+              )}
             </div>
             {openP4.length === 0 ? (
               <p className="text-sm text-slate-500">No open P4 top-level items were found in parsed data.</p>
             ) : (
               <ul className="space-y-2">
-                {openP4.map((task) => {
-                  const badge = renderStatusBadge(false, "open");
-                  return (
-                    <li key={task.id} className="rounded-lg border border-slate-200 p-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <p className="text-sm font-medium text-slate-900">{task.id}</p>
-                          <p className="text-xs text-slate-600 mt-1">{task.title}</p>
-                          {task.owner && (
-                            <p className="text-xs text-slate-500 mt-1">Owner: {task.owner}</p>
-                          )}
+                <CollapsibleList initialCount={5} itemLabel="items">
+                  {openP4.map((task) => {
+                    const badge = renderStatusBadge(false, "open");
+                    return (
+                      <li key={task.id} className="rounded-lg border border-slate-200 p-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <p className="text-sm font-medium text-slate-900">{task.id}</p>
+                            <p className="text-xs text-slate-600 mt-1">{task.title}</p>
+                            {task.owner && (
+                              <p className="text-xs text-slate-500 mt-1">Owner: {task.owner}</p>
+                            )}
+                          </div>
+                          <span className={badge.className}>
+                            <BadgeCheck className="h-3.5 w-3.5" />
+                            {badge.text}
+                          </span>
                         </div>
-                        <span className={badge.className}>
-                          <BadgeCheck className="h-3.5 w-3.5" />
-                          {badge.text}
-                        </span>
-                      </div>
-                    </li>
-                  );
-                })}
+                      </li>
+                    );
+                  })}
+                </CollapsibleList>
               </ul>
             )}
           </section>
         </div>
 
-        <section className="mt-4 rounded-xl border border-slate-200 p-5">
+        <section id="drills" className="scroll-mt-28 mt-4 rounded-xl border border-slate-200 p-5">
           <div className="mb-4 flex items-center gap-2">
             <ShieldAlert className="h-4.5 w-4.5 text-slate-600" />
             <h2 className="text-lg font-semibold text-slate-900">Operational Drill Outcomes</h2>
@@ -568,7 +582,7 @@ export default async function TrustProofContent() {
           </div>
         </section>
 
-        <section className="mt-4 rounded-xl border border-slate-200 p-5">
+        <section id="signoff" className="scroll-mt-28 mt-4 rounded-xl border border-slate-200 p-5">
           <div className="mb-4 flex items-center gap-2">
             <FileCheck className="h-4.5 w-4.5 text-slate-600" />
             <h2 className="text-lg font-semibold text-slate-900">Pre-Pilot Signoff Status</h2>
@@ -612,7 +626,7 @@ export default async function TrustProofContent() {
 
         <PilotReadinessShowcase />
 
-        <section className="mt-4 rounded-xl border border-slate-200 p-5">
+        <section id="reasoner" className="scroll-mt-28 mt-4 rounded-xl border border-slate-200 p-5">
           <div className="flex items-center justify-between gap-3">
             <div>
               <h2 className="text-lg font-semibold text-slate-900">Hybrid reasoner contract status</h2>
@@ -654,7 +668,7 @@ export default async function TrustProofContent() {
           </div>
         </section>
 
-        <section className="mt-4 rounded-xl border border-slate-200 p-5">
+        <section id="demo-pack" className="scroll-mt-28 mt-4 rounded-xl border border-slate-200 p-5">
           <div className="mb-4 flex items-center justify-between gap-2">
             <h2 className="text-lg font-semibold text-slate-900">External-facing demo pack</h2>
             <EvidenceBundleButton
