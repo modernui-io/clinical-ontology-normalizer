@@ -93,7 +93,7 @@ export default function EvidenceBundleButton({
   };
 
   return (
-    <div className="grid gap-2 sm:flex sm:items-center sm:justify-end">
+    <div className="flex flex-wrap items-center gap-2">
       <Button
         variant="outline"
         onClick={() => {
