@@ -41,6 +41,7 @@ import {
   Bot,
   BookOpen,
   ScrollText,
+  ShieldCheck,
   Database,
   Workflow,
   Gauge,
@@ -217,10 +218,13 @@ const navSections: NavSection[] = [
     ],
   },
   {
-    title: "Reference",
-    items: [
-      { title: "Glossary", href: "/glossary", icon: BookOpen },
-    ],
+      title: "Reference",
+      items: [
+        { title: "Glossary", href: "/glossary", icon: BookOpen },
+        { title: "Sales Demo", href: "/sales-demo", icon: FileText },
+        { title: "Trust Center", href: "/trust", icon: ShieldCheck },
+        { title: "Proof", href: "/proof", icon: FileCheck },
+      ],
   },
 ];
 

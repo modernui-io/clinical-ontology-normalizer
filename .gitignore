@@ -73,3 +73,6 @@ fhir-mcp/
 
 # Vocabulary data (too large for git)
 backend/data/athena_vocab/
+
+# Design mockups and screenshots (use Figma or asset storage)
+/*.png

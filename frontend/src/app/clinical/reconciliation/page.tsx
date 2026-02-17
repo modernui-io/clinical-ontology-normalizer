@@ -57,6 +57,7 @@ import {
   RefreshCw,
   Download,
 } from "lucide-react";
+import DataSourceModeBanner from "@/components/readiness/DataSourceModeBanner";
 
 // Types
 interface Medication {
@@ -453,6 +454,14 @@ export default function MedicationReconciliationPage() {
           </Button>
         </div>
       </div>
+
+      <DataSourceModeBanner
+        mode="simulation"
+        title="Reconciliation data source mode"
+        description="Medication lists, discrepancy scoring, and reconciliation actions are mocked for demo and training. Replace with backend-backed reconciliation execution history (e.g., /api/clinical/reconciliation) before external claims."
+        evidencePath="frontend/src/app/clinical/reconciliation/page.tsx"
+        lastUpdatedAt="2026-02-16"
+      />
 
       {/* Status Summary */}
       <div className="grid gap-4 md:grid-cols-4">

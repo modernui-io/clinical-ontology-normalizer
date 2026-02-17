@@ -152,6 +152,11 @@ services:
     volumes:
       - ./backend:/app
       - backend_venv:/app/.venv
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s

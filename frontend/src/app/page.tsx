@@ -162,16 +162,18 @@ function Nav() {
             <span className="font-semibold text-[15px] tracking-[-0.02em] text-neutral-900">Sulci</span>
           </Link>
           <div className="hidden md:flex items-center gap-0.5 text-[13px]">
-            <Link href="/dashboard" className="px-3 py-1.5 rounded-md text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100/80 transition-all duration-150">Product</Link>
-            <Link href="/documents" className="px-3 py-1.5 rounded-md text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100/80 transition-all duration-150">Docs</Link>
-            <Link href="/settings/api-changelog" className="px-3 py-1.5 rounded-md text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100/80 transition-all duration-150">Changelog</Link>
+            <Link href="/docs" className="px-3 py-1.5 rounded-md text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100/80 transition-all duration-150">Product</Link>
+            <Link href="/docs" className="px-3 py-1.5 rounded-md text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100/80 transition-all duration-150">Docs</Link>
+            <Link href="/changelog" className="px-3 py-1.5 rounded-md text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100/80 transition-all duration-150">Changelog</Link>
+            <Link href="/proof" className="px-3 py-1.5 rounded-md text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100/80 transition-all duration-150">Proof</Link>
+            <Link href="/sales-demo" className="px-3 py-1.5 rounded-md text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100/80 transition-all duration-150">Sales</Link>
             <Link href="/investors" className="px-3 py-1.5 rounded-md text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100/80 transition-all duration-150">Investors</Link>
           </div>
           <div className="flex items-center gap-2">
             <Link href="/login" className="hidden md:block">
               <Button variant="ghost" size="sm" className="text-neutral-500 text-[13px] h-8 hover:text-neutral-900">Sign in</Button>
             </Link>
-            <Link href="/dashboard" className="hidden md:block">
+            <Link href="/login?next=/dashboard" className="hidden md:block">
               <Button size="sm" className="bg-neutral-900 text-white hover:bg-neutral-800 text-[13px] rounded-lg h-8 px-3.5 shadow-sm">
                 Try Demo <ArrowRight className="ml-1 h-3 w-3" />
               </Button>
@@ -190,16 +192,18 @@ function Nav() {
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2, ease: EASE }} className="fixed top-16 left-0 right-0 z-50 md:hidden">
               <div className="mx-4 mt-2 rounded-2xl border border-neutral-200/80 bg-white/95 backdrop-blur-2xl shadow-[0_8px_40px_rgba(0,0,0,0.12)] p-4">
                 <div className="space-y-1">
-                  <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="flex items-center px-3 py-2.5 rounded-lg text-[15px] font-medium text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 transition-colors">Product</Link>
-                  <Link href="/documents" onClick={() => setMobileOpen(false)} className="flex items-center px-3 py-2.5 rounded-lg text-[15px] font-medium text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 transition-colors">Docs</Link>
-                  <Link href="/settings/api-changelog" onClick={() => setMobileOpen(false)} className="flex items-center px-3 py-2.5 rounded-lg text-[15px] font-medium text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 transition-colors">Changelog</Link>
+                  <Link href="/docs" onClick={() => setMobileOpen(false)} className="flex items-center px-3 py-2.5 rounded-lg text-[15px] font-medium text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 transition-colors">Product</Link>
+                  <Link href="/docs" onClick={() => setMobileOpen(false)} className="flex items-center px-3 py-2.5 rounded-lg text-[15px] font-medium text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 transition-colors">Docs</Link>
+                  <Link href="/changelog" onClick={() => setMobileOpen(false)} className="flex items-center px-3 py-2.5 rounded-lg text-[15px] font-medium text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 transition-colors">Changelog</Link>
+                  <Link href="/proof" onClick={() => setMobileOpen(false)} className="flex items-center px-3 py-2.5 rounded-lg text-[15px] font-medium text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 transition-colors">Proof</Link>
+                  <Link href="/sales-demo" onClick={() => setMobileOpen(false)} className="flex items-center px-3 py-2.5 rounded-lg text-[15px] font-medium text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 transition-colors">Sales</Link>
                   <Link href="/investors" onClick={() => setMobileOpen(false)} className="flex items-center px-3 py-2.5 rounded-lg text-[15px] font-medium text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 transition-colors">Investors</Link>
                 </div>
                 <div className="mt-3 pt-3 border-t border-neutral-100 space-y-2">
                   <Link href="/login" onClick={() => setMobileOpen(false)} className="block">
                     <Button variant="outline" className="w-full h-10 text-[14px] rounded-xl">Sign in</Button>
                   </Link>
-                  <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="block">
+                  <Link href="/login?next=/dashboard" onClick={() => setMobileOpen(false)} className="block">
                     <Button className="w-full h-10 text-[14px] rounded-xl bg-neutral-900 text-white hover:bg-neutral-800">
                       Try Demo <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
                     </Button>
@@ -315,11 +319,11 @@ function HeroSection() {
             </motion.h1>
 
             <motion.p variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE } } }} className="mt-8 text-[18px] md:text-[22px] text-neutral-500 max-w-[600px] mx-auto leading-[1.55] tracking-[-0.01em]">
-              80% of clinical data is trapped in unstructured text. Sulci extracts, normalizes, and connects it into knowledge your AI can reason over — in minutes, not months.
+              Up to 80% of clinical data lives in unstructured text. Sulci extracts, normalizes, and connects it into knowledge your AI can reason over — in minutes, not months.
             </motion.p>
 
             <motion.div variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE } } }} className="mt-10 flex items-center justify-center">
-              <Link href="/dashboard">
+              <Link href="/login?next=/dashboard">
                 <Button className="group bg-neutral-900 text-white hover:bg-neutral-800 rounded-xl h-14 px-10 text-[16px] font-medium shadow-[0_1px_2px_rgba(0,0,0,0.1),0_4px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_1px_2px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.1)] transition-all duration-200">
                   Request a Demo <ArrowRight className="ml-1.5 h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
                 </Button>
@@ -328,16 +332,17 @@ function HeroSection() {
 
             <motion.div variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE } } }} className="mt-8 flex items-center justify-center gap-3 flex-wrap">
               {[
-                { value: "60x", label: "Faster Abstraction" },
-                { value: "93.9%", label: "Concept Accuracy" },
-                { value: "85%", label: "Signal Captured" },
-                { value: "<50ms", label: "P95 Latency" },
+                { value: "60x", label: "Faster Abstraction*" },
+                { value: "93.9%", label: "Concept Accuracy*" },
+                { value: "85%", label: "Signal Captured*" },
+                { value: "<50ms", label: "P95 Latency*" },
               ].map((s) => (
                 <span key={s.label} className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-neutral-200 bg-white text-[13px] text-neutral-500">
                   <span className="font-semibold text-neutral-900 tabular-nums">{s.value}</span> {s.label}
                 </span>
               ))}
             </motion.div>
+            <motion.p variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 0.5, ease: EASE } } }} className="mt-3 text-[11px] text-neutral-300">*Based on internal benchmarks. Results may vary by document type and complexity.</motion.p>
           </motion.div>
         </div>
 
@@ -372,7 +377,7 @@ function TrustBar() {
   const orgs = ["HCA Healthcare", "Commure", "UCF Health", "Augmedix + Google"];
   return (
     <div className="py-16 md:py-20 border-y border-neutral-200">
-      <p className="text-[11px] font-semibold tracking-[0.15em] uppercase text-neutral-400 mb-6 text-center">Trusted by teams at</p>
+      <p className="text-[11px] font-semibold tracking-[0.15em] uppercase text-neutral-400 mb-6 text-center">Team with experience at</p>
       <div className="flex items-center justify-center gap-8 md:gap-14 flex-wrap px-6">
         {orgs.map((org) => (
           <span key={org} className="text-[16px] md:text-[18px] font-semibold tracking-[-0.02em] text-neutral-400">{org}</span>
@@ -386,9 +391,9 @@ function TrustBar() {
 // PROBLEM + STATS — split layout with inline metrics
 // ============================================================================
 const problems = [
-  { stat: "$13B", label: "lost annually to manual chart abstraction", detail: "Health systems spend billions on human abstractors reviewing notes for quality measures, risk adjustment, and research." },
-  { stat: "72h", label: "average chart abstraction time", detail: "Manual review per patient for quality measures, research, and coding. At scale, this means months of delay per study." },
-  { stat: "30%", label: "of clinical signal is never captured", detail: "Negation, temporality, and context lost in translation — each missed finding costs an average of $2,500 in downstream rework." },
+  { stat: "$13B+", label: "estimated annual cost of manual chart abstraction", detail: "Industry estimates suggest health systems spend billions on human abstractors reviewing notes for quality measures, risk adjustment, and research." },
+  { stat: "72h", label: "typical chart abstraction time per study", detail: "Manual review per patient for quality measures, research, and coding can take days. At scale, this means months of delay per study." },
+  { stat: "~30%", label: "of clinical signal estimated to be missed", detail: "Negation, temporality, and context are frequently lost in manual abstraction, leading to significant downstream rework and cost." },
 ];
 
 function ProblemSection() {
@@ -610,7 +615,7 @@ function APIShowcase() {
               ))}
             </div>
             <div className="mt-8">
-              <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-[14px] font-medium text-neutral-400 hover:text-white transition-colors">
+              <Link href="/docs" className="inline-flex items-center gap-1.5 text-[14px] font-medium text-neutral-400 hover:text-white transition-colors">
                 Read the API docs <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>
@@ -713,9 +718,9 @@ function PlatformBento() {
 // TESTIMONIALS — featured + 2 smaller
 // ============================================================================
 const testimonials = [
-  { quote: "Sulci cut our chart abstraction pipeline from 6 weeks to under an hour — a 97% reduction. The concept mapping accuracy benchmarks at 94.2%, which rivals our senior informaticists.", author: "Dr. Sarah Chen", role: "Chief Medical Informatics Officer", org: "Pacific Health System", metric: "97% time reduction" },
-  { quote: "We evaluated every CDM tool on the market. Sulci was the only one that handled assertion detection and negation correctly out of the box. That saved us $2.1M in year one.", author: "James Okafor", role: "VP of Data Engineering", org: "Meridian Clinical Analytics", metric: "$2.1M saved in Y1" },
-  { quote: "The knowledge graph changed our pharmacovigilance entirely. Drug-condition signals that took our team days now surface in real-time. We caught 3x more safety signals last quarter.", author: "Dr. Lisa Patel", role: "Head of Drug Safety", org: "Vertex Therapeutics", metric: "3x safety signals" },
+  { quote: "The pre-charting alone saves me 20 minutes per patient. Having structured clinical decision support with full provenance — knowing exactly where every recommendation came from — changes how I practice.", author: "Dr. Cindy Hird", role: "Emergency Medicine Physician", org: "", metric: "Pre-charting" },
+  { quote: "I was blown away by what this can do. Extracting concepts from messy notes, mapping them to OMOP, and building a queryable graph — all in one pipeline. This is the clinical data tool I've been waiting for.", author: "Dr. Jose Santini", role: "Nephrologist", org: "", metric: "Full pipeline" },
+  { quote: "Provenance and reasoning are the holy grail of responsible AI in healthcare. Knowledge graphs are key to that, and Sulci nails the connection between unstructured notes and structured, traceable clinical facts.", author: "Dr. Waqar Haider", role: "Emergency Medicine Physician", org: "", metric: "Provenance" },
 ];
 
 function TestimonialsSection() {
@@ -739,7 +744,7 @@ function TestimonialsSection() {
               </div>
               <div>
                 <p className="text-[14px] font-semibold text-neutral-900">{featured.author}</p>
-                <p className="text-[13px] text-neutral-500">{featured.role} &middot; {featured.org}</p>
+                <p className="text-[13px] text-neutral-500">{featured.role}{featured.org ? ` · ${featured.org}` : ""}</p>
               </div>
               <span className="ml-auto hidden md:block text-[12px] font-semibold px-3 py-1 rounded-full bg-neutral-200/60 text-neutral-600">{featured.metric}</span>
             </div>
@@ -757,7 +762,7 @@ function TestimonialsSection() {
                   </div>
                   <div>
                     <p className="text-[13px] font-semibold text-neutral-900">{t.author}</p>
-                    <p className="text-[12px] text-neutral-500">{t.role} &middot; {t.org}</p>
+                    <p className="text-[12px] text-neutral-500">{t.role}{t.org ? ` · ${t.org}` : ""}</p>
                   </div>
                   <span className="ml-auto text-[11px] font-semibold px-2.5 py-1 rounded-full bg-neutral-200/60 text-neutral-600">{t.metric}</span>
                 </div>
@@ -765,6 +770,7 @@ function TestimonialsSection() {
             </motion.div>
           ))}
         </div>
+        <p className="mt-8 text-[11px] text-neutral-300 text-center">Testimonials reflect individual opinions and experiences. Results may vary.</p>
       </div>
     </section>
   );
@@ -794,18 +800,18 @@ function StandardsAndCompliance() {
           </div>
           <div>
             <p className="text-[11px] font-semibold tracking-[0.15em] uppercase text-neutral-400 mb-4">Security &amp; Compliance</p>
-            <h3 className="text-[1.5rem] md:text-[2rem] font-semibold tracking-[-0.02em] text-neutral-900 mb-3">Enterprise-grade from day one.</h3>
+            <h3 className="text-[1.5rem] md:text-[2rem] font-semibold tracking-[-0.02em] text-neutral-900 mb-3">Designed for regulated environments.</h3>
             <p className="text-[14px] text-neutral-500 leading-relaxed mb-6">
-              Built for regulated environments. Every action logged, every record encrypted, every access controlled.
+              Security-first architecture with audit logging, encryption at rest and in transit, and role-based access controls.
             </p>
             <div className="grid grid-cols-2 gap-3">
               {[
-                { icon: Shield, label: "HIPAA", desc: "End-to-end encryption" },
-                { icon: Lock, label: "SOC 2 Type II", desc: "Audited controls" },
-                { icon: FileText, label: "BAA", desc: "Available on all plans" },
-                { icon: Activity, label: "FHIR R4", desc: "Certified interop" },
+                { icon: Shield, label: "HIPAA Ready", desc: "Designed for compliance" },
+                { icon: Lock, label: "SOC 2 Type II", desc: "In process" },
+                { icon: FileText, label: "BAA", desc: "Available on request" },
+                { icon: Activity, label: "FHIR R4", desc: "Standards-based interop" },
                 { icon: Database, label: "OMOP CDM v5.4", desc: "Standard data model" },
-                { icon: CheckCircle2, label: "21 CFR Part 11", desc: "Electronic records" },
+                { icon: CheckCircle2, label: "21 CFR Part 11", desc: "Architecture aligned" },
               ].map(({ icon: Icon, label, desc }) => (
                 <div key={label} className="rounded-xl p-3.5 bg-white border border-neutral-200/80 shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:border-neutral-300 hover:shadow-[0_4px_12px_rgba(0,0,0,0.04)] transition-all">
                   <div className="flex items-center gap-2 mb-1"><Icon className="h-3.5 w-3.5 text-neutral-400" /><span className="text-[13px] font-semibold text-neutral-900">{label}</span></div>
@@ -838,7 +844,7 @@ function IntegrationsSection() {
   return (
     <section className="py-20 md:py-28 px-6">
       <div className="max-w-[800px] mx-auto">
-        <p className="text-[11px] font-semibold tracking-[0.15em] uppercase text-neutral-400 mb-8 text-center">Connects to your existing infrastructure</p>
+        <p className="text-[11px] font-semibold tracking-[0.15em] uppercase text-neutral-400 mb-8 text-center">Designed to integrate with your infrastructure</p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {integrations.map(({ icon: Icon, label }) => (
             <div key={label} className="flex items-center gap-2.5 px-5 py-3 rounded-xl bg-white border border-neutral-200/80 shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:border-neutral-300 transition-colors">
@@ -944,11 +950,11 @@ const plans = [
   },
   {
     name: "Pro",
-    price: "$499",
-    period: "/mo",
+    price: "Early Access",
+    period: "",
     description: "For teams building production pipelines.",
     features: ["25,000 documents/month", "Full OMOP CDM + custom ontologies", "Knowledge graph + GraphRAG", "FHIR R4 import/export", "Priority support", "Up to 10 users", "SSO + audit logs"],
-    cta: "Start Trial",
+    cta: "Request Access",
     highlight: true,
   },
   {
@@ -968,9 +974,9 @@ function PricingSection() {
       <div className="max-w-[1200px] mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={VIEWPORT} transition={{ duration: 0.5, ease: EASE }} className="text-center mb-20">
           <p className="text-[11px] font-semibold tracking-[0.15em] uppercase text-neutral-400 mb-4">Pricing</p>
-          <h2 className="text-[2rem] md:text-[3.25rem] font-semibold tracking-[-0.04em] text-neutral-900 leading-[1.05]">Simple, predictable pricing</h2>
+          <h2 className="text-[2rem] md:text-[3.25rem] font-semibold tracking-[-0.04em] text-neutral-900 leading-[1.05]">Start free, scale with us</h2>
           <p className="mt-5 text-neutral-500 max-w-lg mx-auto text-[16px] leading-relaxed">
-            Start free. Scale when you&apos;re ready. No surprises.
+            Explore the platform at no cost. Request early access when you&apos;re ready to build.
           </p>
         </motion.div>
         <div className="grid md:grid-cols-3 gap-5 max-w-[960px] mx-auto">
@@ -994,7 +1000,7 @@ function PricingSection() {
                   <span className="text-[2.5rem] font-bold tracking-[-0.04em] text-neutral-900">{plan.price}</span>
                   {plan.period && <span className="text-[14px] text-neutral-400">{plan.period}</span>}
                 </div>
-                <Link href="/dashboard">
+                <Link href="/login?next=/dashboard">
                   <Button className={`w-full rounded-xl h-10 text-[13px] font-medium transition-all ${
                     plan.highlight
                       ? "bg-neutral-900 text-white hover:bg-neutral-800 shadow-sm"
@@ -1029,14 +1035,19 @@ function CTASection() {
       <div className="max-w-[800px] mx-auto text-center">
         <h2 className="text-[2rem] md:text-[3.25rem] font-semibold tracking-[-0.04em] text-neutral-900 leading-[1.05]">Ready to turn clinical notes into knowledge?</h2>
         <p className="mt-5 text-neutral-500 max-w-md mx-auto text-[16px] leading-relaxed">Stop leaving clinical signal trapped in free text. See how Sulci can transform your data pipeline in a 30-minute walkthrough.</p>
-        <div className="mt-10 flex items-center justify-center">
-          <Link href="/dashboard">
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+          <Link href="/login?next=/dashboard">
             <Button className="group bg-neutral-900 text-white hover:bg-neutral-800 rounded-xl h-14 px-10 text-[16px] font-medium shadow-[0_1px_2px_rgba(0,0,0,0.1),0_4px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_1px_2px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.1)] transition-all">
               Request a Demo <ArrowRight className="ml-1.5 h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
             </Button>
           </Link>
+          <Link href="/proof">
+            <Button variant="outline" className="h-14 px-10 text-[16px] font-medium border-neutral-300 rounded-xl">
+              View Proof / Readiness
+            </Button>
+          </Link>
         </div>
-        <p className="mt-5 text-[13px] text-neutral-400">HIPAA compliant. SOC 2 Type II. BAA available.</p>
+        <p className="mt-5 text-[13px] text-neutral-400">HIPAA-ready architecture. SOC 2 Type II in process. BAA available.</p>
       </div>
     </section>
   );
@@ -1047,9 +1058,28 @@ function CTASection() {
 // ============================================================================
 function FooterSection() {
   const links = {
-    Product: ["NLP Engine", "Ontology Mapping", "Knowledge Graph", "FHIR Import/Export", "Clinical Trials", "API Reference"],
-    Resources: ["Documentation", "Quickstart Guide", "API Status", "Changelog", "Blog"],
-    Company: ["About", "Careers", "Security", "Privacy Policy", "Terms of Service"],
+    Product: [
+      { label: "NLP Engine", href: "/login?next=/nlp" },
+      { label: "Ontology Mapping", href: "/login?next=/vocabularies" },
+      { label: "Knowledge Graph", href: "/login?next=/clinical" },
+      { label: "FHIR Import/Export", href: "/login?next=/exports" },
+      { label: "Clinical Trials", href: "/login?next=/trials" },
+      { label: "API Reference", href: "/login?next=/dashboard" },
+    ],
+    Resources: [
+      { label: "Documentation", href: "/docs" },
+      { label: "Quickstart Guide", href: "/docs" },
+      { label: "API Status", href: "/docs" },
+      { label: "Changelog", href: "/changelog" },
+      { label: "Blog", href: "/docs" },
+    ],
+    Company: [
+      { label: "About", href: "/about" },
+      { label: "Careers", href: "/careers" },
+      { label: "Security", href: "/security" },
+      { label: "Privacy Policy", href: "/privacy" },
+      { label: "Terms of Service", href: "/terms" },
+    ],
   };
   return (
     <footer className="border-t border-neutral-200">
@@ -1081,16 +1111,19 @@ function FooterSection() {
               <p className="text-[12px] font-semibold tracking-wide uppercase text-neutral-400 mb-3">{cat}</p>
               <div className="space-y-2">
                 {items.map((item) => (
-                  <Link key={item} href="/dashboard" className="block text-[13px] text-neutral-500 hover:text-neutral-900 transition-colors">{item}</Link>
+                  <Link key={item.label} href={item.href} className="block text-[13px] text-neutral-500 hover:text-neutral-900 transition-colors">{item.label}</Link>
                 ))}
               </div>
             </div>
           ))}
         </div>
         <div className="mt-12 pt-6 border-t border-neutral-200/60 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-[12px] text-neutral-400">&copy; 2026 Sulci AI, Inc. All rights reserved.</p>
+          <div>
+            <p className="text-[12px] text-neutral-400">&copy; 2026 Sulci AI, Inc. All rights reserved.</p>
+            <p className="text-[10px] text-neutral-300 mt-1">Sulci AI is not a medical device and is not intended to diagnose, treat, or prevent any disease. All product names, logos, and brands are property of their respective owners.</p>
+          </div>
           <div className="flex items-center gap-4 text-[11px] font-mono text-neutral-400">
-            {["HIPAA", "SOC 2", "FHIR R4"].map((b) => (
+            {["HIPAA Ready", "SOC 2 (in process)", "FHIR R4"].map((b) => (
               <span key={b} className="px-2 py-0.5 rounded bg-neutral-50 border border-neutral-100">{b}</span>
             ))}
           </div>

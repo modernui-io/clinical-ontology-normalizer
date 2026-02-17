@@ -39,6 +39,7 @@ import {
   FileJson,
   ArrowLeftRight,
 } from "lucide-react";
+import DataSourceModeBanner from "@/components/readiness/DataSourceModeBanner";
 import { toast } from "sonner";
 
 // ---------------------------------------------------------------------------
@@ -458,16 +459,17 @@ export default function OpenEHROpsPage() {
         </p>
       </div>
 
-      {/* Demo mode banner */}
-      {demoMode && (
-        <div className="flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
-          <AlertCircle className="h-4 w-4 shrink-0" />
-          <span>
-            <strong>Client-side demo mode</strong> — API is unavailable.
-            Showing simulated results.
-          </span>
-        </div>
-      )}
+      <DataSourceModeBanner
+        mode={demoMode ? "simulation" : "mixed"}
+        title="OpenEHR operations mode"
+        description={
+          demoMode
+            ? "OpenEHR operations are running in client-side simulation mode because live API endpoints are currently unavailable."
+            : "Live API mode for dry-run/reconciliation/rollback with fallback simulation; production execution endpoints include /api/openehr/reconciliation and /api/openehr/rollback."
+        }
+        evidencePath="frontend/src/app/pipelines/openehr/operations/page.tsx"
+        lastUpdatedAt="2026-02-16"
+      />
 
       {/* Tabs */}
       <Tabs defaultValue="dry-run" className="space-y-4">

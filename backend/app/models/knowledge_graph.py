@@ -235,7 +235,7 @@ class KGEdge(SoftDeleteMixin, Base):
     __table_args__ = (
         Index("ix_kg_edges_valid_range", "valid_from", "valid_to"),
         Index("ix_kg_edges_patient_valid", "patient_id", "valid_from"),
-        Index("ix_kg_edges_event_date", "event_date"),
+        # event_date index already created by index=True on column definition
         # VP-Performance-1: Additional composite indexes for common query patterns
         Index("ix_kg_edges_patient_type", "patient_id", "edge_type"),
         Index("ix_kg_edges_source_type", "source_node_id", "edge_type"),

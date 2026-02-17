@@ -93,9 +93,8 @@ class DataLineageRecord(Base):
     clinical_fact = relationship("ClinicalFact", backref="lineage_records")
 
     __table_args__ = (
-        # Patient lineage queries go through clinical_facts FK,
-        # but we index source_type for aggregate queries.
-        Index("ix_data_lineage_source_type", "source_type"),
+        # source_type single-column index already created by index=True on column.
+        # Composite index for fact+source queries:
         Index("ix_data_lineage_fact_source", "clinical_fact_id", "source_type"),
     )
 
