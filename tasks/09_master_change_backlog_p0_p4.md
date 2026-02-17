@@ -110,6 +110,8 @@ Execution rules
 - [x] P2-007 Add uncertainty taxonomy and reason codes for all decline/degraded outputs. | Owner: Clinical AI | Anchor: response schema | Exit: standardized reason catalog.
 - [x] P2-008 Add chart-level "what system knows vs does not know" summary panel. | Owner: Product | Anchor: frontend clinical pages | Exit: unknown coverage displayed.
   - [x] P2-008-ROL08 OMOP hierarchy string-fallback guardrail corpus + regression suite. Evidence: `docs/evidence/p2-008/`.
+  - [x] P2-008-I Precision guardrail corpus extension: +15 ambiguous pairs (LASA drugs, unqualified conditions, abbreviation collisions, specimen ambiguity, cross-domain collisions), +30 per-domain positive pairs, +4 domain precision thresholds. Evidence: `backend/tests/fixtures/omop_guardrail_corpus.py`.
+  - [x] P2-008-V Precision guardrail regression test suite: 6 test classes (corpus structure, false-positive rejection, similarity boundary, ambiguous handling, domain precision gates, drift detection), 39 tests (32 PASS, 7 SKIP graceful). Evidence: `backend/tests/test_umls_omop_precision_guardrails.py`, `docs/evidence/p2-008/p2-008-regression-results.md`.
 - [x] P2-009 Add clinician feedback capture and replay pipeline. | Owner: Product + Clinical AI | Anchor: feedback API/storage | Exit: weekly reviewed feedback dataset.
 - [x] P2-010 Add drift detection for terminology mapping distributions over time. | Owner: Clinical AI + Data | Anchor: mapping analytics jobs | Exit: drift alert thresholds active.
 - [x] P2-011 Add concept mapping disagreement dashboard (rule vs ML vs ensemble). | Owner: Clinical AI + Product | Anchor: analytics/UI | Exit: disagreement visibility for triage.
