@@ -8,11 +8,13 @@ import {
   Settings,
   FileSearch,
   CircleDashed,
+  Play,
 } from "lucide-react";
 import { getReadinessSnapshot } from "@/lib/readinessEvidence.server";
 import EvidenceBundleButton from "@/components/readiness/EvidenceBundleButton";
 import ReviewerChecklist from "@/components/readiness/ReviewerChecklist";
 import ScenarioEvidence from "@/components/readiness/ScenarioEvidence";
+import { DEMO_SCENARIOS } from "@/lib/demo-scenarios";
 
 type DemoScenario = {
   id: string;
@@ -22,6 +24,13 @@ type DemoScenario = {
   evidenceHint: string;
   readiness: "ready" | "simulation";
   claims: string[];
+};
+
+/** Map from sales-demo scenario IDs to the deterministic P4-018 scenario IDs */
+const scenarioRunnerMap: Record<string, string> = {
+  "sales-clinical-safety": "p4-018-clinical-safety",
+  "sales-interoperability": "p4-018-interop-openehr",
+  "sales-ops-resilience": "p4-018-quality-ops",
 };
 
 const demoScenarios: DemoScenario[] = [
@@ -44,7 +53,7 @@ const demoScenarios: DemoScenario[] = [
     title: "Interop + OpenEHR replay",
     summary:
       "Walk through import/extract/reconciliation path and show evidence hooks in docs and runbooks.",
-    href: "/pipelines/openehr",
+    href: "/pipelines/openehr/operations",
     evidenceHint: "Show mapping contract and reconciliation artifact links before external onboarding statements.",
     readiness: "ready",
     claims: [
@@ -58,7 +67,7 @@ const demoScenarios: DemoScenario[] = [
     title: "Operations resilience",
     summary:
       "Walk through readiness proof links and operational drill evidence for backup/rollback posture.",
-    href: "/pipelines/openehr/operations",
+    href: "/clinical",
     evidenceHint: "Pair with P0-025, P0-026, P0-027 evidence before claiming production resilience.",
     readiness: "simulation",
     claims: [
@@ -146,7 +155,7 @@ export default async function SalesDemoPage() {
                   ))}
                 </ul>
 
-                <div className="mt-4">
+                <div className="mt-4 flex flex-wrap gap-2">
                   <Link
                     href={scenario.href}
                     className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-900 border border-slate-300 rounded-md px-2.5 py-1.5"
@@ -154,6 +163,15 @@ export default async function SalesDemoPage() {
                     Open scenario
                     <ArrowRight className="h-3.5 w-3.5" />
                   </Link>
+                  {scenarioRunnerMap[scenario.id] && (
+                    <Link
+                      href={`${scenario.href}#demo-scenario-runner`}
+                      className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-700 border border-blue-200 bg-blue-50 rounded-md px-2.5 py-1.5 hover:bg-blue-100 transition-colors"
+                    >
+                      <Play className="h-3 w-3" />
+                      Run deterministic scenario
+                    </Link>
+                  )}
                 </div>
 
                 <ScenarioEvidence
@@ -233,6 +251,31 @@ export default async function SalesDemoPage() {
               </li>
             </ul>
           </article>
+        </section>
+
+        <section className="rounded-xl border border-slate-200 p-5 bg-white">
+          <h2 className="text-lg font-semibold text-slate-900 mb-3">
+            Deterministic scenario runners
+          </h2>
+          <p className="text-sm text-slate-600 mb-4">
+            Each target page has an embedded runner that executes a deterministic {DEMO_SCENARIOS.length}-scenario
+            set with step-by-step logging, endpoint tracking, and one-click evidence export.
+          </p>
+          <div className="grid md:grid-cols-3 gap-3">
+            {DEMO_SCENARIOS.map((s) => (
+              <Link
+                key={s.id}
+                href={`${s.pageHref}#demo-scenario-runner`}
+                className="flex items-center gap-2 rounded-lg border border-slate-200 p-3 hover:bg-slate-50 transition-colors"
+              >
+                <Play className="h-4 w-4 text-blue-600 shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-slate-800">{s.title}</p>
+                  <p className="text-[10px] text-slate-500 font-mono">{s.id}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
         </section>
 
         <ReviewerChecklist

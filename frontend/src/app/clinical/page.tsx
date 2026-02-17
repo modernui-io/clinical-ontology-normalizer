@@ -45,8 +45,10 @@ import {
 } from "@/components/DegradedBanner";
 import DataSourceModeBanner from "@/components/readiness/DataSourceModeBanner";
 import SectionEvidenceTag from "@/components/readiness/SectionEvidenceTag";
+import DemoScenarioRunner from "@/components/readiness/DemoScenarioRunner";
 import { RefusalCard } from "@/components/RefusalCard";
 import { useSimulationGuard } from "@/lib/simulation-guard";
+import { SCENARIO_QUALITY_OPS } from "@/lib/demo-scenarios";
 import {
   ChartCoverageSummary,
   type ChartCoverageData,
@@ -1125,6 +1127,9 @@ export default function ClinicalDashboardPage() {
           />
         </CardContent>
       </Card>
+
+      {/* P4-018: Deterministic demo scenario runner */}
+      <DemoScenarioRunner scenario={SCENARIO_QUALITY_OPS} />
     </div>
   );
 }

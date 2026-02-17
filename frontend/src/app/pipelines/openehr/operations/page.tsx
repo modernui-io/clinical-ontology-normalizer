@@ -40,6 +40,8 @@ import {
   ArrowLeftRight,
 } from "lucide-react";
 import DataSourceModeBanner from "@/components/readiness/DataSourceModeBanner";
+import DemoScenarioRunner from "@/components/readiness/DemoScenarioRunner";
+import { SCENARIO_INTEROP_OPENEHR } from "@/lib/demo-scenarios";
 import { toast } from "sonner";
 
 // ---------------------------------------------------------------------------
@@ -902,6 +904,9 @@ export default function OpenEHROpsPage() {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* P4-018: Deterministic demo scenario runner */}
+      <DemoScenarioRunner scenario={SCENARIO_INTEROP_OPENEHR} />
     </div>
   );
 }

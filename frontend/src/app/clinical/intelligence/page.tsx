@@ -43,7 +43,9 @@ import {
 import { toast } from "sonner";
 import DataSourceModeBanner from "@/components/readiness/DataSourceModeBanner";
 import SectionEvidenceTag from "@/components/readiness/SectionEvidenceTag";
+import DemoScenarioRunner from "@/components/readiness/DemoScenarioRunner";
 import { useSimulationGuard } from "@/lib/simulation-guard";
+import { SCENARIO_CLINICAL_SAFETY } from "@/lib/demo-scenarios";
 
 // ---------------------------------------------------------------------------
 // Auth helpers
@@ -1302,6 +1304,9 @@ Or paste a single clinical note as plain text.`}
           />
         </TabsContent>
       </Tabs>
+
+      {/* P4-018: Deterministic demo scenario runner */}
+      <DemoScenarioRunner scenario={SCENARIO_CLINICAL_SAFETY} />
     </div>
   );
 }

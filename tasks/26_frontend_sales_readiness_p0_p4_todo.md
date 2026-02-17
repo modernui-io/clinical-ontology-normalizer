@@ -115,8 +115,8 @@
   3. Operations + DR/resilience path
 - [x] Add one-click run + evidence package export.
   - Include API payloads, response hashes, evidence IDs, provenance summary.
-- [ ] Add reviewer checklist and acceptance signature before presenting externally.
-  - Suggested anchor: `frontend/src/app/clinical/intelligence/page.tsx` + `frontend/src/app/pipelines/openehr/page.tsx`
+- [x] Add reviewer checklist and acceptance signature before presenting externally. Done 2026-02-16: DemoScenarioRunner.tsx embedded in `/clinical/intelligence`, `/pipelines/openehr/operations`, `/clinical` with operator capture, 6-step deterministic execution, and evidence manifest export. Sales-demo cross-references all 3 runners.
+  - Anchors: `frontend/src/app/clinical/intelligence/page.tsx`, `frontend/src/app/pipelines/openehr/operations/page.tsx`, `frontend/src/app/clinical/page.tsx`
 - [x] Add `/sales-demo` showcase page and wire it to nav + docs/trust flow.
   - Anchors: `frontend/src/app/sales-demo/page.tsx`, `frontend/src/components/readiness/EvidenceBundleButton.tsx`,
     `frontend/src/components/readiness/TrustProofContent.tsx`, `frontend/src/components/Sidebar.tsx`,
