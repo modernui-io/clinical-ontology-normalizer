@@ -46,6 +46,8 @@ import {
   Stethoscope,
 } from "lucide-react";
 import DataSourceModeBanner from "@/components/readiness/DataSourceModeBanner";
+import SectionEvidenceTag from "@/components/readiness/SectionEvidenceTag";
+import { useSimulationGuard } from "@/lib/simulation-guard";
 import {
   LineChart,
   Line,
@@ -255,6 +257,8 @@ export default function AdminDashboardPage() {
   const [isClearing, setIsClearing] = useState(false);
   const [isRestarting, setIsRestarting] = useState(false);
 
+  const guard = useSimulationGuard("mixed", "admin/dashboard");
+
   const fetchDashboard = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -430,6 +434,11 @@ export default function AdminDashboardPage() {
           </Card>
         ))}
       </div>
+      <SectionEvidenceTag
+        source="/api/dashboard/admin"
+        dataFreshness={dashboardData?.metadata.generated_at || "pending"}
+        evidenceArtifact="backend/app/api/admin_dashboard.py"
+      />
 
       {/* Key Metrics Row */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -492,6 +501,10 @@ export default function AdminDashboardPage() {
           </CardContent>
         </Card>
       </div>
+      <SectionEvidenceTag
+        source="/api/dashboard/admin"
+        dataFreshness={dashboardData?.metadata.generated_at || "pending"}
+      />
 
       {/* Charts and Gauges Row */}
       <div className="grid gap-6 lg:grid-cols-3">
@@ -556,6 +569,11 @@ export default function AdminDashboardPage() {
                 </AreaChart>
               </ResponsiveContainer>
             </div>
+            <SectionEvidenceTag
+              source="simulation"
+              dataFreshness="page_load"
+              evidenceArtifact="frontend/src/app/admin/dashboard/page.tsx"
+            />
           </CardContent>
         </Card>
 
@@ -626,6 +644,11 @@ export default function AdminDashboardPage() {
                 Max capacity: 500 connections
               </p>
             </div>
+            <SectionEvidenceTag
+              source="simulation"
+              dataFreshness="page_load"
+              evidenceArtifact="frontend/src/app/admin/dashboard/page.tsx"
+            />
           </CardContent>
         </Card>
       </div>
@@ -733,6 +756,11 @@ export default function AdminDashboardPage() {
               <span>Posture: CONDITIONAL GO</span>
             </div>
           </div>
+          <SectionEvidenceTag
+            source="docs/evidence/*"
+            dataFreshness="2026-02-16"
+            evidenceArtifact="docs/evidence/p0-019/"
+          />
         </CardContent>
       </Card>
 
@@ -784,6 +812,10 @@ export default function AdminDashboardPage() {
                 </TableBody>
               </Table>
             )}
+            <SectionEvidenceTag
+              source="/api/dashboard/admin"
+              dataFreshness={dashboardData?.metadata.generated_at || "pending"}
+            />
           </CardContent>
         </Card>
 
@@ -798,21 +830,22 @@ export default function AdminDashboardPage() {
               variant="outline"
               className="w-full justify-start"
               onClick={handleClearCache}
-              disabled={isClearing}
+              disabled={true}
             >
               <Trash2 className={`mr-2 h-4 w-4 ${isClearing ? "animate-pulse" : ""}`} />
-              {isClearing ? "Clearing Cache..." : "Clear All Caches"}
+              Clear All Caches (simulation)
             </Button>
 
             <Button
               variant="outline"
               className="w-full justify-start"
               onClick={handleRestartServices}
-              disabled={isRestarting}
+              disabled={true}
             >
               <RotateCcw className={`mr-2 h-4 w-4 ${isRestarting ? "animate-spin" : ""}`} />
-              {isRestarting ? "Restarting Services..." : "Restart Services"}
+              Restart Services (simulation)
             </Button>
+            <p className="text-[10px] text-amber-600 italic mt-2">Write actions disabled — resource management endpoints not connected.</p>
 
             <Button
               variant="outline"
@@ -838,6 +871,9 @@ export default function AdminDashboardPage() {
               <p className="text-xs text-muted-foreground flex items-center">
                 <Clock className="h-3 w-3 mr-1" />
                 Time window: {dashboardData?.metadata.time_window ?? "24h"}
+              </p>
+              <p className="text-[10px] text-slate-500 mt-2">
+                {guard.escalationText}
               </p>
             </div>
           </CardContent>

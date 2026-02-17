@@ -104,6 +104,9 @@
 - [x] Add the same marker pattern to `frontend/src/app/admin/audit/page.tsx` (mock audit logs + operational evidence).
 - [x] Add the same marker pattern to `frontend/src/app/clinical/intelligence/page.tsx` (demonstration graph view when API unavailable). Done 2026-02-16: Replaced ad-hoc demo banner with `DataSourceModeBanner` that toggles between Live/Simulation based on API availability.
 - [x] Add signoff text in each banner clarifying "simulation only" when user actions are not writing to backend. Done 2026-02-16: Added `signoffText` prop to `DataSourceModeBanner` and applied across reports, export, and clinical intelligence pages.
+- [x] Add per-card/section evidence metadata (`SectionEvidenceTag`) with source, dataFreshness, and optional evidenceArtifact on all 4 high-visibility pages (`admin/dashboard`, `admin/audit`, `clinical/page`, `clinical/intelligence`). Done 2026-02-16.
+- [x] Add `useSimulationGuard` hook with per-page escalation text and guarded write actions. Guard disables destructive buttons in simulation mode. Done 2026-02-16.
+- [x] Add tests at `frontend/__tests__/readiness/p4-017-mode-evidence.test.tsx` (14 tests: SectionEvidenceTag rendering + useSimulationGuard state/actions). Done 2026-02-16.
 
 ### P4-018 Production demo workspace
 - [x] Define 3 sales scenarios with deterministic inputs/output manifest:

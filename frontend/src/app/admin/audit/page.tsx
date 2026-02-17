@@ -28,6 +28,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import DataSourceModeBanner from "@/components/readiness/DataSourceModeBanner";
+import SectionEvidenceTag from "@/components/readiness/SectionEvidenceTag";
+import { useSimulationGuard } from "@/lib/simulation-guard";
 import {
   Shield,
   Download,
@@ -472,6 +474,8 @@ export default function AdminAuditLogPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
+  const guard = useSimulationGuard("simulation", "admin/audit");
+
   const actions = ["all", "read", "create", "update", "delete", "export", "search", "login", "logout"];
   const resourceTypes = [
     "all",
@@ -620,21 +624,22 @@ export default function AdminAuditLogPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={refreshData}
+            onClick={() => guard.guardedAction(refreshData, "Refresh")}
             disabled={isLoading}
+            title={guard.isSimulation ? "Simulation mode — refresh is a no-op" : undefined}
           >
             <RefreshCw
               className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
             />
-            Refresh
+            Refresh (Simulation)
           </Button>
           <Button variant="outline" size="sm" onClick={exportToCSV}>
             <FileSpreadsheet className="mr-2 h-4 w-4" />
-            Export CSV
+            Export CSV (simulation data)
           </Button>
           <Button variant="outline" size="sm" onClick={exportToJSON}>
             <FileJson className="mr-2 h-4 w-4" />
-            Export JSON
+            Export JSON (simulation data)
           </Button>
         </div>
       </div>
@@ -648,6 +653,9 @@ export default function AdminAuditLogPage() {
         signoffText="Simulation only — audit events from demonstration data. No write actions are persisted to production audit trail."
         backendEndpoints={["/api/v1/audit/events"]}
       />
+      <div className="text-[10px] text-slate-500 italic px-1">
+        {guard.escalationText}
+      </div>
 
       {/* Summary Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
@@ -661,6 +669,7 @@ export default function AdminAuditLogPage() {
               {stats.totalEvents.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">All time</p>
+            <p className="text-[9px] text-slate-400 italic mt-0.5">(simulated)</p>
           </CardContent>
         </Card>
 
@@ -677,6 +686,7 @@ export default function AdminAuditLogPage() {
               {((stats.phiAccessEvents / stats.totalEvents) * 100).toFixed(1)}% of
               events
             </p>
+            <p className="text-[9px] text-slate-400 italic mt-0.5">(simulated)</p>
           </CardContent>
         </Card>
 
@@ -693,6 +703,7 @@ export default function AdminAuditLogPage() {
               {((stats.failedEvents / stats.totalEvents) * 100).toFixed(2)}% failure
               rate
             </p>
+            <p className="text-[9px] text-slate-400 italic mt-0.5">(simulated)</p>
           </CardContent>
         </Card>
 
@@ -704,6 +715,7 @@ export default function AdminAuditLogPage() {
           <CardContent>
             <div className="text-2xl font-bold">{stats.uniqueUsers}</div>
             <p className="text-xs text-muted-foreground">Active users</p>
+            <p className="text-[9px] text-slate-400 italic mt-0.5">(simulated)</p>
           </CardContent>
         </Card>
 
@@ -717,6 +729,7 @@ export default function AdminAuditLogPage() {
               {stats.eventsToday.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">Events today</p>
+            <p className="text-[9px] text-slate-400 italic mt-0.5">(simulated)</p>
           </CardContent>
         </Card>
 
@@ -728,9 +741,12 @@ export default function AdminAuditLogPage() {
           <CardContent>
             <div className="text-2xl font-bold">{stats.avgResponseTime}ms</div>
             <p className="text-xs text-muted-foreground">Response time</p>
+            <p className="text-[9px] text-slate-400 italic mt-0.5">(simulated)</p>
           </CardContent>
         </Card>
       </div>
+
+      <SectionEvidenceTag source="simulation" dataFreshness="page_load" evidenceArtifact="frontend/src/app/admin/audit/page.tsx" />
 
       {/* Filters */}
       <Card>
@@ -870,6 +886,7 @@ export default function AdminAuditLogPage() {
               <CardDescription>
                 {filteredLogs.length.toLocaleString()} entries found
               </CardDescription>
+              <SectionEvidenceTag source="simulation" dataFreshness="page_load" evidenceArtifact="frontend/src/app/admin/audit/page.tsx" />
             </div>
           </div>
         </CardHeader>

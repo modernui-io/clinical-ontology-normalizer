@@ -44,7 +44,9 @@ import {
   type DegradedState,
 } from "@/components/DegradedBanner";
 import DataSourceModeBanner from "@/components/readiness/DataSourceModeBanner";
+import SectionEvidenceTag from "@/components/readiness/SectionEvidenceTag";
 import { RefusalCard } from "@/components/RefusalCard";
+import { useSimulationGuard } from "@/lib/simulation-guard";
 import {
   ChartCoverageSummary,
   type ChartCoverageData,
@@ -383,6 +385,9 @@ export default function ClinicalDashboardPage() {
     null
   );
 
+  const pageMode = error ? "simulation" : "live";
+  const guard = useSimulationGuard(pageMode as "live" | "simulation", "clinical");
+
   // -----------------------------------------------------------------------
   // Fetch data from backend dashboard endpoints
   // -----------------------------------------------------------------------
@@ -647,6 +652,11 @@ export default function ClinicalDashboardPage() {
         }
         backendEndpoints={["/api/dashboard/provider", "/api/dashboard/biller", "/api/v1/kg/completeness/score"]}
       />
+      {error && (
+        <p className="text-[10px] text-slate-500 italic px-1">
+          {guard.escalationText}
+        </p>
+      )}
 
       {/* P2-008: Chart Coverage Summary */}
       <ChartCoverageSummary data={chartCoverage} isLoading={isLoading} />
@@ -739,6 +749,11 @@ export default function ClinicalDashboardPage() {
           </CardContent>
         </Card>
       </div>
+      <SectionEvidenceTag
+        source="/api/dashboard/provider + /api/dashboard/biller"
+        dataFreshness={error ? "unavailable" : "live"}
+        evidenceArtifact="backend/app/api/dashboards.py"
+      />
 
       {/* Main Content Grid */}
       <div className="grid gap-6 lg:grid-cols-2">
@@ -776,38 +791,44 @@ export default function ClinicalDashboardPage() {
                 No drug interaction alerts found.
               </p>
             ) : (
-              <div className="space-y-3">
-                {drugAlerts.map((alert) => (
-                  <div
-                    key={alert.id}
-                    className="flex items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"
-                  >
-                    {alert.severity === "contraindicated" ? (
-                      <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 shrink-0" />
-                    ) : alert.severity === "major" ? (
-                      <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5 shrink-0" />
-                    ) : (
-                      <Info className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" />
-                    )}
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-medium">
-                          {alert.drug1} + {alert.drug2}
-                        </span>
-                        <Badge className={severityStyles[alert.severity] ?? ""}>
-                          {alert.severity}
-                        </Badge>
+              <>
+                <div className="space-y-3">
+                  {drugAlerts.map((alert) => (
+                    <div
+                      key={alert.id}
+                      className="flex items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"
+                    >
+                      {alert.severity === "contraindicated" ? (
+                        <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 shrink-0" />
+                      ) : alert.severity === "major" ? (
+                        <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5 shrink-0" />
+                      ) : (
+                        <Info className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" />
+                      )}
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-medium">
+                            {alert.drug1} + {alert.drug2}
+                          </span>
+                          <Badge className={severityStyles[alert.severity] ?? ""}>
+                            {alert.severity}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {alert.description}
+                        </p>
+                        <p className="text-xs text-blue-600 dark:text-blue-400">
+                          {alert.management}
+                        </p>
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        {alert.description}
-                      </p>
-                      <p className="text-xs text-blue-600 dark:text-blue-400">
-                        {alert.management}
-                      </p>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+                <SectionEvidenceTag
+                  source="/api/dashboard/provider"
+                  dataFreshness={error ? "unavailable" : "live"}
+                />
+              </>
             )}
           </CardContent>
         </Card>
@@ -846,6 +867,7 @@ export default function ClinicalDashboardPage() {
                 for revenue opportunities.
               </p>
             ) : (
+              <>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -889,6 +911,11 @@ export default function ClinicalDashboardPage() {
                   ))}
                 </TableBody>
               </Table>
+              <SectionEvidenceTag
+                source="/api/dashboard/biller"
+                dataFreshness={error ? "unavailable" : "live"}
+              />
+              </>
             )}
           </CardContent>
         </Card>
@@ -924,31 +951,37 @@ export default function ClinicalDashboardPage() {
                 No documentation issues found.
               </p>
             ) : (
-              <div className="space-y-3">
-                {documentationIssues.map((issue) => (
-                  <div
-                    key={issue.id}
-                    className="flex items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"
-                  >
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <Badge className={issueTypeStyles[issue.type] ?? ""}>
-                          {issue.type}
-                        </Badge>
-                        <Badge
-                          className={priorityStyles[issue.priority] ?? ""}
-                        >
-                          {issue.priority}
-                        </Badge>
-                        <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
-                          {issue.affectedCode}
-                        </code>
+              <>
+                <div className="space-y-3">
+                  {documentationIssues.map((issue) => (
+                    <div
+                      key={issue.id}
+                      className="flex items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"
+                    >
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge className={issueTypeStyles[issue.type] ?? ""}>
+                            {issue.type}
+                          </Badge>
+                          <Badge
+                            className={priorityStyles[issue.priority] ?? ""}
+                          >
+                            {issue.priority}
+                          </Badge>
+                          <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
+                            {issue.affectedCode}
+                          </code>
+                        </div>
+                        <p className="text-sm">{issue.description}</p>
                       </div>
-                      <p className="text-sm">{issue.description}</p>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+                <SectionEvidenceTag
+                  source="/api/dashboard/biller"
+                  dataFreshness={error ? "unavailable" : "live"}
+                />
+              </>
             )}
           </CardContent>
         </Card>
@@ -984,49 +1017,55 @@ export default function ClinicalDashboardPage() {
                 No quality measure gaps found.
               </p>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Measure</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Gap</TableHead>
-                    <TableHead>Due</TableHead>
-                    <TableHead>Priority</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {qualityGaps.map((gap) => (
-                    <TableRow key={gap.id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium text-sm">
-                            {gap.measureName}
-                          </div>
-                          <code className="text-xs text-muted-foreground">
-                            {gap.measureId}
-                          </code>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{gap.category}</Badge>
-                      </TableCell>
-                      <TableCell className="max-w-[200px]">
-                        <span className="text-sm">{gap.missingElement}</span>
-                      </TableCell>
-                      <TableCell className="text-sm">
-                        {gap.dueDate || "--"}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          className={priorityStyles[gap.priority] ?? ""}
-                        >
-                          {gap.priority}
-                        </Badge>
-                      </TableCell>
+              <>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Measure</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Gap</TableHead>
+                      <TableHead>Due</TableHead>
+                      <TableHead>Priority</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {qualityGaps.map((gap) => (
+                      <TableRow key={gap.id}>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium text-sm">
+                              {gap.measureName}
+                            </div>
+                            <code className="text-xs text-muted-foreground">
+                              {gap.measureId}
+                            </code>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">{gap.category}</Badge>
+                        </TableCell>
+                        <TableCell className="max-w-[200px]">
+                          <span className="text-sm">{gap.missingElement}</span>
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {gap.dueDate || "--"}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            className={priorityStyles[gap.priority] ?? ""}
+                          >
+                            {gap.priority}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                <SectionEvidenceTag
+                  source="/api/dashboard/provider + /api/dashboard/biller"
+                  dataFreshness={error ? "unavailable" : "live"}
+                />
+              </>
             )}
           </CardContent>
         </Card>
@@ -1079,6 +1118,11 @@ export default function ClinicalDashboardPage() {
               </Link>
             ))}
           </div>
+          <SectionEvidenceTag
+            source="static"
+            dataFreshness="build-time"
+            evidenceArtifact="frontend/src/app/clinical/page.tsx"
+          />
         </CardContent>
       </Card>
     </div>

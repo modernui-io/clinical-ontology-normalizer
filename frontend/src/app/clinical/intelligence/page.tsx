@@ -42,6 +42,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import DataSourceModeBanner from "@/components/readiness/DataSourceModeBanner";
+import SectionEvidenceTag from "@/components/readiness/SectionEvidenceTag";
+import { useSimulationGuard } from "@/lib/simulation-guard";
 
 // ---------------------------------------------------------------------------
 // Auth helpers
@@ -497,6 +499,8 @@ export default function ClinicalIntelligencePage() {
   const [currentQuestion, setCurrentQuestion] = useState("");
   const [isQuerying, setIsQuerying] = useState(false);
 
+  const guard = useSimulationGuard(demoMode ? "simulation" : "mixed", "clinical/intelligence");
+
   // Parse notes from JSON input
   const parseNotes = (input: string): ClinicalNote[] => {
     try {
@@ -825,6 +829,11 @@ export default function ClinicalIntelligencePage() {
         }
         backendEndpoints={["/api/v1/clinical/query", "/api/v1/clinical/graph"]}
       />
+      {demoMode && (
+        <p className="text-[10px] text-slate-500 italic px-1">
+          {guard.escalationText}
+        </p>
+      )}
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -908,7 +917,7 @@ Or paste a single clinical note as plain text.`}
                   ) : (
                     <>
                       <Upload className="h-4 w-4 mr-2" />
-                      Import & Build Knowledge Graph
+                      {demoMode ? "Import & Build Knowledge Graph (Demo)" : "Import & Build Knowledge Graph"}
                     </>
                   )}
                 </Button>
@@ -998,6 +1007,11 @@ Or paste a single clinical note as plain text.`}
               </CardContent>
             </Card>
           </div>
+          <SectionEvidenceTag
+            source={demoMode ? "simulation" : "/api/clinical-agent/import"}
+            dataFreshness={demoMode ? "demo_load" : "api_response"}
+            evidenceArtifact="backend/app/api/clinical_agent.py"
+          />
         </TabsContent>
 
         {/* Knowledge Graph Tab */}
@@ -1110,6 +1124,10 @@ Or paste a single clinical note as plain text.`}
               </Card>
             </div>
           </div>
+          <SectionEvidenceTag
+            source={demoMode ? "simulation" : "/api/clinical-agent/graph"}
+            dataFreshness={demoMode ? "demo_load" : "api_response"}
+          />
         </TabsContent>
 
         {/* Q&A Tab */}
@@ -1196,6 +1214,9 @@ Or paste a single clinical note as plain text.`}
                   </ScrollArea>
 
                   {/* Input */}
+                  {demoMode && (
+                    <p className="text-[10px] text-amber-600 italic">Demo mode: responses are client-side simulations, not from production API.</p>
+                  )}
                   <div className="mt-4 flex gap-2">
                     <Input
                       value={currentQuestion}
@@ -1275,6 +1296,10 @@ Or paste a single clinical note as plain text.`}
               </Card>
             </div>
           </div>
+          <SectionEvidenceTag
+            source={demoMode ? "simulation" : "/api/clinical-agent/query"}
+            dataFreshness={demoMode ? "demo_load" : "api_response"}
+          />
         </TabsContent>
       </Tabs>
     </div>
