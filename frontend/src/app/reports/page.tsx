@@ -465,7 +465,7 @@ export default function ReportsPage() {
       const matchesStatus = statusFilter === "all" || report.status === statusFilter;
       return matchesSearch && matchesType && matchesStatus;
     });
-  }, [searchQuery, typeFilter, statusFilter]);
+  }, [reports, searchQuery, typeFilter, statusFilter]);
 
   // Filter templates
   const filteredTemplates = useMemo(() => {
