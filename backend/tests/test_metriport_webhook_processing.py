@@ -79,10 +79,19 @@ def clear_caches():
     Also patches Redis to ensure dedup falls back to the in-process
     cache (which *is* cleared here) rather than hitting an external
     Redis instance that may hold stale keys from previous runs.
+
+    Patches metriport_webhook_key to None so signature verification is
+    skipped (dev mode). Tests that explicitly test signature verification
+    (TestSignatureVerification) override this by patching settings themselves.
     """
     _dedup_cache.clear()
     _rate_tracker.clear()
-    with patch("app.core.redis.get_async_redis", new_callable=AsyncMock, side_effect=Exception("no redis in tests")):
+    with (
+        patch("app.core.redis.get_async_redis", new_callable=AsyncMock, side_effect=Exception("no redis in tests")),
+        patch("app.api.metriport_webhook.settings") as mock_settings,
+    ):
+        mock_settings.metriport_webhook_key = None
+        mock_settings.debug = True
         yield
     _dedup_cache.clear()
     _rate_tracker.clear()
