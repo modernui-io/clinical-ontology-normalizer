@@ -21,6 +21,8 @@ import {
   ChevronRight,
   Brain,
   Globe,
+  Workflow,
+  Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -42,7 +44,9 @@ type Category =
   | "Safety & Controls"
   | "Data Quality"
   | "NLP & Extraction"
-  | "Interoperability";
+  | "Interoperability"
+  | "Clinical Workflows"
+  | "Privacy & Compliance";
 
 // =============================================================================
 // Glossary data
@@ -58,6 +62,8 @@ const CATEGORY_META: Record<
   "Data Quality": { icon: Activity, color: "bg-emerald-500/10 text-emerald-700 border-emerald-200" },
   "NLP & Extraction": { icon: Brain, color: "bg-amber-500/10 text-amber-700 border-amber-200" },
   "Interoperability": { icon: Globe, color: "bg-cyan-500/10 text-cyan-700 border-cyan-200" },
+  "Clinical Workflows": { icon: Workflow, color: "bg-orange-500/10 text-orange-700 border-orange-200" },
+  "Privacy & Compliance": { icon: Lock, color: "bg-rose-500/10 text-rose-700 border-rose-200" },
 };
 
 const GLOSSARY_TERMS: GlossaryTerm[] = [
@@ -541,6 +547,374 @@ const GLOSSARY_TERMS: GlossaryTerm[] = [
       "SMART on FHIR means you can access the platform directly from your EHR without logging in separately — it opens with the right patient already loaded.",
     category: "Interoperability",
   },
+  // Interoperability (additional)
+  {
+    term: "LOINC",
+    definition:
+      "Logical Observation Identifiers Names and Codes — a universal standard for identifying laboratory tests, clinical observations, and survey instruments.",
+    systemUsage:
+      "Used as the standard vocabulary for lab result mapping. Lab observations are normalized to LOINC codes for cross-institutional comparability and quality measure computation.",
+    clinicianNote:
+      "LOINC ensures that a 'hemoglobin A1c' test means the same thing regardless of which lab performed it, enabling reliable comparison of results across systems.",
+    category: "Interoperability",
+  },
+  {
+    term: "CPT Code",
+    definition:
+      "Current Procedural Terminology — a standardized coding system maintained by the AMA for reporting medical procedures and services performed by healthcare providers.",
+    systemUsage:
+      "Supported as a source vocabulary from billing data and as a mapping target. Cross-referenced with SNOMED CT procedure concepts through the OMOP vocabulary tables.",
+    clinicianNote:
+      "CPT codes are what appear on your procedure billing. The system maps these to richer clinical vocabularies so procedures can be analyzed in full clinical context.",
+    category: "Interoperability",
+  },
+  {
+    term: "HL7 v2 Message",
+    definition:
+      "A legacy but widely deployed healthcare messaging format used for transmitting clinical data (lab results, admissions, orders) between healthcare systems via structured text segments.",
+    systemUsage:
+      "The ingestion pipeline can parse HL7 v2 messages (ADT, ORU, ORM) and extract clinical data for normalization. Segment-level parsing maps fields to the internal data model.",
+    clinicianNote:
+      "HL7 v2 is the format many hospital systems still use to exchange data. The platform can receive and process these messages alongside modern FHIR-based data.",
+    category: "Interoperability",
+  },
+  {
+    term: "Terminology Mapping",
+    definition:
+      "The process of establishing equivalences between concepts in different clinical vocabularies, enabling translation from one coding system to another.",
+    systemUsage:
+      "The mapping service maintains cross-walks between ICD-10, SNOMED CT, RxNorm, LOINC, and OMOP standard concepts. Mappings are versioned and auditable.",
+    clinicianNote:
+      "Terminology mapping is how the system translates between the many coding systems used in healthcare, ensuring concepts are correctly represented regardless of their original source.",
+    category: "Interoperability",
+  },
+  // Confidence & Scoring (additional)
+  {
+    term: "Sensitivity & Specificity",
+    definition:
+      "Sensitivity measures the ability to correctly identify positive cases (true positive rate); specificity measures the ability to correctly identify negative cases (true negative rate).",
+    systemUsage:
+      "Reported for binary classification tasks like assertion detection and negation detection. Used alongside precision/recall to evaluate clinical NLP model performance.",
+    clinicianNote:
+      "High sensitivity means the system rarely misses real findings. High specificity means it rarely creates false alarms. Both matter for clinical trust.",
+    category: "Confidence & Scoring",
+  },
+  {
+    term: "Area Under the Curve (AUC)",
+    definition:
+      "A summary metric representing overall model discrimination ability across all possible classification thresholds, ranging from 0.5 (random) to 1.0 (perfect).",
+    systemUsage:
+      "Computed during model evaluation for concept classification and risk prediction tasks. AUC values are tracked over time to detect performance degradation.",
+    clinicianNote:
+      "AUC tells you how well the system can distinguish between positive and negative cases overall. An AUC above 0.90 indicates excellent discrimination ability.",
+    category: "Confidence & Scoring",
+  },
+  {
+    term: "Inter-Annotator Agreement",
+    definition:
+      "A statistical measure of how consistently multiple human experts label the same clinical data, typically expressed as Cohen's kappa or Fleiss' kappa.",
+    systemUsage:
+      "Computed during gold standard creation to ensure annotation quality. Low agreement areas are flagged for guideline revision or additional expert review.",
+    clinicianNote:
+      "If experts disagree on how to label clinical text, the system cannot be expected to do better. Agreement scores set the ceiling for expected system performance.",
+    category: "Confidence & Scoring",
+  },
+  // Evidence & Provenance (additional)
+  {
+    term: "Document Type Classification",
+    definition:
+      "Automatic identification of the clinical document category (discharge summary, progress note, radiology report, pathology report, etc.) to apply type-specific processing.",
+    systemUsage:
+      "Applied at ingestion time. Document type informs which NLP models and extraction rules to apply — a radiology report uses different patterns than a discharge summary.",
+    clinicianNote:
+      "Different note types contain different kinds of information. The system tailors its extraction approach based on document type for better accuracy.",
+    category: "Evidence & Provenance",
+  },
+  {
+    term: "Entity Linking",
+    definition:
+      "The process of resolving an extracted text mention to a specific concept in a knowledge base or terminology, disambiguating between multiple possible meanings.",
+    systemUsage:
+      "Performed after NER. The mention 'MS' could mean multiple sclerosis, mitral stenosis, or morphine sulfate — entity linking uses context to select the correct OMOP concept.",
+    clinicianNote:
+      "Medical abbreviations often have multiple meanings. Entity linking is how the system figures out that 'MS' in a neurology note means multiple sclerosis, not morphine sulfate.",
+    category: "Evidence & Provenance",
+  },
+  {
+    term: "Relation Extraction",
+    definition:
+      "The NLP task of identifying meaningful relationships between clinical entities within text, such as a medication treating a condition or a test diagnosing a disease.",
+    systemUsage:
+      "Feeds the knowledge graph builder. Extracted relations (treats, causes, diagnosed-by, contraindicated-with) become edges connecting nodes in the patient knowledge graph.",
+    clinicianNote:
+      "Relation extraction captures not just what concepts are mentioned but how they relate — for example, that metformin is prescribed FOR diabetes, not just that both appear in the note.",
+    category: "Evidence & Provenance",
+  },
+  // Safety & Controls (additional)
+  {
+    term: "Explainability",
+    definition:
+      "The ability of the system to provide human-understandable explanations for its outputs, including why a particular concept was identified or a recommendation was made.",
+    systemUsage:
+      "Every extraction and mapping includes an explanation trace — which rules fired, which model features contributed, and what evidence supports the result. Exposed via the provenance API.",
+    clinicianNote:
+      "You can always ask 'why' the system made a decision. Explainability traces show the reasoning chain, helping you evaluate whether to trust a specific result.",
+    category: "Safety & Controls",
+  },
+  {
+    term: "Rollback",
+    definition:
+      "The ability to revert a processing operation or data change to a previous known-good state, undoing the effects of an incorrect or problematic pipeline run.",
+    systemUsage:
+      "All pipeline operations are versioned. If a batch extraction produces poor results, the entire run can be rolled back to restore previous ClinicalFacts and graph state.",
+    clinicianNote:
+      "If a processing error is discovered, the system can undo the damage and restore the previous correct state, rather than requiring manual cleanup.",
+    category: "Safety & Controls",
+  },
+  {
+    term: "Rate Limiting",
+    definition:
+      "Controls that restrict the volume and frequency of system operations to prevent overload, abuse, or runaway processes from consuming excessive resources.",
+    systemUsage:
+      "Applied to API endpoints, NLP pipeline throughput, and external service calls. Configurable per-user, per-endpoint, and per-resource with burst allowances.",
+    clinicianNote:
+      "Rate limiting protects the system from being overwhelmed, ensuring consistent performance for all users even during heavy processing periods.",
+    category: "Safety & Controls",
+  },
+  // Data Quality (additional)
+  {
+    term: "Timeliness",
+    definition:
+      "The measurement of how current clinical data is — whether records reflect the most recent patient encounters, results, and clinical events.",
+    systemUsage:
+      "Tracked per data source and per document. Stale data (documents not updated within expected intervals) is flagged in quality dashboards and may affect confidence scoring.",
+    clinicianNote:
+      "Timely data means the system reflects your patient's current state. Stale data could lead to outdated recommendations, so timeliness alerts are clinically important.",
+    category: "Data Quality",
+  },
+  {
+    term: "Uniqueness",
+    definition:
+      "The verification that each clinical record represents a distinct entity or event, with no unintended duplicate entries that could skew analytics or clinical summaries.",
+    systemUsage:
+      "Checked across patient records, document ingestion, and ClinicalFact creation. Duplicate detection uses a combination of identifiers, semantic similarity, and temporal overlap.",
+    clinicianNote:
+      "Duplicate records inflate problem lists and can cause incorrect dosage calculations. Uniqueness checking prevents the same finding from appearing twice.",
+    category: "Data Quality",
+  },
+  {
+    term: "Data Lineage",
+    definition:
+      "The end-to-end record of how a piece of data was created, transformed, and consumed as it moved through the processing pipeline from source to final output.",
+    systemUsage:
+      "Extends provenance with full pipeline metadata — which extraction version, mapping table version, and graph build generated each data point. Supports reproducibility and debugging.",
+    clinicianNote:
+      "Data lineage is the full biography of a data point. If a result looks wrong, lineage lets the team trace exactly which step introduced the issue.",
+    category: "Data Quality",
+  },
+  {
+    term: "Outlier Detection",
+    definition:
+      "Statistical methods that identify data values, patterns, or records that deviate significantly from expected norms, potentially indicating errors or unusual clinical situations.",
+    systemUsage:
+      "Applied to numeric lab values, extraction confidence distributions, and mapping statistics. Outliers are flagged for review — they may be errors or clinically significant.",
+    clinicianNote:
+      "An outlier might be a data entry error (potassium of 40) or a genuine clinical finding (extremely elevated troponin). The system flags both for your judgment.",
+    category: "Data Quality",
+  },
+  // NLP & Extraction (additional)
+  {
+    term: "Abbreviation Expansion",
+    definition:
+      "The resolution of clinical abbreviations and acronyms to their full forms, using context to disambiguate abbreviations that have multiple possible meanings.",
+    systemUsage:
+      "Applied during preprocessing. A clinical abbreviation dictionary combined with contextual rules expands ambiguous abbreviations (e.g., 'SOB' → 'shortness of breath' vs. other meanings).",
+    clinicianNote:
+      "Clinical notes are full of abbreviations. The system expands them automatically to ensure 'SOB' is correctly understood as 'shortness of breath' in the right context.",
+    category: "NLP & Extraction",
+  },
+  {
+    term: "Coreference Resolution",
+    definition:
+      "The NLP task of determining when different expressions in text refer to the same entity — for example, recognizing that 'the patient', 'she', and 'Mrs. Smith' are the same person.",
+    systemUsage:
+      "Used to link mentions across sentences and paragraphs. Ensures that attributes described in one sentence are correctly associated with entities mentioned in another.",
+    clinicianNote:
+      "Without coreference resolution, the system might not connect 'she was prescribed metformin' back to the patient named earlier in the note. This step ties everything together.",
+    category: "NLP & Extraction",
+  },
+  {
+    term: "Pre-trained Language Model",
+    definition:
+      "A large neural network (such as a transformer) trained on massive text corpora, then fine-tuned on clinical data for domain-specific NLP tasks.",
+    systemUsage:
+      "The ML extraction pipeline uses clinical transformer models (ClinicalBERT, ModernBERT) fine-tuned for NER, assertion detection, and relation extraction on clinical notes.",
+    clinicianNote:
+      "Pre-trained models bring general language understanding that is then specialized for clinical text. This combination produces better accuracy than either approach alone.",
+    category: "NLP & Extraction",
+  },
+  {
+    term: "Active Learning",
+    definition:
+      "A machine learning strategy where the model identifies the most informative unlabeled examples and requests human annotation for those specific cases to improve efficiently.",
+    systemUsage:
+      "When new document types or concept domains are encountered, the system identifies high-uncertainty extractions and routes them to expert annotators for labeling, maximizing training data value.",
+    clinicianNote:
+      "Active learning means the system gets smarter by asking clinicians to review the cases it is most uncertain about, rather than requiring annotation of everything.",
+    category: "NLP & Extraction",
+  },
+  {
+    term: "Post-processing Rules",
+    definition:
+      "A set of deterministic cleanup and validation rules applied after ML extraction to correct common errors, enforce domain constraints, and normalize output format.",
+    systemUsage:
+      "Applied after ML NER to fix known error patterns — merging split mentions, removing false positives from headers/footers, and enforcing vocabulary constraints.",
+    clinicianNote:
+      "Post-processing catches and fixes predictable ML errors. For example, it ensures medication dosages stay attached to their drug names even if the model split them apart.",
+    category: "NLP & Extraction",
+  },
+  // Clinical Workflows
+  {
+    term: "Clinical Decision Support",
+    definition:
+      "Technology that provides clinicians with knowledge, person-specific information, and recommendations at the point of care to enhance clinical decision-making.",
+    systemUsage:
+      "The CDS engine combines knowledge graph queries, clinical calculators, drug interaction checks, and guideline matching to generate context-aware recommendations via API or CDS Hooks.",
+    clinicianNote:
+      "CDS surfaces relevant information when you need it — drug interaction warnings during prescribing, clinical calculators during assessment, and guideline reminders during treatment planning.",
+    category: "Clinical Workflows",
+  },
+  {
+    term: "Clinical Calculator",
+    definition:
+      "A validated scoring tool that computes risk scores, severity indices, or clinical classifications based on structured patient data inputs.",
+    systemUsage:
+      "Over 50 validated calculators are available (CHA2DS2-VASc, MELD, Wells Score, etc.). Auto-populated from knowledge graph data when available, with manual input fallback.",
+    clinicianNote:
+      "Clinical calculators help quantify risk and guide treatment decisions. The system can auto-fill calculator inputs from available patient data, saving you data entry time.",
+    category: "Clinical Workflows",
+  },
+  {
+    term: "Cohort Definition",
+    definition:
+      "A set of inclusion and exclusion criteria that identifies a specific patient population for research, quality measurement, or clinical trial eligibility screening.",
+    systemUsage:
+      "Built using value sets and concept hierarchies. Cohort queries run against the OMOP-mapped patient data to identify qualifying patients. Supports temporal logic and event sequencing.",
+    clinicianNote:
+      "Cohort definitions let you find patients matching specific criteria — for example, all patients with heart failure on ACE inhibitors who had an ER visit in the past 90 days.",
+    category: "Clinical Workflows",
+  },
+  {
+    term: "Quality Measure",
+    definition:
+      "A standardized metric (often from CMS, NQF, or HEDIS) that evaluates the quality of healthcare delivery against evidence-based benchmarks.",
+    systemUsage:
+      "Quality measures are defined using value sets and computed against normalized patient data. Results are tracked over time and exportable for regulatory reporting.",
+    clinicianNote:
+      "Quality measures tell you how well care meets established standards. The system computes these automatically from your patient data, reducing manual chart abstraction burden.",
+    category: "Clinical Workflows",
+  },
+  {
+    term: "Care Gap",
+    definition:
+      "An identified discrepancy between recommended clinical care (per guidelines or quality measures) and the care a patient has actually received.",
+    systemUsage:
+      "Detected by comparing patient data against active quality measures and clinical guidelines. Care gaps are surfaced as actionable items in the provider dashboard.",
+    clinicianNote:
+      "Care gaps highlight opportunities to improve care — for example, a diabetic patient overdue for an A1c test or a patient missing a recommended cancer screening.",
+    category: "Clinical Workflows",
+  },
+  {
+    term: "Order Set",
+    definition:
+      "A pre-defined collection of clinical orders (medications, labs, imaging, referrals) grouped by clinical scenario to standardize and streamline the ordering process.",
+    systemUsage:
+      "The system can suggest relevant order sets based on diagnoses identified in the knowledge graph, helping clinicians quickly initiate evidence-based care pathways.",
+    clinicianNote:
+      "Order sets reduce cognitive load and variability by bundling standard orders for common clinical scenarios, so you can initiate comprehensive care with fewer clicks.",
+    category: "Clinical Workflows",
+  },
+  {
+    term: "Clinical Pathway",
+    definition:
+      "A structured, evidence-based plan that maps the expected course of treatment for a specific condition, including timelines, milestones, and decision points.",
+    systemUsage:
+      "Pathways are modeled in the guideline engine. Patient progress along a pathway is tracked via knowledge graph events, with alerts when patients deviate from expected trajectories.",
+    clinicianNote:
+      "Clinical pathways give you a roadmap for managing specific conditions. The system tracks where your patient is on the pathway and alerts you to deviations or upcoming milestones.",
+    category: "Clinical Workflows",
+  },
+  // Privacy & Compliance
+  {
+    term: "De-identification",
+    definition:
+      "The process of removing or obscuring protected health information (PHI) from clinical data so that individuals cannot be identified from the remaining information.",
+    systemUsage:
+      "Applied before data is used for research, analytics, or model training. Supports Safe Harbor and Expert Determination methods per HIPAA guidelines. PHI patterns are detected and redacted.",
+    clinicianNote:
+      "De-identification protects patient privacy when data is used beyond direct care. The system removes names, dates, IDs, and other identifying information automatically.",
+    category: "Privacy & Compliance",
+  },
+  {
+    term: "HIPAA",
+    definition:
+      "The Health Insurance Portability and Accountability Act — U.S. federal law that establishes national standards for protecting the privacy and security of health information.",
+    systemUsage:
+      "All system components are designed with HIPAA compliance: encryption at rest and in transit, access controls, audit logging, minimum necessary access, and breach notification capabilities.",
+    clinicianNote:
+      "HIPAA governs how patient data must be protected. The platform enforces these requirements automatically so you can focus on care rather than compliance mechanics.",
+    category: "Privacy & Compliance",
+  },
+  {
+    term: "Minimum Necessary",
+    definition:
+      "The HIPAA principle that access to protected health information should be limited to the minimum amount needed to accomplish the intended purpose.",
+    systemUsage:
+      "Enforced through role-based access controls and API scoping. Users and services only receive the data elements required for their specific function or query.",
+    clinicianNote:
+      "You see the patient data relevant to your role and current task. The system automatically filters out information that is not needed for your specific clinical workflow.",
+    category: "Privacy & Compliance",
+  },
+  {
+    term: "Access Control List",
+    definition:
+      "A security mechanism that defines which users, roles, or services are permitted to view, modify, or process specific data resources within the system.",
+    systemUsage:
+      "Implemented at API, database, and service levels. ACLs combine role-based (RBAC) and attribute-based (ABAC) policies. All access decisions are logged for audit purposes.",
+    clinicianNote:
+      "Access controls ensure only authorized personnel can see patient data. Your access level is determined by your role and the specific patients in your care.",
+    category: "Privacy & Compliance",
+  },
+  {
+    term: "Encryption at Rest",
+    definition:
+      "The protection of stored data using cryptographic algorithms, ensuring that data on disk, in databases, or in backups cannot be read without the proper decryption keys.",
+    systemUsage:
+      "All patient data in PostgreSQL, Redis, and Neo4j is encrypted at rest using AES-256. Encryption keys are managed via the infrastructure's key management service.",
+    clinicianNote:
+      "Even if someone gained physical access to the storage systems, they could not read patient data without the encryption keys. This protects data at every layer.",
+    category: "Privacy & Compliance",
+  },
+  {
+    term: "Breach Notification",
+    definition:
+      "The process and timeline requirements for notifying affected individuals, regulators, and media when a security incident results in unauthorized access to protected health information.",
+    systemUsage:
+      "The audit and alerting system detects potential breach indicators (unusual access patterns, bulk data exports) and triggers the incident response workflow with configurable escalation rules.",
+    clinicianNote:
+      "If a potential data breach is detected, the system automatically initiates the notification process required by HIPAA, helping ensure timely and compliant response.",
+    category: "Privacy & Compliance",
+  },
+  {
+    term: "Data Use Agreement",
+    definition:
+      "A legal contract governing how de-identified or limited data sets may be used, shared, and protected by the receiving party.",
+    systemUsage:
+      "DUA metadata is attached to data exports and research datasets. The system tracks which agreements cover which data and enforces expiration and usage constraints.",
+    clinicianNote:
+      "Data Use Agreements ensure that when patient data is shared for research or quality improvement, there are clear rules about how it can and cannot be used.",
+    category: "Privacy & Compliance",
+  },
 ];
 
 // =============================================================================
@@ -562,6 +936,8 @@ export default function GlossaryPage() {
     "Data Quality",
     "NLP & Extraction",
     "Interoperability",
+    "Clinical Workflows",
+    "Privacy & Compliance",
   ];
 
   const filteredTerms = useMemo(() => {
