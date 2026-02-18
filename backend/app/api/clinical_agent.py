@@ -24,7 +24,9 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 from sqlalchemy import func, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.middleware.auth_middleware import CurrentUser, get_current_user
 from app.core.database import get_db
+from app.core.permissions import Permission, PermissionChecker
 from app.models import Document as DocumentModel
 from app.models.clinical_fact import ClinicalFact
 from app.models.knowledge_graph import KGEdge, KGNode
@@ -848,6 +850,8 @@ async def _query_omop_relationships(
 async def bulk_import_documents(
     request: BulkImportRequest,
     db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.WRITE_DOCUMENTS])),
 ) -> BulkImportResponse:
     """Bulk import clinical documents with NLP processing.
 
@@ -1099,6 +1103,8 @@ async def bulk_import_documents(
 async def build_graph_from_entities(
     request: BuildGraphFromEntitiesRequest,
     db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.WRITE_CLINICAL_FACTS])),
 ) -> BuildGraphResponse:
     """Build knowledge graph from pre-extracted entities.
 
@@ -2161,6 +2167,8 @@ async def _build_patient_knowledge_graph(
 async def get_patient_graph(
     patient_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_PATIENTS])),
 ) -> PatientGraphResponse:
     """Get the knowledge graph for a patient."""
 
@@ -2243,6 +2251,8 @@ async def hybrid_query(
     request: HybridQueryRequest,
     provenance_depth: str = Query("summary", regex="^(none|summary|full)$"),
     db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_CLINICAL_FACTS])),
 ) -> HybridQueryResponse:
     """Hybrid query combining EHR and knowledge graph.
 
@@ -2339,6 +2349,7 @@ async def hybrid_query(
             text=node.label,
             entity_type=node.node_type.value if hasattr(node.node_type, 'value') else str(node.node_type),
             confidence=node.properties.get("confidence", 0.9) if node.properties else 0.9,
+            # TODO: Read from edge.properties once shared concept migration is complete
             assertion=node.properties.get("assertion", "PRESENT") if node.properties else "PRESENT",
             omop_concept_id=node.omop_concept_id,
             note_id=node.properties.get("source_notes", ["unknown"])[0] if node.properties else "unknown",
@@ -2745,6 +2756,7 @@ Knowledge Graph Summary ({len(nodes)} nodes):
                 })
 
         # Add allergies from properties if available
+        # TODO: Read from edge.properties once shared concept migration is complete
         for node in nodes:
             if node.properties and node.properties.get("assertion") == "ALLERGY":
                 agent_context.allergies.append(node.label)
@@ -3329,6 +3341,8 @@ Provide a clear, evidence-based answer synthesizing the clinical data, graph rel
 async def delete_patient_graph(
     patient_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.WRITE_CLINICAL_FACTS])),
 ) -> dict:
     """Delete a patient's knowledge graph.
 
@@ -3368,6 +3382,8 @@ async def list_patients_with_graphs(
     db: AsyncSession = Depends(get_db),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_PATIENTS])),
 ) -> dict:
     """List patients with knowledge graphs."""
 
@@ -3407,6 +3423,8 @@ async def list_patients_with_graphs(
 async def get_query_provenance(
     query_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_LINEAGE])),
 ) -> dict:
     """Get reasoning traces for a hybrid query."""
     provenance_svc = get_provenance_db_service()
@@ -3445,6 +3463,8 @@ async def get_fact_lineage(
     patient_id: str,
     node_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_LINEAGE])),
 ) -> dict:
     """Get the lineage chain: KG node → ProvenanceRecord → SourceDocument → text."""
     HOP_DECAY = 0.9
@@ -3471,6 +3491,7 @@ async def get_fact_lineage(
             "extracted_text": node.label,
             "recorded_at": props.get("recorded_at"),
             "source_notes": props.get("source_notes", []),
+            # TODO: Read from edge.properties once shared concept migration is complete
             "assertion": props.get("assertion"),
             "negation_trigger": props.get("negation_trigger"),
             "negation_trigger_confidence": props.get("negation_trigger_confidence"),

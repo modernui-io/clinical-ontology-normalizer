@@ -20,11 +20,13 @@ import time
 from enum import Enum
 from uuid import uuid4
 
-from fastapi import APIRouter, Body, Query, Request, Response
+from fastapi import APIRouter, Body, Depends, Query, Request, Response
 from fastapi.routing import APIRoute
 from pydantic import BaseModel, Field
 
 from app.api.errors import ErrorCode, InternalError
+from app.api.middleware.auth_middleware import CurrentUser, get_current_user, require_admin
+from app.core.permissions import Permission, PermissionChecker
 
 logger = logging.getLogger(__name__)
 
@@ -473,7 +475,11 @@ class NormalizeResponse(BaseModel):
     summary="Extract entities from clinical text",
     description="Extract clinical entities from text using NLP.",
 )
-async def extract_entities(request: ExtractRequest) -> ExtractResponse:
+async def extract_entities(
+    request: ExtractRequest,
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_DOCUMENTS])),
+) -> ExtractResponse:
     """Extract clinical entities from text.
 
     This endpoint extracts various clinical entities from clinical notes:
@@ -897,7 +903,11 @@ async def extract_entities(request: ExtractRequest) -> ExtractResponse:
     summary="Batch extract entities from multiple texts",
     description="Process multiple clinical texts for entity extraction.",
 )
-async def batch_extract_entities(request: BatchExtractRequest) -> BatchExtractResponse:
+async def batch_extract_entities(
+    request: BatchExtractRequest,
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_DOCUMENTS])),
+) -> BatchExtractResponse:
     """Batch extract entities from multiple clinical texts.
 
     Efficiently processes multiple texts in a single request.
@@ -974,7 +984,11 @@ async def batch_extract_entities(request: BatchExtractRequest) -> BatchExtractRe
     summary="Preload LLM model",
     description="Warm up the LLM model to reduce first extraction latency.",
 )
-async def preload_model() -> dict:
+async def preload_model(
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_DOCUMENTS])),
+    _admin: CurrentUser = Depends(require_admin),
+) -> dict:
     """Preload the LLM model into memory.
 
     This endpoint triggers Ollama to load the model into VRAM/RAM
@@ -1031,7 +1045,10 @@ async def preload_model() -> dict:
     summary="List available NLP models",
     description="Get list of available NLP models for entity extraction.",
 )
-async def list_models() -> ModelsResponse:
+async def list_models(
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_DOCUMENTS])),
+) -> ModelsResponse:
     """List available NLP models.
 
     Returns information about available NLP models including:
@@ -1117,7 +1134,11 @@ async def list_models() -> ModelsResponse:
     summary="Normalize entities to standard codes",
     description="Normalize extracted entities to standard vocabulary codes.",
 )
-async def normalize_entities(request: NormalizeRequest) -> NormalizeResponse:
+async def normalize_entities(
+    request: NormalizeRequest,
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_DOCUMENTS])),
+) -> NormalizeResponse:
     """Normalize extracted entities to standard codes.
 
     Maps extracted entities to standard vocabulary codes:
@@ -1237,7 +1258,10 @@ async def normalize_entities(request: NormalizeRequest) -> NormalizeResponse:
     summary="Get sample clinical notes",
     description="Get sample clinical notes for testing the NLP extraction.",
 )
-async def get_sample_notes() -> dict:
+async def get_sample_notes(
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_DOCUMENTS])),
+) -> dict:
     """Get sample clinical notes for testing.
 
     Returns a collection of sample clinical notes that can be used
@@ -1440,7 +1464,11 @@ class OntologyMapResponse(BaseModel):
     summary="Map clinical text using ontology mapper",
     description="Fast deterministic extraction using clinical ontologies.",
 )
-async def ontology_map(request: OntologyMapRequest) -> OntologyMapResponse:
+async def ontology_map(
+    request: OntologyMapRequest,
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_DOCUMENTS])),
+) -> OntologyMapResponse:
     """Map clinical text using the deterministic ontology mapper.
 
     This endpoint uses a rule-based approach with clinical ontologies for
@@ -1617,7 +1645,11 @@ class HybridAnalyzeResponse(BaseModel):
     summary="Hybrid clinical analysis",
     description="Combines deterministic extraction with optional LLM reasoning.",
 )
-async def hybrid_analyze(request: HybridAnalyzeRequest) -> HybridAnalyzeResponse:
+async def hybrid_analyze(
+    request: HybridAnalyzeRequest,
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_DOCUMENTS])),
+) -> HybridAnalyzeResponse:
     """Perform hybrid clinical analysis.
 
     This endpoint combines:
@@ -1791,7 +1823,10 @@ async def hybrid_analyze(request: HybridAnalyzeRequest) -> HybridAnalyzeResponse
     summary="Get NLP service statistics",
     description="Get statistics about the NLP entity extraction service.",
 )
-async def get_service_stats() -> dict:
+async def get_service_stats(
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_DOCUMENTS])),
+) -> dict:
     """Get NLP service statistics.
 
     Returns statistics about the service including:
@@ -1870,7 +1905,11 @@ class BuildGraphResponse(BaseModel):
     summary="Build knowledge graph from clinical text",
     description="Process clinical text through NLP extraction and build a knowledge graph.",
 )
-async def build_knowledge_graph(request: BuildGraphRequest) -> BuildGraphResponse:
+async def build_knowledge_graph(
+    request: BuildGraphRequest,
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_DOCUMENTS])),
+) -> BuildGraphResponse:
     """Build a knowledge graph from clinical text.
 
     This endpoint:
@@ -1966,6 +2005,8 @@ async def build_knowledge_graph(request: BuildGraphRequest) -> BuildGraphRespons
 async def batch_build_knowledge_graph(
     patient_id: str = Query(..., description="Patient identifier"),
     notes: list[str] = Body(..., description="List of clinical note texts"),
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_DOCUMENTS])),
 ) -> dict:
     """Build a knowledge graph from multiple clinical notes.
 

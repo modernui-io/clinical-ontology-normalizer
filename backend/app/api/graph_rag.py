@@ -28,8 +28,16 @@ from sqlalchemy import func, select, text, or_, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.api.middleware.auth_middleware import CurrentUser, get_current_user
 from app.core.database import get_db
+from app.core.permissions import Permission, PermissionChecker
 from app.models.knowledge_graph import KGNode, KGEdge
+from app.schemas.knowledge_graph import (
+    ConceptPatientsResponse,
+    ConceptStatisticsResponse,
+    GlobalConceptEntry,
+    GlobalGraphResponse,
+)
 
 router = APIRouter(prefix="/graph-rag", tags=["Graph RAG"])
 
@@ -107,6 +115,8 @@ async def search_graph(
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
     include_relationships: Annotated[bool, Query()] = True,
     db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_PATIENTS])),
 ) -> GraphSearchResult:
     """
     Search the patient's knowledge graph with a natural language query.
@@ -126,8 +136,13 @@ async def search_graph(
     search_terms = query.lower().split()
 
     # VP-Performance-2: Use database-level filtering instead of Python filtering
-    # Build query with ILIKE for text search
-    stmt = select(KGNode).where(KGNode.patient_id == patient_id)
+    # Edge-join to find patient's nodes (shared concept nodes have patient_id=NULL)
+    stmt = (
+        select(KGNode)
+        .join(KGEdge, or_(KGEdge.target_node_id == KGNode.id, KGEdge.source_node_id == KGNode.id))
+        .where(KGEdge.patient_id == patient_id)
+        .distinct()
+    )
 
     # Add node type filter if specified
     if node_types:
@@ -228,6 +243,8 @@ async def search_graph(
 async def get_patient_summary(
     patient_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_PATIENTS])),
 ) -> PatientSummary:
     """
     Get a comprehensive patient summary from the knowledge graph.
@@ -247,8 +264,13 @@ async def get_patient_summary(
     - Generating patient summaries
     - Understanding the full clinical picture
     """
-    # Get all nodes for the patient
-    stmt = select(KGNode).where(KGNode.patient_id == patient_id)
+    # Get all nodes for the patient via edge-join (shared concept nodes have patient_id=NULL)
+    stmt = (
+        select(KGNode)
+        .join(KGEdge, or_(KGEdge.target_node_id == KGNode.id, KGEdge.source_node_id == KGNode.id))
+        .where(KGEdge.patient_id == patient_id)
+        .distinct()
+    )
     result = await db.execute(stmt)
     all_nodes = result.scalars().all()
 
@@ -348,6 +370,8 @@ async def answer_clinical_question(
     patient_id: Annotated[str, Query(description="Patient identifier")],
     question: Annotated[str, Query(description="Clinical question to answer")],
     db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_CLINICAL_FACTS])),
 ) -> ClinicalAnswer:
     """
     Answer a clinical question using evidence from the knowledge graph.
@@ -391,8 +415,13 @@ async def answer_clinical_question(
         query_type = 'allergies'
         search_terms = ['observation', 'allergy']
 
-    # Search for relevant entities
-    stmt = select(KGNode).where(KGNode.patient_id == patient_id)
+    # Search for relevant entities via edge-join (shared concept nodes have patient_id=NULL)
+    stmt = (
+        select(KGNode)
+        .join(KGEdge, or_(KGEdge.target_node_id == KGNode.id, KGEdge.source_node_id == KGNode.id))
+        .where(KGEdge.patient_id == patient_id)
+        .distinct()
+    )
 
     # Add type filter if determined
     if search_terms and search_terms[0] in ['drug', 'condition', 'measurement', 'procedure', 'observation']:
@@ -544,6 +573,8 @@ async def traverse_from_node(
     depth: Annotated[int, Query(ge=1, le=3)] = 1,
     relationship_types: Annotated[list[str] | None, Query()] = None,
     db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_CLINICAL_FACTS])),
 ) -> dict:
     """
     Traverse the knowledge graph starting from a specific node.
@@ -561,10 +592,8 @@ async def traverse_from_node(
 
     Returns nodes and edges reachable within the specified depth.
     """
-    # Get the starting node
-    node_stmt = select(KGNode).where(
-        and_(KGNode.patient_id == patient_id, KGNode.id == node_id)
-    )
+    # Get the starting node (shared concept nodes have patient_id=NULL, so don't filter by patient_id)
+    node_stmt = select(KGNode).where(KGNode.id == node_id)
     node_result = await db.execute(node_stmt)
     start_node = node_result.scalar_one_or_none()
 
@@ -653,6 +682,8 @@ async def get_unique_concepts(
     patient_id: str,
     node_type: Annotated[str | None, Query()] = None,
     db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_CLINICAL_FACTS])),
 ) -> dict:
     """
     Get all unique clinical concepts for a patient.
@@ -667,9 +698,13 @@ async def get_unique_concepts(
 
     This is different from the full graph which includes temporal measurements.
     """
-    stmt = select(KGNode.node_type, KGNode.label).where(
-        KGNode.patient_id == patient_id
-    ).distinct()
+    # Edge-join to find patient's nodes (shared concept nodes have patient_id=NULL)
+    stmt = (
+        select(KGNode.node_type, KGNode.label)
+        .join(KGEdge, or_(KGEdge.target_node_id == KGNode.id, KGEdge.source_node_id == KGNode.id))
+        .where(KGEdge.patient_id == patient_id)
+        .distinct()
+    )
 
     if node_type:
         stmt = stmt.where(KGNode.node_type == node_type)
@@ -748,6 +783,8 @@ async def search_ontology_concepts(
     vocabulary: Annotated[str | None, Query(description="Filter by vocabulary (SNOMED, RxNorm, LOINC)")] = None,
     domain: Annotated[str | None, Query(description="Filter by domain (Condition, Drug, Procedure)")] = None,
     limit: Annotated[int, Query(ge=1, le=50)] = 20,
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_CLINICAL_FACTS])),
 ) -> dict:
     """
     Search the OMOP/UMLS ontology for clinical concepts.
@@ -841,6 +878,8 @@ async def expand_concept(
     relationship_types: Annotated[list[str] | None, Query(description="Filter by relationship types")] = None,
     max_depth: Annotated[int, Query(ge=1, le=3)] = 2,
     limit: Annotated[int, Query(ge=1, le=100)] = 30,
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_CLINICAL_FACTS])),
 ) -> dict:
     """
     Expand a concept by following ontology relationships.
@@ -944,6 +983,8 @@ async def answer_with_ontology(
     patient_id: Annotated[str, Query(description="Patient identifier")],
     question: Annotated[str, Query(description="Clinical question to answer")],
     db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_CLINICAL_FACTS])),
 ) -> OntologyEnrichedAnswer:
     """
     Answer a clinical question using both patient data AND the UMLS ontology.
@@ -975,8 +1016,13 @@ async def answer_with_ontology(
         node_type_filter = 'condition'
         search_terms = ['condition', 'diagnosis']
 
-    # Get patient entities
-    stmt = select(KGNode).where(KGNode.patient_id == patient_id)
+    # Get patient entities via edge-join (shared concept nodes have patient_id=NULL)
+    stmt = (
+        select(KGNode)
+        .join(KGEdge, or_(KGEdge.target_node_id == KGNode.id, KGEdge.source_node_id == KGNode.id))
+        .where(KGEdge.patient_id == patient_id)
+        .distinct()
+    )
     if node_type_filter:
         stmt = stmt.where(KGNode.node_type == node_type_filter)
 
@@ -1126,4 +1172,148 @@ async def answer_with_ontology(
         related_conditions=related_conditions,
         reasoning_chain=reasoning_chain,
         citations=citations,
+    )
+
+
+# ============================================================================
+# Cross-Patient Shared Concept Endpoints
+# ============================================================================
+
+
+@router.get("/concepts/{omop_concept_id}/patients", response_model=ConceptPatientsResponse)
+async def get_concept_patients(
+    omop_concept_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_PATIENTS])),
+) -> ConceptPatientsResponse:
+    """
+    Get all patients connected to a shared concept node.
+
+    Given an OMOP concept ID, finds the shared concept node and returns
+    all patient IDs that have edges connecting to it. This enables
+    cross-patient cohort queries.
+    """
+    # Find the shared concept node
+    node_stmt = select(KGNode).where(
+        KGNode.omop_concept_id == omop_concept_id,
+        KGNode.patient_id.is_(None),
+    )
+    node_result = await db.execute(node_stmt)
+    concept_node = node_result.scalar_one_or_none()
+    if not concept_node:
+        raise HTTPException(404, "Concept not found")
+
+    # Find patients via edges
+    edge_stmt = (
+        select(KGEdge.patient_id)
+        .where(or_(
+            KGEdge.target_node_id == concept_node.id,
+            KGEdge.source_node_id == concept_node.id,
+        ))
+        .distinct()
+    )
+    edge_result = await db.execute(edge_stmt)
+    patient_ids = [row[0] for row in edge_result.all()]
+
+    return ConceptPatientsResponse(
+        omop_concept_id=omop_concept_id,
+        concept_name=concept_node.label,
+        node_type=concept_node.node_type,
+        patient_ids=patient_ids,
+        patient_count=len(patient_ids),
+    )
+
+
+@router.get("/global-concepts", response_model=GlobalGraphResponse)
+async def get_global_concepts(
+    node_types: list[str] | None = Query(None),
+    limit: int = Query(100, ge=1, le=500),
+    db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_CLINICAL_FACTS])),
+) -> GlobalGraphResponse:
+    """
+    Get shared concept nodes ordered by patient count.
+
+    Returns global concept nodes (patient_id=NULL) with the number of
+    patients connected to each via edges. Useful for understanding
+    the most common concepts across the patient population.
+    """
+    # Shared concept nodes with patient count
+    stmt = (
+        select(
+            KGNode,
+            func.count(func.distinct(KGEdge.patient_id)).label("patient_count"),
+        )
+        .outerjoin(KGEdge, or_(KGEdge.target_node_id == KGNode.id, KGEdge.source_node_id == KGNode.id))
+        .where(KGNode.patient_id.is_(None))
+        .group_by(KGNode.id)
+        .order_by(func.count(func.distinct(KGEdge.patient_id)).desc())
+        .limit(limit)
+    )
+    if node_types:
+        stmt = stmt.where(KGNode.node_type.in_(node_types))
+
+    result = await db.execute(stmt)
+    rows = result.all()
+
+    concepts = [
+        GlobalConceptEntry(
+            node_id=str(node.id),
+            omop_concept_id=node.omop_concept_id,
+            node_type=node.node_type,
+            label=node.label,
+            patient_count=count,
+        )
+        for node, count in rows
+    ]
+    return GlobalGraphResponse(concepts=concepts, total_concepts=len(concepts))
+
+
+@router.get("/concepts/{omop_concept_id}/statistics", response_model=ConceptStatisticsResponse)
+async def get_concept_statistics(
+    omop_concept_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_CLINICAL_FACTS])),
+) -> ConceptStatisticsResponse:
+    """
+    Get statistics for a shared concept across all patients.
+
+    Returns patient count and assertion breakdown (from edge properties)
+    for the given OMOP concept.
+    """
+    # Find the shared concept node
+    node_stmt = select(KGNode).where(
+        KGNode.omop_concept_id == omop_concept_id,
+        KGNode.patient_id.is_(None),
+    )
+    node_result = await db.execute(node_stmt)
+    concept_node = node_result.scalar_one_or_none()
+    if not concept_node:
+        raise HTTPException(404, "Concept not found")
+
+    # Get all edges connected to this concept node
+    edge_stmt = select(KGEdge).where(or_(
+        KGEdge.target_node_id == concept_node.id,
+        KGEdge.source_node_id == concept_node.id,
+    ))
+    edge_result = await db.execute(edge_stmt)
+    edges = edge_result.scalars().all()
+
+    # Build assertion breakdown from edge properties
+    assertion_breakdown: dict[str, int] = {}
+    patient_ids: set[str] = set()
+    for edge in edges:
+        patient_ids.add(edge.patient_id)
+        assertion = (edge.properties or {}).get("assertion", "PRESENT")
+        assertion_breakdown[assertion] = assertion_breakdown.get(assertion, 0) + 1
+
+    return ConceptStatisticsResponse(
+        omop_concept_id=omop_concept_id,
+        concept_name=concept_node.label,
+        node_type=concept_node.node_type,
+        patient_count=len(patient_ids),
+        assertion_breakdown=assertion_breakdown,
     )

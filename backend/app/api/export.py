@@ -5,12 +5,14 @@ from __future__ import annotations
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
+from app.api.middleware.auth_middleware import CurrentUser, get_current_user
 from app.core.database import get_sync_engine
+from app.core.permissions import Permission, PermissionChecker
 from app.models.document import Document as DocumentModel
 from app.models.mention import Mention as MentionModel
 from app.services.export import (
@@ -52,6 +54,8 @@ def export_patient_omop(
     include_nlp: Annotated[
         bool, Query(description="Include NOTE_NLP table rows")
     ] = True,
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.EXPORT_DATA])),
 ) -> OMOPExportResponse:
     """Export patient data in OMOP CDM format.
 

@@ -26,7 +26,8 @@ from fastapi import APIRouter, Query, Body, HTTPException, Depends
 from pydantic import BaseModel, Field
 
 from app.api.errors import ErrorCode, InternalError, NotFoundError
-from app.api.middleware.auth_middleware import CurrentUser, require_admin
+from app.api.middleware.auth_middleware import CurrentUser, get_current_user, require_admin
+from app.core.permissions import Permission, PermissionChecker
 from app.services.kg_cache_service import get_kg_cache_service, CacheType
 
 router = APIRouter(prefix="/graph", tags=["Knowledge Graph"])
@@ -570,7 +571,10 @@ async def health_check() -> HealthResponse:
     summary="Get cache statistics",
     description="Returns statistics about the query cache including hit rate and memory usage.",
 )
-async def get_cache_stats() -> dict[str, Any]:
+async def get_cache_stats(
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_CLINICAL_FACTS])),
+) -> dict[str, Any]:
     """Get cache statistics.
 
     Returns hit rate, memory usage, and cache size information.
@@ -585,7 +589,9 @@ async def get_cache_stats() -> dict[str, Any]:
     summary="Clear the query cache",
     description="Clears all cached query results. Use sparingly.",
 )
-async def clear_cache() -> dict[str, Any]:
+async def clear_cache(
+    current_user: CurrentUser = Depends(require_admin),
+) -> dict[str, Any]:
     """Clear the query cache.
 
     Returns the number of entries cleared.
@@ -606,6 +612,8 @@ async def get_concept_neighbors(
     max_depth: int = Query(1, ge=1, le=3, description="Maximum relationship depth"),
     categories: list[NodeCategoryAPI] | None = Query(None, description="Filter by categories"),
     limit: int = Query(50, ge=1, le=200, description="Maximum neighbors to return"),
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_CLINICAL_FACTS])),
 ) -> NeighborsListResponse:
     """Get neighboring concepts for a given concept.
 
@@ -695,6 +703,8 @@ async def get_concept_neighbors(
 async def get_concept_ancestors(
     concept_id: int,
     max_levels: int = Query(5, ge=1, le=10, description="Maximum levels to traverse"),
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_CLINICAL_FACTS])),
 ) -> AncestorsListResponse:
     """Get ancestors of a concept in the hierarchy.
 
@@ -756,6 +766,8 @@ async def get_concept_ancestors(
 )
 async def find_concept_path(
     request: PathRequest,
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_CLINICAL_FACTS])),
 ) -> PathResponse:
     """Find the shortest path between two concepts.
 
@@ -852,6 +864,8 @@ async def find_similar_patients(
     metric: SimilarityMetricAPI = Query(SimilarityMetricAPI.JACCARD, description="Similarity metric"),
     min_similarity: float = Query(0.5, ge=0, le=1, description="Minimum similarity threshold"),
     limit: int = Query(10, ge=1, le=50, description="Maximum results"),
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_PATIENTS])),
 ) -> SimilarPatientsResponse:
     """Find patients similar to a given patient.
 
@@ -922,6 +936,8 @@ async def get_patient_subgraph(
     patient_id: str,
     categories: list[NodeCategoryAPI] | None = Query(None, description="Categories to include"),
     max_relationships: int = Query(100, ge=1, le=500, description="Maximum relationships"),
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_PATIENTS])),
 ) -> PatientSubgraphResponse:
     """Extract a subgraph representing a patient's clinical knowledge.
 
@@ -1072,7 +1088,10 @@ async def execute_cypher_query(
     summary="Get graph statistics",
     description="Returns statistics about the knowledge graph.",
 )
-async def get_graph_stats() -> GraphStatsResponse:
+async def get_graph_stats(
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_CLINICAL_FACTS])),
+) -> GraphStatsResponse:
     """Get statistics about the knowledge graph.
 
     Returns node counts, relationship counts, and domain distributions.
@@ -1108,7 +1127,9 @@ async def get_graph_stats() -> GraphStatsResponse:
     summary="Load sample graph data",
     description="Loads sample OMOP concepts into the graph for demonstration.",
 )
-async def load_sample_data() -> dict[str, Any]:
+async def load_sample_data(
+    current_user: CurrentUser = Depends(require_admin),
+) -> dict[str, Any]:
     """Load sample OMOP concepts for demonstration.
 
     This endpoint loads a small set of sample concepts and relationships
@@ -1150,6 +1171,8 @@ async def search_concepts(
     q: str = Query(..., min_length=2, description="Search query"),
     categories: list[NodeCategoryAPI] | None = Query(None, description="Filter by categories"),
     limit: int = Query(20, ge=1, le=100, description="Maximum results"),
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_CLINICAL_FACTS])),
 ) -> dict[str, Any]:
     """Search for concepts by name.
 
@@ -1250,6 +1273,8 @@ async def search_concepts(
 )
 async def multi_hop_reasoning(
     request: MultiHopRequest,
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_CLINICAL_FACTS])),
 ) -> MultiHopResponse:
     """Execute multi-hop reasoning from seed concepts.
 
@@ -1466,6 +1491,8 @@ async def multi_hop_reasoning(
 )
 async def score_paths(
     request: ScorePathsRequest,
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_CLINICAL_FACTS])),
 ) -> ScorePathsResponse:
     """Score a list of reasoning paths.
 
@@ -1607,6 +1634,8 @@ async def score_paths(
 )
 async def find_treatment_paths(
     request: TreatmentPathRequest,
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_CLINICAL_FACTS])),
 ) -> TreatmentPathResponse:
     """Find treatment paths from a condition to drugs.
 
@@ -1730,6 +1759,8 @@ async def find_treatment_paths(
 )
 async def check_contraindications(
     request: ContraindicationCheckRequest,
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_CLINICAL_FACTS])),
 ) -> ContraindicationResponse:
     """Check drug contraindications against patient conditions.
 
@@ -1840,6 +1871,8 @@ async def check_contraindications(
 )
 async def aggregate_evidence(
     request: EvidenceAggregationRequest,
+    current_user: CurrentUser = Depends(get_current_user),
+    _perm: None = Depends(PermissionChecker([Permission.READ_CLINICAL_FACTS])),
 ) -> EvidenceAggregationResponse:
     """Aggregate evidence from reasoning paths.
 
