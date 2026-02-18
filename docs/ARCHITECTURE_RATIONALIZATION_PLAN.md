@@ -237,7 +237,7 @@ WS3 — Graph Module Boundary Enforcement:
 
 Verification: 56/56 Phase 2 contract tests pass. 42,580 backend tests pass (no regressions). See commit `373cc3a`.
 
-### Phase 3: Maturity labeling + lifecycle controls (1-2 weeks)
+### Phase 3: Maturity labeling + lifecycle controls (1-2 weeks) — COMPLETE (2026-02-18)
 
 Goals:
 - Make route maturity explicit to developers and consumers.
@@ -245,11 +245,20 @@ Goals:
 Actions:
 - Tag routes as `core`, `pilot`, `experimental` in docs/OpenAPI extensions.
 - Add `Deprecation` and optional `Sunset` headers for frozen/legacy routes.
-- Add “readiness gates” document for promoting experimental routes.
+- Add "readiness gates" document for promoting experimental routes.
 
 Exit criteria:
 - All routes have a maturity label.
 - Frozen routes are discoverable and intentionally separated.
+
+Deliverables:
+- `backend/app/core/api_maturity.py`: ENDPOINT_MATURITY_REGISTRY (365 route prefixes: 28 production, 27 pilot, 310 scaffold), DEPRECATION_SCHEDULE, classify_path() with longest-prefix-first matching, validate_completeness().
+- `backend/app/api/middleware/maturity_gate.py`: MaturityGateMiddleware emitting X-API-Maturity tier headers, deprecation headers (Deprecation/Sunset/Link), scaffold blocking with Warning 299.
+- `backend/app/main.py`: OpenAPI x-maturity injection on tags and path operations, CORS expose headers for maturity/deprecation.
+- `backend/tests/test_api_maturity_labeling.py`: 42 contract tests across 6 classes (registry completeness, classify_path, deprecation headers, scaffold blocking, CORS, OpenAPI extensions).
+- `docs/READINESS_GATES.md`: Promotion/demotion criteria, deprecation lifecycle, registry maintenance rules.
+
+Verification: 42/42 Phase 3 contract tests pass. 42,827 backend tests pass (no regressions). Ruff clean. See commits `bffd66a`, `5131143`, `92029f5`, `d4f27bd`.
 
 ### Phase 4: Type hardening + policy compliance support (3 weeks)
 
