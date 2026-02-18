@@ -181,7 +181,7 @@ Implication:
 
 ## 6. 4-Phase Execution Plan
 
-### Phase 1: Safety envelope (2 weeks)
+### Phase 1: Safety envelope (2 weeks) — COMPLETE (2026-02-15)
 
 Goals:
 - Eliminate silent failures on critical query path.
@@ -195,7 +195,11 @@ Exit criteria:
 - No silent pass in `/clinical-agent`, `/nlp`, `/graph`, `/documents` critical flow.
 - New response schema includes degradation metadata.
 
-### Phase 2: Canonicalization (3-4 weeks)
+Deliverables:
+- Silent failure audit and remediation across critical paths.
+- See commit `5142243` and subsequent Phase 1 commits.
+
+### Phase 2: Canonicalization (3-4 weeks) — COMPLETE (2026-02-17)
 
 Goals:
 - One canonical engine per domain, adapters for legacy entry points.
@@ -208,6 +212,30 @@ Actions:
 Exit criteria:
 - Duplicate services converted to adapters or flagged experimental.
 - Contract tests ensure old endpoints still work through adapters.
+
+Deliverables:
+
+WS1 — NLP Canonicalization:
+- `backend/app/services/nlp_shared.py`: Canonical negation triggers (20), uncertainty triggers (14), family history triggers (9), section headers (15).
+- Maturity markers on 6 standalone NLP services (`nlp_rule_based.py`, `nlp_clinical_ner.py`, `nlp_modernbert_ner.py`, `nlp_advanced.py`, `nlp_claude_api.py`, `nlp_entity_service.py`).
+- Cross-reference comments on 7 files with duplicated negation logic.
+- Strategy labels in `api/nlp.py` (production/ensemble/llm paths).
+- `backend/tests/test_nlp_canonicalization.py`: 15 contract tests.
+
+WS2 — Calculator Unification:
+- `calculator_definitions.py` and `clinical_calculator_service.py` marked as canonical.
+- `clinical_calculators.py` converted to compatibility adapter delegating to canonical service.
+- Import sites updated: `__init__.py`, `main.py`, `dashboard.py`, `documents_tags.py`.
+- Name collision resolved — single canonical `get_clinical_calculator_service()`.
+- `backend/tests/test_calculator_canonicalization.py`: 21 contract tests (including BMI/CHA2DS2-VASc/eGFR parity).
+
+WS3 — Graph Module Boundary Enforcement:
+- `backend/app/services/graph_module_registry.py`: 25 services classified into 4 modules (storage/analytics/rag/support) with AST-based `validate_boundaries()`.
+- Module boundary + maturity comments on all 25 graph/kg service files.
+- No boundary violations detected in existing imports.
+- `backend/tests/test_graph_module_boundaries.py`: 20 contract tests.
+
+Verification: 56/56 Phase 2 contract tests pass. 42,580 backend tests pass (no regressions). See commit `373cc3a`.
 
 ### Phase 3: Maturity labeling + lifecycle controls (1-2 weeks)
 
