@@ -98,6 +98,8 @@ Execution rules
 - [x] P1-033 Add risk-acceptance workflow with expiry dates for unresolved P1 items. | Owner: Program + CISO | Anchor: `docs/operations/risk_acceptance_workflow.md` | Exit: signed exceptions with expiry.
 - [x] P1-034 Add legal/provider contract gate for any external LLM with PHI exposure potential. | Owner: CISO + Legal | Anchor: `docs/operations/llm_provider_contract_gate.md` | Exit: approved provider registry.
 - [x] P1-035 Add immutable release checklist tying deployment SHA to safety checks. | Owner: CTO + Ops | Anchor: `docs/operations/release_checklist.md` | Exit: release blocked unless checklist passes.
+- [x] P1-036 Fix shared-node inclusion in phenotype evaluation and ontology graph integration. | Owner: Clinical AI + CTO | Anchor: `backend/app/services/phenotype_engine.py`, `backend/app/services/ontology_graph_integration.py` | Exit: phenotype engine queries shared concept nodes via edge-join; _get_omop_concept_id derives concept IDs from vocabulary codes; 5 regression tests cover shared-node matching, patient isolation, and assertion filtering. 129/129 tests pass. Commit `477e793`. 2026-02-18.
+- [x] P1-037 Close remaining runtime enum, token storage, migration, and middleware gaps. | Owner: CTO + CISO | Anchor: `backend/app/api/nlp.py`, `frontend/src/hooks/auth/authStorage.ts`, `backend/alembic/versions/041_migrate_concept_nodes.py`, `backend/app/api/middleware/kg_auth_middleware.py` | Exit: (1) UNCERTAIN→POSSIBLE enum fix prevents ensemble NLP runtime crash, (2) sessionStorage replaces localStorage for XSS mitigation, (3) migration 041 drops non-existent updated_at column, (4) kg_auth_middleware retired with docstring. 159/159 tests pass. 2026-02-18.
 
 ## P2 (Medium)
 

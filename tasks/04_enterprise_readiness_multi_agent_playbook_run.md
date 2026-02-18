@@ -3,7 +3,7 @@
 Run metadata
 - Run ID: `enterprise-readiness-openehr-pilot-v1`
 - Started: `2026-02-13`
-- Last Updated: `2026-02-17`
+- Last Updated: `2026-02-18`
 - Mode: implementation (non-blocking handoff + execution)
 - Region context: Ramsey Health Australia
 - Canonical target model: OpenEHR
@@ -238,3 +238,18 @@ next_required_artifacts:
 - Residual risks documented with mitigations
 
 **Post-condition**: Only staging blockers remain (5 infrastructure conditions per go/no-go table). No code or evidence gaps.
+
+### Section B — Shared-Node + Phenotype Logic Fix (2026-02-18)
+
+| Item | Action | Result | Evidence |
+|------|--------|--------|----------|
+| ontology_graph_integration._get_omop_concept_id | Implement vocabulary code → concept ID derivation (remove placeholder) | PASS | `backend/app/services/ontology_graph_integration.py:270` |
+| phenotype_engine._evaluate_criterion | Fix filter: KGEdge.patient_id instead of KGNode.patient_id for shared node inclusion | PASS | `backend/app/services/phenotype_engine.py:559` |
+| TestPhenotypeWithSharedNodes (5 tests) | Regression tests: shared-node match, patient isolation, assertion filter on edges, multi-patient eval | 5/5 PASS | `backend/tests/test_phenotype_engine.py` |
+| Full validation suite | test_phenotype_engine + test_graph_builder + test_graph_builder_db + test_shared_concept_kg | 129/129 PASS | pytest output |
+
+- Shared-concept inclusion and phenotype isolation regression fixed.
+- 35/35 + 28 + 66 tests pass (129 total). No failures.
+- No sensitive route/auth changes touched in this step.
+- Commit: `477e793 fix: include shared concept nodes in phenotype evaluation`
+- Operator: autonomous-agent.

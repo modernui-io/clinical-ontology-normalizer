@@ -1,6 +1,14 @@
 """
-FastAPI Authentication Middleware for Knowledge Graph Endpoints.
+RETIRED / UNUSED — KG API-key authentication middleware.
 
+Status: This middleware was never wired into main.py and is intentionally
+not registered.  All KG endpoints are already protected by the JWT auth
+layer (auth_middleware.py + Depends(get_current_user)).  Adding this
+API-key middleware would create a redundant second auth gate, so it is
+preserved here only for reference.  Do NOT import or register it without
+an explicit architectural decision to add API-key auth on top of JWT.
+
+Original description:
 This middleware integrates the KG API Key Service with FastAPI to provide:
 - API key authentication for all KG endpoints
 - Scope-based authorization

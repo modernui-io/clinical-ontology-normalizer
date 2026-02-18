@@ -615,6 +615,7 @@ async def extract_entities(
                 "present": AssertionStatus.PRESENT,
                 "absent": AssertionStatus.ABSENT,
                 "possible": AssertionStatus.POSSIBLE,
+                "uncertain": AssertionStatus.POSSIBLE,
                 "conditional": AssertionStatus.CONDITIONAL,
                 "hypothetical": AssertionStatus.HYPOTHETICAL,
                 "family_history": AssertionStatus.FAMILY_HISTORY,
@@ -671,7 +672,7 @@ async def extract_entities(
                 entity_type = domain_to_entity_type.get(m.domain_hint, EntityType.DIAGNOSIS)
                 assertion = AssertionStatus.ABSENT if m.is_negated else AssertionStatus.PRESENT
                 if m.is_uncertain:
-                    assertion = AssertionStatus.UNCERTAIN
+                    assertion = AssertionStatus.POSSIBLE
 
                 ml_entities.append(ExtractedEntity(
                     id=str(uuid4()),

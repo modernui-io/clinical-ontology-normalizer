@@ -1,6 +1,11 @@
 /**
  * Token and user storage helpers for authentication.
- * Handles localStorage operations with SSR safety.
+ * Handles sessionStorage operations with SSR safety.
+ *
+ * Security: Uses sessionStorage instead of localStorage to limit XSS exposure.
+ * sessionStorage is scoped to the browser tab and cleared when the tab closes,
+ * reducing the window for token theft via injected scripts.
+ * For production, pair with httpOnly cookie-based token transport.
  */
 
 import type { AuthTokens, User } from "./AuthContext";
@@ -19,7 +24,7 @@ const USER_KEY = "auth_user";
 export function getStoredTokens(): AuthTokens | null {
   if (typeof window === "undefined") return null;
   try {
-    const stored = localStorage.getItem(TOKEN_KEY);
+    const stored = sessionStorage.getItem(TOKEN_KEY);
     return stored ? JSON.parse(stored) : null;
   } catch {
     return null;
@@ -29,9 +34,9 @@ export function getStoredTokens(): AuthTokens | null {
 export function setStoredTokens(tokens: AuthTokens | null): void {
   if (typeof window === "undefined") return;
   if (tokens) {
-    localStorage.setItem(TOKEN_KEY, JSON.stringify(tokens));
+    sessionStorage.setItem(TOKEN_KEY, JSON.stringify(tokens));
   } else {
-    localStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(TOKEN_KEY);
   }
 }
 
@@ -42,7 +47,7 @@ export function setStoredTokens(tokens: AuthTokens | null): void {
 export function getStoredUser(): User | null {
   if (typeof window === "undefined") return null;
   try {
-    const stored = localStorage.getItem(USER_KEY);
+    const stored = sessionStorage.getItem(USER_KEY);
     return stored ? JSON.parse(stored) : null;
   } catch {
     return null;
@@ -52,8 +57,8 @@ export function getStoredUser(): User | null {
 export function setStoredUser(user: User | null): void {
   if (typeof window === "undefined") return;
   if (user) {
-    localStorage.setItem(USER_KEY, JSON.stringify(user));
+    sessionStorage.setItem(USER_KEY, JSON.stringify(user));
   } else {
-    localStorage.removeItem(USER_KEY);
+    sessionStorage.removeItem(USER_KEY);
   }
 }
