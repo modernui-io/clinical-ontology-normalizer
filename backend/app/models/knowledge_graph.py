@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import BigInteger, DateTime, JSON, Enum, Float, ForeignKey, Index, Integer, String
+from sqlalchemy import BigInteger, CheckConstraint, DateTime, JSON, Enum, Float, ForeignKey, Index, Integer, String, text
 from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -24,21 +24,27 @@ class KGNode(SoftDeleteMixin, Base):
     VP-Compliance: Inherits SoftDeleteMixin for audit trail and data recovery.
 
     Nodes can be:
-    - Patient nodes (central node for each patient)
-    - Condition nodes (diagnoses, symptoms)
-    - Drug nodes (medications)
-    - Measurement nodes (labs, vitals)
-    - Procedure nodes (surgeries, interventions)
+    - Patient nodes (central node for each patient, patient_id set)
+    - Shared concept nodes (conditions, drugs, etc., patient_id=NULL, shared across patients)
 
-    Properties store node-specific data like assertion status.
+    Shared concept nodes have patient_id=NULL and are deduplicated by
+    (node_type, omop_concept_id). Patient-specific relationships are
+    expressed through KGEdge which always carries patient_id.
     """
 
     __tablename__ = "kg_nodes"
 
-    patient_id: Mapped[str] = mapped_column(
+    patient_id: Mapped[str | None] = mapped_column(
         String(255),
-        nullable=False,
+        nullable=True,
         index=True,
+    )
+    # PHI Encryption: deterministic-encrypted patient_id for queryability
+    patient_id_encrypted: Mapped[str | None] = mapped_column(
+        String(500),
+        nullable=True,
+        index=True,
+        doc="AES-SIV encrypted patient_id for HIPAA compliance",
     )
     node_type: Mapped[NodeType] = mapped_column(
         Enum(NodeType, name="node_type", create_constraint=True, values_callable=lambda x: [e.value for e in x]),
@@ -87,12 +93,38 @@ class KGNode(SoftDeleteMixin, Base):
         Index("ix_kg_nodes_patient_type", "patient_id", "node_type"),
         Index("ix_kg_nodes_patient_concept", "patient_id", "omop_concept_id"),
         Index("ix_kg_nodes_type_concept", "node_type", "omop_concept_id"),
+        # Partial unique index for shared concept dedup
+        Index(
+            "ix_kg_nodes_global_concept",
+            "node_type",
+            "omop_concept_id",
+            unique=True,
+            postgresql_where=text(
+                "patient_id IS NULL AND omop_concept_id IS NOT NULL AND deleted_at IS NULL"
+            ),
+        ),
+        # Index for querying shared nodes
+        Index(
+            "ix_kg_nodes_shared",
+            "node_type",
+            postgresql_where=text("patient_id IS NULL"),
+        ),
+        # Patient nodes must have patient_id
+        CheckConstraint(
+            "(node_type = 'patient' AND patient_id IS NOT NULL) OR (node_type != 'patient')",
+            name="ck_patient_node_has_pid",
+        ),
     )
 
     @property
     def is_patient_node(self) -> bool:
         """Check if this is a patient node."""
         return bool(self.node_type == NodeType.PATIENT)
+
+    @property
+    def is_shared_concept(self) -> bool:
+        """Check if this is a shared concept node (patient_id is NULL)."""
+        return self.patient_id is None
 
 
 class KGEdge(SoftDeleteMixin, Base):
@@ -118,6 +150,13 @@ class KGEdge(SoftDeleteMixin, Base):
         String(255),
         nullable=False,
         index=True,
+    )
+    # PHI Encryption: deterministic-encrypted patient_id for queryability
+    patient_id_encrypted: Mapped[str | None] = mapped_column(
+        String(500),
+        nullable=True,
+        index=True,
+        doc="AES-SIV encrypted patient_id for HIPAA compliance",
     )
     source_node_id: Mapped[str] = mapped_column(
         UUID(as_uuid=False),
@@ -240,6 +279,7 @@ class KGEdge(SoftDeleteMixin, Base):
         Index("ix_kg_edges_patient_type", "patient_id", "edge_type"),
         Index("ix_kg_edges_source_type", "source_node_id", "edge_type"),
         Index("ix_kg_edges_target_type", "target_node_id", "edge_type"),
+        Index("ix_kg_edges_source_patient", "source_node_id", "patient_id"),
     )
 
     def __repr__(self) -> str:

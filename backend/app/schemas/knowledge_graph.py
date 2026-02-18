@@ -50,6 +50,10 @@ class EdgeType(str, Enum):
     CONTRAINDICATED_WITH = "contraindicated_with"  # Drug -> Drug/Condition contraindication
     DRUG_INTERACTION = "drug_interaction"  # Drug -> Drug interaction (OMOP)
 
+    # OMOP lateral relationship edges (concept -> concept)
+    HAS_FINDING_SITE = "has_finding_site"  # Condition -> Anatomy
+    HAS_MORPHOLOGY = "has_morphology"  # Condition -> Morphology
+
     # Provenance edges (Entity -> Note)
     EXTRACTED_FROM = "extracted_from"  # Entity was extracted from this clinical note
 
@@ -98,9 +102,12 @@ class KGNodeCreate(BaseModel):
 
     Base schema with core node fields. Used for node creation
     and as a base class for the full KGNode response schema.
+
+    patient_id is None for shared concept nodes (conditions, drugs, etc.)
+    that are deduplicated across patients. Patient nodes always have patient_id set.
     """
 
-    patient_id: str = Field(..., description="Patient this node belongs to")
+    patient_id: str | None = Field(None, description="Patient this node belongs to (None for shared concept nodes)")
     node_type: NodeType = Field(..., description="Type of node")
     omop_concept_id: int | None = Field(
         None, description="OMOP concept ID (null for patient nodes)"
@@ -232,3 +239,43 @@ class PatientGraph(BaseModel):
         """Update counts after initialization."""
         object.__setattr__(self, "node_count", len(self.nodes))
         object.__setattr__(self, "edge_count", len(self.edges))
+
+
+class ConceptPatientsResponse(BaseModel):
+    """Response for cross-patient concept query."""
+
+    omop_concept_id: int = Field(..., description="OMOP concept ID")
+    concept_name: str = Field(..., description="Human-readable concept name")
+    node_type: str = Field(..., description="Node type (condition, drug, etc.)")
+    patient_ids: list[str] = Field(default_factory=list, description="Patient IDs with this concept")
+    patient_count: int = Field(0, description="Number of patients with this concept")
+
+
+class GlobalConceptEntry(BaseModel):
+    """A single shared concept in the global graph."""
+
+    node_id: str = Field(..., description="Shared node UUID")
+    omop_concept_id: int | None = Field(None, description="OMOP concept ID")
+    node_type: str = Field(..., description="Node type")
+    label: str = Field(..., description="Concept label")
+    patient_count: int = Field(0, description="Number of patients connected")
+
+
+class GlobalGraphResponse(BaseModel):
+    """Response for global concept graph query."""
+
+    concepts: list[GlobalConceptEntry] = Field(default_factory=list)
+    total_concepts: int = Field(0, description="Total shared concepts returned")
+
+
+class ConceptStatisticsResponse(BaseModel):
+    """Statistics for a shared concept across patients."""
+
+    omop_concept_id: int = Field(..., description="OMOP concept ID")
+    concept_name: str = Field(..., description="Human-readable concept name")
+    node_type: str = Field(..., description="Node type")
+    patient_count: int = Field(0, description="Number of patients")
+    assertion_breakdown: dict[str, int] = Field(
+        default_factory=dict,
+        description="Count of each assertion type (present, absent, possible)",
+    )

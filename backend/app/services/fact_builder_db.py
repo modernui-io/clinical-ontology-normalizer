@@ -110,8 +110,8 @@ class DatabaseFactBuilderService(BaseFactBuilderService):
         self._session.add(fact)
         self._session.flush()  # Get the fact ID
 
-        # Create evidence links
-        evidence_ids = []
+        # Create evidence links - batch add, single flush
+        evidence_records = []
         for ev in evidence or []:
             fact_evidence = FactEvidence(
                 fact_id=fact.id,
@@ -122,8 +122,11 @@ class DatabaseFactBuilderService(BaseFactBuilderService):
                 notes=ev.notes,
             )
             self._session.add(fact_evidence)
+            evidence_records.append(fact_evidence)
+
+        if evidence_records:
             self._session.flush()
-            evidence_ids.append(UUID(fact_evidence.id))
+        evidence_ids = [UUID(e.id) for e in evidence_records]
 
         # Cache for future dedup lookups
         self._dedup_cache[dedup_key] = UUID(fact.id)
@@ -181,30 +184,36 @@ class DatabaseFactBuilderService(BaseFactBuilderService):
         # Update confidence using merge formula
         fact.confidence = self.merge_confidence(fact.confidence, new_confidence)
 
-        # Add new evidence links
+        # Add new evidence links - check existing in batch, then add all at once
         evidence_ids = []
-        for ev in evidence:
-            # Check if this evidence already exists
-            existing_ev_stmt = (
-                select(FactEvidence)
-                .where(FactEvidence.fact_id == str(fact_id))
-                .where(FactEvidence.source_id == str(ev.source_id))
-                .where(FactEvidence.source_table == ev.source_table)
-            )
-            existing_ev = self._session.execute(existing_ev_stmt).scalar_one_or_none()
+        new_evidence_records = []
 
-            if not existing_ev:
-                fact_evidence = FactEvidence(
-                    fact_id=str(fact_id),
-                    evidence_type=ev.evidence_type,
-                    source_id=str(ev.source_id),
-                    source_table=ev.source_table,
-                    weight=ev.weight,
-                    notes=ev.notes,
-                )
-                self._session.add(fact_evidence)
+        if evidence:
+            # Batch check for existing evidence
+            existing_ev_stmt = (
+                select(FactEvidence.source_id, FactEvidence.source_table)
+                .where(FactEvidence.fact_id == str(fact_id))
+            )
+            existing_ev_result = self._session.execute(existing_ev_stmt)
+            existing_keys = {(row[0], row[1]) for row in existing_ev_result}
+
+            for ev in evidence:
+                ev_key = (str(ev.source_id), ev.source_table)
+                if ev_key not in existing_keys:
+                    fact_evidence = FactEvidence(
+                        fact_id=str(fact_id),
+                        evidence_type=ev.evidence_type,
+                        source_id=str(ev.source_id),
+                        source_table=ev.source_table,
+                        weight=ev.weight,
+                        notes=ev.notes,
+                    )
+                    self._session.add(fact_evidence)
+                    new_evidence_records.append(fact_evidence)
+
+            if new_evidence_records:
                 self._session.flush()
-                evidence_ids.append(UUID(fact_evidence.id))
+                evidence_ids = [UUID(e.id) for e in new_evidence_records]
 
         return FactResult(
             fact_id=fact_id,

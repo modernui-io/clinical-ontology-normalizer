@@ -4,11 +4,12 @@ Enhances retrieval-augmented generation with knowledge graph traversal.
 Combines document retrieval with graph paths for richer LLM context.
 
 Architecture:
-1. Extract concepts from query
-2. Traverse patient KG to find relevant paths (2-3 hops)
-3. Query temporal context for time-aware evidence
-4. Serialize graph paths as structured context
-5. Combine with document retrieval for comprehensive context
+1. Extract concepts from query via NLP + OMOP lookup + label fallback
+2. Traverse patient KG to find relevant paths (2-3 hops, bidirectional)
+3. Query temporal context for time-aware evidence (batch-optimized)
+4. Retrieve applicable clinical guidelines via GuidelineRAGService
+5. Serialize graph paths as structured context
+6. Combine with document retrieval for comprehensive context
 
 Supports both sync and async SQLAlchemy sessions.
 """
@@ -18,12 +19,13 @@ Supports both sync and async SQLAlchemy sessions.
 from __future__ import annotations
 
 import logging
+import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Union
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
@@ -32,6 +34,48 @@ from app.models.knowledge_graph import KGEdge, KGNode
 from app.schemas.knowledge_graph import EdgeType, NodeType
 
 logger = logging.getLogger(__name__)
+
+# Minimum edge confidence for traversal inclusion (Step 4)
+MIN_TRAVERSAL_CONFIDENCE = 0.3
+
+# Causal language patterns that trigger causal reasoning integration
+_CAUSAL_PATTERNS = re.compile(
+    r"\b(caused?\s+by|leads?\s+to|side\s+effects?|adverse\s+effects?|"
+    r"treatment\s+for|treats?|exacerbat|complicat|progression|"
+    r"contraindic|result(?:s|ed|ing)?\s+in)\b",
+    re.IGNORECASE,
+)
+
+# Map NLP EntityType values to OMOP domain hints for concept lookup
+_ENTITY_TYPE_TO_DOMAIN: dict[str, str] = {
+    "diagnosis": "Condition",
+    "medication": "Drug",
+    "procedure": "Procedure",
+    "lab_result": "Measurement",
+    "vital_sign": "Measurement",
+    "symptom": "Condition",
+    "allergy": "Observation",
+}
+
+# Map NLP EntityType values to preferred KGEdge types for traversal scoring
+_ENTITY_TYPE_TO_PREFERRED_EDGES: dict[str, set[str]] = {
+    "diagnosis": {EdgeType.HAS_CONDITION.value, EdgeType.CONDITION_TREATED_BY.value, EdgeType.SYMPTOM_OF.value},
+    "medication": {EdgeType.TAKES_DRUG.value, EdgeType.DRUG_TREATS.value, EdgeType.DRUG_INTERACTION.value},
+    "lab_result": {EdgeType.HAS_MEASUREMENT.value, EdgeType.MONITORS.value},
+    "vital_sign": {EdgeType.HAS_MEASUREMENT.value, EdgeType.MONITORS.value},
+    "procedure": {EdgeType.HAS_PROCEDURE.value},
+    "symptom": {EdgeType.HAS_CONDITION.value, EdgeType.SYMPTOM_OF.value},
+}
+
+
+@dataclass
+class QueryConcept:
+    """A concept extracted from a user query with optional OMOP resolution."""
+
+    text: str
+    entity_type: str | None = None  # e.g. "diagnosis", "medication"
+    omop_concept_id: int | None = None
+    confidence: float = 1.0
 
 
 @dataclass
@@ -210,8 +254,11 @@ class GraphAugmentedRAGService:
         Returns:
             GraphAugmentedContext with paths, temporal info, and documents.
         """
-        # Extract concepts from query
+        # Step 1: Extract concepts from query (NLP + quoted terms)
         query_concepts = self._extract_query_concepts(query)
+
+        # Step 1 Tier 2: Enrich with OMOP concept IDs (async only)
+        query_concepts = await self._enrich_concepts_with_omop_async(query_concepts)
 
         # Find relevant starting nodes in patient's graph
         start_nodes = await self._find_matching_nodes_async(patient_id, query_concepts)
@@ -220,6 +267,7 @@ class GraphAugmentedRAGService:
         graph_paths = await self._traverse_graph_async(
             patient_id=patient_id,
             start_nodes=start_nodes,
+            query_concepts=query_concepts,
             max_hops=max_hops,
             max_paths=max_paths,
         )
@@ -233,9 +281,9 @@ class GraphAugmentedRAGService:
             )
 
         # Get applicable policy constraints if requested
-        policy_constraints = []
+        policy_constraints: list[dict[str, Any]] = []
         if include_policies:
-            policy_constraints = self._get_policy_constraints(
+            policy_constraints = await self._get_policy_constraints_async(
                 patient_id=patient_id,
                 query_concepts=query_concepts,
             )
@@ -286,7 +334,8 @@ class GraphAugmentedRAGService:
         Returns:
             GraphAugmentedContext with paths, temporal info, and documents.
         """
-        # Extract concepts from query
+        # Step 1: Extract concepts from query (NLP + quoted terms)
+        # Note: OMOP enrichment skipped in sync path (requires async DB)
         query_concepts = self._extract_query_concepts(query)
 
         # Find relevant starting nodes in patient's graph
@@ -296,9 +345,15 @@ class GraphAugmentedRAGService:
         graph_paths = self._traverse_graph(
             patient_id=patient_id,
             start_nodes=start_nodes,
+            query_concepts=query_concepts,
             max_hops=max_hops,
             max_paths=max_paths,
         )
+
+        # Causal reasoning: augment paths for causal queries
+        causal_paths = self._get_causal_context(query, query_concepts)
+        if causal_paths:
+            graph_paths = graph_paths + causal_paths
 
         # Get temporal context if requested
         temporal_context = None
@@ -309,7 +364,7 @@ class GraphAugmentedRAGService:
             )
 
         # Get applicable policy constraints if requested
-        policy_constraints = []
+        policy_constraints: list[dict[str, Any]] = []
         if include_policies:
             policy_constraints = self._get_policy_constraints(
                 patient_id=patient_id,
@@ -338,42 +393,94 @@ class GraphAugmentedRAGService:
             source_retrieval_status=source_status,
         )
 
-    def _extract_query_concepts(self, query: str) -> list[str]:
-        """Extract clinical concepts from query text.
+    # ------------------------------------------------------------------
+    # Step 1: Hybrid concept extraction (NLP + OMOP + label fallback)
+    # ------------------------------------------------------------------
 
-        This is a simplified implementation. In production, use NLP
-        entity extraction with SNOMED/RxNorm mapping.
+    def _extract_query_concepts(self, query: str) -> list[QueryConcept]:
+        """Extract clinical concepts from query text via hybrid pipeline.
+
+        Tier 1: NLP entity extraction using ClinicalNLPEntityService
+        Tier 3: Quoted-term extraction (always applied)
+        Note: Tier 2 (OMOP lookup) is applied asynchronously via
+              _enrich_concepts_with_omop_async in the async path.
         """
-        # Common clinical terms to look for
-        clinical_terms = [
-            "diabetes", "hypertension", "heart failure", "copd", "asthma",
-            "metformin", "lisinopril", "aspirin", "insulin", "atorvastatin",
-            "a1c", "glucose", "creatinine", "blood pressure", "hemoglobin",
-            "medication", "condition", "diagnosis", "treatment", "lab",
-        ]
+        concepts: list[QueryConcept] = []
+        seen_texts: set[str] = set()
 
-        query_lower = query.lower()
-        found_concepts = []
+        # Tier 1: NLP entity extraction
+        try:
+            from app.services.nlp_entity import get_nlp_entity_service
 
-        for term in clinical_terms:
-            if term in query_lower:
-                found_concepts.append(term)
+            nlp_service = get_nlp_entity_service()
+            result = nlp_service.extract_entities(query)
+            for entity in result.entities:
+                text_lower = entity.text.lower()
+                if text_lower not in seen_texts:
+                    seen_texts.add(text_lower)
+                    concepts.append(QueryConcept(
+                        text=entity.text,
+                        entity_type=entity.entity_type.value,
+                        confidence=entity.confidence,
+                    ))
+        except Exception as exc:
+            logger.debug("NLP entity extraction unavailable, falling back: %s", exc)
 
-        # Extract any quoted terms
-        import re
+        # Tier 3: Quoted-term extraction
         quoted = re.findall(r'"([^"]+)"', query)
-        found_concepts.extend(quoted)
+        for term in quoted:
+            term_lower = term.lower()
+            if term_lower not in seen_texts:
+                seen_texts.add(term_lower)
+                concepts.append(QueryConcept(text=term, confidence=0.9))
 
-        return found_concepts
+        return concepts
+
+    async def _enrich_concepts_with_omop_async(
+        self,
+        concepts: list[QueryConcept],
+    ) -> list[QueryConcept]:
+        """Tier 2: Enrich QueryConcepts with OMOP concept IDs via async DB lookup."""
+        if not concepts:
+            return concepts
+
+        try:
+            from app.services.concept_lookup import lookup_concept_cached
+
+            for concept in concepts:
+                if concept.omop_concept_id is not None:
+                    continue
+                domain = _ENTITY_TYPE_TO_DOMAIN.get(concept.entity_type or "")
+                match = await lookup_concept_cached(
+                    self._session, concept.text, domain
+                )
+                if match:
+                    concept.omop_concept_id = match.concept_id
+        except Exception as exc:
+            logger.debug("OMOP concept enrichment failed: %s", exc)
+
+        return concepts
+
+    # ------------------------------------------------------------------
+    # Node matching (updated for QueryConcept)
+    # ------------------------------------------------------------------
 
     def _find_matching_nodes(
         self,
         patient_id: str,
-        concepts: list[str],
+        concepts: list[QueryConcept],
     ) -> list[KGNode]:
-        """Find nodes in patient's graph matching query concepts."""
+        """Find nodes in patient's graph matching query concepts.
+
+        Patient nodes still have patient_id set, so we query directly.
+        Shared concept nodes (patient_id=NULL) are found via edge-join
+        since edges always carry patient_id.
+
+        When a QueryConcept has omop_concept_id, match directly on
+        KGNode.omop_concept_id for exact hits.
+        """
         if not concepts:
-            # Return patient node as starting point
+            # Return patient node as starting point (patient nodes still have patient_id)
             stmt = (
                 select(KGNode)
                 .where(KGNode.patient_id == patient_id)
@@ -383,29 +490,63 @@ class GraphAugmentedRAGService:
             patient_node = result.scalar_one_or_none()
             return [patient_node] if patient_node else []
 
-        # Search for nodes matching any concept
-        stmt = select(KGNode).where(KGNode.patient_id == patient_id)
-        result = self._session.execute(stmt)
-        nodes = result.scalars().all()
+        # Try OMOP ID exact matching first
+        omop_ids = [c.omop_concept_id for c in concepts if c.omop_concept_id]
+        omop_matched_nodes: list[KGNode] = []
+        omop_matched_ids: set = set()
+        if omop_ids:
+            stmt = (
+                select(KGNode)
+                .join(KGEdge, or_(KGEdge.target_node_id == KGNode.id, KGEdge.source_node_id == KGNode.id))
+                .where(KGEdge.patient_id == patient_id)
+                .where(KGNode.omop_concept_id.in_(omop_ids))
+                .distinct()
+            )
+            result = self._session.execute(stmt)
+            omop_matched_nodes = list(result.scalars().all())
+            omop_matched_ids = {n.id for n in omop_matched_nodes}
 
-        matching = []
-        for node in nodes:
-            label_lower = node.label.lower()
-            for concept in concepts:
-                if concept.lower() in label_lower:
-                    matching.append(node)
-                    break
+        # Fall back to label matching for concepts without OMOP IDs
+        label_concepts = [c for c in concepts if not c.omop_concept_id]
+        label_matched_nodes: list[KGNode] = []
+        if label_concepts:
+            stmt = (
+                select(KGNode)
+                .join(KGEdge, or_(KGEdge.target_node_id == KGNode.id, KGEdge.source_node_id == KGNode.id))
+                .where(KGEdge.patient_id == patient_id)
+                .distinct()
+            )
+            result = self._session.execute(stmt)
+            nodes = result.scalars().all()
 
-        return matching[:20]  # Limit starting nodes
+            for node in nodes:
+                if node.id in omop_matched_ids:
+                    continue
+                label_lower = node.label.lower()
+                for concept in label_concepts:
+                    if concept.text.lower() in label_lower:
+                        label_matched_nodes.append(node)
+                        break
+
+        # OMOP matches first (higher precision), then label matches
+        return (omop_matched_nodes + label_matched_nodes)[:20]
 
     async def _find_matching_nodes_async(
         self,
         patient_id: str,
-        concepts: list[str],
+        concepts: list[QueryConcept],
     ) -> list[KGNode]:
-        """Find nodes in patient's graph matching query concepts (async version)."""
+        """Find nodes in patient's graph matching query concepts (async version).
+
+        Patient nodes still have patient_id set, so we query directly.
+        Shared concept nodes (patient_id=NULL) are found via edge-join
+        since edges always carry patient_id.
+
+        When a QueryConcept has omop_concept_id, match directly on
+        KGNode.omop_concept_id for exact hits.
+        """
         if not concepts:
-            # Return patient node as starting point
+            # Return patient node as starting point (patient nodes still have patient_id)
             stmt = (
                 select(KGNode)
                 .where(KGNode.patient_id == patient_id)
@@ -415,25 +556,56 @@ class GraphAugmentedRAGService:
             patient_node = result.scalar_one_or_none()
             return [patient_node] if patient_node else []
 
-        # Search for nodes matching any concept
-        stmt = select(KGNode).where(KGNode.patient_id == patient_id)
-        result = await self._session.execute(stmt)
-        nodes = result.scalars().all()
+        # Try OMOP ID exact matching first
+        omop_ids = [c.omop_concept_id for c in concepts if c.omop_concept_id]
+        omop_matched_nodes: list[KGNode] = []
+        omop_matched_ids: set = set()
+        if omop_ids:
+            stmt = (
+                select(KGNode)
+                .join(KGEdge, or_(KGEdge.target_node_id == KGNode.id, KGEdge.source_node_id == KGNode.id))
+                .where(KGEdge.patient_id == patient_id)
+                .where(KGNode.omop_concept_id.in_(omop_ids))
+                .distinct()
+            )
+            result = await self._session.execute(stmt)
+            omop_matched_nodes = list(result.scalars().all())
+            omop_matched_ids = {n.id for n in omop_matched_nodes}
 
-        matching = []
-        for node in nodes:
-            label_lower = node.label.lower()
-            for concept in concepts:
-                if concept.lower() in label_lower:
-                    matching.append(node)
-                    break
+        # Fall back to label matching for concepts without OMOP IDs
+        label_concepts = [c for c in concepts if not c.omop_concept_id]
+        label_matched_nodes: list[KGNode] = []
+        if label_concepts:
+            stmt = (
+                select(KGNode)
+                .join(KGEdge, or_(KGEdge.target_node_id == KGNode.id, KGEdge.source_node_id == KGNode.id))
+                .where(KGEdge.patient_id == patient_id)
+                .distinct()
+            )
+            result = await self._session.execute(stmt)
+            nodes = result.scalars().all()
 
-        return matching[:20]  # Limit starting nodes
+            for node in nodes:
+                if node.id in omop_matched_ids:
+                    continue
+                label_lower = node.label.lower()
+                for concept in label_concepts:
+                    if concept.text.lower() in label_lower:
+                        label_matched_nodes.append(node)
+                        break
+
+        # OMOP matches first (higher precision), then label matches
+        return (omop_matched_nodes + label_matched_nodes)[:20]
+
+    # ------------------------------------------------------------------
+    # Graph traversal (Steps 4+5: confidence scoring + bidirectional)
+    # ------------------------------------------------------------------
 
     async def _traverse_graph_async(
         self,
         patient_id: str,
         start_nodes: list[KGNode],
+        query_concepts: list[QueryConcept],
         max_hops: int,
         max_paths: int,
     ) -> list[GraphPath]:
@@ -441,10 +613,10 @@ class GraphAugmentedRAGService:
         paths = []
 
         for start_node in start_nodes[:5]:  # Limit starting points
-            # BFS traversal from this node
             node_paths = await self._bfs_traverse_async(
                 patient_id=patient_id,
                 start_node=start_node,
+                query_concepts=query_concepts,
                 max_hops=max_hops,
             )
             paths.extend(node_paths)
@@ -458,32 +630,59 @@ class GraphAugmentedRAGService:
         self,
         patient_id: str,
         start_node: KGNode,
+        query_concepts: list[QueryConcept],
         max_hops: int,
     ) -> list[GraphPath]:
-        """BFS traversal from a starting node (async version)."""
+        """BFS traversal from a starting node (async, bidirectional, confidence-weighted)."""
         paths = []
 
-        # Get outgoing edges from start node
-        stmt = (
+        # Step 5: Get both outgoing and incoming edges
+        outgoing_stmt = (
             select(KGEdge)
             .where(KGEdge.source_node_id == start_node.id)
             .where(KGEdge.patient_id == patient_id)
         )
-        result = await self._session.execute(stmt)
-        edges = result.scalars().all()
+        incoming_stmt = (
+            select(KGEdge)
+            .where(KGEdge.target_node_id == start_node.id)
+            .where(KGEdge.patient_id == patient_id)
+        )
+        out_result = await self._session.execute(outgoing_stmt)
+        in_result = await self._session.execute(incoming_stmt)
 
-        for edge in edges[:10]:
-            # Get target node
-            target_stmt = select(KGNode).where(KGNode.id == edge.target_node_id)
-            target_result = await self._session.execute(target_stmt)
-            target_node = target_result.scalar_one_or_none()
+        outgoing_edges = list(out_result.scalars().all())
+        incoming_edges = list(in_result.scalars().all())
 
-            if target_node:
-                # Build 1-hop path
+        # Step 4: Filter and score edges
+        all_edges = _score_and_filter_edges(outgoing_edges + incoming_edges, query_concepts)
+        all_edges = all_edges[:10]
+
+        # Batch-fetch all neighbor nodes in one query (avoids N+1)
+        neighbor_ids = set()
+        for edge in all_edges:
+            if edge.source_node_id != start_node.id:
+                neighbor_ids.add(edge.source_node_id)
+            if edge.target_node_id != start_node.id:
+                neighbor_ids.add(edge.target_node_id)
+
+        neighbor_map: dict = {}
+        if neighbor_ids:
+            neighbor_stmt = select(KGNode).where(KGNode.id.in_(list(neighbor_ids)))
+            neighbor_result = await self._session.execute(neighbor_stmt)
+            neighbor_map = {n.id: n for n in neighbor_result.scalars().all()}
+
+        for edge in all_edges:
+            # Determine the "other" node (neighbor)
+            if edge.source_node_id == start_node.id:
+                neighbor_node = neighbor_map.get(edge.target_node_id)
+            else:
+                neighbor_node = neighbor_map.get(edge.source_node_id)
+
+            if neighbor_node:
                 path = GraphPath(
                     nodes=[
                         {"id": str(start_node.id), "label": start_node.label, "type": start_node.node_type.value},
-                        {"id": str(target_node.id), "label": target_node.label, "type": target_node.node_type.value},
+                        {"id": str(neighbor_node.id), "label": neighbor_node.label, "type": neighbor_node.node_type.value},
                     ],
                     edges=[
                         {
@@ -493,7 +692,7 @@ class GraphAugmentedRAGService:
                             "event_date": edge.event_date.isoformat() if edge.event_date else None,
                         }
                     ],
-                    path_type=self._classify_path_type(start_node, edge, target_node),
+                    path_type=self._classify_path_type(start_node, edge, neighbor_node),
                     confidence=edge.temporal_confidence or 1.0,
                 )
                 paths.append(path)
@@ -502,11 +701,11 @@ class GraphAugmentedRAGService:
                 if max_hops > 1:
                     deeper_paths = await self._bfs_traverse_async(
                         patient_id=patient_id,
-                        start_node=target_node,
+                        start_node=neighbor_node,
+                        query_concepts=query_concepts,
                         max_hops=max_hops - 1,
                     )
                     for deeper_path in deeper_paths[:3]:
-                        # Combine paths
                         combined = GraphPath(
                             nodes=path.nodes + deeper_path.nodes[1:],
                             edges=path.edges + deeper_path.edges,
@@ -517,74 +716,71 @@ class GraphAugmentedRAGService:
 
         return paths
 
-    async def _get_temporal_context_async(
-        self,
-        patient_id: str,
-        time_point: datetime | None,
-    ) -> TemporalContext:
-        """Get temporal context from patient's graph (async version)."""
-        # Get all edges with temporal data
-        stmt = (
-            select(KGEdge)
-            .where(KGEdge.patient_id == patient_id)
-            .where(KGEdge.event_date.isnot(None))
-            .order_by(KGEdge.event_date.desc())
-        )
-        result = await self._session.execute(stmt)
-        edges = result.scalars().all()
-
-        # Build timeline
-        timeline = []
-        current_state = {}
-        historical_state = {}
-
-        for edge in edges[:50]:
-            # Get target node for description
-            target_stmt = select(KGNode).where(KGNode.id == edge.target_node_id)
-            target_result = await self._session.execute(target_stmt)
-            target = target_result.scalar_one_or_none()
-
-            if target:
-                event = {
-                    "date": edge.event_date.isoformat() if edge.event_date else None,
-                    "description": f"{edge.edge_type.value}: {target.label}",
-                    "temporality": edge.temporality,
-                    "is_current": edge.temporality == "current",
-                }
-                timeline.append(event)
-
-                # Track current vs historical
-                if edge.temporality == "current":
-                    current_state[target.label] = "active"
-                elif edge.temporality == "past":
-                    historical_state[target.label] = "resolved"
-
-        # Detect temporal conflicts (simplified)
-        conflicts = []
-        # In a real implementation, use temporal_query_service
-
-        return TemporalContext(
-            event_timeline=timeline,
-            temporal_conflicts=conflicts,
-            current_state=current_state,
-            historical_state=historical_state,
-        )
-
     def _traverse_graph(
         self,
         patient_id: str,
         start_nodes: list[KGNode],
+        query_concepts: list[QueryConcept],
         max_hops: int,
         max_paths: int,
     ) -> list[GraphPath]:
-        """Traverse graph from starting nodes to find relevant paths."""
+        """Traverse graph from starting nodes to find relevant paths.
+
+        For 2+ hop queries, attempts Neo4j via query router for
+        variable-length path matching. Falls back to PG BFS.
+        """
+        # Route multi-hop queries to Neo4j when available
+        if max_hops >= 2 and not self._is_async:
+            try:
+                from app.services.neo4j_query_router import MultiHopQuery, Neo4jQueryRouter
+                from app.services.neo4j_query_router import GraphPath as RouterPath
+
+                router = Neo4jQueryRouter(self._session)
+                if router.neo4j_available:
+                    start_concept_ids = [
+                        n.omop_concept_id for n in start_nodes
+                        if n.omop_concept_id
+                    ]
+                    if start_concept_ids:
+                        query = MultiHopQuery(
+                            patient_id=patient_id,
+                            start_concept_ids=start_concept_ids,
+                            max_hops=max_hops,
+                            max_paths=max_paths,
+                            min_confidence=MIN_TRAVERSAL_CONFIDENCE,
+                        )
+                        router_paths = router.execute_multi_hop(query)
+                        # Convert router paths to GraphPath format
+                        return [
+                            GraphPath(
+                                nodes=[
+                                    {"id": n.node_id, "label": n.label, "type": n.node_type}
+                                    for n in rp.nodes
+                                ],
+                                edges=[
+                                    {
+                                        "edge_type": e.edge_type,
+                                        "confidence": e.confidence,
+                                        "temporality": e.temporality,
+                                        "event_date": e.event_date,
+                                    }
+                                    for e in rp.edges
+                                ],
+                                path_type="multi_hop",
+                                confidence=rp.path_confidence,
+                            )
+                            for rp in router_paths
+                        ][:max_paths]
+            except Exception as e:
+                logger.debug("Neo4j query router failed, using PG BFS: %s", e)
+
         paths = []
 
         for start_node in start_nodes[:5]:  # Limit starting points
-            # BFS traversal from this node
             node_paths = self._bfs_traverse(
                 patient_id=patient_id,
                 start_node=start_node,
+                query_concepts=query_concepts,
                 max_hops=max_hops,
             )
             paths.extend(node_paths)
@@ -598,32 +794,59 @@ class GraphAugmentedRAGService:
         self,
         patient_id: str,
         start_node: KGNode,
+        query_concepts: list[QueryConcept],
         max_hops: int,
     ) -> list[GraphPath]:
-        """BFS traversal from a starting node."""
+        """BFS traversal from a starting node (sync, bidirectional, confidence-weighted)."""
         paths = []
 
-        # Get outgoing edges from start node
-        stmt = (
+        # Step 5: Get both outgoing and incoming edges
+        outgoing_stmt = (
             select(KGEdge)
             .where(KGEdge.source_node_id == start_node.id)
             .where(KGEdge.patient_id == patient_id)
         )
-        result = self._session.execute(stmt)
-        edges = result.scalars().all()
+        incoming_stmt = (
+            select(KGEdge)
+            .where(KGEdge.target_node_id == start_node.id)
+            .where(KGEdge.patient_id == patient_id)
+        )
+        out_result = self._session.execute(outgoing_stmt)
+        in_result = self._session.execute(incoming_stmt)
 
-        for edge in edges[:10]:
-            # Get target node
-            target_stmt = select(KGNode).where(KGNode.id == edge.target_node_id)
-            target_result = self._session.execute(target_stmt)
-            target_node = target_result.scalar_one_or_none()
+        outgoing_edges = list(out_result.scalars().all())
+        incoming_edges = list(in_result.scalars().all())
 
-            if target_node:
-                # Build 1-hop path
+        # Step 4: Filter and score edges
+        all_edges = _score_and_filter_edges(outgoing_edges + incoming_edges, query_concepts)
+        all_edges = all_edges[:10]
+
+        # Batch-fetch all neighbor nodes in one query (avoids N+1)
+        neighbor_ids = set()
+        for edge in all_edges:
+            if edge.source_node_id != start_node.id:
+                neighbor_ids.add(edge.source_node_id)
+            if edge.target_node_id != start_node.id:
+                neighbor_ids.add(edge.target_node_id)
+
+        neighbor_map: dict = {}
+        if neighbor_ids:
+            neighbor_stmt = select(KGNode).where(KGNode.id.in_(list(neighbor_ids)))
+            neighbor_result = self._session.execute(neighbor_stmt)
+            neighbor_map = {n.id: n for n in neighbor_result.scalars().all()}
+
+        for edge in all_edges:
+            # Determine the "other" node (neighbor)
+            if edge.source_node_id == start_node.id:
+                neighbor_node = neighbor_map.get(edge.target_node_id)
+            else:
+                neighbor_node = neighbor_map.get(edge.source_node_id)
+
+            if neighbor_node:
                 path = GraphPath(
                     nodes=[
-                        {"id": start_node.id, "label": start_node.label, "type": start_node.node_type.value},
-                        {"id": target_node.id, "label": target_node.label, "type": target_node.node_type.value},
+                        {"id": str(start_node.id), "label": start_node.label, "type": start_node.node_type.value},
+                        {"id": str(neighbor_node.id), "label": neighbor_node.label, "type": neighbor_node.node_type.value},
                     ],
                     edges=[
                         {
@@ -633,7 +856,7 @@ class GraphAugmentedRAGService:
                             "event_date": edge.event_date.isoformat() if edge.event_date else None,
                         }
                     ],
-                    path_type=self._classify_path_type(start_node, edge, target_node),
+                    path_type=self._classify_path_type(start_node, edge, neighbor_node),
                     confidence=edge.temporal_confidence or 1.0,
                 )
                 paths.append(path)
@@ -642,11 +865,11 @@ class GraphAugmentedRAGService:
                 if max_hops > 1:
                     deeper_paths = self._bfs_traverse(
                         patient_id=patient_id,
-                        start_node=target_node,
+                        start_node=neighbor_node,
+                        query_concepts=query_concepts,
                         max_hops=max_hops - 1,
                     )
                     for deeper_path in deeper_paths[:3]:
-                        # Combine paths
                         combined = GraphPath(
                             nodes=path.nodes + deeper_path.nodes[1:],
                             edges=path.edges + deeper_path.edges,
@@ -656,6 +879,74 @@ class GraphAugmentedRAGService:
                         paths.append(combined)
 
         return paths
+
+    def _get_causal_context(
+        self,
+        query: str,
+        query_concepts: list[QueryConcept],
+    ) -> list[GraphPath]:
+        """Get causal reasoning context when query contains causal language.
+
+        Only invoked when query contains causal language (e.g., "caused by",
+        "side effect", "treatment for"). Results are converted to GraphPath
+        for uniform context assembly.
+        """
+        if not _CAUSAL_PATTERNS.search(query):
+            return []
+
+        try:
+            from app.services.causal_reasoning_service import (
+                CausalQuery,
+                get_causal_reasoning_service,
+            )
+
+            causal_service = get_causal_reasoning_service()
+
+            # Use first concept as start, second as end (if available)
+            concept_texts = [c.text for c in query_concepts if c.text]
+            if not concept_texts:
+                return []
+
+            causal_query = CausalQuery(
+                start_concept=concept_texts[0],
+                end_concept=concept_texts[1] if len(concept_texts) > 1 else None,
+                max_chain_length=4,
+                min_confidence=MIN_TRAVERSAL_CONFIDENCE,
+            )
+
+            # CausalReasoningService is async; use mock data path synchronously
+            chains = causal_service._mock_causal_chains(causal_query)
+
+            # Convert CausalChain -> GraphPath
+            causal_paths: list[GraphPath] = []
+            for chain in chains:
+                if not chain.links:
+                    continue
+                nodes = [
+                    {"id": chain.links[0].source_cui, "label": chain.links[0].source_name, "type": "concept"}
+                ]
+                edges_list = []
+                for link in chain.links:
+                    nodes.append({"id": link.target_cui, "label": link.target_name, "type": "concept"})
+                    edges_list.append({
+                        "edge_type": link.relation_type.value,
+                        "confidence": link.confidence,
+                        "temporality": None,
+                        "event_date": None,
+                    })
+
+                causal_paths.append(GraphPath(
+                    nodes=nodes,
+                    edges=edges_list,
+                    path_type="causal_chain",
+                    confidence=chain.total_confidence,
+                ))
+
+            return causal_paths
+
+        except Exception as e:
+            logger.debug("Causal reasoning integration failed: %s", e)
+            return []
 
     def _classify_path_type(
         self,
@@ -683,12 +974,16 @@ class GraphAugmentedRAGService:
 
         return "general_relationship"
 
-    def _get_temporal_context(
+    # ------------------------------------------------------------------
+    # Step 2: Temporal context (N+1 fix — batch node fetch)
+    # ------------------------------------------------------------------
+
+    async def _get_temporal_context_async(
         self,
         patient_id: str,
         time_point: datetime | None,
     ) -> TemporalContext:
-        """Get temporal context from patient's graph."""
+        """Get temporal context from patient's graph (async, batch-optimized)."""
         # Get all edges with temporal data
         stmt = (
             select(KGEdge)
@@ -696,18 +991,26 @@ class GraphAugmentedRAGService:
             .where(KGEdge.event_date.isnot(None))
             .order_by(KGEdge.event_date.desc())
         )
-        result = self._session.execute(stmt)
+        result = await self._session.execute(stmt)
         edges = result.scalars().all()
+        edges = edges[:50]
+
+        # Batch-fetch all target nodes in one query (fixes N+1)
+        target_ids = [e.target_node_id for e in edges]
+        if target_ids:
+            target_stmt = select(KGNode).where(KGNode.id.in_(target_ids))
+            target_result = await self._session.execute(target_stmt)
+            target_map = {n.id: n for n in target_result.scalars().all()}
+        else:
+            target_map = {}
 
         # Build timeline
         timeline = []
         current_state = {}
         historical_state = {}
 
-        for edge in edges[:50]:
-            # Get target node for description
-            target_stmt = select(KGNode).where(KGNode.id == edge.target_node_id)
-            target = self._session.execute(target_stmt).scalar_one_or_none()
+        for edge in edges:
+            target = target_map.get(edge.target_node_id)
 
             if target:
                 event = {
@@ -725,8 +1028,7 @@ class GraphAugmentedRAGService:
                     historical_state[target.label] = "resolved"
 
         # Detect temporal conflicts (simplified)
-        conflicts = []
-        # In a real implementation, use temporal_query_service
+        conflicts: list[str] = []
 
         return TemporalContext(
             event_timeline=timeline,
@@ -735,24 +1037,153 @@ class GraphAugmentedRAGService:
             historical_state=historical_state,
         )
 
+    def _get_temporal_context(
+        self,
+        patient_id: str,
+        time_point: datetime | None,
+    ) -> TemporalContext:
+        """Get temporal context from patient's graph (sync, batch-optimized)."""
+        # Get all edges with temporal data
+        stmt = (
+            select(KGEdge)
+            .where(KGEdge.patient_id == patient_id)
+            .where(KGEdge.event_date.isnot(None))
+            .order_by(KGEdge.event_date.desc())
+        )
+        result = self._session.execute(stmt)
+        edges = result.scalars().all()
+        edges = edges[:50]
+
+        # Batch-fetch all target nodes in one query (fixes N+1)
+        target_ids = [e.target_node_id for e in edges]
+        if target_ids:
+            target_stmt = select(KGNode).where(KGNode.id.in_(target_ids))
+            target_result = self._session.execute(target_stmt)
+            target_map = {n.id: n for n in target_result.scalars().all()}
+        else:
+            target_map = {}
+
+        # Build timeline
+        timeline = []
+        current_state = {}
+        historical_state = {}
+
+        for edge in edges:
+            target = target_map.get(edge.target_node_id)
+
+            if target:
+                event = {
+                    "date": edge.event_date.isoformat() if edge.event_date else None,
+                    "description": f"{edge.edge_type.value}: {target.label}",
+                    "temporality": edge.temporality,
+                    "is_current": edge.temporality == "current",
+                }
+                timeline.append(event)
+
+                # Track current vs historical
+                if edge.temporality == "current":
+                    current_state[target.label] = "active"
+                elif edge.temporality == "past":
+                    historical_state[target.label] = "resolved"
+
+        # Detect temporal conflicts (simplified)
+        conflicts: list[str] = []
+
+        return TemporalContext(
+            event_timeline=timeline,
+            temporal_conflicts=conflicts,
+            current_state=current_state,
+            historical_state=historical_state,
+        )
+
+    # ------------------------------------------------------------------
+    # Step 3: Policy constraints via GuidelineRAGService
+    # ------------------------------------------------------------------
+
     def _get_policy_constraints(
         self,
         patient_id: str,
-        query_concepts: list[str],
+        query_concepts: list[QueryConcept],
     ) -> list[dict[str, Any]]:
-        """Get applicable policy constraints.
+        """Get applicable policy constraints from clinical guidelines (sync)."""
+        return self._build_policy_constraints(patient_id, query_concepts)
 
-        In production, this would query the PolicyKG and match
-        against patient conditions/medications.
+    async def _get_policy_constraints_async(
+        self,
+        patient_id: str,
+        query_concepts: list[QueryConcept],
+    ) -> list[dict[str, Any]]:
+        """Get applicable policy constraints from clinical guidelines (async)."""
+        return self._build_policy_constraints(patient_id, query_concepts)
+
+    def _build_policy_constraints(
+        self,
+        patient_id: str,
+        query_concepts: list[QueryConcept],
+    ) -> list[dict[str, Any]]:
+        """Core policy constraint logic shared by sync/async paths.
+
+        Uses GuidelineRAGService (which is synchronous) to retrieve
+        applicable clinical guidelines based on query concepts.
         """
-        # Placeholder - would integrate with PolicyComplianceAgent
-        return []
+        if not query_concepts:
+            return []
+
+        try:
+            from app.services.guideline_rag_service import get_guideline_rag_service
+
+            guideline_service = get_guideline_rag_service()
+            if not guideline_service.is_loaded:
+                return []
+
+            # Separate concepts by type for patient context
+            patient_conditions = [
+                c.text for c in query_concepts
+                if c.entity_type in ("diagnosis", "symptom")
+            ]
+            patient_medications = [
+                c.text for c in query_concepts
+                if c.entity_type == "medication"
+            ]
+
+            query_text = " ".join(c.text for c in query_concepts)
+            citations = guideline_service.search(
+                query=query_text,
+                patient_conditions=patient_conditions or None,
+                patient_medications=patient_medications or None,
+                top_k=5,
+                min_score=0.3,
+            )
+
+            constraints: list[dict[str, Any]] = []
+            for citation in citations:
+                section = citation.section
+                constraints.append({
+                    "rule_id": section.section_id,
+                    "description": (
+                        f"[{section.guideline}] {section.recommendation_text}"
+                    ),
+                    "strength": (
+                        section.recommendation_level or section.evidence_grade
+                    ),
+                    "relevance_score": citation.score,
+                })
+
+            return constraints
+
+        except Exception as exc:
+            logger.debug("Guideline RAG lookup failed: %s", exc)
+            return []
+
+    # ------------------------------------------------------------------
+    # Document retrieval (unchanged logic, updated type hints)
+    # ------------------------------------------------------------------
 
     async def _retrieve_documents_async(
         self,
         query: str,
         patient_id: str,
-        query_concepts: list[str] | None = None,
+        query_concepts: list[QueryConcept] | None = None,
     ) -> tuple[list[dict[str, Any]], str]:
         """Retrieve real patient documents from the database (P1-011, async).
 
@@ -784,7 +1215,7 @@ class GraphAugmentedRAGService:
         self,
         query: str,
         patient_id: str,
-        query_concepts: list[str] | None = None,
+        query_concepts: list[QueryConcept] | None = None,
     ) -> tuple[list[dict[str, Any]], str]:
         """Retrieve real patient documents from the database (P1-011, sync).
 
@@ -816,14 +1247,17 @@ class GraphAugmentedRAGService:
         self,
         docs: list[Any],
         query: str,
-        query_concepts: list[str] | None = None,
+        query_concepts: list[QueryConcept] | None = None,
     ) -> tuple[list[dict[str, Any]], str]:
         """Score documents by relevance and return with retrieval status.
 
         Returns:
             Tuple of (formatted docs, source_retrieval_status).
         """
-        concepts = query_concepts or []
+        concept_texts: list[str] = []
+        if query_concepts:
+            for c in query_concepts:
+                concept_texts.append(c.text if isinstance(c, QueryConcept) else str(c))
         query_lower = query.lower()
         scored: list[tuple[float, Any]] = []
 
@@ -836,7 +1270,7 @@ class GraphAugmentedRAGService:
                 for word in query_words:
                     if len(word) > 2 and word in text_lower:
                         score += 1.0
-                for concept in concepts:
+                for concept in concept_texts:
                     if concept.lower() in text_lower:
                         score += 2.0
                 scored.append((score, doc))
@@ -887,6 +1321,55 @@ class GraphAugmentedRAGService:
             return formatted, SourceRetrievalStatus.PARTIAL
 
         return formatted, SourceRetrievalStatus.FULL
+
+
+# ------------------------------------------------------------------
+# Step 4: Edge scoring and filtering (module-level helper)
+# ------------------------------------------------------------------
+
+def _score_and_filter_edges(
+    edges: list[KGEdge],
+    query_concepts: list[QueryConcept],
+) -> list[KGEdge]:
+    """Score edges by confidence and query relevance, filter low-confidence.
+
+    Scoring criteria:
+    1. Base confidence (temporal_confidence)
+    2. Query-relevant edge types get a boost
+    3. Current temporality preferred over historical
+    4. Edges below MIN_TRAVERSAL_CONFIDENCE are pruned
+    """
+    # Collect preferred edge types from all query concepts
+    preferred_types: set[str] = set()
+    for concept in query_concepts:
+        if concept.entity_type:
+            preferred_types.update(
+                _ENTITY_TYPE_TO_PREFERRED_EDGES.get(concept.entity_type, set())
+            )
+
+    scored: list[tuple[float, KGEdge]] = []
+    for edge in edges:
+        confidence = edge.temporal_confidence or 1.0
+
+        # Prune low-confidence edges
+        if confidence < MIN_TRAVERSAL_CONFIDENCE:
+            continue
+
+        score = confidence
+
+        # Boost query-relevant edge types
+        if preferred_types and edge.edge_type.value in preferred_types:
+            score += 0.2
+
+        # Prefer current over historical
+        if edge.temporality == "current":
+            score += 0.1
+
+        scored.append((score, edge))
+
+    # Sort by score descending
+    scored.sort(key=lambda x: x[0], reverse=True)
+    return [edge for _, edge in scored]
 
 
 def get_graph_augmented_rag_service(

@@ -93,6 +93,19 @@ def set_db_request_context(ctx: DatabaseRequestContext | None) -> None:
 
 # Create async engine (for FastAPI async endpoints)
 # VP-Platform: Added connection pool configuration for production scalability
+# HIPAA §164.312(e): Build connect_args for SSL/TLS transport encryption
+_connect_args: dict = {}
+if settings.database_ssl_mode != "disable":
+    import ssl as _ssl
+
+    _ssl_ctx = _ssl.create_default_context()
+    if settings.database_ssl_ca_cert:
+        _ssl_ctx.load_verify_locations(settings.database_ssl_ca_cert)
+    if settings.database_ssl_mode in ("require",):
+        _ssl_ctx.check_hostname = False
+        _ssl_ctx.verify_mode = _ssl.CERT_NONE
+    _connect_args["ssl"] = _ssl_ctx
+
 engine = create_async_engine(
     settings.database_url,
     echo=settings.debug,
@@ -101,6 +114,7 @@ engine = create_async_engine(
     max_overflow=40,  # Additional connections under load (default was 10)
     pool_pre_ping=True,  # Validate connections before use (prevents stale connections)
     pool_recycle=3600,  # Recycle connections after 1 hour (prevents timeouts)
+    connect_args=_connect_args,
 )
 
 # Lazy initialized sync engine (for RQ workers and background jobs)
@@ -119,6 +133,13 @@ def get_sync_engine() -> Engine:
     if _sync_engine is None:
         with _sync_engine_lock:
             if _sync_engine is None:
+                # HIPAA §164.312(e): Build sync connect_args for SSL (psycopg2)
+                _sync_connect_args: dict = {}
+                if settings.database_ssl_mode != "disable":
+                    _sync_connect_args["sslmode"] = settings.database_ssl_mode
+                    if settings.database_ssl_ca_cert:
+                        _sync_connect_args["sslrootcert"] = settings.database_ssl_ca_cert
+
                 _sync_engine = create_engine(
                     settings.sync_database_url,
                     echo=settings.debug,
@@ -127,6 +148,7 @@ def get_sync_engine() -> Engine:
                     max_overflow=20,
                     pool_pre_ping=True,
                     pool_recycle=3600,
+                    connect_args=_sync_connect_args,
                 )
     return _sync_engine
 

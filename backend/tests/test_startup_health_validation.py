@@ -53,6 +53,7 @@ def _make_settings(**overrides):
         "openai_api_key": None,
         "anthropic_api_key": None,
         "etl_encryption_key": None,
+        "phi_encryption_key": None,
     }
     defaults.update(overrides)
     return SimpleNamespace(**defaults)
@@ -188,6 +189,7 @@ class TestValidateProductionCredentials:
             llm_provider="openai",
             openai_api_key="sk-realkey1234567890abcdef",
             etl_encryption_key="etl-enc-key-abcdef123456",
+            phi_encryption_key="phi-enc-key-abcdef123456",
         )
         result = validate_production_credentials(config)
         assert result.valid is True

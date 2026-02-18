@@ -19,7 +19,6 @@ from app.models import Document
 from app.models.mention import Mention, MentionConceptCandidate
 from app.schemas.base import Assertion, Domain, Experiencer, JobStatus, Temporality
 from app.services.fact_builder_db import DatabaseFactBuilderService
-from app.services.graph_builder_db import DatabaseGraphBuilderService
 from app.services.kg_cache_service import get_kg_cache_service
 from app.services.mapping_sql import SQLMappingService
 from app.services.nlp_rule_based import RuleBasedNLPService
@@ -254,58 +253,75 @@ def process_document(document_id: str) -> dict:
             )
 
             # Phase 6: Create ClinicalFacts from mentions with mapped concepts
+            # Batch fetch top candidates for all mentions in one query
             fact_builder = DatabaseFactBuilderService(session)
             fact_count = 0
 
-            for mention in mention_records:
-                # Get the top-ranked concept candidate for this mention
-                stmt = (
-                    select(MentionConceptCandidate)
-                    .where(MentionConceptCandidate.mention_id == mention.id)
-                    .order_by(MentionConceptCandidate.rank.asc())
-                    .limit(1)
-                )
-                result = session.execute(stmt)
-                top_candidate = result.scalar_one_or_none()
+            mention_ids = [m.id for m in mention_records]
+            if mention_ids:
+                # Use a window function to get rank-1 candidates in one query
+                from sqlalchemy import func as sa_func
+                from sqlalchemy.orm import aliased
 
-                if top_candidate is None:
-                    # No concept mapping found, skip this mention
-                    continue
-
-                # Create ClinicalFact from the mention
-                fact_builder.create_fact_from_mention(
-                    mention_id=UUID(mention.id),
-                    patient_id=document.patient_id,
-                    omop_concept_id=top_candidate.omop_concept_id,
-                    concept_name=top_candidate.concept_name,
-                    domain=map_domain_id(top_candidate.domain_id),
-                    assertion=map_assertion(mention.assertion),
-                    temporality=map_temporality(mention.temporality),
-                    experiencer=map_experiencer(mention.experiencer),
-                    confidence=mention.confidence,
+                ranked_subq = (
+                    select(
+                        MentionConceptCandidate,
+                        sa_func.row_number()
+                        .over(
+                            partition_by=MentionConceptCandidate.mention_id,
+                            order_by=MentionConceptCandidate.rank.asc(),
+                        )
+                        .label("rn"),
+                    )
+                    .where(MentionConceptCandidate.mention_id.in_(mention_ids))
+                    .subquery()
                 )
-                fact_count += 1
+                top_candidates_stmt = (
+                    select(ranked_subq)
+                    .where(ranked_subq.c.rn == 1)
+                )
+                top_results = session.execute(top_candidates_stmt)
+                # Build lookup: mention_id -> candidate row
+                candidate_map: dict[str, object] = {}
+                for row in top_results:
+                    candidate_map[row.mention_id] = row
+
+                for mention in mention_records:
+                    top_candidate = candidate_map.get(mention.id)
+                    if top_candidate is None:
+                        continue
+
+                    fact_builder.create_fact_from_mention(
+                        mention_id=UUID(mention.id),
+                        patient_id=document.patient_id,
+                        omop_concept_id=top_candidate.omop_concept_id,
+                        concept_name=top_candidate.concept_name,
+                        domain=map_domain_id(top_candidate.domain_id),
+                        assertion=map_assertion(mention.assertion),
+                        temporality=map_temporality(mention.temporality),
+                        experiencer=map_experiencer(mention.experiencer),
+                        confidence=mention.confidence,
+                    )
+                    fact_count += 1
 
             logger.info(f"Created {fact_count} clinical facts from mentions")
 
-            # Phase 7: Auto-build knowledge graph from facts
+            # Phase 7: Enqueue knowledge graph building (runs in background)
             graph_nodes_created = 0
             graph_edges_created = 0
             if fact_count > 0:
                 try:
-                    graph_builder = DatabaseGraphBuilderService(session)
-                    graph_result = graph_builder.build_graph_for_patient(document.patient_id)
-                    graph_nodes_created = graph_result.nodes_created
-                    graph_edges_created = graph_result.edges_created
-                    logger.info(
-                        f"Built knowledge graph for patient {document.patient_id}: "
-                        f"{graph_nodes_created} nodes, {graph_edges_created} edges"
+                    from app.core.queue import enqueue_job
+                    from app.jobs.graph_building import build_graph_for_patient_job
+
+                    enqueue_job(
+                        build_graph_for_patient_job,
+                        document.patient_id,
+                        queue_name="graph_building",
                     )
+                    logger.info(f"Enqueued graph building for patient {document.patient_id}")
                 except Exception as e:
-                    logger.warning(
-                        f"Failed to build knowledge graph for patient {document.patient_id}: {e}"
-                    )
-                    # Continue processing - graph building failure shouldn't fail the document
+                    logger.warning(f"Failed to enqueue graph building: {e}")
 
             # Update status to COMPLETED
             session.execute(

@@ -2718,6 +2718,72 @@ export default function NLPWorkbenchPage() {
                 </div>
               )}
 
+              {/* Analyze Button + Options - Prominent at top for hybrid mode */}
+              {workbenchMode === "hybrid" && (
+                <div className="flex flex-wrap items-center gap-4 p-3 bg-muted rounded-lg">
+                  <Button
+                    onClick={handleHybridAnalyze}
+                    disabled={isExtracting || !inputText.trim()}
+                    size="lg"
+                    className="flex-shrink-0"
+                  >
+                    {isExtracting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        Analyzing...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        Analyze
+                      </>
+                    )}
+                  </Button>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">Type:</span>
+                    <Select value={analysisType} onValueChange={(v) => setAnalysisType(v as AnalysisType)}>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(Object.keys(ANALYSIS_TYPE_CONFIG) as AnalysisType[]).map((type) => (
+                          <SelectItem key={type} value={type}>
+                            <div className="flex flex-col">
+                              <span>{ANALYSIS_TYPE_CONFIG[type].label}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {ANALYSIS_TYPE_CONFIG[type].description}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <label className="flex items-center gap-1.5 text-sm text-muted-foreground cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={useLLM}
+                        onChange={(e) => setUseLLM(e.target.checked)}
+                        className="rounded"
+                      />
+                      LLM
+                    </label>
+                    <label className="flex items-center gap-1.5 text-sm text-muted-foreground cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={extractNarrative}
+                        onChange={(e) => setExtractNarrative(e.target.checked)}
+                        className="rounded"
+                      />
+                      Narrative
+                    </label>
+                  </div>
+                </div>
+              )}
+
               <Textarea
                 placeholder="Enter clinical text here..."
                 value={inputText}

@@ -197,6 +197,7 @@ const navSections: NavSection[] = [
     title: "Data Pipeline",
     items: [
       { title: "Pipelines", href: "/pipelines", icon: Workflow },
+      { title: "MIMIC Import", href: "/mimic", icon: Database },
       { title: "OpenEHR", href: "/pipelines/openehr", icon: Shuffle },
       { title: "OpenEHR Ops", href: "/pipelines/openehr/operations", icon: FileCheck },
       { title: "Data Sources", href: "/admin/data-sources", icon: Database },

@@ -160,6 +160,12 @@ def validate_production_credentials(
             "ETL_ENCRYPTION_KEY is not set; ETL credential storage will use ephemeral keys"
         )
 
+    # --- PHI_ENCRYPTION_KEY ---
+    if is_strict and _is_placeholder(config.phi_encryption_key):
+        result.add_error(
+            "PHI_ENCRYPTION_KEY is not set; field-level PHI encryption will not work"
+        )
+
     return result
 
 

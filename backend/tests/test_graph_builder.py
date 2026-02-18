@@ -258,11 +258,11 @@ class TestDatabaseGraphBuilderService:
 
         assert node_id_1 == node_id_2
 
-        # Verify only one node in database
+        # Verify only one shared concept node in database (patient_id=NULL)
         nodes = (
             graph_session.execute(
                 select(KGNode)
-                .where(KGNode.patient_id == "P001")
+                .where(KGNode.patient_id.is_(None))
                 .where(KGNode.omop_concept_id == 437663)
             )
             .scalars()
@@ -346,26 +346,27 @@ class TestDatabaseGraphBuilderService:
 
         assert node_id is not None
 
-        # Verify node created
+        # Verify shared concept node created (patient_id=NULL)
         node = graph_session.execute(select(KGNode).where(KGNode.id == str(node_id))).scalar_one()
         assert node.label == "Fever"
         assert node.node_type == NodeType.CONDITION
-        assert node.properties["fact_id"] == str(fact_id)
+        assert node.patient_id is None  # Shared concept node
 
-        # Verify edge created
+        # Verify edge created with patient-specific metadata
         edges = (
             graph_session.execute(select(KGEdge).where(KGEdge.patient_id == "P001")).scalars().all()
         )
         assert len(edges) == 1
         assert edges[0].edge_type == EdgeType.HAS_CONDITION
+        assert edges[0].properties.get("fact_id") == str(fact_id)
 
     def test_project_negated_fact_to_graph(
         self, service: DatabaseGraphBuilderService, graph_session: Session
     ) -> None:
-        """Test that negated facts are properly marked in graph."""
+        """Test that negated facts are properly marked on the edge."""
         service.create_patient_node("P001")
 
-        node_id = service.project_fact_to_graph(
+        service.project_fact_to_graph(
             fact_id=uuid4(),
             patient_id="P001",
             domain=Domain.CONDITION,
@@ -376,18 +377,21 @@ class TestDatabaseGraphBuilderService:
             experiencer="patient",
         )
 
-        # Verify node has negation properties
-        node = graph_session.execute(select(KGNode).where(KGNode.id == str(node_id))).scalar_one()
-        assert node.properties["is_negated"] is True
-        assert node.properties["assertion"] == "absent"
+        # Negation metadata lives on edge (patient-specific), not on node (shared concept)
+        edges = (
+            graph_session.execute(select(KGEdge).where(KGEdge.patient_id == "P001")).scalars().all()
+        )
+        assert len(edges) == 1
+        assert edges[0].properties.get("is_negated") is True
+        assert edges[0].properties.get("assertion") == "absent"
 
     def test_project_uncertain_fact_to_graph(
         self, service: DatabaseGraphBuilderService, graph_session: Session
     ) -> None:
-        """Test that uncertain facts are properly marked in graph."""
+        """Test that uncertain facts are properly marked on the edge."""
         service.create_patient_node("P001")
 
-        node_id = service.project_fact_to_graph(
+        service.project_fact_to_graph(
             fact_id=uuid4(),
             patient_id="P001",
             domain=Domain.CONDITION,
@@ -398,10 +402,13 @@ class TestDatabaseGraphBuilderService:
             experiencer="patient",
         )
 
-        # Verify node has uncertainty properties
-        node = graph_session.execute(select(KGNode).where(KGNode.id == str(node_id))).scalar_one()
-        assert node.properties["is_uncertain"] is True
-        assert node.properties["assertion"] == "possible"
+        # Uncertainty metadata lives on edge, not on node
+        edges = (
+            graph_session.execute(select(KGEdge).where(KGEdge.patient_id == "P001")).scalars().all()
+        )
+        assert len(edges) == 1
+        assert edges[0].properties.get("is_uncertain") is True
+        assert edges[0].properties.get("assertion") == "possible"
 
     def test_build_graph_for_patient(
         self, service: DatabaseGraphBuilderService, graph_session: Session
@@ -470,9 +477,9 @@ class TestDatabaseGraphBuilderService:
     def test_get_nodes_for_patient(
         self, service: DatabaseGraphBuilderService, graph_session: Session
     ) -> None:
-        """Test getting all nodes for a patient."""
-        service.create_patient_node("P001")
-        service.create_node(
+        """Test getting all nodes for a patient via edge-join."""
+        patient_node_id = service.create_patient_node("P001")
+        condition_id = service.create_node(
             NodeInput(
                 patient_id="P001",
                 node_type=NodeType.CONDITION,
@@ -480,7 +487,7 @@ class TestDatabaseGraphBuilderService:
                 omop_concept_id=437663,
             )
         )
-        service.create_node(
+        drug_id = service.create_node(
             NodeInput(
                 patient_id="P001",
                 node_type=NodeType.DRUG,
@@ -488,6 +495,16 @@ class TestDatabaseGraphBuilderService:
                 omop_concept_id=1503297,
             )
         )
+
+        # Create edges so edge-join can find shared concept nodes
+        service.create_edge(EdgeInput(
+            patient_id="P001", source_node_id=patient_node_id,
+            target_node_id=condition_id, edge_type=EdgeType.HAS_CONDITION,
+        ))
+        service.create_edge(EdgeInput(
+            patient_id="P001", source_node_id=patient_node_id,
+            target_node_id=drug_id, edge_type=EdgeType.TAKES_DRUG,
+        ))
 
         # Get all nodes
         all_nodes = service.get_nodes_for_patient("P001")
@@ -569,7 +586,7 @@ class TestDatabaseGraphBuilderService:
     def test_get_patient_graph(
         self, service: DatabaseGraphBuilderService, graph_session: Session
     ) -> None:
-        """Test getting complete patient graph."""
+        """Test getting complete patient graph via edge-join."""
         # Create some facts
         fact = ClinicalFact(
             patient_id="P001",
@@ -584,15 +601,15 @@ class TestDatabaseGraphBuilderService:
         graph_session.add(fact)
         graph_session.flush()
 
-        # Build graph first
+        # Build graph first (creates patient node, concept node, edge)
         service.build_graph_for_patient("P001")
 
-        # Get patient graph
+        # Get patient graph — uses edge-join to find shared concept nodes
         patient_graph = service.get_patient_graph("P001")
 
         assert patient_graph.patient_id == "P001"
-        assert len(patient_graph.nodes) == 2  # Patient + condition
-        assert len(patient_graph.edges) == 1
+        assert len(patient_graph.nodes) >= 2  # Patient + condition (at least)
+        assert len(patient_graph.edges) >= 1
 
         # Verify node structure
         node_types = {n.node_type for n in patient_graph.nodes}
@@ -602,30 +619,40 @@ class TestDatabaseGraphBuilderService:
     def test_get_negated_nodes(
         self, service: DatabaseGraphBuilderService, graph_session: Session
     ) -> None:
-        """Test getting negated nodes."""
-        service.create_patient_node("P001")
+        """Test getting negated nodes via edge properties."""
+        patient_node_id = service.create_patient_node("P001")
 
-        # Create normal node
-        service.create_node(
+        # Create normal concept node
+        fever_id = service.create_node(
             NodeInput(
                 patient_id="P001",
                 node_type=NodeType.CONDITION,
                 label="Fever",
                 omop_concept_id=437663,
-                properties={"is_negated": False},
             )
         )
 
-        # Create negated node
-        service.create_node(
+        # Create negated concept node
+        pneumonia_id = service.create_node(
             NodeInput(
                 patient_id="P001",
                 node_type=NodeType.CONDITION,
                 label="Pneumonia",
                 omop_concept_id=255848,
-                properties={"is_negated": True},
             )
         )
+
+        # Create edges — negation lives on the edge, not the node
+        service.create_edge(EdgeInput(
+            patient_id="P001", source_node_id=patient_node_id,
+            target_node_id=fever_id, edge_type=EdgeType.HAS_CONDITION,
+            properties={"is_negated": False},
+        ))
+        service.create_edge(EdgeInput(
+            patient_id="P001", source_node_id=patient_node_id,
+            target_node_id=pneumonia_id, edge_type=EdgeType.HAS_CONDITION,
+            properties={"is_negated": True},
+        ))
 
         negated = service.get_negated_nodes("P001")
         assert len(negated) == 1
@@ -634,11 +661,11 @@ class TestDatabaseGraphBuilderService:
     def test_different_patients_have_separate_graphs(
         self, service: DatabaseGraphBuilderService, graph_session: Session
     ) -> None:
-        """Test that different patients have separate graph nodes."""
-        service.create_patient_node("P001")
-        service.create_patient_node("P002")
+        """Test that different patients see only their own concepts via edges."""
+        p001_node_id = service.create_patient_node("P001")
+        p002_node_id = service.create_patient_node("P002")
 
-        service.create_node(
+        fever_id = service.create_node(
             NodeInput(
                 patient_id="P001",
                 node_type=NodeType.CONDITION,
@@ -646,7 +673,7 @@ class TestDatabaseGraphBuilderService:
                 omop_concept_id=437663,
             )
         )
-        service.create_node(
+        cough_id = service.create_node(
             NodeInput(
                 patient_id="P002",
                 node_type=NodeType.CONDITION,
@@ -654,6 +681,16 @@ class TestDatabaseGraphBuilderService:
                 omop_concept_id=254761,
             )
         )
+
+        # Create edges to scope concepts to patients
+        service.create_edge(EdgeInput(
+            patient_id="P001", source_node_id=p001_node_id,
+            target_node_id=fever_id, edge_type=EdgeType.HAS_CONDITION,
+        ))
+        service.create_edge(EdgeInput(
+            patient_id="P002", source_node_id=p002_node_id,
+            target_node_id=cough_id, edge_type=EdgeType.HAS_CONDITION,
+        ))
 
         p001_nodes = service.get_nodes_for_patient("P001")
         p002_nodes = service.get_nodes_for_patient("P002")

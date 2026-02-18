@@ -99,7 +99,7 @@ export interface PatientGraph {
 
 export interface GraphNode {
   id: string;
-  patient_id: string;
+  patient_id: string | null;
   node_type: string;
   omop_concept_id: number | null;
   label: string;
@@ -109,7 +109,7 @@ export interface GraphNode {
 
 export interface GraphEdge {
   id: string;
-  patient_id: string;
+  patient_id: string | null;
   source_node_id: string;
   target_node_id: string;
   edge_type: string;
@@ -4182,5 +4182,211 @@ export async function syncVeevaEnrollment(): Promise<VeevaEnrollmentSyncResponse
 export async function getVeevaStatus(): Promise<VeevaIntegrationStatus> {
   return fetchWithRetry<VeevaIntegrationStatus>(
     `${API_BASE_URL}/veeva-vault/status`
+  );
+}
+
+// ============================================================================
+// MIMIC-IV-Note Ingestion
+// ============================================================================
+
+export interface MimicImportResponse {
+  batch_id: string;
+  status: string;
+  total_rows: number;
+  message: string;
+}
+
+export interface MimicImportProgressResponse {
+  batch_id: string;
+  status: string;
+  total_rows: number;
+  processed: number;
+  created: number;
+  skipped: number;
+  failed: number;
+  progress_percent: number;
+  error: string | null;
+}
+
+export interface MimicValidateResponse {
+  valid: boolean;
+  total_rows: number;
+  columns_found: string[];
+  columns_missing: string[];
+  sample_rows: Record<string, string>[];
+  errors: string[];
+}
+
+export interface MimicDomainCount {
+  domain: string;
+  count: number;
+}
+
+export interface MimicUnmappedTerm {
+  term: string;
+  count: number;
+  sample_document_ids: string[];
+}
+
+export interface MimicMetricsResponse {
+  total_documents: number;
+  total_mentions: number;
+  total_facts: number;
+  concept_coverage_percent: number;
+  avg_confidence: number;
+  status_breakdown: Record<string, number>;
+  domain_distribution: MimicDomainCount[];
+  top_unmapped_terms: MimicUnmappedTerm[];
+  avg_processing_time_ms: number;
+  p50_processing_time_ms: number;
+  p95_processing_time_ms: number;
+  recent_documents: Record<string, unknown>[];
+}
+
+export interface MimicUploadOptions {
+  chunkSize?: number;
+  maxRows?: number;
+  skipDuplicates?: boolean;
+  enqueueProcessing?: boolean;
+}
+
+export async function uploadMimicCsv(
+  file: File,
+  options?: MimicUploadOptions
+): Promise<MimicImportResponse> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const params = new URLSearchParams();
+  if (options?.chunkSize) params.append("chunk_size", options.chunkSize.toString());
+  if (options?.maxRows) params.append("max_rows", options.maxRows.toString());
+  if (options?.skipDuplicates !== undefined) params.append("skip_duplicates", String(options.skipDuplicates));
+  if (options?.enqueueProcessing !== undefined) params.append("enqueue_processing", String(options.enqueueProcessing));
+
+  const queryString = params.toString();
+  const url = `${API_BASE_URL}/documents/mimic/upload${queryString ? `?${queryString}` : ""}`;
+
+  return fetchWithRetry<MimicImportResponse>(url, {
+    method: "POST",
+    body: formData,
+  });
+}
+
+export async function validateMimicCsv(
+  file: File
+): Promise<MimicValidateResponse> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  return fetchWithRetry<MimicValidateResponse>(
+    `${API_BASE_URL}/documents/mimic/validate`,
+    {
+      method: "POST",
+      body: formData,
+    }
+  );
+}
+
+export async function getMimicImportProgress(
+  batchId: string
+): Promise<MimicImportProgressResponse> {
+  return fetchWithRetry<MimicImportProgressResponse>(
+    `${API_BASE_URL}/documents/mimic/import/${batchId}/progress`
+  );
+}
+
+export async function getMimicMetrics(): Promise<MimicMetricsResponse> {
+  return fetchWithRetry<MimicMetricsResponse>(
+    `${API_BASE_URL}/documents/mimic/metrics`
+  );
+}
+
+export interface MimicFilePathRequest {
+  file_path: string;
+  chunk_size?: number;
+  max_rows?: number;
+  skip_duplicates?: boolean;
+  enqueue_processing?: boolean;
+}
+
+export async function importMimicFromPath(
+  request: MimicFilePathRequest
+): Promise<MimicImportResponse> {
+  return fetchWithRetry<MimicImportResponse>(
+    `${API_BASE_URL}/documents/mimic/import-from-path`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    }
+  );
+}
+
+export interface MimicPipelineMention {
+  id: string;
+  text: string;
+  start_offset: number;
+  end_offset: number;
+  section: string | null;
+  assertion: string;
+  temporality: string;
+  experiencer: string;
+  confidence: number;
+  concept_name: string | null;
+  omop_concept_id: number | null;
+  vocabulary_id: string | null;
+  domain_id: string | null;
+  mapping_score: number | null;
+  mapping_method: string | null;
+}
+
+export interface MimicPipelineFact {
+  id: string;
+  domain: string;
+  omop_concept_id: number;
+  concept_name: string;
+  assertion: string;
+  temporality: string;
+  experiencer: string;
+  confidence: number;
+}
+
+export interface MimicPipelineResultsResponse {
+  document_id: string;
+  patient_id: string;
+  note_type: string;
+  status: string;
+  mimic_note_id: string | null;
+  text_preview: string;
+  text_length: number;
+  mentions: MimicPipelineMention[];
+  facts: MimicPipelineFact[];
+  mention_count: number;
+  fact_count: number;
+  mapped_mention_count: number;
+  unmapped_mention_count: number;
+  concept_coverage_percent: number;
+}
+
+export async function getMimicPipelineResults(
+  documentId: string
+): Promise<MimicPipelineResultsResponse> {
+  return fetchWithRetry<MimicPipelineResultsResponse>(
+    `${API_BASE_URL}/documents/mimic/${documentId}/pipeline-results`
+  );
+}
+
+export async function exportMimicMetrics(): Promise<MimicMetricsResponse> {
+  return fetchWithRetry<MimicMetricsResponse>(
+    `${API_BASE_URL}/documents/mimic/metrics/export`
+  );
+}
+
+export async function validateMimicPath(
+  filePath: string
+): Promise<MimicValidateResponse> {
+  const params = new URLSearchParams({ file_path: filePath });
+  return fetchWithRetry<MimicValidateResponse>(
+    `${API_BASE_URL}/documents/mimic/validate-path?${params}`
   );
 }

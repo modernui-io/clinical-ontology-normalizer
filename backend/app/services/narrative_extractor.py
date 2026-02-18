@@ -380,7 +380,7 @@ class NarrativeExtractorService:
         try:
             message = self._claude_client.messages.create(
                 model=model,
-                max_tokens=16384,
+                max_tokens=32768,
                 temperature=0.0,
                 messages=[{"role": "user", "content": prompt}],
             )
@@ -424,6 +424,30 @@ class NarrativeExtractorService:
             except json.JSONDecodeError:
                 pass
 
+        # Try to repair truncated JSON (common with large outputs hitting token limits)
+        # Find the outermost { and attempt to close unclosed brackets/braces
+        brace_start = response.find("{")
+        if brace_start >= 0:
+            candidate = response[brace_start:]
+            # Try progressively trimming from the end to find last valid array/object boundary
+            for trim_marker in ['},\n', '}],', '}\n  ],', '}\n    ],', '}\n      ]']:
+                last_pos = candidate.rfind(trim_marker)
+                if last_pos > 0:
+                    truncated = candidate[:last_pos + len(trim_marker)]
+                    # Close any remaining open structures
+                    open_braces = truncated.count("{") - truncated.count("}")
+                    open_brackets = truncated.count("[") - truncated.count("]")
+                    repair = truncated + "]" * open_brackets + "}" * open_braces
+                    try:
+                        result = json.loads(repair)
+                        logger.info(
+                            "Repaired truncated JSON (salvaged %d chars of %d)",
+                            len(truncated), len(response),
+                        )
+                        return result
+                    except json.JSONDecodeError:
+                        continue
+
         logger.warning(
             "Failed to parse LLM response as JSON (length=%d, first 200 chars: %s)",
             len(response), response[:200]
@@ -454,7 +478,7 @@ class NarrativeExtractorService:
         entities_context = self._format_entities_context(entities or [])
         prompt = NARRATIVE_EXTRACTION_PROMPT.format(
             entities_context=entities_context,
-            text=text[:80000],  # Limit text length (supports ~50 clinical notes)
+            text=text[:160000],  # Limit text length (supports ~100 clinical notes)
         )
 
         # Determine which service to use

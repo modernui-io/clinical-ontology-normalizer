@@ -19,9 +19,13 @@ from app.schemas.knowledge_graph import EdgeType, NodeType, TemporalOrder
 
 @dataclass
 class NodeInput:
-    """Input data for creating a KGNode."""
+    """Input data for creating a KGNode.
 
-    patient_id: str
+    patient_id is None for shared concept nodes that are deduplicated
+    across patients. Patient nodes always have patient_id set.
+    """
+
+    patient_id: str | None
     node_type: NodeType
     label: str
     omop_concept_id: int | None = None
@@ -284,20 +288,25 @@ class BaseGraphBuilderService(GraphBuilderServiceInterface):
 
     def calculate_node_dedup_key(
         self,
-        patient_id: str,
+        patient_id: str | None,
         node_type: NodeType,
         omop_concept_id: int | None,
     ) -> str:
         """Calculate deduplication key for a node.
 
+        For shared concept nodes (patient_id=None), the key is global.
+        For patient nodes, the key includes the patient_id.
+
         Args:
-            patient_id: Patient identifier.
+            patient_id: Patient identifier (None for shared concept nodes).
             node_type: Type of node.
             omop_concept_id: OMOP concept ID.
 
         Returns:
             Deduplication key string.
         """
+        if patient_id is None:
+            return f"__shared__:{node_type.value}:{omop_concept_id}"
         return f"{patient_id}:{node_type.value}:{omop_concept_id or 'patient'}"
 
     # Default implementations that raise NotImplementedError

@@ -689,6 +689,10 @@ class TestProductionConfigValidation:
             jwt_secret_key="secure-jwt-secret-prod-only",
             api_key="secure-api-key-prod-only",
             metriport_webhook_key="secure-webhook-key-prod-only",
+            phi_encryption_key="test-phi-encryption-key-for-testing",
+            database_ssl_mode="require",
+            neo4j_encrypted=True,
+            redis_url="rediss://prod-redis:6380",
         )
         assert s.metriport_webhook_key == "secure-webhook-key-prod-only"
 

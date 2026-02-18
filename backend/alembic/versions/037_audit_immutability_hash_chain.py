@@ -35,26 +35,54 @@ branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
 
+def _column_exists(table: str, column: str) -> bool:
+    """Check if a column already exists (handles create_all schema drift)."""
+    conn = op.get_bind()
+    result = conn.execute(
+        sa.text(
+            "SELECT 1 FROM information_schema.columns "
+            "WHERE table_name = :table AND column_name = :column"
+        ),
+        {"table": table, "column": column},
+    )
+    return result.fetchone() is not None
+
+
+def _index_exists(index_name: str) -> bool:
+    """Check if an index already exists."""
+    conn = op.get_bind()
+    result = conn.execute(
+        sa.text("SELECT 1 FROM pg_indexes WHERE indexname = :name"),
+        {"name": index_name},
+    )
+    return result.fetchone() is not None
+
+
 def upgrade() -> None:
-    # --- Step 1: Add new columns to audit_logs ---
+    # --- Step 1: Add new columns to audit_logs (idempotent) ---
 
     # Actor role for RBAC correlation
-    op.add_column(
-        "audit_logs",
-        sa.Column("actor_role", sa.String(100), nullable=True),
-    )
-    op.create_index("ix_audit_logs_actor_role", "audit_logs", ["actor_role"])
+    if not _column_exists("audit_logs", "actor_role"):
+        op.add_column(
+            "audit_logs",
+            sa.Column("actor_role", sa.String(100), nullable=True),
+        )
+    if not _index_exists("ix_audit_logs_actor_role"):
+        op.create_index("ix_audit_logs_actor_role", "audit_logs", ["actor_role"])
 
     # Tamper-evident hash chain columns
-    op.add_column(
-        "audit_logs",
-        sa.Column("record_hash", sa.String(64), nullable=True),
-    )
-    op.add_column(
-        "audit_logs",
-        sa.Column("previous_hash", sa.String(64), nullable=True),
-    )
-    op.create_index("ix_audit_logs_record_hash", "audit_logs", ["record_hash"])
+    if not _column_exists("audit_logs", "record_hash"):
+        op.add_column(
+            "audit_logs",
+            sa.Column("record_hash", sa.String(64), nullable=True),
+        )
+    if not _column_exists("audit_logs", "previous_hash"):
+        op.add_column(
+            "audit_logs",
+            sa.Column("previous_hash", sa.String(64), nullable=True),
+        )
+    if not _index_exists("ix_audit_logs_record_hash"):
+        op.create_index("ix_audit_logs_record_hash", "audit_logs", ["record_hash"])
 
     # --- Step 2: Create immutability trigger ---
     # This trigger prevents any UPDATE or DELETE on the audit_logs table.

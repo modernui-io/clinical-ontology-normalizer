@@ -1978,3 +1978,158 @@ async def aggregate_evidence(
             message=f"Evidence aggregation failed: {str(e)}",
             error_code=ErrorCode.INTERNAL_ERROR,
         )
+
+
+# ============================================================================
+# Cross-Patient Phenotype Endpoints (Phase 6)
+# ============================================================================
+
+
+class SimilarPatientResponse(BaseModel):
+    """A similar patient result."""
+
+    patient_id: str = Field(..., description="Similar patient ID")
+    jaccard_similarity: float = Field(..., description="Jaccard similarity score")
+    shared_concept_count: int = Field(..., description="Number of shared concepts")
+
+
+class SimilarPatientsListResponse(BaseModel):
+    """Response for similar patients query."""
+
+    request_id: str = Field(..., description="Request identifier")
+    query_patient_id: str = Field(..., description="Source patient ID")
+    similar_patients: list[SimilarPatientResponse] = Field(default_factory=list)
+    total_results: int = Field(0, description="Total similar patients found")
+    processing_time_ms: float = Field(..., description="Processing time in ms")
+
+
+class CoOccurrenceResponse(BaseModel):
+    """A co-occurring concept result."""
+
+    omop_concept_id: int = Field(..., description="OMOP concept ID")
+    concept_name: str = Field(..., description="Concept name")
+    node_type: str = Field(..., description="Node type (condition, drug, etc.)")
+    patient_count: int = Field(..., description="Number of patients with co-occurrence")
+
+
+class CoOccurrenceListResponse(BaseModel):
+    """Response for co-occurrence query."""
+
+    request_id: str = Field(..., description="Request identifier")
+    query_concept_id: int = Field(..., description="Source concept ID")
+    co_occurrences: list[CoOccurrenceResponse] = Field(default_factory=list)
+    total_results: int = Field(0, description="Total co-occurring concepts found")
+    processing_time_ms: float = Field(..., description="Processing time in ms")
+
+
+@reasoning_router.get(
+    "/similar-patients/{patient_id}",
+    response_model=SimilarPatientsListResponse,
+    summary="Find similar patients",
+    description="Find patients with similar phenotypes via Jaccard similarity on shared concept nodes.",
+)
+async def find_similar_patients(
+    patient_id: str,
+    min_similarity: float = Query(0.3, ge=0.0, le=1.0, description="Minimum similarity"),
+    limit: int = Query(10, ge=1, le=50, description="Max results"),
+    user: CurrentUser = Depends(get_current_user),
+) -> SimilarPatientsListResponse:
+    request_id = str(uuid4())
+    start_time = time.perf_counter()
+
+    try:
+        from app.services.neo4j_cohort_service import Neo4jCohortService
+
+        service = Neo4jCohortService()
+        if not service.is_available:
+            raise HTTPException(
+                status_code=503,
+                detail="Neo4j is not available for cross-patient queries",
+            )
+
+        results = service.find_similar_patients(
+            patient_id=patient_id,
+            min_similarity=min_similarity,
+            limit=limit,
+        )
+
+        processing_time = (time.perf_counter() - start_time) * 1000
+
+        return SimilarPatientsListResponse(
+            request_id=request_id,
+            query_patient_id=patient_id,
+            similar_patients=[
+                SimilarPatientResponse(
+                    patient_id=r.patient_id,
+                    jaccard_similarity=round(r.jaccard_similarity, 4),
+                    shared_concept_count=r.shared_concept_count,
+                )
+                for r in results
+            ],
+            total_results=len(results),
+            processing_time_ms=round(processing_time, 2),
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise InternalError(
+            message=f"Similar patients query failed: {str(e)}",
+            error_code=ErrorCode.INTERNAL_ERROR,
+        )
+
+
+@reasoning_router.get(
+    "/co-occurrence/{concept_id}",
+    response_model=CoOccurrenceListResponse,
+    summary="Phenotype co-occurrence",
+    description="Find concepts that most frequently co-occur with the given concept across patients.",
+)
+async def phenotype_co_occurrence(
+    concept_id: int,
+    limit: int = Query(20, ge=1, le=100, description="Max results"),
+    user: CurrentUser = Depends(get_current_user),
+) -> CoOccurrenceListResponse:
+    request_id = str(uuid4())
+    start_time = time.perf_counter()
+
+    try:
+        from app.services.neo4j_cohort_service import Neo4jCohortService
+
+        service = Neo4jCohortService()
+        if not service.is_available:
+            raise HTTPException(
+                status_code=503,
+                detail="Neo4j is not available for co-occurrence queries",
+            )
+
+        results = service.phenotype_co_occurrence(
+            omop_concept_id=concept_id,
+            limit=limit,
+        )
+
+        processing_time = (time.perf_counter() - start_time) * 1000
+
+        return CoOccurrenceListResponse(
+            request_id=request_id,
+            query_concept_id=concept_id,
+            co_occurrences=[
+                CoOccurrenceResponse(
+                    omop_concept_id=r.omop_concept_id,
+                    concept_name=r.concept_name,
+                    node_type=r.node_type,
+                    patient_count=r.patient_count,
+                )
+                for r in results
+            ],
+            total_results=len(results),
+            processing_time_ms=round(processing_time, 2),
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise InternalError(
+            message=f"Co-occurrence query failed: {str(e)}",
+            error_code=ErrorCode.INTERNAL_ERROR,
+        )

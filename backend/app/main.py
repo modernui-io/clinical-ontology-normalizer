@@ -11,7 +11,10 @@ from typing import Any
 
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.utils import get_openapi
 from fastapi.responses import RedirectResponse
+
+from app.core.api_maturity import classify_path
 
 from app.api import (
     AuditMiddleware,
@@ -766,75 +769,103 @@ API requests are rate-limited. Check response headers for limits:
         {
             "name": "Health",
             "description": "Health check and observability endpoints for monitoring system status.",
+            "x-maturity": "production",
         },
         {
             "name": "Metrics",
             "description": "Prometheus-compatible metrics for monitoring and alerting.",
+            "x-maturity": "production",
         },
         {
             "name": "Patients",
             "description": "Patient management and demographic operations.",
+            "x-maturity": "production",
         },
         {
             "name": "Documents",
             "description": "Clinical document ingestion and NLP processing.",
+            "x-maturity": "production",
         },
         {
             "name": "Coding",
             "description": "Medical coding assistance for ICD-10, CPT, and HCPCS.",
+            "x-maturity": "production",
         },
         {
             "name": "Search",
             "description": "Full-text and semantic search across clinical data.",
+            "x-maturity": "production",
         },
         {
             "name": "FHIR",
             "description": "FHIR R4 resource management and operations.",
+            "x-maturity": "pilot",
         },
         {
             "name": "Terminology",
             "description": "Clinical terminology lookup and mapping services.",
+            "x-maturity": "pilot",
         },
         {
             "name": "Graph",
             "description": "Knowledge graph queries and relationship exploration.",
+            "x-maturity": "pilot",
         },
         {
             "name": "Predictions",
             "description": "ML-powered clinical predictions and risk scores.",
+            "x-maturity": "pilot",
         },
         {
             "name": "Quality",
             "description": "Clinical quality measures (HEDIS, CQM) calculation.",
+            "x-maturity": "production",
         },
         {
             "name": "Audit",
             "description": "HIPAA-compliant audit logging and compliance reporting.",
+            "x-maturity": "production",
         },
         {
             "name": "Drug Safety",
             "description": "Drug safety checking: contraindications, interactions, pregnancy/lactation safety, and dosing guidelines.",
+            "x-maturity": "production",
         },
         {
             "name": "ICD-10 Suggestions",
             "description": "ICD-10-CM code suggestions from clinical text with CER citations and coding guidance.",
+            "x-maturity": "production",
         },
         {
             "name": "HCC Analysis",
             "description": "Hierarchical Condition Category gap analysis with RAF score calculation and revenue impact.",
+            "x-maturity": "production",
         },
         {
             "name": "CPT Suggestions",
             "description": "CPT code suggestions for procedures and E/M services with bundling analysis.",
+            "x-maturity": "production",
         },
         {
             "name": "Differential Diagnosis",
             "description": "Clinical decision support for ranked differential diagnoses based on symptoms and findings.",
+            "x-maturity": "production",
         },
         {
             "name": "FHIR Terminology",
             "description": "FHIR R4 Terminology Services: $lookup, $validate-code, $expand, $translate, $subsumes, $closure.",
+            "x-maturity": "pilot",
         },
+        {"name": "NLP", "description": "Natural Language Processing for clinical text extraction.", "x-maturity": "pilot"},
+        {"name": "Clinical Trials", "description": "Clinical trial management and recruitment.", "x-maturity": "pilot"},
+        {"name": "ETL", "description": "Extract-Transform-Load pipelines for clinical data.", "x-maturity": "pilot"},
+        {"name": "Knowledge Graph", "description": "Knowledge graph construction and querying.", "x-maturity": "pilot"},
+        {"name": "Graph RAG", "description": "Graph-augmented retrieval for clinical question answering.", "x-maturity": "pilot"},
+        {"name": "Clinical Agent", "description": "Canonical clinical intelligence agent.", "x-maturity": "pilot"},
+        {"name": "Operations", "description": "Operational infrastructure and monitoring.", "x-maturity": "scaffold"},
+        {"name": "Infrastructure", "description": "Infrastructure management and deployment.", "x-maturity": "scaffold"},
+        {"name": "Compliance", "description": "Regulatory compliance (SOC 2, HITRUST, etc.).", "x-maturity": "scaffold"},
+        {"name": "Analytics", "description": "Business and clinical analytics.", "x-maturity": "scaffold"},
     ],
     servers=[
         {"url": "http://localhost:8000", "description": "Development server"},
@@ -913,7 +944,12 @@ app.add_middleware(
         "X-RateLimit-Remaining",
         "X-RateLimit-Reset",
         "X-API-Maturity",
-    ],  # Allow frontend to read these headers
+        "X-API-Stability",
+        "Deprecation",
+        "Sunset",
+        "Link",
+        "Warning",
+    ],
 )
 
 # Include routers under versioned API router
@@ -1232,6 +1268,34 @@ api_v1_router.include_router(batch_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)
+
+
+def custom_openapi() -> dict:
+    """Inject x-maturity into OpenAPI path operations based on the maturity registry."""
+    if app.openapi_schema:
+        return app.openapi_schema
+    schema = get_openapi(
+        title=app.title,
+        version=app.version,
+        description=app.description,
+        routes=app.routes,
+        tags=app.openapi_tags,
+        servers=app.servers,
+        contact=app.contact,
+        license_info=app.license_info,
+    )
+    # Inject x-maturity into each path operation
+    for path, methods in schema.get("paths", {}).items():
+        maturity = classify_path(path)
+        if maturity:
+            for method_info in methods.values():
+                if isinstance(method_info, dict):
+                    method_info["x-maturity"] = maturity.value
+    app.openapi_schema = schema
+    return schema
+
+
+app.openapi = custom_openapi  # type: ignore[method-assign]
 
 # Include observability routers (health and metrics have their own /api/v1 prefixes)
 app.include_router(health_router)

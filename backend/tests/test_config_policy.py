@@ -149,6 +149,10 @@ class TestProductionRequirements:
             jwt_secret_key="secure-random-key-12345",
             api_key="secure-api-key-12345",
             metriport_webhook_key="webhook-signing-key-12345",
+            phi_encryption_key="test-phi-encryption-key-for-testing",
+            database_ssl_mode="require",
+            neo4j_encrypted=True,
+            redis_url="rediss://prod-redis:6380",
         )
         assert s.environment == "production"
 
@@ -160,6 +164,10 @@ class TestProductionRequirements:
             jwt_secret_key="a-very-secure-random-key-for-production",
             api_key="production-api-key-very-secure",
             metriport_webhook_key="webhook-signing-key-12345",
+            phi_encryption_key="test-phi-encryption-key-for-testing",
+            database_ssl_mode="require",
+            neo4j_encrypted=True,
+            redis_url="rediss://prod-redis:6380",
         )
         assert s.is_production is True
         assert s.auth_enabled is True
@@ -256,6 +264,10 @@ class TestLLMProviderPolicy:
                 jwt_secret_key="secure-key-for-testing-12345",
                 api_key="secure-api-key-12345",
                 metriport_webhook_key="webhook-key-12345",
+                phi_encryption_key="test-phi-encryption-key-for-testing",
+                database_ssl_mode="require",
+                neo4j_encrypted=True,
+                redis_url="rediss://prod-redis:6380",
                 llm_provider="anthropic",
                 approved_llm_providers="openai",
             )
@@ -268,6 +280,10 @@ class TestLLMProviderPolicy:
             jwt_secret_key="secure-key-for-testing-12345",
             api_key="secure-api-key-12345",
             metriport_webhook_key="webhook-key-12345",
+            phi_encryption_key="test-phi-encryption-key-for-testing",
+            database_ssl_mode="require",
+            neo4j_encrypted=True,
+            redis_url="rediss://prod-redis:6380",
             llm_provider="openai",
             approved_llm_providers="openai,anthropic",
         )

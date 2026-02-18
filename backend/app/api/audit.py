@@ -159,6 +159,23 @@ class AuditStatsResponse(BaseModel):
 # ============================================================================
 
 
+@router.get("/verify-chain")
+async def verify_audit_chain(
+    db: DbSession,
+    limit: int = Query(default=10000, ge=1, le=100000),
+) -> dict:
+    """Verify the integrity of the audit hash chain.
+
+    Walks the hash chain and verifies each record's hash matches
+    the expected computation. Returns the first broken link if any.
+
+    Admin-only endpoint for compliance verification.
+    """
+    audit = get_audit_service()
+    result = await audit.verify_chain_integrity(db, limit=limit)
+    return result
+
+
 @router.get(
     "/logs",
     response_model=AuditLogListResponse,

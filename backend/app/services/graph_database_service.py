@@ -126,6 +126,7 @@ class GraphDatabaseService:
             user=settings.neo4j_user,
             password=settings.neo4j_password or "",
             database=settings.neo4j_database,
+            encrypted=settings.neo4j_encrypted,
         )
 
     def _initialize_driver(self) -> None:

@@ -75,7 +75,7 @@ def upgrade() -> None:
 
             conn.execute(text("""
                 INSERT INTO kg_nodes (id, patient_id, node_type, omop_concept_id, label, properties, created_at)
-                VALUES (gen_random_uuid(), NULL, :node_type, :omop_concept_id, :label, :properties::jsonb, now())
+                VALUES (gen_random_uuid(), NULL, :node_type, :omop_concept_id, :label, CAST(:properties AS jsonb), now())
             """), {
                 "node_type": node_type,
                 "omop_concept_id": omop_concept_id,
@@ -119,7 +119,7 @@ def upgrade() -> None:
                 # Update edges pointing TO this old node
                 conn.execute(text("""
                     UPDATE kg_edges
-                    SET properties = COALESCE(properties, '{}'::jsonb) || :assertion_data::jsonb,
+                    SET properties = COALESCE(properties, CAST('{}' AS jsonb)) || CAST(:assertion_data AS jsonb),
                         target_node_id = :canonical_id
                     WHERE target_node_id = :old_id
                 """), {
@@ -131,7 +131,7 @@ def upgrade() -> None:
                 # Update edges pointing FROM this old node
                 conn.execute(text("""
                     UPDATE kg_edges
-                    SET properties = COALESCE(properties, '{}'::jsonb) || :assertion_data::jsonb,
+                    SET properties = COALESCE(properties, CAST('{}' AS jsonb)) || CAST(:assertion_data AS jsonb),
                         source_node_id = :canonical_id
                     WHERE source_node_id = :old_id
                 """), {

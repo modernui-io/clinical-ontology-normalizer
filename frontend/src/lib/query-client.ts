@@ -174,6 +174,14 @@ export const queryKeys = {
     status: () => [...queryKeys.veevaVault.all, "status"] as const,
     studies: () => [...queryKeys.veevaVault.all, "studies"] as const,
   },
+
+  // MIMIC-IV-Note Ingestion
+  mimic: {
+    all: ["mimic"] as const,
+    progress: (batchId: string) => [...queryKeys.mimic.all, "progress", batchId] as const,
+    metrics: () => [...queryKeys.mimic.all, "metrics"] as const,
+    pipelineResults: (documentId: string) => [...queryKeys.mimic.all, "pipeline-results", documentId] as const,
+  },
 } as const;
 
 // ============================================================================

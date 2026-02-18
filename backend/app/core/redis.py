@@ -54,9 +54,15 @@ def get_redis() -> Redis:
     if _redis_client is None:
         with _redis_lock:
             if _redis_client is None:
+                # HIPAA §164.312(e): Pass TLS CA cert for rediss:// connections
+                kwargs: dict[str, Any] = {}
+                if settings.redis_url.startswith("rediss://") and settings.redis_ssl_ca_cert:
+                    kwargs["ssl_ca_certs"] = settings.redis_ssl_ca_cert
+
                 _redis_client = Redis.from_url(
                     settings.redis_url,
                     decode_responses=True,
+                    **kwargs,
                 )
     return _redis_client
 
@@ -86,9 +92,15 @@ async def get_async_redis() -> Any:
                 try:
                     from redis.asyncio import Redis as AsyncRedis
 
+                    # HIPAA §164.312(e): Pass TLS CA cert for rediss:// connections
+                    async_kwargs: dict[str, Any] = {}
+                    if settings.redis_url.startswith("rediss://") and settings.redis_ssl_ca_cert:
+                        async_kwargs["ssl_ca_certs"] = settings.redis_ssl_ca_cert
+
                     _async_redis_client = AsyncRedis.from_url(
                         settings.redis_url,
                         decode_responses=True,
+                        **async_kwargs,
                     )
                     logger.info("Async Redis client initialized")
                 except ImportError:

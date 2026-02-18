@@ -162,6 +162,12 @@ class Settings(BaseSettings):
     neo4j_max_connection_pool_size: int = 50
     neo4j_connection_timeout: int = 30
 
+    # Transport Encryption (HIPAA §164.312(e))
+    database_ssl_mode: str = "prefer"  # disable, allow, prefer, require, verify-ca, verify-full
+    database_ssl_ca_cert: str | None = None  # Path to CA certificate for PostgreSQL SSL
+    redis_ssl_ca_cert: str | None = None  # Path to CA certificate for Redis TLS
+    neo4j_encrypted: bool = False  # Enable encrypted connections to Neo4j
+
     # UMLS Configuration
     umls_api_key: str | None = None  # For UMLS API access
     umls_data_path: str | None = None  # Path to UMLS META directory
@@ -202,6 +208,9 @@ class Settings(BaseSettings):
     # Encryption key for storing data source credentials
     # IMPORTANT: Set this in production - otherwise each restart generates new key
     etl_encryption_key: str | None = None
+
+    # PHI Encryption (HIPAA §164.312(a)(2)(iv))
+    phi_encryption_key: str | None = None  # Fernet key or passphrase for field-level PHI encryption
 
     @cached_property
     def allowed_fhir_servers_set(self) -> set[str]:
@@ -283,12 +292,35 @@ class Settings(BaseSettings):
                 "Set ENCRYPTION_AT_REST_VERIFIED=true after verifying host/volume encryption."
             )
 
+        # PHI field-level encryption key
+        if is_production and not self.phi_encryption_key:
+            raise ValueError(
+                "PHI_ENCRYPTION_KEY must be set in production for field-level PHI encryption. "
+                "Generate with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\""
+            )
+
         # P0-013: Warn if TLS is not configured in production
         if is_production and not self.tls_enabled:
             logger.warning(
                 "TLS_ENABLED is not set. HIPAA requires TLS for all PHI transport. "
                 "Set TLS_ENABLED=true after confirming TLS termination at ingress."
             )
+
+        # Transport encryption: DB SSL
+        if is_production:
+            if self.database_ssl_mode in ("disable", "prefer"):
+                raise ValueError(
+                    f"DATABASE_SSL_MODE must be 'require' or 'verify-full' in production, "
+                    f"got '{self.database_ssl_mode}'"
+                )
+            if not self.redis_url.startswith("rediss://"):
+                raise ValueError(
+                    "REDIS_URL must use 'rediss://' scheme for TLS in production"
+                )
+            if not self.neo4j_encrypted:
+                raise ValueError(
+                    "NEO4J_ENCRYPTED must be true for encrypted connections in production"
+                )
 
         # P0-017: Validate LLM provider is on approved list in production
         if is_production and self.approved_llm_providers:

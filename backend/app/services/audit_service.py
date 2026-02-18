@@ -1059,6 +1059,92 @@ class AuditService:
             "created_at": log.created_at.isoformat() if log.created_at else None,
         }
 
+    async def verify_chain_integrity(
+        self,
+        db: AsyncSession,
+        limit: int = 10000,
+    ) -> dict[str, Any]:
+        """Verify the integrity of the audit hash chain.
+
+        Walks the hash chain from oldest to newest, recomputing each
+        record's hash and comparing to the stored hash. Returns the
+        first broken link if any.
+
+        Args:
+            db: Database session
+            limit: Maximum records to verify
+
+        Returns:
+            Dict with 'valid' (bool), 'records_checked' (int),
+            'first_broken_link' (dict or None with record details)
+        """
+        stmt = (
+            select(AuditLog)
+            .order_by(AuditLog.timestamp.asc())
+            .limit(limit)
+        )
+        result = await db.execute(stmt)
+        logs = list(result.scalars().all())
+
+        if not logs:
+            return {"valid": True, "records_checked": 0, "first_broken_link": None}
+
+        expected_previous = self.GENESIS_HASH
+
+        for i, log in enumerate(logs):
+            # Skip records without hashes (pre-hash-chain records)
+            if not log.record_hash:
+                continue
+
+            # Verify previous_hash matches expected
+            if log.previous_hash and log.previous_hash != expected_previous:
+                return {
+                    "valid": False,
+                    "records_checked": i + 1,
+                    "first_broken_link": {
+                        "record_id": log.id,
+                        "record_index": i,
+                        "timestamp": log.timestamp.isoformat() if log.timestamp else None,
+                        "expected_previous_hash": expected_previous,
+                        "actual_previous_hash": log.previous_hash,
+                        "issue": "previous_hash mismatch",
+                    },
+                }
+
+            # Recompute and verify record hash
+            recomputed = self._compute_record_hash(
+                previous_hash=log.previous_hash or self.GENESIS_HASH,
+                record_id=log.id,
+                timestamp_iso=log.timestamp.isoformat() if log.timestamp else "",
+                user_id=log.user_id,
+                action=log.action,
+                resource_type=log.resource_type,
+                resource_id=log.resource_id,
+                patient_id=log.patient_id,
+            )
+
+            if recomputed != log.record_hash:
+                return {
+                    "valid": False,
+                    "records_checked": i + 1,
+                    "first_broken_link": {
+                        "record_id": log.id,
+                        "record_index": i,
+                        "timestamp": log.timestamp.isoformat() if log.timestamp else None,
+                        "expected_hash": recomputed,
+                        "actual_hash": log.record_hash,
+                        "issue": "record_hash mismatch (record may have been tampered)",
+                    },
+                }
+
+            expected_previous = log.record_hash
+
+        return {
+            "valid": True,
+            "records_checked": len(logs),
+            "first_broken_link": None,
+        }
+
     def get_stats(self) -> dict[str, Any]:
         """Get audit service statistics.
 

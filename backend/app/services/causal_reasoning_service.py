@@ -161,11 +161,14 @@ class CausalReasoningService:
         neo4j_uri: str = "bolt://localhost:7687",
         neo4j_user: str = "neo4j",
         neo4j_password: str = "",
+        graph_db_service: Any | None = None,
     ):
         self.neo4j_uri = neo4j_uri
         self.neo4j_user = neo4j_user
         self.neo4j_password = neo4j_password
         self._driver = None
+        # Optional: use shared GraphDatabaseService instead of own driver
+        self._graph_db_service = graph_db_service
 
     async def connect(self) -> None:
         """Connect to Neo4j database."""

@@ -43,6 +43,12 @@ class Document(SoftDeleteMixin, Base):
         Text,
         nullable=False,
     )
+    # PHI Encryption: encrypted version of document text
+    text_encrypted: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+        doc="Fernet-encrypted document text for HIPAA compliance",
+    )
     extra_metadata: Mapped[dict] = mapped_column(
         "metadata",  # Column name in database
         JSONB,
@@ -87,6 +93,17 @@ class Document(SoftDeleteMixin, Base):
         nullable=True,
         doc="URI or ID linking to the external consent record",
     )
+
+    @property
+    def text_decrypted(self) -> str:
+        """Get decrypted text, falling back to plaintext if not encrypted."""
+        if self.text_encrypted:
+            try:
+                from app.core.phi_encryption import decrypt_phi
+                return decrypt_phi(self.text_encrypted)
+            except Exception:
+                pass
+        return self.text
 
     # Relationships
     clinical_values: Mapped[list["ClinicalValue"]] = relationship(
