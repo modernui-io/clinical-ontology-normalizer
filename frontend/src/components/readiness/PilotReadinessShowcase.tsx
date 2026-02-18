@@ -82,6 +82,33 @@ const STAGING_BLOCKERS = [
   "30-day post-pilot review date (scheduled)",
 ];
 
+const SNAPSHOT_CONTROL_ARTIFACTS = [
+  {
+    label: "Run log",
+    path: "/tasks/04_enterprise_readiness_multi_agent_playbook_run.md",
+    github:
+      "https://github.com/astinard/clinical-ontology-normalizer/blob/master/tasks/04_enterprise_readiness_multi_agent_playbook_run.md",
+  },
+  {
+    label: "Execution board",
+    path: "/tasks/08_autonomous_execution_board.md",
+    github:
+      "https://github.com/astinard/clinical-ontology-normalizer/blob/master/tasks/08_autonomous_execution_board.md",
+  },
+  {
+    label: "Backlog",
+    path: "/tasks/09_master_change_backlog_p0_p4.md",
+    github:
+      "https://github.com/astinard/clinical-ontology-normalizer/blob/master/tasks/09_master_change_backlog_p0_p4.md",
+  },
+  {
+    label: "Snapshot packet",
+    path: "/docs/readiness_snapshot_2026-02-17.md",
+    github:
+      "https://github.com/astinard/clinical-ontology-normalizer/blob/master/docs/readiness_snapshot_2026-02-17.md",
+  },
+];
+
 const SALES_SCENES = [
   {
     title: "Clinical safety walkthrough",
@@ -189,6 +216,38 @@ export default function PilotReadinessShowcase() {
           </div>
           <p className="text-xl font-semibold text-slate-800">Zero</p>
         </div>
+      </div>
+
+      <div className="rounded-lg border border-slate-200 bg-white p-4 mb-5">
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-4.5 w-4.5 text-slate-600" />
+            <h3 className="text-sm font-semibold text-slate-900">
+              Team handoff snapshot (single source of truth)
+            </h3>
+          </div>
+          <span className="text-[10px] text-slate-500">As of 2026-02-17</span>
+        </div>
+        <p className="text-xs text-slate-600">
+          P0/P1/P2/P3 are fully closed. P4 decision is 20/20 complete. P4 I/V are
+          15/20 with 5 ADR deferred. ROL-08/ROL-09 are PASS; posture remains
+          CONDITIONAL GO until 5 staging conditions are cleared.
+        </p>
+        <ul className="mt-3 text-xs text-slate-700 space-y-1 list-disc pl-5">
+          {SNAPSHOT_CONTROL_ARTIFACTS.map((artifact) => (
+            <li key={artifact.label}>
+              <a
+                href={artifact.github}
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-slate-900 underline"
+              >
+                {artifact.label}
+              </a>{" "}
+              <span className="text-slate-500">({artifact.path})</span>
+            </li>
+          ))}
+        </ul>
       </div>
 
       <div className="rounded-lg border border-slate-200 bg-white p-4 mb-5">

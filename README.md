@@ -18,6 +18,23 @@ A comprehensive healthcare data platform for clinical NLP extraction, terminolog
 
 ---
 
+## Current Readiness Snapshot
+
+- **Posture:** CONDITIONAL GO (pilot)
+- **Scope closed:** P0/P1/P2/P3 complete; all P0/P1/P2/P3 gates closed.
+- **P4:** Decisions 20/20 complete; I/V 15/20 each with 5 ADR-deferred gates.
+- **ROL-08:** PASS — 79 precision guardrail tests, lint clean, zero regressions.
+- **ROL-09:** PASS — explicit go/no-go table with residual risks recorded.
+- **Staging blockers remaining (5):** OpenEHR round-trip, Redis failover, Neo4j restore, cascade failover, 30-day review.
+
+- **Readiness artifacts**
+  - [Snapshot packet](docs/readiness_snapshot_2026-02-17.md)
+  - [Execution board](tasks/08_autonomous_execution_board.md)
+  - [Rollup backlog](tasks/09_master_change_backlog_p0_p4.md)
+  - [Run log](tasks/04_enterprise_readiness_multi_agent_playbook_run.md)
+
+- **Public proof surface:** `/proof`
+
 ## Overview
 
 ### What Does This System Do?
