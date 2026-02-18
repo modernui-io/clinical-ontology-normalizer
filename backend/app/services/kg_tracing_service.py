@@ -6,6 +6,8 @@ This module provides OpenTelemetry-compatible tracing for KG operations:
 - Performance metrics
 - Error tracking and reporting
 """
+# MODULE: graph_support
+# MATURITY: pilot
 
 from __future__ import annotations
 

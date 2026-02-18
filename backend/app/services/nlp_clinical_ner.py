@@ -6,6 +6,8 @@ Provides ML-based named entity recognition for clinical text using:
 
 This service complements the rule-based NLP service and can be combined
 in an ensemble for better coverage and accuracy.
+
+# MATURITY: experimental — component of ensemble only
 """
 
 from __future__ import annotations
@@ -144,6 +146,7 @@ class ClinicalNERService(BaseNLPService):
     _transformer_available: bool = field(default=True, init=False)
 
     # Context patterns for assertion/temporality detection
+    # Canonical source: app.services.nlp_shared.CANONICAL_NEGATION_TRIGGERS
     NEGATION_PATTERNS = [
         r"\bno\b", r"\bnot\b", r"\bnone\b", r"\bnever\b",
         r"\bdenies?\b", r"\bdenied\b", r"\bwithout\b",

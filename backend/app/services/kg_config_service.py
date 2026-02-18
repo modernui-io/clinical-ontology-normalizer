@@ -8,6 +8,8 @@ This module provides dynamic configuration management with support for:
 - Configuration versioning and rollback
 - Listener notifications on changes
 """
+# MODULE: graph_support
+# MATURITY: pilot
 
 from __future__ import annotations
 

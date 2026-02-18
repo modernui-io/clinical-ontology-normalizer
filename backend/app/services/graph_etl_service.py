@@ -11,6 +11,8 @@ Features:
 - Incremental update support
 - Batch processing for large datasets
 """
+# MODULE: graph_rag
+# MATURITY: pilot
 
 from __future__ import annotations
 

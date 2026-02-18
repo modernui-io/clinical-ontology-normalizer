@@ -114,7 +114,7 @@ from app.services.lab_reference import (
     get_lab_reference_service,
     reset_lab_reference_service,
 )
-from app.services.clinical_calculators import (
+from app.services.clinical_calculator_service import (
     CalculatorResult,
     ClinicalCalculatorService,
     RiskLevel,

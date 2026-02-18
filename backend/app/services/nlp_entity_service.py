@@ -1,5 +1,7 @@
 """NLP Entity Service - Backwards compatibility re-exports.
 
+# DEPRECATED: Import from app.services.nlp_entity directly
+
 This module has been refactored into the app.services.nlp_entity package.
 All imports are re-exported here for backwards compatibility.
 

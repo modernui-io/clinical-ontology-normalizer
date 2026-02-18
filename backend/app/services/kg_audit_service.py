@@ -11,6 +11,8 @@ Key Features:
 - Export to SIEM systems
 - Tamper detection via hash chains
 """
+# MODULE: graph_support
+# MATURITY: pilot
 
 from __future__ import annotations
 

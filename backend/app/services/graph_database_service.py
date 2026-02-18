@@ -12,6 +12,8 @@ Features:
 - Health check and connection testing
 - Graceful fallback with mock data when Neo4j is unavailable
 """
+# MODULE: graph_storage
+# MATURITY: production
 
 from __future__ import annotations
 

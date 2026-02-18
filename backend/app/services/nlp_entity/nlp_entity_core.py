@@ -194,6 +194,7 @@ class ClinicalNLPEntityService(NormalizerMixin, ExtractorMixin, LinkerMixin):
     CLINICAL_CODE_MAPPINGS = CLINICAL_CODE_MAPPINGS
 
     # Negation triggers (from normalizers module)
+    # Canonical source: app.services.nlp_shared.CANONICAL_NEGATION_TRIGGERS
     NEGATION_TRIGGERS = [
         r"\bno\b",
         r"\bnot\b",

@@ -571,6 +571,7 @@ async def extract_entities(request: ExtractRequest) -> ExtractResponse:
         # ====================================================================
 
         # Check if using LLM model (MedGemma via Ollama)
+        # STRATEGY: experimental (llm_api)
         if request.model_id == "llm_api":
             from app.services.nlp_claude_api import get_llm_nlp_service
             import time
@@ -639,6 +640,7 @@ async def extract_entities(request: ExtractRequest) -> ExtractResponse:
             service = get_nlp_entity_service()  # For normalization
 
         # Use Ensemble NLP when use_ml_models is True (combines rule-based + ClinicalBERT + ModernBERT)
+        # STRATEGY: experimental (ensemble)
         elif request.use_ml_models:
             from app.services.nlp_ensemble import get_ensemble_nlp_service
             import time
@@ -683,6 +685,7 @@ async def extract_entities(request: ExtractRequest) -> ExtractResponse:
                 text_length=len(request.text),
             )
             service = get_nlp_entity_service()  # For normalization
+        # STRATEGY: production (rule_based)
         else:
             service = get_nlp_entity_service()
 

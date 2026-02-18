@@ -7,6 +7,8 @@ for all Knowledge Graph components, following Prometheus best practices:
 - Pre-defined KG-specific metrics for monitoring
 - Integration with FastAPI for /metrics endpoint
 """
+# MODULE: graph_support
+# MATURITY: pilot
 
 from __future__ import annotations
 

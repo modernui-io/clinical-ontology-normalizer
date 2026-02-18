@@ -10,6 +10,8 @@ This service provides versioned schema migrations for Neo4j, including:
 - Rollback capabilities
 - Migration history tracking
 """
+# MODULE: graph_support
+# MATURITY: pilot
 
 from __future__ import annotations
 

@@ -1,3 +1,6 @@
+# CANONICAL: Source of truth for all built-in calculator definitions and scoring engines.
+# All calculator facades (clinical_calculators.py, clinical_calculator_service.py) delegate here.
+
 """Data-Driven Clinical Calculator Definitions.
 
 This module provides comprehensive data structures for defining clinical calculators

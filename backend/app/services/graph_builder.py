@@ -3,6 +3,8 @@
 Converts ClinicalFacts into a patient knowledge graph with
 nodes and edges.
 """
+# MODULE: graph_storage
+# MATURITY: production
 
 from __future__ import annotations
 

@@ -4,6 +4,8 @@ Implements graph construction with database persistence.
 Supports bi-temporal model for temporal reasoning.
 Syncs graphs to Neo4j for graph queries and visualization.
 """
+# MODULE: graph_storage
+# MATURITY: production
 
 from __future__ import annotations
 

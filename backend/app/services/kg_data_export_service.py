@@ -16,6 +16,8 @@ Features:
 - Relationship export with attributes
 - Temporal data preservation
 """
+# MODULE: graph_support
+# MATURITY: pilot
 
 from __future__ import annotations
 

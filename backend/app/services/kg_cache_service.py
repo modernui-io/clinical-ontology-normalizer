@@ -6,6 +6,8 @@ This module provides a multi-tier caching system for KG operations:
 - Automatic TTL management and cache invalidation
 - Query fingerprinting for cache key generation
 """
+# MODULE: graph_support
+# MATURITY: pilot
 
 from __future__ import annotations
 

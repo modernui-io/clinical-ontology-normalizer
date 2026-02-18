@@ -4,6 +4,8 @@ Evaluates the completeness of a patient knowledge graph by checking
 which clinical data categories are present and computing a weighted
 overall score.
 """
+# MODULE: graph_analytics
+# MATURITY: pilot
 
 from __future__ import annotations
 

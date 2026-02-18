@@ -9,6 +9,8 @@ Features:
 - Drug-disease relationship traversal
 - Community detection for patient clusters
 """
+# MODULE: graph_analytics
+# MATURITY: pilot
 
 from __future__ import annotations
 

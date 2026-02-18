@@ -11,6 +11,8 @@ Key capabilities:
 - Geographic partitioning (by facility/region)
 - Hybrid partitioning strategies
 """
+# MODULE: graph_support
+# MATURITY: pilot
 
 from __future__ import annotations
 

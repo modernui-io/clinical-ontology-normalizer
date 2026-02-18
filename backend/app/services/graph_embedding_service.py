@@ -11,6 +11,8 @@ Based on published approaches:
 - DR.KNOWS: Embedding-enhanced knowledge retrieval
 - Clinical concept embeddings for semantic similarity
 """
+# MODULE: graph_analytics
+# MATURITY: pilot
 
 from __future__ import annotations
 

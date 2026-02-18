@@ -4,6 +4,8 @@ Provenance integrity checks for KG entity merge/deduplication.
 Rejects merges based only on substring matching; requires either exact
 concept ID match, OMOP concept match, or high-confidence NLP coreference.
 """
+# MODULE: graph_support
+# MATURITY: pilot
 
 from __future__ import annotations
 

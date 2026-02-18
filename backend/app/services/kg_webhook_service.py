@@ -16,6 +16,8 @@ Features:
 - Rate limiting per webhook
 - Event batching for high-throughput scenarios
 """
+# MODULE: graph_support
+# MATURITY: pilot
 
 from __future__ import annotations
 

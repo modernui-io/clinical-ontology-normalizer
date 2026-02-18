@@ -6,6 +6,8 @@ Advantages over local ML models:
 - Handles very long documents
 - Better understanding of clinical context
 - Works with medical-specific models (MedGemma, BioMistral, Meditron)
+
+# MATURITY: experimental
 """
 
 from __future__ import annotations

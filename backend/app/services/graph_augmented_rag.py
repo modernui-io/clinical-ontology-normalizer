@@ -12,6 +12,8 @@ Architecture:
 
 Supports both sync and async SQLAlchemy sessions.
 """
+# MODULE: graph_rag
+# MATURITY: pilot
 
 from __future__ import annotations
 

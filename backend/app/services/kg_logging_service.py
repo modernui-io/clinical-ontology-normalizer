@@ -3,6 +3,8 @@
 This module provides structured logging with correlation ID tracking,
 context propagation, and multiple output formats for the Knowledge Graph API.
 """
+# MODULE: graph_support
+# MATURITY: pilot
 
 from __future__ import annotations
 

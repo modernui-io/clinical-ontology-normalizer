@@ -3,6 +3,8 @@
 This module provides API key management and authentication for the Knowledge Graph API.
 Supports key generation, validation, rotation, scopes, and rate limiting per key.
 """
+# MODULE: graph_support
+# MATURITY: pilot
 
 from __future__ import annotations
 

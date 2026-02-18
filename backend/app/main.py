@@ -390,7 +390,7 @@ def prewarm_all_services() -> dict[str, Any]:
         logger.warning(f"Non-critical prewarm failure for differential_diagnosis: {e}")
 
     try:
-        from app.services.clinical_calculators import get_clinical_calculator_service
+        from app.services.clinical_calculator_service import get_clinical_calculator_service
         svc = get_clinical_calculator_service()
         services_loaded["clinical_calculators"] = svc.get_stats() if hasattr(svc, 'get_stats') else "loaded"
     except Exception as e:

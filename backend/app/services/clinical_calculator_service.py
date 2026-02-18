@@ -1,3 +1,5 @@
+# CANONICAL: Primary calculator service facade. Wraps calculator_definitions.py.
+
 """Comprehensive Clinical Calculator Service.
 
 Provides validated clinical calculators for:

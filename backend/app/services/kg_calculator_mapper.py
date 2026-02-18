@@ -4,6 +4,8 @@ This module defines how measurement values from the knowledge graph
 map to calculator input parameters. This allows automatic population
 of calculator inputs from patient data.
 """
+# MODULE: graph_support
+# MATURITY: pilot
 
 from __future__ import annotations
 

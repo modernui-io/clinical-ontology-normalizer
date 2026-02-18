@@ -14,6 +14,8 @@ Features:
 - Alert rule templates
 - Variable templates for filtering
 """
+# MODULE: graph_support
+# MATURITY: pilot
 
 from __future__ import annotations
 

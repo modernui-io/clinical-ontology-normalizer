@@ -113,6 +113,7 @@ class NegationDetector:
     """
 
     # Pre-negation triggers (negate terms that follow)
+    # Canonical source: app.services.nlp_shared.CANONICAL_NEGATION_TRIGGERS
     PRE_NEGATION_TRIGGERS = [
         # Definite negation
         r'\bno\b',

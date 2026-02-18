@@ -4,6 +4,8 @@ This module provides load testing and performance benchmarking capabilities
 for the Knowledge Graph API. Supports concurrent requests, latency measurement,
 throughput calculation, and resource monitoring.
 """
+# MODULE: graph_support
+# MATURITY: pilot
 
 from __future__ import annotations
 

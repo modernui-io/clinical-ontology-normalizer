@@ -2,6 +2,8 @@
 
 Uses Aho-Corasick algorithm for O(n) pattern matching and vocabulary
 lookups to extract mentions from clinical documents.
+
+# MATURITY: deprecated-standalone — use via nlp_entity or nlp_ensemble
 """
 
 from __future__ import annotations
@@ -142,6 +144,7 @@ class RuleBasedNLPService(BaseNLPService):
 
     # Negation triggers (words that indicate absence)
     # Note: Order matters - check "cannot rule out" for uncertainty first
+    # Canonical source: app.services.nlp_shared.CANONICAL_NEGATION_TRIGGERS
     NEGATION_TRIGGERS = [
         r"\bno\b",
         r"\bnot\b",

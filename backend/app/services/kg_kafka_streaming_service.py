@@ -11,6 +11,8 @@ Key capabilities:
 - Streaming provenance tracking
 - Temporal edge updates
 """
+# MODULE: graph_support
+# MATURITY: pilot
 
 from __future__ import annotations
 

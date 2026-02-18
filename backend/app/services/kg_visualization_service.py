@@ -14,6 +14,8 @@ Compatible with:
 - vis.js timeline and network
 - Neo4j Bloom-style visualizations
 """
+# MODULE: graph_analytics
+# MATURITY: pilot
 
 from __future__ import annotations
 

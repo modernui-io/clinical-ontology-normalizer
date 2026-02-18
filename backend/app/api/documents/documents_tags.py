@@ -834,7 +834,7 @@ async def list_calculators() -> CalculatorListResponse:
     Returns:
         CalculatorListResponse with available calculators.
     """
-    from app.services.clinical_calculators import ClinicalCalculatorService
+    from app.services.clinical_calculator_service import ClinicalCalculatorService
 
     service = ClinicalCalculatorService()
 
@@ -997,7 +997,7 @@ async def run_calculator(
         HTTPException: 400 if calculator unknown or parameters invalid.
     """
     import time
-    from app.services.clinical_calculators import get_clinical_calculator_service
+    from app.services.clinical_calculator_service import get_clinical_calculator_service
 
     start_time = time.perf_counter()
 

@@ -77,7 +77,7 @@ async def get_provider_dashboard(
     - LabReferenceService
     """
     from app.services.differential_diagnosis import get_differential_diagnosis_service
-    from app.services.clinical_calculators import get_clinical_calculator_service
+    from app.services.clinical_calculator_service import get_clinical_calculator_service
     from app.services.drug_interactions import get_drug_interaction_service
     from app.services.drug_safety import get_drug_safety_service
     from app.services.lab_reference import get_lab_reference_service
@@ -355,7 +355,7 @@ async def get_admin_dashboard(
     # Service health checks
     services_to_check = [
         ("differential_diagnosis", "app.services.differential_diagnosis", "get_differential_diagnosis_service"),
-        ("clinical_calculator", "app.services.clinical_calculators", "get_clinical_calculator_service"),
+        ("clinical_calculator", "app.services.clinical_calculator_service", "get_clinical_calculator_service"),
         ("drug_interaction", "app.services.drug_interactions", "get_drug_interaction_service"),
         ("drug_safety", "app.services.drug_safety", "get_drug_safety_service"),
         ("lab_reference", "app.services.lab_reference", "get_lab_reference_service"),

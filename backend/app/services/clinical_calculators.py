@@ -1,7 +1,11 @@
+# DEPRECATED FACADE: Delegates to calculator_definitions.py. Use clinical_calculator_service for the canonical service.
+
 """Clinical Risk Calculators Service.
 
-Provides validated clinical risk scoring calculators for common
-medical conditions and decision support.
+DEPRECATED: This module is a compatibility adapter. The canonical service
+is app.services.clinical_calculator_service. Standalone functions
+(calculate_bmi, calculate_chadsvasc, etc.) are preserved for backward
+compatibility.
 
 This module is being migrated to a data-driven approach using
 calculator_definitions.py. CRITERIA-type calculators can now use
@@ -15,7 +19,6 @@ import logging
 import math
 from dataclasses import dataclass, field
 from enum import Enum
-from threading import Lock
 from typing import Any
 
 from app.services.calculator_definitions import (
@@ -3965,7 +3968,11 @@ def calculate_ranson(
 # ============================================================================
 
 class ClinicalCalculatorService:
-    """Service for clinical risk calculations.
+    """DEPRECATED: Use app.services.clinical_calculator_service.ClinicalCalculatorService instead.
+
+    This class is preserved for backward compatibility. The canonical service
+    is in clinical_calculator_service.py and provides Pydantic-validated inputs,
+    categorized calculators, and favorites support.
 
     Provides access to validated clinical calculators including:
     - BMI
@@ -4152,30 +4159,17 @@ class ClinicalCalculatorService:
         }
 
 
-# Singleton instance and lock
-_clinical_calculator_service: ClinicalCalculatorService | None = None
-_clinical_calculator_lock = Lock()
-
-
-def get_clinical_calculator_service() -> ClinicalCalculatorService:
-    """Get the singleton ClinicalCalculatorService instance.
-
-    Returns:
-        The singleton ClinicalCalculatorService instance.
-    """
-    global _clinical_calculator_service
-
-    if _clinical_calculator_service is None:
-        with _clinical_calculator_lock:
-            if _clinical_calculator_service is None:
-                logger.info("Creating singleton ClinicalCalculatorService instance")
-                _clinical_calculator_service = ClinicalCalculatorService()
-
-    return _clinical_calculator_service
+def get_clinical_calculator_service():
+    """DEPRECATED: Use app.services.clinical_calculator_service instead."""
+    from app.services.clinical_calculator_service import (
+        get_clinical_calculator_service as _canonical,
+    )
+    return _canonical()
 
 
 def reset_clinical_calculator_service() -> None:
-    """Reset the singleton instance (for testing)."""
-    global _clinical_calculator_service
-    with _clinical_calculator_lock:
-        _clinical_calculator_service = None
+    """DEPRECATED: Use app.services.clinical_calculator_service instead."""
+    from app.services.clinical_calculator_service import (
+        reset_clinical_calculator_service as _canonical_reset,
+    )
+    _canonical_reset()

@@ -20,6 +20,8 @@ Usage:
     for em in enhanced:
         if em.enhancement.laterality:
             print(f"{em.mention.text}: {em.enhancement.laterality.value}")
+
+# MATURITY: experimental — not integrated into any production path
 """
 
 from __future__ import annotations
@@ -292,6 +294,7 @@ AMBIGUOUS_ABBREVIATIONS: dict[str, dict[str, dict]] = {
 }
 
 # Negation triggers and clause boundaries
+# Canonical source: app.services.nlp_shared.CANONICAL_NEGATION_TRIGGERS
 # Pre-mention negation triggers (appear BEFORE the mention)
 NEGATION_TRIGGERS_PRE = [
     "no", "not", "none", "denies", "denied", "without", "negative for",

@@ -180,6 +180,7 @@ SECTION_PATTERNS: dict[ClinicalSection, list[str]] = {
 # ============================================================================
 
 
+# Canonical source: app.services.nlp_shared.CANONICAL_NEGATION_TRIGGERS
 NEGATION_TRIGGERS = [
     r"\bno\b",
     r"\bnot\b",

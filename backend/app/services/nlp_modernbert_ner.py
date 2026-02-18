@@ -15,6 +15,8 @@ ModernBERT advantages over traditional BERT:
 References:
 - ModernBERT: https://huggingface.co/answerdotai/ModernBERT-base
 - Flash Attention: https://github.com/Dao-AILab/flash-attention
+
+# MATURITY: experimental — component of ensemble only
 """
 
 from __future__ import annotations
@@ -145,6 +147,7 @@ class ModernBERTNERService(BaseNLPService):
     _lock: threading.Lock = field(default_factory=threading.Lock, init=False, repr=False)
 
     # Context patterns for assertion detection
+    # Canonical source: app.services.nlp_shared.CANONICAL_NEGATION_TRIGGERS
     NEGATION_PATTERNS = [
         r"\bno\b", r"\bnot\b", r"\bnone\b", r"\bnever\b",
         r"\bdenies?\b", r"\bdenied\b", r"\bwithout\b",
