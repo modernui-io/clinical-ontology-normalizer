@@ -552,11 +552,14 @@ class PhenotypeEngine:
         Returns:
             CriterionResult with match details.
         """
-        # Build query for nodes matching the concept codes
+        # Build query for nodes matching the concept codes.
+        # Filter on KGEdge.patient_id (not KGNode.patient_id) so that shared
+        # concept nodes (patient_id IS NULL) connected to this patient via
+        # edges are included in the evaluation.
         stmt = (
             select(KGNode, KGEdge)
             .join(KGEdge, KGNode.id == KGEdge.target_node_id)
-            .where(KGNode.patient_id == patient_id)
+            .where(KGEdge.patient_id == patient_id)
             .where(KGNode.omop_concept_id.in_(criterion.concept_codes))
         )
 
@@ -589,12 +592,12 @@ class PhenotypeEngine:
         result = self._session.execute(stmt)
         matches = result.all()
 
-        # Filter by assertion if specified
+        # Filter by assertion if specified (assertion now lives on edge.properties)
         if criterion.assertion_filter:
             matches = [
                 (node, edge)
                 for node, edge in matches
-                if node.properties.get("assertion") in criterion.assertion_filter
+                if edge.properties.get("assertion") in criterion.assertion_filter
             ]
 
         # Filter by value if specified
@@ -616,7 +619,7 @@ class PhenotypeEngine:
                 "concept_id": node.omop_concept_id,
                 "label": node.label,
                 "node_type": node.node_type.value if node.node_type else None,
-                "assertion": node.properties.get("assertion"),
+                "assertion": edge.properties.get("assertion"),
                 "event_date": event_date.isoformat() if event_date else None,
             }
 

@@ -229,32 +229,37 @@ class OntologyGraphIntegration:
     ) -> UUID | None:
         """Create a node for a clinical entity.
 
-        Performs entity resolution to avoid duplicates.
+        Performs entity resolution to avoid duplicates. Concept nodes are
+        created with patient_id=None (shared across patients) and only
+        carry concept-level properties. Patient-specific metadata belongs
+        on the edges.
         """
         # Generate cache key for entity resolution
+        # Concept nodes use __shared__ prefix since they are cross-patient
         normalized_name = entity.span.normalized.lower().strip()
-        cache_key = f"{patient_id}:{node_type.value}:{normalized_name}"
+        omop_concept_id = self._get_omop_concept_id(entity)
+        is_concept = omop_concept_id is not None
+        if is_concept:
+            cache_key = f"__shared__:{node_type.value}:{normalized_name}"
+        else:
+            cache_key = f"{patient_id}:{node_type.value}:{normalized_name}"
 
         # Check cache
         if cache_key in self._entity_cache:
             return self._entity_cache[cache_key]
 
-        # Create node via graph builder
+        # Create node via graph builder - concept nodes get patient_id=None
         node_input = NodeInput(
-            patient_id=patient_id,
+            patient_id=None if is_concept else patient_id,
             node_type=node_type,
             label=entity.span.text,
-            omop_concept_id=self._get_omop_concept_id(entity),
+            omop_concept_id=omop_concept_id,
             properties={
                 "normalized_name": normalized_name,
                 "category": entity.category.value,
                 "subcategory": entity.subcategory,
                 "vocabulary_code": entity.vocabulary_code,
                 "vocabulary_system": entity.vocabulary_system,
-                "confidence": entity.confidence,
-                "note_id": note_id,
-                "note_datetime": note_datetime.isoformat(),
-                "attributes": entity.attributes,
             },
         )
 
@@ -263,14 +268,22 @@ class OntologyGraphIntegration:
         return node_id
 
     def _get_omop_concept_id(self, entity: ClassifiedToken) -> int | None:
-        """Get OMOP concept ID from vocabulary code if available.
+        """Derive an OMOP-compatible concept ID from the entity's vocabulary code.
 
-        This is a placeholder - in production, this would look up the
-        OMOP concept ID from the vocabulary system.
+        Returns an integer concept ID when the entity carries a numeric
+        vocabulary code (e.g. SNOMED-CT, LOINC, RxNorm).  This enables the
+        node to be created as a shared concept (patient_id=NULL) and
+        deduplicated across patients.
+
+        Returns None when no usable vocabulary code is present, causing the
+        node to remain patient-scoped.
         """
-        # For now, return None - vocabulary mapping would be done separately
-        # In a full implementation, this would query the OMOP concept table
-        return None
+        if not entity.vocabulary_code:
+            return None
+        try:
+            return int(entity.vocabulary_code)
+        except (TypeError, ValueError):
+            return None
 
     def _create_patient_entity_edge(
         self,

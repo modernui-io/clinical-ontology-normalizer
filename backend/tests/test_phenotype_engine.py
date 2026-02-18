@@ -7,6 +7,7 @@ Tests cover:
 - Phenotype status determination
 - Care gap identification
 - Built-in phenotype definitions
+- Shared concept node inclusion in phenotype evaluation
 """
 
 from datetime import datetime, timedelta, timezone
@@ -14,7 +15,13 @@ from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
 import pytest
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.pool import StaticPool
 
+from app.models.knowledge_graph import KGEdge, KGNode
+from app.models.clinical_fact import ClinicalFact
+from app.schemas.base import Assertion, Domain, Experiencer, Temporality
 from app.services.phenotype_engine import (
     CareGap,
     CriterionLogic,
@@ -29,7 +36,8 @@ from app.services.phenotype_engine import (
     T2DM_PHENOTYPE,
     CKD_3PLUS_PHENOTYPE,
 )
-from app.schemas.knowledge_graph import NodeType
+from app.schemas.knowledge_graph import EdgeType, NodeType
+from app.services.graph_builder_db import DatabaseGraphBuilderService
 
 
 class TestValueOperators:
@@ -381,11 +389,12 @@ class TestCriterionEvaluation:
         mock_node.omop_concept_id = 123
         mock_node.label = "Test Condition"
         mock_node.node_type = NodeType.CONDITION
-        mock_node.properties = {"assertion": "present"}
+        mock_node.properties = {}
 
         mock_edge = MagicMock()
         mock_edge.event_date = datetime.now(timezone.utc)
         mock_edge.valid_from = None
+        mock_edge.properties = {"assertion": "present"}
 
         self._setup_mock_query([(mock_node, mock_edge)])
 
@@ -579,3 +588,258 @@ class TestEvidenceSummary:
         assert "present" in summary.lower()
         assert "Criterion 1" in summary
         assert "2 occurrence" in summary
+
+
+# =============================================================================
+# Shared concept node regression tests (migration 041 scenario)
+# =============================================================================
+
+# Fixtures for real-DB phenotype tests
+
+_pheno_engine = create_engine(
+    "sqlite:///:memory:",
+    echo=False,
+    future=True,
+    poolclass=StaticPool,
+)
+_PhenoSession = sessionmaker(
+    bind=_pheno_engine,
+    autocommit=False,
+    autoflush=False,
+)
+
+
+@pytest.fixture(scope="function")
+def pheno_db_session() -> Session:
+    """Create a database session with KG tables for phenotype tests."""
+    KGNode.__table__.create(bind=_pheno_engine, checkfirst=True)
+    KGEdge.__table__.create(bind=_pheno_engine, checkfirst=True)
+    ClinicalFact.__table__.create(bind=_pheno_engine, checkfirst=True)
+    session = _PhenoSession()
+    try:
+        yield session
+    finally:
+        session.close()
+        ClinicalFact.__table__.drop(bind=_pheno_engine, checkfirst=True)
+        KGEdge.__table__.drop(bind=_pheno_engine, checkfirst=True)
+        KGNode.__table__.drop(bind=_pheno_engine, checkfirst=True)
+
+
+DIABETES_CONCEPT = 201826
+METFORMIN_CONCEPT = 1503297
+
+
+class TestPhenotypeWithSharedNodes:
+    """Phenotype evaluation must include shared concept nodes (patient_id IS NULL).
+
+    Regression: Before the fix, _evaluate_criterion filtered on
+    KGNode.patient_id == patient_id, which excluded shared concept nodes.
+    """
+
+    def test_shared_concept_node_matches_phenotype_criterion(
+        self, pheno_db_session: Session
+    ) -> None:
+        """A shared concept node connected via edge should satisfy a criterion."""
+        svc = DatabaseGraphBuilderService(pheno_db_session)
+        svc.project_fact_to_graph(
+            fact_id=uuid4(),
+            patient_id="PA",
+            domain=Domain.CONDITION,
+            omop_concept_id=DIABETES_CONCEPT,
+            concept_name="Type 2 Diabetes",
+            assertion="present",
+            temporality="current",
+            experiencer="patient",
+        )
+
+        engine = PhenotypeEngine(pheno_db_session)
+        criterion = PhenotypeCriterion(
+            name="Diabetes",
+            concept_codes=[DIABETES_CONCEPT],
+            node_types=[NodeType.CONDITION],
+            min_occurrences=1,
+        )
+
+        result = engine._evaluate_criterion(criterion, "PA")
+
+        assert result.met is True
+        assert result.occurrence_count >= 1
+        # Verify the matched concept is the shared node
+        assert any(
+            c["concept_id"] == DIABETES_CONCEPT for c in result.matched_concepts
+        )
+
+    def test_shared_node_not_visible_to_unrelated_patient(
+        self, pheno_db_session: Session
+    ) -> None:
+        """Patient B should not match on a shared concept only connected to A."""
+        svc = DatabaseGraphBuilderService(pheno_db_session)
+        svc.project_fact_to_graph(
+            fact_id=uuid4(),
+            patient_id="PA",
+            domain=Domain.CONDITION,
+            omop_concept_id=DIABETES_CONCEPT,
+            concept_name="Type 2 Diabetes",
+            assertion="present",
+            temporality="current",
+            experiencer="patient",
+        )
+
+        engine = PhenotypeEngine(pheno_db_session)
+        criterion = PhenotypeCriterion(
+            name="Diabetes",
+            concept_codes=[DIABETES_CONCEPT],
+            node_types=[NodeType.CONDITION],
+            min_occurrences=1,
+        )
+
+        result = engine._evaluate_criterion(criterion, "PB")
+
+        assert result.met is False
+        assert result.occurrence_count == 0
+
+    def test_phenotype_present_with_shared_concept(
+        self, pheno_db_session: Session
+    ) -> None:
+        """Full phenotype evaluation should return PRESENT when shared nodes match."""
+        svc = DatabaseGraphBuilderService(pheno_db_session)
+        svc.project_fact_to_graph(
+            fact_id=uuid4(),
+            patient_id="PA",
+            domain=Domain.CONDITION,
+            omop_concept_id=DIABETES_CONCEPT,
+            concept_name="Type 2 Diabetes",
+            assertion="present",
+            temporality="current",
+            experiencer="patient",
+        )
+
+        engine = PhenotypeEngine(pheno_db_session)
+        # Register a simple phenotype that just needs diabetes
+        phenotype = PhenotypeDefinition(
+            id="t2dm_simple",
+            name="T2DM Simple",
+            description="Simple T2DM check",
+            inclusion_criteria=[
+                PhenotypeCriterion(
+                    name="Diabetes Diagnosis",
+                    concept_codes=[DIABETES_CONCEPT],
+                    node_types=[NodeType.CONDITION],
+                    min_occurrences=1,
+                    assertion_filter=["present"],
+                ),
+            ],
+        )
+        engine.register_phenotype(phenotype)
+
+        result = engine.evaluate("t2dm_simple", "PA")
+
+        assert result.status == PhenotypeStatus.PRESENT
+        assert result.inclusion_criteria_met == 1
+
+    def test_shared_concept_two_patients_independent_evaluation(
+        self, pheno_db_session: Session
+    ) -> None:
+        """Two patients sharing a concept node each get correct phenotype results."""
+        svc = DatabaseGraphBuilderService(pheno_db_session)
+
+        # Both patients have diabetes (shared concept node)
+        svc.project_fact_to_graph(
+            fact_id=uuid4(),
+            patient_id="PA",
+            domain=Domain.CONDITION,
+            omop_concept_id=DIABETES_CONCEPT,
+            concept_name="Type 2 Diabetes",
+            assertion="present",
+            temporality="current",
+            experiencer="patient",
+        )
+        svc.project_fact_to_graph(
+            fact_id=uuid4(),
+            patient_id="PB",
+            domain=Domain.CONDITION,
+            omop_concept_id=DIABETES_CONCEPT,
+            concept_name="Type 2 Diabetes",
+            assertion="present",
+            temporality="current",
+            experiencer="patient",
+        )
+        # Only PA takes metformin
+        svc.project_fact_to_graph(
+            fact_id=uuid4(),
+            patient_id="PA",
+            domain=Domain.DRUG,
+            omop_concept_id=METFORMIN_CONCEPT,
+            concept_name="Metformin",
+            assertion="present",
+            temporality="current",
+            experiencer="patient",
+        )
+
+        engine = PhenotypeEngine(pheno_db_session)
+
+        criterion_diabetes = PhenotypeCriterion(
+            name="Diabetes",
+            concept_codes=[DIABETES_CONCEPT],
+            node_types=[NodeType.CONDITION],
+            min_occurrences=1,
+        )
+        criterion_metformin = PhenotypeCriterion(
+            name="Metformin",
+            concept_codes=[METFORMIN_CONCEPT],
+            node_types=[NodeType.DRUG],
+            min_occurrences=1,
+        )
+
+        # Both patients match diabetes
+        assert engine._evaluate_criterion(criterion_diabetes, "PA").met is True
+        assert engine._evaluate_criterion(criterion_diabetes, "PB").met is True
+
+        # Only PA matches metformin
+        assert engine._evaluate_criterion(criterion_metformin, "PA").met is True
+        assert engine._evaluate_criterion(criterion_metformin, "PB").met is False
+
+    def test_assertion_filter_on_shared_node_edge(
+        self, pheno_db_session: Session
+    ) -> None:
+        """Assertion filtering uses edge properties, not node properties."""
+        svc = DatabaseGraphBuilderService(pheno_db_session)
+
+        # PA has diabetes (present), PB has diabetes (absent/negated)
+        svc.project_fact_to_graph(
+            fact_id=uuid4(),
+            patient_id="PA",
+            domain=Domain.CONDITION,
+            omop_concept_id=DIABETES_CONCEPT,
+            concept_name="Type 2 Diabetes",
+            assertion="present",
+            temporality="current",
+            experiencer="patient",
+        )
+        svc.project_fact_to_graph(
+            fact_id=uuid4(),
+            patient_id="PB",
+            domain=Domain.CONDITION,
+            omop_concept_id=DIABETES_CONCEPT,
+            concept_name="Type 2 Diabetes",
+            assertion="absent",
+            temporality="current",
+            experiencer="patient",
+        )
+
+        engine = PhenotypeEngine(pheno_db_session)
+        criterion = PhenotypeCriterion(
+            name="Diabetes",
+            concept_codes=[DIABETES_CONCEPT],
+            node_types=[NodeType.CONDITION],
+            min_occurrences=1,
+            assertion_filter=["present"],
+        )
+
+        # PA matches (assertion=present on edge)
+        result_a = engine._evaluate_criterion(criterion, "PA")
+        assert result_a.met is True
+
+        # PB does not match (assertion=absent on edge, filtered out)
+        result_b = engine._evaluate_criterion(criterion, "PB")
+        assert result_b.met is False
