@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 import {
   BookOpen,
   Search,
@@ -23,6 +24,8 @@ import {
   Globe,
   Workflow,
   Lock,
+  Monitor,
+  Stethoscope,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -52,18 +55,80 @@ type Category =
 // Glossary data
 // =============================================================================
 
-const CATEGORY_META: Record<
-  Category,
-  { icon: React.ComponentType<{ className?: string }>; color: string }
-> = {
-  "Confidence & Scoring": { icon: BarChart3, color: "bg-blue-500/10 text-blue-700 border-blue-200" },
-  "Evidence & Provenance": { icon: Database, color: "bg-purple-500/10 text-purple-700 border-purple-200" },
-  "Safety & Controls": { icon: Shield, color: "bg-red-500/10 text-red-700 border-red-200" },
-  "Data Quality": { icon: Activity, color: "bg-emerald-500/10 text-emerald-700 border-emerald-200" },
-  "NLP & Extraction": { icon: Brain, color: "bg-amber-500/10 text-amber-700 border-amber-200" },
-  "Interoperability": { icon: Globe, color: "bg-cyan-500/10 text-cyan-700 border-cyan-200" },
-  "Clinical Workflows": { icon: Workflow, color: "bg-orange-500/10 text-orange-700 border-orange-200" },
-  "Privacy & Compliance": { icon: Lock, color: "bg-rose-500/10 text-rose-700 border-rose-200" },
+interface CategoryMeta {
+  icon: React.ComponentType<{ className?: string }>;
+  badge: string;
+  border: string;
+  bg: string;
+  iconColor: string;
+  cardBg: string;
+}
+
+const CATEGORY_META: Record<Category, CategoryMeta> = {
+  "Confidence & Scoring": {
+    icon: BarChart3,
+    badge: "bg-blue-500/10 text-blue-700 border-blue-200 dark:text-blue-400",
+    border: "border-l-blue-500",
+    bg: "bg-blue-50 dark:bg-blue-950/30",
+    iconColor: "text-blue-600 dark:text-blue-400",
+    cardBg: "hover:bg-blue-50/50 dark:hover:bg-blue-950/20",
+  },
+  "Evidence & Provenance": {
+    icon: Database,
+    badge: "bg-purple-500/10 text-purple-700 border-purple-200 dark:text-purple-400",
+    border: "border-l-purple-500",
+    bg: "bg-purple-50 dark:bg-purple-950/30",
+    iconColor: "text-purple-600 dark:text-purple-400",
+    cardBg: "hover:bg-purple-50/50 dark:hover:bg-purple-950/20",
+  },
+  "Safety & Controls": {
+    icon: Shield,
+    badge: "bg-red-500/10 text-red-700 border-red-200 dark:text-red-400",
+    border: "border-l-red-500",
+    bg: "bg-red-50 dark:bg-red-950/30",
+    iconColor: "text-red-600 dark:text-red-400",
+    cardBg: "hover:bg-red-50/50 dark:hover:bg-red-950/20",
+  },
+  "Data Quality": {
+    icon: Activity,
+    badge: "bg-emerald-500/10 text-emerald-700 border-emerald-200 dark:text-emerald-400",
+    border: "border-l-emerald-500",
+    bg: "bg-emerald-50 dark:bg-emerald-950/30",
+    iconColor: "text-emerald-600 dark:text-emerald-400",
+    cardBg: "hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20",
+  },
+  "NLP & Extraction": {
+    icon: Brain,
+    badge: "bg-amber-500/10 text-amber-700 border-amber-200 dark:text-amber-400",
+    border: "border-l-amber-500",
+    bg: "bg-amber-50 dark:bg-amber-950/30",
+    iconColor: "text-amber-600 dark:text-amber-400",
+    cardBg: "hover:bg-amber-50/50 dark:hover:bg-amber-950/20",
+  },
+  "Interoperability": {
+    icon: Globe,
+    badge: "bg-cyan-500/10 text-cyan-700 border-cyan-200 dark:text-cyan-400",
+    border: "border-l-cyan-500",
+    bg: "bg-cyan-50 dark:bg-cyan-950/30",
+    iconColor: "text-cyan-600 dark:text-cyan-400",
+    cardBg: "hover:bg-cyan-50/50 dark:hover:bg-cyan-950/20",
+  },
+  "Clinical Workflows": {
+    icon: Workflow,
+    badge: "bg-orange-500/10 text-orange-700 border-orange-200 dark:text-orange-400",
+    border: "border-l-orange-500",
+    bg: "bg-orange-50 dark:bg-orange-950/30",
+    iconColor: "text-orange-600 dark:text-orange-400",
+    cardBg: "hover:bg-orange-50/50 dark:hover:bg-orange-950/20",
+  },
+  "Privacy & Compliance": {
+    icon: Lock,
+    badge: "bg-rose-500/10 text-rose-700 border-rose-200 dark:text-rose-400",
+    border: "border-l-rose-500",
+    bg: "bg-rose-50 dark:bg-rose-950/30",
+    iconColor: "text-rose-600 dark:text-rose-400",
+    cardBg: "hover:bg-rose-50/50 dark:hover:bg-rose-950/20",
+  },
 };
 
 const GLOSSARY_TERMS: GlossaryTerm[] = [
@@ -928,17 +993,15 @@ export default function GlossaryPage() {
   );
   const [expandedTerms, setExpandedTerms] = useState<Set<string>>(new Set());
 
-  const categories: (Category | "All")[] = [
-    "All",
-    "Confidence & Scoring",
-    "Evidence & Provenance",
-    "Safety & Controls",
-    "Data Quality",
-    "NLP & Extraction",
-    "Interoperability",
-    "Clinical Workflows",
-    "Privacy & Compliance",
-  ];
+  const allCategories = Object.keys(CATEGORY_META) as Category[];
+
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const t of GLOSSARY_TERMS) {
+      counts[t.category] = (counts[t.category] || 0) + 1;
+    }
+    return counts;
+  }, []);
 
   const filteredTerms = useMemo(() => {
     return GLOSSARY_TERMS.filter((t) => {
@@ -974,123 +1037,236 @@ export default function GlossaryPage() {
   }, [filteredTerms]);
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-8 p-6 max-w-6xl mx-auto">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <BookOpen className="h-6 w-6" />
-          Clinical AI Glossary
-        </h1>
-        <p className="text-muted-foreground mt-1">
+      <div className="rounded-xl border bg-card px-8 py-8">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-primary/10">
+            <BookOpen className="h-5 w-5 text-primary" />
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Clinical AI Glossary
+          </h1>
+        </div>
+        <p className="text-muted-foreground text-lg max-w-2xl">
           Reference guide for confidence, evidence, safety, and data quality
           concepts used throughout the Sulci platform.
         </p>
+        <div className="flex items-center gap-6 mt-5 text-sm text-muted-foreground">
+          <span className="flex items-center gap-1.5">
+            <BookOpen className="h-4 w-4" />
+            {GLOSSARY_TERMS.length} terms
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Database className="h-4 w-4" />
+            {allCategories.length} categories
+          </span>
+        </div>
       </div>
 
-      {/* Search and filter bar */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search terms..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        <div className="flex gap-2 flex-wrap">
-          {categories.map((cat) => (
-            <Button
+      {/* Category overview cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {allCategories.map((cat) => {
+          const meta = CATEGORY_META[cat];
+          const Icon = meta.icon;
+          const isSelected = selectedCategory === cat;
+          return (
+            <button
               key={cat}
-              variant={selectedCategory === cat ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSelectedCategory(cat)}
+              onClick={() =>
+                setSelectedCategory(isSelected ? "All" : cat)
+              }
+              className={`group relative flex flex-col items-start gap-2 rounded-lg border p-4 text-left transition-all ${
+                isSelected
+                  ? `${meta.bg} border-current ring-1 ring-current/20 ${meta.iconColor}`
+                  : "border-border hover:border-border/80 hover:shadow-sm"
+              }`}
             >
-              {cat}
-            </Button>
-          ))}
-        </div>
+              <div
+                className={`flex items-center justify-center h-8 w-8 rounded-md ${
+                  isSelected ? meta.bg : "bg-muted"
+                }`}
+              >
+                <Icon
+                  className={`h-4 w-4 ${
+                    isSelected
+                      ? meta.iconColor
+                      : "text-muted-foreground group-hover:text-foreground"
+                  }`}
+                />
+              </div>
+              <div>
+                <p
+                  className={`text-sm font-medium leading-tight ${
+                    isSelected ? "" : "text-foreground"
+                  }`}
+                >
+                  {cat}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {categoryCounts[cat] || 0} terms
+                </p>
+              </div>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Stats */}
-      <div className="flex gap-4 text-sm text-muted-foreground">
-        <span>
-          Showing {filteredTerms.length} of {GLOSSARY_TERMS.length} terms
-        </span>
+      {/* Search bar */}
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm pb-4 pt-1 -mx-6 px-6 border-b border-border/50">
+        <div className="flex items-center gap-3">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search 80 terms..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 h-10"
+            />
+          </div>
+          {selectedCategory !== "All" && (
+            <Badge
+              variant="outline"
+              className={`${CATEGORY_META[selectedCategory as Category].badge} cursor-pointer`}
+              onClick={() => setSelectedCategory("All")}
+            >
+              {selectedCategory} &times;
+            </Badge>
+          )}
+          <span className="text-sm text-muted-foreground ml-auto">
+            {filteredTerms.length} result{filteredTerms.length !== 1 ? "s" : ""}
+          </span>
+        </div>
       </div>
 
       {/* Terms by category */}
-      {Object.entries(groupedTerms).map(([category, terms]) => {
-        const meta = CATEGORY_META[category as Category];
-        const Icon = meta.icon;
-        return (
-          <div key={category} className="space-y-3">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
-              <Icon className="h-5 w-5" />
-              {category}
-              <Badge variant="secondary" className="ml-1">
-                {terms.length}
-              </Badge>
-            </h2>
-            <div className="grid gap-2">
-              {terms.map((t) => {
-                const isExpanded = expandedTerms.has(t.term);
-                return (
-                  <Card key={t.term} className="transition-shadow hover:shadow-md">
-                    <CardHeader
-                      className="cursor-pointer py-3 px-4"
-                      onClick={() => toggleTerm(t.term)}
+      <div className="space-y-10">
+        {Object.entries(groupedTerms).map(([category, terms]) => {
+          const meta = CATEGORY_META[category as Category];
+          const Icon = meta.icon;
+          return (
+            <section key={category}>
+              {/* Category header */}
+              <div className="flex items-center gap-3 mb-4">
+                <div
+                  className={`flex items-center justify-center h-9 w-9 rounded-lg ${meta.bg}`}
+                >
+                  <Icon className={`h-5 w-5 ${meta.iconColor}`} />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold leading-none">
+                    {category}
+                  </h2>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {terms.length} term{terms.length !== 1 ? "s" : ""}
+                  </p>
+                </div>
+              </div>
+
+              {/* Term cards */}
+              <div className="grid gap-2">
+                {terms.map((t) => {
+                  const isExpanded = expandedTerms.has(t.term);
+                  return (
+                    <Card
+                      key={t.term}
+                      className={`border-l-4 ${meta.border} transition-all ${meta.cardBg} ${
+                        isExpanded ? "shadow-md" : "hover:shadow-sm"
+                      }`}
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          {isExpanded ? (
-                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                          ) : (
-                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                          )}
-                          <CardTitle className="text-base">
-                            {t.term}
-                          </CardTitle>
+                      <CardHeader
+                        className="cursor-pointer py-3.5 px-5"
+                        onClick={() => toggleTerm(t.term)}
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-start gap-2.5 min-w-0">
+                            <div className="mt-0.5 shrink-0">
+                              {isExpanded ? (
+                                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <CardTitle className="text-[15px] font-semibold leading-snug">
+                                {t.term}
+                              </CardTitle>
+                              <CardDescription className="mt-1 text-[13px] leading-relaxed">
+                                {t.definition}
+                              </CardDescription>
+                            </div>
+                          </div>
+                          <Badge
+                            variant="outline"
+                            className={`shrink-0 text-[11px] ${meta.badge}`}
+                          >
+                            {t.category}
+                          </Badge>
                         </div>
-                        <Badge
-                          variant="outline"
-                          className={meta.color}
-                        >
-                          {t.category}
-                        </Badge>
-                      </div>
-                      <CardDescription className="ml-6">
-                        {t.definition}
-                      </CardDescription>
-                    </CardHeader>
-                    {isExpanded && (
-                      <CardContent className="pt-0 pb-4 px-4 ml-6 space-y-3">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">
-                            How it is used in the system
-                          </p>
-                          <p className="text-sm mt-1">{t.systemUsage}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">
-                            What clinicians should know
-                          </p>
-                          <p className="text-sm mt-1">{t.clinicianNote}</p>
-                        </div>
-                      </CardContent>
-                    )}
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })}
+                      </CardHeader>
+                      {isExpanded && (
+                        <CardContent className="pt-0 pb-5 px-5">
+                          <Separator className="mb-4" />
+                          <div className="ml-6 grid gap-4 sm:grid-cols-2">
+                            <div className="rounded-lg bg-muted/50 p-4">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Monitor className="h-4 w-4 text-muted-foreground" />
+                                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                  System Usage
+                                </p>
+                              </div>
+                              <p className="text-sm leading-relaxed">
+                                {t.systemUsage}
+                              </p>
+                            </div>
+                            <div className={`rounded-lg ${meta.bg} p-4`}>
+                              <div className="flex items-center gap-2 mb-2">
+                                <Stethoscope
+                                  className={`h-4 w-4 ${meta.iconColor}`}
+                                />
+                                <p
+                                  className={`text-xs font-semibold uppercase tracking-wider ${meta.iconColor}`}
+                                >
+                                  Clinician Note
+                                </p>
+                              </div>
+                              <p className="text-sm leading-relaxed">
+                                {t.clinicianNote}
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      )}
+                    </Card>
+                  );
+                })}
+              </div>
+            </section>
+          );
+        })}
+      </div>
 
       {filteredTerms.length === 0 && (
-        <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
-            No terms match your search. Try a different query or category filter.
+        <Card className="border-dashed">
+          <CardContent className="py-16 text-center">
+            <Search className="h-10 w-10 text-muted-foreground/50 mx-auto mb-4" />
+            <p className="text-muted-foreground font-medium">
+              No terms match your search
+            </p>
+            <p className="text-sm text-muted-foreground/70 mt-1">
+              Try a different query or clear the category filter.
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-4"
+              onClick={() => {
+                setSearch("");
+                setSelectedCategory("All");
+              }}
+            >
+              Clear filters
+            </Button>
           </CardContent>
         </Card>
       )}

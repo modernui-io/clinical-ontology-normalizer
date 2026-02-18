@@ -417,8 +417,8 @@ function ProblemSection() {
               <motion.div key={p.label} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={VIEWPORT} transition={{ duration: 0.4, delay: i * 0.06, ease: EASE }}>
                 <div className="rounded-xl border border-neutral-200 bg-white p-5">
                   <div className="flex items-baseline gap-4">
-                    <div className="text-[2.5rem] md:text-[3rem] font-bold tracking-[-0.04em] text-neutral-900 flex-shrink-0 w-[90px] md:w-[110px]">{p.stat}</div>
-                    <div>
+                    <div className="text-[2.5rem] md:text-[3rem] font-bold tracking-[-0.04em] text-neutral-900 flex-shrink-0 min-w-[120px] md:min-w-[150px]">{p.stat}</div>
+                    <div className="min-w-0">
                       <div className="text-[14px] font-semibold text-neutral-900 mb-1">{p.label}</div>
                       <p className="text-[13px] text-neutral-500 leading-relaxed">{p.detail}</p>
                     </div>
