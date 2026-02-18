@@ -3,7 +3,7 @@
 Run metadata
 - Run ID: `enterprise-readiness-openehr-pilot-v1`
 - Started: `2026-02-13`
-- Last Updated: `2026-02-16T19:30Z`
+- Last Updated: `2026-02-17`
 - Mode: implementation (non-blocking handoff + execution)
 - Region context: Ramsey Health Australia
 - Canonical target model: OpenEHR
@@ -214,6 +214,7 @@ next_required_artifacts:
 - 2026-02-17: P4-015-I completed. Outcomes feedback blueprint: capture points (recommendation events, clinician actions, outcome linkage), 5-stage pipeline (event→store→link→attribute→report), attribution model (direct/indirect/inconclusive), 8 outcome metrics (OM-001 through OM-008), quarterly report template, clinical advisor review cadence. Evidence: `docs/evidence/p4-015/p4-015-outcomes-feedback-blueprint.md`. Deferred activation per ADR. Operator: autonomous-agent.
 - 2026-02-17: P4-015-V completed. Recommendation-to-outcome traceability template, direct and indirect linkage verification plans, sample quarterly report with confidence intervals and statistical notes, gap analysis against clinical_outcome_assessment_service.py (621 lines), quality_measures.py (2,223 lines), quality_metrics.py (573 lines). Evidence: `docs/evidence/p4-015/p4-015-evidence-2026-02-17.md`. Operator: autonomous-agent.
 - 2026-02-17: **P4-011 through P4-015 I/V sweep complete.** 10 artifacts created (5 implementation plans + 5 validation evidence). Master backlog updated: P4-I closed 10→15, P4-V closed 10→15, deferred 10→5 each (P4-001 through P4-005 only). Execution board updated: ROL-33 through ROL-37 added. P4 execution posture: `governance_plans_complete` → `all_plans_complete`.
+- 2026-02-17: **ROL-08 + ROL-09 re-validation session (3-agent swarm: test-runner, evidence-auditor, artifact-updater).** Test results: 79 collected (72 pass, 7 skip), 0 failures, matches documented baseline (40 Phase 1 + 39 Phase 2). Lint: ruff clean on all 3 files (test_omop_hierarchy_guardrails.py, test_umls_omop_precision_guardrails.py, omop_guardrail_corpus.py). Evidence audit: 4/4 criteria PASS (thresholds/pass criteria present, date/version stamps current, owners/signer fields complete, evidence paths linked in execution board and run log). Evidence integrity: all paths verified. No fixes needed, no regressions.
 - 2026-02-17: **ROL-08 / P2-008 complete.** UMLS/OMOP precision guardrail corpus (12 false-positive pairs, 6 must-accept, 6 boundary cases) and regression test suite (40 tests, 5 classes). All 40 tests PASS. Zero false-positive tolerance enforced. Strict-mode 0.85 Jaccard threshold validated against clinically dangerous near-matches (metformin/metronidazole, type 1/type 2 diabetes, etc.). Evidence: `docs/evidence/p2-008/`. Operator: autonomous-agent.
 - 2026-02-17: **P2-008 Phase 2 — precision guardrail extension.** Corpus extended: +15 ambiguous pairs (4 LASA drugs, 3 unqualified conditions, 3 abbreviation collisions, 2 specimen ambiguity, 3 cross-domain collisions), +30 per-domain positive pairs (8 med + 8 cond + 7 proc + 7 meas), +4 domain precision thresholds (med 0.90, cond 0.80, proc 0.75, meas 0.80). New test file: `test_umls_omop_precision_guardrails.py` — 6 classes, 39 tests (32 unit PASS + 7 integration/regression SKIP graceful). Reason code taxonomy: LASA_DRUG, UNQUALIFIED_CONDITION, ABBREVIATION_COLLISION, SPECIMEN_AMBIGUITY, CROSS_DOMAIN_COLLISION. Lint: ruff PASS. Existing suite: 40/40 no regression. Evidence: `docs/evidence/p2-008/`. Operator: autonomous-agent.
 - 2026-02-17: **ROL-09 / P2-009 complete — Monthly closure artifact + Go/No-Go decision table.** Two evidence files published:
@@ -221,3 +222,19 @@ next_required_artifacts:
   - `docs/evidence/p2-009/p2-009-go-no-go-table.md` — 6 dimensions assessed: Safety (GO), Uptime/Resilience (CONDITIONAL GO), Data Quality (GO), Clinical Governance (GO), Compliance (CONDITIONAL GO), Infra Readiness (HOLD). Aggregate: pilot CONDITIONAL GO, staging BLOCKED, broad rollout HOLD. Escalation timeline: staging infra 2026-03-02, executive 2026-03-09, signoff expiry 2026-03-16, 30-day review 2026-03-17.
   - Control artifacts updated: execution board ROL-09→done, master backlog P2-009 evidence linked, run log entry appended. Operator: autonomous-agent.
 - 2026-02-17: **Staging provisioning checklist published.** 5-phase runbook covering infrastructure provisioning, secrets/config, deployment, 5 staging drill procedures (OpenEHR round-trip, Redis failover, Neo4j restore, cascade simulation, 30-day signoff review), and post-staging validation. Evidence targets: `docs/evidence/staging/`. Estimated drill duration: ~3 hours sequential. Execution board staging blockers table updated with checklist cross-references. Artifact: `docs/operations/staging_provisioning_checklist.md`. Operator: autonomous-agent.
+
+### Final Closure — ROL-08 + ROL-09 (2026-02-17)
+
+**ROL-08 (P2-008) — Precision Guardrail Corpus + Regression Tests**: COMPLETE
+- 79 tests total (40 Phase 1 + 39 Phase 2), live execution: 72 passed, 7 skipped (expected — require live DB)
+- Zero regressions vs documented baseline
+- Lint clean (ruff)
+- Evidence artifacts: corpus doc, regression results doc, 3 test/fixture files — all audited PASS
+
+**ROL-09 (P2-009) — Monthly Closure + Go/No-Go Table**: COMPLETE
+- 6 dimensions assessed: Safety, Uptime/Resilience, Data Quality, Clinical Governance, Compliance, Infra Readiness
+- Decision: CONDITIONAL GO for pilot deployment
+- 6-role signoff table complete with names, dates, expiry (2026-03-16)
+- Residual risks documented with mitigations
+
+**Post-condition**: Only staging blockers remain (5 infrastructure conditions per go/no-go table). No code or evidence gaps.
