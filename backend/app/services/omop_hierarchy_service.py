@@ -1,14 +1,17 @@
 """OMOP Concept Hierarchy Service.
 
-Provides semantic matching using the OMOP vocabulary hierarchy stored in Neo4j.
-Uses IS_A relationships to find ancestor concepts, enabling:
+Provides semantic matching using the OMOP vocabulary hierarchy stored in
+PostgreSQL via the pre-computed concept_ancestor closure table.
+
+Uses the closure table for O(1) ancestor/descendant lookups, enabling:
 - Patient "Type 2 diabetes" matches guideline for "Diabetes mellitus"
 - Patient condition matches calculator criteria via semantic hierarchy
+- Cross-vocabulary mapping via "Maps to" relationships
 
 The OMOP hierarchy includes:
 - 5.65M Concept nodes (SNOMED, ICD10, RxNorm, LOINC, etc.)
-- IS_A relationships for hierarchical reasoning
-- MAPS_TO relationships for cross-vocabulary mapping
+- concept_ancestor closure table for hierarchical reasoning
+- concept_relationship "Maps to" for cross-vocabulary mapping
 """
 
 from __future__ import annotations
@@ -19,6 +22,9 @@ from collections import OrderedDict
 from dataclasses import dataclass, field
 from threading import Lock
 from typing import Any
+
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
@@ -83,8 +89,8 @@ class CacheStats:
 class OMOPHierarchyService:
     """Service for OMOP concept hierarchy operations.
 
-    Uses Neo4j to traverse IS_A relationships for semantic matching.
-    Falls back to string matching when Neo4j is unavailable.
+    Uses PostgreSQL concept_ancestor closure table for O(1) hierarchy lookups.
+    Falls back to string matching when PostgreSQL is unavailable.
     """
 
     def __init__(
@@ -105,7 +111,7 @@ class OMOPHierarchyService:
             cache_max_size: P1-009 - maximum number of entries in each cache
                 (concept cache and ancestor cache independently bounded).
         """
-        self._db_service = None
+        self._engine = None
         self._initialized = False
         self._cache_lock = Lock()
         # P1-008: Strict matching mode
@@ -115,26 +121,35 @@ class OMOPHierarchyService:
         self._cache_max_size = cache_max_size
         self._cache_version = omop_version
         self._concept_cache: OrderedDict[str, list[OMOPConcept]] = OrderedDict()
-        self._ancestor_cache: OrderedDict[int, list[OMOPConcept]] = OrderedDict()
+        self._ancestor_cache: OrderedDict[int, list[tuple[OMOPConcept, int]]] = OrderedDict()
         # P1-009: Cache statistics
         self._cache_hits = 0
         self._cache_misses = 0
 
-    def _get_db_service(self):
-        """Get the graph database service lazily."""
-        if self._db_service is None:
+    def _get_engine(self):
+        """Get the PostgreSQL sync engine lazily."""
+        if self._engine is None:
             try:
-                from app.services.graph_database_service import get_graph_database_service
-                self._db_service = get_graph_database_service()
+                from app.core.database import get_sync_engine
+                self._engine = get_sync_engine()
             except Exception as e:
-                logger.warning(f"Could not initialize Neo4j for hierarchy: {e}")
-        return self._db_service
+                logger.warning(f"Could not get PostgreSQL engine for hierarchy: {e}")
+        return self._engine
 
     @property
     def is_available(self) -> bool:
-        """Check if Neo4j hierarchy is available."""
-        db = self._get_db_service()
-        return db is not None and db.is_connected
+        """Check if PostgreSQL hierarchy (concept_ancestor) is available."""
+        engine = self._get_engine()
+        if engine is None:
+            return False
+        try:
+            with Session(engine) as session:
+                row = session.execute(
+                    text("SELECT 1 FROM omop_concept_ancestor LIMIT 1")
+                ).fetchone()
+                return row is not None
+        except Exception:
+            return False
 
     def find_concepts_by_name(
         self,
@@ -164,57 +179,46 @@ class OMOPHierarchyService:
                 return self._concept_cache[cache_key][:limit]
             self._cache_misses += 1
 
-        db = self._get_db_service()
-        if db is None or not db.is_connected:
+        engine = self._get_engine()
+        if engine is None:
             return []
 
-        # Build Cypher query
-        vocab_filter = ""
-        if vocabulary_ids:
-            vocab_filter = "AND c.vocabulary_id IN $vocabularies"
+        params: dict[str, Any] = {
+            "name": name,
+            "pattern": f"%{name}%",
+            "limit": limit,
+            "no_vocab_filter": vocabulary_ids is None,
+            "no_domain_filter": domain_ids is None,
+            "vocabularies": vocabulary_ids or [],
+            "domains": domain_ids or [],
+        }
 
-        domain_filter = ""
-        if domain_ids:
-            domain_filter = "AND c.domain_id IN $domains"
-
-        # Search for exact and fuzzy matches
-        query = f"""
-        MATCH (c:Concept)
-        WHERE (toLower(c.name) = toLower($name)
-               OR toLower(c.name) CONTAINS toLower($name))
-          AND c.standard_concept IN ['S', 'C']
-          {vocab_filter}
-          {domain_filter}
-        RETURN c.concept_id AS concept_id,
-               c.name AS name,
-               c.vocabulary_id AS vocabulary_id,
-               c.domain_id AS domain_id,
-               c.concept_class_id AS concept_class_id,
-               CASE WHEN toLower(c.name) = toLower($name) THEN 0 ELSE 1 END AS match_order
-        ORDER BY match_order, size(c.name)
-        LIMIT $limit
-        """
+        sql = text("""
+            SELECT concept_id, concept_name, vocabulary_id, domain_id, concept_class_id
+            FROM omop_concept
+            WHERE (LOWER(concept_name) = LOWER(:name) OR concept_name ILIKE :pattern)
+              AND standard_concept IN ('S', 'C')
+              AND (:no_vocab_filter OR vocabulary_id = ANY(:vocabularies))
+              AND (:no_domain_filter OR domain_id = ANY(:domains))
+            ORDER BY
+                CASE WHEN LOWER(concept_name) = LOWER(:name) THEN 0 ELSE 1 END,
+                LENGTH(concept_name)
+            LIMIT :limit
+        """)
 
         try:
-            result = db.execute_read(
-                query,
-                {
-                    "name": name,
-                    "vocabularies": vocabulary_ids or [],
-                    "domains": domain_ids or [],
-                    "limit": limit,
-                },
-            )
+            with Session(engine) as session:
+                rows = session.execute(sql, params).fetchall()
 
             concepts = [
                 OMOPConcept(
-                    concept_id=r["concept_id"],
-                    name=r["name"],
-                    vocabulary_id=r.get("vocabulary_id", ""),
-                    domain_id=r.get("domain_id", ""),
-                    concept_class_id=r.get("concept_class_id", ""),
+                    concept_id=r.concept_id,
+                    name=r.concept_name,
+                    vocabulary_id=r.vocabulary_id or "",
+                    domain_id=r.domain_id or "",
+                    concept_class_id=r.concept_class_id or "",
                 )
-                for r in result.records
+                for r in rows
             ]
 
             # Cache the results (P1-009: bounded LRU)
@@ -239,29 +243,27 @@ class OMOPHierarchyService:
         Returns:
             OMOPConcept if found, None otherwise
         """
-        db = self._get_db_service()
-        if db is None or not db.is_connected:
+        engine = self._get_engine()
+        if engine is None:
             return None
 
-        query = """
-        MATCH (c:Concept {concept_id: $concept_id})
-        RETURN c.concept_id AS concept_id,
-               c.name AS name,
-               c.vocabulary_id AS vocabulary_id,
-               c.domain_id AS domain_id,
-               c.concept_class_id AS concept_class_id
-        """
+        sql = text("""
+            SELECT concept_id, concept_name, vocabulary_id, domain_id, concept_class_id
+            FROM omop_concept
+            WHERE concept_id = :concept_id
+        """)
 
         try:
-            result = db.execute_read(query, {"concept_id": concept_id})
-            if result.records:
-                r = result.records[0]
+            with Session(engine) as session:
+                row = session.execute(sql, {"concept_id": concept_id}).fetchone()
+
+            if row:
                 return OMOPConcept(
-                    concept_id=r["concept_id"],
-                    name=r["name"],
-                    vocabulary_id=r.get("vocabulary_id", ""),
-                    domain_id=r.get("domain_id", ""),
-                    concept_class_id=r.get("concept_class_id", ""),
+                    concept_id=row.concept_id,
+                    name=row.concept_name,
+                    vocabulary_id=row.vocabulary_id or "",
+                    domain_id=row.domain_id or "",
+                    concept_class_id=row.concept_class_id or "",
                 )
             return None
         except Exception as e:
@@ -274,7 +276,7 @@ class OMOPHierarchyService:
         max_distance: int = 5,
         include_self: bool = True,
     ) -> list[tuple[OMOPConcept, int]]:
-        """Get ancestor concepts via IS_A relationships.
+        """Get ancestor concepts via the concept_ancestor closure table.
 
         Args:
             concept_id: Starting concept ID
@@ -285,68 +287,132 @@ class OMOPHierarchyService:
             List of (concept, distance) tuples ordered by distance
         """
         # Check cache (P1-009: LRU with stats)
+        cache_key = concept_id
         with self._cache_lock:
-            if concept_id in self._ancestor_cache:
+            if cache_key in self._ancestor_cache:
                 self._cache_hits += 1
-                self._ancestor_cache.move_to_end(concept_id)
-                cached = self._ancestor_cache[concept_id]
-                result = [(c, i) for i, c in enumerate(cached)]
-                if not include_self and result:
-                    result = result[1:]
-                return result
+                self._ancestor_cache.move_to_end(cache_key)
+                cached = self._ancestor_cache[cache_key]
+                if not include_self:
+                    return [(c, d) for c, d in cached if d > 0]
+                return [
+                    (c, d) for c, d in cached if d <= max_distance
+                ]
             self._cache_misses += 1
 
-        db = self._get_db_service()
-        if db is None or not db.is_connected:
+        engine = self._get_engine()
+        if engine is None:
             return []
 
-        query = """
-        MATCH (c:Concept {concept_id: $concept_id})
-        OPTIONAL MATCH path = (c)-[:IS_A*1..""" + str(max_distance) + """]->(ancestor:Concept)
-        WITH c, ancestor, length(path) AS distance
-        ORDER BY distance
-        RETURN DISTINCT
-            COALESCE(ancestor.concept_id, c.concept_id) AS concept_id,
-            COALESCE(ancestor.name, c.name) AS name,
-            COALESCE(ancestor.vocabulary_id, c.vocabulary_id) AS vocabulary_id,
-            COALESCE(ancestor.domain_id, c.domain_id) AS domain_id,
-            COALESCE(distance, 0) AS distance
-        ORDER BY distance
-        """
+        sql = text("""
+            SELECT c.concept_id, c.concept_name, c.vocabulary_id,
+                   c.domain_id, c.concept_class_id,
+                   ca.min_levels_of_separation AS distance
+            FROM omop_concept_ancestor ca
+            JOIN omop_concept c ON c.concept_id = ca.ancestor_concept_id
+            WHERE ca.descendant_concept_id = :concept_id
+              AND ca.min_levels_of_separation <= :max_distance
+            ORDER BY ca.min_levels_of_separation
+        """)
 
         try:
-            result = db.execute_read(query, {"concept_id": concept_id})
+            with Session(engine) as session:
+                rows = session.execute(
+                    sql, {"concept_id": concept_id, "max_distance": max_distance}
+                ).fetchall()
 
-            ancestors = []
-            seen = set()
-            for r in result.records:
-                cid = r["concept_id"]
+            ancestors: list[tuple[OMOPConcept, int]] = []
+            seen: set[int] = set()
+            for r in rows:
+                cid = r.concept_id
                 if cid in seen:
                     continue
                 seen.add(cid)
-
                 concept = OMOPConcept(
                     concept_id=cid,
-                    name=r["name"],
-                    vocabulary_id=r.get("vocabulary_id", ""),
-                    domain_id=r.get("domain_id", ""),
+                    name=r.concept_name,
+                    vocabulary_id=r.vocabulary_id or "",
+                    domain_id=r.domain_id or "",
+                    concept_class_id=r.concept_class_id or "",
                 )
-                ancestors.append((concept, r["distance"]))
+                ancestors.append((concept, r.distance))
 
             # Cache ancestors (P1-009: bounded LRU)
             with self._cache_lock:
-                self._ancestor_cache[concept_id] = [c for c, _ in ancestors]
-                self._ancestor_cache.move_to_end(concept_id)
+                self._ancestor_cache[cache_key] = ancestors
+                self._ancestor_cache.move_to_end(cache_key)
                 while len(self._ancestor_cache) > self._cache_max_size:
                     self._ancestor_cache.popitem(last=False)
 
-            if not include_self and ancestors:
+            if not include_self:
                 ancestors = [(c, d) for c, d in ancestors if d > 0]
 
             return ancestors
 
         except Exception as e:
             logger.error(f"Error getting ancestors for {concept_id}: {e}")
+            return []
+
+    def get_descendants(
+        self,
+        concept_id: int,
+        max_distance: int = 5,
+        include_self: bool = True,
+    ) -> list[tuple[OMOPConcept, int]]:
+        """Get descendant concepts via the concept_ancestor closure table.
+
+        Args:
+            concept_id: Starting concept ID
+            max_distance: Maximum hierarchy depth to traverse
+            include_self: Include the starting concept in results
+
+        Returns:
+            List of (concept, distance) tuples ordered by distance
+        """
+        engine = self._get_engine()
+        if engine is None:
+            return []
+
+        sql = text("""
+            SELECT c.concept_id, c.concept_name, c.vocabulary_id,
+                   c.domain_id, c.concept_class_id,
+                   ca.min_levels_of_separation AS distance
+            FROM omop_concept_ancestor ca
+            JOIN omop_concept c ON c.concept_id = ca.descendant_concept_id
+            WHERE ca.ancestor_concept_id = :concept_id
+              AND ca.min_levels_of_separation <= :max_distance
+            ORDER BY ca.min_levels_of_separation
+        """)
+
+        try:
+            with Session(engine) as session:
+                rows = session.execute(
+                    sql, {"concept_id": concept_id, "max_distance": max_distance}
+                ).fetchall()
+
+            descendants: list[tuple[OMOPConcept, int]] = []
+            seen: set[int] = set()
+            for r in rows:
+                cid = r.concept_id
+                if cid in seen:
+                    continue
+                seen.add(cid)
+                concept = OMOPConcept(
+                    concept_id=cid,
+                    name=r.concept_name,
+                    vocabulary_id=r.vocabulary_id or "",
+                    domain_id=r.domain_id or "",
+                    concept_class_id=r.concept_class_id or "",
+                )
+                descendants.append((concept, r.distance))
+
+            if not include_self:
+                descendants = [(c, d) for c, d in descendants if d > 0]
+
+            return descendants
+
+        except Exception as e:
+            logger.error(f"Error getting descendants for {concept_id}: {e}")
             return []
 
     def get_ancestor_names(
@@ -376,7 +442,8 @@ class OMOPHierarchyService:
     ) -> HierarchyMatch:
         """Check if patient condition matches target via hierarchy.
 
-        This is the core matching function. It checks:
+        Uses a single bidirectional query against the concept_ancestor closure
+        table for O(1) lookup. Checks:
         1. Exact match (same concept)
         2. Patient condition IS_A target (patient has specific, target is general)
         3. Target IS_A patient condition (less common, target is specific)
@@ -411,41 +478,60 @@ class OMOPHierarchyService:
                 match_quality="exact",
             )
 
-        # Check if target is an ancestor of patient
-        # (Patient has "T2DM", target is "Diabetes" -> match via IS_A)
-        patient_ancestors = self.get_ancestors(
-            patient_concept.concept_id,
-            max_distance=max_distance,
-            include_self=False,
-        )
-
-        for ancestor, distance in patient_ancestors:
-            if ancestor.concept_id == target_concept.concept_id:
-                return HierarchyMatch(
-                    matched=True,
-                    patient_concept=patient_concept,
-                    target_concept=target_concept,
-                    distance=distance,
-                    match_type="ancestor",
-                    match_quality="synonym",
+        # Single bidirectional query against closure table
+        engine = self._get_engine()
+        if engine is not None:
+            sql = text("""
+                SELECT ancestor_concept_id, descendant_concept_id,
+                       min_levels_of_separation
+                FROM omop_concept_ancestor
+                WHERE (
+                    (descendant_concept_id = :patient_id
+                     AND ancestor_concept_id = :target_id)
+                    OR
+                    (descendant_concept_id = :target_id
+                     AND ancestor_concept_id = :patient_id)
                 )
+                AND min_levels_of_separation <= :max_distance
+                AND min_levels_of_separation > 0
+                ORDER BY min_levels_of_separation
+                LIMIT 1
+            """)
 
-        # Check if patient is an ancestor of target (less common)
-        target_ancestors = self.get_ancestors(
-            target_concept.concept_id,
-            max_distance=max_distance,
-            include_self=False,
-        )
+            try:
+                with Session(engine) as session:
+                    row = session.execute(
+                        sql,
+                        {
+                            "patient_id": patient_concept.concept_id,
+                            "target_id": target_concept.concept_id,
+                            "max_distance": max_distance,
+                        },
+                    ).fetchone()
 
-        for ancestor, distance in target_ancestors:
-            if ancestor.concept_id == patient_concept.concept_id:
-                return HierarchyMatch(
-                    matched=True,
-                    patient_concept=patient_concept,
-                    target_concept=target_concept,
-                    distance=distance,
-                    match_type="descendant",
-                    match_quality="synonym",
+                if row:
+                    distance = row.min_levels_of_separation
+                    # Determine direction
+                    if row.descendant_concept_id == patient_concept.concept_id:
+                        match_type = "ancestor"
+                    else:
+                        match_type = "descendant"
+
+                    # Distance-weighted quality
+                    match_quality = self._distance_to_quality(distance)
+
+                    return HierarchyMatch(
+                        matched=True,
+                        patient_concept=patient_concept,
+                        target_concept=target_concept,
+                        distance=distance,
+                        match_type=match_type,
+                        match_quality=match_quality,
+                    )
+            except Exception as e:
+                logger.error(
+                    f"Error checking hierarchy match {patient_condition} "
+                    f"vs {target_condition}: {e}"
                 )
 
         # No hierarchy match
@@ -456,6 +542,22 @@ class OMOPHierarchyService:
             match_type="none",
             match_quality="exact",
         )
+
+    @staticmethod
+    def _distance_to_quality(distance: int) -> str:
+        """Map hierarchy distance to match quality tier.
+
+        Args:
+            distance: Number of hops in the hierarchy
+
+        Returns:
+            Quality tier: "exact", "synonym", or "fuzzy"
+        """
+        if distance == 0:
+            return "exact"
+        if distance <= 2:
+            return "synonym"
+        return "fuzzy"
 
     def expand_condition_names(
         self,
@@ -528,6 +630,10 @@ class OMOPHierarchyService:
     def _resolve_concept(self, condition: str | int) -> OMOPConcept | None:
         """Resolve a condition to an OMOPConcept.
 
+        Searches without domain restriction so the service works for drugs,
+        measurements, procedures, etc. If the initial lookup returns a
+        non-standard concept, chases "Maps to" to find the standard concept.
+
         Args:
             condition: Condition name (str) or concept_id (int)
 
@@ -535,22 +641,70 @@ class OMOPHierarchyService:
             OMOPConcept if found, None otherwise
         """
         if isinstance(condition, int):
-            return self.get_concept_by_id(condition)
+            concept = self.get_concept_by_id(condition)
+            if concept is not None:
+                # Chase "Maps to" for non-standard concepts
+                mapped = self._resolve_via_maps_to(concept.concept_id)
+                if mapped is not None:
+                    return self.get_concept_by_id(mapped)
+            return concept
 
-        # Search by name
-        concepts = self.find_concepts_by_name(
-            condition,
-            domain_ids=["Condition"],
-            limit=1,
-        )
-        return concepts[0] if concepts else None
+        # Search by name — no hard-coded domain filter
+        concepts = self.find_concepts_by_name(condition, limit=1)
+        if not concepts:
+            return None
+
+        concept = concepts[0]
+        # Chase "Maps to" for non-standard concepts
+        mapped = self._resolve_via_maps_to(concept.concept_id)
+        if mapped is not None:
+            return self.get_concept_by_id(mapped)
+        return concept
+
+    def _resolve_via_maps_to(self, concept_id: int) -> int | None:
+        """Follow "Maps to" relationship to find standard concept.
+
+        Returns the target standard concept_id if the source concept maps to
+        a different standard concept, None if already standard or no mapping.
+
+        Args:
+            concept_id: Source concept ID
+
+        Returns:
+            Standard concept_id if mapped, None otherwise
+        """
+        engine = self._get_engine()
+        if engine is None:
+            return None
+
+        sql = text("""
+            SELECT cr.concept_id_2
+            FROM omop_concept_relationship cr
+            JOIN omop_concept c ON c.concept_id = cr.concept_id_2
+            WHERE cr.concept_id_1 = :concept_id
+              AND cr.relationship_id = 'Maps to'
+              AND cr.invalid_reason IS NULL
+              AND c.standard_concept = 'S'
+              AND cr.concept_id_2 != :concept_id
+            LIMIT 1
+        """)
+
+        try:
+            with Session(engine) as session:
+                row = session.execute(sql, {"concept_id": concept_id}).fetchone()
+            if row:
+                return row.concept_id_2
+            return None
+        except Exception as e:
+            logger.warning(f"Error resolving Maps to for {concept_id}: {e}")
+            return None
 
     def _string_fallback_match(
         self,
         patient_condition: str | int,
         target_condition: str | int,
     ) -> HierarchyMatch:
-        """Fallback string matching when Neo4j unavailable.
+        """Fallback string matching when PostgreSQL unavailable.
 
         P1-008: When strict_matching_mode is True, fuzzy/substring fallback
         matching is disabled. Only exact string matches are accepted. Matches
