@@ -107,6 +107,7 @@ interface TypeaheadResponse {
   results: TypeaheadResult[];
   total: number;
   groups: Record<string, number>;
+  domain_counts: Record<string, number>;
 }
 
 // ---------------------------------------------------------------------------
@@ -262,14 +263,16 @@ export default function SearchPage() {
   // Build facet counts from the groups dict returned by the typeahead API
   // ---------------------------------------------------------------------------
   const buildFacets = useCallback(
-    (groups: Record<string, number>, resultList: SearchResult[]): FacetCounts => {
-      const domains: Record<string, number> = {};
+    (groups: Record<string, number>, domainCounts: Record<string, number>, resultList: SearchResult[]): FacetCounts => {
+      // Use API-provided domain counts (more accurate), fall back to client-side tally
+      const domains: Record<string, number> = { ...domainCounts };
       const noteTypes: Record<string, number> = {};
       const patients: Record<string, { name: string; count: number }> = {};
 
-      // Tally from results themselves so the sidebar reflects actual data
+      // Tally note types and patients from results
       for (const r of resultList) {
-        if (r.domain) {
+        // Supplement domain counts from results if API didn't provide them
+        if (r.domain && !domains[r.domain]) {
           domains[r.domain] = (domains[r.domain] ?? 0) + 1;
         }
         if (r.noteType) {
@@ -316,13 +319,8 @@ export default function SearchPage() {
     const t0 = performance.now();
 
     try {
-      // Build type filter from selected domain filters
-      const typeParam = filters.domains.length > 0
-        ? `&types=${filters.domains.map((d) => d.toLowerCase()).join(",")}`
-        : "";
-
       const res = await fetch(
-        `/api/search/typeahead?q=${encodeURIComponent(trimmed)}&limit=20${typeParam}`,
+        `/api/search/typeahead?q=${encodeURIComponent(trimmed)}&limit=50`,
         { signal: controller.signal },
       );
 
@@ -336,7 +334,10 @@ export default function SearchPage() {
       // Map to display model
       let mapped = data.results.map(mapTypeaheadToSearchResult);
 
-      // Apply client-side filters that the typeahead API doesn't support
+      // Apply client-side filters
+      if (filters.domains.length > 0) {
+        mapped = mapped.filter((r) => filters.domains.includes(r.domain));
+      }
       if (filters.noteTypes.length > 0) {
         mapped = mapped.filter((r) => filters.noteTypes.includes(r.noteType));
       }
@@ -347,7 +348,7 @@ export default function SearchPage() {
       setResults(mapped);
       setTotalResults(data.total);
       setSearchTime(elapsed);
-      setFacetCounts(buildFacets(data.groups, mapped));
+      setFacetCounts(buildFacets(data.groups, data.domain_counts || {}, mapped));
 
       // Track recent searches
       setRecentSearches((prev) => {

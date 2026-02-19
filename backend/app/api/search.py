@@ -60,6 +60,10 @@ class TypeaheadResponse(BaseModel):
         default_factory=dict,
         description="Result count by type (patient, concept, document)",
     )
+    domain_counts: dict[str, int] = Field(
+        default_factory=dict,
+        description="Result count by clinical domain (Condition, Drug, etc.)",
+    )
 
 
 @router.get(
@@ -178,11 +182,19 @@ async def typeahead_search(
     results.sort(key=lambda r: r.score, reverse=True)
     results = results[:limit]
 
+    # Compute domain counts from result metadata
+    domain_counts: dict[str, int] = {}
+    for r in results:
+        domain = (r.metadata or {}).get("domain")
+        if domain and isinstance(domain, str):
+            domain_counts[domain] = domain_counts.get(domain, 0) + 1
+
     return TypeaheadResponse(
         query=q,
         results=results,
         total=len(results),
         groups=groups,
+        domain_counts=domain_counts,
     )
 
 

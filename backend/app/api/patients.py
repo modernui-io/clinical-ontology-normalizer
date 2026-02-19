@@ -168,7 +168,7 @@ def list_patients(
             summaries.append(
                 PatientSummary(
                     id=pn.patient_id,
-                    external_id=props.get("mrn", props.get("fhir_id", "")),
+                    external_id=props.get("mrn") or props.get("fhir_id") or "",
                     name=pn.label,
                     gender=props.get("gender", ""),
                     birth_date=props.get("birth_date", ""),
@@ -230,12 +230,12 @@ def get_patient_graph(
     logger.info(f"Getting knowledge graph for patient_id={patient_id} by user={current_user.id}")
 
     with Session(get_sync_engine()) as session:
-        # Direct query for nodes
+        # Query patient-owned nodes first (to check if graph exists)
         node_stmt = select(KGNode).where(KGNode.patient_id == patient_id)
         node_result = session.execute(node_stmt)
-        db_nodes = node_result.scalars().all()
+        db_patient_nodes = node_result.scalars().all()
 
-        if not db_nodes:
+        if not db_patient_nodes:
             # Check if there are any facts we could build from
             facts_exist = (
                 session.execute(
@@ -268,12 +268,31 @@ def get_patient_graph(
 
             # Re-query after building
             node_result = session.execute(node_stmt)
-            db_nodes = node_result.scalars().all()
+            db_patient_nodes = node_result.scalars().all()
 
-        # Direct query for edges
+        # Query edges for this patient
         edge_stmt = select(KGEdge).where(KGEdge.patient_id == patient_id)
         edge_result = session.execute(edge_stmt)
         db_edges = edge_result.scalars().all()
+
+        # Collect all node IDs referenced by edges (includes shared concept nodes)
+        referenced_node_ids = set()
+        for e in db_edges:
+            referenced_node_ids.add(str(e.source_node_id))
+            referenced_node_ids.add(str(e.target_node_id))
+
+        # Also include patient-owned node IDs
+        patient_node_ids = {str(n.id) for n in db_patient_nodes}
+        missing_node_ids = referenced_node_ids - patient_node_ids
+
+        # Fetch shared concept nodes referenced by edges but not owned by patient
+        db_shared_nodes = []
+        if missing_node_ids:
+            shared_stmt = select(KGNode).where(KGNode.id.in_(list(missing_node_ids)))
+            shared_result = session.execute(shared_stmt)
+            db_shared_nodes = shared_result.scalars().all()
+
+        db_nodes = list(db_patient_nodes) + list(db_shared_nodes)
 
         # Convert to schema objects
         nodes = [
