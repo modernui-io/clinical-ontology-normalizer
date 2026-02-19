@@ -222,6 +222,7 @@ next_required_artifacts:
   - `docs/evidence/p2-009/p2-009-go-no-go-table.md` — 6 dimensions assessed: Safety (GO), Uptime/Resilience (CONDITIONAL GO), Data Quality (GO), Clinical Governance (GO), Compliance (CONDITIONAL GO), Infra Readiness (HOLD). Aggregate: pilot CONDITIONAL GO, staging BLOCKED, broad rollout HOLD. Escalation timeline: staging infra 2026-03-02, executive 2026-03-09, signoff expiry 2026-03-16, 30-day review 2026-03-17.
   - Control artifacts updated: execution board ROL-09→done, master backlog P2-009 evidence linked, run log entry appended. Operator: autonomous-agent.
 - 2026-02-17: **Staging provisioning checklist published.** 5-phase runbook covering infrastructure provisioning, secrets/config, deployment, 5 staging drill procedures (OpenEHR round-trip, Redis failover, Neo4j restore, cascade simulation, 30-day signoff review), and post-staging validation. Evidence targets: `docs/evidence/staging/`. Estimated drill duration: ~3 hours sequential. Execution board staging blockers table updated with checklist cross-references. Artifact: `docs/operations/staging_provisioning_checklist.md`. Operator: autonomous-agent.
+- 2026-02-18: KG/Research extension completed in-code: PG-native graph query path added in `backend/app/services/neo4j_query_router.py` + graph augmentation updates in `backend/app/services/graph_augmented_rag.py`; multi-source ingestion stack added for MIMIC/MTSamples/Synthea/research (`backend/app/api/documents/documents_*.py`, `backend/app/jobs/*`, `backend/app/services/*_ingestion.py`, `backend/app/api/research.py`, `backend/app/services/experiment_runner.py`). Tests added/updated: `backend/tests/test_graph_augmented_rag.py`, `backend/tests/test_neo4j_query_router.py`, `backend/tests/test_mimic_api.py`, `backend/tests/test_research_api.py`, `backend/tests/test_research_service.py`, `backend/tests/test_mimic_ingestion.py`. Frontend routes updated under `frontend/src/app/{mimic,datasets,research}`.
 
 ### Final Closure — ROL-08 + ROL-09 (2026-02-17)
 
@@ -268,3 +269,16 @@ next_required_artifacts:
 - No sensitive route/auth changes touched in this step.
 - Commit: `477e793 fix: include shared concept nodes in phenotype evaluation`
 - Operator: autonomous-agent.
+
+### Section C — KG traversal + ingestion expansion (PG-native, no Neo4j route dependency) (2026-02-18)
+
+| Item | Action | Result | Evidence |
+|------|--------|--------|----------|
+| Graph traversal refactor | Replace default Neo4j path dependency with PG-native edge routing in `neo4j_query_router.py` | In progress | `backend/app/services/neo4j_query_router.py`, `backend/app/services/graph_augmented_rag.py` |
+| OMOP relation mapping | Add relation-edge mapping and edge attribute handling for graph path explainability | In progress | `backend/app/services/neo4j_query_router.py`, `backend/app/models/knowledge_graph.py` |
+| Data source ingestion | Add ingestion routes/jobs/services for MIMIC/MTSamples/Synthea/research | In progress | `backend/app/api/documents/documents_mimic.py`, `backend/app/api/documents/documents_mtsamples.py`, `backend/app/api/documents/documents_synthea.py`, `backend/app/api/research.py`, `backend/app/jobs/*`, `backend/app/services/*_ingestion.py` |
+| Test coverage | Add/update regression tests for graph traversal and ingestion APIs | In progress | `backend/tests/test_graph_augmented_rag.py`, `backend/tests/test_neo4j_query_router.py`, `backend/tests/test_mimic_api.py`, `backend/tests/test_research_api.py`, `backend/tests/test_research_service.py`, `backend/tests/test_mimic_ingestion.py` |
+
+- Operator for this section: continuation-operator (handoff target).
+- Status: implementation work added; runtime graph traversal remains PG-only (no Neo4j route dependency in primary path); formal close evidence verification pending.
+- Next step for agents: run targeted suites and update P1-038/P1-039 to done only after test and evidence lock.
