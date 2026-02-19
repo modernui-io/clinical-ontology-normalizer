@@ -123,6 +123,7 @@ from app.api.streaming import router as streaming_router
 from app.api.synthetic import router as synthetic_router
 from app.api.tefca import router as tefca_router
 from app.api.knowledge_graph_fhir import router as knowledge_graph_fhir_router
+from app.api.benchmarks import router as benchmarks_router
 from app.api.kg_benchmark import router as kg_benchmark_router
 from app.api.kg_health import router as kg_health_router
 from app.api.kg_orchestration import router as kg_orchestration_router
@@ -441,6 +442,7 @@ __all__ = [
     "synthetic_router",
     "tefca_router",
     "knowledge_graph_fhir_router",
+    "benchmarks_router",
     "kg_benchmark_router",
     "kg_health_router",
     "kg_orchestration_router",

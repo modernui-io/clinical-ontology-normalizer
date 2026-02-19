@@ -1071,6 +1071,7 @@ function LLMSettingsSection() {
                 { id: "openai", name: "OpenAI", desc: "GPT models" },
                 { id: "google", name: "Google", desc: "Gemini models" },
                 { id: "xai", name: "xAI", desc: "Grok models" },
+                { id: "ollama", name: "Ollama", desc: "Local models (free)" },
               ].map((provider) => (
                 <button
                   key={provider.id}
@@ -1148,10 +1149,12 @@ function LLMSettingsSection() {
                         ? "border-amber-500/50 text-amber-600 bg-amber-500/10"
                         : m.tier === "balanced"
                         ? "border-blue-500/50 text-blue-600 bg-blue-500/10"
+                        : m.tier === "local"
+                        ? "border-purple-500/50 text-purple-600 bg-purple-500/10"
                         : "border-green-500/50 text-green-600 bg-green-500/10"
                     }`}
                   >
-                    {m.tier}
+                    {m.tier}{(m as any).size_gb ? ` (${(m as any).size_gb}GB)` : ""}
                   </span>
                 </button>
               ))}
@@ -1165,7 +1168,19 @@ function LLMSettingsSection() {
             </div>
           </div>
 
-          {/* API Key input */}
+          {/* API Key input — not needed for Ollama (local) */}
+          {selectedProvider === "ollama" ? (
+            <div className="flex items-center gap-3 p-3 rounded-lg border border-purple-500/30 bg-purple-500/5">
+              <Zap className="h-5 w-5 text-purple-600" />
+              <div>
+                <p className="text-sm font-medium">Local inference — no API key needed</p>
+                <p className="text-xs text-muted-foreground">
+                  Ollama runs on your machine. All data stays local, and it&apos;s completely free.
+                  Make sure Ollama is running: <code className="bg-muted px-1 rounded">ollama serve</code>
+                </p>
+              </div>
+            </div>
+          ) : (
           <div className="space-y-2">
             <Label htmlFor="api-key" className="text-sm font-medium">
               API Key{" "}
@@ -1207,6 +1222,7 @@ function LLMSettingsSection() {
               It will be cleared on server restart.
             </p>
           </div>
+          )}
 
           {/* Test result */}
           {testResult && (

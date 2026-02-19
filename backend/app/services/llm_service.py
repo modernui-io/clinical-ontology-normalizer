@@ -40,6 +40,7 @@ class LLMProvider(str, Enum):
     ANTHROPIC = "anthropic"
     GOOGLE = "google"
     XAI = "xai"
+    OLLAMA = "ollama"
 
 
 class LLMModel(str, Enum):
@@ -604,6 +605,111 @@ class _GoogleMarkerClient(BaseLLMClient):
 
 
 # ============================================================================
+# Ollama Client (Local Models)
+# ============================================================================
+
+
+class OllamaClient(BaseLLMClient):
+    """Client for Ollama local model inference.
+
+    Connects to a local Ollama instance (default http://localhost:11434)
+    to run open-source models like medgemma, qwen3, nemotron, etc.
+    No API key required — completely free.
+    """
+
+    def __init__(self, base_url: str = "http://localhost:11434"):
+        self._base_url = base_url.rstrip("/")
+
+    def is_available(self) -> bool:
+        """Check if Ollama is running locally."""
+        try:
+            import httpx
+            resp = httpx.get(f"{self._base_url}/api/tags", timeout=2.0)
+            return resp.status_code == 200
+        except Exception:
+            return False
+
+    async def generate(
+        self,
+        messages: list[LLMMessage],
+        model: str,
+        max_tokens: int,
+        temperature: float,
+        timeout: int,
+    ) -> LLMResponse:
+        """Generate response using local Ollama instance."""
+        import httpx
+
+        start_time = time.perf_counter()
+
+        ollama_messages = [
+            {"role": msg.role, "content": msg.content} for msg in messages
+        ]
+
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            resp = await client.post(
+                f"{self._base_url}/api/chat",
+                json={
+                    "model": model,
+                    "messages": ollama_messages,
+                    "stream": False,
+                    "options": {
+                        "temperature": temperature,
+                        "num_predict": max_tokens,
+                    },
+                },
+            )
+            resp.raise_for_status()
+            data = resp.json()
+
+        latency_ms = (time.perf_counter() - start_time) * 1000
+
+        content = data.get("message", {}).get("content", "")
+
+        # Ollama returns eval_count / prompt_eval_count
+        prompt_tokens = data.get("prompt_eval_count", 0)
+        completion_tokens = data.get("eval_count", 0)
+        token_usage = TokenUsage(
+            prompt_tokens=prompt_tokens,
+            completion_tokens=completion_tokens,
+            total_tokens=prompt_tokens + completion_tokens,
+        )
+
+        return LLMResponse(
+            content=content,
+            model=model,
+            provider=LLMProvider.OLLAMA,
+            token_usage=token_usage,
+            cost_estimate=CostEstimate(),  # Free — local inference
+            latency_ms=round(latency_ms, 2),
+            finish_reason="stop",
+            metadata={"ollama_total_duration": data.get("total_duration", 0)},
+        )
+
+    @staticmethod
+    async def list_models(base_url: str = "http://localhost:11434") -> list[dict]:
+        """List locally installed Ollama models."""
+        import httpx
+
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                resp = await client.get(f"{base_url.rstrip('/')}/api/tags")
+                resp.raise_for_status()
+                data = resp.json()
+                return [
+                    {
+                        "id": m["name"],
+                        "name": m["name"].split(":")[0].replace("/", " / "),
+                        "tier": "local",
+                        "size_gb": round(m.get("size", 0) / 1e9, 1),
+                    }
+                    for m in data.get("models", [])
+                ]
+        except Exception:
+            return []
+
+
+# ============================================================================
 # Main LLM Service
 # ============================================================================
 
@@ -731,6 +837,12 @@ class LLMService:
                 raise ValueError("Google Gemini requires a BYOK API key. Configure one in Settings > AI / LLM.")
             # Return a marker; generate() handles Google directly
             return _GoogleMarkerClient(api_key=byok_key)
+
+        if provider == LLMProvider.OLLAMA:
+            base_url = "http://localhost:11434"
+            if byok and byok.get("ollama_base_url"):
+                base_url = byok["ollama_base_url"]
+            return OllamaClient(base_url=base_url)
 
         raise ValueError(f"Unknown provider: {provider}")
 
@@ -901,6 +1013,8 @@ class LLMService:
             return "gemini-3-flash-preview"
         elif provider == LLMProvider.XAI:
             return "grok-3-mini"
+        elif provider == LLMProvider.OLLAMA:
+            return "qwen3:latest"  # Fast default for local
         return "claude-opus-4-6"
 
     async def generate_chat(
@@ -1041,6 +1155,8 @@ class LLMService:
             available.append(LLMProvider.OPENAI)
         if self._anthropic_client.is_available():
             available.append(LLMProvider.ANTHROPIC)
+        if OllamaClient().is_available():
+            available.append(LLMProvider.OLLAMA)
         return available
 
     def get_stats(self) -> dict[str, Any]:

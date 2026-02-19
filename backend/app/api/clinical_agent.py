@@ -3022,7 +3022,7 @@ Provide a clear, evidence-based answer synthesizing the clinical data, graph rel
         response = await llm.generate(
             prompt=user_prompt,
             system_prompt=system_prompt,
-            provider=LLMProvider.ANTHROPIC,
+            # Uses BYOK config — whatever provider/model is set in Settings > AI / LLM
             model=settings.llm_model,
             max_tokens=1024,
             temperature=0.2,

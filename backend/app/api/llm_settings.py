@@ -82,6 +82,7 @@ class LLMProviderEnum(str, Enum):
     OPENAI = "openai"
     GOOGLE = "google"
     XAI = "xai"
+    OLLAMA = "ollama"
 
 
 PROVIDER_MODELS = {
@@ -113,6 +114,9 @@ PROVIDER_MODELS = {
         {"id": "grok-3", "name": "Grok 3", "tier": "balanced"},
         {"id": "grok-3-mini", "name": "Grok 3 Mini", "tier": "fast"},
     ],
+    # Ollama models are auto-detected from the local instance.
+    # This static list is a fallback; the /models endpoint populates dynamically.
+    "ollama": [],
 }
 
 
@@ -175,7 +179,7 @@ async def get_llm_settings() -> LLMSettingsResponse:
     if settings.openai_api_key or (is_byok and provider == "openai"):
         available.append("openai")
     # Always show all providers as options — user can bring their own key
-    for p in ["anthropic", "openai", "google", "xai"]:
+    for p in ["anthropic", "openai", "google", "xai", "ollama"]:
         if p not in available:
             available.append(p)
 
@@ -202,14 +206,15 @@ async def update_llm_settings(request: LLMSettingsUpdateRequest) -> LLMSettingsR
     """
     global _byok_config
 
-    # Validate model belongs to provider
-    valid_models = [m["id"] for m in PROVIDER_MODELS.get(request.provider.value, [])]
-    if request.model not in valid_models:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Model '{request.model}' is not valid for provider '{request.provider.value}'. "
-                   f"Valid models: {valid_models}",
-        )
+    # Validate model belongs to provider (skip for Ollama — models are local/dynamic)
+    if request.provider != LLMProviderEnum.OLLAMA:
+        valid_models = [m["id"] for m in PROVIDER_MODELS.get(request.provider.value, [])]
+        if request.model not in valid_models:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Model '{request.model}' is not valid for provider '{request.provider.value}'. "
+                       f"Valid models: {valid_models}",
+            )
 
     with _byok_lock:
         if request.api_key:
@@ -243,6 +248,44 @@ async def test_llm_connection(request: LLMTestRequest) -> LLMTestResponse:
 
     Sends a minimal prompt to verify connectivity and key validity.
     """
+    # Ollama doesn't need an API key — test connectivity directly
+    if request.provider == LLMProviderEnum.OLLAMA:
+        start = time.perf_counter()
+        try:
+            from app.services.llm_service import OllamaClient
+            client = OllamaClient()
+            if not client.is_available():
+                return LLMTestResponse(
+                    success=False,
+                    provider="ollama",
+                    model=request.model,
+                    error="Ollama is not running. Start it with: ollama serve",
+                )
+            from app.services.llm_service import LLMMessage
+            resp = await client.generate(
+                messages=[LLMMessage(role="user", content="Say OK")],
+                model=request.model,
+                max_tokens=10,
+                temperature=0.0,
+                timeout=30,
+            )
+            latency_ms = (time.perf_counter() - start) * 1000
+            return LLMTestResponse(
+                success=True,
+                provider="ollama",
+                model=request.model,
+                latency_ms=round(latency_ms, 1),
+            )
+        except Exception as e:
+            latency_ms = (time.perf_counter() - start) * 1000
+            return LLMTestResponse(
+                success=False,
+                provider="ollama",
+                model=request.model,
+                latency_ms=round(latency_ms, 1),
+                error=str(e),
+            )
+
     api_key = request.api_key or _get_active_api_key(request.provider.value)
 
     if not api_key:
@@ -364,5 +407,25 @@ async def clear_byok_config() -> dict:
     summary="Get available models per provider",
 )
 async def get_available_models() -> ModelsResponse:
-    """Return the list of supported models for each provider."""
-    return ModelsResponse(providers=PROVIDER_MODELS)
+    """Return the list of supported models for each provider.
+
+    Ollama models are auto-detected from the local instance.
+    """
+    providers = dict(PROVIDER_MODELS)
+
+    # Auto-detect locally installed Ollama models
+    try:
+        from app.services.llm_service import OllamaClient
+        ollama_models = await OllamaClient.list_models()
+        if ollama_models:
+            providers["ollama"] = ollama_models
+        else:
+            providers["ollama"] = [
+                {"id": "(none installed)", "name": "No models found — run: ollama pull qwen3", "tier": "local"},
+            ]
+    except Exception:
+        providers["ollama"] = [
+            {"id": "(unavailable)", "name": "Ollama not running — start with: ollama serve", "tier": "local"},
+        ]
+
+    return ModelsResponse(providers=providers)

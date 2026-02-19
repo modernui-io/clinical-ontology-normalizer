@@ -79,6 +79,7 @@ from app.api import (
     streaming_router,
     synthetic_router,
     knowledge_graph_fhir_router,
+    benchmarks_router,
     kg_benchmark_router,
     kg_health_router,
     kg_orchestration_router,
@@ -1052,6 +1053,7 @@ api_v1_router.include_router(websocket_router)
 api_v1_router.include_router(streaming_router)
 api_v1_router.include_router(synthetic_router)
 api_v1_router.include_router(knowledge_graph_fhir_router)
+api_v1_router.include_router(benchmarks_router)
 api_v1_router.include_router(kg_benchmark_router)
 api_v1_router.include_router(kg_health_router)
 api_v1_router.include_router(kg_orchestration_router)
