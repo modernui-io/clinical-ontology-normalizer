@@ -9,7 +9,7 @@ from typing import Annotated, Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, status
-from sqlalchemy import func, select, text
+from sqlalchemy import func, or_, select, text
 from sqlalchemy.orm import Session
 
 from app.api.errors import ErrorCode, NotFoundError
@@ -122,8 +122,9 @@ def list_patients(
         )
         fact_counts = {row.patient_id: row.cnt for row in session.execute(fact_counts_q)}
 
-        # ---- node counts per patient ----
-        node_counts_q = (
+        # ---- node counts per patient (includes shared concept nodes via edges) ----
+        # Count patient-owned nodes
+        owned_counts_q = (
             select(
                 KGNode.patient_id,
                 func.count(KGNode.id).label("cnt"),
@@ -132,32 +133,94 @@ def list_patients(
             .where(KGNode.deleted_at.is_(None))
             .group_by(KGNode.patient_id)
         )
-        node_counts = {row.patient_id: row.cnt for row in session.execute(node_counts_q)}
+        node_counts = {row.patient_id: row.cnt for row in session.execute(owned_counts_q)}
 
-        # ---- condition labels per patient (top 5) ----
-        condition_nodes_q = (
+        # Count shared concept nodes connected via edges
+        shared_counts_q = (
+            select(
+                KGEdge.patient_id,
+                func.count(func.distinct(KGNode.id)).label("cnt"),
+            )
+            .join(
+                KGNode,
+                or_(
+                    KGEdge.target_node_id == KGNode.id,
+                    KGEdge.source_node_id == KGNode.id,
+                ),
+            )
+            .where(KGEdge.patient_id.in_(patient_ids))
+            .where(KGNode.patient_id.is_(None))
+            .where(KGNode.deleted_at.is_(None))
+            .group_by(KGEdge.patient_id)
+        )
+        for row in session.execute(shared_counts_q):
+            node_counts[row.patient_id] = node_counts.get(row.patient_id, 0) + row.cnt
+
+        # ---- condition labels per patient (via edges to shared concept nodes, top 5) ----
+        conditions_map: dict[str, list[str]] = {}
+        # First check patient-owned condition nodes
+        owned_cond_q = (
             select(KGNode.patient_id, KGNode.label)
             .where(KGNode.patient_id.in_(patient_ids))
             .where(KGNode.node_type == NodeType.CONDITION.value)
             .where(KGNode.deleted_at.is_(None))
         )
-        conditions_map: dict[str, list[str]] = {}
-        for row in session.execute(condition_nodes_q):
+        for row in session.execute(owned_cond_q):
             conditions_map.setdefault(row.patient_id, []).append(row.label)
-        # Limit to 5
+
+        # Then find shared condition nodes connected via edges
+        shared_cond_q = (
+            select(KGEdge.patient_id, KGNode.label)
+            .join(
+                KGNode,
+                or_(
+                    KGEdge.target_node_id == KGNode.id,
+                    KGEdge.source_node_id == KGNode.id,
+                ),
+            )
+            .where(KGEdge.patient_id.in_(patient_ids))
+            .where(KGNode.patient_id.is_(None))
+            .where(KGNode.node_type == NodeType.CONDITION.value)
+            .where(KGNode.deleted_at.is_(None))
+            .distinct()
+        )
+        for row in session.execute(shared_cond_q):
+            labels = conditions_map.setdefault(row.patient_id, [])
+            if row.label not in labels:
+                labels.append(row.label)
         for pid in conditions_map:
             conditions_map[pid] = conditions_map[pid][:5]
 
-        # ---- drug labels per patient (top 5) ----
-        drug_nodes_q = (
+        # ---- drug labels per patient (via edges to shared concept nodes, top 5) ----
+        drugs_map: dict[str, list[str]] = {}
+        owned_drug_q = (
             select(KGNode.patient_id, KGNode.label)
             .where(KGNode.patient_id.in_(patient_ids))
             .where(KGNode.node_type == NodeType.DRUG.value)
             .where(KGNode.deleted_at.is_(None))
         )
-        drugs_map: dict[str, list[str]] = {}
-        for row in session.execute(drug_nodes_q):
+        for row in session.execute(owned_drug_q):
             drugs_map.setdefault(row.patient_id, []).append(row.label)
+
+        shared_drug_q = (
+            select(KGEdge.patient_id, KGNode.label)
+            .join(
+                KGNode,
+                or_(
+                    KGEdge.target_node_id == KGNode.id,
+                    KGEdge.source_node_id == KGNode.id,
+                ),
+            )
+            .where(KGEdge.patient_id.in_(patient_ids))
+            .where(KGNode.patient_id.is_(None))
+            .where(KGNode.node_type == NodeType.DRUG.value)
+            .where(KGNode.deleted_at.is_(None))
+            .distinct()
+        )
+        for row in session.execute(shared_drug_q):
+            labels = drugs_map.setdefault(row.patient_id, [])
+            if row.label not in labels:
+                labels.append(row.label)
         for pid in drugs_map:
             drugs_map[pid] = drugs_map[pid][:5]
 

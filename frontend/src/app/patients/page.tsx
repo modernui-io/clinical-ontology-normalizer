@@ -41,6 +41,9 @@ import {
   ChevronRight,
   FileText,
   Heart,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 
 const PAGE_SIZE = 20;
@@ -96,9 +99,11 @@ export default function PatientsPage() {
   const [browseError, setBrowseError] = useState<string | null>(null);
   const [dataMode, setDataMode] = useState<"live" | "simulation">("live");
 
-  // Search / filter / pagination
+  // Search / filter / pagination / sort
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortField, setSortField] = useState<"name" | "facts" | "nodes" | "conditions" | "medications">("name");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
   // Load patient list on mount
   useEffect(() => {
@@ -137,19 +142,49 @@ export default function PatientsPage() {
     return () => { cancelled = true; };
   }, [isAuthLoading, isDemo]);
 
-  // Client-side filter
+  // Toggle sort on column click
+  const toggleSort = useCallback((field: typeof sortField) => {
+    if (sortField === field) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortField(field);
+      setSortDir(field === "name" ? "asc" : "desc"); // default desc for numeric
+    }
+  }, [sortField]);
+
+  // Client-side filter + sort
   const filteredPatients = useMemo(() => {
-    if (!searchQuery.trim()) return patients;
-    const q = searchQuery.toLowerCase();
-    return patients.filter(
-      (p) =>
-        p.id.toLowerCase().includes(q) ||
-        (p.name && p.name.toLowerCase().includes(q)) ||
-        (p.external_id && p.external_id.toLowerCase().includes(q)) ||
-        (p.conditions && p.conditions.some((c) => c.toLowerCase().includes(q))) ||
-        (p.medications && p.medications.some((m) => m.toLowerCase().includes(q)))
-    );
-  }, [patients, searchQuery]);
+    let list = patients;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(
+        (p) =>
+          p.id.toLowerCase().includes(q) ||
+          (p.name && p.name.toLowerCase().includes(q)) ||
+          (p.external_id && p.external_id.toLowerCase().includes(q)) ||
+          (p.conditions && p.conditions.some((c) => c.toLowerCase().includes(q))) ||
+          (p.medications && p.medications.some((m) => m.toLowerCase().includes(q)))
+      );
+    }
+    // Sort
+    const dir = sortDir === "asc" ? 1 : -1;
+    return [...list].sort((a, b) => {
+      switch (sortField) {
+        case "name":
+          return dir * formatPatientName(a).localeCompare(formatPatientName(b));
+        case "facts":
+          return dir * ((a.fact_count || 0) - (b.fact_count || 0));
+        case "nodes":
+          return dir * ((a.node_count || 0) - (b.node_count || 0));
+        case "conditions":
+          return dir * ((a.conditions?.length || 0) - (b.conditions?.length || 0));
+        case "medications":
+          return dir * ((a.medications?.length || 0) - (b.medications?.length || 0));
+        default:
+          return 0;
+      }
+    });
+  }, [patients, searchQuery, sortField, sortDir]);
 
   // Pagination
   const totalPages = Math.ceil(filteredPatients.length / PAGE_SIZE);
@@ -316,11 +351,71 @@ export default function PatientsPage() {
                 <Table>
                   <TableHeader>
                     <TableRow className="hover:bg-transparent">
-                      <TableHead className="w-[280px]">Patient</TableHead>
-                      <TableHead>Conditions</TableHead>
-                      <TableHead>Medications</TableHead>
-                      <TableHead className="text-right w-[80px]">Facts</TableHead>
-                      <TableHead className="text-right w-[80px]">Nodes</TableHead>
+                      <TableHead className="w-[280px]">
+                        <button
+                          className="flex items-center gap-1 hover:text-foreground transition-colors"
+                          onClick={() => toggleSort("name")}
+                        >
+                          Patient
+                          {sortField === "name" ? (
+                            sortDir === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                          ) : (
+                            <ArrowUpDown className="h-3 w-3 opacity-30" />
+                          )}
+                        </button>
+                      </TableHead>
+                      <TableHead>
+                        <button
+                          className="flex items-center gap-1 hover:text-foreground transition-colors"
+                          onClick={() => toggleSort("conditions")}
+                        >
+                          Conditions
+                          {sortField === "conditions" ? (
+                            sortDir === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                          ) : (
+                            <ArrowUpDown className="h-3 w-3 opacity-30" />
+                          )}
+                        </button>
+                      </TableHead>
+                      <TableHead>
+                        <button
+                          className="flex items-center gap-1 hover:text-foreground transition-colors"
+                          onClick={() => toggleSort("medications")}
+                        >
+                          Medications
+                          {sortField === "medications" ? (
+                            sortDir === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                          ) : (
+                            <ArrowUpDown className="h-3 w-3 opacity-30" />
+                          )}
+                        </button>
+                      </TableHead>
+                      <TableHead className="text-right w-[80px]">
+                        <button
+                          className="flex items-center gap-1 ml-auto hover:text-foreground transition-colors"
+                          onClick={() => toggleSort("facts")}
+                        >
+                          Facts
+                          {sortField === "facts" ? (
+                            sortDir === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                          ) : (
+                            <ArrowUpDown className="h-3 w-3 opacity-30" />
+                          )}
+                        </button>
+                      </TableHead>
+                      <TableHead className="text-right w-[80px]">
+                        <button
+                          className="flex items-center gap-1 ml-auto hover:text-foreground transition-colors"
+                          onClick={() => toggleSort("nodes")}
+                        >
+                          Nodes
+                          {sortField === "nodes" ? (
+                            sortDir === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                          ) : (
+                            <ArrowUpDown className="h-3 w-3 opacity-30" />
+                          )}
+                        </button>
+                      </TableHead>
                       <TableHead className="w-[100px]"></TableHead>
                     </TableRow>
                   </TableHeader>
