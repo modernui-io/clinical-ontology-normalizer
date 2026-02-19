@@ -549,19 +549,15 @@ def _node_type_to_edge_type(node_type: NodeType) -> EdgeType:
 def _assertion_to_temporality(assertion: str) -> str:
     """Map assertion status to temporality for bi-temporal tracking.
 
-    Temporality values:
-    - current: Entity is currently present/active
-    - past: Entity was present in the past (historical)
-    - ruled_out: Entity has been ruled out (negated)
-    - uncertain: Entity status is uncertain/possible
-    - hypothetical: Hypothetical/conditional entity
+    Must return a valid Temporality enum value (current, past, future).
+    Assertion semantics (negated, possible) are stored separately in edge properties.
     """
     mapping = {
         "PRESENT": "current",
-        "ABSENT": "ruled_out",
-        "POSSIBLE": "uncertain",
-        "CONDITIONAL": "hypothetical",
-        "HYPOTHETICAL": "hypothetical",
+        "ABSENT": "current",       # Negation tracked via assertion in edge properties
+        "POSSIBLE": "current",     # Uncertainty tracked via assertion in edge properties
+        "CONDITIONAL": "future",
+        "HYPOTHETICAL": "future",
         "HISTORICAL": "past",
     }
     return mapping.get(assertion.upper(), "current")
@@ -1591,8 +1587,7 @@ async def _build_patient_knowledge_graph(
                 logger.warning(f"Concept lookup failed for '{entity.text}': {e}")
 
         # Map assertion to temporality for bi-temporal tracking
-        # PRESENT -> current, ABSENT -> ruled_out, POSSIBLE -> uncertain
-        # HISTORICAL -> past (if we add that assertion type)
+        # PRESENT/ABSENT/POSSIBLE -> current, HISTORICAL -> past, CONDITIONAL -> future
         temporality = _assertion_to_temporality(entity.assertion)
 
         # Include assertion in dedup key to track both positive and negative findings
