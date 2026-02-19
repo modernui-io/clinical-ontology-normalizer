@@ -363,7 +363,7 @@ class NarrativeExtractorService:
             return None
 
     def _call_claude(self, prompt: str) -> str | None:
-        """Call Claude API for narrative extraction."""
+        """Call Claude API for narrative extraction (uses streaming)."""
         if not self._claude_client:
             return None
 
@@ -378,13 +378,17 @@ class NarrativeExtractorService:
             pass
 
         try:
-            message = self._claude_client.messages.create(
+            # Use streaming to avoid SDK timeout enforcement
+            chunks: list[str] = []
+            with self._claude_client.messages.stream(
                 model=model,
                 max_tokens=32768,
                 temperature=0.0,
                 messages=[{"role": "user", "content": prompt}],
-            )
-            return message.content[0].text if message.content else None
+            ) as stream:
+                for text in stream.text_stream:
+                    chunks.append(text)
+            return "".join(chunks) if chunks else None
         except Exception as e:
             logger.error(f"Claude narrative extraction failed: {e}")
             return None
@@ -488,6 +492,11 @@ class NarrativeExtractorService:
         if prefer == "claude" and self._claude_available:
             response = self._call_claude(prompt)
             extraction_method = "claude"
+            # Fallback to Ollama if Claude fails
+            if response is None and self._ollama_available:
+                logger.info("Claude failed, falling back to Ollama for narrative extraction")
+                response = self._call_ollama(prompt)
+                extraction_method = "ollama"
         elif self._ollama_available:
             response = self._call_ollama(prompt)
             extraction_method = "ollama"
