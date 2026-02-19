@@ -570,3 +570,59 @@ def reset_kg_cache_service() -> None:
         if _cache_service is not None:
             _cache_service.clear()
         _cache_service = None
+
+
+# ------------------------------------------------------------------
+# Traversal result cache (module-level, TTL-based LRU)
+#
+# Stored here (graph_support) so that both graph_storage (graph_builder_db)
+# and graph_rag (graph_augmented_rag) can import without violating
+# module boundary rules.
+# ------------------------------------------------------------------
+_TRAVERSAL_CACHE: dict[str, tuple[float, list]] = {}  # key -> (expiry_ts, paths)
+_TRAVERSAL_CACHE_TTL = 300  # 5 minutes
+_TRAVERSAL_CACHE_MAX = 100
+
+
+def traversal_cache_key(
+    patient_id: str,
+    start_node_ids: list,
+    query_concept_ids: list,
+    max_hops: int,
+    assertion_mode: str = "full",
+    temporal_mode: str = "full_bitemporal",
+) -> str:
+    """Generate a hash key for traversal cache lookups."""
+    raw = f"{patient_id}:{sorted(str(x) for x in start_node_ids)}:{sorted(str(x) for x in query_concept_ids)}:{max_hops}:{assertion_mode}:{temporal_mode}"
+    return hashlib.sha256(raw.encode()).hexdigest()
+
+
+def traversal_cache_get(key: str) -> list | None:
+    """Get cached traversal paths by key, returning None on miss or expiry."""
+    entry = _TRAVERSAL_CACHE.get(key)
+    if entry is None:
+        return None
+    expiry, paths = entry
+    if time.monotonic() > expiry:
+        _TRAVERSAL_CACHE.pop(key, None)
+        return None
+    return paths
+
+
+def traversal_cache_put(key: str, paths: list) -> None:
+    """Store traversal paths in cache with LRU eviction."""
+    if len(_TRAVERSAL_CACHE) >= _TRAVERSAL_CACHE_MAX:
+        oldest_key = min(_TRAVERSAL_CACHE, key=lambda k: _TRAVERSAL_CACHE[k][0])
+        _TRAVERSAL_CACHE.pop(oldest_key, None)
+    _TRAVERSAL_CACHE[key] = (time.monotonic() + _TRAVERSAL_CACHE_TTL, paths)
+
+
+def invalidate_traversal_cache(patient_id: str | None = None) -> int:
+    """Invalidate traversal cache entries.
+
+    If patient_id given, ideally only that patient's entries would be cleared,
+    but since keys are hashed we clear all (safe; worst case is a few extra misses).
+    """
+    count = len(_TRAVERSAL_CACHE)
+    _TRAVERSAL_CACHE.clear()
+    return count

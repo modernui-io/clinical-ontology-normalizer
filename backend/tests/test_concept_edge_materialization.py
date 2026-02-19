@@ -258,7 +258,7 @@ def _make_execute_interceptor(real_session, mock_rows, *concept_ids):
     def interceptor(self, statement, *args, **kwargs):
         # Check if this is our OMOP lateral rel query
         stmt_str = str(statement)
-        if "omop_concept_relationship" in stmt_str:
+        if "concept_relationships" in stmt_str:
             mock_result = MagicMock()
             mock_result.fetchall.return_value = mock_rows
             return mock_result

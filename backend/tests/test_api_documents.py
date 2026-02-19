@@ -452,6 +452,7 @@ class TestDocumentRetrieval:
         mock_doc.job_id = job_id
         mock_doc.created_at = datetime.now(timezone.utc)
         mock_doc.processed_at = None
+        mock_doc.owner_id = None
 
         # Mock the execute method to return a result with our mock document
         mock_result = MagicMock()
@@ -495,6 +496,7 @@ class TestDocumentRetrieval:
         mock_doc.job_id = job_id
         mock_doc.created_at = datetime.now(timezone.utc)
         mock_doc.processed_at = datetime.now(timezone.utc)
+        mock_doc.owner_id = None
 
         mock_result = MagicMock()
         mock_result.scalar_one_or_none.return_value = mock_doc

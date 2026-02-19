@@ -130,6 +130,8 @@ ABSENT_TRIGGERS: list[AssertionTrigger] = [
     AssertionTrigger("did not have", AssertionCategory.ABSENT, 0.88, TriggerScope.FORWARD),
     AssertionTrigger("no longer has", AssertionCategory.ABSENT, 0.87, TriggerScope.FORWARD),
     AssertionTrigger("cleared", AssertionCategory.ABSENT, 0.85, TriggerScope.BACKWARD),
+    AssertionTrigger("resolved", AssertionCategory.ABSENT, 0.88, TriggerScope.BACKWARD),
+    AssertionTrigger("has resolved", AssertionCategory.ABSENT, 0.89, TriggerScope.BACKWARD),
 ]
 
 UNCERTAIN_TRIGGERS: list[AssertionTrigger] = [
@@ -213,8 +215,6 @@ HISTORICAL_TRIGGERS: list[AssertionTrigger] = [
     AssertionTrigger("previous", AssertionCategory.HISTORICAL, 0.80, TriggerScope.FORWARD),
     AssertionTrigger("prior", AssertionCategory.HISTORICAL, 0.80, TriggerScope.FORWARD),
     AssertionTrigger("former", AssertionCategory.HISTORICAL, 0.85, TriggerScope.FORWARD),
-    AssertionTrigger("resolved", AssertionCategory.HISTORICAL, 0.88, TriggerScope.BACKWARD),
-    AssertionTrigger("has resolved", AssertionCategory.HISTORICAL, 0.89, TriggerScope.BACKWARD),
     AssertionTrigger("remote history", AssertionCategory.HISTORICAL, 0.90, TriggerScope.FORWARD),
     AssertionTrigger("childhood", AssertionCategory.HISTORICAL, 0.75, TriggerScope.FORWARD),
 ]
@@ -464,8 +464,8 @@ class ProbabilisticAssertionClassifier:
                     _CATEGORY_TO_ASSERTION = {
                         AssertionCategory.ABSENT: Assertion.ABSENT,
                         AssertionCategory.UNCERTAIN: Assertion.POSSIBLE,
-                        AssertionCategory.HYPOTHETICAL: Assertion.HYPOTHETICAL,
-                        AssertionCategory.CONDITIONAL: Assertion.CONDITIONAL,
+                        AssertionCategory.HYPOTHETICAL: Assertion.POSSIBLE,
+                        AssertionCategory.CONDITIONAL: Assertion.POSSIBLE,
                         AssertionCategory.FAMILY_HISTORY: Assertion.FAMILY_HISTORY,
                         AssertionCategory.HISTORICAL: Assertion.HISTORICAL,
                         AssertionCategory.PRESENT: Assertion.PRESENT,

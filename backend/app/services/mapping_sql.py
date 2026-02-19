@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import logging
 
-from sqlalchemy import select, func, text, union_all
+from sqlalchemy import or_, select, func, text, union_all
 from sqlalchemy.orm import Session
 
 from app.models.vocabulary import Concept, ConceptSynonym
@@ -193,6 +193,120 @@ class SQLMappingService(BaseMappingService):
                                 seen_ids.add(concept.concept_id)
 
         return candidates
+
+    def batch_map_mentions(
+        self,
+        texts: list[str],
+        domain: Domain | None = None,
+        limit: int = 5,
+    ) -> dict[str, list[ConceptCandidate]]:
+        normalized_map: dict[str, str] = {}
+        unique_texts: list[str] = []
+        for t in texts:
+            norm = self.normalize_text(t)
+            if norm and norm not in normalized_map:
+                normalized_map[norm] = norm
+                unique_texts.append(norm)
+
+        if not unique_texts:
+            return {}
+
+        result: dict[str, list[ConceptCandidate]] = {t: [] for t in unique_texts}
+        seen_ids: dict[str, set[int]] = {t: set() for t in unique_texts}
+
+        domain_filter = None
+        if domain:
+            domain_filter = domain.name.title()
+
+        # Step 1: Exact match on concept_name
+        exact_stmt = select(Concept).where(
+            func.lower(Concept.concept_name).in_(unique_texts)
+        )
+        if domain_filter:
+            exact_stmt = exact_stmt.where(Concept.domain_id == domain_filter)
+        for concept in self._session.execute(exact_stmt).scalars():
+            key = concept.concept_name.lower().strip()
+            for t in unique_texts:
+                if t == key and concept.concept_id not in seen_ids[t] and len(result[t]) < limit:
+                    result[t].append(self._concept_to_candidate(
+                        concept, 1.0, MappingMethod.EXACT, len(result[t]) + 1
+                    ))
+                    seen_ids[t].add(concept.concept_id)
+
+        # Step 2: Synonym match
+        syn_stmt = (
+            select(Concept, ConceptSynonym.concept_synonym_name)
+            .join(ConceptSynonym, Concept.concept_id == ConceptSynonym.concept_id)
+            .where(func.lower(ConceptSynonym.concept_synonym_name).in_(unique_texts))
+        )
+        if domain_filter:
+            syn_stmt = syn_stmt.where(Concept.domain_id == domain_filter)
+        for concept, syn_name in self._session.execute(syn_stmt):
+            key = syn_name.lower().strip()
+            for t in unique_texts:
+                if t == key and concept.concept_id not in seen_ids[t] and len(result[t]) < limit:
+                    result[t].append(self._concept_to_candidate(
+                        concept, 0.95, MappingMethod.EXACT, len(result[t]) + 1
+                    ))
+                    seen_ids[t].add(concept.concept_id)
+
+        # Step 3: Prefix match for texts >= 3 chars
+        texts_needing_prefix = [t for t in unique_texts if len(t) >= 3 and len(result[t]) < limit]
+        if texts_needing_prefix:
+            prefix_conditions = or_(*[
+                func.lower(Concept.concept_name).like(f"{t}%") for t in texts_needing_prefix
+            ])
+            prefix_stmt = select(Concept).where(prefix_conditions)
+            if domain_filter:
+                prefix_stmt = prefix_stmt.where(Concept.domain_id == domain_filter)
+            prefix_stmt = prefix_stmt.limit(limit * len(texts_needing_prefix))
+            for concept in self._session.execute(prefix_stmt).scalars():
+                cn_lower = concept.concept_name.lower()
+                for t in texts_needing_prefix:
+                    if cn_lower.startswith(t) and concept.concept_id not in seen_ids[t] and len(result[t]) < limit:
+                        name_len = len(concept.concept_name)
+                        score = min(0.9, len(t) / name_len + 0.3)
+                        result[t].append(self._concept_to_candidate(
+                            concept, score, MappingMethod.FUZZY, len(result[t]) + 1
+                        ))
+                        seen_ids[t].add(concept.concept_id)
+
+        # Step 4: Word-contains for multi-word texts
+        multi_word_texts = [t for t in unique_texts if " " in t and len(result[t]) < limit]
+        if multi_word_texts:
+            word_map: dict[str, list[str]] = {}
+            unique_main_words: list[str] = []
+            for t in multi_word_texts:
+                words = t.split()
+                if len(words) >= 2:
+                    main_word = max(words, key=len)
+                    if len(main_word) >= 4:
+                        word_map.setdefault(main_word, []).append(t)
+                        if main_word not in word_map or len(word_map[main_word]) == 1:
+                            unique_main_words.append(main_word)
+
+            if unique_main_words:
+                word_conditions = or_(*[
+                    func.lower(Concept.concept_name).contains(w) for w in unique_main_words
+                ])
+                word_stmt = select(Concept).where(word_conditions)
+                if domain_filter:
+                    word_stmt = word_stmt.where(Concept.domain_id == domain_filter)
+                word_stmt = word_stmt.limit(limit * len(multi_word_texts))
+                for concept in self._session.execute(word_stmt).scalars():
+                    cn_lower = concept.concept_name.lower()
+                    for w in unique_main_words:
+                        if w in cn_lower:
+                            for t in word_map[w]:
+                                if concept.concept_id not in seen_ids[t] and len(result[t]) < limit:
+                                    similarity = self.calculate_similarity(t, concept.concept_name)
+                                    if similarity >= 0.3:
+                                        result[t].append(self._concept_to_candidate(
+                                            concept, similarity, MappingMethod.FUZZY, len(result[t]) + 1
+                                        ))
+                                        seen_ids[t].add(concept.concept_id)
+
+        return result
 
     def get_concept_by_id(self, concept_id: int) -> ConceptCandidate | None:
         """Look up a concept by its OMOP concept ID."""

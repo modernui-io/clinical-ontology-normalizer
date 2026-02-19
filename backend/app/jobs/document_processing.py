@@ -206,33 +206,40 @@ def process_document(document_id: str) -> dict:
             mapping_service = get_mapping_service(session)
             candidate_count = 0
 
+            # Handle direct concept mentions first
             for mention in mention_records:
-                # Check if we have a direct concept_id from vocabulary
                 if mention.id in mention_direct_concepts:
                     concept_id, domain = mention_direct_concepts[mention.id]
-                    # Create a high-priority candidate with the direct concept
-                    # Convert domain to lowercase to match database enum
                     concept_candidate = MentionConceptCandidate(
                         mention_id=mention.id,
                         omop_concept_id=concept_id,
-                        concept_name=mention.text,  # Use original text
+                        concept_name=mention.text,
                         concept_code=str(concept_id),
                         vocabulary_id="Direct",
                         domain_id=domain.lower() if domain else "observation",
-                        score=1.0,  # Perfect score for direct match
+                        score=1.0,
                         method="direct",
                         rank=1,
                     )
                     session.add(concept_candidate)
                     candidate_count += 1
-                else:
-                    # Fall back to mapping service
-                    candidates = mapping_service.map_mention(
-                        text=mention.text,
-                        domain=None,  # Allow any domain
-                        limit=5,  # Top 5 candidates per mention
-                    )
 
+            # Batch map all non-direct mentions at once
+            texts_needing_mapping = [
+                mention.text for mention in mention_records
+                if mention.id not in mention_direct_concepts
+            ]
+
+            batch_results = mapping_service.batch_map_mentions(
+                texts=texts_needing_mapping,
+                domain=None,
+                limit=5,
+            )
+
+            for mention in mention_records:
+                if mention.id not in mention_direct_concepts:
+                    normalized_text = mapping_service.normalize_text(mention.text)
+                    candidates = batch_results.get(normalized_text, [])
                     for candidate in candidates:
                         concept_candidate = MentionConceptCandidate(
                             mention_id=mention.id,

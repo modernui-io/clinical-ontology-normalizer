@@ -33,6 +33,13 @@ from app.models.document import Document
 from app.models.knowledge_graph import KGEdge, KGNode
 from app.schemas.knowledge_graph import EdgeType, NodeType
 
+from app.services.kg_cache_service import (
+    invalidate_traversal_cache,
+    traversal_cache_get as _traversal_cache_get,
+    traversal_cache_key as _traversal_cache_key,
+    traversal_cache_put as _traversal_cache_put,
+)
+
 logger = logging.getLogger(__name__)
 
 # Minimum edge confidence for traversal inclusion (Step 4)
@@ -682,6 +689,16 @@ class GraphAugmentedRAGService:
         temporal_mode: str = "full_bitemporal",
     ) -> list[GraphPath]:
         """Traverse graph from starting nodes to find relevant paths (async version)."""
+        # Check traversal cache
+        start_node_ids = [str(n.id) for n in start_nodes]
+        concept_ids = [c.omop_concept_id for c in query_concepts if c.omop_concept_id]
+        cache_key = _traversal_cache_key(
+            patient_id, start_node_ids, concept_ids, max_hops, assertion_mode, temporal_mode,
+        )
+        cached = _traversal_cache_get(cache_key)
+        if cached is not None:
+            return cached[:max_paths]
+
         paths = []
 
         for start_node in start_nodes[:5]:  # Limit starting points
@@ -698,6 +715,7 @@ class GraphAugmentedRAGService:
             if len(paths) >= max_paths:
                 break
 
+        _traversal_cache_put(cache_key, paths[:max_paths])
         return paths[:max_paths]
 
     async def _bfs_traverse_async(
@@ -817,6 +835,16 @@ class GraphAugmentedRAGService:
         both kg_edges and concept_relationships (20M+ vocabulary relationships)
         in a single CTE. Falls back to PG BFS on failure.
         """
+        # Check traversal cache
+        start_node_ids = [str(n.id) for n in start_nodes]
+        concept_ids = [c.omop_concept_id for c in query_concepts if c.omop_concept_id]
+        cache_key = _traversal_cache_key(
+            patient_id, start_node_ids, concept_ids, max_hops, assertion_mode, temporal_mode,
+        )
+        cached = _traversal_cache_get(cache_key)
+        if cached is not None:
+            return cached[:max_paths]
+
         if max_hops >= 2:
             try:
                 from app.services.neo4j_query_router import GraphQueryRouter, MultiHopQuery
@@ -835,7 +863,7 @@ class GraphAugmentedRAGService:
                         min_confidence=MIN_TRAVERSAL_CONFIDENCE,
                     )
                     router_paths = router.execute_multi_hop(query)
-                    return [
+                    result = [
                         GraphPath(
                             nodes=[
                                 {"id": n.node_id, "label": n.label, "type": n.node_type}
@@ -858,6 +886,8 @@ class GraphAugmentedRAGService:
                         )
                         for rp in router_paths
                     ][:max_paths]
+                    _traversal_cache_put(cache_key, result)
+                    return result
             except Exception as e:
                 logger.debug("Query router failed, using PG BFS: %s", e)
 
@@ -877,6 +907,7 @@ class GraphAugmentedRAGService:
             if len(paths) >= max_paths:
                 break
 
+        _traversal_cache_put(cache_key, paths[:max_paths])
         return paths[:max_paths]
 
     def _bfs_traverse(
@@ -1285,30 +1316,61 @@ class GraphAugmentedRAGService:
         patient_id: str,
         query_concepts: list[QueryConcept] | None = None,
     ) -> tuple[list[dict[str, Any]], str]:
-        """Retrieve real patient documents from the database (P1-011, async).
-
-        Returns:
-            Tuple of (documents list, source_retrieval_status).
-        """
+        """Retrieve real patient documents using FTS with Python fallback (async)."""
         try:
+            # Build search terms from query + concepts
+            search_terms = query
+            if query_concepts:
+                concept_texts = [
+                    c.text if isinstance(c, QueryConcept) else str(c)
+                    for c in query_concepts
+                ]
+                search_terms = " ".join([query] + [t for t in concept_texts if t])
+
+            # Try FTS query first
+            try:
+                from sqlalchemy import func as sa_func, text as sa_text
+                fts_query = sa_func.plainto_tsquery("english", search_terms)
+                stmt = (
+                    select(
+                        Document,
+                        sa_func.ts_rank(Document.search_vector, fts_query).label("rank"),
+                    )
+                    .where(Document.patient_id == patient_id)
+                    .where(Document.search_vector.op("@@")(fts_query))
+                    .order_by(sa_text("rank DESC"))
+                    .limit(5)
+                )
+                result = await self._session.execute(stmt)
+                rows = result.all()
+                if rows:
+                    formatted = []
+                    for doc, rank in rows:
+                        content = doc.text[:500] if doc.text else ""
+                        formatted.append({
+                            "source": f"document:{doc.id}",
+                            "source_available": True,
+                            "note_type": doc.note_type,
+                            "patient_id": doc.patient_id,
+                            "content": content,
+                            "relevance_score": round(float(rank), 4),
+                        })
+                    return formatted, SourceRetrievalStatus.FULL
+            except Exception as fts_exc:
+                logger.debug("FTS query failed, falling back to Python scoring: %s", fts_exc)
+
+            # Fallback: load all docs and score in Python
             stmt = select(Document).where(Document.patient_id == patient_id)
             result = await self._session.execute(stmt)
             docs = list(result.scalars().all())
 
             if not docs:
-                logger.info(
-                    "P1-011: No documents found for patient %s", patient_id,
-                )
                 return [], SourceRetrievalStatus.UNAVAILABLE
 
             return self._score_and_format_docs(docs, query, query_concepts)
 
         except Exception as exc:
-            logger.warning(
-                "P1-011: Document retrieval failed for patient %s: %s",
-                patient_id,
-                exc,
-            )
+            logger.warning("Document retrieval failed for patient %s: %s", patient_id, exc)
             return [], SourceRetrievalStatus.UNAVAILABLE
 
     def _retrieve_documents_sync(
@@ -1317,30 +1379,61 @@ class GraphAugmentedRAGService:
         patient_id: str,
         query_concepts: list[QueryConcept] | None = None,
     ) -> tuple[list[dict[str, Any]], str]:
-        """Retrieve real patient documents from the database (P1-011, sync).
-
-        Returns:
-            Tuple of (documents list, source_retrieval_status).
-        """
+        """Retrieve real patient documents using FTS with Python fallback (sync)."""
         try:
+            # Build search terms from query + concepts
+            search_terms = query
+            if query_concepts:
+                concept_texts = [
+                    c.text if isinstance(c, QueryConcept) else str(c)
+                    for c in query_concepts
+                ]
+                search_terms = " ".join([query] + [t for t in concept_texts if t])
+
+            # Try FTS query first
+            try:
+                from sqlalchemy import func as sa_func, text as sa_text
+                fts_query = sa_func.plainto_tsquery("english", search_terms)
+                stmt = (
+                    select(
+                        Document,
+                        sa_func.ts_rank(Document.search_vector, fts_query).label("rank"),
+                    )
+                    .where(Document.patient_id == patient_id)
+                    .where(Document.search_vector.op("@@")(fts_query))
+                    .order_by(sa_text("rank DESC"))
+                    .limit(5)
+                )
+                result = self._session.execute(stmt)
+                rows = result.all()
+                if rows:
+                    formatted = []
+                    for doc, rank in rows:
+                        content = doc.text[:500] if doc.text else ""
+                        formatted.append({
+                            "source": f"document:{doc.id}",
+                            "source_available": True,
+                            "note_type": doc.note_type,
+                            "patient_id": doc.patient_id,
+                            "content": content,
+                            "relevance_score": round(float(rank), 4),
+                        })
+                    return formatted, SourceRetrievalStatus.FULL
+            except Exception as fts_exc:
+                logger.debug("FTS query failed, falling back to Python scoring: %s", fts_exc)
+
+            # Fallback: load all docs and score in Python
             stmt = select(Document).where(Document.patient_id == patient_id)
             result = self._session.execute(stmt)
             docs = list(result.scalars().all())
 
             if not docs:
-                logger.info(
-                    "P1-011: No documents found for patient %s", patient_id,
-                )
                 return [], SourceRetrievalStatus.UNAVAILABLE
 
             return self._score_and_format_docs(docs, query, query_concepts)
 
         except Exception as exc:
-            logger.warning(
-                "P1-011: Document retrieval failed for patient %s: %s",
-                patient_id,
-                exc,
-            )
+            logger.warning("Document retrieval failed for patient %s: %s", patient_id, exc)
             return [], SourceRetrievalStatus.UNAVAILABLE
 
     def _score_and_format_docs(

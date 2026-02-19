@@ -482,6 +482,22 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
         shared_result = self._session.execute(shared_stmt)
         shared_nodes = shared_result.scalars().all()
 
+        # If no shared nodes found via edges (first build for this patient),
+        # preload recent shared concept nodes to avoid per-item SELECTs
+        if not shared_nodes:
+            recent_shared_stmt = (
+                select(KGNode)
+                .where(KGNode.patient_id.is_(None))
+                .where(KGNode.omop_concept_id.isnot(None))
+                .order_by(KGNode.created_at.desc())
+                .limit(500)
+            )
+            recent_shared_result = self._session.execute(recent_shared_stmt)
+            shared_nodes = list(recent_shared_result.scalars().all())
+            logger.debug(
+                f"Primed {len(shared_nodes)} recent shared concept nodes for first-patient build"
+            )
+
         all_nodes = list(patient_nodes) + list(shared_nodes)
 
         for node in all_nodes:
@@ -895,6 +911,13 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
 
         # Sync to Neo4j using batched operations
         self._sync_to_neo4j(patient_id, all_nodes, all_edges)
+
+        # Invalidate traversal cache after graph rebuild
+        try:
+            from app.services.kg_cache_service import invalidate_traversal_cache
+            invalidate_traversal_cache(patient_id)
+        except Exception:
+            pass
 
         return GraphResult(
             patient_id=patient_id,

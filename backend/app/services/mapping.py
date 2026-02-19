@@ -200,6 +200,20 @@ class BaseMappingService(MappingServiceInterface):
         candidates = self.map_mention(text, domain, limit=1)
         return candidates[0] if candidates else None
 
+    def batch_map_mentions(
+        self,
+        texts: list[str],
+        domain: Domain | None = None,
+        limit: int = 5,
+    ) -> dict[str, list[ConceptCandidate]]:
+        """Batch map mentions. Default loops map_mention(); subclasses may optimize."""
+        result: dict[str, list[ConceptCandidate]] = {}
+        for text in texts:
+            normalized = self.normalize_text(text)
+            if normalized not in result:
+                result[normalized] = self.map_mention(text, domain=domain, limit=limit)
+        return result
+
     def get_concept_by_id(
         self,
         concept_id: int,

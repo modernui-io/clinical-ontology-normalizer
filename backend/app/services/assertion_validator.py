@@ -157,8 +157,10 @@ def _map_classifier_result(
     if assertion == Assertion.PRESENT:
         return AssertionExpected.PRESENT.value
     if assertion == Assertion.POSSIBLE:
-        # Distinguish HYPOTHETICAL from POSSIBLE
-        if category == AssertionCategory.HYPOTHETICAL:
+        # Distinguish HYPOTHETICAL from POSSIBLE — both hypothetical and
+        # conditional categories represent non-confirmed future/contingent
+        # findings, mapped to HYPOTHETICAL in the golden-dataset taxonomy.
+        if category in (AssertionCategory.HYPOTHETICAL, AssertionCategory.CONDITIONAL):
             return AssertionExpected.HYPOTHETICAL.value
         return AssertionExpected.POSSIBLE.value
 

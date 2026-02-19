@@ -19,6 +19,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
+from functools import lru_cache
 import json
 import logging
 import os
@@ -903,6 +904,12 @@ class DrugSafetyService:
     and therapeutic class identification.
     """
 
+    def __hash__(self) -> int:
+        return id(self)
+
+    def __eq__(self, other: object) -> bool:
+        return self is other
+
     def __init__(self, use_rxnorm: bool = True) -> None:
         """Initialize the drug safety service.
 
@@ -994,19 +1001,24 @@ class DrugSafetyService:
         lactating: bool = False,
         egfr: float | None = None,
     ) -> SafetyCheckResult:
-        """Check drug safety for a patient.
+        """Check drug safety for a patient."""
+        conditions_key = tuple(sorted(c.lower() for c in patient_conditions)) if patient_conditions else ()
+        return self._check_safety_cached(
+            drug, conditions_key, age, pregnant, lactating, egfr,
+        )
 
-        Args:
-            drug: Drug name (generic or brand)
-            patient_conditions: List of patient conditions/diagnoses
-            age: Patient age in years
-            pregnant: Whether patient is pregnant
-            lactating: Whether patient is lactating
-            egfr: eGFR for renal dosing (mL/min/1.73m2)
-
-        Returns:
-            SafetyCheckResult with safety assessment.
-        """
+    @lru_cache(maxsize=256)
+    def _check_safety_cached(
+        self,
+        drug: str,
+        conditions_key: tuple[str, ...],
+        age: int | None,
+        pregnant: bool,
+        lactating: bool,
+        egfr: float | None,
+    ) -> SafetyCheckResult:
+        """Cached implementation of check_safety."""
+        patient_conditions = list(conditions_key) if conditions_key else None
         profile = self.get_profile(drug)
 
         contraindicated: list[tuple[str, str]] = []
@@ -1154,15 +1166,21 @@ class DrugSafetyService:
         }
 
     def check_interactions(self, drugs: list[str]) -> InteractionCheckResult:
-        """Check for known drug-drug interactions among a list of medications.
+        """Check for known drug-drug interactions among a list of medications."""
+        normalized = tuple(sorted(self.normalize_drug_name(d) for d in drugs))
+        return self._check_interactions_cached(normalized)
+
+    @lru_cache(maxsize=256)
+    def _check_interactions_cached(self, normalized_drugs: tuple[str, ...]) -> InteractionCheckResult:
+        """Cached implementation of check_interactions.
 
         P1-013: Returns coverage_status indicating whether the checked drug
         pairs are in the interaction database.  When DRUG_SAFETY_STRICT_MODE
         is set, uncovered pairs produce an explicit warning.
         """
-        normalized = [self.normalize_drug_name(d) for d in drugs]
-        # Check against both original and normalized names for better matching
-        all_names = [d.lower() for d in drugs] + [n.lower() for n in normalized]
+        normalized = list(normalized_drugs)
+        # Check against normalized names for matching
+        all_names = [n.lower() for n in normalized]
         found: list[DrugInteraction] = []
 
         for interaction_data in KNOWN_INTERACTIONS:

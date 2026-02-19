@@ -7,8 +7,22 @@ from typing import TYPE_CHECKING
 from uuid import UUID
 
 from sqlalchemy import DateTime, Enum, ForeignKey, String, Text
+from sqlalchemy import TypeDecorator
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import TSVECTOR as PG_TSVECTOR
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
+
+
+class TSVECTOR(TypeDecorator):
+    """TSVECTOR type that falls back to Text on non-PostgreSQL backends (e.g. SQLite in tests)."""
+
+    impl = Text
+    cache_ok = True
+
+    def load_dialect_impl(self, dialect):
+        if dialect.name == "postgresql":
+            return dialect.type_descriptor(PG_TSVECTOR())
+        return dialect.type_descriptor(Text())
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base, SoftDeleteMixin
@@ -102,6 +116,11 @@ class Document(SoftDeleteMixin, Base):
         String(500),
         nullable=True,
         doc="URI or ID linking to the external consent record",
+    )
+
+    search_vector: Mapped[str | None] = mapped_column(
+        TSVECTOR,
+        nullable=True,
     )
 
     @property

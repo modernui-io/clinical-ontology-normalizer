@@ -14,6 +14,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
+from functools import lru_cache
 from pathlib import Path
 from threading import Lock
 from typing import Any, TYPE_CHECKING
@@ -717,6 +718,12 @@ class DrugInteractionService:
         result = service.check_interactions(["Coumadin", "Advil"])  # Resolves to warfarin + ibuprofen
     """
 
+    def __hash__(self) -> int:
+        return id(self)
+
+    def __eq__(self, other: object) -> bool:
+        return self is other
+
     def __init__(
         self,
         use_rxnorm: bool = True,
@@ -1155,32 +1162,21 @@ class DrugInteractionService:
         )
 
     def check_interactions(self, drugs: list[str]) -> InteractionCheckResult:
-        """Check for interactions among a list of drugs.
-
-        Uses RxNormService if available to:
-        1. Resolve brand names to generics
-        2. Extract ingredients from combination products
-        3. Check interactions at the ingredient level
-
-        Args:
-            drugs: List of drug names to check.
-
-        Returns:
-            InteractionCheckResult with all found interactions.
-        """
-        # Normalize all drug names and extract ingredients
+        """Check for interactions among a list of drugs."""
+        # Normalize and extract ingredients, then make hashable for cache
         all_ingredients: set[str] = set()
-
         for drug in drugs:
-            # Get ingredients (may return multiple for combination products)
             ingredients = self.get_drug_ingredients(drug)
             all_ingredients.update(ingredients)
-
-        # Also include normalized names for backward compatibility
         normalized = [self.normalize_drug_name(d) for d in drugs]
         all_ingredients.update(normalized)
+        drugs_key = tuple(sorted(all_ingredients))
+        return self._check_interactions_cached(drugs_key)
 
-        unique_drugs = list(all_ingredients)
+    @lru_cache(maxsize=256)
+    def _check_interactions_cached(self, drugs_key: tuple[str, ...]) -> InteractionCheckResult:
+        """Cached implementation of check_interactions."""
+        unique_drugs = list(drugs_key)
 
         interactions_found: list[DrugInteraction] = []
         seen_pairs: set[tuple[str, str]] = set()

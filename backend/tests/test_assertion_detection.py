@@ -320,20 +320,20 @@ class TestConditionalDetection:
     """
 
     def test_if_develops_fever(self) -> None:
-        """'If patient develops fever' -> POSSIBLE (hypothetical)."""
+        """'If patient develops fever' -> POSSIBLE (conditional)."""
         result = _find_and_classify(
             "If patient develops fever, start antibiotics", "fever"
         )
         assert result.assertion == Assertion.POSSIBLE
-        assert result.category == AssertionCategory.HYPOTHETICAL
+        assert result.category == AssertionCategory.CONDITIONAL
 
     def test_should_symptoms_worsen(self) -> None:
-        """'Should symptoms worsen' -> POSSIBLE (hypothetical via 'should')."""
+        """'Should symptoms worsen' -> POSSIBLE (conditional via 'should')."""
         result = _find_and_classify(
             "Should symptoms worsen, return to ED", "symptoms"
         )
         assert result.assertion == Assertion.POSSIBLE
-        assert result.category == AssertionCategory.HYPOTHETICAL
+        assert result.category == AssertionCategory.CONDITIONAL
 
     def test_risk_of_stroke(self) -> None:
         """'Risk of stroke' -> POSSIBLE (hypothetical)."""
