@@ -177,7 +177,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: con-worker
-    command: ["uv", "run", "rq", "worker", "--url", "redis://:${REDIS_PASSWORD:?required}@redis:6379/0", "document_processing", "default"]
+    command: ["uv", "run", "rq", "worker", "--url", "redis://:${REDIS_PASSWORD:?required}@redis:6379/0", "document_processing", "graph_building", "default"]
     depends_on:
       postgres:
         condition: service_healthy

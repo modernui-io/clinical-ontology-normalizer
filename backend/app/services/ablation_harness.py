@@ -296,6 +296,7 @@ class AblationHarness:
         run_id: str | None = None,
         use_llm_judge: bool = False,
         condition_ids: list[str] | None = None,
+        ollama_base_url: str = "http://localhost:11434",
     ) -> AblationResult:
         """Run the full 5-condition ablation.
 
@@ -341,6 +342,7 @@ class AblationHarness:
                 retrieval_mode=cond_def["retrieval_mode"],
                 llm_model=llm_model,
                 llm_provider=llm_provider,
+                ollama_base_url=ollama_base_url,
                 raw_note_only=cond_def.get("raw_note_only", False),
                 calculator_enabled=cond_def.get("calculator_enabled", False),
                 guidelines_enabled=cond_def.get("guidelines_enabled", False),

@@ -1,0 +1,2520 @@
+{
+  "task": "task_d_fusion",
+  "version": "1.0.0",
+  "questions": [
+    {
+      "question_id": "bench_d_vital_note_35f64cbf",
+      "task": "task_d_fusion",
+      "subtype": "vital_note",
+      "question": "Are the vital signs consistent with the clinical picture described in the note?",
+      "expected_answer": "Multi-source analysis required. Patient has 22 Vital Signs mentions and 64 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10001401,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10001401: 22 Vital Signs mentions, 64 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Vital Signs",
+          "Hospital Course"
+        ],
+        "target_mentions": 22,
+        "narrative_mentions": 64
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_vital_note_8205d0e8",
+      "task": "task_d_fusion",
+      "subtype": "vital_note",
+      "question": "Are the vital signs consistent with the clinical picture described in the note?",
+      "expected_answer": "Multi-source analysis required. Patient has 2 Vital Signs mentions and 48 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10004235,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10004235: 2 Vital Signs mentions, 48 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Vital Signs",
+          "Hospital Course"
+        ],
+        "target_mentions": 2,
+        "narrative_mentions": 48
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_vital_note_6ec0257c",
+      "task": "task_d_fusion",
+      "subtype": "vital_note",
+      "question": "Are the vital signs consistent with the clinical picture described in the note?",
+      "expected_answer": "Multi-source analysis required. Patient has 63 Physical Exam mentions and 151 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10000935,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000935: 63 Physical Exam mentions, 151 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Physical Exam",
+          "Hospital Course"
+        ],
+        "target_mentions": 63,
+        "narrative_mentions": 151
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_vital_note_219a5186",
+      "task": "task_d_fusion",
+      "subtype": "vital_note",
+      "question": "What vital sign abnormalities are documented, and how do they relate to the clinical findings?",
+      "expected_answer": "Multi-source analysis required. Patient has 14 Physical Exam mentions and 36 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10001217,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10001217: 14 Physical Exam mentions, 36 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Physical Exam",
+          "Hospital Course"
+        ],
+        "target_mentions": 14,
+        "narrative_mentions": 36
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_vital_note_2aa26563",
+      "task": "task_d_fusion",
+      "subtype": "vital_note",
+      "question": "What vital sign abnormalities are documented, and how do they relate to the clinical findings?",
+      "expected_answer": "Multi-source analysis required. Patient has 92 Physical Exam mentions and 88 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10000980,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000980: 92 Physical Exam mentions, 88 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Physical Exam",
+          "Hospital Course"
+        ],
+        "target_mentions": 92,
+        "narrative_mentions": 88
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_vital_note_ef1a6fa2",
+      "task": "task_d_fusion",
+      "subtype": "vital_note",
+      "question": "What vital sign abnormalities are documented, and how do they relate to the clinical findings?",
+      "expected_answer": "Multi-source analysis required. Patient has 15 Vital Signs mentions and 153 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10006029,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10006029: 15 Vital Signs mentions, 153 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Vital Signs",
+          "Hospital Course"
+        ],
+        "target_mentions": 15,
+        "narrative_mentions": 153
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_vital_note_1303c975",
+      "task": "task_d_fusion",
+      "subtype": "vital_note",
+      "question": "Are the vital signs consistent with the clinical picture described in the note?",
+      "expected_answer": "Multi-source analysis required. Patient has 55 Vital Signs mentions and 24 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10002769,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10002769: 55 Vital Signs mentions, 24 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Vital Signs",
+          "Hospital Course"
+        ],
+        "target_mentions": 55,
+        "narrative_mentions": 24
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_lab_note_29e99869",
+      "task": "task_d_fusion",
+      "subtype": "lab_note",
+      "question": "Are the laboratory results consistent with the clinical narrative for this patient?",
+      "expected_answer": "Multi-source analysis required. Patient has 47 Labs mentions and 94 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10005866,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10005866: 47 Labs mentions, 94 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Labs",
+          "Hospital Course"
+        ],
+        "target_mentions": 47,
+        "narrative_mentions": 94
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_lab_note_9f63df27",
+      "task": "task_d_fusion",
+      "subtype": "lab_note",
+      "question": "What lab results are relevant to the clinical findings described in the note?",
+      "expected_answer": "Multi-source analysis required. Patient has 53 Labs mentions and 49 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10002131,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10002131: 53 Labs mentions, 49 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Labs",
+          "Hospital Course"
+        ],
+        "target_mentions": 53,
+        "narrative_mentions": 49
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_lab_note_f4afbe52",
+      "task": "task_d_fusion",
+      "subtype": "lab_note",
+      "question": "Do the lab values mentioned in the note align with the clinical assessment?",
+      "expected_answer": "Multi-source analysis required. Patient has 39 Labs mentions and 79 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10005817,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10005817: 39 Labs mentions, 79 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Labs",
+          "Hospital Course"
+        ],
+        "target_mentions": 39,
+        "narrative_mentions": 79
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_lab_note_48f9e622",
+      "task": "task_d_fusion",
+      "subtype": "lab_note",
+      "question": "What lab results are relevant to the clinical findings described in the note?",
+      "expected_answer": "Multi-source analysis required. Patient has 56 Labs mentions and 165 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10004322,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10004322: 56 Labs mentions, 165 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Labs",
+          "Hospital Course"
+        ],
+        "target_mentions": 56,
+        "narrative_mentions": 165
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_lab_note_197d0524",
+      "task": "task_d_fusion",
+      "subtype": "lab_note",
+      "question": "Do the lab values mentioned in the note align with the clinical assessment?",
+      "expected_answer": "Multi-source analysis required. Patient has 81 Labs mentions and 181 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10003637,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10003637: 81 Labs mentions, 181 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Labs",
+          "Hospital Course"
+        ],
+        "target_mentions": 81,
+        "narrative_mentions": 181
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_disc_5cf55444",
+      "task": "task_d_fusion",
+      "subtype": "cross_note_discordance",
+      "question": "What information changed or differs between the patient's two admission records?",
+      "expected_answer": "Discordance detected for confusion: assertions vary ({, p, r, e, s, e, n, t, ,, a, b, s, e, n, t, }) across 2 documents. The system should identify and explain this discrepancy.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000032: confusion has varying assertions ({, p, r, e, s, e, n, t, ,, a, b, s, e, n, t, }) across 2 documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "discordance_detection": 0.5,
+        "explanation": 0.5
+      },
+      "metadata": {
+        "discordant_concept": "confusion",
+        "assertions": [
+          "{",
+          "p",
+          "r",
+          "e",
+          "s",
+          "e",
+          "n",
+          "t",
+          ",",
+          "a",
+          "b",
+          "s",
+          "e",
+          "n",
+          "t",
+          "}"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_disc_0909b4bd",
+      "task": "task_d_fusion",
+      "subtype": "cross_note_discordance",
+      "question": "What information changed or differs between the patient's two admission records?",
+      "expected_answer": "Discordance detected for low Na: assertions vary ({, p, o, s, s, i, b, l, e, }) across 2 documents. The system should identify and explain this discrepancy.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000032: low Na has varying assertions ({, p, o, s, s, i, b, l, e, }) across 2 documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "discordance_detection": 0.5,
+        "explanation": 0.5
+      },
+      "metadata": {
+        "discordant_concept": "low Na",
+        "assertions": [
+          "{",
+          "p",
+          "o",
+          "s",
+          "s",
+          "i",
+          "b",
+          "l",
+          "e",
+          "}"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_temporal_e67c3859",
+      "task": "task_d_fusion",
+      "subtype": "temporal_fusion",
+      "question": "How do the findings from both admissions combine to tell the patient's clinical story?",
+      "expected_answer": "Temporal fusion required across 2 admissions. Compare diagnoses, medications, and clinical trajectory.",
+      "mimic_subject_id": 10002221,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10002221: 2 admission documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_integration": 0.6,
+        "accuracy": 0.4
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_vital_note_ea9c926b",
+      "task": "task_d_fusion",
+      "subtype": "vital_note",
+      "question": "Are the vital signs consistent with the clinical picture described in the note?",
+      "expected_answer": "Multi-source analysis required. Patient has 8 Vital Signs mentions and 79 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10005817,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10005817: 8 Vital Signs mentions, 79 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Vital Signs",
+          "Hospital Course"
+        ],
+        "target_mentions": 8,
+        "narrative_mentions": 79
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_lab_note_5c574386",
+      "task": "task_d_fusion",
+      "subtype": "lab_note",
+      "question": "Do the lab values mentioned in the note align with the clinical assessment?",
+      "expected_answer": "Multi-source analysis required. Patient has 17 Medications mentions and 64 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10001401,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10001401: 17 Medications mentions, 64 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Medications",
+          "Hospital Course"
+        ],
+        "target_mentions": 17,
+        "narrative_mentions": 64
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_disc_c73f797e",
+      "task": "task_d_fusion",
+      "subtype": "cross_note_discordance",
+      "question": "Are there any discrepancies between the two discharge summaries for this patient?",
+      "expected_answer": "Discordance detected for ascites: assertions vary ({, p, r, e, s, e, n, t, }) across 2 documents. The system should identify and explain this discrepancy.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000032: ascites has varying assertions ({, p, r, e, s, e, n, t, }) across 2 documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "discordance_detection": 0.5,
+        "explanation": 0.5
+      },
+      "metadata": {
+        "discordant_concept": "ascites",
+        "assertions": [
+          "{",
+          "p",
+          "r",
+          "e",
+          "s",
+          "e",
+          "n",
+          "t",
+          "}"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_temporal_f9f82458",
+      "task": "task_d_fusion",
+      "subtype": "temporal_fusion",
+      "question": "What is the clinical trajectory across the patient's two hospital admissions?",
+      "expected_answer": "Temporal fusion required across 2 admissions. Compare diagnoses, medications, and clinical trajectory.",
+      "mimic_subject_id": 10004749,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10004749: 2 admission documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_integration": 0.6,
+        "accuracy": 0.4
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_disc_0f311857",
+      "task": "task_d_fusion",
+      "subtype": "cross_note_discordance",
+      "question": "Are there any discrepancies between the two discharge summaries for this patient?",
+      "expected_answer": "Discordance detected for fever: assertions vary ({, p, r, e, s, e, n, t, ,, a, b, s, e, n, t, }) across 2 documents. The system should identify and explain this discrepancy.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000032: fever has varying assertions ({, p, r, e, s, e, n, t, ,, a, b, s, e, n, t, }) across 2 documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "discordance_detection": 0.5,
+        "explanation": 0.5
+      },
+      "metadata": {
+        "discordant_concept": "fever",
+        "assertions": [
+          "{",
+          "p",
+          "r",
+          "e",
+          "s",
+          "e",
+          "n",
+          "t",
+          ",",
+          "a",
+          "b",
+          "s",
+          "e",
+          "n",
+          "t",
+          "}"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_lab_note_04c4d5ff",
+      "task": "task_d_fusion",
+      "subtype": "lab_note",
+      "question": "Do the lab values mentioned in the note align with the clinical assessment?",
+      "expected_answer": "Multi-source analysis required. Patient has 18 Labs mentions and 10 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10002800,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10002800: 18 Labs mentions, 10 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Labs",
+          "Hospital Course"
+        ],
+        "target_mentions": 18,
+        "narrative_mentions": 10
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_temporal_60664c41",
+      "task": "task_d_fusion",
+      "subtype": "temporal_fusion",
+      "question": "What is the clinical trajectory across the patient's two hospital admissions?",
+      "expected_answer": "Temporal fusion required across 2 admissions. Compare diagnoses, medications, and clinical trajectory.",
+      "mimic_subject_id": 10005348,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10005348: 2 admission documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_integration": 0.6,
+        "accuracy": 0.4
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_lab_note_c21bf459",
+      "task": "task_d_fusion",
+      "subtype": "lab_note",
+      "question": "Do the lab values mentioned in the note align with the clinical assessment?",
+      "expected_answer": "Multi-source analysis required. Patient has 52 Medications mentions and 20 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10001186,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10001186: 52 Medications mentions, 20 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Medications",
+          "Hospital Course"
+        ],
+        "target_mentions": 52,
+        "narrative_mentions": 20
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_vital_note_b31b5077",
+      "task": "task_d_fusion",
+      "subtype": "vital_note",
+      "question": "What vital sign abnormalities are documented, and how do they relate to the clinical findings?",
+      "expected_answer": "Multi-source analysis required. Patient has 48 Physical Exam mentions and 40 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10000826,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000826: 48 Physical Exam mentions, 40 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Physical Exam",
+          "Hospital Course"
+        ],
+        "target_mentions": 48,
+        "narrative_mentions": 40
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_lab_note_d971f492",
+      "task": "task_d_fusion",
+      "subtype": "lab_note",
+      "question": "What lab results are relevant to the clinical findings described in the note?",
+      "expected_answer": "Multi-source analysis required. Patient has 28 Medications mentions and 151 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10000935,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000935: 28 Medications mentions, 151 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Medications",
+          "Hospital Course"
+        ],
+        "target_mentions": 28,
+        "narrative_mentions": 151
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_disc_11ba0408",
+      "task": "task_d_fusion",
+      "subtype": "cross_note_discordance",
+      "question": "Are there any discrepancies between the two discharge summaries for this patient?",
+      "expected_answer": "Discordance detected for cirrhosis: assertions vary ({, p, r, e, s, e, n, t, }) across 2 documents. The system should identify and explain this discrepancy.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000032: cirrhosis has varying assertions ({, p, r, e, s, e, n, t, }) across 2 documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "discordance_detection": 0.5,
+        "explanation": 0.5
+      },
+      "metadata": {
+        "discordant_concept": "cirrhosis",
+        "assertions": [
+          "{",
+          "p",
+          "r",
+          "e",
+          "s",
+          "e",
+          "n",
+          "t",
+          "}"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_vital_note_05fded68",
+      "task": "task_d_fusion",
+      "subtype": "vital_note",
+      "question": "What vital sign abnormalities are documented, and how do they relate to the clinical findings?",
+      "expected_answer": "Multi-source analysis required. Patient has 19 Vital Signs mentions and 181 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10003637,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10003637: 19 Vital Signs mentions, 181 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Vital Signs",
+          "Hospital Course"
+        ],
+        "target_mentions": 19,
+        "narrative_mentions": 181
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_disc_c3660f1f",
+      "task": "task_d_fusion",
+      "subtype": "cross_note_discordance",
+      "question": "Are there any discrepancies between the two discharge summaries for this patient?",
+      "expected_answer": "Discordance detected for HCV: assertions vary ({, p, r, e, s, e, n, t, }) across 2 documents. The system should identify and explain this discrepancy.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000032: HCV has varying assertions ({, p, r, e, s, e, n, t, }) across 2 documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "discordance_detection": 0.5,
+        "explanation": 0.5
+      },
+      "metadata": {
+        "discordant_concept": "HCV",
+        "assertions": [
+          "{",
+          "p",
+          "r",
+          "e",
+          "s",
+          "e",
+          "n",
+          "t",
+          "}"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_lab_note_2fcc302f",
+      "task": "task_d_fusion",
+      "subtype": "lab_note",
+      "question": "Are the laboratory results consistent with the clinical narrative for this patient?",
+      "expected_answer": "Multi-source analysis required. Patient has 11 Medications mentions and 29 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10001338,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10001338: 11 Medications mentions, 29 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Medications",
+          "Hospital Course"
+        ],
+        "target_mentions": 11,
+        "narrative_mentions": 29
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_lab_note_04f03cee",
+      "task": "task_d_fusion",
+      "subtype": "lab_note",
+      "question": "Are the laboratory results consistent with the clinical narrative for this patient?",
+      "expected_answer": "Multi-source analysis required. Patient has 27 Labs mentions and 29 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10004749,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10004749: 27 Labs mentions, 29 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Labs",
+          "Hospital Course"
+        ],
+        "target_mentions": 27,
+        "narrative_mentions": 29
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_temporal_6147af5e",
+      "task": "task_d_fusion",
+      "subtype": "temporal_fusion",
+      "question": "How do the findings from both admissions combine to tell the patient's clinical story?",
+      "expected_answer": "Temporal fusion required across 2 admissions. Compare diagnoses, medications, and clinical trajectory.",
+      "mimic_subject_id": 10004235,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10004235: 2 admission documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_integration": 0.6,
+        "accuracy": 0.4
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_lab_note_9d45cf8d",
+      "task": "task_d_fusion",
+      "subtype": "lab_note",
+      "question": "Do the lab values mentioned in the note align with the clinical assessment?",
+      "expected_answer": "Multi-source analysis required. Patient has 21 Labs mentions and 60 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10005991,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10005991: 21 Labs mentions, 60 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Labs",
+          "Hospital Course"
+        ],
+        "target_mentions": 21,
+        "narrative_mentions": 60
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_disc_ae299bfb",
+      "task": "task_d_fusion",
+      "subtype": "cross_note_discordance",
+      "question": "What information changed or differs between the patient's two admission records?",
+      "expected_answer": "Discordance detected for HTN: assertions vary ({, p, r, e, s, e, n, t, }) across 2 documents. The system should identify and explain this discrepancy.",
+      "mimic_subject_id": 10000117,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000117: HTN has varying assertions ({, p, r, e, s, e, n, t, }) across 2 documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "discordance_detection": 0.5,
+        "explanation": 0.5
+      },
+      "metadata": {
+        "discordant_concept": "HTN",
+        "assertions": [
+          "{",
+          "p",
+          "r",
+          "e",
+          "s",
+          "e",
+          "n",
+          "t",
+          "}"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_lab_note_e890e661",
+      "task": "task_d_fusion",
+      "subtype": "lab_note",
+      "question": "Are the laboratory results consistent with the clinical narrative for this patient?",
+      "expected_answer": "Multi-source analysis required. Patient has 32 Labs mentions and 151 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10000935,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000935: 32 Labs mentions, 151 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Labs",
+          "Hospital Course"
+        ],
+        "target_mentions": 32,
+        "narrative_mentions": 151
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_disc_e420e42a",
+      "task": "task_d_fusion",
+      "subtype": "cross_note_discordance",
+      "question": "What information changed or differs between the patient's two admission records?",
+      "expected_answer": "Discordance detected for Bipolar: assertions vary ({, p, r, e, s, e, n, t, }) across 2 documents. The system should identify and explain this discrepancy.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000032: Bipolar has varying assertions ({, p, r, e, s, e, n, t, }) across 2 documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "discordance_detection": 0.5,
+        "explanation": 0.5
+      },
+      "metadata": {
+        "discordant_concept": "Bipolar",
+        "assertions": [
+          "{",
+          "p",
+          "r",
+          "e",
+          "s",
+          "e",
+          "n",
+          "t",
+          "}"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_vital_note_94c5250b",
+      "task": "task_d_fusion",
+      "subtype": "vital_note",
+      "question": "What vital sign abnormalities are documented, and how do they relate to the clinical findings?",
+      "expected_answer": "Multi-source analysis required. Patient has 32 Vital Signs mentions and 34 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10002930,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10002930: 32 Vital Signs mentions, 34 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Vital Signs",
+          "Hospital Course"
+        ],
+        "target_mentions": 32,
+        "narrative_mentions": 34
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_temporal_4bbee740",
+      "task": "task_d_fusion",
+      "subtype": "temporal_fusion",
+      "question": "What is the clinical trajectory across the patient's two hospital admissions?",
+      "expected_answer": "Temporal fusion required across 2 admissions. Compare diagnoses, medications, and clinical trajectory.",
+      "mimic_subject_id": 10002930,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10002930: 2 admission documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_integration": 0.6,
+        "accuracy": 0.4
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_lab_note_95162b8a",
+      "task": "task_d_fusion",
+      "subtype": "lab_note",
+      "question": "Do the lab values mentioned in the note align with the clinical assessment?",
+      "expected_answer": "Multi-source analysis required. Patient has 27 Labs mentions and 64 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10001401,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10001401: 27 Labs mentions, 64 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Labs",
+          "Hospital Course"
+        ],
+        "target_mentions": 27,
+        "narrative_mentions": 64
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_vital_note_8fada8f1",
+      "task": "task_d_fusion",
+      "subtype": "vital_note",
+      "question": "What vital sign abnormalities are documented, and how do they relate to the clinical findings?",
+      "expected_answer": "Multi-source analysis required. Patient has 10 Vital Signs mentions and 30 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10002528,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10002528: 10 Vital Signs mentions, 30 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Vital Signs",
+          "Hospital Course"
+        ],
+        "target_mentions": 10,
+        "narrative_mentions": 30
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_disc_f2aa8d91",
+      "task": "task_d_fusion",
+      "subtype": "cross_note_discordance",
+      "question": "Are there any discrepancies between the two discharge summaries for this patient?",
+      "expected_answer": "Discordance detected for Allergies: assertions vary ({, p, r, e, s, e, n, t, }) across 2 documents. The system should identify and explain this discrepancy.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000032: Allergies has varying assertions ({, p, r, e, s, e, n, t, }) across 2 documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "discordance_detection": 0.5,
+        "explanation": 0.5
+      },
+      "metadata": {
+        "discordant_concept": "Allergies",
+        "assertions": [
+          "{",
+          "p",
+          "r",
+          "e",
+          "s",
+          "e",
+          "n",
+          "t",
+          "}"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_vital_note_5f7dda4e",
+      "task": "task_d_fusion",
+      "subtype": "vital_note",
+      "question": "What vital sign abnormalities are documented, and how do they relate to the clinical findings?",
+      "expected_answer": "Multi-source analysis required. Patient has 7 Vital Signs mentions and 165 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10004322,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10004322: 7 Vital Signs mentions, 165 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Vital Signs",
+          "Hospital Course"
+        ],
+        "target_mentions": 7,
+        "narrative_mentions": 165
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_vital_note_e5b79275",
+      "task": "task_d_fusion",
+      "subtype": "vital_note",
+      "question": "Are the vital signs consistent with the clinical picture described in the note?",
+      "expected_answer": "Multi-source analysis required. Patient has 26 Physical Exam mentions and 13 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10000117,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000117: 26 Physical Exam mentions, 13 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Physical Exam",
+          "Hospital Course"
+        ],
+        "target_mentions": 26,
+        "narrative_mentions": 13
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_lab_note_6a066643",
+      "task": "task_d_fusion",
+      "subtype": "lab_note",
+      "question": "Are the laboratory results consistent with the clinical narrative for this patient?",
+      "expected_answer": "Multi-source analysis required. Patient has 5 Labs mentions and 10 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10002167,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10002167: 5 Labs mentions, 10 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Labs",
+          "Hospital Course"
+        ],
+        "target_mentions": 5,
+        "narrative_mentions": 10
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_vital_note_9a7960e6",
+      "task": "task_d_fusion",
+      "subtype": "vital_note",
+      "question": "What vital sign abnormalities are documented, and how do they relate to the clinical findings?",
+      "expected_answer": "Multi-source analysis required. Patient has 40 Vital Signs mentions and 94 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10005866,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10005866: 40 Vital Signs mentions, 94 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Vital Signs",
+          "Hospital Course"
+        ],
+        "target_mentions": 40,
+        "narrative_mentions": 94
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_lab_note_7e9f7930",
+      "task": "task_d_fusion",
+      "subtype": "lab_note",
+      "question": "What lab results are relevant to the clinical findings described in the note?",
+      "expected_answer": "Multi-source analysis required. Patient has 24 Medications mentions and 96 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10001877,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10001877: 24 Medications mentions, 96 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Medications",
+          "Hospital Course"
+        ],
+        "target_mentions": 24,
+        "narrative_mentions": 96
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_disc_ed3db58a",
+      "task": "task_d_fusion",
+      "subtype": "cross_note_discordance",
+      "question": "Are there any discrepancies between the two discharge summaries for this patient?",
+      "expected_answer": "Discordance detected for GERD: assertions vary ({, p, r, e, s, e, n, t, ,, h, i, s, t, o, r, i, c, a, l, }) across 2 documents. The system should identify and explain this discrepancy.",
+      "mimic_subject_id": 10000117,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000117: GERD has varying assertions ({, p, r, e, s, e, n, t, ,, h, i, s, t, o, r, i, c, a, l, }) across 2 documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "discordance_detection": 0.5,
+        "explanation": 0.5
+      },
+      "metadata": {
+        "discordant_concept": "GERD",
+        "assertions": [
+          "{",
+          "p",
+          "r",
+          "e",
+          "s",
+          "e",
+          "n",
+          "t",
+          ",",
+          "h",
+          "i",
+          "s",
+          "t",
+          "o",
+          "r",
+          "i",
+          "c",
+          "a",
+          "l",
+          "}"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_temporal_74d51322",
+      "task": "task_d_fusion",
+      "subtype": "temporal_fusion",
+      "question": "What is the clinical trajectory across the patient's two hospital admissions?",
+      "expected_answer": "Temporal fusion required across 2 admissions. Compare diagnoses, medications, and clinical trajectory.",
+      "mimic_subject_id": 10001338,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10001338: 2 admission documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_integration": 0.6,
+        "accuracy": 0.4
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_vital_note_4ddcc88c",
+      "task": "task_d_fusion",
+      "subtype": "vital_note",
+      "question": "Are the vital signs consistent with the clinical picture described in the note?",
+      "expected_answer": "Multi-source analysis required. Patient has 22 Vital Signs mentions and 60 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10005991,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10005991: 22 Vital Signs mentions, 60 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Vital Signs",
+          "Hospital Course"
+        ],
+        "target_mentions": 22,
+        "narrative_mentions": 60
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_lab_note_6df4ee6d",
+      "task": "task_d_fusion",
+      "subtype": "lab_note",
+      "question": "What lab results are relevant to the clinical findings described in the note?",
+      "expected_answer": "Multi-source analysis required. Patient has 19 Medications mentions and 36 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10001217,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10001217: 19 Medications mentions, 36 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Medications",
+          "Hospital Course"
+        ],
+        "target_mentions": 19,
+        "narrative_mentions": 36
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_lab_note_fde59062",
+      "task": "task_d_fusion",
+      "subtype": "lab_note",
+      "question": "Do the lab values mentioned in the note align with the clinical assessment?",
+      "expected_answer": "Multi-source analysis required. Patient has 74 Labs mentions and 146 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10002221,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10002221: 74 Labs mentions, 146 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Labs",
+          "Hospital Course"
+        ],
+        "target_mentions": 74,
+        "narrative_mentions": 146
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_lab_note_d2be94f0",
+      "task": "task_d_fusion",
+      "subtype": "lab_note",
+      "question": "Do the lab values mentioned in the note align with the clinical assessment?",
+      "expected_answer": "Multi-source analysis required. Patient has 36 Labs mentions and 67 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10005123,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10005123: 36 Labs mentions, 67 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Labs",
+          "Hospital Course"
+        ],
+        "target_mentions": 36,
+        "narrative_mentions": 67
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_vital_note_ad7e0510",
+      "task": "task_d_fusion",
+      "subtype": "vital_note",
+      "question": "What vital sign abnormalities are documented, and how do they relate to the clinical findings?",
+      "expected_answer": "Multi-source analysis required. Patient has 86 Vital Signs mentions and 125 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10005749,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10005749: 86 Vital Signs mentions, 125 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Vital Signs",
+          "Hospital Course"
+        ],
+        "target_mentions": 86,
+        "narrative_mentions": 125
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_disc_fdd40e49",
+      "task": "task_d_fusion",
+      "subtype": "cross_note_discordance",
+      "question": "What information changed or differs between the patient's two admission records?",
+      "expected_answer": "Discordance detected for altered mental status: assertions vary ({, p, r, e, s, e, n, t, }) across 2 documents. The system should identify and explain this discrepancy.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000032: altered mental status has varying assertions ({, p, r, e, s, e, n, t, }) across 2 documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "discordance_detection": 0.5,
+        "explanation": 0.5
+      },
+      "metadata": {
+        "discordant_concept": "altered mental status",
+        "assertions": [
+          "{",
+          "p",
+          "r",
+          "e",
+          "s",
+          "e",
+          "n",
+          "t",
+          "}"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_vital_note_0cff0565",
+      "task": "task_d_fusion",
+      "subtype": "vital_note",
+      "question": "Are the vital signs consistent with the clinical picture described in the note?",
+      "expected_answer": "Multi-source analysis required. Patient has 47 Vital Signs mentions and 45 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10005605,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10005605: 47 Vital Signs mentions, 45 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Vital Signs",
+          "Hospital Course"
+        ],
+        "target_mentions": 47,
+        "narrative_mentions": 45
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_lab_note_6dd6bac2",
+      "task": "task_d_fusion",
+      "subtype": "lab_note",
+      "question": "Are the laboratory results consistent with the clinical narrative for this patient?",
+      "expected_answer": "Multi-source analysis required. Patient has 33 Medications mentions and 88 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10000980,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000980: 33 Medications mentions, 88 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Medications",
+          "Hospital Course"
+        ],
+        "target_mentions": 33,
+        "narrative_mentions": 88
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_lab_note_e167d4df",
+      "task": "task_d_fusion",
+      "subtype": "lab_note",
+      "question": "What lab results are relevant to the clinical findings described in the note?",
+      "expected_answer": "Multi-source analysis required. Patient has 43 Labs mentions and 16 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10005368,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10005368: 43 Labs mentions, 16 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Labs",
+          "Hospital Course"
+        ],
+        "target_mentions": 43,
+        "narrative_mentions": 16
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_disc_e3c73bab",
+      "task": "task_d_fusion",
+      "subtype": "cross_note_discordance",
+      "question": "Are there any discrepancies between the two discharge summaries for this patient?",
+      "expected_answer": "Discordance detected for RA: assertions vary ({, p, r, e, s, e, n, t, }) across 2 documents. The system should identify and explain this discrepancy.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000032: RA has varying assertions ({, p, r, e, s, e, n, t, }) across 2 documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "discordance_detection": 0.5,
+        "explanation": 0.5
+      },
+      "metadata": {
+        "discordant_concept": "RA",
+        "assertions": [
+          "{",
+          "p",
+          "r",
+          "e",
+          "s",
+          "e",
+          "n",
+          "t",
+          "}"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_lab_note_ea77bff8",
+      "task": "task_d_fusion",
+      "subtype": "lab_note",
+      "question": "What lab results are relevant to the clinical findings described in the note?",
+      "expected_answer": "Multi-source analysis required. Patient has 14 Labs mentions and 34 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10002930,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10002930: 14 Labs mentions, 34 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Labs",
+          "Hospital Course"
+        ],
+        "target_mentions": 14,
+        "narrative_mentions": 34
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_lab_note_73de08bc",
+      "task": "task_d_fusion",
+      "subtype": "lab_note",
+      "question": "What lab results are relevant to the clinical findings described in the note?",
+      "expected_answer": "Multi-source analysis required. Patient has 33 Labs mentions and 175 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10002430,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10002430: 33 Labs mentions, 175 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Labs",
+          "Hospital Course"
+        ],
+        "target_mentions": 33,
+        "narrative_mentions": 175
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_temporal_01ca05ac",
+      "task": "task_d_fusion",
+      "subtype": "temporal_fusion",
+      "question": "What is the clinical trajectory across the patient's two hospital admissions?",
+      "expected_answer": "Temporal fusion required across 2 admissions. Compare diagnoses, medications, and clinical trajectory.",
+      "mimic_subject_id": 10002155,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10002155: 2 admission documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_integration": 0.6,
+        "accuracy": 0.4
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_temporal_aa25424f",
+      "task": "task_d_fusion",
+      "subtype": "temporal_fusion",
+      "question": "What is the clinical trajectory across the patient's two hospital admissions?",
+      "expected_answer": "Temporal fusion required across 2 admissions. Compare diagnoses, medications, and clinical trajectory.",
+      "mimic_subject_id": 10002430,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10002430: 2 admission documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_integration": 0.6,
+        "accuracy": 0.4
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_temporal_4436aa65",
+      "task": "task_d_fusion",
+      "subtype": "temporal_fusion",
+      "question": "What is the clinical trajectory across the patient's two hospital admissions?",
+      "expected_answer": "Temporal fusion required across 2 admissions. Compare diagnoses, medications, and clinical trajectory.",
+      "mimic_subject_id": 10002769,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10002769: 2 admission documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_integration": 0.6,
+        "accuracy": 0.4
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_lab_note_6cdffa3d",
+      "task": "task_d_fusion",
+      "subtype": "lab_note",
+      "question": "Are the laboratory results consistent with the clinical narrative for this patient?",
+      "expected_answer": "Multi-source analysis required. Patient has 19 Medications mentions and 13 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10000117,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000117: 19 Medications mentions, 13 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Medications",
+          "Hospital Course"
+        ],
+        "target_mentions": 19,
+        "narrative_mentions": 13
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_vital_note_6d628211",
+      "task": "task_d_fusion",
+      "subtype": "vital_note",
+      "question": "Are the vital signs consistent with the clinical picture described in the note?",
+      "expected_answer": "Multi-source analysis required. Patient has 75 Vital Signs mentions and 94 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10002013,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10002013: 75 Vital Signs mentions, 94 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Vital Signs",
+          "Hospital Course"
+        ],
+        "target_mentions": 75,
+        "narrative_mentions": 94
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_temporal_3b5cb8dd",
+      "task": "task_d_fusion",
+      "subtype": "temporal_fusion",
+      "question": "What is the clinical trajectory across the patient's two hospital admissions?",
+      "expected_answer": "Temporal fusion required across 2 admissions. Compare diagnoses, medications, and clinical trajectory.",
+      "mimic_subject_id": 10004606,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10004606: 2 admission documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_integration": 0.6,
+        "accuracy": 0.4
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_vital_note_61192032",
+      "task": "task_d_fusion",
+      "subtype": "vital_note",
+      "question": "Are the vital signs consistent with the clinical picture described in the note?",
+      "expected_answer": "Multi-source analysis required. Patient has 81 Vital Signs mentions and 146 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10002221,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10002221: 81 Vital Signs mentions, 146 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Vital Signs",
+          "Hospital Course"
+        ],
+        "target_mentions": 81,
+        "narrative_mentions": 146
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_lab_note_6ab49a9c",
+      "task": "task_d_fusion",
+      "subtype": "lab_note",
+      "question": "Are the laboratory results consistent with the clinical narrative for this patient?",
+      "expected_answer": "Multi-source analysis required. Patient has 32 Labs mentions and 70 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10003502,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10003502: 32 Labs mentions, 70 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Labs",
+          "Hospital Course"
+        ],
+        "target_mentions": 32,
+        "narrative_mentions": 70
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_disc_946540a3",
+      "task": "task_d_fusion",
+      "subtype": "cross_note_discordance",
+      "question": "What information changed or differs between the patient's two admission records?",
+      "expected_answer": "Discordance detected for COPD: assertions vary ({, p, r, e, s, e, n, t, }) across 2 documents. The system should identify and explain this discrepancy.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000032: COPD has varying assertions ({, p, r, e, s, e, n, t, }) across 2 documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "discordance_detection": 0.5,
+        "explanation": 0.5
+      },
+      "metadata": {
+        "discordant_concept": "COPD",
+        "assertions": [
+          "{",
+          "p",
+          "r",
+          "e",
+          "s",
+          "e",
+          "n",
+          "t",
+          "}"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_temporal_dfd594e3",
+      "task": "task_d_fusion",
+      "subtype": "temporal_fusion",
+      "question": "How do the findings from both admissions combine to tell the patient's clinical story?",
+      "expected_answer": "Temporal fusion required across 2 admissions. Compare diagnoses, medications, and clinical trajectory.",
+      "mimic_subject_id": 10005858,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10005858: 2 admission documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_integration": 0.6,
+        "accuracy": 0.4
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_vital_note_8426b7d6",
+      "task": "task_d_fusion",
+      "subtype": "vital_note",
+      "question": "Are the vital signs consistent with the clinical picture described in the note?",
+      "expected_answer": "Multi-source analysis required. Patient has 5 Vital Signs mentions and 13 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10000117,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000117: 5 Vital Signs mentions, 13 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Vital Signs",
+          "Hospital Course"
+        ],
+        "target_mentions": 5,
+        "narrative_mentions": 13
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_temporal_3389ae71",
+      "task": "task_d_fusion",
+      "subtype": "temporal_fusion",
+      "question": "How do the findings from both admissions combine to tell the patient's clinical story?",
+      "expected_answer": "Temporal fusion required across 2 admissions. Compare diagnoses, medications, and clinical trajectory.",
+      "mimic_subject_id": 10002428,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10002428: 2 admission documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_integration": 0.6,
+        "accuracy": 0.4
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_disc_b5cc4aa7",
+      "task": "task_d_fusion",
+      "subtype": "cross_note_discordance",
+      "question": "What information changed or differs between the patient's two admission records?",
+      "expected_answer": "Discordance detected for Dementia: assertions vary ({, p, r, e, s, e, n, t, }) across 2 documents. The system should identify and explain this discrepancy.",
+      "mimic_subject_id": 10000117,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000117: Dementia has varying assertions ({, p, r, e, s, e, n, t, }) across 2 documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "discordance_detection": 0.5,
+        "explanation": 0.5
+      },
+      "metadata": {
+        "discordant_concept": "Dementia",
+        "assertions": [
+          "{",
+          "p",
+          "r",
+          "e",
+          "s",
+          "e",
+          "n",
+          "t",
+          "}"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_vital_note_792806a1",
+      "task": "task_d_fusion",
+      "subtype": "vital_note",
+      "question": "What vital sign abnormalities are documented, and how do they relate to the clinical findings?",
+      "expected_answer": "Multi-source analysis required. Patient has 42 Vital Signs mentions and 49 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10002131,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10002131: 42 Vital Signs mentions, 49 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Vital Signs",
+          "Hospital Course"
+        ],
+        "target_mentions": 42,
+        "narrative_mentions": 49
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_disc_fdc1da16",
+      "task": "task_d_fusion",
+      "subtype": "cross_note_discordance",
+      "question": "What information changed or differs between the patient's two admission records?",
+      "expected_answer": "Discordance detected for hepatic encephalopathy: assertions vary ({, p, r, e, s, e, n, t, }) across 2 documents. The system should identify and explain this discrepancy.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000032: hepatic encephalopathy has varying assertions ({, p, r, e, s, e, n, t, }) across 2 documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "discordance_detection": 0.5,
+        "explanation": 0.5
+      },
+      "metadata": {
+        "discordant_concept": "hepatic encephalopathy",
+        "assertions": [
+          "{",
+          "p",
+          "r",
+          "e",
+          "s",
+          "e",
+          "n",
+          "t",
+          "}"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_vital_note_b08bee2e",
+      "task": "task_d_fusion",
+      "subtype": "vital_note",
+      "question": "What vital sign abnormalities are documented, and how do they relate to the clinical findings?",
+      "expected_answer": "Multi-source analysis required. Patient has 84 Vital Signs mentions and 142 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10001884,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10001884: 84 Vital Signs mentions, 142 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Vital Signs",
+          "Hospital Course"
+        ],
+        "target_mentions": 84,
+        "narrative_mentions": 142
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_disc_f7ea4533",
+      "task": "task_d_fusion",
+      "subtype": "cross_note_discordance",
+      "question": "Are there any discrepancies between the two discharge summaries for this patient?",
+      "expected_answer": "Discordance detected for CAP: assertions vary ({, p, r, e, s, e, n, t, }) across 2 documents. The system should identify and explain this discrepancy.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000032: CAP has varying assertions ({, p, r, e, s, e, n, t, }) across 2 documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "discordance_detection": 0.5,
+        "explanation": 0.5
+      },
+      "metadata": {
+        "discordant_concept": "CAP",
+        "assertions": [
+          "{",
+          "p",
+          "r",
+          "e",
+          "s",
+          "e",
+          "n",
+          "t",
+          "}"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_temporal_09088f58",
+      "task": "task_d_fusion",
+      "subtype": "temporal_fusion",
+      "question": "How do the findings from both admissions combine to tell the patient's clinical story?",
+      "expected_answer": "Temporal fusion required across 2 admissions. Compare diagnoses, medications, and clinical trajectory.",
+      "mimic_subject_id": 10002167,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10002167: 2 admission documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_integration": 0.6,
+        "accuracy": 0.4
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_lab_note_571e66d0",
+      "task": "task_d_fusion",
+      "subtype": "lab_note",
+      "question": "What lab results are relevant to the clinical findings described in the note?",
+      "expected_answer": "Multi-source analysis required. Patient has 65 Labs mentions and 153 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10006029,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10006029: 65 Labs mentions, 153 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Labs",
+          "Hospital Course"
+        ],
+        "target_mentions": 65,
+        "narrative_mentions": 153
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_vital_note_60e27b33",
+      "task": "task_d_fusion",
+      "subtype": "vital_note",
+      "question": "What vital sign abnormalities are documented, and how do they relate to the clinical findings?",
+      "expected_answer": "Multi-source analysis required. Patient has 19 Physical Exam mentions and 64 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10001401,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10001401: 19 Physical Exam mentions, 64 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Physical Exam",
+          "Hospital Course"
+        ],
+        "target_mentions": 19,
+        "narrative_mentions": 64
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_temporal_fd25a450",
+      "task": "task_d_fusion",
+      "subtype": "temporal_fusion",
+      "question": "How do the findings from both admissions combine to tell the patient's clinical story?",
+      "expected_answer": "Temporal fusion required across 2 admissions. Compare diagnoses, medications, and clinical trajectory.",
+      "mimic_subject_id": 10003637,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10003637: 2 admission documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_integration": 0.6,
+        "accuracy": 0.4
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_vital_note_be9e3418",
+      "task": "task_d_fusion",
+      "subtype": "vital_note",
+      "question": "Are the vital signs consistent with the clinical picture described in the note?",
+      "expected_answer": "Multi-source analysis required. Patient has 24 Physical Exam mentions and 20 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10001186,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10001186: 24 Physical Exam mentions, 20 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Physical Exam",
+          "Hospital Course"
+        ],
+        "target_mentions": 24,
+        "narrative_mentions": 20
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_temporal_86ffba2c",
+      "task": "task_d_fusion",
+      "subtype": "temporal_fusion",
+      "question": "How do the findings from both admissions combine to tell the patient's clinical story?",
+      "expected_answer": "Temporal fusion required across 2 admissions. Compare diagnoses, medications, and clinical trajectory.",
+      "mimic_subject_id": 10001186,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10001186: 2 admission documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_integration": 0.6,
+        "accuracy": 0.4
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_temporal_2ea800bd",
+      "task": "task_d_fusion",
+      "subtype": "temporal_fusion",
+      "question": "How do the findings from both admissions combine to tell the patient's clinical story?",
+      "expected_answer": "Temporal fusion required across 2 admissions. Compare diagnoses, medications, and clinical trajectory.",
+      "mimic_subject_id": 10005749,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10005749: 2 admission documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_integration": 0.6,
+        "accuracy": 0.4
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_vital_note_087a9454",
+      "task": "task_d_fusion",
+      "subtype": "vital_note",
+      "question": "Are the vital signs consistent with the clinical picture described in the note?",
+      "expected_answer": "Multi-source analysis required. Patient has 10 Physical Exam mentions and 29 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10001338,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10001338: 10 Physical Exam mentions, 29 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Physical Exam",
+          "Hospital Course"
+        ],
+        "target_mentions": 10,
+        "narrative_mentions": 29
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_vital_note_80f912e6",
+      "task": "task_d_fusion",
+      "subtype": "vital_note",
+      "question": "Are the vital signs consistent with the clinical picture described in the note?",
+      "expected_answer": "Multi-source analysis required. Patient has 26 Vital Signs mentions and 153 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10002976,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10002976: 26 Vital Signs mentions, 153 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Vital Signs",
+          "Hospital Course"
+        ],
+        "target_mentions": 26,
+        "narrative_mentions": 153
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_temporal_435d7ffb",
+      "task": "task_d_fusion",
+      "subtype": "temporal_fusion",
+      "question": "How do the findings from both admissions combine to tell the patient's clinical story?",
+      "expected_answer": "Temporal fusion required across 2 admissions. Compare diagnoses, medications, and clinical trajectory.",
+      "mimic_subject_id": 10002131,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10002131: 2 admission documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_integration": 0.6,
+        "accuracy": 0.4
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_disc_36b8c2bb",
+      "task": "task_d_fusion",
+      "subtype": "cross_note_discordance",
+      "question": "Are there any discrepancies between the two discharge summaries for this patient?",
+      "expected_answer": "Discordance detected for hyperkalemia: assertions vary ({, p, r, e, s, e, n, t, }) across 2 documents. The system should identify and explain this discrepancy.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000032: hyperkalemia has varying assertions ({, p, r, e, s, e, n, t, }) across 2 documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "discordance_detection": 0.5,
+        "explanation": 0.5
+      },
+      "metadata": {
+        "discordant_concept": "hyperkalemia",
+        "assertions": [
+          "{",
+          "p",
+          "r",
+          "e",
+          "s",
+          "e",
+          "n",
+          "t",
+          "}"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_temporal_5ec999a1",
+      "task": "task_d_fusion",
+      "subtype": "temporal_fusion",
+      "question": "What is the clinical trajectory across the patient's two hospital admissions?",
+      "expected_answer": "Temporal fusion required across 2 admissions. Compare diagnoses, medications, and clinical trajectory.",
+      "mimic_subject_id": 10005236,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10005236: 2 admission documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_integration": 0.6,
+        "accuracy": 0.4
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_disc_7867d6e5",
+      "task": "task_d_fusion",
+      "subtype": "cross_note_discordance",
+      "question": "What information changed or differs between the patient's two admission records?",
+      "expected_answer": "Discordance detected for HIV: assertions vary ({, p, r, e, s, e, n, t, }) across 2 documents. The system should identify and explain this discrepancy.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000032: HIV has varying assertions ({, p, r, e, s, e, n, t, }) across 2 documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "discordance_detection": 0.5,
+        "explanation": 0.5
+      },
+      "metadata": {
+        "discordant_concept": "HIV",
+        "assertions": [
+          "{",
+          "p",
+          "r",
+          "e",
+          "s",
+          "e",
+          "n",
+          "t",
+          "}"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_disc_f17ad0ea",
+      "task": "task_d_fusion",
+      "subtype": "cross_note_discordance",
+      "question": "Are there any discrepancies between the two discharge summaries for this patient?",
+      "expected_answer": "Discordance detected for Allergies: assertions vary ({, p, r, e, s, e, n, t, }) across 2 documents. The system should identify and explain this discrepancy.",
+      "mimic_subject_id": 10000117,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000117: Allergies has varying assertions ({, p, r, e, s, e, n, t, }) across 2 documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "discordance_detection": 0.5,
+        "explanation": 0.5
+      },
+      "metadata": {
+        "discordant_concept": "Allergies",
+        "assertions": [
+          "{",
+          "p",
+          "r",
+          "e",
+          "s",
+          "e",
+          "n",
+          "t",
+          "}"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_lab_note_6e9d2727",
+      "task": "task_d_fusion",
+      "subtype": "lab_note",
+      "question": "What lab results are relevant to the clinical findings described in the note?",
+      "expected_answer": "Multi-source analysis required. Patient has 40 Labs mentions and 60 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10005858,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10005858: 40 Labs mentions, 60 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Labs",
+          "Hospital Course"
+        ],
+        "target_mentions": 40,
+        "narrative_mentions": 60
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_vital_note_72aba751",
+      "task": "task_d_fusion",
+      "subtype": "vital_note",
+      "question": "Are the vital signs consistent with the clinical picture described in the note?",
+      "expected_answer": "Multi-source analysis required. Patient has 57 Physical Exam mentions and 96 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10001877,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10001877: 57 Physical Exam mentions, 96 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Physical Exam",
+          "Hospital Course"
+        ],
+        "target_mentions": 57,
+        "narrative_mentions": 96
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_lab_note_36406ed6",
+      "task": "task_d_fusion",
+      "subtype": "lab_note",
+      "question": "Are the laboratory results consistent with the clinical narrative for this patient?",
+      "expected_answer": "Multi-source analysis required. Patient has 12 Labs mentions and 51 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10005606,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10005606: 12 Labs mentions, 51 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Labs",
+          "Hospital Course"
+        ],
+        "target_mentions": 12,
+        "narrative_mentions": 51
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_vital_note_9fed6ce2",
+      "task": "task_d_fusion",
+      "subtype": "vital_note",
+      "question": "What vital sign abnormalities are documented, and how do they relate to the clinical findings?",
+      "expected_answer": "Multi-source analysis required. Patient has 38 Vital Signs mentions and 29 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10001338,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10001338: 38 Vital Signs mentions, 29 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Vital Signs",
+          "Hospital Course"
+        ],
+        "target_mentions": 38,
+        "narrative_mentions": 29
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_temporal_eaa2078a",
+      "task": "task_d_fusion",
+      "subtype": "temporal_fusion",
+      "question": "What is the clinical trajectory across the patient's two hospital admissions?",
+      "expected_answer": "Temporal fusion required across 2 admissions. Compare diagnoses, medications, and clinical trajectory.",
+      "mimic_subject_id": 10005368,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10005368: 2 admission documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_integration": 0.6,
+        "accuracy": 0.4
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_lab_note_a7748cea",
+      "task": "task_d_fusion",
+      "subtype": "lab_note",
+      "question": "Are the laboratory results consistent with the clinical narrative for this patient?",
+      "expected_answer": "Multi-source analysis required. Patient has 86 Labs mentions and 30 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10002528,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10002528: 86 Labs mentions, 30 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Labs",
+          "Hospital Course"
+        ],
+        "target_mentions": 86,
+        "narrative_mentions": 30
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_vital_note_32013b5b",
+      "task": "task_d_fusion",
+      "subtype": "vital_note",
+      "question": "What vital sign abnormalities are documented, and how do they relate to the clinical findings?",
+      "expected_answer": "Multi-source analysis required. Patient has 4 Physical Exam mentions and 94 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10002013,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10002013: 4 Physical Exam mentions, 94 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Physical Exam",
+          "Hospital Course"
+        ],
+        "target_mentions": 4,
+        "narrative_mentions": 94
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_temporal_408f63f8",
+      "task": "task_d_fusion",
+      "subtype": "temporal_fusion",
+      "question": "How do the findings from both admissions combine to tell the patient's clinical story?",
+      "expected_answer": "Temporal fusion required across 2 admissions. Compare diagnoses, medications, and clinical trajectory.",
+      "mimic_subject_id": 10005817,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10005817: 2 admission documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_integration": 0.6,
+        "accuracy": 0.4
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_disc_d668e121",
+      "task": "task_d_fusion",
+      "subtype": "cross_note_discordance",
+      "question": "What information changed or differs between the patient's two admission records?",
+      "expected_answer": "Discordance detected for cancer: assertions vary ({, p, r, e, s, e, n, t, }) across 2 documents. The system should identify and explain this discrepancy.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000032: cancer has varying assertions ({, p, r, e, s, e, n, t, }) across 2 documents.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "discordance_detection": 0.5,
+        "explanation": 0.5
+      },
+      "metadata": {
+        "discordant_concept": "cancer",
+        "assertions": [
+          "{",
+          "p",
+          "r",
+          "e",
+          "s",
+          "e",
+          "n",
+          "t",
+          "}"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_d_lab_note_1f4e5586",
+      "task": "task_d_fusion",
+      "subtype": "lab_note",
+      "question": "Do the lab values mentioned in the note align with the clinical assessment?",
+      "expected_answer": "Multi-source analysis required. Patient has 8 Medications mentions and 40 Hospital Course mentions that need to be compared and integrated.",
+      "mimic_subject_id": 10000826,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000826: 8 Medications mentions, 40 narrative mentions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "source_integration": 0.5,
+        "accuracy": 0.5
+      },
+      "metadata": {
+        "sections_compared": [
+          "Medications",
+          "Hospital Course"
+        ],
+        "target_mentions": 8,
+        "narrative_mentions": 40
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    }
+  ],
+  "total_count": 100,
+  "subtype_distribution": {
+    "vital_note": 30,
+    "lab_note": 30,
+    "cross_note_discordance": 20,
+    "temporal_fusion": 20
+  },
+  "created_at": "2026-02-19T17:42:00.993215Z"
+}

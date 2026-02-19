@@ -1,0 +1,2388 @@
+{
+  "task": "task_c_calculator",
+  "version": "1.0.0",
+  "questions": [
+    {
+      "question_id": "bench_c_wells_pe_1295fa2d",
+      "task": "task_c_calculator",
+      "subtype": "wells_pe",
+      "question": "What is this patient's Wells score for pulmonary embolism probability?",
+      "expected_answer": "Based on the patient's clinical features: Relevant findings: Tachycardia, tachycardia. Sections: History of Present Illness, Hospital Course, Imaging.. The Wells PE score is computed from clinical signs, heart rate, immobilization, prior DVT/PE, hemoptysis, and cancer history.",
+      "mimic_subject_id": 10000935,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Tachycardia, tachycardia. Sections: History of Present Illness, Hospital Course, Imaging.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "wells_pe",
+        "measurements_found": [
+          "Tachycardia",
+          "tachycardia"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_heart_739fb8d1",
+      "task": "task_c_calculator",
+      "subtype": "heart",
+      "question": "What is this patient's HEART score for chest pain evaluation, and what risk category does it indicate?",
+      "expected_answer": "Based on the patient's data: Relevant findings: BRONCHOALVEOLAR LAVAGE, chest pain. Sections: History of Present Illness, Review of Systems, Labs.. The HEART score should be computed from History, ECG, Age, Risk factors, and Troponin.",
+      "mimic_subject_id": 10003637,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: BRONCHOALVEOLAR LAVAGE, chest pain. Sections: History of Present Illness, Review of Systems, Labs.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "heart",
+        "measurements_found": [
+          "BRONCHOALVEOLAR LAVAGE",
+          "chest pain"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_other_8b8b78a5",
+      "task": "task_c_calculator",
+      "subtype": "other",
+      "question": "What is this patient's weight value, and is it within normal range?",
+      "expected_answer": "The patient's weight should be retrieved from the clinical record and interpreted in clinical context.",
+      "mimic_subject_id": 10000980,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000980, measurement: weight",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "value_correct": 0.5,
+        "interpretation_correct": 0.5
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_wells_pe_473fa1b3",
+      "task": "task_c_calculator",
+      "subtype": "wells_pe",
+      "question": "What is this patient's Wells score for pulmonary embolism probability?",
+      "expected_answer": "Based on the patient's clinical features: Relevant findings: DVT, dvt. Sections: Diagnosis, Assessment, Hospital Course, Chief Complaint, Vital Signs.. The Wells PE score is computed from clinical signs, heart rate, immobilization, prior DVT/PE, hemoptysis, and cancer history.",
+      "mimic_subject_id": 10002769,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: DVT, dvt. Sections: Diagnosis, Assessment, Hospital Course, Chief Complaint, Vital Signs.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "wells_pe",
+        "measurements_found": [
+          "DVT",
+          "dvt"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_ascvd_352d5987",
+      "task": "task_c_calculator",
+      "subtype": "ascvd",
+      "question": "What is this patient's 10-year ASCVD risk score?",
+      "expected_answer": "Based on the patient's cardiovascular risk factors: Relevant findings: Diabetes, Hypertension, blood pressure, diabetes, hypertension. Sections: Diagnosis, Hospital Course, Assessment, Discharge Instructions.. ASCVD risk requires total cholesterol, HDL, systolic BP, diabetes status, and smoking history.",
+      "mimic_subject_id": 10001877,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Diabetes, Hypertension, blood pressure, diabetes, hypertension. Sections: Diagnosis, Hospital Course, Assessment, Discharge Instructions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "ascvd",
+        "measurements_found": [
+          "Diabetes",
+          "Hypertension",
+          "blood pressure",
+          "diabetes",
+          "hypertension"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_sofa_394a9a01",
+      "task": "task_c_calculator",
+      "subtype": "sofa",
+      "question": "What is this patient's SOFA score, and what does it indicate about organ dysfunction?",
+      "expected_answer": "Based on the patient's lab values and clinical status: Relevant findings: Creatinine, creatinine. Sections: History of Present Illness, Hospital Course.. SOFA score assesses PaO2/FiO2, platelets, bilirubin, cardiovascular status (MAP/vasopressors), GCS, and creatinine.",
+      "mimic_subject_id": 10001884,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Creatinine, creatinine. Sections: History of Present Illness, Hospital Course.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "sofa",
+        "measurements_found": [
+          "Creatinine",
+          "creatinine"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_ascvd_66cc7b61",
+      "task": "task_c_calculator",
+      "subtype": "ascvd",
+      "question": "What is this patient's 10-year ASCVD risk score?",
+      "expected_answer": "Based on the patient's cardiovascular risk factors: Relevant findings: DIABETES, DIABETES MELLITUS. Sections: Family History.. ASCVD risk requires total cholesterol, HDL, systolic BP, diabetes status, and smoking history.",
+      "mimic_subject_id": 10002221,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: DIABETES, DIABETES MELLITUS. Sections: Family History.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "ascvd",
+        "measurements_found": [
+          "DIABETES",
+          "DIABETES MELLITUS"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_ckd_epi_684d080c",
+      "task": "task_c_calculator",
+      "subtype": "ckd_epi",
+      "question": "What is this patient's estimated GFR using the CKD-EPI equation, and what CKD stage does it indicate?",
+      "expected_answer": "Based on the patient's serum creatinine: Relevant findings: Creat, Creatinine, creatinine. Sections: Hospital Course, Vital Signs, Physical Exam.. CKD-EPI requires creatinine, age, and sex.",
+      "mimic_subject_id": 10005605,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Creat, Creatinine, creatinine. Sections: Hospital Course, Vital Signs, Physical Exam.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "ckd_epi",
+        "measurements_found": [
+          "Creat",
+          "Creatinine",
+          "creatinine"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_sofa_dc7b8e20",
+      "task": "task_c_calculator",
+      "subtype": "sofa",
+      "question": "What is this patient's SOFA score, and what does it indicate about organ dysfunction?",
+      "expected_answer": "Based on the patient's lab values and clinical status: Relevant findings: creatinine, platelets. Sections: History of Present Illness, Hospital Course.. SOFA score assesses PaO2/FiO2, platelets, bilirubin, cardiovascular status (MAP/vasopressors), GCS, and creatinine.",
+      "mimic_subject_id": 10001401,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: creatinine, platelets. Sections: History of Present Illness, Hospital Course.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "sofa",
+        "measurements_found": [
+          "creatinine",
+          "platelets"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_other_5cb15d21",
+      "task": "task_c_calculator",
+      "subtype": "other",
+      "question": "What is this patient's O2 sat value, and is it within normal range?",
+      "expected_answer": "The patient's O2 sat should be retrieved from the clinical record and interpreted in clinical context.",
+      "mimic_subject_id": 10002221,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10002221, measurement: O2 sat",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "value_correct": 0.5,
+        "interpretation_correct": 0.5
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_wells_pe_b1992ee4",
+      "task": "task_c_calculator",
+      "subtype": "wells_pe",
+      "question": "What is this patient's Wells score for pulmonary embolism probability?",
+      "expected_answer": "Based on the patient's clinical features: Relevant findings: Tachycardia, pulmonary embolism, tachycardia. Sections: Assessment.. The Wells PE score is computed from clinical signs, heart rate, immobilization, prior DVT/PE, hemoptysis, and cancer history.",
+      "mimic_subject_id": 10003019,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Tachycardia, pulmonary embolism, tachycardia. Sections: Assessment.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "wells_pe",
+        "measurements_found": [
+          "Tachycardia",
+          "pulmonary embolism",
+          "tachycardia"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_heart_e0b4a4aa",
+      "task": "task_c_calculator",
+      "subtype": "heart",
+      "question": "What is this patient's HEART score for chest pain evaluation, and what risk category does it indicate?",
+      "expected_answer": "Based on the patient's data: Relevant findings: chest pain, intracranial hemorrhage. Sections: History of Present Illness, Assessment.. The HEART score should be computed from History, ECG, Age, Risk factors, and Troponin.",
+      "mimic_subject_id": 10001217,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: chest pain, intracranial hemorrhage. Sections: History of Present Illness, Assessment.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "heart",
+        "measurements_found": [
+          "chest pain",
+          "intracranial hemorrhage"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_meld_e35b85c4",
+      "task": "task_c_calculator",
+      "subtype": "meld",
+      "question": "What is this patient's MELD score, and what does it indicate for liver disease severity?",
+      "expected_answer": "Based on the patient's liver function labs: Relevant findings: Sodium, bilirubin, low sodium, sodium, total bilirubin. Sections: Hospital Course, Medications.. MELD score requires bilirubin, INR, creatinine, and sodium.",
+      "mimic_subject_id": 10000826,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Sodium, bilirubin, low sodium, sodium, total bilirubin. Sections: Hospital Course, Medications.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "meld",
+        "measurements_found": [
+          "Sodium",
+          "bilirubin",
+          "low sodium",
+          "sodium",
+          "total bilirubin"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_ascvd_d336dfec",
+      "task": "task_c_calculator",
+      "subtype": "ascvd",
+      "question": "What is this patient's 10-year ASCVD risk score?",
+      "expected_answer": "Based on the patient's cardiovascular risk factors: Relevant findings: Hypertension, blood pressure, hypertension. Sections: History of Present Illness, Hospital Course, Discharge Instructions, Studies.. ASCVD risk requires total cholesterol, HDL, systolic BP, diabetes status, and smoking history.",
+      "mimic_subject_id": 10003637,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Hypertension, blood pressure, hypertension. Sections: History of Present Illness, Hospital Course, Discharge Instructions, Studies.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "ascvd",
+        "measurements_found": [
+          "Hypertension",
+          "blood pressure",
+          "hypertension"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_other_4a1e6bec",
+      "task": "task_c_calculator",
+      "subtype": "other",
+      "question": "What is this patient's creatinine value, and is it within normal range?",
+      "expected_answer": "The patient's creatinine should be retrieved from the clinical record and interpreted in clinical context.",
+      "mimic_subject_id": 10005749,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10005749, measurement: creatinine",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "value_correct": 0.5,
+        "interpretation_correct": 0.5
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_other_2a952c0a",
+      "task": "task_c_calculator",
+      "subtype": "other",
+      "question": "What is this patient's Calcium value, and is it within normal range?",
+      "expected_answer": "The patient's Calcium should be retrieved from the clinical record and interpreted in clinical context.",
+      "mimic_subject_id": 10005866,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10005866, measurement: Calcium",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "value_correct": 0.5,
+        "interpretation_correct": 0.5
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_other_6023bee9",
+      "task": "task_c_calculator",
+      "subtype": "other",
+      "question": "What is this patient's BLOOD Glucose value, and is it within normal range?",
+      "expected_answer": "The patient's BLOOD Glucose should be retrieved from the clinical record and interpreted in clinical context.",
+      "mimic_subject_id": 10002013,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10002013, measurement: BLOOD Glucose",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "value_correct": 0.5,
+        "interpretation_correct": 0.5
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_ckd_epi_2e2e64e8",
+      "task": "task_c_calculator",
+      "subtype": "ckd_epi",
+      "question": "What is this patient's estimated GFR using the CKD-EPI equation, and what CKD stage does it indicate?",
+      "expected_answer": "Based on the patient's serum creatinine: Relevant findings: Creat, Creatinine. Sections: Hospital Course, Labs, Physical Exam.. CKD-EPI requires creatinine, age, and sex.",
+      "mimic_subject_id": 10005123,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Creat, Creatinine. Sections: Hospital Course, Labs, Physical Exam.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "ckd_epi",
+        "measurements_found": [
+          "Creat",
+          "Creatinine"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_other_c688948a",
+      "task": "task_c_calculator",
+      "subtype": "other",
+      "question": "What is this patient's BS value, and is it within normal range?",
+      "expected_answer": "The patient's BS should be retrieved from the clinical record and interpreted in clinical context.",
+      "mimic_subject_id": 10001884,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10001884, measurement: BS",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "value_correct": 0.5,
+        "interpretation_correct": 0.5
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_other_023be5ad",
+      "task": "task_c_calculator",
+      "subtype": "other",
+      "question": "What is this patient's BLOOD Glucose value, and is it within normal range?",
+      "expected_answer": "The patient's BLOOD Glucose should be retrieved from the clinical record and interpreted in clinical context.",
+      "mimic_subject_id": 10003502,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10003502, measurement: BLOOD Glucose",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "value_correct": 0.5,
+        "interpretation_correct": 0.5
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_heart_43f296a5",
+      "task": "task_c_calculator",
+      "subtype": "heart",
+      "question": "What is this patient's HEART score for chest pain evaluation, and what risk category does it indicate?",
+      "expected_answer": "Based on the patient's data: Relevant findings: EKG, chest pain. Sections: History of Present Illness, Hospital Course, Imaging.. The HEART score should be computed from History, ECG, Age, Risk factors, and Troponin.",
+      "mimic_subject_id": 10000935,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: EKG, chest pain. Sections: History of Present Illness, Hospital Course, Imaging.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "heart",
+        "measurements_found": [
+          "EKG",
+          "chest pain"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_ckd_epi_a47c9629",
+      "task": "task_c_calculator",
+      "subtype": "ckd_epi",
+      "question": "What is this patient's estimated GFR using the CKD-EPI equation, and what CKD stage does it indicate?",
+      "expected_answer": "Based on the patient's serum creatinine: Relevant findings: CREAT, Chronic Kidney Disease, Chronic kidney disease, Creat, Creatinine. Sections: Diagnosis, Hospital Course, Labs, History of Present Illness, Physical Exam.. CKD-EPI requires creatinine, age, and sex.",
+      "mimic_subject_id": 10002430,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: CREAT, Chronic Kidney Disease, Chronic kidney disease, Creat, Creatinine. Sections: Diagnosis, Hospital Course, Labs, History of Present Illness, Physical Exam.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "ckd_epi",
+        "measurements_found": [
+          "CREAT",
+          "Chronic Kidney Disease",
+          "Chronic kidney disease",
+          "Creat",
+          "Creatinine",
+          "acute kidney injury",
+          "cardiorenal",
+          "cardiorenal syndrome",
+          "chronic kidney disease"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_other_1c9b7288",
+      "task": "task_c_calculator",
+      "subtype": "other",
+      "question": "What is this patient's Na value, and is it within normal range?",
+      "expected_answer": "The patient's Na should be retrieved from the clinical record and interpreted in clinical context.",
+      "mimic_subject_id": 10001401,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10001401, measurement: Na",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "value_correct": 0.5,
+        "interpretation_correct": 0.5
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_heart_81c92c2b",
+      "task": "task_c_calculator",
+      "subtype": "heart",
+      "question": "What is this patient's HEART score for chest pain evaluation, and what risk category does it indicate?",
+      "expected_answer": "Based on the patient's data: Relevant findings: Chest pain, EKG, chest pain, troponin. Sections: Diagnosis, Assessment, Chief Complaint, Discharge Instructions, History of Present Illness.. The HEART score should be computed from History, ECG, Age, Risk factors, and Troponin.",
+      "mimic_subject_id": 10002013,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Chest pain, EKG, chest pain, troponin. Sections: Diagnosis, Assessment, Chief Complaint, Discharge Instructions, History of Present Illness.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "heart",
+        "measurements_found": [
+          "Chest pain",
+          "EKG",
+          "chest pain",
+          "troponin"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_other_8934a666",
+      "task": "task_c_calculator",
+      "subtype": "other",
+      "question": "What is this patient's BLOOD Glucose value, and is it within normal range?",
+      "expected_answer": "The patient's BLOOD Glucose should be retrieved from the clinical record and interpreted in clinical context.",
+      "mimic_subject_id": 10002221,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10002221, measurement: BLOOD Glucose",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "value_correct": 0.5,
+        "interpretation_correct": 0.5
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_heart_a98da8f4",
+      "task": "task_c_calculator",
+      "subtype": "heart",
+      "question": "What is this patient's HEART score for chest pain evaluation, and what risk category does it indicate?",
+      "expected_answer": "Based on the patient's data: Relevant findings: CHEST PAIN, CORONARY ARTERY DISEASE, EKG, chest pain. Sections: Review of Systems, Past Medical History, Assessment, Hospital Course, Medications.. The HEART score should be computed from History, ECG, Age, Risk factors, and Troponin.",
+      "mimic_subject_id": 10002976,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: CHEST PAIN, CORONARY ARTERY DISEASE, EKG, chest pain. Sections: Review of Systems, Past Medical History, Assessment, Hospital Course, Medications.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "heart",
+        "measurements_found": [
+          "CHEST PAIN",
+          "CORONARY ARTERY DISEASE",
+          "EKG",
+          "chest pain"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_sofa_04ec78e9",
+      "task": "task_c_calculator",
+      "subtype": "sofa",
+      "question": "What is this patient's SOFA score, and what does it indicate about organ dysfunction?",
+      "expected_answer": "Based on the patient's lab values and clinical status: Relevant findings: bilirubin, total bilirubin. Sections: Hospital Course.. SOFA score assesses PaO2/FiO2, platelets, bilirubin, cardiovascular status (MAP/vasopressors), GCS, and creatinine.",
+      "mimic_subject_id": 10000935,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: bilirubin, total bilirubin. Sections: Hospital Course.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "sofa",
+        "measurements_found": [
+          "bilirubin",
+          "total bilirubin"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_heart_1969ef87",
+      "task": "task_c_calculator",
+      "subtype": "heart",
+      "question": "What is this patient's HEART score for chest pain evaluation, and what risk category does it indicate?",
+      "expected_answer": "Based on the patient's data: Relevant findings: CORONARY ARTERY DISEASE, Coronary artery disease, Troponin, chest pain, troponin. Sections: Past Medical History, Diagnosis, Hospital Course, Discharge Instructions, History of Present Illness.. The HEART score should be computed from History, ECG, Age, Risk factors, and Troponin.",
+      "mimic_subject_id": 10002430,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: CORONARY ARTERY DISEASE, Coronary artery disease, Troponin, chest pain, troponin. Sections: Past Medical History, Diagnosis, Hospital Course, Discharge Instructions, History of Present Illness.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "heart",
+        "measurements_found": [
+          "CORONARY ARTERY DISEASE",
+          "Coronary artery disease",
+          "Troponin",
+          "chest pain",
+          "troponin"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_ascvd_8b67860c",
+      "task": "task_c_calculator",
+      "subtype": "ascvd",
+      "question": "What is this patient's 10-year ASCVD risk score?",
+      "expected_answer": "Based on the patient's cardiovascular risk factors: Relevant findings: DIABETES, DIABETES MELLITUS, Diabetes, Diabetes Mellitus, Diabetes Mellitus Type 2. Sections: Past Medical History, Diagnosis, Assessment, Hospital Course, History of Present Illness.. ASCVD risk requires total cholesterol, HDL, systolic BP, diabetes status, and smoking history.",
+      "mimic_subject_id": 10002013,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: DIABETES, DIABETES MELLITUS, Diabetes, Diabetes Mellitus, Diabetes Mellitus Type 2. Sections: Past Medical History, Diagnosis, Assessment, Hospital Course, History of Present Illness.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "ascvd",
+        "measurements_found": [
+          "DIABETES",
+          "DIABETES MELLITUS",
+          "Diabetes",
+          "Diabetes Mellitus",
+          "Diabetes Mellitus Type 2",
+          "Diabetes mellitus",
+          "Diabetes mellitus type 2",
+          "Hypertension",
+          "Type 2 Diabetes",
+          "Type 2 Diabetes Mellitus"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_wells_pe_79bdc4fa",
+      "task": "task_c_calculator",
+      "subtype": "wells_pe",
+      "question": "What is this patient's Wells score for pulmonary embolism probability?",
+      "expected_answer": "Based on the patient's clinical features: Relevant findings: Heart Rate, heart rate. Sections: Hospital Course, Family History.. The Wells PE score is computed from clinical signs, heart rate, immobilization, prior DVT/PE, hemoptysis, and cancer history.",
+      "mimic_subject_id": 10005348,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Heart Rate, heart rate. Sections: Hospital Course, Family History.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "wells_pe",
+        "measurements_found": [
+          "Heart Rate",
+          "heart rate"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_heart_2f08c910",
+      "task": "task_c_calculator",
+      "subtype": "heart",
+      "question": "What is this patient's HEART score for chest pain evaluation, and what risk category does it indicate?",
+      "expected_answer": "Based on the patient's data: Relevant findings: CKD Stage IV, Coronary Artery Disease, Coronary artery disease, EKG, chest pain. Sections: Past Medical History, EKG, Diagnosis, Assessment, Hospital Course, Medications, History of Present Illness.. The HEART score should be computed from History, ECG, Age, Risk factors, and Troponin.",
+      "mimic_subject_id": 10000980,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: CKD Stage IV, Coronary Artery Disease, Coronary artery disease, EKG, chest pain. Sections: Past Medical History, EKG, Diagnosis, Assessment, Hospital Course, Medications, History of Present Illness.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "heart",
+        "measurements_found": [
+          "CKD Stage IV",
+          "Coronary Artery Disease",
+          "Coronary artery disease",
+          "EKG",
+          "chest pain",
+          "coronary artery disease",
+          "stage IV CKD"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_wells_pe_c7e4d768",
+      "task": "task_c_calculator",
+      "subtype": "wells_pe",
+      "question": "What is this patient's Wells score for pulmonary embolism probability?",
+      "expected_answer": "Based on the patient's clinical features: Relevant findings: DVT, dvt. Sections: History of Present Illness, Hospital Course, Vital Signs, Diagnosis.. The Wells PE score is computed from clinical signs, heart rate, immobilization, prior DVT/PE, hemoptysis, and cancer history.",
+      "mimic_subject_id": 10002221,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: DVT, dvt. Sections: History of Present Illness, Hospital Course, Vital Signs, Diagnosis.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "wells_pe",
+        "measurements_found": [
+          "DVT",
+          "dvt"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_ckd_epi_a298bdfc",
+      "task": "task_c_calculator",
+      "subtype": "ckd_epi",
+      "question": "What is this patient's estimated GFR using the CKD-EPI equation, and what CKD stage does it indicate?",
+      "expected_answer": "Based on the patient's serum creatinine: Relevant findings: CREAT, Creat. Sections: Vital Signs, Assessment.. CKD-EPI requires creatinine, age, and sex.",
+      "mimic_subject_id": 10001338,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: CREAT, Creat. Sections: Vital Signs, Assessment.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "ckd_epi",
+        "measurements_found": [
+          "CREAT",
+          "Creat"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_ckd_epi_4b0493a5",
+      "task": "task_c_calculator",
+      "subtype": "ckd_epi",
+      "question": "What is this patient's estimated GFR using the CKD-EPI equation, and what CKD stage does it indicate?",
+      "expected_answer": "Based on the patient's serum creatinine: Relevant findings: Acute Kidney Injury, Creat, creatinine. Sections: Hospital Course, Vital Signs, Assessment.. CKD-EPI requires creatinine, age, and sex.",
+      "mimic_subject_id": 10002013,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Acute Kidney Injury, Creat, creatinine. Sections: Hospital Course, Vital Signs, Assessment.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "ckd_epi",
+        "measurements_found": [
+          "Acute Kidney Injury",
+          "Creat",
+          "creatinine"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_other_711a8aa8",
+      "task": "task_c_calculator",
+      "subtype": "other",
+      "question": "What is this patient's BLOOD Glucose value, and is it within normal range?",
+      "expected_answer": "The patient's BLOOD Glucose should be retrieved from the clinical record and interpreted in clinical context.",
+      "mimic_subject_id": 10003637,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10003637, measurement: BLOOD Glucose",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "value_correct": 0.5,
+        "interpretation_correct": 0.5
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_heart_9b303212",
+      "task": "task_c_calculator",
+      "subtype": "heart",
+      "question": "What is this patient's HEART score for chest pain evaluation, and what risk category does it indicate?",
+      "expected_answer": "Based on the patient's data: Relevant findings: EKG, Transesophageal echocardiogram, chest pain. Sections: History of Present Illness, Procedures, EKG.. The HEART score should be computed from History, ECG, Age, Risk factors, and Troponin.",
+      "mimic_subject_id": 10003019,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: EKG, Transesophageal echocardiogram, chest pain. Sections: History of Present Illness, Procedures, EKG.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "heart",
+        "measurements_found": [
+          "EKG",
+          "Transesophageal echocardiogram",
+          "chest pain"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_sofa_77c2bf56",
+      "task": "task_c_calculator",
+      "subtype": "sofa",
+      "question": "What is this patient's SOFA score, and what does it indicate about organ dysfunction?",
+      "expected_answer": "Based on the patient's lab values and clinical status: Relevant findings: bilirubin, total bilirubin. Sections: Hospital Course.. SOFA score assesses PaO2/FiO2, platelets, bilirubin, cardiovascular status (MAP/vasopressors), GCS, and creatinine.",
+      "mimic_subject_id": 10000826,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: bilirubin, total bilirubin. Sections: Hospital Course.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "sofa",
+        "measurements_found": [
+          "bilirubin",
+          "total bilirubin"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_other_972b4836",
+      "task": "task_c_calculator",
+      "subtype": "other",
+      "question": "What is this patient's BLOOD Glucose value, and is it within normal range?",
+      "expected_answer": "The patient's BLOOD Glucose should be retrieved from the clinical record and interpreted in clinical context.",
+      "mimic_subject_id": 10005605,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10005605, measurement: BLOOD Glucose",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "value_correct": 0.5,
+        "interpretation_correct": 0.5
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_ascvd_5e7f1683",
+      "task": "task_c_calculator",
+      "subtype": "ascvd",
+      "question": "What is this patient's 10-year ASCVD risk score?",
+      "expected_answer": "Based on the patient's cardiovascular risk factors: Relevant findings: Diabetes, Diabetes Mellitus, Diabetes Mellitus Type 2, Diabetes mellitus, Hypertension. Sections: Past Medical History, Diagnosis, Assessment, Hospital Course, Discharge Instructions, Physical Exam.. ASCVD risk requires total cholesterol, HDL, systolic BP, diabetes status, and smoking history.",
+      "mimic_subject_id": 10000980,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Diabetes, Diabetes Mellitus, Diabetes Mellitus Type 2, Diabetes mellitus, Hypertension. Sections: Past Medical History, Diagnosis, Assessment, Hospital Course, Discharge Instructions, Physical Exam.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "ascvd",
+        "measurements_found": [
+          "Diabetes",
+          "Diabetes Mellitus",
+          "Diabetes Mellitus Type 2",
+          "Diabetes mellitus",
+          "Hypertension",
+          "Type II Diabetes",
+          "blood pressure",
+          "diabetes",
+          "hypertension"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_meld_102b4519",
+      "task": "task_c_calculator",
+      "subtype": "meld",
+      "question": "What is this patient's MELD score, and what does it indicate for liver disease severity?",
+      "expected_answer": "Based on the patient's liver function labs: Relevant findings: BILIRUBIN, SODIUM. Sections: Assessment.. MELD score requires bilirubin, INR, creatinine, and sodium.",
+      "mimic_subject_id": 10001338,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: BILIRUBIN, SODIUM. Sections: Assessment.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "meld",
+        "measurements_found": [
+          "BILIRUBIN",
+          "SODIUM"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_wells_pe_8a8137e1",
+      "task": "task_c_calculator",
+      "subtype": "wells_pe",
+      "question": "What is this patient's Wells score for pulmonary embolism probability?",
+      "expected_answer": "Based on the patient's clinical features: Relevant findings: deep venous thrombosis, pulmonary embolism. Sections: Review of Systems.. The Wells PE score is computed from clinical signs, heart rate, immobilization, prior DVT/PE, hemoptysis, and cancer history.",
+      "mimic_subject_id": 10005858,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: deep venous thrombosis, pulmonary embolism. Sections: Review of Systems.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "wells_pe",
+        "measurements_found": [
+          "deep venous thrombosis",
+          "pulmonary embolism"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_sofa_61e0d263",
+      "task": "task_c_calculator",
+      "subtype": "sofa",
+      "question": "What is this patient's SOFA score, and what does it indicate about organ dysfunction?",
+      "expected_answer": "Based on the patient's lab values and clinical status: Relevant findings: Hypotension, hypotension. Sections: History of Present Illness, Labs, Diagnosis.. SOFA score assesses PaO2/FiO2, platelets, bilirubin, cardiovascular status (MAP/vasopressors), GCS, and creatinine.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Hypotension, hypotension. Sections: History of Present Illness, Labs, Diagnosis.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "sofa",
+        "measurements_found": [
+          "Hypotension",
+          "hypotension"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_wells_pe_e5895760",
+      "task": "task_c_calculator",
+      "subtype": "wells_pe",
+      "question": "What is this patient's Wells score for pulmonary embolism probability?",
+      "expected_answer": "Based on the patient's clinical features: Relevant findings: heart rate, tachycardia. Sections: History of Present Illness, Assessment.. The Wells PE score is computed from clinical signs, heart rate, immobilization, prior DVT/PE, hemoptysis, and cancer history.",
+      "mimic_subject_id": 10002013,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: heart rate, tachycardia. Sections: History of Present Illness, Assessment.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "wells_pe",
+        "measurements_found": [
+          "heart rate",
+          "tachycardia"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_other_34dbe211",
+      "task": "task_c_calculator",
+      "subtype": "other",
+      "question": "What is this patient's EF value, and is it within normal range?",
+      "expected_answer": "The patient's EF should be retrieved from the clinical record and interpreted in clinical context.",
+      "mimic_subject_id": 10003637,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10003637, measurement: EF",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "value_correct": 0.5,
+        "interpretation_correct": 0.5
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_meld_2d504042",
+      "task": "task_c_calculator",
+      "subtype": "meld",
+      "question": "What is this patient's MELD score, and what does it indicate for liver disease severity?",
+      "expected_answer": "Based on the patient's liver function labs: Relevant findings: INR, Sodium, sodium. Sections: Hospital Course, Medications, Physical Exam.. MELD score requires bilirubin, INR, creatinine, and sodium.",
+      "mimic_subject_id": 10001186,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: INR, Sodium, sodium. Sections: Hospital Course, Medications, Physical Exam.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "meld",
+        "measurements_found": [
+          "INR",
+          "Sodium",
+          "sodium"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_other_d6e691cf",
+      "task": "task_c_calculator",
+      "subtype": "other",
+      "question": "What is this patient's WBC value, and is it within normal range?",
+      "expected_answer": "The patient's WBC should be retrieved from the clinical record and interpreted in clinical context.",
+      "mimic_subject_id": 10003637,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10003637, measurement: WBC",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "value_correct": 0.5,
+        "interpretation_correct": 0.5
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_wells_pe_cc12e42b",
+      "task": "task_c_calculator",
+      "subtype": "wells_pe",
+      "question": "What is this patient's Wells score for pulmonary embolism probability?",
+      "expected_answer": "Based on the patient's clinical features: Relevant findings: DVT, tachycardia. Sections: History of Present Illness, Hospital Course, Physical Exam.. The Wells PE score is computed from clinical signs, heart rate, immobilization, prior DVT/PE, hemoptysis, and cancer history.",
+      "mimic_subject_id": 10005606,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: DVT, tachycardia. Sections: History of Present Illness, Hospital Course, Physical Exam.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "wells_pe",
+        "measurements_found": [
+          "DVT",
+          "tachycardia"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_other_2c91b2a8",
+      "task": "task_c_calculator",
+      "subtype": "other",
+      "question": "What is this patient's BLOOD Glucose value, and is it within normal range?",
+      "expected_answer": "The patient's BLOOD Glucose should be retrieved from the clinical record and interpreted in clinical context.",
+      "mimic_subject_id": 10002769,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10002769, measurement: BLOOD Glucose",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "value_correct": 0.5,
+        "interpretation_correct": 0.5
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_wells_pe_5886861f",
+      "task": "task_c_calculator",
+      "subtype": "wells_pe",
+      "question": "What is this patient's Wells score for pulmonary embolism probability?",
+      "expected_answer": "Based on the patient's clinical features: Relevant findings: DVT, deep venous thrombosis. Sections: History of Present Illness, Diagnosis, Hospital Course, Assessment.. The Wells PE score is computed from clinical signs, heart rate, immobilization, prior DVT/PE, hemoptysis, and cancer history.",
+      "mimic_subject_id": 10000980,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: DVT, deep venous thrombosis. Sections: History of Present Illness, Diagnosis, Hospital Course, Assessment.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "wells_pe",
+        "measurements_found": [
+          "DVT",
+          "deep venous thrombosis"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_ascvd_93ff54b0",
+      "task": "task_c_calculator",
+      "subtype": "ascvd",
+      "question": "What is this patient's 10-year ASCVD risk score?",
+      "expected_answer": "Based on the patient's cardiovascular risk factors: Relevant findings: HYPERTENSION, Hypertension, hypertension. Sections: History of Present Illness, Hospital Course, Past Medical History.. ASCVD risk requires total cholesterol, HDL, systolic BP, diabetes status, and smoking history.",
+      "mimic_subject_id": 10002430,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: HYPERTENSION, Hypertension, hypertension. Sections: History of Present Illness, Hospital Course, Past Medical History.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "ascvd",
+        "measurements_found": [
+          "HYPERTENSION",
+          "Hypertension",
+          "hypertension"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_other_35deff24",
+      "task": "task_c_calculator",
+      "subtype": "other",
+      "question": "What is this patient's blood glucose value, and is it within normal range?",
+      "expected_answer": "The patient's blood glucose should be retrieved from the clinical record and interpreted in clinical context.",
+      "mimic_subject_id": 10005749,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10005749, measurement: blood glucose",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "value_correct": 0.5,
+        "interpretation_correct": 0.5
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_sofa_895ddbb9",
+      "task": "task_c_calculator",
+      "subtype": "sofa",
+      "question": "What is this patient's SOFA score, and what does it indicate about organ dysfunction?",
+      "expected_answer": "Based on the patient's lab values and clinical status: Relevant findings: creatinine, hypotension. Sections: Hospital Course.. SOFA score assesses PaO2/FiO2, platelets, bilirubin, cardiovascular status (MAP/vasopressors), GCS, and creatinine.",
+      "mimic_subject_id": 10002013,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: creatinine, hypotension. Sections: Hospital Course.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "sofa",
+        "measurements_found": [
+          "creatinine",
+          "hypotension"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_other_0155a096",
+      "task": "task_c_calculator",
+      "subtype": "other",
+      "question": "What is this patient's ejection fraction value, and is it within normal range?",
+      "expected_answer": "The patient's ejection fraction should be retrieved from the clinical record and interpreted in clinical context.",
+      "mimic_subject_id": 10005858,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10005858, measurement: ejection fraction",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "value_correct": 0.5,
+        "interpretation_correct": 0.5
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_wells_pe_5f546389",
+      "task": "task_c_calculator",
+      "subtype": "wells_pe",
+      "question": "What is this patient's Wells score for pulmonary embolism probability?",
+      "expected_answer": "Based on the patient's clinical features: Relevant findings: DVT, deep venous thrombosis. Sections: History of Present Illness, Assessment.. The Wells PE score is computed from clinical signs, heart rate, immobilization, prior DVT/PE, hemoptysis, and cancer history.",
+      "mimic_subject_id": 10001877,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: DVT, deep venous thrombosis. Sections: History of Present Illness, Assessment.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "wells_pe",
+        "measurements_found": [
+          "DVT",
+          "deep venous thrombosis"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_sofa_5b945818",
+      "task": "task_c_calculator",
+      "subtype": "sofa",
+      "question": "What is this patient's SOFA score, and what does it indicate about organ dysfunction?",
+      "expected_answer": "Based on the patient's lab values and clinical status: Relevant findings: BILIRUBIN, Creatinine, hypotension, platelets. Sections: Hospital Course, Medications, Physical Exam.. SOFA score assesses PaO2/FiO2, platelets, bilirubin, cardiovascular status (MAP/vasopressors), GCS, and creatinine.",
+      "mimic_subject_id": 10002430,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: BILIRUBIN, Creatinine, hypotension, platelets. Sections: Hospital Course, Medications, Physical Exam.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "sofa",
+        "measurements_found": [
+          "BILIRUBIN",
+          "Creatinine",
+          "hypotension",
+          "platelets"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_meld_076cf1f2",
+      "task": "task_c_calculator",
+      "subtype": "meld",
+      "question": "What is this patient's MELD score, and what does it indicate for liver disease severity?",
+      "expected_answer": "Based on the patient's liver function labs: Relevant findings: INR, Sodium, bilirubin, total bilirubin. Sections: Hospital Course, Medications.. MELD score requires bilirubin, INR, creatinine, and sodium.",
+      "mimic_subject_id": 10000935,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: INR, Sodium, bilirubin, total bilirubin. Sections: Hospital Course, Medications.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "meld",
+        "measurements_found": [
+          "INR",
+          "Sodium",
+          "bilirubin",
+          "total bilirubin"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_heart_29cbcea9",
+      "task": "task_c_calculator",
+      "subtype": "heart",
+      "question": "What is this patient's HEART score for chest pain evaluation, and what risk category does it indicate?",
+      "expected_answer": "Based on the patient's data: Relevant findings: Coronary artery disease, EKG, chest pain, coronary artery disease. Sections: Past Medical History, EKG, Diagnosis, Hospital Course, History of Present Illness.. The HEART score should be computed from History, ECG, Age, Risk factors, and Troponin.",
+      "mimic_subject_id": 10003502,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Coronary artery disease, EKG, chest pain, coronary artery disease. Sections: Past Medical History, EKG, Diagnosis, Hospital Course, History of Present Illness.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "heart",
+        "measurements_found": [
+          "Coronary artery disease",
+          "EKG",
+          "chest pain",
+          "coronary artery disease"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_ckd_epi_f910a643",
+      "task": "task_c_calculator",
+      "subtype": "ckd_epi",
+      "question": "What is this patient's estimated GFR using the CKD-EPI equation, and what CKD stage does it indicate?",
+      "expected_answer": "Based on the patient's serum creatinine: Relevant findings: Acute kidney injury, Acute on chronic kidney disease, CHRONIC KIDNEY DISEASE, Creat, PANCREATITIS. Sections: Past Medical History, Diagnosis, Assessment, Hospital Course, Vital Signs, Medications, History of Present Illness.. CKD-EPI requires creatinine, age, and sex.",
+      "mimic_subject_id": 10005749,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Acute kidney injury, Acute on chronic kidney disease, CHRONIC KIDNEY DISEASE, Creat, PANCREATITIS. Sections: Past Medical History, Diagnosis, Assessment, Hospital Course, Vital Signs, Medications, History of Present Illness.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "ckd_epi",
+        "measurements_found": [
+          "Acute kidney injury",
+          "Acute on chronic kidney disease",
+          "CHRONIC KIDNEY DISEASE",
+          "Creat",
+          "PANCREATITIS",
+          "chronic kidney disease",
+          "creatinine"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_ckd_epi_8565b400",
+      "task": "task_c_calculator",
+      "subtype": "ckd_epi",
+      "question": "What is this patient's estimated GFR using the CKD-EPI equation, and what CKD stage does it indicate?",
+      "expected_answer": "Based on the patient's serum creatinine: Relevant findings: Acute kidney injury, Creat, Creatinine, creatinine. Sections: History of Present Illness, Hospital Course, Vital Signs.. CKD-EPI requires creatinine, age, and sex.",
+      "mimic_subject_id": 10001884,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Acute kidney injury, Creat, Creatinine, creatinine. Sections: History of Present Illness, Hospital Course, Vital Signs.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "ckd_epi",
+        "measurements_found": [
+          "Acute kidney injury",
+          "Creat",
+          "Creatinine",
+          "creatinine"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_ckd_epi_92e91cb3",
+      "task": "task_c_calculator",
+      "subtype": "ckd_epi",
+      "question": "What is this patient's estimated GFR using the CKD-EPI equation, and what CKD stage does it indicate?",
+      "expected_answer": "Based on the patient's serum creatinine: Relevant findings: Acute Kidney Injury, Creat. Sections: Labs, Diagnosis, Physical Exam.. CKD-EPI requires creatinine, age, and sex.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Acute Kidney Injury, Creat. Sections: Labs, Diagnosis, Physical Exam.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "ckd_epi",
+        "measurements_found": [
+          "Acute Kidney Injury",
+          "Creat"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_meld_7d090826",
+      "task": "task_c_calculator",
+      "subtype": "meld",
+      "question": "What is this patient's MELD score, and what does it indicate for liver disease severity?",
+      "expected_answer": "Based on the patient's liver function labs: Relevant findings: Creatinine, INR, Sodium, bilirubin, creatinine. Sections: EKG, Assessment, Hospital Course, Medications, History of Present Illness.. MELD score requires bilirubin, INR, creatinine, and sodium.",
+      "mimic_subject_id": 10000980,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Creatinine, INR, Sodium, bilirubin, creatinine. Sections: EKG, Assessment, Hospital Course, Medications, History of Present Illness.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "meld",
+        "measurements_found": [
+          "Creatinine",
+          "INR",
+          "Sodium",
+          "bilirubin",
+          "creatinine",
+          "sodium"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_ascvd_dfb91fee",
+      "task": "task_c_calculator",
+      "subtype": "ascvd",
+      "question": "What is this patient's 10-year ASCVD risk score?",
+      "expected_answer": "Based on the patient's cardiovascular risk factors: Relevant findings: Hypertension, hypertension. Sections: Family History, Past Medical History, Diagnosis, Assessment, Hospital Course, History of Present Illness.. ASCVD risk requires total cholesterol, HDL, systolic BP, diabetes status, and smoking history.",
+      "mimic_subject_id": 10001884,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Hypertension, hypertension. Sections: Family History, Past Medical History, Diagnosis, Assessment, Hospital Course, History of Present Illness.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "ascvd",
+        "measurements_found": [
+          "Hypertension",
+          "hypertension"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_meld_4b4b8ea8",
+      "task": "task_c_calculator",
+      "subtype": "meld",
+      "question": "What is this patient's MELD score, and what does it indicate for liver disease severity?",
+      "expected_answer": "Based on the patient's liver function labs: Relevant findings: Sodium, creatinine, sodium. Sections: Hospital Course, Medications.. MELD score requires bilirubin, INR, creatinine, and sodium.",
+      "mimic_subject_id": 10001401,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Sodium, creatinine, sodium. Sections: Hospital Course, Medications.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "meld",
+        "measurements_found": [
+          "Sodium",
+          "creatinine",
+          "sodium"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_ckd_epi_0677e173",
+      "task": "task_c_calculator",
+      "subtype": "ckd_epi",
+      "question": "What is this patient's estimated GFR using the CKD-EPI equation, and what CKD stage does it indicate?",
+      "expected_answer": "Based on the patient's serum creatinine: Relevant findings: ACUTE KIDNEY INJURY, Acute Kidney Injury, Acute kidney injury, CREAT, Creat. Sections: Hospital Course, Labs, Diagnosis, Physical Exam.. CKD-EPI requires creatinine, age, and sex.",
+      "mimic_subject_id": 10004322,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: ACUTE KIDNEY INJURY, Acute Kidney Injury, Acute kidney injury, CREAT, Creat. Sections: Hospital Course, Labs, Diagnosis, Physical Exam.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "ckd_epi",
+        "measurements_found": [
+          "ACUTE KIDNEY INJURY",
+          "Acute Kidney Injury",
+          "Acute kidney injury",
+          "CREAT",
+          "Creat",
+          "acute kidney injury"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_other_da459fa9",
+      "task": "task_c_calculator",
+      "subtype": "other",
+      "question": "What is this patient's Cr value, and is it within normal range?",
+      "expected_answer": "The patient's Cr should be retrieved from the clinical record and interpreted in clinical context.",
+      "mimic_subject_id": 10002430,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10002430, measurement: Cr",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "value_correct": 0.5,
+        "interpretation_correct": 0.5
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_wells_pe_62256206",
+      "task": "task_c_calculator",
+      "subtype": "wells_pe",
+      "question": "What is this patient's Wells score for pulmonary embolism probability?",
+      "expected_answer": "Based on the patient's clinical features: Relevant findings: DVT, pulmonary embolism. Sections: Hospital Course, Physical Exam.. The Wells PE score is computed from clinical signs, heart rate, immobilization, prior DVT/PE, hemoptysis, and cancer history.",
+      "mimic_subject_id": 10000826,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: DVT, pulmonary embolism. Sections: Hospital Course, Physical Exam.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "wells_pe",
+        "measurements_found": [
+          "DVT",
+          "pulmonary embolism"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_sofa_997e9544",
+      "task": "task_c_calculator",
+      "subtype": "sofa",
+      "question": "What is this patient's SOFA score, and what does it indicate about organ dysfunction?",
+      "expected_answer": "Based on the patient's lab values and clinical status: Relevant findings: BILIRUBIN, Creatinine, Hypotension, creatinine, hypotension. Sections: Diagnosis, Chief Complaint, Hospital Course, Labs, History of Present Illness.. SOFA score assesses PaO2/FiO2, platelets, bilirubin, cardiovascular status (MAP/vasopressors), GCS, and creatinine.",
+      "mimic_subject_id": 10003637,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: BILIRUBIN, Creatinine, Hypotension, creatinine, hypotension. Sections: Diagnosis, Chief Complaint, Hospital Course, Labs, History of Present Illness.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "sofa",
+        "measurements_found": [
+          "BILIRUBIN",
+          "Creatinine",
+          "Hypotension",
+          "creatinine",
+          "hypotension"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_ckd_epi_363abaf7",
+      "task": "task_c_calculator",
+      "subtype": "ckd_epi",
+      "question": "What is this patient's estimated GFR using the CKD-EPI equation, and what CKD stage does it indicate?",
+      "expected_answer": "Based on the patient's serum creatinine: Relevant findings: Acute renal failure, Creat, creatinine. Sections: History of Present Illness, Hospital Course, Vital Signs, Physical Exam.. CKD-EPI requires creatinine, age, and sex.",
+      "mimic_subject_id": 10002976,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Acute renal failure, Creat, creatinine. Sections: History of Present Illness, Hospital Course, Vital Signs, Physical Exam.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "ckd_epi",
+        "measurements_found": [
+          "Acute renal failure",
+          "Creat",
+          "creatinine"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_sofa_5bf3000b",
+      "task": "task_c_calculator",
+      "subtype": "sofa",
+      "question": "What is this patient's SOFA score, and what does it indicate about organ dysfunction?",
+      "expected_answer": "Based on the patient's lab values and clinical status: Relevant findings: hypotension, platelets. Sections: History of Present Illness.. SOFA score assesses PaO2/FiO2, platelets, bilirubin, cardiovascular status (MAP/vasopressors), GCS, and creatinine.",
+      "mimic_subject_id": 10005817,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: hypotension, platelets. Sections: History of Present Illness.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "sofa",
+        "measurements_found": [
+          "hypotension",
+          "platelets"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_ckd_epi_c045e3a6",
+      "task": "task_c_calculator",
+      "subtype": "ckd_epi",
+      "question": "What is this patient's estimated GFR using the CKD-EPI equation, and what CKD stage does it indicate?",
+      "expected_answer": "Based on the patient's serum creatinine: Relevant findings: CREAT, Creat, Creatinine, cardiorenal, creatinine. Sections: Hospital Course, Labs.. CKD-EPI requires creatinine, age, and sex.",
+      "mimic_subject_id": 10003637,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: CREAT, Creat, Creatinine, cardiorenal, creatinine. Sections: Hospital Course, Labs.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "ckd_epi",
+        "measurements_found": [
+          "CREAT",
+          "Creat",
+          "Creatinine",
+          "cardiorenal",
+          "creatinine"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_sofa_a3a67ca4",
+      "task": "task_c_calculator",
+      "subtype": "sofa",
+      "question": "What is this patient's SOFA score, and what does it indicate about organ dysfunction?",
+      "expected_answer": "Based on the patient's lab values and clinical status: Relevant findings: Creatinine, platelets. Sections: Hospital Course.. SOFA score assesses PaO2/FiO2, platelets, bilirubin, cardiovascular status (MAP/vasopressors), GCS, and creatinine.",
+      "mimic_subject_id": 10005123,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Creatinine, platelets. Sections: Hospital Course.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "sofa",
+        "measurements_found": [
+          "Creatinine",
+          "platelets"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_ascvd_04bef001",
+      "task": "task_c_calculator",
+      "subtype": "ascvd",
+      "question": "What is this patient's 10-year ASCVD risk score?",
+      "expected_answer": "Based on the patient's cardiovascular risk factors: Relevant findings: hypercholesterolemia, hypertension. Sections: Past Medical History.. ASCVD risk requires total cholesterol, HDL, systolic BP, diabetes status, and smoking history.",
+      "mimic_subject_id": 10002769,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: hypercholesterolemia, hypertension. Sections: Past Medical History.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "ascvd",
+        "measurements_found": [
+          "hypercholesterolemia",
+          "hypertension"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_sofa_0856a710",
+      "task": "task_c_calculator",
+      "subtype": "sofa",
+      "question": "What is this patient's SOFA score, and what does it indicate about organ dysfunction?",
+      "expected_answer": "Based on the patient's lab values and clinical status: Relevant findings: BILIRUBIN, HYPOTENSION, hypotension. Sections: Hospital Course, Labs, Medications, Diagnosis.. SOFA score assesses PaO2/FiO2, platelets, bilirubin, cardiovascular status (MAP/vasopressors), GCS, and creatinine.",
+      "mimic_subject_id": 10004322,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: BILIRUBIN, HYPOTENSION, hypotension. Sections: Hospital Course, Labs, Medications, Diagnosis.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "sofa",
+        "measurements_found": [
+          "BILIRUBIN",
+          "HYPOTENSION",
+          "hypotension"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_heart_0b17cdb8",
+      "task": "task_c_calculator",
+      "subtype": "heart",
+      "question": "What is this patient's HEART score for chest pain evaluation, and what risk category does it indicate?",
+      "expected_answer": "Based on the patient's data: Relevant findings: Gastroesophageal reflux disease, chest pain, gastroesophageal reflux disease, substernal chest pain. Sections: History of Present Illness, Chief Complaint, Diagnosis.. The HEART score should be computed from History, ECG, Age, Risk factors, and Troponin.",
+      "mimic_subject_id": 10005368,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Gastroesophageal reflux disease, chest pain, gastroesophageal reflux disease, substernal chest pain. Sections: History of Present Illness, Chief Complaint, Diagnosis.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "heart",
+        "measurements_found": [
+          "Gastroesophageal reflux disease",
+          "chest pain",
+          "gastroesophageal reflux disease",
+          "substernal chest pain"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_other_8bf956a0",
+      "task": "task_c_calculator",
+      "subtype": "other",
+      "question": "What is this patient's Pt value, and is it within normal range?",
+      "expected_answer": "The patient's Pt should be retrieved from the clinical record and interpreted in clinical context.",
+      "mimic_subject_id": 10002976,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10002976, measurement: Pt",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "value_correct": 0.5,
+        "interpretation_correct": 0.5
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_sofa_c30a0050",
+      "task": "task_c_calculator",
+      "subtype": "sofa",
+      "question": "What is this patient's SOFA score, and what does it indicate about organ dysfunction?",
+      "expected_answer": "Based on the patient's lab values and clinical status: Relevant findings: Creatinine, Hypotension, hypotension. Sections: History of Present Illness, Chief Complaint, Hospital Course, Diagnosis.. SOFA score assesses PaO2/FiO2, platelets, bilirubin, cardiovascular status (MAP/vasopressors), GCS, and creatinine.",
+      "mimic_subject_id": 10006029,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Creatinine, Hypotension, hypotension. Sections: History of Present Illness, Chief Complaint, Hospital Course, Diagnosis.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "sofa",
+        "measurements_found": [
+          "Creatinine",
+          "Hypotension",
+          "hypotension"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_heart_7e075681",
+      "task": "task_c_calculator",
+      "subtype": "heart",
+      "question": "What is this patient's HEART score for chest pain evaluation, and what risk category does it indicate?",
+      "expected_answer": "Based on the patient's data: Relevant findings: EKG, chest pain. Sections: Hospital Course, Discharge Instructions.. The HEART score should be computed from History, ECG, Age, Risk factors, and Troponin.",
+      "mimic_subject_id": 10002769,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: EKG, chest pain. Sections: Hospital Course, Discharge Instructions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "heart",
+        "measurements_found": [
+          "EKG",
+          "chest pain"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_other_922cde1f",
+      "task": "task_c_calculator",
+      "subtype": "other",
+      "question": "What is this patient's WBC value, and is it within normal range?",
+      "expected_answer": "The patient's WBC should be retrieved from the clinical record and interpreted in clinical context.",
+      "mimic_subject_id": 10005866,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10005866, measurement: WBC",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "value_correct": 0.5,
+        "interpretation_correct": 0.5
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_ckd_epi_8f39c604",
+      "task": "task_c_calculator",
+      "subtype": "ckd_epi",
+      "question": "What is this patient's estimated GFR using the CKD-EPI equation, and what CKD stage does it indicate?",
+      "expected_answer": "Based on the patient's serum creatinine: Relevant findings: Creat, creatinine. Sections: Hospital Course, Labs, Assessment, Physical Exam.. CKD-EPI requires creatinine, age, and sex.",
+      "mimic_subject_id": 10001401,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Creat, creatinine. Sections: Hospital Course, Labs, Assessment, Physical Exam.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "ckd_epi",
+        "measurements_found": [
+          "Creat",
+          "creatinine"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_wells_pe_ee00c76c",
+      "task": "task_c_calculator",
+      "subtype": "wells_pe",
+      "question": "What is this patient's Wells score for pulmonary embolism probability?",
+      "expected_answer": "Based on the patient's clinical features: Relevant findings: DVT, Heart rate. Sections: Hospital Course, Family History.. The Wells PE score is computed from clinical signs, heart rate, immobilization, prior DVT/PE, hemoptysis, and cancer history.",
+      "mimic_subject_id": 10005236,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: DVT, Heart rate. Sections: Hospital Course, Family History.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "wells_pe",
+        "measurements_found": [
+          "DVT",
+          "Heart rate"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_meld_1204f160",
+      "task": "task_c_calculator",
+      "subtype": "meld",
+      "question": "What is this patient's MELD score, and what does it indicate for liver disease severity?",
+      "expected_answer": "Based on the patient's liver function labs: Relevant findings: Cirrhosis, INR, TBili, cirrhosis. Sections: Past Medical History, Diagnosis, Labs, Discharge Instructions, History of Present Illness, Physical Exam.. MELD score requires bilirubin, INR, creatinine, and sodium.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Cirrhosis, INR, TBili, cirrhosis. Sections: Past Medical History, Diagnosis, Labs, Discharge Instructions, History of Present Illness, Physical Exam.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "meld",
+        "measurements_found": [
+          "Cirrhosis",
+          "INR",
+          "TBili",
+          "cirrhosis"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_ascvd_ae7afada",
+      "task": "task_c_calculator",
+      "subtype": "ascvd",
+      "question": "What is this patient's 10-year ASCVD risk score?",
+      "expected_answer": "Based on the patient's cardiovascular risk factors: Relevant findings: Hypertension, hypertension. Sections: History of Present Illness, Hospital Course, Past Medical History.. ASCVD risk requires total cholesterol, HDL, systolic BP, diabetes status, and smoking history.",
+      "mimic_subject_id": 10003502,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Hypertension, hypertension. Sections: History of Present Illness, Hospital Course, Past Medical History.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "ascvd",
+        "measurements_found": [
+          "Hypertension",
+          "hypertension"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_heart_105813ec",
+      "task": "task_c_calculator",
+      "subtype": "heart",
+      "question": "What is this patient's HEART score for chest pain evaluation, and what risk category does it indicate?",
+      "expected_answer": "Based on the patient's data: Relevant findings: EKG, chest pain. Sections: History of Present Illness, Labs, Physical Exam.. The HEART score should be computed from History, ECG, Age, Risk factors, and Troponin.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: EKG, chest pain. Sections: History of Present Illness, Labs, Physical Exam.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "heart",
+        "measurements_found": [
+          "EKG",
+          "chest pain"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_other_b7512c87",
+      "task": "task_c_calculator",
+      "subtype": "other",
+      "question": "What is this patient's GLUCOSE value, and is it within normal range?",
+      "expected_answer": "The patient's GLUCOSE should be retrieved from the clinical record and interpreted in clinical context.",
+      "mimic_subject_id": 10002131,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10002131, measurement: GLUCOSE",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "value_correct": 0.5,
+        "interpretation_correct": 0.5
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_heart_653a1bb2",
+      "task": "task_c_calculator",
+      "subtype": "heart",
+      "question": "What is this patient's HEART score for chest pain evaluation, and what risk category does it indicate?",
+      "expected_answer": "Based on the patient's data: Relevant findings: Chest Pain, Coronary Artery Disease, chest pain. Sections: Review of Systems, Past Medical History.. The HEART score should be computed from History, ECG, Age, Risk factors, and Troponin.",
+      "mimic_subject_id": 10001884,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Chest Pain, Coronary Artery Disease, chest pain. Sections: Review of Systems, Past Medical History.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "heart",
+        "measurements_found": [
+          "Chest Pain",
+          "Coronary Artery Disease",
+          "chest pain"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_sofa_8a438c90",
+      "task": "task_c_calculator",
+      "subtype": "sofa",
+      "question": "What is this patient's SOFA score, and what does it indicate about organ dysfunction?",
+      "expected_answer": "Based on the patient's lab values and clinical status: Relevant findings: Creatinine, bilirubin, creatinine. Sections: History of Present Illness, EKG, Assessment.. SOFA score assesses PaO2/FiO2, platelets, bilirubin, cardiovascular status (MAP/vasopressors), GCS, and creatinine.",
+      "mimic_subject_id": 10000980,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Creatinine, bilirubin, creatinine. Sections: History of Present Illness, EKG, Assessment.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "sofa",
+        "measurements_found": [
+          "Creatinine",
+          "bilirubin",
+          "creatinine"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_wells_pe_21d8bffa",
+      "task": "task_c_calculator",
+      "subtype": "wells_pe",
+      "question": "What is this patient's Wells score for pulmonary embolism probability?",
+      "expected_answer": "Based on the patient's clinical features: Relevant findings: heart rate, slow heart rate. Sections: Discharge Instructions.. The Wells PE score is computed from clinical signs, heart rate, immobilization, prior DVT/PE, hemoptysis, and cancer history.",
+      "mimic_subject_id": 10003502,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: heart rate, slow heart rate. Sections: Discharge Instructions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "wells_pe",
+        "measurements_found": [
+          "heart rate",
+          "slow heart rate"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_meld_0030579f",
+      "task": "task_c_calculator",
+      "subtype": "meld",
+      "question": "What is this patient's MELD score, and what does it indicate for liver disease severity?",
+      "expected_answer": "Based on the patient's liver function labs: Relevant findings: Sodium, sodium. Sections: Medications.. MELD score requires bilirubin, INR, creatinine, and sodium.",
+      "mimic_subject_id": 10001217,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Sodium, sodium. Sections: Medications.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "meld",
+        "measurements_found": [
+          "Sodium",
+          "sodium"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_ckd_epi_f0dcc523",
+      "task": "task_c_calculator",
+      "subtype": "ckd_epi",
+      "question": "What is this patient's estimated GFR using the CKD-EPI equation, and what CKD stage does it indicate?",
+      "expected_answer": "Based on the patient's serum creatinine: Relevant findings: CREAT, Creat, acute renal failure. Sections: Vital Signs, Labs, Assessment.. CKD-EPI requires creatinine, age, and sex.",
+      "mimic_subject_id": 10002131,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: CREAT, Creat, acute renal failure. Sections: Vital Signs, Labs, Assessment.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "ckd_epi",
+        "measurements_found": [
+          "CREAT",
+          "Creat",
+          "acute renal failure"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_heart_aac1bb4c",
+      "task": "task_c_calculator",
+      "subtype": "heart",
+      "question": "What is this patient's HEART score for chest pain evaluation, and what risk category does it indicate?",
+      "expected_answer": "Based on the patient's data: Relevant findings: Coronary Artery Disease, EKG, chest pain, coronary artery disease. Sections: Past Medical History, Diagnosis, Hospital Course, Discharge Instructions, History of Present Illness.. The HEART score should be computed from History, ECG, Age, Risk factors, and Troponin.",
+      "mimic_subject_id": 10005348,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Coronary Artery Disease, EKG, chest pain, coronary artery disease. Sections: Past Medical History, Diagnosis, Hospital Course, Discharge Instructions, History of Present Illness.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "heart",
+        "measurements_found": [
+          "Coronary Artery Disease",
+          "EKG",
+          "chest pain",
+          "coronary artery disease"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_ascvd_5df6a6c9",
+      "task": "task_c_calculator",
+      "subtype": "ascvd",
+      "question": "What is this patient's 10-year ASCVD risk score?",
+      "expected_answer": "Based on the patient's cardiovascular risk factors: Relevant findings: DIABETES, DIABETES MELLITUS, Diabetes, Diabetes Mellitus, HYPERTENSION. Sections: Past Medical History, Diagnosis, Hospital Course, Discharge Instructions, History of Present Illness.. ASCVD risk requires total cholesterol, HDL, systolic BP, diabetes status, and smoking history.",
+      "mimic_subject_id": 10002976,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: DIABETES, DIABETES MELLITUS, Diabetes, Diabetes Mellitus, HYPERTENSION. Sections: Past Medical History, Diagnosis, Hospital Course, Discharge Instructions, History of Present Illness.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "ascvd",
+        "measurements_found": [
+          "DIABETES",
+          "DIABETES MELLITUS",
+          "Diabetes",
+          "Diabetes Mellitus",
+          "HYPERTENSION",
+          "Hypertension",
+          "Type 2 Diabetes",
+          "diabetes",
+          "diabetes mellitus",
+          "type II diabetes"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_meld_937cc16b",
+      "task": "task_c_calculator",
+      "subtype": "meld",
+      "question": "What is this patient's MELD score, and what does it indicate for liver disease severity?",
+      "expected_answer": "Based on the patient's liver function labs: Relevant findings: Creatinine, Sodium, creatinine, sodium. Sections: History of Present Illness, Hospital Course, Medications.. MELD score requires bilirubin, INR, creatinine, and sodium.",
+      "mimic_subject_id": 10001884,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Creatinine, Sodium, creatinine, sodium. Sections: History of Present Illness, Hospital Course, Medications.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "meld",
+        "measurements_found": [
+          "Creatinine",
+          "Sodium",
+          "creatinine",
+          "sodium"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_other_bbbf5d9f",
+      "task": "task_c_calculator",
+      "subtype": "other",
+      "question": "What is this patient's BLOOD Glucose value, and is it within normal range?",
+      "expected_answer": "The patient's BLOOD Glucose should be retrieved from the clinical record and interpreted in clinical context.",
+      "mimic_subject_id": 10000935,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000935, measurement: BLOOD Glucose",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "value_correct": 0.5,
+        "interpretation_correct": 0.5
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_sofa_52aa0ebe",
+      "task": "task_c_calculator",
+      "subtype": "sofa",
+      "question": "What is this patient's SOFA score, and what does it indicate about organ dysfunction?",
+      "expected_answer": "Based on the patient's lab values and clinical status: Relevant findings: Creatinine, creatinine. Sections: Hospital Course, Physical Exam.. SOFA score assesses PaO2/FiO2, platelets, bilirubin, cardiovascular status (MAP/vasopressors), GCS, and creatinine.",
+      "mimic_subject_id": 10005605,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Creatinine, creatinine. Sections: Hospital Course, Physical Exam.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "sofa",
+        "measurements_found": [
+          "Creatinine",
+          "creatinine"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_other_d93078c8",
+      "task": "task_c_calculator",
+      "subtype": "other",
+      "question": "What is this patient's BLOOD Glucose value, and is it within normal range?",
+      "expected_answer": "The patient's BLOOD Glucose should be retrieved from the clinical record and interpreted in clinical context.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000032, measurement: BLOOD Glucose",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "value_correct": 0.5,
+        "interpretation_correct": 0.5
+      },
+      "metadata": {},
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_ckd_epi_aed45fb9",
+      "task": "task_c_calculator",
+      "subtype": "ckd_epi",
+      "question": "What is this patient's estimated GFR using the CKD-EPI equation, and what CKD stage does it indicate?",
+      "expected_answer": "Based on the patient's serum creatinine: Relevant findings: Chronic Kidney Disease, Chronic kidney disease, Creat, Creatinine, creatinine. Sections: Diagnosis, Assessment, Hospital Course, History of Present Illness, Physical Exam.. CKD-EPI requires creatinine, age, and sex.",
+      "mimic_subject_id": 10000980,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Chronic Kidney Disease, Chronic kidney disease, Creat, Creatinine, creatinine. Sections: Diagnosis, Assessment, Hospital Course, History of Present Illness, Physical Exam.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "ckd_epi",
+        "measurements_found": [
+          "Chronic Kidney Disease",
+          "Chronic kidney disease",
+          "Creat",
+          "Creatinine",
+          "creatinine"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_ckd_epi_87801e4f",
+      "task": "task_c_calculator",
+      "subtype": "ckd_epi",
+      "question": "What is this patient's estimated GFR using the CKD-EPI equation, and what CKD stage does it indicate?",
+      "expected_answer": "Based on the patient's serum creatinine: Relevant findings: CREAT, Creat. Sections: Labs.. CKD-EPI requires creatinine, age, and sex.",
+      "mimic_subject_id": 10005368,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: CREAT, Creat. Sections: Labs.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "ckd_epi",
+        "measurements_found": [
+          "CREAT",
+          "Creat"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_meld_fb9e2104",
+      "task": "task_c_calculator",
+      "subtype": "meld",
+      "question": "What is this patient's MELD score, and what does it indicate for liver disease severity?",
+      "expected_answer": "Based on the patient's liver function labs: Relevant findings: INR, sodium. Sections: Hospital Course.. MELD score requires bilirubin, INR, creatinine, and sodium.",
+      "mimic_subject_id": 10001877,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: INR, sodium. Sections: Hospital Course.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "meld",
+        "measurements_found": [
+          "INR",
+          "sodium"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_heart_7f1674f6",
+      "task": "task_c_calculator",
+      "subtype": "heart",
+      "question": "What is this patient's HEART score for chest pain evaluation, and what risk category does it indicate?",
+      "expected_answer": "Based on the patient's data: Relevant findings: CORONARY ARTERY DISEASE, ECG, EKG, Glucophage, chest pain. Sections: Review of Systems, Diagnosis, Hospital Course, Medications, Physical Exam, History of Present Illness, Imaging.. The HEART score should be computed from History, ECG, Age, Risk factors, and Troponin.",
+      "mimic_subject_id": 10004322,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: CORONARY ARTERY DISEASE, ECG, EKG, Glucophage, chest pain. Sections: Review of Systems, Diagnosis, Hospital Course, Medications, Physical Exam, History of Present Illness, Imaging.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "heart",
+        "measurements_found": [
+          "CORONARY ARTERY DISEASE",
+          "ECG",
+          "EKG",
+          "Glucophage",
+          "chest pain"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_c_heart_7a4067b5",
+      "task": "task_c_calculator",
+      "subtype": "heart",
+      "question": "What is this patient's HEART score for chest pain evaluation, and what risk category does it indicate?",
+      "expected_answer": "Based on the patient's data: Relevant findings: Chest pain, chest pain. Sections: History of Present Illness, Review of Systems.. The HEART score should be computed from History, ECG, Age, Risk factors, and Troponin.",
+      "mimic_subject_id": 10001338,
+      "mimic_hadm_id": null,
+      "clinical_context": "Relevant findings: Chest pain, chest pain. Sections: History of Present Illness, Review of Systems.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "calculator_correct": 0.5,
+        "decision_correct": 0.5
+      },
+      "metadata": {
+        "calculator_type": "heart",
+        "measurements_found": [
+          "Chest pain",
+          "chest pain"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    }
+  ],
+  "total_count": 100,
+  "subtype_distribution": {
+    "wells_pe": 13,
+    "heart": 16,
+    "other": 22,
+    "ascvd": 10,
+    "sofa": 14,
+    "ckd_epi": 15,
+    "meld": 10
+  },
+  "created_at": "2026-02-19T17:42:00.970911Z"
+}

@@ -1,0 +1,366 @@
+{
+  "ablation_id": "ablation_20260219_170904",
+  "run_at": "2026-02-19T17:12:19.904049+00:00",
+  "patient_id": "LABS_VITALS_TEST",
+  "question_set_name": "smoke_test_5",
+  "total_questions": 5,
+  "llm_model": "gemma3:27b",
+  "total_duration_s": 195.88774783798726,
+  "conditions": {
+    "C1_llm_alone": {
+      "label": "LLM Alone",
+      "accuracy": 0.6,
+      "total_questions": 5,
+      "correct": 3,
+      "category_accuracies": {
+        "negation": 0.6
+      },
+      "safety_score": 0.2,
+      "avg_latency_ms": 6796.028161211871,
+      "config": {
+        "assertion_mode": "none",
+        "temporal_mode": "no_temporal",
+        "retrieval_mode": "doc_only",
+        "raw_note_only": true,
+        "calculator_enabled": false,
+        "guidelines_enabled": false
+      },
+      "per_question": [
+        {
+          "question_id": "a2_neg_01",
+          "category": "negation",
+          "correct": false,
+          "score": 0.0,
+          "predicted_answer": "Yes, the patient has Type 2 diabetes mellitus and is currently on metformin. His glucose is elevated at 156, and his mother has a family history of diabetes.",
+          "expected_answer": "No \u2014 the note states the patient 'denies diabetes' / 'no history of diabetes'.",
+          "latency_ms": 26308.00109502161,
+          "error": null
+        },
+        {
+          "question_id": "a2_neg_02",
+          "category": "negation",
+          "correct": true,
+          "score": 1.0,
+          "predicted_answer": "Yes, the patient has a history of coronary artery disease status post PCI to the LAD in 2022. Current troponin levels are negative, indicating no acute myocardial infarction. The family history includ",
+          "expected_answer": "No \u2014 the note states 'no evidence of coronary artery disease on stress test'.",
+          "latency_ms": 3083.161918038968,
+          "error": null
+        },
+        {
+          "question_id": "a2_neg_03",
+          "category": "negation",
+          "correct": false,
+          "score": 0.0,
+          "predicted_answer": "Yes, the patient has a documented penicillin allergy presenting as a rash. They also have a sulfa allergy presenting as hives.",
+          "expected_answer": "No \u2014 the note states 'no known drug allergies' / 'NKDA'.",
+          "latency_ms": 1704.1248750174418,
+          "error": null
+        },
+        {
+          "question_id": "a2_neg_04",
+          "category": "negation",
+          "correct": true,
+          "score": 1.0,
+          "predicted_answer": "The evidence does not mention any diagnosis of cancer for this patient. Family history is negative for cancer.",
+          "expected_answer": "No \u2014 cancer screening was negative.",
+          "latency_ms": 1455.3320839768276,
+          "error": null
+        },
+        {
+          "question_id": "a2_neg_05",
+          "category": "negation",
+          "correct": true,
+          "score": 1.0,
+          "predicted_answer": "The patient denies chest pain, as noted in both the HPI and review of systems (ROS).",
+          "expected_answer": "No \u2014 patient denies chest pain.",
+          "latency_ms": 1429.5208340045065,
+          "error": null
+        }
+      ]
+    },
+    "C2_vanilla_rag": {
+      "label": "LLM + Vanilla RAG",
+      "accuracy": 0.8,
+      "total_questions": 5,
+      "correct": 4,
+      "category_accuracies": {
+        "negation": 0.8
+      },
+      "safety_score": 0.6,
+      "avg_latency_ms": 2149.659050803166,
+      "config": {
+        "assertion_mode": "none",
+        "temporal_mode": "no_temporal",
+        "retrieval_mode": "doc_only",
+        "raw_note_only": false,
+        "calculator_enabled": false,
+        "guidelines_enabled": false
+      },
+      "per_question": [
+        {
+          "question_id": "a2_neg_01",
+          "category": "negation",
+          "correct": false,
+          "score": 0.0,
+          "predicted_answer": "Yes, the patient has a history of Type 2 Diabetes (DM2). This is listed in the patient\u2019s past medical history.",
+          "expected_answer": "No \u2014 the note states the patient 'denies diabetes' / 'no history of diabetes'.",
+          "latency_ms": 3018.10350100277,
+          "error": null
+        },
+        {
+          "question_id": "a2_neg_02",
+          "category": "negation",
+          "correct": true,
+          "score": 1.0,
+          "predicted_answer": "Yes, the patient has a history of coronary artery disease status post PCI in 2022. This is noted in the patient's past medical history and HPI.",
+          "expected_answer": "No \u2014 the note states 'no evidence of coronary artery disease on stress test'.",
+          "latency_ms": 2191.3451260188594,
+          "error": null
+        },
+        {
+          "question_id": "a2_neg_03",
+          "category": "negation",
+          "correct": true,
+          "score": 1.0,
+          "predicted_answer": "The provided evidence does not mention any allergies, including a penicillin allergy. Therefore, it is unknown if the patient has a penicillin allergy.",
+          "expected_answer": "No \u2014 the note states 'no known drug allergies' / 'NKDA'.",
+          "latency_ms": 1873.6487089772709,
+          "error": null
+        },
+        {
+          "question_id": "a2_neg_04",
+          "category": "negation",
+          "correct": true,
+          "score": 1.0,
+          "predicted_answer": "The evidence does not mention any diagnosis of cancer for this patient. Family history is not provided in this document.",
+          "expected_answer": "No \u2014 cancer screening was negative.",
+          "latency_ms": 1543.6427509994246,
+          "error": null
+        },
+        {
+          "question_id": "a2_neg_05",
+          "category": "negation",
+          "correct": true,
+          "score": 1.0,
+          "predicted_answer": "The patient denies chest pain. They are presenting with shortness of breath, LE edema, and orthopnea. This information is from the current Emergency Department provider note.",
+          "expected_answer": "No \u2014 patient denies chest pain.",
+          "latency_ms": 2121.5551670175046,
+          "error": null
+        }
+      ]
+    },
+    "C3_kg_rag": {
+      "label": "LLM + KG-RAG",
+      "accuracy": 0.6,
+      "total_questions": 5,
+      "correct": 3,
+      "category_accuracies": {
+        "negation": 0.6
+      },
+      "safety_score": 0.2,
+      "avg_latency_ms": 5467.0977193978615,
+      "config": {
+        "assertion_mode": "none",
+        "temporal_mode": "no_temporal",
+        "retrieval_mode": "graph_plus_doc",
+        "raw_note_only": false,
+        "calculator_enabled": false,
+        "guidelines_enabled": false
+      },
+      "per_question": [
+        {
+          "question_id": "a2_neg_01",
+          "category": "negation",
+          "correct": false,
+          "score": 0.0,
+          "predicted_answer": "Yes, the patient has Type 2 diabetes mellitus and Diabetes mellitus, as indicated by the patient's LABS_VITALS_TEST results. This is also supported by their medical history including DM2. The patient ",
+          "expected_answer": "No \u2014 the note states the patient 'denies diabetes' / 'no history of diabetes'.",
+          "latency_ms": 8278.4109209897,
+          "error": null
+        },
+        {
+          "question_id": "a2_neg_02",
+          "category": "negation",
+          "correct": false,
+          "score": 0.0,
+          "predicted_answer": "Yes, the patient has a history of coronary artery disease (CAD) status post PCI in 2022. The graph evidence also confirms coronary artery disease is associated with patient LABS_VITALS_TEST results. T",
+          "expected_answer": "No \u2014 the note states 'no evidence of coronary artery disease on stress test'.",
+          "latency_ms": 6891.580919967964,
+          "error": null
+        },
+        {
+          "question_id": "a2_neg_03",
+          "category": "negation",
+          "correct": true,
+          "score": 1.0,
+          "predicted_answer": "The provided evidence does not mention any allergies, including a penicillin allergy. Therefore, it is unknown if the patient has a penicillin allergy.",
+          "expected_answer": "No \u2014 the note states 'no known drug allergies' / 'NKDA'.",
+          "latency_ms": 2831.0295010451227,
+          "error": null
+        },
+        {
+          "question_id": "a2_neg_04",
+          "category": "negation",
+          "correct": true,
+          "score": 1.0,
+          "predicted_answer": "The evidence does not mention any diagnosis of cancer for this patient. Family history is not provided in this document, and the patient's medical history only lists HFrEF, CKD, HTN, DM2, and CAD.",
+          "expected_answer": "No \u2014 cancer screening was negative.",
+          "latency_ms": 2658.564543002285,
+          "error": null
+        },
+        {
+          "question_id": "a2_neg_05",
+          "category": "negation",
+          "correct": true,
+          "score": 1.0,
+          "predicted_answer": "The patient denies experiencing chest pain. However, chest pain is noted as being associated with a patient lab/vital test, but it is unclear if this is current or historical. The HPI specifically sta",
+          "expected_answer": "No \u2014 patient denies chest pain.",
+          "latency_ms": 6675.902711984236,
+          "error": null
+        }
+      ]
+    },
+    "C4_epistemic_kg_rag": {
+      "label": "LLM + Epistemic KG-RAG",
+      "accuracy": 0.6,
+      "total_questions": 5,
+      "correct": 3,
+      "category_accuracies": {
+        "negation": 0.6
+      },
+      "safety_score": 0.2,
+      "avg_latency_ms": 5450.456310994923,
+      "config": {
+        "assertion_mode": "full",
+        "temporal_mode": "full_bitemporal",
+        "retrieval_mode": "graph_plus_doc",
+        "raw_note_only": false,
+        "calculator_enabled": false,
+        "guidelines_enabled": false
+      },
+      "per_question": [
+        {
+          "question_id": "a2_neg_01",
+          "category": "negation",
+          "correct": false,
+          "score": 0.0,
+          "predicted_answer": "Yes, the patient has Type 2 diabetes mellitus and Diabetes mellitus, as indicated by the presence of these conditions in their LABS_VITALS_TEST results. The patient also has a history of DM2 (Diabetes",
+          "expected_answer": "No \u2014 the note states the patient 'denies diabetes' / 'no history of diabetes'.",
+          "latency_ms": 7189.001378021203,
+          "error": null
+        },
+        {
+          "question_id": "a2_neg_02",
+          "category": "negation",
+          "correct": false,
+          "score": 0.0,
+          "predicted_answer": "Yes, the patient has a history of coronary artery disease (CAD) status post PCI in 2022. The graph evidence also confirms coronary artery disease is associated with patient LABS_VITALS_TEST results. T",
+          "expected_answer": "No \u2014 the note states 'no evidence of coronary artery disease on stress test'.",
+          "latency_ms": 7862.31829598546,
+          "error": null
+        },
+        {
+          "question_id": "a2_neg_03",
+          "category": "negation",
+          "correct": true,
+          "score": 1.0,
+          "predicted_answer": "The evidence does not mention a penicillin allergy. Therefore, it is unknown whether the patient has a penicillin allergy.",
+          "expected_answer": "No \u2014 the note states 'no known drug allergies' / 'NKDA'.",
+          "latency_ms": 2871.8697509611957,
+          "error": null
+        },
+        {
+          "question_id": "a2_neg_04",
+          "category": "negation",
+          "correct": true,
+          "score": 1.0,
+          "predicted_answer": "The evidence does not mention any diagnosis of cancer for this patient. Family history is not provided, and the patient's medical history only lists HFrEF, CKD, HTN, DM2, and CAD.",
+          "expected_answer": "No \u2014 cancer screening was negative.",
+          "latency_ms": 2527.714750962332,
+          "error": null
+        },
+        {
+          "question_id": "a2_neg_05",
+          "category": "negation",
+          "correct": true,
+          "score": 1.0,
+          "predicted_answer": "The patient denies experiencing chest pain. Chest pain is noted in the patient's LABS_VITALS_TEST results, but the HPI specifically states the patient denies it. This information is current as of the ",
+          "expected_answer": "No \u2014 patient denies chest pain.",
+          "latency_ms": 6801.377379044425,
+          "error": null
+        }
+      ]
+    },
+    "C5_full_system": {
+      "label": "Full System",
+      "accuracy": 0.6,
+      "total_questions": 5,
+      "correct": 3,
+      "category_accuracies": {
+        "negation": 0.6
+      },
+      "safety_score": 0.2,
+      "avg_latency_ms": 19310.57302559493,
+      "config": {
+        "assertion_mode": "full",
+        "temporal_mode": "full_bitemporal",
+        "retrieval_mode": "graph_plus_doc_plus_guidelines",
+        "raw_note_only": false,
+        "calculator_enabled": true,
+        "guidelines_enabled": true
+      },
+      "per_question": [
+        {
+          "question_id": "a2_neg_01",
+          "category": "negation",
+          "correct": false,
+          "score": 0.0,
+          "predicted_answer": "Yes, the patient has Type 2 diabetes mellitus, as indicated by documentation of \u201cDM2\u201d in their past medical history and evidence of diabetes in their LABS_VITALS_TEST results. The patient is currently",
+          "expected_answer": "No \u2014 the note states the patient 'denies diabetes' / 'no history of diabetes'.",
+          "latency_ms": 17550.836758047808,
+          "error": null
+        },
+        {
+          "question_id": "a2_neg_02",
+          "category": "negation",
+          "correct": false,
+          "score": 0.0,
+          "predicted_answer": "Yes, the patient has a history of coronary artery disease status post PCI in 2022, and the graph evidence confirms coronary artery disease is present in the patient\u2019s record. The patient also has stab",
+          "expected_answer": "No \u2014 the note states 'no evidence of coronary artery disease on stress test'.",
+          "latency_ms": 11471.787839022,
+          "error": null
+        },
+        {
+          "question_id": "a2_neg_03",
+          "category": "negation",
+          "correct": true,
+          "score": 1.0,
+          "predicted_answer": "The evidence does not state whether the patient has a penicillin allergy. However, guidelines suggest that many patients labeled with penicillin allergy are not truly allergic and can be safely evalua",
+          "expected_answer": "No \u2014 the note states 'no known drug allergies' / 'NKDA'.",
+          "latency_ms": 14831.670172978193,
+          "error": null
+        },
+        {
+          "question_id": "a2_neg_04",
+          "category": "negation",
+          "correct": true,
+          "score": 1.0,
+          "predicted_answer": "The evidence does not mention any current or historical cancer diagnosis for this patient. Family history is not provided, and the document focuses on cardiovascular and kidney conditions. However, gu",
+          "expected_answer": "No \u2014 cancer screening was negative.",
+          "latency_ms": 19747.799009957816,
+          "error": null
+        },
+        {
+          "question_id": "a2_neg_05",
+          "category": "negation",
+          "correct": true,
+          "score": 1.0,
+          "predicted_answer": "The patient denies chest pain, though they presented with shortness of breath. The provider note specifically states the patient \u201cdenies chest pain.\u201d The evidence does not indicate current chest pain.",
+          "expected_answer": "No \u2014 patient denies chest pain.",
+          "latency_ms": 32950.77134796884,
+          "error": null
+        }
+      ]
+    }
+  }
+}

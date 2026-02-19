@@ -1,0 +1,4395 @@
+{
+  "task": "task_b_temporal",
+  "version": "1.0.0",
+  "questions": [
+    {
+      "question_id": "bench_b_seq_2fc0d0e1",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "In what order were osteomyelitis and vomiting identified?",
+      "expected_answer": "osteomyelitis was identified first, followed by vomiting.",
+      "mimic_subject_id": 10002976,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (21640325): Allergies, Arthritis, CAD, CAD, Cellulitis. Admission 2 (27179825): Acute renal failure, Allergies, Anemia, Arthritis, CAD.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "21640325",
+        "hadm_2": "27179825"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_5e677ee6",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "Is osteoarthritis an active problem for this patient?",
+      "expected_answer": "Yes. osteoarthritis is documented as a current/active problem.",
+      "mimic_subject_id": 10005866,
+      "mimic_hadm_id": 20364112,
+      "clinical_context": "with ascites and esophageal  varices, portal hypertensive gastropathy    - Gastric & Duodenal ulcers    - Insomnia    - Umbilical hernia    - Sacral osteoarthritis     Past Surgical History:    - Umbilical hernia repair (___)    -SBO requiring Ex lap & repair of ruptured umbilical hernia  with lysis of adhesions",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Past Medical History",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_57ee4127",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "What is the patient's current status for bibasilar crackles?",
+      "expected_answer": "bibasilar crackles is currently active/present as of the most recent admission.",
+      "mimic_subject_id": 10003019,
+      "mimic_hadm_id": 20962108,
+      "clinical_context": "Neck: supple no JVP   CV: RRR, ___ pansystolic murmur at apex radiating to axilla Lungs: decreased BS with scattered exp wheezes bilaterally,  coars bibasilar crackles Abdomen: normoactive bowel sounds soft, mildly TTP in LUQ, no  rebound or guarding GU: wearing diaper Ext: WWP 2+ DP pulses bilaterally   Neuro: A+Ox",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Physical Exam",
+        "domain": "observation"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_dur_9aac4d9f",
+      "task": "task_b_temporal",
+      "subtype": "duration",
+      "question": "How long has this patient had Dementia? Is it a chronic or new condition?",
+      "expected_answer": "Dementia appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
+      "mimic_subject_id": 10000117,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000117: Dementia documented across 2 admissions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "duration_assessment": 1.0
+      },
+      "metadata": {
+        "doc_count": 2
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_fa44308d",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Does the patient currently have cholelithiasis?",
+      "expected_answer": "No. cholelithiasis is historical/resolved. It was present in the past but is no longer active.",
+      "mimic_subject_id": 10002167,
+      "mimic_hadm_id": 24023396,
+      "clinical_context": "ndrome, allergic rhinitis, dysmenorrhea, vitamin D deficiency, question of hypothyroidism with elevated TSH level, thalassemia trait, fatty liver and cholelithiasis by ultrasound study. A history of kissing tonsils that was associated with obstructive sleep apnea and gastroesophageal reflux, these have resolved c",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "Past Medical History",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_20d74443",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Is constipation an active problem for this patient?",
+      "expected_answer": "No. constipation is documented as a past/historical finding, not currently active.",
+      "mimic_subject_id": 10005605,
+      "mimic_hadm_id": 21049284,
+      "clinical_context": "ments daily but states that since she had been taking  Zofran (was recently d/c'd from ___ ED in ___ for  an episode of vertigo), she noted worsening constipation. Denies  any fever/chills but has had nausea today with no vomiting.   In the ED, initial vitals were:  98.7 74 174/93 18 98% RA. Labs  showed normal",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "History of Present Illness",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_272efd04",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Should peripheral vascular disease be on the patient's active problem list?",
+      "expected_answer": "No. peripheral vascular disease is historical \u2014 it should be in past medical history, not the active list.",
+      "mimic_subject_id": 10000980,
+      "mimic_hadm_id": 20897796,
+      "clinical_context": "/b ischemic MR ___ DES to LCX ___, TTE ___ with mild regional LV systolic dysfunction), heart failure with preserved ejection fraction (LVEF 50% ___, peripheral vascular disease, chronic kidney disease (stage IV), prior unprovoked DVT c/b severe UGIB while on AC, HTN, dyslipidemia, and T2DM who presents with several days of s",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "History of Present Illness",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_76233349",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "Which was documented first: dizziness or ACS?",
+      "expected_answer": "dizziness was documented before ACS, based on the admission timeline.",
+      "mimic_subject_id": 10005605,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (21049284): Allergies, Anemia, CKD, CKD, CKD stage III. Admission 2 (24283979): ACS, Allergies, Anemia, UTI, cholelithiasis.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "21049284",
+        "hadm_2": "24283979"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_47333321",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Does the patient currently have gastroesophageal reflux disease?",
+      "expected_answer": "No. gastroesophageal reflux disease is historical/resolved. It was present in the past but is no longer active.",
+      "mimic_subject_id": 10005368,
+      "mimic_hadm_id": 28912598,
+      "clinical_context": "Laparoscopic ___ fundoplication    History of Present Illness: The patient is a ___ gentleman whom I have been asked to see by Dr. ___ evaluation of gastroesophageal reflux disease.  The patient has  a history of irritable bowel syndrome with symptoms of abdominal pain and diarrhea, although this has largely improved over the pa",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "History of Present Illness",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_a701eaf4",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Should colon cancer be on the patient's active problem list?",
+      "expected_answer": "No. colon cancer is historical \u2014 it should be in past medical history, not the active list.",
+      "mimic_subject_id": 10005001,
+      "mimic_hadm_id": 23954664,
+      "clinical_context": "Social History: ___ Family History: FHx:  - Father living, hx of bladder, prostate, skin, and throat  cancer (non-smoker) - Mother died age ___ of colon cancer, also had DM and glaucoma - Brother is healthy - Niece with cystic fibrosis - No known family history of breast, uterine, ovarian, or cervical    Phy",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "Family History",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_3fad479a",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "Does the patient currently have Alcohol?",
+      "expected_answer": "Yes. Alcohol is documented as current in the clinical record.",
+      "mimic_subject_id": 10000826,
+      "mimic_hadm_id": 21086876,
+      "clinical_context": "white count.  As such, Ms. ___ was  admitted for work-up of fever and white count, and for treatment  of recurrent ascites.   Past Medical History: --Alcohol abuse --Chronic back pain   Social History: ___ Family History: Breast cancer in mother age ___, No IBD, liver failure.  Multiple  relatives with alc",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Past Medical History",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_a29de042",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Is bowel obstruction an active problem for this patient?",
+      "expected_answer": "No. bowel obstruction is documented as a past/historical finding, not currently active.",
+      "mimic_subject_id": 10005866,
+      "mimic_hadm_id": 21636229,
+      "clinical_context": "umerous abdominal  surgeries with suspected frozen abdomen, chronic abdominal pain  with subacute worsening. Patient had recent admission with small  bowel obstruction that was treated conservatively with NG tube  and bowel rest and resolved, who went home with decreased pain  med regimen, and who is now returning w",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "Assessment",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_e8241796",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Is weakness an active problem for this patient?",
+      "expected_answer": "No. weakness is documented as a past/historical finding, not currently active.",
+      "mimic_subject_id": 10005606,
+      "mimic_hadm_id": 29646384,
+      "clinical_context": "+ for CDIFF and was started on flagyl po for  10 days. His diarrhea improved as of ___.  Neurologically he  had dysesthesia and numbness.  He had LUE weakness secondary to  spinal cord injury and jumped facet.  Physical therapy and  Occupational therapy were consulted for mobilization OOB to  ambulate and A",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "Hospital Course",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_chg_799b8ee4",
+      "task": "task_b_temporal",
+      "subtype": "change",
+      "question": "What differences are noted in the patient's medication between the two visits?",
+      "expected_answer": "Key changes: new medications: prednisone, motrin, insulin glargine; discontinued: heparin, vancomycin, ceftriaxone.",
+      "mimic_subject_id": 10002976,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (21640325): Acetaminophen, Aspirin, Atenolol, Insulin, Losartan. Admission 2 (27179825): Acetaminophen, Aspirin, Atenolol, Hydrocodone, Insulin.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "change_detection": 1.0
+      },
+      "metadata": {
+        "hadm_1": "21640325",
+        "hadm_2": "27179825",
+        "added": [
+          "prednisone",
+          "motrin",
+          "insulin glargine",
+          "hydrocodone",
+          "lactulose"
+        ],
+        "removed": [
+          "heparin",
+          "vancomycin",
+          "ceftriaxone",
+          "naproxen",
+          "zosyn"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_99912897",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Should emesis be on the patient's active problem list?",
+      "expected_answer": "No. emesis is historical \u2014 it should be in past medical history, not the active list.",
+      "mimic_subject_id": 10005991,
+      "mimic_hadm_id": 24856862,
+      "clinical_context": "d constant,  non-radiating. He reports passing gas, has not had BM yet. Has  taken clear liquids, does not currently report nausea (had 1  episode of emesis after his procedure today).   .   .   Review of sytems:   (+) Per HPI   (-) Denies fever, chills, night sweats, recent weight loss or  gain. Denies h",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "History of Present Illness",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_651babd4",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Does the patient currently have abdominal pain?",
+      "expected_answer": "No. abdominal pain is historical/resolved. It was present in the past but is no longer active.",
+      "mimic_subject_id": 10005991,
+      "mimic_hadm_id": 24856862,
+      "clinical_context": "Esophagogastroduodenoscopy Colonoscopy    History of Present Illness: Mr. ___ is a ___ y/o M with past medical history  significant for Anxiety, and abdominal pain. Of note he had  recent hospitilization in early ___ for abdominal pain, was  evaluated by GI who was consulted for concern for upper GI  bleed, an E",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "History of Present Illness",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_chg_551986f4",
+      "task": "task_b_temporal",
+      "subtype": "change",
+      "question": "What differences are noted in the patient's medication between the two visits?",
+      "expected_answer": "Key changes: new medications: hydrochlorothiazide, tiotropium, metformin; discontinued: lovenox.",
+      "mimic_subject_id": 10005236,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (23384508): Acetaminophen, Lisinopril, Metoprolol, OxycoDONE, lovenox. Admission 2 (25656545): Acetaminophen, Albuterol, Aspirin, Hydrochlorothiazide, Lisinopril.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "change_detection": 1.0
+      },
+      "metadata": {
+        "hadm_1": "23384508",
+        "hadm_2": "25656545",
+        "added": [
+          "hydrochlorothiazide",
+          "tiotropium",
+          "metformin",
+          "omeprazole",
+          "glimepiride"
+        ],
+        "removed": [
+          "lovenox"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_e2ff5594",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "Which was documented first: ETOH or HCV?",
+      "expected_answer": "ETOH was documented before HCV, based on the admission timeline.",
+      "mimic_subject_id": 10005606,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (29646384): Allergies, Cdiff, Constipation, DVT, ETOH. Admission 2 (22751751): Allergies, C. diff, ETOH abuse, HBV, HCV.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "29646384",
+        "hadm_2": "22751751"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_36e6e499",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Does the patient currently have diarrhea?",
+      "expected_answer": "No. diarrhea is historical/resolved. It was present in the past but is no longer active.",
+      "mimic_subject_id": 10005991,
+      "mimic_hadm_id": 24856862,
+      "clinical_context": "tient still reports  drinking ___ drinks/week). Denies any recent Fevers/Chills,  hematochezia, melena. He reports on average ___ BM's per day,  with diarrhea on and off. He was not taking a PPI prior to  admission due to insurance issues with \"prior authorization\". . On the floor patient's vitals were 97.8",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "History of Present Illness",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_50d8fed0",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "What is the patient's current status for depressed?",
+      "expected_answer": "depressed is currently active/present as of the most recent admission.",
+      "mimic_subject_id": 10006131,
+      "mimic_hadm_id": 21367824,
+      "clinical_context": "Sex:   M   Service: PSYCHIATRY   Allergies:  Patient recorded as having No Known Allergies to Drugs   Attending: ___.   Chief Complaint: \"I am depressed, I tried to OD on Aspirin when I was drunk\"   Major Surgical or Invasive Procedure: activated charcoal for ASA overdose, hemodialysis as well   Histo",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Chief Complaint",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_chg_7bfd6ae3",
+      "task": "task_b_temporal",
+      "subtype": "change",
+      "question": "What differences are noted in the patient's medication between the two visits?",
+      "expected_answer": "Key changes: new medications: heparin, omeprazole, entresto; discontinued: warfarin, losartan.",
+      "mimic_subject_id": 10003637,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (22082422): ASA, Carvedilol, Digoxin, Losartan, Warfarin. Admission 2 (28484061): ASA, Allopurinol, Apixaban, Carvedilol, Digoxin.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "change_detection": 1.0
+      },
+      "metadata": {
+        "hadm_1": "22082422",
+        "hadm_2": "28484061",
+        "added": [
+          "heparin",
+          "omeprazole",
+          "entresto",
+          "valsartan",
+          "allopurinol"
+        ],
+        "removed": [
+          "warfarin",
+          "losartan"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_aa62353e",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Does the patient currently have weakness?",
+      "expected_answer": "No. weakness is historical/resolved. It was present in the past but is no longer active.",
+      "mimic_subject_id": 10001217,
+      "mimic_hadm_id": 27703517,
+      "clinical_context": "was continued  on Vancomycin, meropenem was changed to ertapenum.  The patient continued to progress well, although she had some  residual left-sided weakness.  She also complained of some  left-handed numbness and pain.    On ___, the patient had a MR head with and without contrast  including DWI, which sh",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "Hospital Course",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_chg_3b4387cb",
+      "task": "task_b_temporal",
+      "subtype": "change",
+      "question": "What differences are noted in the patient's medication between the two visits?",
+      "expected_answer": "Key changes: new medications: azithromycin; discontinued: zofran, tylenol, lasix.",
+      "mimic_subject_id": 10002131,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (24065018): Aspirin, Enoxaparin, Lasix, Torsemide, Tylenol. Admission 2 (27411540): Aspirin, azithromycin.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "change_detection": 1.0
+      },
+      "metadata": {
+        "hadm_1": "24065018",
+        "hadm_2": "27411540",
+        "added": [
+          "azithromycin"
+        ],
+        "removed": [
+          "zofran",
+          "tylenol",
+          "lasix",
+          "torsemide",
+          "metoprolol"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_dur_e06e4775",
+      "task": "task_b_temporal",
+      "subtype": "duration",
+      "question": "How long has this patient had hyperkalemia? Is it a chronic or new condition?",
+      "expected_answer": "hyperkalemia appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000032: hyperkalemia documented across 2 admissions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "duration_assessment": 1.0
+      },
+      "metadata": {
+        "doc_count": 2
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_2c71ab72",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "Is constipation an active problem for this patient?",
+      "expected_answer": "Yes. constipation is documented as a current/active problem.",
+      "mimic_subject_id": 10005368,
+      "mimic_hadm_id": 24631981,
+      "clinical_context": "zepam 0.5 mg PO HS:PRN insomnia  3. Pregabalin 200 mg PO BID  4. TraMADOL (Ultram) 50-100 mg PO Q6H:PRN ___  5. Polyethylene Glycol 17 g PO DAILY:PRN constipation  6. Docusate Sodium 100 mg PO BID  7. Famotidine 20 mg PO TID  8. HYDROmorphone (Dilaudid) 2 mg PO Q6H:PRN severe abdominal  ___  9. EpiPen 2-Pak (EP",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Assessment",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_chg_3af4dea4",
+      "task": "task_b_temporal",
+      "subtype": "change",
+      "question": "How has the patient's medication management changed between admissions?",
+      "expected_answer": "Between admissions, new medications: levofloxacin; discontinued: acetaminophen, dilaudid, lovenox.",
+      "mimic_subject_id": 10002769,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (25681387): Augmentin, Dilaudid, Lovenox, Percocet, acetaminophen. Admission 2 (28314592): LEVOFLOXACIN, Percocet, amlodipine, atenolol, coumadin.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "change_detection": 1.0
+      },
+      "metadata": {
+        "hadm_1": "25681387",
+        "hadm_2": "28314592",
+        "added": [
+          "levofloxacin"
+        ],
+        "removed": [
+          "acetaminophen",
+          "dilaudid",
+          "lovenox",
+          "augmentin"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_bb930318",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "In what order were RASH and mitral regurgitation identified?",
+      "expected_answer": "RASH was identified first, followed by mitral regurgitation.",
+      "mimic_subject_id": 10005858,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (24193796): ARTHRITIS, Allergies, HEADACHE, HTN, HYPOTHYROIDISM. Admission 2 (29569314): Allergies, CAD, DM, GERD, HFpEF.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "24193796",
+        "hadm_2": "29569314"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_dur_1058f8b7",
+      "task": "task_b_temporal",
+      "subtype": "duration",
+      "question": "How long has this patient had constipated? Is it a chronic or new condition?",
+      "expected_answer": "constipated appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
+      "mimic_subject_id": 10000935,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000935: constipated documented across 2 admissions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "duration_assessment": 1.0
+      },
+      "metadata": {
+        "doc_count": 2
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_b69620a8",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "What is the patient's current status for congestive heart failure?",
+      "expected_answer": "congestive heart failure is currently active/present as of the most recent admission.",
+      "mimic_subject_id": 10001877,
+      "mimic_hadm_id": 21320596,
+      "clinical_context": ":05AM BLOOD ___ ___ 08:05AM BLOOD UreaN-40* Creat-1.4* Na-140 K-3.5 Cl-103  HCO3-28 AnGap-13 ___ 06:07AM BLOOD CK-MB-7 cTropnT-0.01  CXR ___: 1. Mild congestive heart failure.   2. Widened superior mediastinum with leftward deviation of the  trachea, similar when compared to the prior study. Findings may  reflect the prese",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Physical Exam",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_29384c98",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "Is respiratory failure an active problem for this patient?",
+      "expected_answer": "Yes. respiratory failure is documented as a current/active problem.",
+      "mimic_subject_id": 10005606,
+      "mimic_hadm_id": 29646384,
+      "clinical_context": "erated the  procedures well without complication. Please review dictated  operative report for details. Patient remained intubated  postoperative for respiratory failure and delirium tremens.  He  was started on folate/thiamine IV and phenobarb for agitation  and DTs.  His neuro exam was monitored closely.    His ICU",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Hospital Course",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_dur_7321b24c",
+      "task": "task_b_temporal",
+      "subtype": "duration",
+      "question": "How long has this patient had Depression? Is it a chronic or new condition?",
+      "expected_answer": "Depression appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
+      "mimic_subject_id": 10000935,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000935: Depression documented across 2 admissions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "duration_assessment": 1.0
+      },
+      "metadata": {
+        "doc_count": 2
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_dur_e750dcc2",
+      "task": "task_b_temporal",
+      "subtype": "duration",
+      "question": "How long has this patient had PNA? Is it a chronic or new condition?",
+      "expected_answer": "PNA appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
+      "mimic_subject_id": 10000935,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000935: PNA documented across 2 admissions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "duration_assessment": 1.0
+      },
+      "metadata": {
+        "doc_count": 2
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_50429da1",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "Which was documented first: anxiety or sleep apnea?",
+      "expected_answer": "anxiety was documented before sleep apnea, based on the admission timeline.",
+      "mimic_subject_id": 10002167,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (24023396): Allergies, CA, Hyperlipidemia, Nausea, RA. Admission 2 (29383904): Allergies, CA, Constipation, Hyperlipidemia, Morbid obesity.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "24023396",
+        "hadm_2": "29383904"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_ea719b94",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "Does the patient currently have anaphylactic shock?",
+      "expected_answer": "Yes. anaphylactic shock is documented as current in the clinical record.",
+      "mimic_subject_id": 10005368,
+      "mimic_hadm_id": 24631981,
+      "clinical_context": "ost 14 lbs in the last week.  Of note, pt also reports multiple ED visits to ___  in the last 2 weeks for above complaints as well as an episode  of \"anaphylactic shock\" involving generalized hives and  difficulty breathing attributed to recent course of amoxicillin  for sinusitis for which he was reportedly given pr",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "History of Present Illness",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_7f016097",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "Which was documented first: Prostate Cancer or CAD?",
+      "expected_answer": "Prostate Cancer was documented before CAD, based on the admission timeline.",
+      "mimic_subject_id": 10005348,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (25239799): Allergies, Carotid Ultrasound, Coronary Artery Disease, Dizziness, He. Admission 2 (29496232): Allergies, CAD, Coronary Artery Disease, Depressive disorder, EtOH.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "25239799",
+        "hadm_2": "29496232"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_b15b05f6",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "What is the patient's current status for aortic stenosis?",
+      "expected_answer": "aortic stenosis is currently active/present as of the most recent admission.",
+      "mimic_subject_id": 10003502,
+      "mimic_hadm_id": 29011269,
+      "clinical_context": "rtension - Dyslipidemia 2. CARDIAC HISTORY - CAD (100% LAD occlusion). MI ___ year ago. Unclear history of  PCI. - Afib/flutter on dabigatran  - Mild aortic stenosis 3. OTHER PAST MEDICAL HISTORY  - Chronic hyponatremia   - Dementia    Social History: ___ Family History: Mother deceased at ___ yo from breast cance",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Past Medical History",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_a6bac5fb",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "Which was documented first: C. diff or chest pain?",
+      "expected_answer": "C. diff was documented before chest pain, based on the admission timeline.",
+      "mimic_subject_id": 10002769,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (25681387): Allergies, C. diff, Constipation, DVT, ESRD. Admission 2 (28314592): Allergies, Cough, ESRD, HTN, Headache.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "25681387",
+        "hadm_2": "28314592"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_7e91845c",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Does the patient currently have hypotension?",
+      "expected_answer": "No. hypotension is historical/resolved. It was present in the past but is no longer active.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": 29079034,
+      "clinical_context": "__ female with HIV on HAART, COPD, HCV  cirrhosis complicated by ascites and hepatic encephalopathy who  initially presented to the ED yesterday with hypotension after a  paracentesis.   The patient has had accelerated decompensation of her cirrhosis  recently with worsening ascites, and she is maintained on t",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "History of Present Illness",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_chg_d41272ec",
+      "task": "task_b_temporal",
+      "subtype": "change",
+      "question": "What differences are noted in the patient's medication between the two visits?",
+      "expected_answer": "Key changes: new medications: trazodone, omeprazole, lasix; discontinued: vicodin, motrin, acetaminophen.",
+      "mimic_subject_id": 10005858,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (24193796): Acetaminophen, Aspirin, Levothyroxine, Motrin, Percocet. Admission 2 (29569314): Aspirin, Lasix, Levothyroxine, Percocet, Venlafaxine.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "change_detection": 1.0
+      },
+      "metadata": {
+        "hadm_1": "24193796",
+        "hadm_2": "29569314",
+        "added": [
+          "trazodone",
+          "omeprazole",
+          "lasix"
+        ],
+        "removed": [
+          "vicodin",
+          "motrin",
+          "acetaminophen",
+          "dilaudid",
+          "narcan"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_02b5c47c",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "Which was documented first: nausea or Pulmonary edema?",
+      "expected_answer": "nausea was documented before Pulmonary edema, based on the admission timeline.",
+      "mimic_subject_id": 10003502,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (26475031): Allergies, Anemia, Atrial fibrillation, Hyponatremia, RA. Admission 2 (29011269): Allergies, Atrial fibrillation, Dementia, Hyponatremia, MI.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "26475031",
+        "hadm_2": "29011269"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_dur_3585eef3",
+      "task": "task_b_temporal",
+      "subtype": "duration",
+      "question": "How long has this patient had cancer? Is it a chronic or new condition?",
+      "expected_answer": "cancer appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
+      "mimic_subject_id": 10000935,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000935: cancer documented across 2 admissions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "duration_assessment": 1.0
+      },
+      "metadata": {
+        "doc_count": 2
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_fe80e1f3",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "Is hypertension an active problem for this patient?",
+      "expected_answer": "Yes. hypertension is documented as a current/active problem.",
+      "mimic_subject_id": 10005866,
+      "mimic_hadm_id": 20364112,
+      "clinical_context": "(+) per HPI    Past Medical History:  - Hepatitis C (genotype 3)    - Cirrhosis, Child's Class C due EtOH and HCV d/b hepatic  encephalopathy, portal hypertension with ascites and esophageal  varices, portal hypertensive gastropathy    - Gastric & Duodenal ulcers    - Insomnia    - Umbilical hernia    - Sacral",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Past Medical History",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_dur_765d3190",
+      "task": "task_b_temporal",
+      "subtype": "duration",
+      "question": "How long has this patient had HTN? Is it a chronic or new condition?",
+      "expected_answer": "HTN appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
+      "mimic_subject_id": 10000117,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000117: HTN documented across 2 admissions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "duration_assessment": 1.0
+      },
+      "metadata": {
+        "doc_count": 2
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_chg_e934a618",
+      "task": "task_b_temporal",
+      "subtype": "change",
+      "question": "How has the patient's medication management changed between admissions?",
+      "expected_answer": "Between admissions, new medications: spironolactone, vancomycin, vanc; discontinued: vasotec, entresto.",
+      "mimic_subject_id": 10002430,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (24648311): Aspirin, Entresto, Sertraline, Torsemide, Vasotec. Admission 2 (26295318): Aspirin, Sertraline, Torsemide, Zosyn, amiodarone.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "change_detection": 1.0
+      },
+      "metadata": {
+        "hadm_1": "24648311",
+        "hadm_2": "26295318",
+        "added": [
+          "spironolactone",
+          "vancomycin",
+          "vanc",
+          "rosuvastatin",
+          "zosyn"
+        ],
+        "removed": [
+          "vasotec",
+          "entresto"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_4d8e2ad9",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Should diarrhea be on the patient's active problem list?",
+      "expected_answer": "No. diarrhea is historical \u2014 it should be in past medical history, not the active list.",
+      "mimic_subject_id": 10004749,
+      "mimic_hadm_id": 28691602,
+      "clinical_context": "or dinner. States she tossed and turned in  bed overnight and awoke at 6am with worsening abdominal  bloating. Pt states she first experienced watery diarrhea at 7am  and had >10 episodes throughout the morning. She states she had  pain beginging at around 9am. She states the pain is worse in  LLQ when comp",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "History of Present Illness",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_dur_61f47488",
+      "task": "task_b_temporal",
+      "subtype": "duration",
+      "question": "How long has this patient had Allergies? Is it a chronic or new condition?",
+      "expected_answer": "Allergies appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000032: Allergies documented across 2 admissions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "duration_assessment": 1.0
+      },
+      "metadata": {
+        "doc_count": 2
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_chg_9b769505",
+      "task": "task_b_temporal",
+      "subtype": "change",
+      "question": "What differences are noted in the patient's medication between the two visits?",
+      "expected_answer": "Key changes: new medications: heparin, bactrim, valium; discontinued: motrin, dilaudid.",
+      "mimic_subject_id": 10002221,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (20237862): Albuterol, Atorvastatin, Augmentin, Dilaudid, Motrin. Admission 2 (29399017): Albuterol, Atorvastatin, Augmentin, TraMADol, TraZODone.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "change_detection": 1.0
+      },
+      "metadata": {
+        "hadm_1": "20237862",
+        "hadm_2": "29399017",
+        "added": [
+          "heparin",
+          "bactrim",
+          "valium",
+          "oxycontin"
+        ],
+        "removed": [
+          "motrin",
+          "dilaudid"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_f27baba4",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Does the patient currently have fracture?",
+      "expected_answer": "No. fracture is historical/resolved. It was present in the past but is no longer active.",
+      "mimic_subject_id": 10002428,
+      "mimic_hadm_id": 28295257,
+      "clinical_context": "History of Present Illness: This is an ___ year old female with past medical history of sjogrens, hypothyroidism, recent diagnosis of L1 compression fracture, prior cdiff infection, presenting with bright red  blood per rectum.  Patient reports that on morning of presentation,  she awoke in her normal stat",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "History of Present Illness",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_chg_a2d2f2df",
+      "task": "task_b_temporal",
+      "subtype": "change",
+      "question": "How has the patient's medication management changed between admissions?",
+      "expected_answer": "Between admissions, new medications: oxycodone; discontinued: cipro, vanco, zosyn.",
+      "mimic_subject_id": 10004235,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (22187210): Acetaminophen, Cipro, Colchicine, Diazepam, Metoprolol. Admission 2 (25970245): Acetaminophen, Colchicine, Diazepam, Metoprolol, OxycoDONE.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "change_detection": 1.0
+      },
+      "metadata": {
+        "hadm_1": "22187210",
+        "hadm_2": "25970245",
+        "added": [
+          "oxycodone"
+        ],
+        "removed": [
+          "cipro",
+          "vanco",
+          "zosyn"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_chg_56805338",
+      "task": "task_b_temporal",
+      "subtype": "change",
+      "question": "What differences are noted in the patient's medication between the two visits?",
+      "expected_answer": "Key changes: new medications: zofran, metronidazole; discontinued: omeprazole, lorazepam, oxycodone.",
+      "mimic_subject_id": 10004749,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (27481198): Acetaminophen, Albuterol, Dilaudid, Lorazepam, Morphine. Admission 2 (28691602): Dilaudid, Zofran, metronidazole.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "change_detection": 1.0
+      },
+      "metadata": {
+        "hadm_1": "27481198",
+        "hadm_2": "28691602",
+        "added": [
+          "zofran",
+          "metronidazole"
+        ],
+        "removed": [
+          "omeprazole",
+          "lorazepam",
+          "oxycodone",
+          "acetaminophen",
+          "ondansetron"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_4c647635",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Does the patient currently have ascites?",
+      "expected_answer": "No. ascites is historical/resolved. It was present in the past but is no longer active.",
+      "mimic_subject_id": 10000826,
+      "mimic_hadm_id": 21086876,
+      "clinical_context": "2. Stable atelectasis at the right lung base.  3. Moderate right and small left pleural effusions, unchanged.   CTAP (___): 1. Hepatomegaly and large ascites consistent with stated history  of liver  disease. No evidence of portal venous thrombosis suggesting that  the findings on the prior ultrasound may",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "Physical Exam",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_chg_63fd19b7",
+      "task": "task_b_temporal",
+      "subtype": "change",
+      "question": "What differences are noted in the patient's medication between the two visits?",
+      "expected_answer": "Key changes: new medications: jardiance, piperacillin, vancomycin; discontinued: glipizide, metformin, torsemide.",
+      "mimic_subject_id": 10002013,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (21763296): Aspirin, Atorvastatin, Flagyl, Fluticasone, Gabapentin. Admission 2 (25442395): Aspirin, Atorvastatin, Flagyl, Fluticasone, Gabapentin.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "change_detection": 1.0
+      },
+      "metadata": {
+        "hadm_1": "21763296",
+        "hadm_2": "25442395",
+        "added": [
+          "jardiance",
+          "piperacillin",
+          "vancomycin",
+          "piperacillin-tazobactam",
+          "insulin glargine"
+        ],
+        "removed": [
+          "glipizide",
+          "metformin",
+          "torsemide",
+          "vanc",
+          "imdur"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_1b767c4a",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "Is bowel obstruction an active problem for this patient?",
+      "expected_answer": "Yes. bowel obstruction is documented as a current/active problem.",
+      "mimic_subject_id": 10005866,
+      "mimic_hadm_id": 21636229,
+      "clinical_context": "few  small  nonspecific small bowel air-fluid levels and air seen in the  colon.  Findings are nonspecific, but a very early/very mild  partial small bowel obstruction is not entirely excluded in the  appropriate clinical setting.  . CT abd and pelvis with contrast IMPRESSION:  1. Redemonstration cirrhotic liver wit",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Assessment",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_b2d36cd9",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Is HFpEF an active problem for this patient?",
+      "expected_answer": "No. HFpEF is documented as a past/historical finding, not currently active.",
+      "mimic_subject_id": 10000980,
+      "mimic_hadm_id": 20897796,
+      "clinical_context": "t-2.6* Na-147  K-4.0 Cl-105 HCO3-24 AnGap-___ yo F  PMH CAD c/b ischemic MR ___ DES to ___ ___, TTE ___  with mild regional LV systolic dysfunction), HFpEF (LVEF 50%  ___, PAD, CKD (stage IV), prior DVT c/b severe UGIV on AC,  T2DM presents with subacute SOB, weight gain, c/f acute heart  failure exacerb",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "Assessment",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_982731de",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Does the patient currently have metabolic acidosis?",
+      "expected_answer": "No. metabolic acidosis is historical/resolved. It was present in the past but is no longer active.",
+      "mimic_subject_id": 10002013,
+      "mimic_hadm_id": 21763296,
+      "clinical_context": "KA and  diabetic foot ulcer. She was discharged on ASA 81, atorvastatin  80, Metoprolol XL 100mg daily.   #DKA/IDDM: Patient presented with anion gap metabolic acidosis  and felt to be in mild DKA. She had insulin gtt in the ED but  was rapidly switched to subcutaneous insulin. Her A1c returned  at 12%, which is the",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "Assessment",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_a49952ca",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "Does the patient currently have osteopenia?",
+      "expected_answer": "Yes. osteopenia is documented as current in the clinical record.",
+      "mimic_subject_id": 10004638,
+      "mimic_hadm_id": 21399087,
+      "clinical_context": "solved diarrhea.   Past Medical History: Past Medical History:  She is a breast cancer survivor, anxiety,  arthritis, acid reflux, low back pain, and osteopenia. Past Surgical History:  Modified radical mastectomy with  reconstruction in ___, vaginal hysterectomy, BSO in ___ for  prolapse, Dr. ___ lysis of ad",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Past Medical History",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_be870c2d",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Does the patient currently have Diabetes?",
+      "expected_answer": "No. Diabetes is historical/resolved. It was present in the past but is no longer active.",
+      "mimic_subject_id": 10000980,
+      "mimic_hadm_id": 29659838,
+      "clinical_context": "lity: ___   Discharge Diagnosis: Primary Diagnoses: Acute on chronic decompensated congestive Heart Failure Hypertension  Secondary Diagnoses: Anemia Diabetes mellitus Prior deep vein thrombosis Chronic Kidney Disease    Discharge Condition: Mental Status: Clear and coherent. Level of Consciousness: Alert a",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "Diagnosis",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_3399e938",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "Which was documented first: diarrhea or urinary frequency?",
+      "expected_answer": "diarrhea was documented before urinary frequency, based on the admission timeline.",
+      "mimic_subject_id": 10004638,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (21399087): Allergies, abdominal pain, acid reflux, alcohol, anxiety. Admission 2 (25081565): Allergies, abdominal pain, acid reflux, anxiety, arthritis.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "21399087",
+        "hadm_2": "25081565"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_dur_5423a583",
+      "task": "task_b_temporal",
+      "subtype": "duration",
+      "question": "How long has this patient had abdominal pain? Is it a chronic or new condition?",
+      "expected_answer": "abdominal pain appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
+      "mimic_subject_id": 10000935,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000935: abdominal pain documented across 2 admissions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "duration_assessment": 1.0
+      },
+      "metadata": {
+        "doc_count": 2
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_351fb38e",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "What is the patient's current status for lung cancer?",
+      "expected_answer": "lung cancer is currently active/present as of the most recent admission.",
+      "mimic_subject_id": 10002769,
+      "mimic_hadm_id": 25681387,
+      "clinical_context": "nd Ag neg in ___    Social History: ___ Family History: - HTN in both parents - mother died age ___ of ESRD (on HD) from HTN - father died age ___ of lung cancer - sister died in ___ of leukemia - no known h/o of hypercoagulable states, DM - two brothers, two sisters who are healthy   Physical Exam: Vitals: 98",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Family History",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_dur_adcd04fb",
+      "task": "task_b_temporal",
+      "subtype": "duration",
+      "question": "How long has this patient had COPD? Is it a chronic or new condition?",
+      "expected_answer": "COPD appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000032: COPD documented across 2 admissions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "duration_assessment": 1.0
+      },
+      "metadata": {
+        "doc_count": 2
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_b53f6c33",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "In what order were Iron deficiency anemia and hypokalemia identified?",
+      "expected_answer": "Iron deficiency anemia was identified first, followed by hypokalemia.",
+      "mimic_subject_id": 10002221,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (20237862): ALCOHOL, Allergies, CANCER, COPD, DIABETES. Admission 2 (29399017): ALCOHOL, Abdominal pain, Allergies, CANCER, COPD.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "20237862",
+        "hadm_2": "29399017"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_1f2194cb",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "Is cancer an active problem for this patient?",
+      "expected_answer": "Yes. cancer is documented as a current/active problem.",
+      "mimic_subject_id": 10000935,
+      "mimic_hadm_id": 26381316,
+      "clinical_context": "nausea. You had some markers of infection, so you  were initially given antibiotics. However, a scan of your torso  showed metastatic disease from a cancer of unknown origin in  your liver and lungs. Your weakness and nausea are most likely  due to your enlarged liver.   You are scheduled to see your onc",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Discharge Instructions",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_b0d0c8a4",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "In what order were deep vein thrombosis and nausea identified?",
+      "expected_answer": "deep vein thrombosis was identified first, followed by nausea.",
+      "mimic_subject_id": 10001884,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (26184834): Allergies, Anxiety, Asthma, CAD, COPD. Admission 2 (24746267): Acute kidney injury, Allergies, Anemia, Anxiety, Asthma.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "26184834",
+        "hadm_2": "24746267"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_cf722731",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "Is osteomyelitis an active problem for this patient?",
+      "expected_answer": "Yes. osteomyelitis is documented as a current/active problem.",
+      "mimic_subject_id": 10002013,
+      "mimic_hadm_id": 25442395,
+      "clinical_context": "normotensive upon arrival, though sustained tachycardia to low 100s. Podiatry consulted in ER, wound to left medial hallux probes to bone w/ high c/f osteomyelitis. X-rays show bony erosion but no subcutaneous gas. Plan for IV antibiotics and partial amputation of left great toe tomorrow (___). ___ n/v, abd pain",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "History of Present Illness",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_09d3ea63",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Should syncope be on the patient's active problem list?",
+      "expected_answer": "No. syncope is historical \u2014 it should be in past medical history, not the active list.",
+      "mimic_subject_id": 10004322,
+      "mimic_hadm_id": 20356134,
+      "clinical_context": "a ___ year old male with history of  schizophrenia with most recent ED visit ___, COPD, DM,  mechanical falls most recently in ___ and s/p negative  syncope workup in ___, history of urinary retention s/p  indwelling foley in ___, admission in ___ for sepsis  from pneumonia, presenting with complaints of",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "History of Present Illness",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_89423fc7",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "What is the patient's current status for lung cancer?",
+      "expected_answer": "lung cancer is currently active/present as of the most recent admission.",
+      "mimic_subject_id": 10001217,
+      "mimic_hadm_id": 27703517,
+      "clinical_context": "chest pain, abdominal pain.    Past Medical History: Multiple sclerosis   Social History: ___ Family History: Mother with pancreatic cancer, brother-lung cancer, two sisters  with brain cancer.    Physical Exam: PHYSICAL EXAMINATION ON ADMISSION: General Physical Exam: General - Appears comfortable HEENT - MM",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Family History",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_a5b0cd1f",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Does the patient currently have Atrial fibrillation?",
+      "expected_answer": "No. Atrial fibrillation is historical/resolved. It was present in the past but is no longer active.",
+      "mimic_subject_id": 10002430,
+      "mimic_hadm_id": 26295318,
+      "clinical_context": "on. Pleural effusion resolved improved with diuresis and  his oxygen requirement trended down to ___ NC. Given this,  thoracentesis was deferred.   # Atrial fibrillation Patient with chronic history of atrial fibrillation. In afib  throughout this admission. Continued amiodarone and apixaban.  Rates appropriately cont",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "Hospital Course",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_dur_04bba7f9",
+      "task": "task_b_temporal",
+      "subtype": "duration",
+      "question": "How long has this patient had ascites? Is it a chronic or new condition?",
+      "expected_answer": "ascites appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000032: ascites documented across 2 admissions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "duration_assessment": 1.0
+      },
+      "metadata": {
+        "doc_count": 2
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_bf929993",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Should diarrhea be on the patient's active problem list?",
+      "expected_answer": "No. diarrhea is historical \u2014 it should be in past medical history, not the active list.",
+      "mimic_subject_id": 10002131,
+      "mimic_hadm_id": 27411540,
+      "clinical_context": "edical history notable for  irritable bowel syndrome and dementia.   She reports no problems with her bowels for many years until the  acute onset of diarrhea ___ morning. Prior to  this event she had no recent travel or sick contacts but did eat  corned beef and cabbage at her local ___ hall (last ___ was",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "History of Present Illness",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_c9f4d6b7",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Is Dyspnea an active problem for this patient?",
+      "expected_answer": "No. Dyspnea is documented as a past/historical finding, not currently active.",
+      "mimic_subject_id": 10002430,
+      "mimic_hadm_id": 24648311,
+      "clinical_context": "==========================================   OUTPATIENT CARDIOLOGIST:  ___., MD ___ cardiology), ___  ___., MD(CHF) PCP: ___., MD   CHIEF COMPLAINT:  Dyspnea on Exertion HISTORY OF PRESENTING ILLNESS:   Mr. ___ is a ___ gentleman with a past medical history pertinent for HFrEF (35% ___ CAD s/p CABG and sub",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "Chief Complaint",
+        "domain": "observation"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_chg_c1ed937c",
+      "task": "task_b_temporal",
+      "subtype": "change",
+      "question": "What differences are noted in the patient's medication between the two visits?",
+      "expected_answer": "Key changes: new medications: heparin, zosyn, levofloxacin; discontinued: insulin, ceftriaxone, digoxin.",
+      "mimic_subject_id": 10005749,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (24015009): Coumadin, Glipizide, Lasix, Losartan, atorvastatin. Admission 2 (24979738): Coumadin, Lasix, Losartan, atorvastatin, diltiazem.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "change_detection": 1.0
+      },
+      "metadata": {
+        "hadm_1": "24015009",
+        "hadm_2": "24979738",
+        "added": [
+          "heparin",
+          "zosyn",
+          "levofloxacin",
+          "vancomycin"
+        ],
+        "removed": [
+          "insulin",
+          "ceftriaxone",
+          "digoxin"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_75335843",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "In what order were PNA and DVT identified?",
+      "expected_answer": "PNA was identified first, followed by DVT.",
+      "mimic_subject_id": 10000980,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (20897796): Allergies, Anemia, CKD, CKD, CKD Stage IV. Admission 2 (29659838): Allergies, Anemia, CKD, CKD Stage IV, CVA.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "20897796",
+        "hadm_2": "29659838"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_d701be1b",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "In what order were ascites and cold identified?",
+      "expected_answer": "ascites was identified first, followed by cold.",
+      "mimic_subject_id": 10005749,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (24979738): ACS, AFib, Allergies, Anxiety, CHF. Admission 2 (24015009): AFib, Acute on chronic kidney disease, Allergies, Anxiety, CHF.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "24979738",
+        "hadm_2": "24015009"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_4acb1eb0",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "Which was documented first: malnutrition or back pain?",
+      "expected_answer": "malnutrition was documented before back pain, based on the admission timeline.",
+      "mimic_subject_id": 10005866,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (20364112): ATRIAL FIBRILLATION, Abdominal pain, Allergies, Cirrhosis, Confused. Admission 2 (21636229): Abdominal pain, Allergies, Cirrhosis, EtOH, He.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "20364112",
+        "hadm_2": "21636229"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_chg_4ce4b0e5",
+      "task": "task_b_temporal",
+      "subtype": "change",
+      "question": "How has the patient's medication management changed between admissions?",
+      "expected_answer": "Between admissions, new medications: hydrochlorothiazide, lisinopril, augmentin; discontinued: zofran, amlodipine, ondansetron.",
+      "mimic_subject_id": 10005605,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (21049284): Flagyl, Ondansetron, Zofran, amlodipine, cipro. Admission 2 (24283979): Augmentin, Flagyl, hydrochlorothiazide, lisinopril.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "change_detection": 1.0
+      },
+      "metadata": {
+        "hadm_1": "21049284",
+        "hadm_2": "24283979",
+        "added": [
+          "hydrochlorothiazide",
+          "lisinopril",
+          "augmentin"
+        ],
+        "removed": [
+          "zofran",
+          "amlodipine",
+          "ondansetron",
+          "cipro",
+          "ciprofloxacin"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_chg_b34b5572",
+      "task": "task_b_temporal",
+      "subtype": "change",
+      "question": "How has the patient's medication management changed between admissions?",
+      "expected_answer": "Between admissions, new medications: oxycodone, aspirin, pantoprazole; discontinued: ultram, naproxen.",
+      "mimic_subject_id": 10005991,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (20355325): Ibuprofen, Naproxen, Ultram, ibuprofen, lorazepam. Admission 2 (24856862): aspirin, ibuprofen, lorazepam, oxycodone, pantoprazole.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "change_detection": 1.0
+      },
+      "metadata": {
+        "hadm_1": "20355325",
+        "hadm_2": "24856862",
+        "added": [
+          "oxycodone",
+          "aspirin",
+          "pantoprazole"
+        ],
+        "removed": [
+          "ultram",
+          "naproxen"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_7080eb03",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "Does the patient currently have hypertension?",
+      "expected_answer": "Yes. hypertension is documented as current in the clinical record.",
+      "mimic_subject_id": 10001884,
+      "mimic_hadm_id": 26184834,
+      "clinical_context": "Bleeding - Peripheral Vascular Disease s/p bilateral iliac stents - s/p hip replacement   Social History: ___ Family History: Mother with asthma and hypertension. Father with colon cancer.  Brother with leukemia.    Physical Exam: PHYSICAL EXAMINATION ON ADMISSION: ==================================  VITALS: 9",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Family History",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_ab1c0783",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "Does the patient currently have colon cancer?",
+      "expected_answer": "Yes. colon cancer is documented as current in the clinical record.",
+      "mimic_subject_id": 10005605,
+      "mimic_hadm_id": 21049284,
+      "clinical_context": "Tibial plateau fx in L knee after being hit by car ___   Social History: ___ Family History: Mother - lung cancer ___ uncle - lung cancer ___ aunt - colon cancer   Physical Exam: ADMISSION EXAM =============== Vitals:  97.5 148/66 75 18 97% RA ___ pain General: Alert, oriented, no acute distress   HEENT: Scler",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Family History",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_dur_d4e27cc6",
+      "task": "task_b_temporal",
+      "subtype": "duration",
+      "question": "How long has this patient had Weakness? Is it a chronic or new condition?",
+      "expected_answer": "Weakness appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
+      "mimic_subject_id": 10000935,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000935: Weakness documented across 2 admissions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "duration_assessment": 1.0
+      },
+      "metadata": {
+        "doc_count": 2
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_0e1ad5ef",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "Does the patient currently have pleural effusions?",
+      "expected_answer": "Yes. pleural effusions is documented as current in the clinical record.",
+      "mimic_subject_id": 10005866,
+      "mimic_hadm_id": 20364112,
+      "clinical_context": "all.  2. Small ascites and peritonitis is similar to before.  3. Liver cirrhosis with mild splenomegaly and portosystemic  shunt.  4. Small bilateral pleural effusions.   CT Abdomen for Interventional Procedure: ___ IMPRESSION: Successful CT-guided placement of an ___  pigtail catheter into the lesser sac collection",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Assessment",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_1d916acd",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "What is the patient's current status for carcinoma?",
+      "expected_answer": "carcinoma is currently active/present as of the most recent admission.",
+      "mimic_subject_id": 10006029,
+      "mimic_hadm_id": 25426298,
+      "clinical_context": "lial lesion and left sacral lesion.  -___: underwent a laparoscopic hand assisted radical right nephrectomy by Dr. ___ pathology showed a  renal cell carcinoma, clear cell type, ___ grade II/IV measuring 4 cm extending but not invading through the renal capsule or Gerota's fascia margins were questionably po",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Past Medical History",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_b4ef73e0",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "Does the patient currently have aortic stenosis?",
+      "expected_answer": "Yes. aortic stenosis is documented as current in the clinical record.",
+      "mimic_subject_id": 10003019,
+      "mimic_hadm_id": 20962108,
+      "clinical_context": "size and free wall  motion are normal. The aortic root is mildly dilated at the  sinus level. The aortic valve leaflets (3) are mildly thickened  but aortic stenosis is not present. No aortic regurgitation is  seen. The mitral valve leaflets are mildly thickened. There is  mild posterior leaflet mitral valve prola",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Assessment",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_fb74ed07",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Does the patient currently have Hyperlipidemia?",
+      "expected_answer": "No. Hyperlipidemia is historical/resolved. It was present in the past but is no longer active.",
+      "mimic_subject_id": 10006029,
+      "mimic_hadm_id": 25426298,
+      "clinical_context": "ior  PAST MEDICAL HISTORY (per OMR): 1. Clear cell kidney cancer as above. 2. Benign prostatic hypertrophy. 3. Diabetes mellitus. 4. Hypertension. 5. Hyperlipidemia. 6. History of anxiety.    Social History: ___ Family History: Colorectal cancer - mother ___ cancer - sister (dx at age ___ Liver cancer - brother _",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "Past Medical History",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_d786bffa",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Should vomiting be on the patient's active problem list?",
+      "expected_answer": "No. vomiting is historical \u2014 it should be in past medical history, not the active list.",
+      "mimic_subject_id": 10006029,
+      "mimic_hadm_id": 25426298,
+      "clinical_context": "helped provide collateral.   They note that he has had n/v the past few weeks, especially  with chemo. He had poor appetite as well since chemo. The  vomiting seemed to be intermittent, sometimes able to tolerate  PO. Last night he developed abdominal pain and vomiting. He had  regular bowel movements last",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "History of Present Illness",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_chg_7eaa968e",
+      "task": "task_b_temporal",
+      "subtype": "change",
+      "question": "What differences are noted in the patient's medication between the two visits?",
+      "expected_answer": "Key changes: new medications: dig, lovenox; discontinued: vancomycin, acetaminophen, losartan.",
+      "mimic_subject_id": 10001401,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (27012892): Acetaminophen, LORazepam, Losartan, VANCOMYCIN, atorvastatin. Admission 2 (28058085): atorvastatin, dig, levothyroxine, lovenox.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "change_detection": 1.0
+      },
+      "metadata": {
+        "hadm_1": "27012892",
+        "hadm_2": "28058085",
+        "added": [
+          "dig",
+          "lovenox"
+        ],
+        "removed": [
+          "vancomycin",
+          "acetaminophen",
+          "losartan",
+          "vanc",
+          "ciprofloxacin"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_635032b4",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Is DKA an active problem for this patient?",
+      "expected_answer": "No. DKA is documented as a past/historical finding, not currently active.",
+      "mimic_subject_id": 10002013,
+      "mimic_hadm_id": 21763296,
+      "clinical_context": "s atypical chest pain both with  exertion and at rest, with mild T wave deepening but no other  EKG changes or troponin. She also presented with mild DKA and  diabetic foot ulcer. She had a stress test with reversible  ischemia in the LAD territory (___) and went to cardiac  catheterization ___ which s",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "Assessment",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_b16478e7",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Is Leukocytosis an active problem for this patient?",
+      "expected_answer": "No. Leukocytosis is documented as a past/historical finding, not currently active.",
+      "mimic_subject_id": 10004749,
+      "mimic_hadm_id": 27481198,
+      "clinical_context": "ofloxacin. Her pain was managed  with tylenol, opioids, and dicyclomine for cramping. She was  tolerating a light diet prior to time of discharge.  # Leukocytosis: Resolved after IV fluids overnight after  admission. She had elevated WBC 17.6 with N 86.4% on admission.  Most likely this is multifactorial from e",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "Hospital Course",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_dbe2e232",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "In what order were Confused and CLOSTRIDIUM DIFFICILE identified?",
+      "expected_answer": "Confused was identified first, followed by CLOSTRIDIUM DIFFICILE.",
+      "mimic_subject_id": 10002131,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (24065018): Afib, Afib, Allergies, CHF, Confused. Admission 2 (27411540): Allergies, CLOSTRIDIUM DIFFICILE, Dehydration, HTN, RA.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "24065018",
+        "hadm_2": "27411540"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_dd21fc0b",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "Is malnutrition an active problem for this patient?",
+      "expected_answer": "Yes. malnutrition is documented as a current/active problem.",
+      "mimic_subject_id": 10005866,
+      "mimic_hadm_id": 20364112,
+      "clinical_context": "osis: PRIMARY DIAGNOSES: Gastric perforation, frozen abdomen. Duodenal ulcer Esophagitis  SECONDARY DIAGNOSES: portal hypertensive gastropathy anemia malnutrition Cirrhosis    Discharge Condition: Mental Status: Confused - sometimes. Level of Consciousness: Alert and interactive. Activity Status: Ambulatory - r",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Diagnosis",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_6053376a",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "Does the patient currently have CHF?",
+      "expected_answer": "Yes. CHF is documented as current in the clinical record.",
+      "mimic_subject_id": 10002131,
+      "mimic_hadm_id": 24065018,
+      "clinical_context": "ing: ___.   Chief Complaint: Right hip pain    Major Surgical or Invasive Procedure: None    History of Present Illness: ___ is a ___ y/o F with PMHx CHF, Afib not on  anticoagulation, severe advanced Alzheimer's dementia,  osteoporosis, HTN, who presents from assisted living facility  with R hip pain.",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "History of Present Illness",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_96300f55",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Does the patient currently have atrial fibrillation?",
+      "expected_answer": "No. atrial fibrillation is historical/resolved. It was present in the past but is no longer active.",
+      "mimic_subject_id": 10003502,
+      "mimic_hadm_id": 26475031,
+      "clinical_context": "lactone   Attending: ___   Chief Complaint: ?syncope   Major Surgical or Invasive Procedure: None    History of Present Illness:  ___, ___ only, with atrial fibrillation/flutter on  dabigatran, coronary artery disease, diastolic heart failure  (LVEF 60% in ___, hypertension, hyperlipidemia, ?SSS, and  vascular dementi",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "History of Present Illness",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_5afdd873",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "Which was documented first: chest pain or heartburn?",
+      "expected_answer": "chest pain was documented before heartburn, based on the admission timeline.",
+      "mimic_subject_id": 10005991,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (20355325): Abdominal Pain, Allergies, Anxiety, Gastrointestinal bleed, He. Admission 2 (24856862): Abdominal Pain, Allergies, Anxiety, Anxiety, He.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "20355325",
+        "hadm_2": "24856862"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_3d4c282b",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "Is schizophrenia an active problem for this patient?",
+      "expected_answer": "Yes. schizophrenia is documented as a current/active problem.",
+      "mimic_subject_id": 10002930,
+      "mimic_hadm_id": 22733922,
+      "clinical_context": "blet(s) by mouth once a day  Disp #*30 Tablet Refills:*0    Discharge Disposition: Home   Discharge Diagnosis: Unspecified psychotic disorder ___ vs. schizophrenia spectrum) EtOH use disorder Cocaine use disorder Heroin use disorder (in full sustained remission)    Discharge Condition: Mental Status: Clear and c",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Diagnosis",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_48d18a00",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "Is atrial fibrillation an active problem for this patient?",
+      "expected_answer": "Yes. atrial fibrillation is documented as a current/active problem.",
+      "mimic_subject_id": 10005817,
+      "mimic_hadm_id": 28661809,
+      "clinical_context": "treated w Chemo/ Rad followed by a  surgical procedure to remove residual tumor via the rectum - Post traumatic stress disorder (pt is ___ veteran) - atrial fibrillation - CKD    Social History: ___ Family History: FAMILY HISTORY:  No premature coronary artery disease, or  neuroendocrine carcinomas   Physical Exam: MI",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Past Medical History",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_6a58114f",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "In what order were fracture and CAP identified?",
+      "expected_answer": "fracture was identified first, followed by CAP.",
+      "mimic_subject_id": 10005236,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (23384508): Allergies, CAD, COPD, DM, DVT. Admission 2 (25656545): Allergies, CAD, CAP, COPD, Diabetes.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "23384508",
+        "hadm_2": "25656545"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_18b62e05",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Does the patient currently have Anxiety?",
+      "expected_answer": "No. Anxiety is historical/resolved. It was present in the past but is no longer active.",
+      "mimic_subject_id": 10005991,
+      "mimic_hadm_id": 24856862,
+      "clinical_context": "ve Procedure: Esophagogastroduodenoscopy Colonoscopy    History of Present Illness: Mr. ___ is a ___ y/o M with past medical history  significant for Anxiety, and abdominal pain. Of note he had  recent hospitilization in early ___ for abdominal pain, was  evaluated by GI who was consulted for concern for u",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "History of Present Illness",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_chg_8710f477",
+      "task": "task_b_temporal",
+      "subtype": "change",
+      "question": "How has the patient's medication management changed between admissions?",
+      "expected_answer": "Between admissions, new medications: aspirin, motrin, dilaudid; discontinued: levothyroxine, fluconazole.",
+      "mimic_subject_id": 10001186,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (21334040): ALPRAZolam, Acetaminophen, Fluticasone, Hydrocodone, Levothyroxine. Admission 2 (24016413): ALPRAZolam, Acetaminophen, Aspirin, Fluticasone, Hydrocodone.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "change_detection": 1.0
+      },
+      "metadata": {
+        "hadm_1": "21334040",
+        "hadm_2": "24016413",
+        "added": [
+          "aspirin",
+          "motrin",
+          "dilaudid"
+        ],
+        "removed": [
+          "levothyroxine",
+          "fluconazole"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_dur_99a99dcb",
+      "task": "task_b_temporal",
+      "subtype": "duration",
+      "question": "How long has this patient had Obese? Is it a chronic or new condition?",
+      "expected_answer": "Obese appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
+      "mimic_subject_id": 10000935,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000935: Obese documented across 2 admissions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "duration_assessment": 1.0
+      },
+      "metadata": {
+        "doc_count": 2
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_13e249a4",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "In what order were painful and chest pain identified?",
+      "expected_answer": "painful was identified first, followed by chest pain.",
+      "mimic_subject_id": 10002800,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (20798638): Abdominal pain, Allergies, Febrile, HIV, Nausea. Admission 2 (26199514): Allergies, Febrile, HIV, asthma, asthma.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "20798638",
+        "hadm_2": "26199514"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_dur_2483a94a",
+      "task": "task_b_temporal",
+      "subtype": "duration",
+      "question": "How long has this patient had Hypercholesterolemia? Is it a chronic or new condition?",
+      "expected_answer": "Hypercholesterolemia appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
+      "mimic_subject_id": 10000117,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000117: Hypercholesterolemia documented across 2 admissions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "duration_assessment": 1.0
+      },
+      "metadata": {
+        "doc_count": 2
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_0136c1a6",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "Is depression an active problem for this patient?",
+      "expected_answer": "Yes. depression is documented as a current/active problem.",
+      "mimic_subject_id": 10005001,
+      "mimic_hadm_id": 23954664,
+      "clinical_context": "elvic infections or sexually transmitted   infections - Known history of fibroids and ovarian cysts - Known endometriosis  PMH: - allergic rhinitis - depression - pseudocholinesterase deficiency - Denies hypertension, diabetes, asthma, thromboembolic disease  PSH:  - ___ knee surgery - ___ abdominal myomectom",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Past Medical History",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_1080e564",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Is Constipation an active problem for this patient?",
+      "expected_answer": "No. Constipation is documented as a past/historical finding, not currently active.",
+      "mimic_subject_id": 10002976,
+      "mimic_hadm_id": 21640325,
+      "clinical_context": "was a decrease and ID felt  comfortable with discharging him on ceftriaxone with weekly  monitoring for any hepatic problems from the antibiotics.  #Constipation-  Patient had constipation during his hospital stay. He at no time  complained of abdominal pain, and moved his bowels prior to  discharge. He was di",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "Hospital Course",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_9c168c92",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "In what order were ascites and hepatitis identified?",
+      "expected_answer": "ascites was identified first, followed by hepatitis.",
+      "mimic_subject_id": 10005123,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (20470681): ASCITES, Allergies, GIB, He, He. Admission 2 (24274954): Allergies, Cirrhosis, He, He, Hyperlipidemia.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "20470681",
+        "hadm_2": "24274954"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_757a7f78",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Should dyspnea be on the patient's active problem list?",
+      "expected_answer": "No. dyspnea is historical \u2014 it should be in past medical history, not the active list.",
+      "mimic_subject_id": 10000980,
+      "mimic_hadm_id": 29659838,
+      "clinical_context": "elling, and 10 weight  gain.  Of note, patient was seen in the Heart Failure Clinic with Dr.  ___ on ___ where she noted that she has had  persistent dyspnea on exertion and PND after a lengthy prior  hospitalization for DVT/GIB. At that time she was started on  40mg po torsemide which initially improved h",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "History of Present Illness",
+        "domain": "observation"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_chg_c86d8b22",
+      "task": "task_b_temporal",
+      "subtype": "change",
+      "question": "How has the patient's medication management changed between admissions?",
+      "expected_answer": "Between admissions, discontinued: amiodarone, bactrim, pip-tazo.",
+      "mimic_subject_id": 10005866,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (20364112): Bactrim, Dilaudid, Famotidine, Lasix, Neurontin. Admission 2 (21636229): Famotidine, Lasix, Neurontin, Spironolactone, acetaminophen.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "change_detection": 1.0
+      },
+      "metadata": {
+        "hadm_1": "20364112",
+        "hadm_2": "21636229",
+        "added": [],
+        "removed": [
+          "amiodarone",
+          "bactrim",
+          "pip-tazo",
+          "metoprolol",
+          "dilaudid"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_4290eb4f",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Should diarrhea be on the patient's active problem list?",
+      "expected_answer": "No. diarrhea is historical \u2014 it should be in past medical history, not the active list.",
+      "mimic_subject_id": 10006029,
+      "mimic_hadm_id": 25426298,
+      "clinical_context": "ometimes able to tolerate  PO. Last night he developed abdominal pain and vomiting. He had  regular bowel movements last night.  This morning he had  diarrhea but no further episodes of vomiting and his abdominal  pain improved and nausea improved. He had special K cereal with  skim milk today and tolerated",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "History of Present Illness",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_4e36b2bb",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "Is hypertension an active problem for this patient?",
+      "expected_answer": "Yes. hypertension is documented as a current/active problem.",
+      "mimic_subject_id": 10002769,
+      "mimic_hadm_id": 25681387,
+      "clinical_context": "nts in the past  few days. She reported having hx of C. diff in the past. She  otherwise denied any fever, chills, cp/sob.    Past Medical History: - hypertension - hypercholesterolemia - DVTs, ___ years ago (post-partum) and ___, on coumadin for ___  years, stopped about ___ years ago, PCP started hypercoagula",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Past Medical History",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_c3ffaa9b",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "In what order were tired and anxiety identified?",
+      "expected_answer": "tired was identified first, followed by anxiety.",
+      "mimic_subject_id": 10000117,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (27988844): Allergies, Constipation, DVT, Dementia, Fever. Admission 2 (22927623): Allergies, Dementia, GERD, HTN, Hypercholesterolemia.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "27988844",
+        "hadm_2": "22927623"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_b41b0643",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Does the patient currently have cirrhosis?",
+      "expected_answer": "No. cirrhosis is historical/resolved. It was present in the past but is no longer active.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": 29079034,
+      "clinical_context": "alopathy who  initially presented to the ED yesterday with hypotension after a  paracentesis.   The patient has had accelerated decompensation of her cirrhosis  recently with worsening ascites, and she is maintained on twice  weekly paracentesis. She was at her regular session yesterday  when she had hypoten",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "History of Present Illness",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_dur_79178b50",
+      "task": "task_b_temporal",
+      "subtype": "duration",
+      "question": "How long has this patient had GERD? Is it a chronic or new condition?",
+      "expected_answer": "GERD appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
+      "mimic_subject_id": 10000117,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000117: GERD documented across 2 admissions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "duration_assessment": 1.0
+      },
+      "metadata": {
+        "doc_count": 2
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_38cdc8ef",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Is carcinoma an active problem for this patient?",
+      "expected_answer": "No. carcinoma is documented as a past/historical finding, not currently active.",
+      "mimic_subject_id": 10006029,
+      "mimic_hadm_id": 25426298,
+      "clinical_context": "now off sunitinib w/o  disease progression), (2) metastatic cholangiocarcinoma s/p 6  months gem/cisplatin, who subsequently had new (3) acinar cell  carcinoma of the pancreas, now on ___ I regimen of liposomal  irinotecan and ___, last dose ___, p/w nausea/vomiting that  started last evening.   Patient was",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "History of Present Illness",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_dfa75737",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "Does the patient currently have hypothyroidism?",
+      "expected_answer": "Yes. hypothyroidism is documented as current in the clinical record.",
+      "mimic_subject_id": 10006029,
+      "mimic_hadm_id": 25426298,
+      "clinical_context": "et 52,000), leukopenia (grade  2; WBC 2.9), elevated lipase (grade 1), elevated amylase (grade 1; elevated at baseline), elevated ALT (grade 1), and  hypothyroidism (grade 1). Mild symptoms with treatment. Continued sunitinib at 50mg daily per protocol. -___: CT Torso: Response of mediastinal lymphadenopathy, bil",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Past Medical History",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_b7386de2",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Is cancer an active problem for this patient?",
+      "expected_answer": "No. cancer is documented as a past/historical finding, not currently active.",
+      "mimic_subject_id": 10000935,
+      "mimic_hadm_id": 26381316,
+      "clinical_context": "sea/vomiting      Major Surgical or Invasive Procedure: none    History of Present Illness: This is a ___ yo f with h/o recently diagnosed metastatic cancer  of unknown prior presenting with nausea, vomiting, and fever to  101 today. Patient has been vomiting over the past 6 - 8 weeks,  since before she w",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "History of Present Illness",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_444cc10a",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Is weakness an active problem for this patient?",
+      "expected_answer": "No. weakness is documented as a past/historical finding, not currently active.",
+      "mimic_subject_id": 10002528,
+      "mimic_hadm_id": 28605730,
+      "clinical_context": "== # GAD/Panic disorder # Depression # PTSD # Functional neurological disorder Patient presented from a therapy session where she had acute  onset of weakness, abnormal movement and aphasia in the setting  of potential trigger of seeing shadows outside the door. Per her  therapist, over the past several wee",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "Hospital Course",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_b2053490",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "Which was documented first: chest pain or afib?",
+      "expected_answer": "chest pain was documented before afib, based on the admission timeline.",
+      "mimic_subject_id": 10004235,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (22187210): Allergies, Fever, Gout, HTN, PE. Admission 2 (25970245): Allergies, Gout, HTN, afib, carcinoma.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "22187210",
+        "hadm_2": "25970245"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_f0c21b59",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Does the patient currently have hypertension?",
+      "expected_answer": "No. hypertension is historical/resolved. It was present in the past but is no longer active.",
+      "mimic_subject_id": 10005123,
+      "mimic_hadm_id": 24274954,
+      "clinical_context": "ili, Direct Bili  Please fax results to ___ at ___.    Discharge Disposition: Home   Discharge Diagnosis: PRIMARY: Congenital hepatic fibrosis Portal hypertension Cirrhosis  SECONDARY: History of esophageal and gastric varices    Discharge Condition: Mental Status: Clear and coherent. Level of Consciousness: Al",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "Diagnosis",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_dur_9a7579d3",
+      "task": "task_b_temporal",
+      "subtype": "duration",
+      "question": "How long has this patient had hepatic encephalopathy? Is it a chronic or new condition?",
+      "expected_answer": "hepatic encephalopathy appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000032: hepatic encephalopathy documented across 2 admissions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "duration_assessment": 1.0
+      },
+      "metadata": {
+        "doc_count": 2
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_cd3a6d9f",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "What is the patient's current status for Depression?",
+      "expected_answer": "Depression is currently active/present as of the most recent admission.",
+      "mimic_subject_id": 10002013,
+      "mimic_hadm_id": 25442395,
+      "clinical_context": "DES to mid LAD ___, DES to edge  ISR of mid LAD DES and stenosis distal to stent ___, DES to OM1  ___, s/p 3 v CABG LIMA-LAD, SVG-OM1,  ___  -HFpEF -Depression   -DM   -GERD   -Hypertension -Migraines -Chronic shoulder pain on narcotics -OSA -Peripheral neuropathy -Restless leg   Social History: ___ Family H",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Past Medical History",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_dur_44f27bb7",
+      "task": "task_b_temporal",
+      "subtype": "duration",
+      "question": "How long has this patient had Allergies? Is it a chronic or new condition?",
+      "expected_answer": "Allergies appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
+      "mimic_subject_id": 10000935,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000935: Allergies documented across 2 admissions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "duration_assessment": 1.0
+      },
+      "metadata": {
+        "doc_count": 2
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_326ba4c8",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "Is endocarditis an active problem for this patient?",
+      "expected_answer": "Yes. endocarditis is documented as a current/active problem.",
+      "mimic_subject_id": 10001877,
+      "mimic_hadm_id": 25679292,
+      "clinical_context": "ld aortic stenosis. Based on ___ ACC/AHA  Valvular Heart Disease Guidelines, a follow-up echocardiogram is  suggested in ___ years.  Based on ___ AHA endocarditis prophylaxis recommendations, the  echo findings indicate prophylaxis is NOT recommended. Clinical  decisions regarding the need for prophylaxis shoul",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Assessment",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_chg_4394e1c9",
+      "task": "task_b_temporal",
+      "subtype": "change",
+      "question": "How has the patient's medication management changed between admissions?",
+      "expected_answer": "Between admissions, discontinued: valium, wellbutrin.",
+      "mimic_subject_id": 10006131,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (21367824): ASA, Aspirin, Valium, Wellbutrin. Admission 2 (27849136): ASA, Aspirin.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "change_detection": 1.0
+      },
+      "metadata": {
+        "hadm_1": "21367824",
+        "hadm_2": "27849136",
+        "added": [],
+        "removed": [
+          "valium",
+          "wellbutrin"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_e60414c9",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "Does the patient currently have aortic stenosis?",
+      "expected_answer": "Yes. aortic stenosis is documented as current in the clinical record.",
+      "mimic_subject_id": 10001877,
+      "mimic_hadm_id": 21320596,
+      "clinical_context": "nd recent  decrease in mobility from fall. Ruled out for MI. Likely his  worsening edema is due to medication non-compliance versus  worsening of his aortic stenosis. His most recent echo is from  ___, and it was recommended this be repeated as an outpatient.  He was never hypoxic, though lung exam suggested incre",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Hospital Course",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_6e5dfbac",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "Which was documented first: ra or Anemia?",
+      "expected_answer": "ra was documented before Anemia, based on the admission timeline.",
+      "mimic_subject_id": 10002430,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (24648311): Allergies, CAD, CHF, EMPHYSEMA, HYPERLIPIDEMIA. Admission 2 (26295318): Allergies, Anemia, Atrial fibrillation, CAD, CHF.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "24648311",
+        "hadm_2": "26295318"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_9453ec83",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "Does the patient currently have lower extremity edema?",
+      "expected_answer": "Yes. lower extremity edema is documented as current in the clinical record.",
+      "mimic_subject_id": 10000935,
+      "mimic_hadm_id": 26381316,
+      "clinical_context": "omplaints. She has been constipated, which improves when she  stops her anti-emetics. Last bowel movement was yesterday. She  is passing gas. She has lower extremity edema, which has been  present for the past several weeks.   Of note, she was supposed to have one of her liver mets biopsied  in the past several weeks, b",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "History of Present Illness",
+        "domain": "observation"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_ee9cbddb",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "In what order were sepsis and MR identified?",
+      "expected_answer": "sepsis was identified first, followed by MR.",
+      "mimic_subject_id": 10002013,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (25442395): Acute Kidney Injury, Allergies, CAD, COPD, Constipation. Admission 2 (21763296): Allergies, CAD, COPD, DKA, DKA.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "25442395",
+        "hadm_2": "21763296"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_9a0fed0b",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "Is colon cancer an active problem for this patient?",
+      "expected_answer": "Yes. colon cancer is documented as a current/active problem.",
+      "mimic_subject_id": 10001884,
+      "mimic_hadm_id": 26184834,
+      "clinical_context": "cular Disease s/p bilateral iliac stents - s/p hip replacement   Social History: ___ Family History: Mother with asthma and hypertension. Father with colon cancer.  Brother with leukemia.    Physical Exam: PHYSICAL EXAMINATION ON ADMISSION: ==================================  VITALS: 98.4 140/83 77 22 94% RA",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Family History",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_6a9703ee",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "In what order were CKD and Diarrhea identified?",
+      "expected_answer": "CKD was identified first, followed by Diarrhea.",
+      "mimic_subject_id": 10006029,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (20850584): Abdominal pain, Allergies, CKD, Chronic kidney disease, Colorectal cancer. Admission 2 (25426298): Abdominal pain, Allergies, Chronic kidney disease, Colorectal cancer, Diabetes.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "20850584",
+        "hadm_2": "25426298"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_chg_16bf0d62",
+      "task": "task_b_temporal",
+      "subtype": "change",
+      "question": "What differences are noted in the patient's medication between the two visits?",
+      "expected_answer": "Key changes: discontinued: heparin.",
+      "mimic_subject_id": 10001217,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (24597018): Acetaminophen, Aspirin, Ceftriaxone, Heparin, Motrin. Admission 2 (27703517): Acetaminophen, Aspirin, Ceftriaxone, Motrin, OxycoDONE.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "change_detection": 1.0
+      },
+      "metadata": {
+        "hadm_1": "24597018",
+        "hadm_2": "27703517",
+        "added": [],
+        "removed": [
+          "heparin"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_dur_e7e5e5f1",
+      "task": "task_b_temporal",
+      "subtype": "duration",
+      "question": "How long has this patient had Migraine? Is it a chronic or new condition?",
+      "expected_answer": "Migraine appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
+      "mimic_subject_id": 10000117,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000117: Migraine documented across 2 admissions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "duration_assessment": 1.0
+      },
+      "metadata": {
+        "doc_count": 2
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_0579e25a",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "Is COPD an active problem for this patient?",
+      "expected_answer": "Yes. COPD is documented as a current/active problem.",
+      "mimic_subject_id": 10001884,
+      "mimic_hadm_id": 26184834,
+      "clinical_context": "apixaban who presented with  shortness of breath since being discharged on ___. She was  discharged home with services.     Mrs. ___ has significant COPD, with recent PFTs on ___  showing severely reduced FEV1 and moderately reduced FEV1/FVC.  She was generally feeling better since discharged on ___,",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "History of Present Illness",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_dur_f5120145",
+      "task": "task_b_temporal",
+      "subtype": "duration",
+      "question": "How long has this patient had SBO? Is it a chronic or new condition?",
+      "expected_answer": "SBO appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
+      "mimic_subject_id": 10000935,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000935: SBO documented across 2 admissions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "duration_assessment": 1.0
+      },
+      "metadata": {
+        "doc_count": 2
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_2f92af44",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "Does the patient currently have systolic murmur?",
+      "expected_answer": "Yes. systolic murmur is documented as current in the clinical record.",
+      "mimic_subject_id": 10002428,
+      "mimic_hadm_id": 28295257,
+      "clinical_context": "187-106 (128/78 on recheck) 112 16 96%RA Gen - supine in bed, comfortable, pale Eyes - EOMI ENT - OP clear, MMM Heart - regularly tachycardic; II/VI systolic murmur loudest at axilla;  Lungs - CTA bilaterally Abd - soft nontender, normoactive bowel sounds; PEG in place Rectum - dark maroon blood in vault, no larg",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Physical Exam",
+        "domain": "observation"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_21894283",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "What is the patient's current status for pulmonary vascular congestion?",
+      "expected_answer": "pulmonary vascular congestion is currently active/present as of the most recent admission.",
+      "mimic_subject_id": 10000980,
+      "mimic_hadm_id": 20897796,
+      "clinical_context": "ungs are moderately well-expanded. There is an asymmetric right lower lung opacity, new from ___. The heart appears mildly enlarged and there is mild pulmonary vascular congestion. No pleural effusion or pneumothorax.  IMPRESSION:   Right lower lobe opacity could represent pneumonia in the right clinical setting, although atele",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "EKG",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_dur_f717e466",
+      "task": "task_b_temporal",
+      "subtype": "duration",
+      "question": "How long has this patient had Bipolar? Is it a chronic or new condition?",
+      "expected_answer": "Bipolar appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000032: Bipolar documented across 2 admissions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "duration_assessment": 1.0
+      },
+      "metadata": {
+        "doc_count": 2
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_553c0b7e",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "In what order were UTI and weakness identified?",
+      "expected_answer": "UTI was identified first, followed by weakness.",
+      "mimic_subject_id": 10001401,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (27012892): Allergies, Cancer, Constipation, DVT, Hyperlipidemia. Admission 2 (28058085): Allergies, Cancer, DVT, Hyperlipidemia, Hypertension.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "27012892",
+        "hadm_2": "28058085"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_2eebdbb4",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Should chronic cough be on the patient's active problem list?",
+      "expected_answer": "No. chronic cough is historical \u2014 it should be in past medical history, not the active list.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": 29079034,
+      "clinical_context": "al to  the MICU, patient was more alert and conversant. She has no  abdominal pain, nausea, vomiting, chest pain, or difficulty  breathing. She has a chronic cough that is not much changed. She  has not had any fever or chills. She reports taking all of her  medications except for lactulose, which she thinks tas",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "History of Present Illness",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_6824e5ae",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "What is the patient's current status for femoral neck fracture?",
+      "expected_answer": "femoral neck fracture is currently active/present as of the most recent admission.",
+      "mimic_subject_id": 10005236,
+      "mimic_hadm_id": 23384508,
+      "clinical_context": "___   Date of Birth:  ___             Sex:   M   Service: ORTHOPAEDICS   Allergies:  morphine / Demerol   Attending: ___.   Chief Complaint: Right femoral neck fracture   Major Surgical or Invasive Procedure: Closed reduction, internal fixation with cannulated screws of  Right femoral neck fracture    History of Pres",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Chief Complaint",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_fe472053",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "In what order were melena and vomiting identified?",
+      "expected_answer": "melena was identified first, followed by vomiting.",
+      "mimic_subject_id": 10004749,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (27481198): Allergies, Anxiety, Asthma, Cdiff, GERD. Admission 2 (28691602): Allergies, Cdiff, abdominal pain, abdominal pain, allergies.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "27481198",
+        "hadm_2": "28691602"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_chg_5675cecb",
+      "task": "task_b_temporal",
+      "subtype": "change",
+      "question": "How has the patient's medication management changed between admissions?",
+      "expected_answer": "Between admissions, discontinued: zofran, dilaudid, tramadol.",
+      "mimic_subject_id": 10001338,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (27987619): Fluticasone, Lexapro, ativan, dilaudid, morphine. Admission 2 (28835314): Fluticasone, Lexapro, omeprazole.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "change_detection": 1.0
+      },
+      "metadata": {
+        "hadm_1": "27987619",
+        "hadm_2": "28835314",
+        "added": [],
+        "removed": [
+          "zofran",
+          "dilaudid",
+          "tramadol",
+          "ativan",
+          "morphine"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_b9ce115e",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Should Hypertension be on the patient's active problem list?",
+      "expected_answer": "No. Hypertension is historical \u2014 it should be in past medical history, not the active list.",
+      "mimic_subject_id": 10006029,
+      "mimic_hadm_id": 25426298,
+      "clinical_context": "ge compared to prior  PAST MEDICAL HISTORY (per OMR): 1. Clear cell kidney cancer as above. 2. Benign prostatic hypertrophy. 3. Diabetes mellitus. 4. Hypertension. 5. Hyperlipidemia. 6. History of anxiety.    Social History: ___ Family History: Colorectal cancer - mother ___ cancer - sister (dx at age ___ Liver",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "Past Medical History",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_dur_6c498e2a",
+      "task": "task_b_temporal",
+      "subtype": "duration",
+      "question": "How long has this patient had altered mental status? Is it a chronic or new condition?",
+      "expected_answer": "altered mental status appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000032: altered mental status documented across 2 admissions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "duration_assessment": 1.0
+      },
+      "metadata": {
+        "doc_count": 2
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_cfd13383",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Should schizophrenia be on the patient's active problem list?",
+      "expected_answer": "No. schizophrenia is historical \u2014 it should be in past medical history, not the active list.",
+      "mimic_subject_id": 10004322,
+      "mimic_hadm_id": 20356134,
+      "clinical_context": "n,  abdominal pain, nausea, vomiting, diarrhea, constipation, BRBPR,  melena, hematochezia, dysuria, hematuria.     Past Medical History: 1. Paranoid schizophrenia, well-controlled on Clozaril   - Previous auditory and visual hallucinations, none \"for awhile\" per patient 2. Mechanical falls with negative syncope",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "Past Medical History",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_3ba61094",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Is poor appetite an active problem for this patient?",
+      "expected_answer": "No. poor appetite is documented as a past/historical finding, not currently active.",
+      "mimic_subject_id": 10006029,
+      "mimic_hadm_id": 25426298,
+      "clinical_context": "d with his daughter at bedside and she  helped provide collateral.   They note that he has had n/v the past few weeks, especially  with chemo. He had poor appetite as well since chemo. The  vomiting seemed to be intermittent, sometimes able to tolerate  PO. Last night he developed abdominal pain and vomiting. He",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "History of Present Illness",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_chg_4b1262d4",
+      "task": "task_b_temporal",
+      "subtype": "change",
+      "question": "How has the patient's medication management changed between admissions?",
+      "expected_answer": "Between admissions, new medications: heparin, acetaminophen, aleve; discontinued: lorazepam.",
+      "mimic_subject_id": 10002167,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (24023396): Lorazepam. Admission 2 (29383904): Acetaminophen, Aleve, Ibuprofen, OxycoDONE, heparin.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "change_detection": 1.0
+      },
+      "metadata": {
+        "hadm_1": "24023396",
+        "hadm_2": "29383904",
+        "added": [
+          "heparin",
+          "acetaminophen",
+          "aleve",
+          "ibuprofen",
+          "oxycodone"
+        ],
+        "removed": [
+          "lorazepam"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_429a73f8",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "In what order were lightheaded and CKD identified?",
+      "expected_answer": "lightheaded was identified first, followed by CKD.",
+      "mimic_subject_id": 10003019,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (20962108): Acute Confusion, Allergies, Asthma, CHF, Depression. Admission 2 (28836362): Allergies, Asthma, CHF, CKD, Duodenal ulcer.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "20962108",
+        "hadm_2": "28836362"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_dur_3155170d",
+      "task": "task_b_temporal",
+      "subtype": "duration",
+      "question": "How long has this patient had HCV? Is it a chronic or new condition?",
+      "expected_answer": "HCV appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000032: HCV documented across 2 admissions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "duration_assessment": 1.0
+      },
+      "metadata": {
+        "doc_count": 2
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_95635373",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "In what order were Anemia and Paroxysmal atrial fibrillation identified?",
+      "expected_answer": "Anemia was identified first, followed by Paroxysmal atrial fibrillation.",
+      "mimic_subject_id": 10003637,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (22082422): Allergies, Anemia, CAD, CVA, HFrEF. Admission 2 (28484061): Allergies, CAD, CKD, CVA, HFrEF.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "22082422",
+        "hadm_2": "28484061"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_dur_57a305bc",
+      "task": "task_b_temporal",
+      "subtype": "duration",
+      "question": "How long has this patient had DJD? Is it a chronic or new condition?",
+      "expected_answer": "DJD appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
+      "mimic_subject_id": 10000935,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000935: DJD documented across 2 admissions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "duration_assessment": 1.0
+      },
+      "metadata": {
+        "doc_count": 2
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_c72071fe",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "Is cholelithiasis an active problem for this patient?",
+      "expected_answer": "Yes. cholelithiasis is documented as a current/active problem.",
+      "mimic_subject_id": 10005605,
+      "mimic_hadm_id": 21049284,
+      "clinical_context": "ans cell histiocytoma (eosinophilic  granuloma).    Past Medical History: - HTN - CKD stage III - Anemia - H/o diverticular abscess ___ - Symptomatic cholelithiasis s/p cholecystectomy ___  - DVT in R soleal vein in context of multiple fx ___ after  being hit by car (US ___ and ___ showed stability) - Tibial plat",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Past Medical History",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_chg_e347a4fe",
+      "task": "task_b_temporal",
+      "subtype": "change",
+      "question": "What differences are noted in the patient's medication between the two visits?",
+      "expected_answer": "Key changes: new medications: ketorolac, diazepam, asa; discontinued: ultram, risperdal, zoloft.",
+      "mimic_subject_id": 10002930,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (22733922): Bactrim, Haldol, Risperdal, Seroquel, Ultram. Admission 2 (25922998): ASA, Bactrim, Haldol, Tylenol, diazepam.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "change_detection": 1.0
+      },
+      "metadata": {
+        "hadm_1": "22733922",
+        "hadm_2": "25922998",
+        "added": [
+          "ketorolac",
+          "diazepam",
+          "asa",
+          "tylenol"
+        ],
+        "removed": [
+          "ultram",
+          "risperdal",
+          "zoloft",
+          "seroquel"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_a3143fbf",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Is cellulitis an active problem for this patient?",
+      "expected_answer": "No. cellulitis is documented as a past/historical finding, not currently active.",
+      "mimic_subject_id": 10002976,
+      "mimic_hadm_id": 21640325,
+      "clinical_context": "tics  were on board for multiple days patient remained afebrile. At no  point was he hemodynamically under or showing signs of sepsis.   For his foot cellulitis he had an xray and MRI which did not  show any evidence of osteomyelitis.  In work-up for the source  of this infection, he underwent a TTE which did",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "Hospital Course",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_dur_a8089cad",
+      "task": "task_b_temporal",
+      "subtype": "duration",
+      "question": "How long has this patient had HIV? Is it a chronic or new condition?",
+      "expected_answer": "HIV appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000032: HIV documented across 2 admissions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "duration_assessment": 1.0
+      },
+      "metadata": {
+        "doc_count": 2
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_96ef4bd2",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "What is the patient's current status for breast cancer?",
+      "expected_answer": "breast cancer is currently active/present as of the most recent admission.",
+      "mimic_subject_id": 10003502,
+      "mimic_hadm_id": 26475031,
+      "clinical_context": "cholecystectomy Gastroesophageal reflux Hyponatremia Anemia Lumbar radiculopathy   Social History: ___ Family History: Mother deceased at ___ yo from breast cancer. Father deceased at  ___ yo. Son deceased at ___ yo from heart attack.    Physical Exam: PHYSICAL EXAMINATION:   VS: 97.5 161/67 62 20 96%RA   GEN Al",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Family History",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_8edc10b0",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "In what order were frequency and smoking identified?",
+      "expected_answer": "frequency was identified first, followed by smoking.",
+      "mimic_subject_id": 10002930,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (25922998): Allergies, Confused, HCV, HIV, Hepatitis. Admission 2 (22733922): Allergies, HCV, HIV, Hepatitis, MDD.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "25922998",
+        "hadm_2": "22733922"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_chg_fd1db324",
+      "task": "task_b_temporal",
+      "subtype": "change",
+      "question": "How has the patient's medication management changed between admissions?",
+      "expected_answer": "Between admissions, new medications: zofran, cefepime, vanc; discontinued: vancomycin, acetaminophen, tramadol.",
+      "mimic_subject_id": 10000935,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (25849114): Albuterol, Bactrim, Enoxaparin, Ondansetron, OxycoDONE. Admission 2 (26381316): Albuterol, Bactrim, Enoxaparin, HCTZ, Ibuprofen.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "change_detection": 1.0
+      },
+      "metadata": {
+        "hadm_1": "25849114",
+        "hadm_2": "26381316",
+        "added": [
+          "zofran",
+          "cefepime",
+          "vanc",
+          "ibuprofen",
+          "hctz"
+        ],
+        "removed": [
+          "vancomycin",
+          "acetaminophen",
+          "tramadol",
+          "lorazepam",
+          "pantoprazole"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_dur_c8b1f3aa",
+      "task": "task_b_temporal",
+      "subtype": "duration",
+      "question": "How long has this patient had Osteoporosis? Is it a chronic or new condition?",
+      "expected_answer": "Osteoporosis appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
+      "mimic_subject_id": 10000117,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000117: Osteoporosis documented across 2 admissions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "duration_assessment": 1.0
+      },
+      "metadata": {
+        "doc_count": 2
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_dur_5143ceff",
+      "task": "task_b_temporal",
+      "subtype": "duration",
+      "question": "How long has this patient had Allergies? Is it a chronic or new condition?",
+      "expected_answer": "Allergies appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
+      "mimic_subject_id": 10000117,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000117: Allergies documented across 2 admissions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "duration_assessment": 1.0
+      },
+      "metadata": {
+        "doc_count": 2
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_a9a50ac4",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "Does the patient currently have Paroxysmal atrial fibrillation?",
+      "expected_answer": "Yes. Paroxysmal atrial fibrillation is documented as current in the clinical record.",
+      "mimic_subject_id": 10003637,
+      "mimic_hadm_id": 28484061,
+      "clinical_context": "ow up with Dr. ___.  CHRONIC ISSUES:  ==============  # CAD c/b MI s/p PCI and subsequent CABG - Continued ASA 81mg - Continued atorvastatin 80mg   # Paroxysmal atrial fibrillation # Hx CVA  - Continued ASA 81, atorvastatin 80 - Continued carvedilol, digoxin per above - Resumed home apixaban 5mg BID  # History of GI bleed - Cont",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Hospital Course",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_18236822",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "Does the patient currently have CVA?",
+      "expected_answer": "Yes. CVA is documented as current in the clinical record.",
+      "mimic_subject_id": 10003637,
+      "mimic_hadm_id": 28484061,
+      "clinical_context": "==============  # CAD c/b MI s/p PCI and subsequent CABG - Continued ASA 81mg - Continued atorvastatin 80mg   # Paroxysmal atrial fibrillation # Hx CVA  - Continued ASA 81, atorvastatin 80 - Continued carvedilol, digoxin per above - Resumed home apixaban 5mg BID  # History of GI bleed - Continued ome",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Hospital Course",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_df7d349b",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "Does the patient currently have acid reflux?",
+      "expected_answer": "Yes. acid reflux is documented as current in the clinical record.",
+      "mimic_subject_id": 10004638,
+      "mimic_hadm_id": 21399087,
+      "clinical_context": "ence has  resolved as well as resolved diarrhea.   Past Medical History: Past Medical History:  She is a breast cancer survivor, anxiety,  arthritis, acid reflux, low back pain, and osteopenia. Past Surgical History:  Modified radical mastectomy with  reconstruction in ___, vaginal hysterectomy, BSO in ___ for",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Past Medical History",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_0ae41c1a",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "Which was documented first: VRE or chronic cough?",
+      "expected_answer": "VRE was documented before chronic cough, based on the admission timeline.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (25742920): Abdominal pain, Allergies, Bipolar, CAP, COPD. Admission 2 (29079034): Acute Kidney Injury, Allergies, Bipolar, CAP, COPD.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "25742920",
+        "hadm_2": "29079034"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_chg_beb2c0ab",
+      "task": "task_b_temporal",
+      "subtype": "change",
+      "question": "How has the patient's medication management changed between admissions?",
+      "expected_answer": "Between admissions, new medications: tylenol, lopressor, pantoprazole; discontinued: hydromorphone, furosemide, coumadin.",
+      "mimic_subject_id": 10005348,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (25239799): Acetaminophen, Aspirin, Atorvastatin, Citalopram, Furosemide. Admission 2 (29496232): Acetaminophen, Aspirin, Atorvastatin, Citalopram, Dilaudid.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "change_detection": 1.0
+      },
+      "metadata": {
+        "hadm_1": "25239799",
+        "hadm_2": "29496232",
+        "added": [
+          "tylenol",
+          "lopressor",
+          "pantoprazole",
+          "dilaudid"
+        ],
+        "removed": [
+          "hydromorphone",
+          "furosemide",
+          "coumadin",
+          "nitroglycerin",
+          "oxycodone"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_cd6e0903",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "Is myocardial infarction an active problem for this patient?",
+      "expected_answer": "Yes. myocardial infarction is documented as a current/active problem.",
+      "mimic_subject_id": 10003502,
+      "mimic_hadm_id": 26475031,
+      "clinical_context": "In the ED, initial vitals were: 98.2 65 130/53 28 98% RA.   Past Medical History: Hypertension/hyperlipidemia Coronary artery disease complicated by myocardial infarction  Atrial fibrillation/flutter Diastolic heart failure (LVEF 60% in ___ Vascular dementia Headaches Nephrolithiasis Cataracts Otitis media Syncope/poss",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Past Medical History",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_e3d7e0d1",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "In what order were constipation and weakness identified?",
+      "expected_answer": "constipation was identified first, followed by weakness.",
+      "mimic_subject_id": 10004322,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (20356134): Acute kidney injury, Allergies, Altered Mental Status, CAD, COPD. Admission 2 (22602599): Acute kidney injury, Allergies, CAD, COPD, DM.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "20356134",
+        "hadm_2": "22602599"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_0db29eb5",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "Which was documented first: ascites or Coagulopathy?",
+      "expected_answer": "ascites was documented before Coagulopathy, based on the admission timeline.",
+      "mimic_subject_id": 10000935,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (26381316): Allergies, DJD, Depression, Obese, PNA. Admission 2 (25849114): Allergies, Altered mental status, Coagulopathy, Confused, DJD.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "26381316",
+        "hadm_2": "25849114"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_3896bfc0",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "Which was documented first: congestive heart failure or Fever?",
+      "expected_answer": "congestive heart failure was documented before Fever, based on the admission timeline.",
+      "mimic_subject_id": 10001877,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (21320596): AF, AF, Allergies, CA, DM. Admission 2 (25679292): AF, Allergies, CA, Confused, DM.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "21320596",
+        "hadm_2": "25679292"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_dur_b14b3517",
+      "task": "task_b_temporal",
+      "subtype": "duration",
+      "question": "How long has this patient had cirrhosis? Is it a chronic or new condition?",
+      "expected_answer": "cirrhosis appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000032: cirrhosis documented across 2 admissions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "duration_assessment": 1.0
+      },
+      "metadata": {
+        "doc_count": 2
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_821bb864",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "What is the patient's current status for femoral neck fracture?",
+      "expected_answer": "femoral neck fracture is currently active/present as of the most recent admission.",
+      "mimic_subject_id": 10000117,
+      "mimic_hadm_id": 27988844,
+      "clinical_context": "atient presented to the emergency department and was  evaluated by the orthopedic surgery team. The patient was found  to have a left valgus impacted femoral neck fracture and was  admitted to the orthopedic surgery service. The patient was  taken to the operating room on ___ for left closed reduction  and percutaneous",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Hospital Course",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_chg_d68a2fcd",
+      "task": "task_b_temporal",
+      "subtype": "change",
+      "question": "How has the patient's medication management changed between admissions?",
+      "expected_answer": "Between admissions, new medications: levaquin, hydrocodone, levothyroxine; discontinued: azithromycin, heparin, lisinopril.",
+      "mimic_subject_id": 10005817,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (20626031): ASA, Acetaminophen, Amiodarone, Azithromycin, Carvedilol. Admission 2 (28661809): Acetaminophen, Carvedilol, Diltiazem, Fentanyl, HYDROcodone.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "change_detection": 1.0
+      },
+      "metadata": {
+        "hadm_1": "20626031",
+        "hadm_2": "28661809",
+        "added": [
+          "levaquin",
+          "hydrocodone",
+          "levothyroxine",
+          "fentanyl",
+          "xarelto"
+        ],
+        "removed": [
+          "azithromycin",
+          "heparin",
+          "lisinopril",
+          "prednisone",
+          "lasix"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_1c8bd655",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Does the patient currently have systolic heart failure?",
+      "expected_answer": "No. systolic heart failure is historical/resolved. It was present in the past but is no longer active.",
+      "mimic_subject_id": 10002430,
+      "mimic_hadm_id": 26295318,
+      "clinical_context": "aned to ___. He was transitioned to 60 mg  torsemide PO BID which adequately maintained euvolemia.   ACUTE ISSUES:  =============  # Acute on chronic systolic heart failure exacerbation Patient with history of heart failure with etiology likely  ischemic cardiomyopathy given history of CAD s/p CABG and PCI.  Admitted wit",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "Hospital Course",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_chg_9fe27a5b",
+      "task": "task_b_temporal",
+      "subtype": "change",
+      "question": "What differences are noted in the patient's medication between the two visits?",
+      "expected_answer": "Key changes: new medications: acetaminophen, lactulose; discontinued: heparin, pantoprazole, lovenox.",
+      "mimic_subject_id": 10005123,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (20470681): Pantoprazole, Pravastatin, heparin, lovenox. Admission 2 (24274954): Pravastatin, acetaminophen, lactulose.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "change_detection": 1.0
+      },
+      "metadata": {
+        "hadm_1": "20470681",
+        "hadm_2": "24274954",
+        "added": [
+          "acetaminophen",
+          "lactulose"
+        ],
+        "removed": [
+          "heparin",
+          "pantoprazole",
+          "lovenox"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_08a5bc5c",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "Which was documented first: Anemia or depression?",
+      "expected_answer": "Anemia was documented before depression, based on the admission timeline.",
+      "mimic_subject_id": 10002528,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (23193578): Allergies, Anemia, Ca, MR, RA. Admission 2 (28605730): Allergies, Cap, GAD, RA, Vomiting.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "23193578",
+        "hadm_2": "28605730"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_dur_efdc513d",
+      "task": "task_b_temporal",
+      "subtype": "duration",
+      "question": "How long has this patient had cancer? Is it a chronic or new condition?",
+      "expected_answer": "cancer appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000032: cancer documented across 2 admissions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "duration_assessment": 1.0
+      },
+      "metadata": {
+        "doc_count": 2
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_6c5caba6",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "Does the patient currently have CHF?",
+      "expected_answer": "Yes. CHF is documented as current in the clinical record.",
+      "mimic_subject_id": 10002430,
+      "mimic_hadm_id": 24648311,
+      "clinical_context": "FAILURE ADMISSION NOTE    =======================================================   OUTPATIENT CARDIOLOGIST:  ___., MD ___ cardiology), ___  ___., MD(CHF) PCP: ___., MD   CHIEF COMPLAINT:  Dyspnea on Exertion HISTORY OF PRESENTING ILLNESS:   Mr. ___ is a ___ gentleman with a past medical history pertin",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "History of Present Illness",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_dd28f2b3",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Should metabolic acidosis be on the patient's active problem list?",
+      "expected_answer": "No. metabolic acidosis is historical \u2014 it should be in past medical history, not the active list.",
+      "mimic_subject_id": 10000980,
+      "mimic_hadm_id": 20897796,
+      "clinical_context": "igns of active bleeding.  Likely multifactorial,  anemia of chronic disease as well as decreased erythropoiten  production iso CKD.   # Non anion gap metabolic acidosis - Patient has intermittently  had a NAGMA in the past.  No recent diarrhea.  ___ suspect Type  IV RTA given advanced age and history of T2DM (both of",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "Assessment",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_28252ff2",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Is morbidly obese an active problem for this patient?",
+      "expected_answer": "No. morbidly obese is documented as a past/historical finding, not currently active.",
+      "mimic_subject_id": 10005858,
+      "mimic_hadm_id": 24193796,
+      "clinical_context": "hief Complaint: Symptomatic macromastia   Major Surgical or Invasive Procedure: MAMMOPLASTY REDUCTION BILATERAL    History of Present Illness: ___ yo morbidly obese woman with multinodular goiter, sarcoid,  HTN, SPinal stenosis, B TKAs, lami and fusion with symptomatic  macromastia.  She is here today for bilater",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "History of Present Illness",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_fe918698",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "What is the patient's current status for hyperlipidemia?",
+      "expected_answer": "hyperlipidemia is currently active/present as of the most recent admission.",
+      "mimic_subject_id": 10003502,
+      "mimic_hadm_id": 26475031,
+      "clinical_context": "s:  ___, ___ only, with atrial fibrillation/flutter on  dabigatran, coronary artery disease, diastolic heart failure  (LVEF 60% in ___, hypertension, hyperlipidemia, ?SSS, and  vascular dementia who was discharged yesterday from the ___  service after an admission for headache and nausea/vomiting  found to have C",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "History of Present Illness",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_8a04029e",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "What is the patient's current status for heart failure?",
+      "expected_answer": "heart failure is currently active/present as of the most recent admission.",
+      "mimic_subject_id": 10000980,
+      "mimic_hadm_id": 20897796,
+      "clinical_context": "ss: Patient is a ___ with history of coronary artery disease c/b ischemic MR ___ DES to LCX ___, TTE ___ with mild regional LV systolic dysfunction), heart failure with preserved ejection fraction (LVEF 50% ___, peripheral vascular disease, chronic kidney disease (stage IV), prior unprovoked DVT c/b severe UGIB",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "History of Present Illness",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_chg_b05d1279",
+      "task": "task_b_temporal",
+      "subtype": "change",
+      "question": "What differences are noted in the patient's medication between the two visits?",
+      "expected_answer": "Key changes: new medications: vancomycin, heparin, cefepime; discontinued: bactrim, levofloxacin.",
+      "mimic_subject_id": 10001884,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (24746267): Acetaminophen, Aspirin, Atorvastatin, Bactrim, Budesonide. Admission 2 (26184834): Acetaminophen, Aspirin, Atorvastatin, Augmentin, Budesonide.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "change_detection": 1.0
+      },
+      "metadata": {
+        "hadm_1": "24746267",
+        "hadm_2": "26184834",
+        "added": [
+          "vancomycin",
+          "heparin",
+          "cefepime",
+          "augmentin"
+        ],
+        "removed": [
+          "bactrim",
+          "levofloxacin"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_dur_023d1fb6",
+      "task": "task_b_temporal",
+      "subtype": "duration",
+      "question": "How long has this patient had fever? Is it a chronic or new condition?",
+      "expected_answer": "fever appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
+      "mimic_subject_id": 10000935,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000935: fever documented across 2 admissions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "duration_assessment": 1.0
+      },
+      "metadata": {
+        "doc_count": 2
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_dur_3efd8123",
+      "task": "task_b_temporal",
+      "subtype": "duration",
+      "question": "How long has this patient had CAP? Is it a chronic or new condition?",
+      "expected_answer": "CAP appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
+      "mimic_subject_id": 10000032,
+      "mimic_hadm_id": null,
+      "clinical_context": "Patient MIMIC-10000032: CAP documented across 2 admissions.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "duration_assessment": 1.0
+      },
+      "metadata": {
+        "doc_count": 2
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_chg_55fcfc07",
+      "task": "task_b_temporal",
+      "subtype": "change",
+      "question": "How has the patient's medication management changed between admissions?",
+      "expected_answer": "Between admissions, new medications: acetaminophen, oxycodone; discontinued: glyburide, prednisone, glipizide.",
+      "mimic_subject_id": 10005368,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (24631981): Famotidine, GLIMEPIRIDE, GLIPIZIDE, GLYBURIDE, INSULIN. Admission 2 (28912598): Acetaminophen, Ondansetron, OxycoDONE, albuterol, lorazepam.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "change_detection": 1.0
+      },
+      "metadata": {
+        "hadm_1": "24631981",
+        "hadm_2": "28912598",
+        "added": [
+          "acetaminophen",
+          "oxycodone"
+        ],
+        "removed": [
+          "glyburide",
+          "prednisone",
+          "glipizide",
+          "omeprazole",
+          "dilaudid"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_8877125e",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "Which was documented first: chest pain or stroke?",
+      "expected_answer": "chest pain was documented before stroke, based on the admission timeline.",
+      "mimic_subject_id": 10005368,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (28912598): Allergies, Gastroesophageal reflux disease, He, Mr, chest pain. Admission 2 (24631981): Allergies, Gastroesophageal reflux disease, HTN, He, Hypoglycemia.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "28912598",
+        "hadm_2": "24631981"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_b14ec163",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Should abdominal pain be on the patient's active problem list?",
+      "expected_answer": "No. abdominal pain is historical \u2014 it should be in past medical history, not the active list.",
+      "mimic_subject_id": 10006029,
+      "mimic_hadm_id": 25426298,
+      "clinical_context": "ith chemo. He had poor appetite as well since chemo. The  vomiting seemed to be intermittent, sometimes able to tolerate  PO. Last night he developed abdominal pain and vomiting. He had  regular bowel movements last night.  This morning he had  diarrhea but no further episodes of vomiting and his abdominal  pain",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "History of Present Illness",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_0c691eb8",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "Which was documented first: Cold or vomiting?",
+      "expected_answer": "Cold was documented before vomiting, based on the admission timeline.",
+      "mimic_subject_id": 10001338,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (27987619): Abdominal pain, Allergies, Anxiety, CHF, Ca. Admission 2 (28835314): Abdominal pain, Allergies, GERD, Migraine, cellulitis.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "27987619",
+        "hadm_2": "28835314"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_8b923b7c",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Should ischemic cardiomyopathy be on the patient's active problem list?",
+      "expected_answer": "No. ischemic cardiomyopathy is historical \u2014 it should be in past medical history, not the active list.",
+      "mimic_subject_id": 10003637,
+      "mimic_hadm_id": 22082422,
+      "clinical_context": "es:  lisinopril   Attending: ___.   Chief Complaint: Hypotension   Major Surgical or Invasive Procedure: None   History of Present Illness: ___ hx of ischemic cardiomyopathy sent from ___ clinic  when his BP was noted to be systolic ___. Patient reports that  at 9am his vision was a little blurry and he felt diffusely wea",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "History of Present Illness",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_50b91d5e",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Is nausea an active problem for this patient?",
+      "expected_answer": "No. nausea is documented as a past/historical finding, not currently active.",
+      "mimic_subject_id": 10000935,
+      "mimic_hadm_id": 26381316,
+      "clinical_context": "Status: Ambulatory - Independent.    Discharge Instructions: Dear Ms. ___,  You were admitted to ___ for evaluation of several weeks of  weakness and nausea. You had some markers of infection, so you  were initially given antibiotics. However, a scan of your torso  showed metastatic disease from a cancer",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "Discharge Instructions",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_e84d9e91",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "What is the patient's current status for breast cancer?",
+      "expected_answer": "breast cancer is currently active/present as of the most recent admission.",
+      "mimic_subject_id": 10005858,
+      "mimic_hadm_id": 24193796,
+      "clinical_context": "SARCOID                                                          RIGHT WRIST PAIN         Social History: ___ Family History: Positive for breast cancer in the patient's mother. Brother and  father both status post CABG. Brother with type ___ diabetes.    Physical Exam: Physical exam per PRS post op c",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Family History",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_4162c093",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Should Anemia be on the patient's active problem list?",
+      "expected_answer": "No. Anemia is historical \u2014 it should be in past medical history, not the active list.",
+      "mimic_subject_id": 10000980,
+      "mimic_hadm_id": 29659838,
+      "clinical_context": "s not felt to be related to  diuretics but would ___. HTN: increased nifedipine CR to 60mg BID given elevated SBPs.  Please f/u at next appointments. Anemia: multiple prior workups showing ACD. Hgb 8s during  admission Prior DVT/PE: continued on warfarin, will need continued  monitoring DM: stopped home 7",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "Hospital Course",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_chg_d8ecd86b",
+      "task": "task_b_temporal",
+      "subtype": "change",
+      "question": "What differences are noted in the patient's medication between the two visits?",
+      "expected_answer": "Key changes: new medications: acetaminophen, oxycodone, lovenox.",
+      "mimic_subject_id": 10000117,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (22927623): omeprazole. Admission 2 (27988844): Acetaminophen, Lovenox, OxyCODONE, omeprazole.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "change_detection": 1.0
+      },
+      "metadata": {
+        "hadm_1": "22927623",
+        "hadm_2": "27988844",
+        "added": [
+          "acetaminophen",
+          "oxycodone",
+          "lovenox"
+        ],
+        "removed": []
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_0a964177",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "What is the patient's current status for lung cancer?",
+      "expected_answer": "lung cancer is currently active/present as of the most recent admission.",
+      "mimic_subject_id": 10005605,
+      "mimic_hadm_id": 21049284,
+      "clinical_context": "hit by car (US ___ and ___ showed stability) - Tibial plateau fx in L knee after being hit by car ___   Social History: ___ Family History: Mother - lung cancer ___ uncle - lung cancer ___ aunt - colon cancer   Physical Exam: ADMISSION EXAM =============== Vitals:  97.5 148/66 75 18 97% RA ___ pain General: A",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Family History",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_b8f793c1",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "Which was documented first: constipation or chest pain?",
+      "expected_answer": "constipation was documented before chest pain, based on the admission timeline.",
+      "mimic_subject_id": 10001186,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (21334040): AF, AF, Allergies, DVT, Fever. Admission 2 (24016413): Allergies, Fever, abdominal pain, anxiety, chest pain.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "21334040",
+        "hadm_2": "24016413"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_2dc77dfe",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Is hypertension an active problem for this patient?",
+      "expected_answer": "No. hypertension is documented as a past/historical finding, not currently active.",
+      "mimic_subject_id": 10005858,
+      "mimic_hadm_id": 29569314,
+      "clinical_context": "on. IMPRESSION: Biatrial enlargement. Mild symmetric left  ventricular hypertrophy . Preserved biventricular systolic function. Borderline  pulmonary hypertension. Compared with the prior TTE ___, the findings are similar .  DISCHARGE LABS: =============== ___ 08:14AM BLOOD WBC-7.6 RBC-4.39 Hgb-11.6 Hct-38.5 MC",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "Assessment",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_9d3c7a86",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "In what order were MR and headache identified?",
+      "expected_answer": "MR was identified first, followed by headache.",
+      "mimic_subject_id": 10001217,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (27703517): Allergies, MR, cancer, constipation, lung cancer. Admission 2 (24597018): Allergies, RA, cancer, cap, constipation.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "27703517",
+        "hadm_2": "24597018"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_d481f0fa",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "Which was documented first: proteinuria or depressed?",
+      "expected_answer": "proteinuria was documented before depressed, based on the admission timeline.",
+      "mimic_subject_id": 10006131,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (27849136): ARF, Allergies, HCV, RA, acidosis. Admission 2 (21367824): Allergies, Cd, EtOH, anxiety, depressed.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "27849136",
+        "hadm_2": "21367824"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_seq_56a31237",
+      "task": "task_b_temporal",
+      "subtype": "sequence",
+      "question": "Which was documented first: PE or hypoxia?",
+      "expected_answer": "PE was documented before hypoxia, based on the admission timeline.",
+      "mimic_subject_id": 10005817,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (20626031): Allergies, CAD, CHF, COPD, Cancer. Admission 2 (28661809): Allergies, CAD, CAD, CHF, CKD.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "temporal_ordering": 1.0
+      },
+      "metadata": {
+        "hadm_1": "20626031",
+        "hadm_2": "28661809"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_current_state_83fa18c5",
+      "task": "task_b_temporal",
+      "subtype": "current_state",
+      "question": "What is the patient's current status for hyperlipidemia?",
+      "expected_answer": "hyperlipidemia is currently active/present as of the most recent admission.",
+      "mimic_subject_id": 10000935,
+      "mimic_hadm_id": 26381316,
+      "clinical_context": "History: PMH:  # high grade SBO ___ s/p exploratory laparotomy, lysis of  adhesions, and small bowel resection with enteroenterostomy  # carcinoid # hyperlipidemia # vitamin B12 deficiency # cervical DJD # osteoarthritis   PSH:  s/p R lung resection in ___ at ___ s/p hysterectomy in ___ s/p R arm surgery    Soci",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "current",
+        "section": "Past Medical History",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_historical_321a5bbe",
+      "task": "task_b_temporal",
+      "subtype": "historical",
+      "question": "Is HTN an active problem for this patient?",
+      "expected_answer": "No. HTN is documented as a past/historical finding, not currently active.",
+      "mimic_subject_id": 10000980,
+      "mimic_hadm_id": 20897796,
+      "clinical_context": "ed ejection fraction (LVEF 50% ___, peripheral vascular disease, chronic kidney disease (stage IV), prior unprovoked DVT c/b severe UGIB while on AC, HTN, dyslipidemia, and T2DM who presents with several days of shortness of breath.       Patients says that she first noticed rather acute onset dyspnea",
+      "difficulty": "medium",
+      "scoring_rubric": {
+        "temporal_correctness": 1.0
+      },
+      "metadata": {
+        "temporality": "past",
+        "section": "History of Present Illness",
+        "domain": "condition"
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    },
+    {
+      "question_id": "bench_b_chg_bf95749e",
+      "task": "task_b_temporal",
+      "subtype": "change",
+      "question": "How has the patient's medication management changed between admissions?",
+      "expected_answer": "Between admissions, new medications: motrin, aspirin, prilosec; discontinued: prednisone, warfarin, lasix.",
+      "mimic_subject_id": 10001877,
+      "mimic_hadm_id": null,
+      "clinical_context": "Admission 1 (21320596): Allopurinol, Dexamethasone, Glipizide, Lasix, Metoprolol. Admission 2 (25679292): Allopurinol, Aspirin, Glipizide, Metoprolol, Motrin.",
+      "difficulty": "hard",
+      "scoring_rubric": {
+        "change_detection": 1.0
+      },
+      "metadata": {
+        "hadm_1": "21320596",
+        "hadm_2": "25679292",
+        "added": [
+          "motrin",
+          "aspirin",
+          "prilosec",
+          "pepcid",
+          "lipitor"
+        ],
+        "removed": [
+          "prednisone",
+          "warfarin",
+          "lasix",
+          "dexamethasone",
+          "actos"
+        ]
+      },
+      "annotator_id": null,
+      "annotation_notes": ""
+    }
+  ],
+  "total_count": 200,
+  "subtype_distribution": {
+    "sequence": 40,
+    "current_state": 50,
+    "duration": 30,
+    "historical": 50,
+    "change": 30
+  },
+  "created_at": "2026-02-19T17:42:00.912782Z"
+}
