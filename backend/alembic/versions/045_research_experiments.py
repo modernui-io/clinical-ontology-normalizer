@@ -13,22 +13,28 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
-    # Create experiment status enum
+    # Create experiment status enum (idempotent)
     op.execute(
+        "DO $$ BEGIN "
         "CREATE TYPE experiment_status AS ENUM "
-        "('draft', 'running', 'completed', 'failed', 'archived')"
+        "('draft', 'running', 'completed', 'failed', 'archived'); "
+        "EXCEPTION WHEN duplicate_object THEN NULL; END $$"
     )
 
-    # Create run status enum
+    # Create run status enum (idempotent)
     op.execute(
+        "DO $$ BEGIN "
         "CREATE TYPE experiment_run_status AS ENUM "
-        "('pending', 'processing', 'completed', 'failed')"
+        "('pending', 'processing', 'completed', 'failed'); "
+        "EXCEPTION WHEN duplicate_object THEN NULL; END $$"
     )
 
-    # Create metric category enum
+    # Create metric category enum (idempotent)
     op.execute(
+        "DO $$ BEGIN "
         "CREATE TYPE metric_category AS ENUM "
-        "('nlp', 'mapping', 'assertion', 'kg', 'rag', 'timing')"
+        "('nlp', 'mapping', 'assertion', 'kg', 'rag', 'timing'); "
+        "EXCEPTION WHEN duplicate_object THEN NULL; END $$"
     )
 
     # Research Experiments table

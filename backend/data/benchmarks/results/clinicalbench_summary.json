@@ -1,0 +1,119 @@
+{
+  "benchmark": "ClinicalIntelligenceBench",
+  "llm_model": "claude-opus-4-5-20251101",
+  "total_questions": 20,
+  "task_counts": {
+    "task_a": 5,
+    "task_b": 5,
+    "task_c": 5,
+    "task_d": 5
+  },
+  "total_duration_s": 457.6323776229983,
+  "conditions": {
+    "C1_llm_alone": {
+      "label": "LLM Alone",
+      "accuracy": 0.25,
+      "correct": 5,
+      "total": 20,
+      "safety": 0.3218390804597701,
+      "category_accuracies": {
+        "negation": 1.0,
+        "conditional": 0.0,
+        "uncertainty": 0.0,
+        "sequence": 1.0,
+        "current_state": 0.5,
+        "duration": 0.0,
+        "historical": 0.0,
+        "wells_pe": 0.0,
+        "heart": 0.0,
+        "other": 0.0,
+        "ascvd": 1.0,
+        "vital_note": 0.0
+      }
+    },
+    "C2_vanilla_rag": {
+      "label": "LLM + Vanilla RAG",
+      "accuracy": 0.1,
+      "correct": 2,
+      "total": 20,
+      "safety": 0.1839080459770115,
+      "category_accuracies": {
+        "negation": 1.0,
+        "conditional": 0.0,
+        "uncertainty": 0.0,
+        "sequence": 0.0,
+        "current_state": 0.0,
+        "duration": 0.0,
+        "historical": 0.0,
+        "wells_pe": 0.0,
+        "heart": 0.0,
+        "other": 0.0,
+        "ascvd": 0.0,
+        "vital_note": 0.0
+      }
+    },
+    "C3_kg_rag": {
+      "label": "LLM + KG-RAG",
+      "accuracy": 0.15,
+      "correct": 3,
+      "total": 20,
+      "safety": 0.22988505747126436,
+      "category_accuracies": {
+        "negation": 1.0,
+        "conditional": 0.0,
+        "uncertainty": 0.0,
+        "sequence": 0.0,
+        "current_state": 0.5,
+        "duration": 0.0,
+        "historical": 0.0,
+        "wells_pe": 0.0,
+        "heart": 0.0,
+        "other": 0.0,
+        "ascvd": 0.0,
+        "vital_note": 0.0
+      }
+    },
+    "C4_epistemic_kg_rag": {
+      "label": "LLM + Epistemic KG-RAG",
+      "accuracy": 0.1,
+      "correct": 2,
+      "total": 20,
+      "safety": 0.1839080459770115,
+      "category_accuracies": {
+        "negation": 1.0,
+        "conditional": 0.0,
+        "uncertainty": 0.0,
+        "sequence": 0.0,
+        "current_state": 0.0,
+        "duration": 0.0,
+        "historical": 0.0,
+        "wells_pe": 0.0,
+        "heart": 0.0,
+        "other": 0.0,
+        "ascvd": 0.0,
+        "vital_note": 0.0
+      }
+    },
+    "C5_full_system": {
+      "label": "Full System",
+      "accuracy": 0.2,
+      "correct": 4,
+      "total": 20,
+      "safety": 0.26436781609195403,
+      "category_accuracies": {
+        "negation": 1.0,
+        "conditional": 1.0,
+        "uncertainty": 0.0,
+        "sequence": 0.0,
+        "current_state": 0.5,
+        "duration": 0.0,
+        "historical": 0.0,
+        "wells_pe": 0.0,
+        "heart": 0.0,
+        "other": 0.0,
+        "ascvd": 0.0,
+        "vital_note": 0.0
+      }
+    }
+  }
+}

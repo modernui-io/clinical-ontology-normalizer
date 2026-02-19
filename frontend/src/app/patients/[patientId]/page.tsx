@@ -204,7 +204,7 @@ export default function PatientDetailPage() {
                 <div className="flex flex-wrap gap-2">
                   {conditions.slice(0, 20).map((f, i) => (
                     <Badge key={i} variant="secondary" className="bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300">
-                      {f.concept_name || f.text || "Unknown"}
+                      {f.concept_name || "Unknown"}
                     </Badge>
                   ))}
                   {conditions.length > 20 && (
@@ -230,7 +230,7 @@ export default function PatientDetailPage() {
                 <div className="flex flex-wrap gap-2">
                   {medications.slice(0, 20).map((f, i) => (
                     <Badge key={i} variant="secondary" className="bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
-                      {f.concept_name || f.text || "Unknown"}
+                      {f.concept_name || "Unknown"}
                     </Badge>
                   ))}
                   {medications.length > 20 && (
@@ -256,7 +256,7 @@ export default function PatientDetailPage() {
                 <div className="flex flex-wrap gap-2">
                   {measurements.slice(0, 20).map((f, i) => (
                     <Badge key={i} variant="secondary" className="bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300">
-                      {f.concept_name || f.text || "Unknown"}
+                      {f.concept_name || "Unknown"}
                       {f.value && `: ${f.value}${f.unit ? ` ${f.unit}` : ""}`}
                     </Badge>
                   ))}
@@ -283,7 +283,7 @@ export default function PatientDetailPage() {
                 <div className="flex flex-wrap gap-2">
                   {procedures.slice(0, 20).map((f, i) => (
                     <Badge key={i} variant="secondary" className="bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300">
-                      {f.concept_name || f.text || "Unknown"}
+                      {f.concept_name || "Unknown"}
                     </Badge>
                   ))}
                   {procedures.length > 20 && (

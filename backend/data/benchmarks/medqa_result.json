@@ -1,0 +1,72 @@
+{
+  "benchmark": "MedQA-USMLE-4-options",
+  "total_questions": 1273,
+  "evaluated_questions": 5,
+  "llm_model": "claude-opus-4-5-20251101",
+  "duration_s": 43.40612018597312,
+  "conditions": {
+    "llm_alone": {
+      "condition": "llm_alone",
+      "total": 5,
+      "correct": 4,
+      "accuracy": 0.8,
+      "step1_accuracy": 0.6666666666666666,
+      "step1_correct": 2,
+      "step1_total": 3,
+      "step23_accuracy": 1.0,
+      "step23_correct": 2,
+      "step23_total": 2,
+      "latency_s": 43.406048353004735,
+      "per_question": [
+        {
+          "question_id": "medqa_test_00000",
+          "predicted": "A",
+          "expected": "B",
+          "correct": false,
+          "exam_level": "step1",
+          "response_preview": "A. Disclose the error to the patient and put it in the operative report\n\n**Reasoning:**\n\nThis scenar"
+        },
+        {
+          "question_id": "medqa_test_00001",
+          "predicted": "D",
+          "expected": "D",
+          "correct": true,
+          "exam_level": "step1",
+          "response_preview": "D. Cross-linking of DNA\n\nThe patient has transitional cell carcinoma of the bladder and developed ti"
+        },
+        {
+          "question_id": "medqa_test_00002",
+          "predicted": "B",
+          "expected": "B",
+          "correct": true,
+          "exam_level": "step2&3",
+          "response_preview": "B. Because...\n\nThis patient presents with the classic triad of **cholesterol embolization syndrome**"
+        },
+        {
+          "question_id": "medqa_test_00003",
+          "predicted": "D",
+          "expected": "D",
+          "correct": true,
+          "exam_level": "step1",
+          "response_preview": "D. Lactose-fermenting, gram-negative rods forming pink colonies on MacConkey agar\n\nThe clinical pres"
+        },
+        {
+          "question_id": "medqa_test_00004",
+          "predicted": "B",
+          "expected": "B",
+          "correct": true,
+          "exam_level": "step2&3",
+          "response_preview": "B. Ketotifen eye drops\n\nThis patient presents with classic allergic conjunctivitis, characterized by"
+        }
+      ]
+    }
+  },
+  "published_baselines": {
+    "GPT-4 (2023)": 0.867,
+    "Med-PaLM 2 (2023)": 0.865,
+    "GPT-3.5-turbo": 0.607,
+    "Claude-3 Opus": 0.78,
+    "Gemma-2 27B": 0.7,
+    "Llama-3 70B": 0.739
+  }
+}
