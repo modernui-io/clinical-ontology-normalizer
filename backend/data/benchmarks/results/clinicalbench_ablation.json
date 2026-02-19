@@ -1,23 +1,23 @@
 {
-  "ablation_id": "ablation_20260219_185826",
-  "run_at": "2026-02-19T19:05:58.058854+00:00",
+  "ablation_id": "ablation_20260219_190047",
+  "run_at": "2026-02-19T19:07:44.069866+00:00",
   "patient_id": "MIMIC-10000935",
   "question_set_name": "ClinicalIntelligenceBench",
   "total_questions": 20,
   "llm_model": "claude-opus-4-5-20251101",
-  "total_duration_s": 451.22952291200636,
+  "total_duration_s": 417.0154874389991,
   "conditions": {
     "C1_llm_alone": {
       "label": "LLM Alone",
-      "accuracy": 0.25,
+      "accuracy": 0.2,
       "total_questions": 20,
-      "correct": 5,
+      "correct": 4,
       "category_accuracies": {
         "negation": 1.0,
         "conditional": 0.0,
         "uncertainty": 0.0,
         "sequence": 1.0,
-        "current_state": 0.5,
+        "current_state": 0.0,
         "duration": 0.0,
         "historical": 0.0,
         "wells_pe": 0.0,
@@ -26,8 +26,8 @@
         "ascvd": 1.0,
         "vital_note": 0.0
       },
-      "safety_score": 0.3218390804597701,
-      "avg_latency_ms": 5460.6301085528685,
+      "safety_score": 0.27586206896551724,
+      "avg_latency_ms": 4587.273391609779,
       "config": {
         "assertion_mode": "none",
         "temporal_mode": "no_temporal",
@@ -44,7 +44,7 @@
           "score": 1.0,
           "predicted_answer": "Based on the provided clinical notes, there is no mention of crackles (or rales) on physical examination. The notes do not include documentation of lung auscultation findings that would indicate the p",
           "expected_answer": "No. crackles is negated/absent in the clinical record. The Physical Exam section indicates the patient does not have this condition.",
-          "latency_ms": 11085.92437999323,
+          "latency_ms": 11156.372963043395,
           "error": null
         },
         {
@@ -54,7 +54,7 @@
           "score": 0.0,
           "predicted_answer": "Based on the provided clinical notes, there is no evidence that this patient has HIV or requires HIV management. The notes document a patient with metastatic cancer of unknown primary, but there is no",
           "expected_answer": "HIV is conditional. The clinical note indicates management is contingent on specific conditions being met.",
-          "latency_ms": 3344.812710012775,
+          "latency_ms": 3301.25533498358,
           "error": null
         },
         {
@@ -62,9 +62,9 @@
           "category": "uncertainty",
           "correct": false,
           "score": 0.0,
-          "predicted_answer": "Based on the provided clinical notes, there is **no mention of alcohol** in the patient's history, review of systems, or clinical presentation. The evidence is insufficient to make any statement about",
+          "predicted_answer": "Based on the provided clinical notes, there is **no mention of alcohol** in the evidence. The notes do not contain any information about alcohol use, alcohol history, or alcohol-related conditions for",
           "expected_answer": "Uncertain. alcohol is suspected but not confirmed. Further workup may be needed.",
-          "latency_ms": 2573.2146670343354,
+          "latency_ms": 2522.558875964023,
           "error": null
         },
         {
@@ -74,7 +74,7 @@
           "score": 1.0,
           "predicted_answer": "Based on the evidence, the patient has **suspected/possible pneumonia**. During her second admission, a chest X-ray showed a \"new left sided opacity that may reflect PNA superimposed on metastatic dis",
           "expected_answer": "pneumonia is absent/not present. The clinical documentation explicitly negates this finding.",
-          "latency_ms": 3259.445125993807,
+          "latency_ms": 3881.598294014111,
           "error": null
         },
         {
@@ -82,9 +82,9 @@
           "category": "uncertainty",
           "correct": false,
           "score": 0.0,
-          "predicted_answer": "Based on the provided clinical notes, there is no mention of osteoporosis as a diagnosis for this patient. The notes focus on her metastatic cancer of unknown primary, presenting symptoms (shortness o",
+          "predicted_answer": "Based on the provided clinical notes, there is no mention of osteoporosis as a diagnosis for this patient. The notes focus on her metastatic cancer of unknown primary, respiratory symptoms, and relate",
           "expected_answer": "No \u2014 Osteoporosis is documented with uncertainty. It is possible but not confirmed.",
-          "latency_ms": 2917.4087080173194,
+          "latency_ms": 3556.877668015659,
           "error": null
         },
         {
@@ -94,17 +94,17 @@
           "score": 0.8571428571428571,
           "predicted_answer": "Based on the evidence provided, **vomiting was identified first, followed by osteomyelitis** (though osteomyelitis is not actually mentioned in these clinical notes).\n\nTo clarify: The notes document t",
           "expected_answer": "osteomyelitis was identified first, followed by vomiting.",
-          "latency_ms": 3992.4617939977907,
+          "latency_ms": 4285.355419036932,
           "error": null
         },
         {
           "question_id": "bench_b_current_state_5e677ee6",
           "category": "current_state",
-          "correct": true,
-          "score": 0.5,
+          "correct": false,
+          "score": 0.16666666666666666,
           "predicted_answer": "Based on the provided clinical notes, there is no mention of osteoarthritis anywhere in the documentation. The notes focus on the patient's metastatic cancer of unknown primary, respiratory symptoms, ",
           "expected_answer": "Yes. osteoarthritis is documented as a current/active problem.",
-          "latency_ms": 3325.5360850016586,
+          "latency_ms": 2820.8313760114834,
           "error": null
         },
         {
@@ -112,9 +112,9 @@
           "category": "current_state",
           "correct": false,
           "score": 0.25,
-          "predicted_answer": "Based on the provided clinical notes, there is no documentation of bibasilar crackles being assessed or present. The notes mention a CXR showing a new left-sided opacity and reference chronic cough, b",
+          "predicted_answer": "Based on the provided clinical notes, there is no documentation of bibasilar crackles being assessed or present. The notes mention a CXR showing a new left-sided opacity and reference the patient's ch",
           "expected_answer": "bibasilar crackles is currently active/present as of the most recent admission.",
-          "latency_ms": 3076.9010430085473,
+          "latency_ms": 3124.6594590484165,
           "error": null
         },
         {
@@ -122,39 +122,39 @@
           "category": "duration",
           "correct": false,
           "score": 0.07692307692307693,
-          "predicted_answer": "Based on the provided clinical notes, there is no mention of dementia. The notes do not document dementia as part of the patient's medical history, current conditions, or review of systems. The patien",
+          "predicted_answer": "Based on the provided clinical notes, there is no mention of dementia. The notes do not document dementia as part of the patient's medical history, current conditions, or review of systems. Therefore,",
           "expected_answer": "Dementia appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
-          "latency_ms": 2970.674333977513,
+          "latency_ms": 2120.8835430443287,
           "error": null
         },
         {
           "question_id": "bench_b_historical_fa44308d",
           "category": "historical",
           "correct": false,
-          "score": 0.2727272727272727,
-          "predicted_answer": "Based on the provided clinical notes, there is no mention of cholelithiasis (gallstones). The notes discuss the patient's metastatic cancer of unknown primary with liver and lung lesions, but do not i",
+          "score": 0.36363636363636365,
+          "predicted_answer": "Based on the provided clinical notes, there is no mention of cholelithiasis (gallstones). The notes discuss the patient's metastatic cancer, abdominal pain, and various other symptoms, but do not incl",
           "expected_answer": "No. cholelithiasis is historical/resolved. It was present in the past but is no longer active.",
-          "latency_ms": 2816.6527099674568,
+          "latency_ms": 3416.7099589831196,
           "error": null
         },
         {
           "question_id": "bench_c_wells_pe_1295fa2d",
           "category": "wells_pe",
           "correct": false,
-          "score": 0.25806451612903225,
+          "score": 0.22580645161290322,
           "predicted_answer": "Based on the clinical evidence provided, I can identify the following Wells criteria components:\n\n**Present:**\n- Heart rate >100 (tachycardia of 116-117 documented): **1.5 points**\n- Malignancy (metas",
           "expected_answer": "Based on the patient's clinical features: Relevant findings: Tachycardia, tachycardia. Sections: History of Present Illness, Hospital Course, Imaging.. The Wells PE score is computed from clinical sig",
-          "latency_ms": 5746.138169954065,
+          "latency_ms": 6124.694878002629,
           "error": null
         },
         {
           "question_id": "bench_c_heart_739fb8d1",
           "category": "heart",
           "correct": false,
-          "score": 0.3,
-          "predicted_answer": "Based on the evidence provided, I cannot calculate a complete HEART score for this patient. The HEART score requires 5 components:\n\n1. **History**: Moderately suspicious (chest ache with shortness of ",
+          "score": 0.43333333333333335,
+          "predicted_answer": "Based on the evidence provided, I cannot calculate a complete HEART score for this patient. The HEART score requires five components: History, ECG, Age, Risk factors, and Troponin.\n\n**What I can deter",
           "expected_answer": "Based on the patient's data: Relevant findings: BRONCHOALVEOLAR LAVAGE, chest pain. Sections: History of Present Illness, Review of Systems, Labs.. The HEART score should be computed from History, ECG",
-          "latency_ms": 6643.664003000595,
+          "latency_ms": 6948.920961003751,
           "error": null
         },
         {
@@ -164,7 +164,7 @@
           "score": 0.2727272727272727,
           "predicted_answer": "Based on the provided clinical notes, there is no specific weight value documented for this patient. The notes mention \"failure to thrive,\" \"very poor PO intake,\" and progressive weakness over 6-8 wee",
           "expected_answer": "The patient's weight should be retrieved from the clinical record and interpreted in clinical context.",
-          "latency_ms": 3086.140751023777,
+          "latency_ms": 2618.411750998348,
           "error": null
         },
         {
@@ -174,7 +174,7 @@
           "score": 0.24242424242424243,
           "predicted_answer": "Based on the clinical evidence provided, I can identify the following Wells criteria components:\n\n**Present:**\n- Heart rate >100 (tachycardia of 116-117 documented): **1.5 points**\n- Malignancy (metas",
           "expected_answer": "Based on the patient's clinical features: Relevant findings: DVT, dvt. Sections: Diagnosis, Assessment, Hospital Course, Chief Complaint, Vital Signs.. The Wells PE score is computed from clinical sig",
-          "latency_ms": 11665.539422014263,
+          "latency_ms": 5775.496711023152,
           "error": null
         },
         {
@@ -182,9 +182,9 @@
           "category": "ascvd",
           "correct": true,
           "score": 0.5,
-          "predicted_answer": "Based on the provided clinical notes, there is **no information available to calculate a 10-year ASCVD risk score**. The ASCVD risk calculator requires specific data including total cholesterol, HDL c",
+          "predicted_answer": "Based on the provided clinical notes, there is **no information available to calculate the patient's 10-year ASCVD risk score**. \n\nThe ASCVD risk calculator requires specific data including total chol",
           "expected_answer": "Based on the patient's cardiovascular risk factors: Relevant findings: Diabetes, Hypertension, blood pressure, diabetes, hypertension. Sections: Diagnosis, Hospital Course, Assessment, Discharge Instr",
-          "latency_ms": 4300.010709965136,
+          "latency_ms": 3351.1784590082243,
           "error": null
         },
         {
@@ -194,7 +194,7 @@
           "score": 0.2222222222222222,
           "predicted_answer": "Yes, the vital signs are consistent with the clinical picture. Both admissions show tachycardia (HR 116-117) and tachypnea (RR 18-24), which are appropriate findings for a patient with metastatic canc",
           "expected_answer": "Multi-source analysis required. Patient has 22 Vital Signs mentions and 64 Hospital Course mentions that need to be compared and integrated.",
-          "latency_ms": 5363.8527520233765,
+          "latency_ms": 4771.036794001702,
           "error": null
         },
         {
@@ -204,7 +204,7 @@
           "score": 0.2222222222222222,
           "predicted_answer": "Yes, the vital signs are consistent with the clinical picture. Both admissions show tachycardia (HR 116-117) and tachypnea (RR 18-24), which are appropriate findings for a patient with metastatic canc",
           "expected_answer": "Multi-source analysis required. Patient has 2 Vital Signs mentions and 48 Hospital Course mentions that need to be compared and integrated.",
-          "latency_ms": 5524.036336049903,
+          "latency_ms": 5373.308336012997,
           "error": null
         },
         {
@@ -214,7 +214,7 @@
           "score": 0.1111111111111111,
           "predicted_answer": "Yes, the vital signs are consistent with the clinical picture. Both admissions show tachycardia (HR 116-117) and tachypnea (RR 18-24), which are appropriate findings for a patient with metastatic canc",
           "expected_answer": "Multi-source analysis required. Patient has 63 Physical Exam mentions and 151 Hospital Course mentions that need to be compared and integrated.",
-          "latency_ms": 5360.91171001317,
+          "latency_ms": 4334.4787519890815,
           "error": null
         },
         {
@@ -222,9 +222,9 @@
           "category": "vital_note",
           "correct": false,
           "score": 0.05555555555555555,
-          "predicted_answer": "Based on the evidence, the documented vital sign abnormalities include:\n\n**Tachycardia**: Heart rates of 116-117 bpm across both admissions, which correlates with her acute illness states (infection, ",
+          "predicted_answer": "Based on the evidence, the documented vital sign abnormalities include:\n\n**Admission 1 (shortness of breath presentation):**\n- Tachycardia (HR 116)\n- Tachypnea (RR 24)\n- Hypotension (BP 100/49)\n\n**Adm",
           "expected_answer": "Multi-source analysis required. Patient has 14 Physical Exam mentions and 36 Hospital Course mentions that need to be compared and integrated.",
-          "latency_ms": 6289.394002989866,
+          "latency_ms": 5597.793836030178,
           "error": null
         },
         {
@@ -232,9 +232,9 @@
           "category": "vital_note",
           "correct": false,
           "score": 0.05555555555555555,
-          "predicted_answer": "Based on the evidence, the documented vital sign abnormalities include:\n\n**Admission 1 (shortness of breath presentation):**\n- Tachycardia (HR 116)\n- Tachypnea (RR 24)\n- Hypotension (BP 100/49)\n\n**Adm",
+          "predicted_answer": "Based on the clinical notes, the documented vital sign abnormalities include:\n\n**Tachycardia**: Heart rates of 116-117 bpm on both admissions, which correlates with the patient's acute illness, possib",
           "expected_answer": "Multi-source analysis required. Patient has 92 Physical Exam mentions and 88 Hospital Course mentions that need to be compared and integrated.",
-          "latency_ms": 15869.882757018786,
+          "latency_ms": 6663.044461980462,
           "error": null
         }
       ]
@@ -259,7 +259,7 @@
         "vital_note": 0.0
       },
       "safety_score": 0.1839080459770115,
-      "avg_latency_ms": 3565.9841349581257,
+      "avg_latency_ms": 3648.770170347416,
       "config": {
         "assertion_mode": "none",
         "temporal_mode": "no_temporal",
@@ -274,9 +274,9 @@
           "category": "negation",
           "correct": true,
           "score": 1.0,
-          "predicted_answer": "Based on the provided evidence, there is no information about crackles or lung examination findings. The documents only show admission information, chief complaints (weakness/nausea/vomiting in one ad",
+          "predicted_answer": "Based on the provided evidence, I cannot answer this question. The retrieved documents contain only admission information, chief complaints, and history of present illness summaries. There is no docum",
           "expected_answer": "No. crackles is negated/absent in the clinical record. The Physical Exam section indicates the patient does not have this condition.",
-          "latency_ms": 3003.7383770104498,
+          "latency_ms": 2407.121583004482,
           "error": null
         },
         {
@@ -284,9 +284,9 @@
           "category": "conditional",
           "correct": false,
           "score": 0.0,
-          "predicted_answer": "Based on the provided evidence, there is no mention of HIV or any HIV-related conditions in the patient's medical records. The documents describe a patient with metastatic cancer of unknown primary, b",
+          "predicted_answer": "Based on the provided evidence, there is no mention of HIV infection, HIV testing, or any HIV-related conditions in the patient's medical records. The documents focus on a patient with metastatic canc",
           "expected_answer": "HIV is conditional. The clinical note indicates management is contingent on specific conditions being met.",
-          "latency_ms": 3434.666251007002,
+          "latency_ms": 3671.4945430285297,
           "error": null
         },
         {
@@ -294,9 +294,9 @@
           "category": "uncertainty",
           "correct": false,
           "score": 0.0,
-          "predicted_answer": "Based on the provided evidence, there is **no information about alcohol** in the retrieved documents. The documents discuss a patient with metastatic cancer of unknown primary, her allergies (Sulfa, C",
+          "predicted_answer": "Based on the provided evidence, there is **no information about alcohol** use, alcohol-related conditions, or alcohol diagnostic certainty for this patient. The documents only describe a female patien",
           "expected_answer": "Uncertain. alcohol is suspected but not confirmed. Further workup may be needed.",
-          "latency_ms": 2433.873667032458,
+          "latency_ms": 3666.9015850056894,
           "error": null
         },
         {
@@ -306,7 +306,7 @@
           "score": 1.0,
           "predicted_answer": "Based on the provided evidence, there is **no mention of pneumonia** in the patient's records. The documents show the patient presented with:\n1. First admission: weakness, nausea/vomiting, and fever\n2",
           "expected_answer": "pneumonia is absent/not present. The clinical documentation explicitly negates this finding.",
-          "latency_ms": 3925.102668988984,
+          "latency_ms": 3392.78029295383,
           "error": null
         },
         {
@@ -314,19 +314,19 @@
           "category": "uncertainty",
           "correct": false,
           "score": 0.0,
-          "predicted_answer": "Based on the provided evidence, there is **no mention of osteoporosis** in either document. The documents describe a patient with metastatic cancer of unknown primary, but osteoporosis is not listed a",
+          "predicted_answer": "Based on the provided evidence, there is no mention of osteoporosis in either document. The documents describe a patient with metastatic cancer of unknown primary, but osteoporosis is not listed among",
           "expected_answer": "No \u2014 Osteoporosis is documented with uncertainty. It is possible but not confirmed.",
-          "latency_ms": 2266.6933340369724,
+          "latency_ms": 2270.856458984781,
           "error": null
         },
         {
           "question_id": "bench_b_seq_2fc0d0e1",
           "category": "sequence",
           "correct": false,
-          "score": 0.2857142857142857,
+          "score": 0.42857142857142855,
           "predicted_answer": "Based on the provided evidence, I can only confirm that **vomiting** was identified as part of the patient's presenting symptoms (nausea/vomiting was listed as a chief complaint on one admission).\n\nTh",
           "expected_answer": "osteomyelitis was identified first, followed by vomiting.",
-          "latency_ms": 3021.1945429909974,
+          "latency_ms": 4824.569169024471,
           "error": null
         },
         {
@@ -334,19 +334,19 @@
           "category": "current_state",
           "correct": false,
           "score": 0.16666666666666666,
-          "predicted_answer": "Based on the provided evidence, there is no mention of osteoarthritis. The documents describe a patient with metastatic cancer of unknown primary with lesions in the lungs and liver, presenting with s",
+          "predicted_answer": "Based on the provided evidence, there is no mention of osteoarthritis. The documents describe a patient with metastatic cancer of unknown primary presenting with symptoms including weakness, nausea/vo",
           "expected_answer": "Yes. osteoarthritis is documented as a current/active problem.",
-          "latency_ms": 3060.3240019991063,
+          "latency_ms": 3184.235210006591,
           "error": null
         },
         {
           "question_id": "bench_b_current_state_57ee4127",
           "category": "current_state",
           "correct": false,
-          "score": 0.25,
-          "predicted_answer": "Based on the provided evidence, there is no information about bibasilar crackles or any lung examination findings. The documents only show admission information, chief complaints (weakness/nausea/vomi",
+          "score": 0.125,
+          "predicted_answer": "Based on the provided evidence, I cannot determine the patient's current status for bibasilar crackles. The documents contain admission information, chief complaints (weakness/nausea/vomiting in one a",
           "expected_answer": "bibasilar crackles is currently active/present as of the most recent admission.",
-          "latency_ms": 2828.7986269569956,
+          "latency_ms": 2422.398085007444,
           "error": null
         },
         {
@@ -356,7 +356,7 @@
           "score": 0.23076923076923078,
           "predicted_answer": "Based on the provided evidence, there is **no mention of dementia** in the patient's medical records. The documents describe a patient with metastatic cancer of unknown primary, but dementia is not li",
           "expected_answer": "Dementia appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
-          "latency_ms": 3145.3031680430286,
+          "latency_ms": 3335.215459985193,
           "error": null
         },
         {
@@ -366,17 +366,17 @@
           "score": 0.2727272727272727,
           "predicted_answer": "Based on the provided evidence, I cannot determine whether the patient currently has cholelithiasis. The documents describe a patient with metastatic cancer of unknown primary with lesions in the lung",
           "expected_answer": "No. cholelithiasis is historical/resolved. It was present in the past but is no longer active.",
-          "latency_ms": 3983.1957099959254,
+          "latency_ms": 2440.6534589943476,
           "error": null
         },
         {
           "question_id": "bench_c_wells_pe_1295fa2d",
           "category": "wells_pe",
           "correct": false,
-          "score": 0.2903225806451613,
-          "predicted_answer": "Based on the provided evidence, I cannot calculate a Wells score for pulmonary embolism for this patient. The evidence does not contain the clinical data needed to calculate a Wells score, which requi",
+          "score": 0.3548387096774194,
+          "predicted_answer": "Based on the provided evidence, I cannot calculate a Wells score for pulmonary embolism. The documents show admission information including chief complaints (weakness, nausea/vomiting in one admission",
           "expected_answer": "Based on the patient's clinical features: Relevant findings: Tachycardia, tachycardia. Sections: History of Present Illness, Hospital Course, Imaging.. The Wells PE score is computed from clinical sig",
-          "latency_ms": 4169.998458994087,
+          "latency_ms": 3464.0591259812936,
           "error": null
         },
         {
@@ -386,7 +386,7 @@
           "score": 0.43333333333333335,
           "predicted_answer": "Based on the provided evidence, I cannot calculate a HEART score for this patient. The HEART score is specifically used for evaluating acute chest pain presentations and requires five components: Hist",
           "expected_answer": "Based on the patient's data: Relevant findings: BRONCHOALVEOLAR LAVAGE, chest pain. Sections: History of Present Illness, Review of Systems, Labs.. The HEART score should be computed from History, ECG",
-          "latency_ms": 6284.632462018635,
+          "latency_ms": 4957.856711000204,
           "error": null
         },
         {
@@ -394,29 +394,29 @@
           "category": "other",
           "correct": false,
           "score": 0.45454545454545453,
-          "predicted_answer": "Based on the provided evidence, there is no weight value documented for this patient. The clinical notes show admission information, allergies, and history of present illness, but do not include weigh",
+          "predicted_answer": "Based on the provided evidence, there is no weight value documented for this patient. The clinical documents show admission information, allergies, and history of present illness, but do not include a",
           "expected_answer": "The patient's weight should be retrieved from the clinical record and interpreted in clinical context.",
-          "latency_ms": 2611.3416260341182,
+          "latency_ms": 3006.181292992551,
           "error": null
         },
         {
           "question_id": "bench_c_wells_pe_473fa1b3",
           "category": "wells_pe",
           "correct": false,
-          "score": 0.3939393939393939,
-          "predicted_answer": "Based on the provided evidence, I cannot calculate a Wells score for pulmonary embolism. The documents show admission information including chief complaints (weakness, nausea/vomiting in one admission",
+          "score": 0.2727272727272727,
+          "predicted_answer": "Based on the provided evidence, I cannot calculate a Wells score for pulmonary embolism for this patient. The evidence does not contain the clinical data needed to calculate a Wells score, which requi",
           "expected_answer": "Based on the patient's clinical features: Relevant findings: DVT, dvt. Sections: Diagnosis, Assessment, Hospital Course, Chief Complaint, Vital Signs.. The Wells PE score is computed from clinical sig",
-          "latency_ms": 3924.2699189926498,
+          "latency_ms": 4988.671669038013,
           "error": null
         },
         {
           "question_id": "bench_c_ascvd_352d5987",
           "category": "ascvd",
           "correct": false,
-          "score": 0.28125,
+          "score": 0.21875,
           "predicted_answer": "Based on the provided evidence, there is no information about this patient's 10-year ASCVD (Atherosclerotic Cardiovascular Disease) risk score. The documents focus on her admissions for metastatic can",
           "expected_answer": "Based on the patient's cardiovascular risk factors: Relevant findings: Diabetes, Hypertension, blood pressure, diabetes, hypertension. Sections: Diagnosis, Hospital Course, Assessment, Discharge Instr",
-          "latency_ms": 4238.930502033327,
+          "latency_ms": 2826.681501988787,
           "error": null
         },
         {
@@ -424,9 +424,9 @@
           "category": "vital_note",
           "correct": false,
           "score": 0.2222222222222222,
-          "predicted_answer": "Based on the evidence provided, I cannot answer this question. The retrieved documents contain admission information, chief complaints, and history of present illness, but **no actual vital signs data",
+          "predicted_answer": "Based on the provided evidence, I cannot answer this question. The documents show the patient's chief complaints (shortness of breath in one admission; weakness, nausea/vomiting in another) and mentio",
           "expected_answer": "Multi-source analysis required. Patient has 22 Vital Signs mentions and 64 Hospital Course mentions that need to be compared and integrated.",
-          "latency_ms": 3406.395126017742,
+          "latency_ms": 3549.8858349747024,
           "error": null
         },
         {
@@ -436,7 +436,7 @@
           "score": 0.2222222222222222,
           "predicted_answer": "Based on the provided evidence, I cannot answer this question. The retrieved documents contain admission information, chief complaints, and history of present illness, but **no actual vital signs data",
           "expected_answer": "Multi-source analysis required. Patient has 2 Vital Signs mentions and 48 Hospital Course mentions that need to be compared and integrated.",
-          "latency_ms": 3469.9041270068847,
+          "latency_ms": 4322.195461019874,
           "error": null
         },
         {
@@ -444,44 +444,44 @@
           "category": "vital_note",
           "correct": false,
           "score": 0.1111111111111111,
-          "predicted_answer": "Based on the provided evidence, I cannot answer this question. The retrieved documents contain only the header information and chief complaints from the patient's admission notes, but **no actual vita",
+          "predicted_answer": "Based on the provided evidence, I cannot answer this question. The documents show the patient's chief complaints (shortness of breath in one admission; weakness, nausea/vomiting in another) and mentio",
           "expected_answer": "Multi-source analysis required. Patient has 63 Physical Exam mentions and 151 Hospital Course mentions that need to be compared and integrated.",
-          "latency_ms": 4087.112126988359,
+          "latency_ms": 3685.654833971057,
           "error": null
         },
         {
           "question_id": "bench_d_vital_note_219a5186",
           "category": "vital_note",
           "correct": false,
-          "score": 0.2777777777777778,
+          "score": 0.3333333333333333,
           "predicted_answer": "Based on the provided evidence, I cannot identify specific vital sign abnormalities. The documents only show admission information including:\n\n1. **Chief complaints**: Shortness of breath (first admis",
           "expected_answer": "Multi-source analysis required. Patient has 14 Physical Exam mentions and 36 Hospital Course mentions that need to be compared and integrated.",
-          "latency_ms": 4830.145668005571,
+          "latency_ms": 5363.742835994344,
           "error": null
         },
         {
           "question_id": "bench_d_vital_note_2aa26563",
           "category": "vital_note",
           "correct": false,
-          "score": 0.1111111111111111,
-          "predicted_answer": "Based on the provided evidence, I cannot identify specific vital sign abnormalities. The documents only show admission information including chief complaints (shortness of breath in one admission; wea",
+          "score": 0.2777777777777778,
+          "predicted_answer": "Based on the provided evidence, I cannot identify specific vital sign abnormalities. The documents only show admission information including:\n\n1. **Chief complaints**: Shortness of breath (first admis",
           "expected_answer": "Multi-source analysis required. Patient has 92 Physical Exam mentions and 88 Hospital Course mentions that need to be compared and integrated.",
-          "latency_ms": 3194.062335009221,
+          "latency_ms": 5194.248293992132,
           "error": null
         }
       ]
     },
     "C3_kg_rag": {
       "label": "LLM + KG-RAG",
-      "accuracy": 0.15,
+      "accuracy": 0.1,
       "total_questions": 20,
-      "correct": 3,
+      "correct": 2,
       "category_accuracies": {
         "negation": 1.0,
         "conditional": 0.0,
         "uncertainty": 0.0,
         "sequence": 0.0,
-        "current_state": 0.5,
+        "current_state": 0.0,
         "duration": 0.0,
         "historical": 0.0,
         "wells_pe": 0.0,
@@ -490,8 +490,8 @@
         "ascvd": 0.0,
         "vital_note": 0.0
       },
-      "safety_score": 0.22988505747126436,
-      "avg_latency_ms": 4501.00891244947,
+      "safety_score": 0.1839080459770115,
+      "avg_latency_ms": 3855.235539190471,
       "config": {
         "assertion_mode": "none",
         "temporal_mode": "no_temporal",
@@ -506,9 +506,9 @@
           "category": "negation",
           "correct": true,
           "score": 1.0,
-          "predicted_answer": "Based on the provided evidence, I cannot answer whether the patient has crackles. The evidence contains information about the patient's metastatic cancer, imaging studies (CT, MRI), and presenting sym",
+          "predicted_answer": "Based on the provided evidence, I cannot answer whether the patient has crackles. The evidence contains information about the patient's metastatic cancer, imaging procedures (CT, MRI), and symptoms li",
           "expected_answer": "No. crackles is negated/absent in the clinical record. The Physical Exam section indicates the patient does not have this condition.",
-          "latency_ms": 10853.998795966618,
+          "latency_ms": 4013.4680430055596,
           "error": null
         },
         {
@@ -516,9 +516,9 @@
           "category": "conditional",
           "correct": false,
           "score": 0.0,
-          "predicted_answer": "Based on the provided evidence, there is no mention of HIV or any HIV-related conditions in the patient's medical records. The documents describe a patient with metastatic cancer of unknown primary, b",
+          "predicted_answer": "Based on the provided evidence, there is **no mention of HIV** in the patient's medical records. The documents describe a patient with metastatic cancer of unknown primary, but contain no information ",
           "expected_answer": "HIV is conditional. The clinical note indicates management is contingent on specific conditions being met.",
-          "latency_ms": 3144.9644190142862,
+          "latency_ms": 2503.894791996572,
           "error": null
         },
         {
@@ -528,7 +528,7 @@
           "score": 0.0,
           "predicted_answer": "Based on the provided evidence, there is **no information about alcohol** in the retrieved documents. The evidence only contains information about the patient's allergies (Sulfa, Codeine, Bactrim), ch",
           "expected_answer": "Uncertain. alcohol is suspected but not confirmed. Further workup may be needed.",
-          "latency_ms": 3299.3569599930197,
+          "latency_ms": 3545.506376947742,
           "error": null
         },
         {
@@ -536,9 +536,9 @@
           "category": "negation",
           "correct": true,
           "score": 1.0,
-          "predicted_answer": "Based on the provided evidence, there is **no mention of pneumonia** in the patient's records. The documents show the patient presented with:\n1. First admission: weakness, nausea/vomiting, and fever\n2",
+          "predicted_answer": "Based on the provided evidence, there is **no mention of pneumonia** in the patient's records. The documents show the patient has metastatic cancer of unknown primary with lesions in the lungs and liv",
           "expected_answer": "pneumonia is absent/not present. The clinical documentation explicitly negates this finding.",
-          "latency_ms": 4408.247585000936,
+          "latency_ms": 2500.5339180352166,
           "error": null
         },
         {
@@ -546,29 +546,29 @@
           "category": "uncertainty",
           "correct": false,
           "score": 0.0,
-          "predicted_answer": "Based on the provided evidence, there is **no mention of osteoporosis** in the patient's medical records. The documents detail a patient with metastatic cancer of unknown primary, but osteoporosis is ",
+          "predicted_answer": "Based on the provided evidence, there is no mention of osteoporosis in the patient's medical records. The documents describe a patient with metastatic cancer of unknown primary with lesions in the lun",
           "expected_answer": "No \u2014 Osteoporosis is documented with uncertainty. It is possible but not confirmed.",
-          "latency_ms": 5056.323626020458,
+          "latency_ms": 3131.196458998602,
           "error": null
         },
         {
           "question_id": "bench_b_seq_2fc0d0e1",
           "category": "sequence",
           "correct": false,
-          "score": 0.2857142857142857,
-          "predicted_answer": "Based on the provided evidence, I cannot determine the order in which osteomyelitis and vomiting were identified. \n\nThe evidence shows that vomiting (nausea/vomiting) was present as part of the chief ",
+          "score": 0.14285714285714285,
+          "predicted_answer": "Based on the provided evidence, I cannot determine the order in which osteomyelitis and vomiting were identified. \n\nThe evidence mentions **vomiting** as part of the patient's presenting symptoms (nau",
           "expected_answer": "osteomyelitis was identified first, followed by vomiting.",
-          "latency_ms": 4870.522085984703,
+          "latency_ms": 4505.38216897985,
           "error": null
         },
         {
           "question_id": "bench_b_current_state_5e677ee6",
           "category": "current_state",
-          "correct": true,
-          "score": 0.5,
-          "predicted_answer": "Based on the provided evidence, there is no mention of osteoarthritis. The documents describe a patient with metastatic cancer of unknown primary, but do not include osteoarthritis in the documented c",
+          "correct": false,
+          "score": 0.16666666666666666,
+          "predicted_answer": "Based on the provided evidence, there is no mention of osteoarthritis. The documents describe a patient with metastatic cancer of unknown primary presenting with symptoms including weakness, nausea/vo",
           "expected_answer": "Yes. osteoarthritis is documented as a current/active problem.",
-          "latency_ms": 3714.7380849928595,
+          "latency_ms": 3077.0806259824894,
           "error": null
         },
         {
@@ -578,7 +578,7 @@
           "score": 0.25,
           "predicted_answer": "Based on the provided evidence, there is no information about bibasilar crackles or any lung examination findings. The documents only show admission information, chief complaints (weakness/nausea/vomi",
           "expected_answer": "bibasilar crackles is currently active/present as of the most recent admission.",
-          "latency_ms": 3078.326293034479,
+          "latency_ms": 3032.2912939591333,
           "error": null
         },
         {
@@ -586,9 +586,9 @@
           "category": "duration",
           "correct": false,
           "score": 0.23076923076923078,
-          "predicted_answer": "Based on the provided evidence, there is **no mention of dementia** in either document. The patient's documented conditions include metastatic cancer of unknown primary with lesions in the lungs and l",
+          "predicted_answer": "Based on the provided evidence, there is **no mention of dementia** in the patient's medical records. The documents describe a patient with metastatic cancer of unknown primary, but dementia is not li",
           "expected_answer": "Dementia appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
-          "latency_ms": 3910.8147930237465,
+          "latency_ms": 2906.3722509890795,
           "error": null
         },
         {
@@ -598,17 +598,17 @@
           "score": 0.2727272727272727,
           "predicted_answer": "Based on the provided evidence, I cannot determine whether the patient currently has cholelithiasis. The documents describe a patient with metastatic cancer of unknown primary with lesions in the lung",
           "expected_answer": "No. cholelithiasis is historical/resolved. It was present in the past but is no longer active.",
-          "latency_ms": 3967.049836006481,
+          "latency_ms": 2356.7057919572107,
           "error": null
         },
         {
           "question_id": "bench_c_wells_pe_1295fa2d",
           "category": "wells_pe",
           "correct": false,
-          "score": 0.3225806451612903,
-          "predicted_answer": "Based on the provided evidence, I cannot calculate a Wells score for pulmonary embolism for this patient. The evidence does not contain the clinical data needed to calculate a Wells score, which requi",
+          "score": 0.3548387096774194,
+          "predicted_answer": "Based on the provided evidence, I cannot calculate a Wells score for pulmonary embolism for this patient. The documents show admission information including chief complaints (weakness, nausea/vomiting",
           "expected_answer": "Based on the patient's clinical features: Relevant findings: Tachycardia, tachycardia. Sections: History of Present Illness, Hospital Course, Imaging.. The Wells PE score is computed from clinical sig",
-          "latency_ms": 4676.3927940046415,
+          "latency_ms": 3940.277835004963,
           "error": null
         },
         {
@@ -618,7 +618,7 @@
           "score": 0.3333333333333333,
           "predicted_answer": "Based on the provided evidence, I cannot calculate a HEART score for this patient. The HEART score requires specific components: History, ECG findings, Age, Risk factors, and Troponin levels - none of",
           "expected_answer": "Based on the patient's data: Relevant findings: BRONCHOALVEOLAR LAVAGE, chest pain. Sections: History of Present Illness, Review of Systems, Labs.. The HEART score should be computed from History, ECG",
-          "latency_ms": 5602.515793056227,
+          "latency_ms": 5678.632502967957,
           "error": null
         },
         {
@@ -628,17 +628,17 @@
           "score": 0.18181818181818182,
           "predicted_answer": "Based on the provided evidence, I cannot find a specific weight value for this patient. The evidence mentions \"unintentional weight loss\" as a condition, indicating the patient has experienced weight ",
           "expected_answer": "The patient's weight should be retrieved from the clinical record and interpreted in clinical context.",
-          "latency_ms": 3691.9883769587614,
+          "latency_ms": 4631.058002996724,
           "error": null
         },
         {
           "question_id": "bench_c_wells_pe_473fa1b3",
           "category": "wells_pe",
           "correct": false,
-          "score": 0.30303030303030304,
-          "predicted_answer": "Based on the provided evidence, I cannot calculate a Wells score for pulmonary embolism. The documents show admission information and chief complaints (weakness, nausea/vomiting in one admission; shor",
+          "score": 0.3939393939393939,
+          "predicted_answer": "Based on the provided evidence, I cannot calculate a Wells score for pulmonary embolism. The documents show admission information including chief complaints (weakness, nausea/vomiting in one admission",
           "expected_answer": "Based on the patient's clinical features: Relevant findings: DVT, dvt. Sections: Diagnosis, Assessment, Hospital Course, Chief Complaint, Vital Signs.. The Wells PE score is computed from clinical sig",
-          "latency_ms": 5107.697586005088,
+          "latency_ms": 4539.5064179901965,
           "error": null
         },
         {
@@ -648,17 +648,17 @@
           "score": 0.40625,
           "predicted_answer": "Based on the provided evidence, I cannot determine this patient's 10-year ASCVD risk score. The evidence shows the patient has hyperlipidemia (a cardiovascular risk factor), but calculating an ASCVD r",
           "expected_answer": "Based on the patient's cardiovascular risk factors: Relevant findings: Diabetes, Hypertension, blood pressure, diabetes, hypertension. Sections: Diagnosis, Hospital Course, Assessment, Discharge Instr",
-          "latency_ms": 4478.614085994195,
+          "latency_ms": 4132.11412698729,
           "error": null
         },
         {
           "question_id": "bench_d_vital_note_35f64cbf",
           "category": "vital_note",
           "correct": false,
-          "score": 0.3333333333333333,
+          "score": 0.2777777777777778,
           "predicted_answer": "Based on the provided evidence, I cannot adequately answer this question. The evidence shows the patient has current conditions including edema, hyperlipidemia, and DJD (degenerative joint disease), a",
           "expected_answer": "Multi-source analysis required. Patient has 22 Vital Signs mentions and 64 Hospital Course mentions that need to be compared and integrated.",
-          "latency_ms": 3910.0339179858565,
+          "latency_ms": 4163.911918003578,
           "error": null
         },
         {
@@ -668,37 +668,37 @@
           "score": 0.3333333333333333,
           "predicted_answer": "Based on the provided evidence, I cannot answer this question adequately. The evidence shows the patient has current conditions including edema, hyperlipidemia, and DJD (degenerative joint disease), a",
           "expected_answer": "Multi-source analysis required. Patient has 2 Vital Signs mentions and 48 Hospital Course mentions that need to be compared and integrated.",
-          "latency_ms": 4084.5705019892193,
+          "latency_ms": 4037.2132099582814,
           "error": null
         },
         {
           "question_id": "bench_d_vital_note_6ec0257c",
           "category": "vital_note",
           "correct": false,
-          "score": 0.2222222222222222,
+          "score": 0.16666666666666666,
           "predicted_answer": "Based on the provided evidence, I cannot adequately answer this question. The evidence shows the patient has current conditions including edema, hyperlipidemia, and DJD (degenerative joint disease), a",
           "expected_answer": "Multi-source analysis required. Patient has 63 Physical Exam mentions and 151 Hospital Course mentions that need to be compared and integrated.",
-          "latency_ms": 3351.978335005697,
+          "latency_ms": 4767.698003037367,
           "error": null
         },
         {
           "question_id": "bench_d_vital_note_219a5186",
           "category": "vital_note",
           "correct": false,
-          "score": 0.1111111111111111,
+          "score": 0.2222222222222222,
           "predicted_answer": "Based on the provided evidence, I cannot identify specific vital sign abnormalities. The documents mention the patient's chief complaints (shortness of breath in one admission, and weakness/nausea/vom",
           "expected_answer": "Multi-source analysis required. Patient has 14 Physical Exam mentions and 36 Hospital Course mentions that need to be compared and integrated.",
-          "latency_ms": 4699.138834956102,
+          "latency_ms": 3955.0577519694343,
           "error": null
         },
         {
           "question_id": "bench_d_vital_note_2aa26563",
           "category": "vital_note",
           "correct": false,
-          "score": 0.16666666666666666,
-          "predicted_answer": "Based on the provided evidence, I cannot identify specific vital sign abnormalities. The documents mention the patient's chief complaints (shortness of breath in one admission; weakness, nausea/vomiti",
+          "score": 0.1111111111111111,
+          "predicted_answer": "Based on the provided evidence, I cannot identify specific vital sign abnormalities. The documents mention the patient's chief complaints (shortness of breath in one admission, and weakness/nausea/vom",
           "expected_answer": "Multi-source analysis required. Patient has 92 Physical Exam mentions and 88 Hospital Course mentions that need to be compared and integrated.",
-          "latency_ms": 4112.905543996021,
+          "latency_ms": 5686.8092940421775,
           "error": null
         }
       ]
@@ -723,7 +723,7 @@
         "vital_note": 0.0
       },
       "safety_score": 0.1839080459770115,
-      "avg_latency_ms": 4403.977558398037,
+      "avg_latency_ms": 4116.7554727056995,
       "config": {
         "assertion_mode": "full",
         "temporal_mode": "full_bitemporal",
@@ -740,7 +740,7 @@
           "score": 1.0,
           "predicted_answer": "Based on the provided evidence, I cannot determine whether the patient has crackles. The evidence focuses on the patient's metastatic cancer of unknown primary, imaging studies (CT, MRI), and symptoms",
           "expected_answer": "No. crackles is negated/absent in the clinical record. The Physical Exam section indicates the patient does not have this condition.",
-          "latency_ms": 3668.2662929524668,
+          "latency_ms": 3568.7542100204155,
           "error": null
         },
         {
@@ -750,7 +750,7 @@
           "score": 0.0,
           "predicted_answer": "Based on the provided evidence, there is no mention of HIV infection, HIV testing, or any HIV-related conditions in the patient's medical records. The documents focus on a patient with metastatic canc",
           "expected_answer": "HIV is conditional. The clinical note indicates management is contingent on specific conditions being met.",
-          "latency_ms": 4526.123585994355,
+          "latency_ms": 3945.730959996581,
           "error": null
         },
         {
@@ -760,7 +760,7 @@
           "score": 0.0,
           "predicted_answer": "Based on the provided evidence, there is **no information about alcohol** in the patient's records. The documents only contain information about the patient's metastatic cancer of unknown primary, her",
           "expected_answer": "Uncertain. alcohol is suspected but not confirmed. Further workup may be needed.",
-          "latency_ms": 3558.7417099741288,
+          "latency_ms": 3167.512585001532,
           "error": null
         },
         {
@@ -770,7 +770,7 @@
           "score": 1.0,
           "predicted_answer": "Based on the provided evidence, there is **no information about pneumonia** for this patient. The documents show she presented with:\n1. Weakness, nausea/vomiting, and fever on one admission\n2. Shortne",
           "expected_answer": "pneumonia is absent/not present. The clinical documentation explicitly negates this finding.",
-          "latency_ms": 4144.65700200526,
+          "latency_ms": 3766.0193770425394,
           "error": null
         },
         {
@@ -780,7 +780,7 @@
           "score": 0.0,
           "predicted_answer": "Based on the provided evidence, there is **no mention of osteoporosis** in the patient's medical records. The documents describe a patient with metastatic cancer of unknown primary with lesions in the",
           "expected_answer": "No \u2014 Osteoporosis is documented with uncertainty. It is possible but not confirmed.",
-          "latency_ms": 3006.1537100118585,
+          "latency_ms": 3028.6177929956466,
           "error": null
         },
         {
@@ -790,7 +790,7 @@
           "score": 0.2857142857142857,
           "predicted_answer": "Based on the provided evidence, I cannot determine the specific order in which osteomyelitis and vomiting were identified. \n\nThe evidence shows that vomiting (nausea/vomiting) was present as part of t",
           "expected_answer": "osteomyelitis was identified first, followed by vomiting.",
-          "latency_ms": 6256.7032519727945,
+          "latency_ms": 4402.30400202563,
           "error": null
         },
         {
@@ -798,9 +798,9 @@
           "category": "current_state",
           "correct": false,
           "score": 0.16666666666666666,
-          "predicted_answer": "Based on the provided evidence, there is no mention of osteoarthritis. The documents describe a patient with metastatic cancer of unknown primary presenting with symptoms including weakness, nausea/vo",
+          "predicted_answer": "Based on the provided evidence, there is no mention of osteoarthritis. The documents describe a patient with metastatic cancer of unknown primary with lesions in the lungs and liver, presenting with s",
           "expected_answer": "Yes. osteoarthritis is documented as a current/active problem.",
-          "latency_ms": 4036.962377023883,
+          "latency_ms": 2936.6289600147866,
           "error": null
         },
         {
@@ -810,17 +810,17 @@
           "score": 0.25,
           "predicted_answer": "Based on the provided evidence, there is no information about bibasilar crackles or any lung examination findings. The documents only show admission information indicating the patient has metastatic c",
           "expected_answer": "bibasilar crackles is currently active/present as of the most recent admission.",
-          "latency_ms": 3834.0735440142453,
+          "latency_ms": 4085.6291269883513,
           "error": null
         },
         {
           "question_id": "bench_b_dur_9aac4d9f",
           "category": "duration",
           "correct": false,
-          "score": 0.07692307692307693,
+          "score": 0.23076923076923078,
           "predicted_answer": "Based on the provided evidence, there is no mention of dementia in the patient's medical records. The documents describe a patient with metastatic cancer of unknown primary, but dementia is not listed",
           "expected_answer": "Dementia appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
-          "latency_ms": 2762.443626008462,
+          "latency_ms": 3371.4527930133045,
           "error": null
         },
         {
@@ -828,19 +828,19 @@
           "category": "historical",
           "correct": false,
           "score": 0.18181818181818182,
-          "predicted_answer": "Based on the provided evidence, I cannot determine whether the patient currently has cholelithiasis. The documents only mention the patient's metastatic cancer of unknown primary with lesions in the l",
+          "predicted_answer": "Based on the provided evidence, I cannot determine whether the patient currently has cholelithiasis. The documents only describe a patient with metastatic cancer of unknown primary with lesions in the",
           "expected_answer": "No. cholelithiasis is historical/resolved. It was present in the past but is no longer active.",
-          "latency_ms": 3135.024293034803,
+          "latency_ms": 2682.1341270115227,
           "error": null
         },
         {
           "question_id": "bench_c_wells_pe_1295fa2d",
           "category": "wells_pe",
           "correct": false,
-          "score": 0.3225806451612903,
+          "score": 0.25806451612903225,
           "predicted_answer": "Based on the provided evidence, I cannot calculate a Wells score for pulmonary embolism for this patient. The evidence does not contain the clinical data needed to calculate a Wells score, which requi",
           "expected_answer": "Based on the patient's clinical features: Relevant findings: Tachycardia, tachycardia. Sections: History of Present Illness, Hospital Course, Imaging.. The Wells PE score is computed from clinical sig",
-          "latency_ms": 4775.319043954369,
+          "latency_ms": 4358.1175430445,
           "error": null
         },
         {
@@ -850,7 +850,7 @@
           "score": 0.3333333333333333,
           "predicted_answer": "Based on the provided evidence, I cannot calculate a HEART score for this patient. The HEART score requires specific components: History, ECG findings, Age, Risk factors, and Troponin levels - none of",
           "expected_answer": "Based on the patient's data: Relevant findings: BRONCHOALVEOLAR LAVAGE, chest pain. Sections: History of Present Illness, Review of Systems, Labs.. The HEART score should be computed from History, ECG",
-          "latency_ms": 5579.943669959903,
+          "latency_ms": 5428.565418988001,
           "error": null
         },
         {
@@ -860,7 +860,7 @@
           "score": 0.18181818181818182,
           "predicted_answer": "Based on the provided evidence, I cannot find a specific weight value for this patient. The evidence mentions \"unintentional weight loss\" as a condition, indicating the patient has experienced weight ",
           "expected_answer": "The patient's weight should be retrieved from the clinical record and interpreted in clinical context.",
-          "latency_ms": 4715.52571101347,
+          "latency_ms": 4752.698918979149,
           "error": null
         },
         {
@@ -870,7 +870,7 @@
           "score": 0.2727272727272727,
           "predicted_answer": "Based on the provided evidence, I cannot calculate a Wells score for pulmonary embolism for this patient. The evidence does not contain the clinical data needed to calculate a Wells score, which requi",
           "expected_answer": "Based on the patient's clinical features: Relevant findings: DVT, dvt. Sections: Diagnosis, Assessment, Hospital Course, Chief Complaint, Vital Signs.. The Wells PE score is computed from clinical sig",
-          "latency_ms": 4993.231002008542,
+          "latency_ms": 4916.906251979526,
           "error": null
         },
         {
@@ -880,47 +880,47 @@
           "score": 0.40625,
           "predicted_answer": "Based on the provided evidence, I cannot determine this patient's 10-year ASCVD risk score. The evidence shows the patient has hyperlipidemia (a cardiovascular risk factor), but calculating an ASCVD r",
           "expected_answer": "Based on the patient's cardiovascular risk factors: Relevant findings: Diabetes, Hypertension, blood pressure, diabetes, hypertension. Sections: Diagnosis, Hospital Course, Assessment, Discharge Instr",
-          "latency_ms": 4269.414876995143,
+          "latency_ms": 3718.930752016604,
           "error": null
         },
         {
           "question_id": "bench_d_vital_note_35f64cbf",
           "category": "vital_note",
           "correct": false,
-          "score": 0.2777777777777778,
+          "score": 0.3333333333333333,
           "predicted_answer": "Based on the provided evidence, I cannot adequately answer this question. The evidence shows the patient has current conditions including edema, hyperlipidemia, and DJD (degenerative joint disease), a",
           "expected_answer": "Multi-source analysis required. Patient has 22 Vital Signs mentions and 64 Hospital Course mentions that need to be compared and integrated.",
-          "latency_ms": 4408.227919018827,
+          "latency_ms": 3975.2855010447092,
           "error": null
         },
         {
           "question_id": "bench_d_vital_note_8205d0e8",
           "category": "vital_note",
           "correct": false,
-          "score": 0.2777777777777778,
+          "score": 0.3333333333333333,
           "predicted_answer": "Based on the provided evidence, I cannot adequately answer this question. The evidence shows the patient has current conditions including edema, hyperlipidemia, and DJD (degenerative joint disease), a",
           "expected_answer": "Multi-source analysis required. Patient has 2 Vital Signs mentions and 48 Hospital Course mentions that need to be compared and integrated.",
-          "latency_ms": 3953.906251990702,
+          "latency_ms": 3861.5664179669693,
           "error": null
         },
         {
           "question_id": "bench_d_vital_note_6ec0257c",
           "category": "vital_note",
           "correct": false,
-          "score": 0.2222222222222222,
+          "score": 0.16666666666666666,
           "predicted_answer": "Based on the provided evidence, I cannot adequately answer this question. The evidence shows the patient has current conditions including edema, hyperlipidemia, and DJD (degenerative joint disease), a",
           "expected_answer": "Multi-source analysis required. Patient has 63 Physical Exam mentions and 151 Hospital Course mentions that need to be compared and integrated.",
-          "latency_ms": 4126.6469190013595,
+          "latency_ms": 4465.507126995362,
           "error": null
         },
         {
           "question_id": "bench_d_vital_note_219a5186",
           "category": "vital_note",
           "correct": false,
-          "score": 0.05555555555555555,
+          "score": 0.1111111111111111,
           "predicted_answer": "Based on the provided evidence, I cannot identify specific vital sign abnormalities. The documents mention the patient's chief complaints (shortness of breath in one admission, and weakness/nausea/vom",
           "expected_answer": "Multi-source analysis required. Patient has 14 Physical Exam mentions and 36 Hospital Course mentions that need to be compared and integrated.",
-          "latency_ms": 5869.31200302206,
+          "latency_ms": 5841.959211975336,
           "error": null
         },
         {
@@ -930,22 +930,22 @@
           "score": 0.16666666666666666,
           "predicted_answer": "Based on the provided evidence, I cannot identify specific vital sign abnormalities. The documents mention the patient presented with **shortness of breath** (first admission) and **weakness, nausea/v",
           "expected_answer": "Multi-source analysis required. Patient has 92 Physical Exam mentions and 88 Hospital Course mentions that need to be compared and integrated.",
-          "latency_ms": 6458.874378004111,
+          "latency_ms": 6060.788377013523,
           "error": null
         }
       ]
     },
     "C5_full_system": {
       "label": "Full System",
-      "accuracy": 0.2,
+      "accuracy": 0.15,
       "total_questions": 20,
-      "correct": 4,
+      "correct": 3,
       "category_accuracies": {
         "negation": 1.0,
         "conditional": 1.0,
         "uncertainty": 0.0,
         "sequence": 0.0,
-        "current_state": 0.5,
+        "current_state": 0.0,
         "duration": 0.0,
         "historical": 0.0,
         "wells_pe": 0.0,
@@ -954,8 +954,8 @@
         "ascvd": 0.0,
         "vital_note": 0.0
       },
-      "safety_score": 0.26436781609195403,
-      "avg_latency_ms": 4628.659850003896,
+      "safety_score": 0.21839080459770116,
+      "avg_latency_ms": 4641.418554299162,
       "config": {
         "assertion_mode": "full",
         "temporal_mode": "full_bitemporal",
@@ -972,7 +972,7 @@
           "score": 1.0,
           "predicted_answer": "Based on the provided evidence, I cannot determine whether the patient has crackles. The evidence focuses on the patient's metastatic cancer of unknown primary, imaging studies (CT, MRI), and symptoms",
           "expected_answer": "No. crackles is negated/absent in the clinical record. The Physical Exam section indicates the patient does not have this condition.",
-          "latency_ms": 10209.089297044557,
+          "latency_ms": 9791.143962997012,
           "error": null
         },
         {
@@ -982,7 +982,7 @@
           "score": 1.0,
           "predicted_answer": "Based on the provided evidence, I cannot determine whether this patient needs HIV management. \n\nThe clinical documents describe a female patient with metastatic cancer of unknown primary presenting wi",
           "expected_answer": "HIV is conditional. The clinical note indicates management is contingent on specific conditions being met.",
-          "latency_ms": 5324.418711010367,
+          "latency_ms": 5677.224043989554,
           "error": null
         },
         {
@@ -992,7 +992,7 @@
           "score": 0.0,
           "predicted_answer": "Based on the provided evidence, there is **no diagnostic certainty for alcohol use disorder or alcohol-related conditions** in this patient.\n\nThe patient evidence shows a female patient with recently ",
           "expected_answer": "Uncertain. alcohol is suspected but not confirmed. Further workup may be needed.",
-          "latency_ms": 3865.560751990415,
+          "latency_ms": 3764.67829401372,
           "error": null
         },
         {
@@ -1000,9 +1000,9 @@
           "category": "negation",
           "correct": true,
           "score": 1.0,
-          "predicted_answer": "Based on the provided evidence, **there is no documented diagnosis of pneumonia for this patient**.\n\nThe clinical documents show a patient with metastatic cancer of unknown primary (with lesions in lu",
+          "predicted_answer": "Based on the provided evidence, **there is no documentation that this patient has pneumonia**. \n\nThe patient is a female with recently diagnosed metastatic cancer of unknown primary (with lesions in l",
           "expected_answer": "pneumonia is absent/not present. The clinical documentation explicitly negates this finding.",
-          "latency_ms": 4463.648002012633,
+          "latency_ms": 4754.92504396243,
           "error": null
         },
         {
@@ -1012,7 +1012,7 @@
           "score": 0.0,
           "predicted_answer": "Based on the provided evidence, **I cannot determine whether osteoporosis is an established diagnosis for this patient**. \n\nThe clinical documents describe a female patient with recently diagnosed met",
           "expected_answer": "No \u2014 Osteoporosis is documented with uncertainty. It is possible but not confirmed.",
-          "latency_ms": 3762.248751008883,
+          "latency_ms": 4052.1882110042498,
           "error": null
         },
         {
@@ -1022,17 +1022,17 @@
           "score": 0.14285714285714285,
           "predicted_answer": "Based on the provided evidence, I cannot determine the order in which osteomyelitis and vomiting were identified. \n\nThe document evidence shows the patient presented with \"nausea, vomiting, and fever\"",
           "expected_answer": "osteomyelitis was identified first, followed by vomiting.",
-          "latency_ms": 3849.812960019335,
+          "latency_ms": 3443.450335005764,
           "error": null
         },
         {
           "question_id": "bench_b_current_state_5e677ee6",
           "category": "current_state",
-          "correct": true,
-          "score": 0.5,
-          "predicted_answer": "Based on the provided evidence, **I cannot determine whether osteoarthritis is an active problem for this patient**.\n\nThe clinical documents describe a female patient with metastatic cancer of unknown",
+          "correct": false,
+          "score": 0.16666666666666666,
+          "predicted_answer": "Based on the provided evidence, I cannot determine whether osteoarthritis is an active problem for this patient. \n\nThe clinical documents describe a female patient with metastatic cancer of unknown pr",
           "expected_answer": "Yes. osteoarthritis is documented as a current/active problem.",
-          "latency_ms": 4082.790835003834,
+          "latency_ms": 3627.1809180034325,
           "error": null
         },
         {
@@ -1042,7 +1042,7 @@
           "score": 0.25,
           "predicted_answer": "Based on the provided evidence, there is no information about bibasilar crackles or any lung examination findings. The documents only show admission information indicating the patient has metastatic c",
           "expected_answer": "bibasilar crackles is currently active/present as of the most recent admission.",
-          "latency_ms": 3995.947293995414,
+          "latency_ms": 3856.738709961064,
           "error": null
         },
         {
@@ -1050,9 +1050,9 @@
           "category": "duration",
           "correct": false,
           "score": 0.07692307692307693,
-          "predicted_answer": "Based on the provided evidence, there is **no documentation of dementia** for this patient. The medical records describe a female patient with metastatic cancer of unknown primary, presenting with sho",
+          "predicted_answer": "Based on the provided evidence, there is **no documentation of dementia** for this patient. The clinical documents describe a female patient with metastatic cancer of unknown primary presenting with s",
           "expected_answer": "Dementia appears in 2 separate admissions, indicating it is a chronic/ongoing condition rather than a new finding.",
-          "latency_ms": 3868.6320850392804,
+          "latency_ms": 3832.0208769873716,
           "error": null
         },
         {
@@ -1062,7 +1062,7 @@
           "score": 0.18181818181818182,
           "predicted_answer": "Based on the provided evidence, I cannot determine whether the patient currently has cholelithiasis. The clinical documents describe a patient with metastatic cancer of unknown primary with lesions in",
           "expected_answer": "No. cholelithiasis is historical/resolved. It was present in the past but is no longer active.",
-          "latency_ms": 3244.9273350066505,
+          "latency_ms": 2748.1362519902177,
           "error": null
         },
         {
@@ -1070,9 +1070,9 @@
           "category": "wells_pe",
           "correct": false,
           "score": 0.3548387096774194,
-          "predicted_answer": "Based on the provided evidence, **I cannot calculate this patient's Wells score for pulmonary embolism** because the clinical documentation does not include the specific criteria needed for Wells scor",
+          "predicted_answer": "Based on the provided evidence, **I cannot calculate this patient's Wells score for pulmonary embolism** because the clinical documentation does not include the specific criteria needed for the Wells ",
           "expected_answer": "Based on the patient's clinical features: Relevant findings: Tachycardia, tachycardia. Sections: History of Present Illness, Hospital Course, Imaging.. The Wells PE score is computed from clinical sig",
-          "latency_ms": 5553.029168979265,
+          "latency_ms": 5261.457001965027,
           "error": null
         },
         {
@@ -1080,9 +1080,9 @@
           "category": "heart",
           "correct": false,
           "score": 0.3,
-          "predicted_answer": "Based on the provided evidence, I cannot calculate this patient's HEART score because the necessary components are not documented in the evidence.\n\nThe HEART score requires: **H**istory (chest pain ch",
+          "predicted_answer": "Based on the provided evidence, I cannot calculate a HEART score for this patient. The evidence does not contain the necessary components for HEART score calculation:\n\n- **History** characteristics of",
           "expected_answer": "Based on the patient's data: Relevant findings: BRONCHOALVEOLAR LAVAGE, chest pain. Sections: History of Present Illness, Review of Systems, Labs.. The HEART score should be computed from History, ECG",
-          "latency_ms": 4959.475168026984,
+          "latency_ms": 4768.554919050075,
           "error": null
         },
         {
@@ -1092,27 +1092,27 @@
           "score": 0.45454545454545453,
           "predicted_answer": "Based on the provided evidence, **I cannot determine this patient's specific weight value**. The clinical documents do not include the patient's weight or BMI measurements.\n\nWhat the evidence does sho",
           "expected_answer": "The patient's weight should be retrieved from the clinical record and interpreted in clinical context.",
-          "latency_ms": 4798.754793999251,
+          "latency_ms": 4873.659626988228,
           "error": null
         },
         {
           "question_id": "bench_c_wells_pe_473fa1b3",
           "category": "wells_pe",
           "correct": false,
-          "score": 0.3939393939393939,
-          "predicted_answer": "Based on the provided evidence, **I cannot calculate this patient's Wells score for pulmonary embolism** because the clinical documentation does not include the specific criteria needed for Wells scor",
+          "score": 0.36363636363636365,
+          "predicted_answer": "Based on the provided evidence, **I cannot calculate this patient's Wells score for pulmonary embolism** because the clinical documentation does not include the specific components needed for the Well",
           "expected_answer": "Based on the patient's clinical features: Relevant findings: DVT, dvt. Sections: Diagnosis, Assessment, Hospital Course, Chief Complaint, Vital Signs.. The Wells PE score is computed from clinical sig",
-          "latency_ms": 5266.938918968663,
+          "latency_ms": 6102.177378023043,
           "error": null
         },
         {
           "question_id": "bench_c_ascvd_352d5987",
           "category": "ascvd",
           "correct": false,
-          "score": 0.46875,
-          "predicted_answer": "Based on the provided evidence, I cannot determine this patient's 10-year ASCVD risk score. The evidence shows the patient has hyperlipidemia (a cardiovascular risk factor), edema, and DJD (degenerati",
+          "score": 0.4375,
+          "predicted_answer": "Based on the provided evidence, I cannot determine this patient's 10-year ASCVD risk score. The evidence shows the patient has hyperlipidemia (a cardiovascular risk factor), but calculating an ASCVD r",
           "expected_answer": "Based on the patient's cardiovascular risk factors: Relevant findings: Diabetes, Hypertension, blood pressure, diabetes, hypertension. Sections: Diagnosis, Hospital Course, Assessment, Discharge Instr",
-          "latency_ms": 3660.2527929935604,
+          "latency_ms": 4554.000376025215,
           "error": null
         },
         {
@@ -1122,7 +1122,7 @@
           "score": 0.2777777777777778,
           "predicted_answer": "Based on the provided evidence, I cannot adequately answer this question. The evidence shows the patient has current conditions including edema, hyperlipidemia, and DJD (degenerative joint disease), a",
           "expected_answer": "Multi-source analysis required. Patient has 22 Vital Signs mentions and 64 Hospital Course mentions that need to be compared and integrated.",
-          "latency_ms": 4066.945377038792,
+          "latency_ms": 4068.56612698175,
           "error": null
         },
         {
@@ -1130,39 +1130,39 @@
           "category": "vital_note",
           "correct": false,
           "score": 0.2777777777777778,
-          "predicted_answer": "Based on the provided evidence, I cannot answer this question adequately. The evidence includes:\n\n1. **Graph evidence** showing the patient has current conditions of hyperlipidemia, DJD (degenerative ",
+          "predicted_answer": "Based on the provided evidence, I cannot answer this question adequately. The evidence shows the patient has current conditions including edema, hyperlipidemia, and DJD (degenerative joint disease), a",
           "expected_answer": "Multi-source analysis required. Patient has 2 Vital Signs mentions and 48 Hospital Course mentions that need to be compared and integrated.",
-          "latency_ms": 4484.560293960385,
+          "latency_ms": 3514.9292520363815,
           "error": null
         },
         {
           "question_id": "bench_d_vital_note_6ec0257c",
           "category": "vital_note",
           "correct": false,
-          "score": 0.16666666666666666,
-          "predicted_answer": "Based on the evidence provided, I cannot adequately answer this question. The evidence shows the patient has current conditions including edema, hyperlipidemia, and DJD (degenerative joint disease), a",
+          "score": 0.2222222222222222,
+          "predicted_answer": "Based on the provided evidence, I cannot adequately answer this question. The evidence shows the patient has current conditions including edema, hyperlipidemia, and DJD (degenerative joint disease), a",
           "expected_answer": "Multi-source analysis required. Patient has 63 Physical Exam mentions and 151 Hospital Course mentions that need to be compared and integrated.",
-          "latency_ms": 3597.4617099855095,
+          "latency_ms": 3771.924419037532,
           "error": null
         },
         {
           "question_id": "bench_d_vital_note_219a5186",
           "category": "vital_note",
           "correct": false,
-          "score": 0.1111111111111111,
-          "predicted_answer": "Based on the provided evidence, I cannot identify specific vital sign abnormalities. The documents mention the patient's chief complaints (shortness of breath in one admission, and weakness/nausea/vom",
+          "score": 0.05555555555555555,
+          "predicted_answer": "Based on the provided evidence, I cannot identify specific vital sign abnormalities. The evidence documents:\n\n**Clinical findings present:**\n- Edema (current observation)\n- Hyperlipidemia (current con",
           "expected_answer": "Multi-source analysis required. Patient has 14 Physical Exam mentions and 36 Hospital Course mentions that need to be compared and integrated.",
-          "latency_ms": 5356.028334994335,
+          "latency_ms": 4720.326918992214,
           "error": null
         },
         {
           "question_id": "bench_d_vital_note_2aa26563",
           "category": "vital_note",
           "correct": false,
-          "score": 0.2222222222222222,
-          "predicted_answer": "Based on the provided evidence, I cannot identify specific vital sign abnormalities. The evidence documents:\n\n**Clinical findings present:**\n- Edema (current observation)\n- Hyperlipidemia (current con",
+          "score": 0.16666666666666666,
+          "predicted_answer": "Based on the provided evidence, I cannot identify specific vital sign abnormalities. The documents mention the patient presented with **shortness of breath** (first admission) and **weakness, nausea/v",
           "expected_answer": "Multi-source analysis required. Patient has 92 Physical Exam mentions and 88 Hospital Course mentions that need to be compared and integrated.",
-          "latency_ms": 4162.6744189998135,
+          "latency_ms": 5645.088418968953,
           "error": null
         }
       ]

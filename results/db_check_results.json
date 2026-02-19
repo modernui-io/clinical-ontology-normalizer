@@ -1,0 +1,49 @@
+{
+  "timestamp": "2026-02-19T00:00:00Z",
+  "postgresql": {
+    "running": true,
+    "connectable": true,
+    "database_url": "postgresql://alexstinard@localhost:5432/clinical_ontology"
+  },
+  "migrations": {
+    "current_head": "048",
+    "was_at": "033",
+    "up_to_date": true,
+    "upgrade_needed": true,
+    "upgrade_result": "Upgraded from 033 to 048 (15 migrations). Required manual intervention: migration 039 (data_lineage table pre-existed, stamped), migration 042 (text_encrypted column pre-existed, stamped), migration 045 (experiment enums conflicted with model metadata auto-creation, tables created via raw SQL then stamped). Migrations 046-048 ran cleanly.",
+    "issues_found": [
+      "Migration 039: data_lineage table already existed outside migrations - stamped past",
+      "Migration 042: text_encrypted column on documents already existed - stamped past",
+      "Migration 045: SQLAlchemy model metadata auto-creates experiment_status enum during create_table, conflicting with explicit CREATE TYPE in migration. Fixed by creating tables via raw SQL and stamping."
+    ]
+  },
+  "tables": {
+    "total_count": 80,
+    "critical_tables": {
+      "research_experiments": true,
+      "research_experiment_runs": true,
+      "research_experiment_metrics": true,
+      "kg_edges": true,
+      "kg_nodes": true,
+      "documents": true,
+      "patients": false,
+      "person": true,
+      "mentions": true,
+      "clinical_facts": true,
+      "data_lineage": true
+    },
+    "note": "patients table does not exist - project uses OMOP 'person' table instead. patient_site_assignments table exists for site-level assignments."
+  },
+  "psycopg2": {
+    "installed": true,
+    "version": "2.9.11 (dt dec pq3 ext lo64)"
+  },
+  "redis": {
+    "running": true,
+    "connectable": true
+  },
+  "research_notes_db": {
+    "exists": true,
+    "path": "/Users/alexstinard/projects/brainstorm/jan-14-2026/tools/mimic_notes.db"
+  }
+}

@@ -10,7 +10,7 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
 
-from app.api.middleware import get_current_user
+from app.api.middleware import CurrentUser, get_current_user
 from app.schemas.research import (
     AssertionAnalytics,
     ComparisonRequest,
@@ -46,11 +46,11 @@ router = APIRouter(prefix="/research", tags=["Research"])
 @router.post("/experiments", response_model=ExperimentResponse)
 async def create_experiment(
     data: ExperimentCreate,
-    current_user: dict = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> ExperimentResponse:
     """Create a new research experiment."""
     service = get_research_service()
-    user_id = current_user.get("sub") or current_user.get("user_id")
+    user_id = current_user.id
     return service.create_experiment(data, created_by=user_id)
 
 

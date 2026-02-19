@@ -1,0 +1,115 @@
+{
+  "timestamp": "2026-02-19T14:08:45",
+  "summary": {
+    "total": 15,
+    "passed": 11,
+    "failed": 4
+  },
+  "results": [
+    {
+      "priority": "P0",
+      "endpoint": "GET /health",
+      "status": 200,
+      "pass": true,
+      "snippet": "{\"status\":\"healthy\",\"service\":\"clinical-ontology-normalizer\",\"version\":\"0.1.0\",\"timestamp\":\"2026-02-19T19:08:39.851689+00:00\"}"
+    },
+    {
+      "priority": "P0",
+      "endpoint": "GET /api/v1/patients",
+      "status": 500,
+      "pass": false,
+      "snippet": "{\"error_code\":\"INTERNAL_DATABASE_ERROR\",\"message\":\"A database error occurred\",\"details\":[],\"timestamp\":\"2026-02-19T19:08:39.920538+00:00\",\"path\":\"/api/v1/patients\",\"debug\":{\"exception_type\":\"Programmi"
+    },
+    {
+      "priority": "P0",
+      "endpoint": "GET /api/v1/documents",
+      "status": 200,
+      "pass": true,
+      "snippet": "{\"documents\":[{\"patient_id\":\"SYNTHEA-76b20010\",\"note_type\":\"Synthea wellness\",\"text\":\"PATIENT: Jody426 Hickle134\\nDate of Birth: 2017-08-04\\nGender: M\\nRace: white, Ethnicity: nonhispanic\\n\\nENCOUNTER"
+    },
+    {
+      "priority": "P0",
+      "endpoint": "POST /api/v1/documents/mimic/validate",
+      "status": 200,
+      "pass": true,
+      "snippet": "{\"valid\":true,\"total_rows\":100,\"columns_found\":[\"note_id\",\"subject_id\",\"hadm_id\",\"note_type\",\"charttime\",\"text\",\"patient_name\",\"patient_gender\",\"patient_dob\"],\"columns_missing\":[],\"sample_rows\":[{\"not"
+    },
+    {
+      "priority": "P0",
+      "endpoint": "GET /api/v1/llm-settings",
+      "status": 200,
+      "pass": true,
+      "snippet": "{\"provider\":\"anthropic\",\"model\":\"claude-opus-4-6\",\"is_byok\":false,\"has_system_key\":true,\"key_hint\":\"...vAAA\",\"available_providers\":[\"anthropic\",\"openai\",\"google\",\"xai\",\"ollama\"]}"
+    },
+    {
+      "priority": "P0",
+      "endpoint": "GET /api/v1/llm-settings/models",
+      "status": 200,
+      "pass": true,
+      "snippet": "{\"providers\":{\"anthropic\":[{\"id\":\"claude-opus-4-6\",\"name\":\"Claude Opus 4.6\",\"tier\":\"flagship\"},{\"id\":\"claude-sonnet-4-5-20250929\",\"name\":\"Claude Sonnet 4.5\",\"tier\":\"balanced\"},{\"id\":\"claude-haiku-4-5-"
+    },
+    {
+      "priority": "P0",
+      "endpoint": "POST /api/v1/research/experiments",
+      "status": 500,
+      "pass": false,
+      "snippet": "{\"error_code\":\"INTERNAL_ERROR\",\"message\":\"An unexpected error occurred while processing your request\",\"details\":[],\"timestamp\":\"2026-02-19T19:08:40.303310+00:00\",\"path\":\"/api/v1/research/experiments\","
+    },
+    {
+      "priority": "P0",
+      "endpoint": "GET /api/v1/research/experiments",
+      "status": 200,
+      "pass": true,
+      "snippet": "{\"experiments\":[],\"total\":0}"
+    },
+    {
+      "priority": "P0",
+      "endpoint": "GET /api/v1/research/datasets",
+      "status": 200,
+      "pass": true,
+      "snippet": "{\"datasets\":{\"mtsamples\":{\"doc_count\":99,\"patient_count\":99},\"synthea\":{\"doc_count\":50,\"patient_count\":10}},\"total_documents\":149,\"total_patients\":109}"
+    },
+    {
+      "priority": "P1",
+      "endpoint": "GET /api/v1/vocabularies",
+      "status": 200,
+      "pass": true,
+      "snippet": "{\"vocabularies\":[{\"vocabulary_id\":\"Cancer Modifier\",\"vocabulary_name\":\"Cancer Modifier\",\"current_version\":null,\"latest_version\":null,\"update_available\":false,\"total_concepts\":6043,\"status_breakdown\":{"
+    },
+    {
+      "priority": "P1",
+      "endpoint": "GET /api/v1/calculators",
+      "status": 200,
+      "pass": true,
+      "snippet": "{\"calculators\":[{\"id\":\"custom_bmi\",\"name\":\"Custom BMI with Categories\",\"description\":\"Body Mass Index calculator with WHO category classification\",\"category\":\"anthropometric\",\"is_builtin\":true,\"output"
+    },
+    {
+      "priority": "P1",
+      "endpoint": "GET /api/v1/guidelines",
+      "status": 200,
+      "pass": true,
+      "snippet": "{\"guidelines\":[{\"section_id\":\"ada-glycemic-targets\",\"guideline\":\"ADA Standards of Care in Diabetes (2024)\",\"section_title\":\"Glycemic Targets\",\"recommendation_text\":\"A reasonable A1C goal for many nonp"
+    },
+    {
+      "priority": "P1",
+      "endpoint": "GET /api/v1/graph/stats",
+      "status": 500,
+      "pass": false,
+      "snippet": "{\"error_code\":\"INTERNAL_ERROR\",\"message\":\"Failed to get graph stats: 2 validation errors for GraphStatsResponse\\nconcepts_by_domain.None.[key]\\n  Input should be a valid string [type=string_type, inpu"
+    },
+    {
+      "priority": "P1",
+      "endpoint": "GET /api/v1/research/notes/stats",
+      "status": 200,
+      "pass": true,
+      "snippet": "{\"total\":3078213,\"categories\":{\"Discharge Summary\":331793,\"ED Triage\":425065,\"Radiology Report\":2321355},\"unique_patients\":282418}"
+    },
+    {
+      "priority": "P1",
+      "endpoint": "POST /api/v1/clinical-agent/query/test-patient-1",
+      "status": 500,
+      "pass": false,
+      "snippet": "{\"error_code\":\"INTERNAL_DATABASE_ERROR\",\"message\":\"A database error occurred\",\"details\":[],\"timestamp\":\"2026-02-19T19:08:45.417904+00:00\",\"path\":\"/api/v1/clinical-agent/query/test-patient-1\",\"debug\":{"
+    }
+  ]
+}

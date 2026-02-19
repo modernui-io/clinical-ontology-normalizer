@@ -1,0 +1,39 @@
+{
+  "timestamp": "2026-02-19T12:00:00Z",
+  "build_success": false,
+  "build_errors": [
+    "src/app/patients/[patientId]/page.tsx(207,44): Property 'text' does not exist on type 'ClinicalFact'.",
+    "src/app/patients/[patientId]/page.tsx(233,44): Property 'text' does not exist on type 'ClinicalFact'.",
+    "src/app/patients/[patientId]/page.tsx(259,44): Property 'text' does not exist on type 'ClinicalFact'.",
+    "src/app/patients/[patientId]/page.tsx(286,44): Property 'text' does not exist on type 'ClinicalFact'."
+  ],
+  "type_error_count": 24,
+  "type_error_breakdown": {
+    "source_errors": 4,
+    "test_errors": 20,
+    "blocking_build": "src/app/patients/[patientId]/page.tsx - 4 errors (Property 'text' does not exist on type 'ClinicalFact')",
+    "test_only_errors": "20 errors in __tests__/ files (jest type mismatches - do not block build)"
+  },
+  "pages_exist": {
+    "research_experiments": true,
+    "research_datasets": false,
+    "research_assertions": true,
+    "research_compare": true,
+    "research_figures": true,
+    "research_ingest": true,
+    "research_kg": true,
+    "research_mapping": true,
+    "research_notes": true,
+    "research_pipeline": true,
+    "mimic": true,
+    "settings": true,
+    "patients": true,
+    "documents": true
+  },
+  "hooks_exist": {
+    "useResearch": true,
+    "useMimic": true,
+    "useLlmSettings": false
+  },
+  "build_output_snippet": "Next.js 16.1.2 (Turbopack)\n- Environments: .env.local\nWarning: The 'middleware' file convention is deprecated. Please use 'proxy' instead.\nCreating an optimized production build ...\nCompiled successfully in 5.2s\nRunning TypeScript ...\nFailed to compile.\n\n./src/app/patients/[patientId]/page.tsx:207:44\nType error: Property 'text' does not exist on type 'ClinicalFact'.\n\n205 | {conditions.slice(0, 20).map((f, i) => (\n206 |   <Badge key={i} variant=\"secondary\" className=\"bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300\">\n207 |     {f.concept_name || f.text || \"Unknown\"}\n208 |   </Badge>\n209 | ))}\n210 | {conditions.length > 20 && (\nNext.js build worker exited with code: 1 and signal: null"
+}
