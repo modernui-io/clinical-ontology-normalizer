@@ -45,6 +45,10 @@ class DocumentCreate(BaseModel):
         max_length=500,
         description="URI or ID of the external consent record",
     )
+    note_date: datetime | None = Field(
+        None,
+        description="Clinical note date, used as reference for resolving relative temporal expressions",
+    )
 
     @field_validator("residency_country")
     @classmethod

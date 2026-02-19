@@ -11,6 +11,7 @@ from __future__ import annotations
 import logging
 import os
 import re
+from datetime import datetime
 from typing import TYPE_CHECKING, Protocol
 from uuid import UUID
 
@@ -28,6 +29,7 @@ from app.services.assertion_classifier import (
 )
 from app.services.nlp import BaseNLPService, ExtractedMention
 from app.services.section_parser import ClinicalSection, SectionParser, get_section_parser
+from app.services.temporal_extractor import TemporalExtractor
 from app.services.vocabulary import VocabularyService, get_vocabulary_service
 
 if TYPE_CHECKING:
@@ -279,6 +281,7 @@ class RuleBasedNLPService(BaseNLPService):
         text: str,
         document_id: UUID,
         note_type: str | None = None,
+        document_date: datetime | None = None,
     ) -> list[ExtractedMention]:
         """Extract clinical mentions from document text.
 
@@ -391,6 +394,35 @@ class RuleBasedNLPService(BaseNLPService):
 
         # Sort mentions by position
         mentions.sort(key=lambda m: m.start_offset)
+
+        # Enrich mentions with temporal data from TemporalExtractor
+        if mentions:
+            try:
+                extractor = TemporalExtractor(reference_date=document_date)
+                entities = [
+                    {"text": m.text, "start": m.start_offset, "end": m.end_offset}
+                    for m in mentions
+                ]
+                bindings = extractor.bind_entities_to_temporals(text, entities)
+
+                # Build lookup: (start, end) -> binding for O(1) access
+                binding_map = {
+                    (b.entity_start, b.entity_end): b for b in bindings
+                }
+
+                for mention in mentions:
+                    binding = binding_map.get((mention.start_offset, mention.end_offset))
+                    if binding and binding.temporal_expression.date:
+                        mention.event_date = binding.temporal_expression.date
+                        mention.date_precision = binding.temporal_expression.date_precision
+                        mention.temporal_relationship = binding.relationship
+                        # Upgrade temporality to HISTORICAL if temporal evidence
+                        # indicates a past event (e.g., "diagnosed in 2019")
+                        if binding.relationship in ("diagnosed", "onset", "started", "stopped"):
+                            if mention.temporality == Temporality.CURRENT:
+                                mention.temporality = Temporality.PAST
+            except Exception:
+                logger.warning("Temporal enrichment failed, continuing without temporal data", exc_info=True)
 
         return mentions
 

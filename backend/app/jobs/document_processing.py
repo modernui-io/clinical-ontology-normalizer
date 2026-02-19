@@ -152,12 +152,16 @@ def process_document(document_id: str) -> dict:
                 f"note_type={document.note_type}"
             )
 
+            # Resolve document date for temporal expression anchoring
+            document_date = document.note_date or document.processed_at or document.created_at
+
             # Phase 4: Extract mentions using NLP service
             nlp_service = get_nlp_service()
             extracted_mentions = nlp_service.extract_mentions(
                 text=document.text,
                 document_id=UUID(document_id),
                 note_type=document.note_type,
+                document_date=document_date,
             )
 
             logger.info(f"Extracted {len(extracted_mentions)} mentions from document")
@@ -182,6 +186,9 @@ def process_document(document_id: str) -> dict:
                     temporality=extracted.temporality,
                     experiencer=extracted.experiencer,
                     confidence=extracted.confidence,
+                    event_date=extracted.event_date,
+                    date_precision=extracted.date_precision,
+                    temporal_relationship=extracted.temporal_relationship,
                 )
                 mention_records.append(mention)
                 session.add(mention)
@@ -308,6 +315,7 @@ def process_document(document_id: str) -> dict:
                         temporality=map_temporality(mention.temporality),
                         experiencer=map_experiencer(mention.experiencer),
                         confidence=mention.confidence,
+                        start_date=mention.event_date,
                     )
                     fact_count += 1
 

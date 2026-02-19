@@ -94,6 +94,11 @@ class Document(SoftDeleteMixin, Base):
         DateTime(timezone=True),
         nullable=True,
     )
+    note_date: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        doc="Clinical note date, used as reference for resolving relative temporal expressions",
+    )
 
     # P1-027: Residency and consent metadata
     residency_country: Mapped[str | None] = mapped_column(

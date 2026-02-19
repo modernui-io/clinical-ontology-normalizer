@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from sqlalchemy import BigInteger, Enum, Float, ForeignKey, Integer, String, Text
+from datetime import datetime
+
+from sqlalchemy import BigInteger, DateTime, Enum, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -68,6 +70,18 @@ class Mention(Base):
         Float,
         nullable=False,
         default=1.0,
+    )
+    event_date: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    date_precision: Mapped[str | None] = mapped_column(
+        String(20),
+        nullable=True,
+    )
+    temporal_relationship: Mapped[str | None] = mapped_column(
+        String(30),
+        nullable=True,
     )
 
     # Relationships

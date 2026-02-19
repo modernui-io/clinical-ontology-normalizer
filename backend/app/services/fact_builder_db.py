@@ -105,6 +105,8 @@ class DatabaseFactBuilderService(BaseFactBuilderService):
             confidence=fact_input.confidence,
             value=fact_input.value,
             unit=fact_input.unit,
+            start_date=fact_input.start_date,
+            end_date=fact_input.end_date,
             pipeline_version=pipeline_info.version_string,
         )
         self._session.add(fact)

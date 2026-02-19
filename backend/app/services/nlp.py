@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from datetime import datetime
 from uuid import UUID
 
 from app.schemas.base import Assertion, Experiencer, Temporality
@@ -36,6 +37,10 @@ class ExtractedMention:
     # Probabilistic assertion fields (from assertion_classifier)
     assertion_confidence: float | None = None  # Calibrated confidence in assertion (0-1)
     assertion_trigger: str | None = None  # The trigger pattern that determined assertion
+    # Temporal fields (from temporal_extractor)
+    event_date: datetime | None = None  # Resolved date from temporal expression
+    date_precision: str | None = None  # "day", "month", "year", "approximate"
+    temporal_relationship: str | None = None  # "onset", "diagnosed", "started", "stopped", "during"
 
     @property
     def is_negated(self) -> bool:
@@ -75,6 +80,7 @@ class NLPServiceInterface(ABC):
         text: str,
         document_id: UUID,
         note_type: str | None = None,
+        document_date: datetime | None = None,
     ) -> list[ExtractedMention]:
         """Extract clinical mentions from document text.
 
@@ -89,6 +95,8 @@ class NLPServiceInterface(ABC):
             document_id: UUID of the source document (for logging/reference).
             note_type: Optional type of clinical note (e.g., 'progress_note',
                       'discharge_summary') which may influence extraction.
+            document_date: Optional document date for resolving relative
+                          temporal expressions (e.g., "3 days ago").
 
         Returns:
             List of ExtractedMention objects with text spans and attributes.
@@ -182,6 +190,7 @@ class BaseNLPService(NLPServiceInterface):
         text: str,
         document_id: UUID,
         note_type: str | None = None,
+        document_date: datetime | None = None,
     ) -> list[ExtractedMention]:
         """Default implementation that returns empty list.
 
