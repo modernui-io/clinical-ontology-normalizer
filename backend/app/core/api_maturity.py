@@ -97,6 +97,7 @@ ENDPOINT_MATURITY_REGISTRY: dict[str, EndpointMaturity] = {
     "/ai-coding": EndpointMaturity.PILOT,
     "/feedback": EndpointMaturity.PILOT,
     "/clinical-agent": EndpointMaturity.PILOT,
+    "/research": EndpointMaturity.PILOT,
     # ── PILOT: clinical trials integration ──
     "/sites": EndpointMaturity.PILOT,
     "/screening-results": EndpointMaturity.PILOT,

@@ -65,6 +65,9 @@ class MaturityGateMiddleware(BaseHTTPMiddleware):
                     path,
                     dep_info.message or "deprecated",
                 )
+        # Pilot stability headers
+        elif maturity == EndpointMaturity.PILOT:
+            response.headers.setdefault("X-API-Stability", "pilot")
         # Scaffold warning headers
         elif maturity == EndpointMaturity.SCAFFOLD:
             response.headers["X-API-Stability"] = "experimental"
