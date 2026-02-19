@@ -226,7 +226,7 @@ class DRKNOWSBenchmarkService:
         """Initialize the benchmark service.
 
         Args:
-            db_session: Optional SQLAlchemy Session for real KG queries.
+            db_session: Optional SQLAlchemy AsyncSession for real KG queries.
         """
         self._baseline = DRKNOWS_BASELINE
         self._semantic_groups = UMLS_SEMANTIC_GROUPS
@@ -431,18 +431,18 @@ class DRKNOWSBenchmarkService:
         """Discover a path in the real KG, falling back to mock on failure.
 
         Queries the PostgreSQL-backed KG (kg_nodes / kg_edges) via
-        GraphAugmentedRAGService concept extraction + graph traversal.
+        BFS traversal.
         """
         if self._db_session is not None:
             try:
-                return self._discover_path_pg(query)
+                return await self._discover_path_pg(query)
             except Exception as exc:
                 logger.debug("Real path discovery failed, falling back to mock: %s", exc)
 
         return self._mock_discover_path(query)
 
-    def _discover_path_pg(self, query: dict[str, Any]) -> dict[str, Any] | None:
-        """Discover a path using the PG-backed knowledge graph."""
+    async def _discover_path_pg(self, query: dict[str, Any]) -> dict[str, Any] | None:
+        """Discover a path using the PG-backed knowledge graph (async)."""
         from sqlalchemy import select, func as sa_func
         from app.models.knowledge_graph import KGNode, KGEdge
 
@@ -458,7 +458,7 @@ class DRKNOWSBenchmarkService:
         stmt = select(KGNode).where(
             sa_func.lower(KGNode.label).contains(keywords[0])
         ).limit(5)
-        result = self._db_session.execute(stmt)
+        result = await self._db_session.execute(stmt)
         start_nodes = list(result.scalars().all())
 
         if not start_nodes:
@@ -479,7 +479,7 @@ class DRKNOWSBenchmarkService:
                 .where(KGEdge.source_node_id.in_(current_node_ids))
                 .limit(10)
             )
-            edge_result = self._db_session.execute(edge_stmt)
+            edge_result = await self._db_session.execute(edge_stmt)
             edges = list(edge_result.scalars().all())
 
             if not edges:
@@ -494,7 +494,7 @@ class DRKNOWSBenchmarkService:
             # Fetch target node types
             if next_node_ids:
                 node_stmt = select(KGNode).where(KGNode.id.in_(next_node_ids[:5]))
-                node_result = self._db_session.execute(node_stmt)
+                node_result = await self._db_session.execute(node_stmt)
                 for node in node_result.scalars().all():
                     visited_types.append(node.node_type.value)
 
@@ -574,32 +574,24 @@ class DRKNOWSBenchmarkService:
         """
         if self._db_session is not None:
             try:
-                return self._reason_pg(query)
+                return await self._reason_pg(query)
             except Exception as exc:
                 logger.debug("Real reasoning failed, falling back to mock: %s", exc)
 
         return self._mock_reason(query)
 
-    def _reason_pg(self, query: dict[str, Any]) -> dict[str, Any]:
-        """Reason using the PG-backed knowledge graph.
+    async def _reason_pg(self, query: dict[str, Any]) -> dict[str, Any]:
+        """Reason using the PG-backed knowledge graph (async).
 
         Discovers a path and checks if the expected answer concepts
         appear in the traversal results.
         """
-        path_result = self._discover_path_pg(query)
+        path_result = await self._discover_path_pg(query)
         if path_result is None:
             return {"correct": False, "answer_provided": False, "confidence": 0.0}
 
-        # Check if expected answer appears in discovered path
-        expected = query.get("expected_answer", "")
-        if isinstance(expected, list):
-            expected_terms = [e.lower() for e in expected]
-        else:
-            expected_terms = [expected.lower()]
-
         # For real evaluation, we check if the path contains relevant relations
         path_relations = [r.lower() for r in path_result.get("relations", [])]
-        path_types = [t.lower() for t in path_result.get("semantic_types", [])]
 
         # Heuristic: path is "correct" if it reaches the expected depth
         # and covers relevant relation types
@@ -636,26 +628,64 @@ class DRKNOWSBenchmarkService:
         self,
         kg_service: Any,
     ) -> SemanticCoverageMetrics:
-        """Benchmark semantic type coverage."""
-        # Simulate semantic coverage analysis
-        covered_types = 115  # Simulate covering most types
-        covered_groups = 15  # All groups covered
+        """Benchmark semantic type coverage using real KG data when available."""
+        if self._db_session is not None:
+            try:
+                return await self._semantic_coverage_pg()
+            except Exception as exc:
+                logger.debug("Real semantic coverage failed, using mock: %s", exc)
 
-        type_distribution = {
-            "T047": 1500,  # Disease or Syndrome
-            "T121": 2000,  # Pharmacologic Substance
-            "T061": 500,   # Therapeutic Procedure
-            "T034": 800,   # Laboratory Finding
-            "T184": 300,   # Sign or Symptom
+        # Mock fallback
+        return SemanticCoverageMetrics(
+            total_semantic_types=127,
+            covered_types=115,
+            coverage_percentage=115 / 127,
+            semantic_groups_covered=15,
+            total_semantic_groups=15,
+            group_coverage=1.0,
+            type_distribution={
+                "T047": 1500, "T121": 2000, "T061": 500, "T034": 800, "T184": 300,
+            },
+        )
+
+    async def _semantic_coverage_pg(self) -> SemanticCoverageMetrics:
+        """Compute semantic coverage from real KG node_type distribution."""
+        from sqlalchemy import select, func as sa_func
+        from app.models.knowledge_graph import KGNode
+
+        # Count nodes per node_type
+        stmt = (
+            select(KGNode.node_type, sa_func.count(KGNode.id))
+            .group_by(KGNode.node_type)
+        )
+        result = await self._db_session.execute(stmt)
+        rows = result.all()
+
+        type_distribution: dict[str, int] = {}
+        for node_type, count in rows:
+            type_distribution[node_type.value if hasattr(node_type, "value") else str(node_type)] = count
+
+        covered_types = len(type_distribution)
+
+        # Map node types to semantic groups (approximate)
+        group_map = {
+            "condition": "DISO", "drug": "CHEM", "procedure": "PROC",
+            "lab_test": "PROC", "lab_result": "PHYS", "vital_sign": "PHYS",
+            "symptom": "DISO", "anatomy": "ANAT", "device": "DEVI",
+            "organism": "LIVB", "substance": "CHEM", "gene": "GENE",
         }
+        groups_seen = set()
+        for nt in type_distribution:
+            g = group_map.get(nt.lower(), "CONC")
+            groups_seen.add(g)
 
         return SemanticCoverageMetrics(
             total_semantic_types=127,
             covered_types=covered_types,
             coverage_percentage=covered_types / 127,
-            semantic_groups_covered=covered_groups,
+            semantic_groups_covered=len(groups_seen),
             total_semantic_groups=15,
-            group_coverage=covered_groups / 15,
+            group_coverage=len(groups_seen) / 15,
             type_distribution=type_distribution,
         )
 
@@ -691,20 +721,49 @@ class DRKNOWSBenchmarkService:
         self,
         kg_service: Any,
     ) -> KnowledgeCoverageMetrics:
-        """Benchmark knowledge base coverage."""
-        # Simulate coverage metrics (comparing to UMLS full set)
-        total_concepts = 4_500_000  # UMLS has ~4.5M concepts
-        indexed_concepts = 3_800_000
-        total_relationships = 15_000_000  # UMLS has ~15M relations
-        indexed_relationships = 12_500_000
+        """Benchmark knowledge base coverage using real KG data when available."""
+        if self._db_session is not None:
+            try:
+                return await self._knowledge_coverage_pg()
+            except Exception as exc:
+                logger.debug("Real knowledge coverage failed, using mock: %s", exc)
+
+        # Mock fallback
+        return KnowledgeCoverageMetrics(
+            total_concepts=4_500_000,
+            indexed_concepts=3_800_000,
+            concept_coverage=3_800_000 / 4_500_000,
+            total_relationships=15_000_000,
+            indexed_relationships=12_500_000,
+            relationship_coverage=12_500_000 / 15_000_000,
+            avg_connections_per_concept=12_500_000 / 3_800_000,
+        )
+
+    async def _knowledge_coverage_pg(self) -> KnowledgeCoverageMetrics:
+        """Compute knowledge coverage from real KG counts."""
+        from sqlalchemy import select, func as sa_func
+        from app.models.knowledge_graph import KGNode, KGEdge
+
+        node_count_stmt = select(sa_func.count(KGNode.id))
+        edge_count_stmt = select(sa_func.count(KGEdge.id))
+
+        node_result = await self._db_session.execute(node_count_stmt)
+        edge_result = await self._db_session.execute(edge_count_stmt)
+
+        indexed_concepts = node_result.scalar() or 0
+        indexed_relationships = edge_result.scalar() or 0
+
+        # Compare against UMLS full set
+        total_concepts = 4_500_000
+        total_relationships = 15_000_000
 
         return KnowledgeCoverageMetrics(
             total_concepts=total_concepts,
             indexed_concepts=indexed_concepts,
-            concept_coverage=indexed_concepts / total_concepts,
+            concept_coverage=indexed_concepts / total_concepts if total_concepts > 0 else 0.0,
             total_relationships=total_relationships,
             indexed_relationships=indexed_relationships,
-            relationship_coverage=indexed_relationships / total_relationships,
+            relationship_coverage=indexed_relationships / total_relationships if total_relationships > 0 else 0.0,
             avg_connections_per_concept=indexed_relationships / indexed_concepts if indexed_concepts > 0 else 0.0,
         )
 

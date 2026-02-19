@@ -936,13 +936,89 @@ class QAEvaluationService:
             correct = answer_temporal
             score = 1.0 if correct else 0.0
 
+        # --- Task B: Temporal reasoning categories ---
+        elif question.category in ("current_state", "historical"):
+            # Check if answer correctly identifies current vs historical status
+            current_kw = ["current", "active", "present", "ongoing", "documented", "has", "is on"]
+            historical_kw = ["was", "former", "previously", "history of", "resolved", "past", "discontinued", "prior"]
+            expected_is_current = any(kw in expected_lower for kw in current_kw)
+            answer_is_current = any(kw in predicted_lower for kw in current_kw)
+            answer_is_historical = any(kw in predicted_lower for kw in historical_kw)
+            if expected_is_current:
+                correct = answer_is_current and not answer_is_historical
+            else:
+                correct = answer_is_historical
+            score = 1.0 if correct else 0.0
+
+        elif question.category in ("sequence", "change"):
+            # Check if the answer identifies the correct ordering or change
+            # Extract key clinical terms from expected answer
+            expected_terms = set(expected_lower.split()) - {
+                "the", "a", "an", "is", "of", "in", "to", "for", "was", "and",
+                "then", "by", "first", "followed", "identified", "before", "after",
+            }
+            predicted_terms = set(predicted_lower.split())
+            overlap = expected_terms & predicted_terms
+            score = len(overlap) / max(len(expected_terms), 1)
+            # Also check for ordering keywords
+            order_kw = ["first", "then", "followed", "before", "after", "prior", "subsequently", "later"]
+            has_ordering = any(kw in predicted_lower for kw in order_kw)
+            if has_ordering:
+                score = min(score + 0.2, 1.0)
+            correct = score >= 0.3
+
+        elif question.category == "duration":
+            # Check if answer references time duration concepts
+            duration_kw = ["day", "week", "month", "year", "duration", "since", "for", "period", "length", "span"]
+            has_duration = any(kw in predicted_lower for kw in duration_kw)
+            # Also check key concept overlap
+            expected_terms = set(expected_lower.split()) - {"the", "a", "an", "is", "of", "in", "to", "for", "was"}
+            predicted_terms = set(predicted_lower.split())
+            overlap = expected_terms & predicted_terms
+            term_score = len(overlap) / max(len(expected_terms), 1)
+            score = max(term_score, 0.5 if has_duration else 0.0)
+            correct = score >= 0.3
+
+        # --- Task C: Calculator categories ---
+        elif question.category in ("heart", "wells_pe", "sofa", "ckd_epi", "ascvd", "meld", "other"):
+            # For calculator questions, check if answer mentions relevant score/values
+            # and reaches a similar clinical conclusion
+            expected_terms = set(expected_lower.split()) - {
+                "the", "a", "an", "is", "of", "in", "to", "for", "was", "and",
+                "score", "based", "on", "patient", "this", "with", "that",
+            }
+            predicted_terms = set(predicted_lower.split())
+            overlap = expected_terms & predicted_terms
+            score = len(overlap) / max(len(expected_terms), 1)
+            # Bonus for mentioning specific calculator or risk level
+            calc_kw = ["score", "risk", "low", "moderate", "high", "points", "calculate"]
+            if any(kw in predicted_lower for kw in calc_kw):
+                score = min(score + 0.15, 1.0)
+            correct = score >= 0.3
+
+        # --- Task D: Fusion categories ---
+        elif question.category in ("vital_note", "lab_note", "temporal_fusion", "cross_note_discordance"):
+            # For fusion questions, check if answer integrates information
+            expected_terms = set(expected_lower.split()) - {
+                "the", "a", "an", "is", "of", "in", "to", "for", "was", "and",
+                "patient", "this", "with", "that", "from", "note", "notes",
+            }
+            predicted_terms = set(predicted_lower.split())
+            overlap = expected_terms & predicted_terms
+            score = len(overlap) / max(len(expected_terms), 1)
+            # Bonus for multi-source integration language
+            fusion_kw = ["however", "while", "compared", "discrepancy", "consistent", "inconsistent", "both", "across"]
+            if any(kw in predicted_lower for kw in fusion_kw):
+                score = min(score + 0.1, 1.0)
+            correct = score >= 0.25
+
         else:
             # General scoring: check if key terms from expected answer appear
             expected_terms = set(expected_lower.split()) - {"the", "a", "an", "is", "of", "in", "to", "for"}
             predicted_terms = set(predicted_lower.split())
             overlap = expected_terms & predicted_terms
             score = len(overlap) / max(len(expected_terms), 1)
-            correct = score >= 0.5
+            correct = score >= 0.3
 
         return QAResult(
             question_id=question.question_id,

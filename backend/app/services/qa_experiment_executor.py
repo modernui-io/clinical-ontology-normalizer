@@ -190,9 +190,14 @@ class QAExperimentExecutor:
         t0 = time.perf_counter()
 
         try:
+            # Use question-specific patient_id if available (multi-patient benchmarks)
+            effective_patient_id = (
+                question.metadata.get("patient_id") or config.patient_id
+            )
+
             # === C1 bypass: raw note → LLM, no RAG ===
             if config.raw_note_only:
-                evidence = self._get_raw_note_context(config.patient_id, rag_service)
+                evidence = self._get_raw_note_context(effective_patient_id, rag_service)
                 user_prompt = (
                     f"Clinical note:\n{evidence}\n\n"
                     f"Question: {question.question}\n\n"
@@ -204,7 +209,7 @@ class QAExperimentExecutor:
                 # Step 1: Retrieve graph-augmented context
                 context = rag_service.retrieve_context(
                     query=question.question,
-                    patient_id=config.patient_id,
+                    patient_id=effective_patient_id,
                     max_hops=config.max_hops,
                     max_paths=config.max_paths,
                     assertion_mode=config.assertion_mode,
@@ -219,7 +224,7 @@ class QAExperimentExecutor:
                 calculator_context = ""
                 if config.calculator_enabled:
                     calculator_context = self._get_calculator_context(
-                        config.patient_id, question.question,
+                        effective_patient_id, question.question,
                     )
                     if calculator_context:
                         evidence += f"\n\n=== Calculator Results ===\n{calculator_context}"

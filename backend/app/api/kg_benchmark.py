@@ -9,10 +9,12 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.errors import log_and_raise_internal_error
+from app.core.database import get_db
 
 from app.services.drknows_benchmark_service import (
     DRKNOWSBenchmarkService,
@@ -208,18 +210,21 @@ async def list_difficulty_levels() -> list[dict[str, str]]:
 # DR.KNOWS Benchmark Endpoints
 
 @router.post("/drknows/run")
-async def run_drknows_benchmark() -> dict[str, Any]:
+async def run_drknows_benchmark(
+    session: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
     """Run a complete DR.KNOWS-style benchmark.
 
     This runs the full benchmark suite including:
-    - Path discovery metrics
-    - Reasoning accuracy
-    - Semantic coverage
+    - Path discovery metrics (real KG traversal)
+    - Reasoning accuracy (real KG path matching)
+    - Semantic coverage (real node_type distribution)
+    - Knowledge coverage (real node/edge counts)
     - Multi-hop accuracy
     - Temporal reasoning
     - Explanation quality
     """
-    service = get_drknows_benchmark_service()
+    service = get_drknows_benchmark_service(db_session=session)
 
     try:
         result = await service.run_full_benchmark(None)

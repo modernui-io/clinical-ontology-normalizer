@@ -1,22 +1,22 @@
 {
   "benchmark": "MedQA-USMLE-4-options",
   "total_questions": 1273,
-  "evaluated_questions": 5,
+  "evaluated_questions": 100,
   "llm_model": "claude-opus-4-5-20251101",
-  "duration_s": 43.40612018597312,
+  "duration_s": 886.9225943220081,
   "conditions": {
     "llm_alone": {
       "condition": "llm_alone",
-      "total": 5,
-      "correct": 4,
+      "total": 100,
+      "correct": 80,
       "accuracy": 0.8,
-      "step1_accuracy": 0.6666666666666666,
-      "step1_correct": 2,
-      "step1_total": 3,
-      "step23_accuracy": 1.0,
-      "step23_correct": 2,
-      "step23_total": 2,
-      "latency_s": 43.406048353004735,
+      "step1_accuracy": 0.7547169811320755,
+      "step1_correct": 40,
+      "step1_total": 53,
+      "step23_accuracy": 0.851063829787234,
+      "step23_correct": 40,
+      "step23_total": 47,
+      "latency_s": 886.9224569890066,
       "per_question": [
         {
           "question_id": "medqa_test_00000",
@@ -57,6 +57,126 @@
           "correct": true,
           "exam_level": "step2&3",
           "response_preview": "B. Ketotifen eye drops\n\nThis patient presents with classic allergic conjunctivitis, characterized by"
+        },
+        {
+          "question_id": "medqa_test_00005",
+          "predicted": "A",
+          "expected": "D",
+          "correct": false,
+          "exam_level": "step2&3",
+          "response_preview": "A. Diltiazem\n\nThis patient is presenting with chest pain, diaphoresis, and marked distress in the se"
+        },
+        {
+          "question_id": "medqa_test_00006",
+          "predicted": "B",
+          "expected": "C",
+          "correct": false,
+          "exam_level": "step1",
+          "response_preview": "B. Because...\n\nThis patient presents with right flank pain, hydronephrosis (dilation of the right ur"
+        },
+        {
+          "question_id": "medqa_test_00007",
+          "predicted": "C",
+          "expected": "C",
+          "correct": true,
+          "exam_level": "step2&3",
+          "response_preview": "C. Clopidogrel\n\nThis patient has experienced an acute coronary syndrome (ACS) - specifically a non-S"
+        },
+        {
+          "question_id": "medqa_test_00008",
+          "predicted": "B",
+          "expected": "B",
+          "correct": true,
+          "exam_level": "step2&3",
+          "response_preview": "B. Because active or recurrent pelvic inflammatory disease (PID) is a contraindication to copper IUD"
+        },
+        {
+          "question_id": "medqa_test_00009",
+          "predicted": "B",
+          "expected": "A",
+          "correct": false,
+          "exam_level": "step1",
+          "response_preview": "B. Flesh-colored papules in the lumbosacral region\n\nThe image would show nail pitting and likely ony"
+        },
+        {
+          "question_id": "medqa_test_00010",
+          "predicted": "D",
+          "expected": "D",
+          "correct": true,
+          "exam_level": "step1",
+          "response_preview": "D. Because...\n\nThe current CDC-recommended algorithm for HIV diagnosis uses a combination of tests. "
+        },
+        {
+          "question_id": "medqa_test_00011",
+          "predicted": "D",
+          "expected": "D",
+          "correct": true,
+          "exam_level": "step2&3",
+          "response_preview": "D. Ruxolitinib\n\nThis patient presents with classic features of primary myelofibrosis (PMF):\n- Consti"
+        },
+        {
+          "question_id": "medqa_test_00012",
+          "predicted": "B",
+          "expected": "B",
+          "correct": true,
+          "exam_level": "step1",
+          "response_preview": "B. Meningioma\n\nThis patient's presentation of bilateral sensorineural hearing loss, gait unsteadines"
+        },
+        {
+          "question_id": "medqa_test_00013",
+          "predicted": "D",
+          "expected": "D",
+          "correct": true,
+          "exam_level": "step1",
+          "response_preview": "D. A reduction in diastolic filling time\n\nWhen a patient moves from supine to standing position, sev"
+        },
+        {
+          "question_id": "medqa_test_00014",
+          "predicted": "A",
+          "expected": "C",
+          "correct": false,
+          "exam_level": "step1",
+          "response_preview": "A. Rotavirus\n\nThe process described is **reassortment**, which occurs when two related viruses with "
+        },
+        {
+          "question_id": "medqa_test_00015",
+          "predicted": "B",
+          "expected": "B",
+          "correct": true,
+          "exam_level": "step2&3",
+          "response_preview": "B. Because...\n\nThis patient presents with several concerning features that warrant immediate exclusi"
+        },
+        {
+          "question_id": "medqa_test_00016",
+          "predicted": "D",
+          "expected": "D",
+          "correct": true,
+          "exam_level": "step2&3",
+          "response_preview": "D. IL-4\n\nIL-4 is the mediator being described in this experimental study. Here's my reasoning:\n\n**Ke"
+        },
+        {
+          "question_id": "medqa_test_00017",
+          "predicted": "D",
+          "expected": "D",
+          "correct": true,
+          "exam_level": "step2&3",
+          "response_preview": "D. Matching\n\nIn this study, the pediatrician controlled for confounding variables (age, socioeconomi"
+        },
+        {
+          "question_id": "medqa_test_00018",
+          "predicted": "B",
+          "expected": "B",
+          "correct": true,
+          "exam_level": "step2&3",
+          "response_preview": "B. Ibuprofen + colchicine +/- omeprazole\n\nThis patient presents with classic features of acute peric"
+        },
+        {
+          "question_id": "medqa_test_00019",
+          "predicted": "D",
+          "expected": "D",
+          "correct": true,
+          "exam_level": "step2&3",
+          "response_preview": "D. Benzodiazepine intoxication\n\nThe patient presents with altered mental status, somnolence, slurred"
         }
       ]
     }
