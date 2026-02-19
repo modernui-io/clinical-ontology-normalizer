@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -71,8 +71,9 @@ function OAuthButton({
 // Login Page Component
 // ============================================================================
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login, isLoading, error, clearError } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
 
@@ -99,13 +100,14 @@ export default function LoginPage() {
         description: "You have been logged in successfully.",
       });
 
-      // Check for redirect URL
-      const redirectUrl =
+      // Check for redirect URL: query param (from middleware) or sessionStorage (from useRequireAuth)
+      const redirectParam = searchParams.get("redirect");
+      const storedRedirect =
         typeof window !== "undefined"
           ? sessionStorage.getItem("redirectAfterLogin")
           : null;
       sessionStorage.removeItem("redirectAfterLogin");
-      router.push(redirectUrl || "/dashboard");
+      router.push(redirectParam || storedRedirect || "/dashboard");
     } else {
       toast.error("Login failed", {
         description: error || "Please check your credentials and try again.",
@@ -361,5 +363,13 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }

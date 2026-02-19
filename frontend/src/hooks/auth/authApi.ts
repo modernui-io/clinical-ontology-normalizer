@@ -26,29 +26,6 @@ function clearAuthCookie(): void {
 }
 
 // ============================================================================
-// Demo Mode (backend unavailable)
-// ============================================================================
-
-const DEMO_USER: User = {
-  id: "demo-admin",
-  email: "admin@example.com",
-  name: "System Administrator",
-  roles: ["admin"],
-  permissions: ["*"],
-};
-
-const DEMO_TOKENS: AuthTokens = {
-  access_token: "demo-token",
-  refresh_token: "demo-refresh",
-  token_type: "bearer",
-  expires_in: 86400,
-};
-
-function isDemoToken(token: string): boolean {
-  return token === "demo-token" || token === "demo-refresh";
-}
-
-// ============================================================================
 // API Functions
 // ============================================================================
 
@@ -61,12 +38,8 @@ export async function apiLogin(credentials: LoginCredentials): Promise<{ user: U
       body: JSON.stringify(credentials),
     });
   } catch {
-    // Network error — backend is unavailable. Fall back to demo mode.
-    if (credentials.email === DEMO_USER.email && credentials.password === "Admin123!") {
-      setAuthCookie(DEMO_TOKENS.expires_in);
-      return { user: DEMO_USER, tokens: DEMO_TOKENS };
-    }
-    throw new Error("Invalid email or password");
+    // Network error — backend is unavailable
+    throw new Error("Unable to connect to the server. Please try again later.");
   }
 
   if (!response.ok) {
@@ -138,11 +111,6 @@ export async function apiLogout(refreshToken: string): Promise<void> {
 }
 
 export async function apiRefreshToken(refreshToken: string): Promise<AuthTokens> {
-  if (isDemoToken(refreshToken)) {
-    setAuthCookie(DEMO_TOKENS.expires_in);
-    return DEMO_TOKENS;
-  }
-
   const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -162,10 +130,6 @@ export async function apiRefreshToken(refreshToken: string): Promise<AuthTokens>
 }
 
 export async function apiGetCurrentUser(accessToken: string): Promise<User> {
-  if (isDemoToken(accessToken)) {
-    return DEMO_USER;
-  }
-
   const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });

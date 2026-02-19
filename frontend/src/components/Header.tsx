@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Notifications } from "@/components/Notifications";
 import { Breadcrumb } from "@/components/Breadcrumb";
+import { useAuth } from "@/hooks/use-auth";
 import {
   Bell,
   ChevronDown,
@@ -79,12 +80,23 @@ const isAuthPage = (pathname: string) => {
 
 export function Header({ className }: HeaderProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, isAuthenticated, logout } = useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isMarkingRead, setIsMarkingRead] = useState(false);
+
+  const displayName = isAuthenticated && user ? user.name : "Demo User";
+  const displayEmail = isAuthenticated && user ? user.email : "demo@clinicalont.local";
+  const userInitials = displayName
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 
   // Fetch notifications from API (falls back to mock data if backend unavailable)
   const fetchNotifications = useCallback(async () => {
@@ -425,19 +437,19 @@ export function Header({ className }: HeaderProps) {
               setIsUserMenuOpen(!isUserMenuOpen);
               setIsNotificationsOpen(false);
             }}
-            aria-label="User menu for Demo User"
+            aria-label={`User menu for ${displayName}`}
             aria-expanded={isUserMenuOpen}
             aria-haspopup="menu"
             aria-controls="user-menu"
           >
             <div
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-muted"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-xs font-semibold"
               aria-hidden="true"
             >
-              <User className="h-4 w-4" />
+              {userInitials || <User className="h-4 w-4" />}
             </div>
             <span className="hidden text-sm font-medium md:inline-block">
-              Demo User
+              {displayName}
             </span>
             <ChevronDown className="h-4 w-4" aria-hidden="true" />
           </Button>
@@ -458,9 +470,9 @@ export function Header({ className }: HeaderProps) {
                 aria-label="User menu"
               >
                 <div className="border-b p-3" role="presentation">
-                  <p className="font-medium">Demo User</p>
+                  <p className="font-medium">{displayName}</p>
                   <p className="text-xs text-muted-foreground">
-                    demo@clinicalont.local
+                    {displayEmail}
                   </p>
                 </div>
                 <div className="p-1" role="group">
@@ -486,9 +498,11 @@ export function Header({ className }: HeaderProps) {
                 <div className="border-t p-1" role="group">
                   <button
                     className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-destructive hover:bg-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                    onClick={() => {
+                    onClick={async () => {
                       setIsUserMenuOpen(false);
-                      // Handle logout
+                      await logout();
+                      document.cookie = "has_auth=; path=/; max-age=0; SameSite=Lax";
+                      router.push("/login");
                     }}
                     role="menuitem"
                     aria-label="Sign out of your account"

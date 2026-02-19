@@ -10,6 +10,8 @@ from app.api.documents.documents_bulk import router as bulk_router
 from app.api.documents.documents_search import router as search_router
 from app.api.documents.documents_tags import router as tags_router
 from app.api.documents.documents_mimic import router as mimic_router
+from app.api.documents.documents_mtsamples import router as mtsamples_router
+from app.api.documents.documents_synthea import router as synthea_router
 
 # Create a combined router that includes all sub-routers
 router = APIRouter()
@@ -21,6 +23,8 @@ router.include_router(bulk_router)
 router.include_router(search_router)
 router.include_router(tags_router)
 router.include_router(mimic_router)
+router.include_router(mtsamples_router)
+router.include_router(synthea_router)
 
 __all__ = [
     "router",
@@ -30,4 +34,6 @@ __all__ = [
     "search_router",
     "tags_router",
     "mimic_router",
+    "mtsamples_router",
+    "synthea_router",
 ]

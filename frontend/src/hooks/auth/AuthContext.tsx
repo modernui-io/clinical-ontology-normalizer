@@ -6,7 +6,7 @@
  */
 
 import { useState, useCallback, useEffect, createContext, useContext, type ReactNode } from "react";
-import { getStoredTokens, setStoredTokens, getStoredUser, setStoredUser } from "./authStorage";
+import { getStoredTokens, setStoredTokens, getStoredUser, setStoredUser, setRememberMe } from "./authStorage";
 import {
   apiLogin,
   apiLogout,
@@ -133,6 +133,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       const { user, tokens: newTokens } = await apiLogin(credentials);
+
+      // Set persistence preference before storing tokens
+      setRememberMe(!!credentials.remember_me);
 
       setTokens(newTokens);
       setStoredTokens(newTokens);

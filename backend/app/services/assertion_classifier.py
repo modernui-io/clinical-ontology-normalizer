@@ -43,6 +43,9 @@ class AssertionCategory(str, Enum):
     ABSENT = "absent"  # Negated/denied (confidence 0.85-0.98)
     UNCERTAIN = "uncertain"  # Possible/suspected (confidence 0.30-0.70)
     HYPOTHETICAL = "hypothetical"  # Conditional/future (confidence 0.20-0.40)
+    CONDITIONAL = "conditional"  # Contingent statements (confidence 0.20-0.40)
+    FAMILY_HISTORY = "family_history"  # Family history mention (confidence 0.75-0.95)
+    HISTORICAL = "historical"  # Past/former condition (confidence 0.75-0.90)
     PRESENT = "present"  # Affirmed/confirmed (confidence 0.85-0.98)
 
 
@@ -126,8 +129,6 @@ ABSENT_TRIGGERS: list[AssertionTrigger] = [
     AssertionTrigger("didn't have", AssertionCategory.ABSENT, 0.88, TriggerScope.FORWARD),
     AssertionTrigger("did not have", AssertionCategory.ABSENT, 0.88, TriggerScope.FORWARD),
     AssertionTrigger("no longer has", AssertionCategory.ABSENT, 0.87, TriggerScope.FORWARD),
-    AssertionTrigger("resolved", AssertionCategory.ABSENT, 0.86, TriggerScope.BACKWARD),
-    AssertionTrigger("has resolved", AssertionCategory.ABSENT, 0.87, TriggerScope.BACKWARD),
     AssertionTrigger("cleared", AssertionCategory.ABSENT, 0.85, TriggerScope.BACKWARD),
 ]
 
@@ -169,11 +170,7 @@ UNCERTAIN_TRIGGERS: list[AssertionTrigger] = [
 ]
 
 HYPOTHETICAL_TRIGGERS: list[AssertionTrigger] = [
-    # Conditional assertions (0.20-0.40)
-    AssertionTrigger("if", AssertionCategory.HYPOTHETICAL, 0.25, TriggerScope.FORWARD, max_scope_tokens=8),
-    AssertionTrigger("should", AssertionCategory.HYPOTHETICAL, 0.30, TriggerScope.FORWARD),
-    AssertionTrigger("would", AssertionCategory.HYPOTHETICAL, 0.25, TriggerScope.FORWARD),
-    AssertionTrigger("in case of", AssertionCategory.HYPOTHETICAL, 0.20, TriggerScope.FORWARD),
+    # Hypothetical/future assertions (0.20-0.40)
     AssertionTrigger("risk of", AssertionCategory.HYPOTHETICAL, 0.35, TriggerScope.FORWARD),
     AssertionTrigger("risk for", AssertionCategory.HYPOTHETICAL, 0.35, TriggerScope.FORWARD),
     AssertionTrigger("at risk for", AssertionCategory.HYPOTHETICAL, 0.35, TriggerScope.FORWARD),
@@ -185,6 +182,41 @@ HYPOTHETICAL_TRIGGERS: list[AssertionTrigger] = [
     AssertionTrigger("prophylactic", AssertionCategory.HYPOTHETICAL, 0.30, TriggerScope.FORWARD),
     AssertionTrigger("prevent", AssertionCategory.HYPOTHETICAL, 0.30, TriggerScope.FORWARD),
     AssertionTrigger("prevention of", AssertionCategory.HYPOTHETICAL, 0.30, TriggerScope.FORWARD),
+]
+
+CONDITIONAL_TRIGGERS: list[AssertionTrigger] = [
+    # Conditional assertions — contingent on other factors (0.20-0.40)
+    AssertionTrigger("if", AssertionCategory.CONDITIONAL, 0.25, TriggerScope.FORWARD, max_scope_tokens=8),
+    AssertionTrigger("should", AssertionCategory.CONDITIONAL, 0.30, TriggerScope.FORWARD),
+    AssertionTrigger("would", AssertionCategory.CONDITIONAL, 0.25, TriggerScope.FORWARD),
+    AssertionTrigger("could", AssertionCategory.CONDITIONAL, 0.30, TriggerScope.FORWARD),
+    AssertionTrigger("in case of", AssertionCategory.CONDITIONAL, 0.20, TriggerScope.FORWARD),
+    AssertionTrigger("contingent on", AssertionCategory.CONDITIONAL, 0.40, TriggerScope.FORWARD),
+    AssertionTrigger("depending on", AssertionCategory.CONDITIONAL, 0.40, TriggerScope.FORWARD),
+]
+
+FAMILY_HISTORY_TRIGGERS: list[AssertionTrigger] = [
+    # Family history assertions (0.75-0.95)
+    AssertionTrigger("family history of", AssertionCategory.FAMILY_HISTORY, 0.95, TriggerScope.FORWARD),
+    AssertionTrigger("mother had", AssertionCategory.FAMILY_HISTORY, 0.90, TriggerScope.FORWARD),
+    AssertionTrigger("father had", AssertionCategory.FAMILY_HISTORY, 0.90, TriggerScope.FORWARD),
+    AssertionTrigger("sibling with", AssertionCategory.FAMILY_HISTORY, 0.90, TriggerScope.FORWARD),
+    AssertionTrigger("runs in the family", AssertionCategory.FAMILY_HISTORY, 0.85, TriggerScope.BACKWARD),
+    AssertionTrigger("maternal history", AssertionCategory.FAMILY_HISTORY, 0.92, TriggerScope.FORWARD),
+    AssertionTrigger("paternal history", AssertionCategory.FAMILY_HISTORY, 0.92, TriggerScope.FORWARD),
+    AssertionTrigger("fhx", AssertionCategory.FAMILY_HISTORY, 0.90, TriggerScope.FORWARD),
+]
+
+HISTORICAL_TRIGGERS: list[AssertionTrigger] = [
+    # Historical/past condition assertions (0.75-0.90)
+    AssertionTrigger("history of", AssertionCategory.HISTORICAL, 0.85, TriggerScope.FORWARD),
+    AssertionTrigger("previous", AssertionCategory.HISTORICAL, 0.80, TriggerScope.FORWARD),
+    AssertionTrigger("prior", AssertionCategory.HISTORICAL, 0.80, TriggerScope.FORWARD),
+    AssertionTrigger("former", AssertionCategory.HISTORICAL, 0.85, TriggerScope.FORWARD),
+    AssertionTrigger("resolved", AssertionCategory.HISTORICAL, 0.88, TriggerScope.BACKWARD),
+    AssertionTrigger("has resolved", AssertionCategory.HISTORICAL, 0.89, TriggerScope.BACKWARD),
+    AssertionTrigger("remote history", AssertionCategory.HISTORICAL, 0.90, TriggerScope.FORWARD),
+    AssertionTrigger("childhood", AssertionCategory.HISTORICAL, 0.75, TriggerScope.FORWARD),
 ]
 
 PRESENT_TRIGGERS: list[AssertionTrigger] = [
@@ -273,6 +305,9 @@ class ProbabilisticAssertionClassifier:
             + ABSENT_TRIGGERS
             + UNCERTAIN_TRIGGERS
             + HYPOTHETICAL_TRIGGERS
+            + CONDITIONAL_TRIGGERS
+            + FAMILY_HISTORY_TRIGGERS
+            + HISTORICAL_TRIGGERS
             + PRESENT_TRIGGERS
         )
         # Sort by pattern length descending for longest-match-first
@@ -395,13 +430,16 @@ class ProbabilisticAssertionClassifier:
                     )
 
         # Check all other triggers, tracking the best match by distance
-        # Priority order for ties: ABSENT > UNCERTAIN > HYPOTHETICAL > PRESENT
+        # Priority order for ties: ABSENT > FAMILY_HISTORY > HISTORICAL > UNCERTAIN > HYPOTHETICAL > CONDITIONAL > PRESENT
         # This ensures negation takes precedence over affirmation at same distance
         CATEGORY_PRIORITY = {
             AssertionCategory.ABSENT: 0,
-            AssertionCategory.UNCERTAIN: 1,
-            AssertionCategory.HYPOTHETICAL: 2,
-            AssertionCategory.PRESENT: 3,
+            AssertionCategory.FAMILY_HISTORY: 1,
+            AssertionCategory.HISTORICAL: 2,
+            AssertionCategory.UNCERTAIN: 3,
+            AssertionCategory.HYPOTHETICAL: 4,
+            AssertionCategory.CONDITIONAL: 5,
+            AssertionCategory.PRESENT: 6,
         }
 
         best_result: AssertionResult | None = None
@@ -422,13 +460,17 @@ class ProbabilisticAssertionClassifier:
                     best_distance = distance
                     best_priority = priority
 
-                    # Map category to Assertion enum
-                    if trigger.category == AssertionCategory.ABSENT:
-                        assertion = Assertion.ABSENT
-                    elif trigger.category in (AssertionCategory.UNCERTAIN, AssertionCategory.HYPOTHETICAL):
-                        assertion = Assertion.POSSIBLE
-                    else:
-                        assertion = Assertion.PRESENT
+                    # Map category to Assertion enum (direct 7-value mapping)
+                    _CATEGORY_TO_ASSERTION = {
+                        AssertionCategory.ABSENT: Assertion.ABSENT,
+                        AssertionCategory.UNCERTAIN: Assertion.POSSIBLE,
+                        AssertionCategory.HYPOTHETICAL: Assertion.HYPOTHETICAL,
+                        AssertionCategory.CONDITIONAL: Assertion.CONDITIONAL,
+                        AssertionCategory.FAMILY_HISTORY: Assertion.FAMILY_HISTORY,
+                        AssertionCategory.HISTORICAL: Assertion.HISTORICAL,
+                        AssertionCategory.PRESENT: Assertion.PRESENT,
+                    }
+                    assertion = _CATEGORY_TO_ASSERTION.get(trigger.category, Assertion.PRESENT)
 
                     best_result = AssertionResult(
                         assertion=assertion,

@@ -379,6 +379,7 @@ from app.api.real_world_evidence import router as real_world_evidence_router
 from app.api.screen_failure import router as screen_failure_router
 from app.api.diagnostics import router as diagnostics_router
 from app.api.openehr import router as openehr_router
+from app.api.research import router as research_router
 from app.api.x12 import router as x12_router
 
 __all__ = [
@@ -697,6 +698,7 @@ __all__ = [
     "diagnostics_router",
     "openehr_router",
     "x12_router",
+    "research_router",
     # Middleware
     "AuditMiddleware",
     "AsyncAuditMiddleware",

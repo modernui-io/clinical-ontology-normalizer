@@ -197,11 +197,46 @@ const navSections: NavSection[] = [
     title: "Data Pipeline",
     items: [
       { title: "Pipelines", href: "/pipelines", icon: Workflow },
+      { title: "Datasets Hub", href: "/datasets", icon: Database },
       { title: "MIMIC Import", href: "/mimic", icon: Database },
+      { title: "MTSamples", href: "/datasets/mtsamples", icon: FileSpreadsheet },
+      { title: "Synthea", href: "/datasets/synthea", icon: Users },
       { title: "OpenEHR", href: "/pipelines/openehr", icon: Shuffle },
       { title: "OpenEHR Ops", href: "/pipelines/openehr/operations", icon: FileCheck },
       { title: "Data Sources", href: "/admin/data-sources", icon: Database },
       { title: "Data Quality", href: "/pipelines/quality", icon: Gauge },
+    ],
+  },
+  {
+    title: "Research Lab",
+    subGroups: [
+      {
+        title: "Experiments",
+        icon: FlaskConical,
+        items: [
+          { title: "Dashboard", href: "/research", icon: LayoutDashboard },
+          { title: "Experiments", href: "/research/experiments", icon: FlaskConical },
+          { title: "Data Ingestion", href: "/research/ingest", icon: Database },
+        ],
+      },
+      {
+        title: "Analysis",
+        icon: Microscope,
+        items: [
+          { title: "Pipeline Monitor", href: "/research/pipeline", icon: Workflow },
+          { title: "Assertions", href: "/research/assertions", icon: Shield },
+          { title: "OMOP Mapping", href: "/research/mapping", icon: Shuffle },
+          { title: "KG Explorer", href: "/research/kg", icon: Network },
+        ],
+      },
+      {
+        title: "Results",
+        icon: BarChart3,
+        items: [
+          { title: "Compare", href: "/research/compare", icon: GitBranch },
+          { title: "Paper Figures", href: "/research/figures", icon: FileCheck },
+        ],
+      },
     ],
   },
   {

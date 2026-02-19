@@ -22,6 +22,7 @@ export {
   setStoredTokens,
   getStoredUser,
   setStoredUser,
+  setRememberMe,
 } from "./authStorage";
 
 // API functions

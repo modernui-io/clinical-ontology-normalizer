@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import DateTime, Enum, String, Text
+from sqlalchemy import DateTime, Enum, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -26,6 +26,9 @@ class Document(SoftDeleteMixin, Base):
 
     Represents a clinical note (progress note, discharge summary, etc.)
     that will be processed through the NLP pipeline to extract mentions.
+
+    Multi-tenancy: owner_id links to the user who uploaded the document.
+    When auth is enabled, queries are scoped to the owner. Admins see all.
     """
 
     __tablename__ = "documents"
@@ -34,6 +37,13 @@ class Document(SoftDeleteMixin, Base):
         String(255),
         nullable=False,
         index=True,
+    )
+    owner_id: Mapped[str | None] = mapped_column(
+        PG_UUID(as_uuid=False),
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+        doc="User who uploaded this document (for multi-tenancy scoping)",
     )
     note_type: Mapped[str] = mapped_column(
         String(100),

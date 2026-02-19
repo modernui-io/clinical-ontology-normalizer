@@ -930,7 +930,10 @@ async def find_similar_patients(
     "/patients/{patient_id}/subgraph",
     response_model=PatientSubgraphResponse,
     summary="Get patient knowledge graph",
-    description="Extracts the knowledge subgraph for a patient including conditions, drugs, and procedures.",
+    description=(
+        "Extracts the knowledge subgraph for a patient including conditions, drugs, "
+        "and procedures. Scoped to the current user's documents unless admin."
+    ),
 )
 async def get_patient_subgraph(
     patient_id: str,
@@ -941,6 +944,9 @@ async def get_patient_subgraph(
 ) -> PatientSubgraphResponse:
     """Extract a subgraph representing a patient's clinical knowledge.
 
+    Multi-tenancy: Non-admin users can only access subgraphs for patients
+    whose documents they own. Admins can access any patient's subgraph.
+
     Args:
         patient_id: Patient ID.
         categories: Categories to include (all if None).
@@ -949,6 +955,31 @@ async def get_patient_subgraph(
     Returns:
         PatientSubgraphResponse with nodes and edges.
     """
+    # Multi-tenancy: verify user owns documents for this patient
+    if not current_user.is_admin():
+        from sqlalchemy import select, func as sa_func
+        from app.core.database import async_session_maker
+        from app.models.document import Document as DocModel
+
+        async with async_session_maker() as db:
+            count_stmt = (
+                select(sa_func.count())
+                .select_from(DocModel)
+                .where(
+                    DocModel.patient_id == patient_id,
+                    DocModel.owner_id == current_user.id,
+                    DocModel.deleted_at.is_(None),
+                )
+            )
+            result = await db.execute(count_stmt)
+            doc_count = result.scalar() or 0
+
+        if doc_count == 0:
+            raise NotFoundError(
+                message=f"No documents found for patient {patient_id}",
+                error_code=ErrorCode.NOT_FOUND,
+            )
+
     start_time = time.perf_counter()
     request_id = str(uuid4())
 

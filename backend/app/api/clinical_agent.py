@@ -21,7 +21,7 @@ from uuid import UUID, uuid4
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from fastapi.routing import APIRoute
 from pydantic import BaseModel, Field, field_validator, model_validator
-from sqlalchemy import func, select, delete
+from sqlalchemy import and_, func, or_, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.middleware.auth_middleware import CurrentUser, get_current_user
@@ -791,8 +791,6 @@ async def _query_omop_relationships(
 
     try:
         # Query relationships where both concepts are in our entity set
-        from sqlalchemy import and_, or_
-
         # Select only columns that exist in the table
         result = await db.execute(
             select(
@@ -2172,11 +2170,34 @@ async def get_patient_graph(
 ) -> PatientGraphResponse:
     """Get the knowledge graph for a patient."""
 
-    # Get all nodes for patient
-    nodes_result = await db.execute(
+    # Get patient-owned nodes
+    patient_nodes_result = await db.execute(
         select(KGNode).where(KGNode.patient_id == patient_id)
     )
-    nodes = nodes_result.scalars().all()
+    patient_nodes = list(patient_nodes_result.scalars().all())
+
+    # Get shared concept nodes connected via edges
+    concept_nodes_result = await db.execute(
+        select(KGNode)
+        .join(
+            KGEdge,
+            or_(
+                KGEdge.target_node_id == KGNode.id,
+                KGEdge.source_node_id == KGNode.id,
+            ),
+        )
+        .where(KGEdge.patient_id == patient_id)
+        .where(KGNode.patient_id.is_(None))
+    )
+    concept_nodes = list(concept_nodes_result.scalars().all())
+
+    # Combine and deduplicate
+    seen_ids: set[str] = set()
+    nodes = []
+    for n in patient_nodes + concept_nodes:
+        if n.id not in seen_ids:
+            seen_ids.add(n.id)
+            nodes.append(n)
 
     if not nodes:
         raise HTTPException(
@@ -2277,12 +2298,33 @@ async def hybrid_query(
     )
     documents = list(docs_result.scalars().all())
 
-    # Get knowledge graph nodes
+    # Get knowledge graph nodes (patient-owned + shared concepts via edges)
     kg_start = time.perf_counter()
-    nodes_result = await db.execute(
+    patient_nodes_result = await db.execute(
         select(KGNode).where(KGNode.patient_id == patient_id)
     )
-    nodes = list(nodes_result.scalars().all())
+    patient_kg_nodes = list(patient_nodes_result.scalars().all())
+
+    concept_nodes_result = await db.execute(
+        select(KGNode)
+        .join(
+            KGEdge,
+            or_(
+                KGEdge.target_node_id == KGNode.id,
+                KGEdge.source_node_id == KGNode.id,
+            ),
+        )
+        .where(KGEdge.patient_id == patient_id)
+        .where(KGNode.patient_id.is_(None))
+    )
+    concept_kg_nodes = list(concept_nodes_result.scalars().all())
+
+    seen_ids: set[str] = set()
+    nodes: list[KGNode] = []
+    for n in patient_kg_nodes + concept_kg_nodes:
+        if n.id not in seen_ids:
+            seen_ids.add(n.id)
+            nodes.append(n)
 
     if not documents and not nodes:
         raise HTTPException(

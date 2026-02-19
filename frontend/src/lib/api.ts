@@ -10,12 +10,9 @@
 
 // Base URL configuration
 const getApiBaseUrl = (): string => {
-  if (typeof window !== "undefined") {
-    // Browser: use Next.js API proxy
-    return "/api";
-  }
-  // Server: direct backend call
-  return process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  // Use backend URL directly (bypasses Next.js proxy which is unreliable in dev)
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+  return `${backendUrl}/api/v1`;
 };
 
 const API_BASE_URL = getApiBaseUrl();
@@ -4388,5 +4385,582 @@ export async function validateMimicPath(
   const params = new URLSearchParams({ file_path: filePath });
   return fetchWithRetry<MimicValidateResponse>(
     `${API_BASE_URL}/documents/mimic/validate-path?${params}`
+  );
+}
+
+// ============================================================================
+// MTSamples Ingestion API
+// ============================================================================
+
+export interface MtsamplesImportResponse {
+  batch_id: string;
+  status: string;
+  total_rows: number;
+  message: string;
+}
+
+export interface MtsamplesImportProgressResponse {
+  batch_id: string;
+  status: string;
+  total_rows: number;
+  processed: number;
+  created: number;
+  skipped: number;
+  failed: number;
+  progress_percent: number;
+  error: string | null;
+}
+
+export interface MtsamplesValidateResponse {
+  valid: boolean;
+  total_rows: number;
+  columns_found: string[];
+  columns_missing: string[];
+  sample_rows: Record<string, string>[];
+  errors: string[];
+}
+
+export interface MtsamplesMetricsResponse {
+  total_documents: number;
+  total_mentions: number;
+  total_facts: number;
+  concept_coverage_percent: number;
+  avg_confidence: number;
+  status_breakdown: Record<string, number>;
+  domain_distribution: { domain: string; count: number }[];
+  specialty_distribution: { specialty: string; count: number }[];
+  top_unmapped_terms: { term: string; count: number; sample_document_ids: string[] }[];
+  avg_processing_time_ms: number;
+  p50_processing_time_ms: number;
+  p95_processing_time_ms: number;
+  recent_documents: Record<string, unknown>[];
+}
+
+export interface MtsamplesUploadOptions {
+  chunkSize?: number;
+  maxRows?: number;
+  skipDuplicates?: boolean;
+  enqueueProcessing?: boolean;
+}
+
+export async function uploadMtsamplesCsv(
+  file: File,
+  options?: MtsamplesUploadOptions
+): Promise<MtsamplesImportResponse> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const params = new URLSearchParams();
+  if (options?.chunkSize) params.append("chunk_size", options.chunkSize.toString());
+  if (options?.maxRows) params.append("max_rows", options.maxRows.toString());
+  if (options?.skipDuplicates !== undefined) params.append("skip_duplicates", String(options.skipDuplicates));
+  if (options?.enqueueProcessing !== undefined) params.append("enqueue_processing", String(options.enqueueProcessing));
+
+  const queryString = params.toString();
+  const url = `${API_BASE_URL}/documents/mtsamples/upload${queryString ? `?${queryString}` : ""}`;
+
+  return fetchWithRetry<MtsamplesImportResponse>(url, {
+    method: "POST",
+    body: formData,
+  });
+}
+
+export async function validateMtsamplesCsv(
+  file: File
+): Promise<MtsamplesValidateResponse> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  return fetchWithRetry<MtsamplesValidateResponse>(
+    `${API_BASE_URL}/documents/mtsamples/validate`,
+    {
+      method: "POST",
+      body: formData,
+    }
+  );
+}
+
+export interface MtsamplesFilePathRequest {
+  file_path: string;
+  chunk_size?: number;
+  max_rows?: number;
+  skip_duplicates?: boolean;
+  enqueue_processing?: boolean;
+}
+
+export async function importMtsamplesFromPath(
+  request: MtsamplesFilePathRequest
+): Promise<MtsamplesImportResponse> {
+  return fetchWithRetry<MtsamplesImportResponse>(
+    `${API_BASE_URL}/documents/mtsamples/import-from-path`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    }
+  );
+}
+
+export async function getMtsamplesImportProgress(
+  batchId: string
+): Promise<MtsamplesImportProgressResponse> {
+  return fetchWithRetry<MtsamplesImportProgressResponse>(
+    `${API_BASE_URL}/documents/mtsamples/import/${batchId}/progress`
+  );
+}
+
+export async function getMtsamplesMetrics(): Promise<MtsamplesMetricsResponse> {
+  return fetchWithRetry<MtsamplesMetricsResponse>(
+    `${API_BASE_URL}/documents/mtsamples/metrics`
+  );
+}
+
+export async function getMtsamplesPipelineResults(
+  documentId: string
+): Promise<MimicPipelineResultsResponse> {
+  return fetchWithRetry<MimicPipelineResultsResponse>(
+    `${API_BASE_URL}/documents/mtsamples/${documentId}/pipeline-results`
+  );
+}
+
+export async function exportMtsamplesMetrics(): Promise<MtsamplesMetricsResponse> {
+  return fetchWithRetry<MtsamplesMetricsResponse>(
+    `${API_BASE_URL}/documents/mtsamples/metrics/export`
+  );
+}
+
+export async function validateMtsamplesPath(
+  filePath: string
+): Promise<MtsamplesValidateResponse> {
+  const params = new URLSearchParams({ file_path: filePath });
+  return fetchWithRetry<MtsamplesValidateResponse>(
+    `${API_BASE_URL}/documents/mtsamples/validate-path?${params}`
+  );
+}
+
+// ============================================================================
+// Synthea Ingestion API
+// ============================================================================
+
+export interface SyntheaImportResponse {
+  batch_id: string;
+  status: string;
+  total_patients: number;
+  total_encounters: number;
+  message: string;
+}
+
+export interface SyntheaImportProgressResponse {
+  batch_id: string;
+  status: string;
+  total_rows: number;
+  processed: number;
+  created: number;
+  skipped: number;
+  failed: number;
+  progress_percent: number;
+  error: string | null;
+}
+
+export interface SyntheaValidateResponse {
+  valid: boolean;
+  files_found: string[];
+  files_missing: string[];
+  patient_count: number;
+  encounter_count: number;
+  condition_count: number;
+  observation_count: number;
+  medication_count: number;
+  procedure_count: number;
+  errors: string[];
+  sample_patient: Record<string, string> | null;
+}
+
+export interface SyntheaMetricsResponse {
+  total_documents: number;
+  total_mentions: number;
+  total_facts: number;
+  concept_coverage_percent: number;
+  avg_confidence: number;
+  status_breakdown: Record<string, number>;
+  domain_distribution: { domain: string; count: number }[];
+  encounter_class_distribution: { encounter_class: string; count: number }[];
+  top_unmapped_terms: { term: string; count: number; sample_document_ids: string[] }[];
+  avg_processing_time_ms: number;
+  p50_processing_time_ms: number;
+  p95_processing_time_ms: number;
+  recent_documents: Record<string, unknown>[];
+}
+
+export interface SyntheaDirectoryRequest {
+  csv_dir: string;
+  chunk_size?: number;
+  max_patients?: number;
+  max_encounters_per_patient?: number;
+  skip_duplicates?: boolean;
+  enqueue_processing?: boolean;
+}
+
+export async function importSyntheaFromPath(
+  request: SyntheaDirectoryRequest
+): Promise<SyntheaImportResponse> {
+  return fetchWithRetry<SyntheaImportResponse>(
+    `${API_BASE_URL}/documents/synthea/import-from-path`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    }
+  );
+}
+
+export async function validateSyntheaPath(
+  csvDir: string
+): Promise<SyntheaValidateResponse> {
+  const params = new URLSearchParams({ csv_dir: csvDir });
+  return fetchWithRetry<SyntheaValidateResponse>(
+    `${API_BASE_URL}/documents/synthea/validate-path?${params}`
+  );
+}
+
+export async function getSyntheaImportProgress(
+  batchId: string
+): Promise<SyntheaImportProgressResponse> {
+  return fetchWithRetry<SyntheaImportProgressResponse>(
+    `${API_BASE_URL}/documents/synthea/import/${batchId}/progress`
+  );
+}
+
+export async function getSyntheaMetrics(): Promise<SyntheaMetricsResponse> {
+  return fetchWithRetry<SyntheaMetricsResponse>(
+    `${API_BASE_URL}/documents/synthea/metrics`
+  );
+}
+
+export async function getSyntheaPipelineResults(
+  documentId: string
+): Promise<MimicPipelineResultsResponse> {
+  return fetchWithRetry<MimicPipelineResultsResponse>(
+    `${API_BASE_URL}/documents/synthea/${documentId}/pipeline-results`
+  );
+}
+
+export async function exportSyntheaMetrics(): Promise<SyntheaMetricsResponse> {
+  return fetchWithRetry<SyntheaMetricsResponse>(
+    `${API_BASE_URL}/documents/synthea/metrics/export`
+  );
+}
+
+// ============================================================================
+// Research Experiment Types & Functions
+// ============================================================================
+
+export interface ResearchExperimentConfig {
+  assertion_aware: boolean;
+  graph_rag: boolean;
+  nlp_method: string;
+  kg_construction: boolean;
+  max_documents: number | null;
+}
+
+export interface ResearchExperimentCreate {
+  name: string;
+  description?: string;
+  hypothesis?: string;
+  config?: Partial<ResearchExperimentConfig>;
+  tags?: string[];
+}
+
+export interface ResearchExperimentUpdate {
+  name?: string;
+  description?: string;
+  hypothesis?: string;
+  config?: Partial<ResearchExperimentConfig>;
+  tags?: string[];
+}
+
+export interface ResearchExperiment {
+  id: string;
+  name: string;
+  description: string | null;
+  hypothesis: string | null;
+  config: ResearchExperimentConfig;
+  status: string;
+  summary_metrics: Record<string, unknown> | null;
+  tags: string[] | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+  run_count: number;
+}
+
+export interface ResearchExperimentListResponse {
+  experiments: ResearchExperiment[];
+  total: number;
+}
+
+export interface ResearchRunCreate {
+  experiment_id: string;
+  mimic_csv_path?: string;
+  run_config?: Record<string, unknown>;
+  max_rows?: number;
+  chunk_size?: number;
+}
+
+export interface ResearchRun {
+  id: string;
+  experiment_id: string;
+  mimic_batch_id: string | null;
+  run_config: Record<string, unknown> | null;
+  document_ids: string[] | null;
+  patient_ids: string[] | null;
+  status: string;
+  error: string | null;
+  created_at: string;
+  started_at: string | null;
+  completed_at: string | null;
+  metric_count: number;
+}
+
+export interface ResearchRunListResponse {
+  runs: ResearchRun[];
+  total: number;
+}
+
+export interface ResearchRunProgress {
+  run_id: string;
+  experiment_id: string;
+  status: string;
+  mimic_batch_id: string | null;
+  mimic_progress: Record<string, string> | null;
+  documents_total: number;
+  documents_processed: number;
+  pipeline_stage: string | null;
+  progress_percent: number;
+}
+
+export interface ResearchMetric {
+  id: string;
+  run_id: string;
+  category: string;
+  metric_name: string;
+  metric_value: number;
+  detail: Record<string, unknown> | null;
+  created_at: string;
+}
+
+export interface ResearchMetricListResponse {
+  metrics: ResearchMetric[];
+  total: number;
+}
+
+export interface ResearchAssertionAnalytics {
+  total_mentions: number;
+  assertion_counts: Record<string, number>;
+  assertion_by_domain: Record<string, Record<string, number>>;
+  temporality_counts: Record<string, number>;
+  experiencer_counts: Record<string, number>;
+}
+
+export interface ResearchMappingQuality {
+  total_mentions: number;
+  mapped_count: number;
+  unmapped_count: number;
+  coverage_percent: number;
+  avg_confidence: number;
+  domain_coverage: Record<string, number>;
+  top_unmapped: { term: string; count: number }[];
+}
+
+export interface ResearchKGMetrics {
+  total_nodes: number;
+  total_edges: number;
+  unique_concepts: number;
+  patient_count: number;
+  avg_nodes_per_patient: number;
+  edge_type_distribution: Record<string, number>;
+  node_type_distribution: Record<string, number>;
+}
+
+export interface ResearchPipelineTiming {
+  avg_nlp_ms: number;
+  avg_mapping_ms: number;
+  avg_fact_building_ms: number;
+  avg_kg_construction_ms: number;
+  avg_total_ms: number;
+  p95_total_ms: number;
+  documents_timed: number;
+}
+
+export interface ResearchComparisonRequest {
+  run_ids: string[];
+  metric_categories?: string[];
+}
+
+export interface ResearchRunComparisonColumn {
+  run_id: string;
+  experiment_name: string;
+  status: string;
+  metrics: Record<string, number>;
+}
+
+export interface ResearchComparisonResponse {
+  metric_names: string[];
+  runs: ResearchRunComparisonColumn[];
+}
+
+export interface ResearchExportRequest {
+  run_ids: string[];
+  format: "csv" | "json" | "latex";
+  metric_categories?: string[];
+}
+
+export interface ResearchExportResponse {
+  format: string;
+  filename: string;
+  content: string;
+  mime_type: string;
+}
+
+// Experiment CRUD
+export async function createResearchExperiment(
+  data: ResearchExperimentCreate
+): Promise<ResearchExperiment> {
+  return fetchWithRetry<ResearchExperiment>(
+    `${API_BASE_URL}/research/experiments`,
+    { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }
+  );
+}
+
+export async function listResearchExperiments(params?: {
+  status?: string;
+  offset?: number;
+  limit?: number;
+}): Promise<ResearchExperimentListResponse> {
+  const searchParams = new URLSearchParams();
+  if (params?.status) searchParams.set("status", params.status);
+  if (params?.offset !== undefined) searchParams.set("offset", String(params.offset));
+  if (params?.limit !== undefined) searchParams.set("limit", String(params.limit));
+  const qs = searchParams.toString();
+  return fetchWithRetry<ResearchExperimentListResponse>(
+    `${API_BASE_URL}/research/experiments${qs ? `?${qs}` : ""}`
+  );
+}
+
+export async function getResearchExperiment(id: string): Promise<ResearchExperiment> {
+  return fetchWithRetry<ResearchExperiment>(`${API_BASE_URL}/research/experiments/${id}`);
+}
+
+export async function updateResearchExperiment(
+  id: string,
+  data: ResearchExperimentUpdate
+): Promise<ResearchExperiment> {
+  return fetchWithRetry<ResearchExperiment>(
+    `${API_BASE_URL}/research/experiments/${id}`,
+    { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }
+  );
+}
+
+export async function deleteResearchExperiment(id: string): Promise<void> {
+  await fetchWithRetry(`${API_BASE_URL}/research/experiments/${id}`, { method: "DELETE" });
+}
+
+export async function startResearchExperiment(id: string): Promise<ResearchExperiment> {
+  return fetchWithRetry<ResearchExperiment>(
+    `${API_BASE_URL}/research/experiments/${id}/start`,
+    { method: "POST" }
+  );
+}
+
+export async function completeResearchExperiment(id: string): Promise<ResearchExperiment> {
+  return fetchWithRetry<ResearchExperiment>(
+    `${API_BASE_URL}/research/experiments/${id}/complete`,
+    { method: "POST" }
+  );
+}
+
+// Run CRUD
+export async function createResearchRun(data: ResearchRunCreate): Promise<ResearchRun> {
+  return fetchWithRetry<ResearchRun>(
+    `${API_BASE_URL}/research/runs`,
+    { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }
+  );
+}
+
+export async function listResearchRuns(params: {
+  experiment_id: string;
+  offset?: number;
+  limit?: number;
+}): Promise<ResearchRunListResponse> {
+  const searchParams = new URLSearchParams();
+  searchParams.set("experiment_id", params.experiment_id);
+  if (params.offset !== undefined) searchParams.set("offset", String(params.offset));
+  if (params.limit !== undefined) searchParams.set("limit", String(params.limit));
+  return fetchWithRetry<ResearchRunListResponse>(
+    `${API_BASE_URL}/research/runs?${searchParams.toString()}`
+  );
+}
+
+export async function getResearchRun(runId: string): Promise<ResearchRun> {
+  return fetchWithRetry<ResearchRun>(`${API_BASE_URL}/research/runs/${runId}`);
+}
+
+export async function getResearchRunProgress(runId: string): Promise<ResearchRunProgress> {
+  return fetchWithRetry<ResearchRunProgress>(`${API_BASE_URL}/research/runs/${runId}/progress`);
+}
+
+// Metrics
+export async function getResearchRunMetrics(
+  runId: string,
+  category?: string
+): Promise<ResearchMetricListResponse> {
+  const params = category ? `?category=${category}` : "";
+  return fetchWithRetry<ResearchMetricListResponse>(
+    `${API_BASE_URL}/research/runs/${runId}/metrics${params}`
+  );
+}
+
+export async function getResearchAssertionAnalytics(
+  runId: string
+): Promise<ResearchAssertionAnalytics> {
+  return fetchWithRetry<ResearchAssertionAnalytics>(
+    `${API_BASE_URL}/research/runs/${runId}/assertions`
+  );
+}
+
+export async function getResearchMappingQuality(runId: string): Promise<ResearchMappingQuality> {
+  return fetchWithRetry<ResearchMappingQuality>(
+    `${API_BASE_URL}/research/runs/${runId}/mapping-quality`
+  );
+}
+
+export async function getResearchKGMetrics(runId: string): Promise<ResearchKGMetrics> {
+  return fetchWithRetry<ResearchKGMetrics>(`${API_BASE_URL}/research/runs/${runId}/kg-metrics`);
+}
+
+export async function getResearchPipelineTiming(runId: string): Promise<ResearchPipelineTiming> {
+  return fetchWithRetry<ResearchPipelineTiming>(
+    `${API_BASE_URL}/research/runs/${runId}/timing`
+  );
+}
+
+// Comparison & Export
+export async function compareResearchRuns(
+  data: ResearchComparisonRequest
+): Promise<ResearchComparisonResponse> {
+  return fetchWithRetry<ResearchComparisonResponse>(
+    `${API_BASE_URL}/research/compare`,
+    { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }
+  );
+}
+
+export async function exportResearchMetrics(
+  data: ResearchExportRequest
+): Promise<ResearchExportResponse> {
+  return fetchWithRetry<ResearchExportResponse>(
+    `${API_BASE_URL}/research/export`,
+    { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }
   );
 }

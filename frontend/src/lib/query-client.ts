@@ -182,6 +182,47 @@ export const queryKeys = {
     metrics: () => [...queryKeys.mimic.all, "metrics"] as const,
     pipelineResults: (documentId: string) => [...queryKeys.mimic.all, "pipeline-results", documentId] as const,
   },
+
+  // MTSamples Ingestion
+  mtsamples: {
+    all: ["mtsamples"] as const,
+    progress: (batchId: string) => [...queryKeys.mtsamples.all, "progress", batchId] as const,
+    metrics: () => [...queryKeys.mtsamples.all, "metrics"] as const,
+    pipelineResults: (documentId: string) => [...queryKeys.mtsamples.all, "pipeline-results", documentId] as const,
+  },
+
+  // Synthea Ingestion
+  synthea: {
+    all: ["synthea"] as const,
+    progress: (batchId: string) => [...queryKeys.synthea.all, "progress", batchId] as const,
+    metrics: () => [...queryKeys.synthea.all, "metrics"] as const,
+    pipelineResults: (documentId: string) => [...queryKeys.synthea.all, "pipeline-results", documentId] as const,
+  },
+
+  // Research Experiments
+  research: {
+    all: ["research"] as const,
+    experiments: {
+      all: () => [...queryKeys.research.all, "experiments"] as const,
+      lists: () => [...queryKeys.research.experiments.all(), "list"] as const,
+      list: (params?: { status?: string; offset?: number; limit?: number }) =>
+        [...queryKeys.research.experiments.lists(), params] as const,
+      details: () => [...queryKeys.research.experiments.all(), "detail"] as const,
+      detail: (id: string) => [...queryKeys.research.experiments.details(), id] as const,
+    },
+    runs: {
+      all: () => [...queryKeys.research.all, "runs"] as const,
+      lists: (experimentId: string) => [...queryKeys.research.runs.all(), "list", experimentId] as const,
+      detail: (runId: string) => [...queryKeys.research.runs.all(), "detail", runId] as const,
+      progress: (runId: string) => [...queryKeys.research.runs.all(), "progress", runId] as const,
+      metrics: (runId: string) => [...queryKeys.research.runs.all(), "metrics", runId] as const,
+      assertions: (runId: string) => [...queryKeys.research.runs.all(), "assertions", runId] as const,
+      mappingQuality: (runId: string) => [...queryKeys.research.runs.all(), "mapping-quality", runId] as const,
+      kgMetrics: (runId: string) => [...queryKeys.research.runs.all(), "kg-metrics", runId] as const,
+      timing: (runId: string) => [...queryKeys.research.runs.all(), "timing", runId] as const,
+    },
+    comparison: (runIds: string[]) => [...queryKeys.research.all, "comparison", runIds] as const,
+  },
 } as const;
 
 // ============================================================================
@@ -486,6 +527,27 @@ export const invalidationHelpers = {
    */
   invalidateVeevaVault: (client: QueryClient) => {
     return client.invalidateQueries({ queryKey: queryKeys.veevaVault.all });
+  },
+
+  /**
+   * Invalidate all research-related queries
+   */
+  invalidateResearch: (client: QueryClient) => {
+    return client.invalidateQueries({ queryKey: queryKeys.research.all });
+  },
+
+  /**
+   * Invalidate research experiments
+   */
+  invalidateResearchExperiments: (client: QueryClient) => {
+    return client.invalidateQueries({ queryKey: queryKeys.research.experiments.all() });
+  },
+
+  /**
+   * Invalidate research runs
+   */
+  invalidateResearchRuns: (client: QueryClient) => {
+    return client.invalidateQueries({ queryKey: queryKeys.research.runs.all() });
   },
 
   /**

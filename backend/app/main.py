@@ -336,6 +336,7 @@ from app.api import (
     openehr_router,
     x12_router,
     batch_router,
+    research_router,
 )
 from app.api.error_handlers import register_all_exception_handlers
 from app.api.middleware.error_handler import register_exception_handlers
@@ -658,6 +659,50 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         f"Vocabulary preloaded: {vocab_stats['concept_count']} concepts, "
         f"{vocab_stats['term_count']} terms in {vocab_stats['load_time_ms']}ms"
     )
+
+    # Auto-seed RBAC roles/permissions and admin user if database is empty.
+    # This ensures a fresh database is immediately usable without manual setup.
+    try:
+        from sqlalchemy import select, func as sa_func
+        from app.models.rbac import User as RBACUser
+        from app.services.rbac_service import get_rbac_service as _get_rbac
+        from app.services.auth import get_auth_service as _get_auth
+        from app.core.database import async_session_maker
+
+        async with async_session_maker() as db:
+            # Initialize default permissions and roles
+            rbac_svc = _get_rbac()
+            perm_count = await rbac_svc.initialize_default_permissions(db)
+            role_count = await rbac_svc.initialize_default_roles(db)
+            if perm_count or role_count:
+                logger.info(
+                    f"RBAC bootstrap: created {perm_count} permissions, {role_count} roles"
+                )
+
+            # Seed admin user if no users exist
+            count_result = await db.execute(
+                select(sa_func.count()).select_from(RBACUser)
+            )
+            user_count = count_result.scalar() or 0
+            if user_count == 0:
+                auth_svc = _get_auth()
+                await auth_svc.create_user(
+                    db=db,
+                    email="admin@example.com",
+                    password="Admin123!",
+                    name="System Administrator",
+                    role_names=["admin"],
+                )
+                logger.info(
+                    "Seeded initial admin user: admin@example.com "
+                    "(change password on first login)"
+                )
+            else:
+                logger.debug(f"RBAC bootstrap: {user_count} user(s) already exist, skipping seed")
+    except Exception as e:
+        # Non-critical: if DB is unavailable the app can still start
+        # (auth endpoints will fail at request time)
+        logger.warning(f"RBAC auto-seed skipped: {e}")
 
     # Skip pre-warming at startup - services initialize lazily on first request
     # This avoids startup hangs when dependent services are unavailable
@@ -1265,6 +1310,7 @@ api_v1_router.include_router(diagnostics_router)
 api_v1_router.include_router(openehr_router)
 api_v1_router.include_router(x12_router)
 api_v1_router.include_router(batch_router)
+api_v1_router.include_router(research_router)
 
 # Mount versioned API router
 app.include_router(api_v1_router)

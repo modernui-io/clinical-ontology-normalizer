@@ -1,0 +1,215 @@
+note_id,subject_id,hadm_id,note_type,text
+10001,20001,30001,Discharge summary,"ADMISSION DATE: 2024-01-15  DISCHARGE DATE: 2024-01-22
+
+CHIEF COMPLAINT: Shortness of breath and chest pain.
+
+HISTORY OF PRESENT ILLNESS: 72-year-old male with a history of coronary artery disease, hypertension, and type 2 diabetes mellitus presented to the emergency department with acute onset dyspnea and substernal chest pressure radiating to the left arm. Symptoms began approximately 4 hours prior to arrival. Patient reports associated diaphoresis and nausea. Troponin I elevated at 2.4 ng/mL on admission.
+
+PAST MEDICAL HISTORY:
+1. Coronary artery disease status post PCI with drug-eluting stent to LAD (2021)
+2. Hypertension
+3. Type 2 diabetes mellitus (HbA1c 7.8%)
+4. Hyperlipidemia
+5. Chronic kidney disease stage 3 (baseline creatinine 1.6)
+
+MEDICATIONS ON ADMISSION:
+- Aspirin 81 mg daily
+- Metoprolol succinate 50 mg daily
+- Lisinopril 20 mg daily
+- Atorvastatin 80 mg daily
+- Metformin 1000 mg twice daily
+- Insulin glargine 20 units at bedtime
+
+HOSPITAL COURSE: Patient underwent cardiac catheterization on hospital day 2 which revealed 90% stenosis of the right coronary artery. Successful PCI with drug-eluting stent placement was performed. Post-procedure course was uncomplicated. Echocardiogram showed LVEF 45% with inferior wall hypokinesis. Started on dual antiplatelet therapy with aspirin and clopidogrel. Renal function remained stable throughout admission.
+
+DISCHARGE MEDICATIONS:
+- Aspirin 81 mg daily
+- Clopidogrel 75 mg daily
+- Metoprolol succinate 100 mg daily
+- Lisinopril 20 mg daily
+- Atorvastatin 80 mg daily
+- Metformin 1000 mg twice daily
+- Insulin glargine 20 units at bedtime
+
+DISCHARGE DIAGNOSIS:
+1. Non-ST elevation myocardial infarction
+2. Coronary artery disease with RCA stenosis, status post PCI
+3. Type 2 diabetes mellitus
+4. Hypertension
+5. Chronic kidney disease stage 3"
+10002,20002,30002,Discharge summary,"ADMISSION DATE: 2024-02-03  DISCHARGE DATE: 2024-02-10
+
+CHIEF COMPLAINT: Fever and productive cough.
+
+HISTORY OF PRESENT ILLNESS: 65-year-old female with COPD and heart failure with reduced ejection fraction (EF 30%) presented with 3 days of worsening productive cough with purulent sputum, fever to 102.4F, and increased dyspnea on exertion. Chest X-ray on admission demonstrated right lower lobe consolidation consistent with community-acquired pneumonia.
+
+PAST MEDICAL HISTORY:
+1. COPD (FEV1 45% predicted)
+2. Heart failure with reduced ejection fraction (EF 30%)
+3. Atrial fibrillation on warfarin
+4. Hypothyroidism
+5. Osteoporosis
+
+HOSPITAL COURSE: Patient was started on IV ceftriaxone and azithromycin for community-acquired pneumonia. Blood cultures grew Streptococcus pneumoniae sensitive to ceftriaxone. Sputum culture confirmed pneumococcal pneumonia. Patient required 2L supplemental oxygen via nasal cannula for the first 3 days. BNP was elevated at 1200 pg/mL and patient was diuresed with IV furosemide with improvement in symptoms. Transitioned to oral antibiotics on hospital day 5. Warfarin held during acute illness and bridged with enoxaparin. INR was 2.3 at discharge.
+
+DISCHARGE DIAGNOSIS:
+1. Community-acquired pneumonia due to Streptococcus pneumoniae
+2. Acute on chronic systolic heart failure exacerbation
+3. COPD exacerbation
+4. Atrial fibrillation"
+10003,20003,30003,Discharge summary,"ADMISSION DATE: 2024-01-28  DISCHARGE DATE: 2024-02-04
+
+CHIEF COMPLAINT: Altered mental status and hyperglycemia.
+
+HISTORY OF PRESENT ILLNESS: 58-year-old male with poorly controlled type 1 diabetes mellitus brought in by EMS after being found confused at home. Blood glucose on arrival was 580 mg/dL. Arterial blood gas showed pH 7.18, pCO2 22, bicarbonate 8. Anion gap 28. Diagnosed with diabetic ketoacidosis. Patient reports running out of insulin 3 days prior to presentation.
+
+PAST MEDICAL HISTORY:
+1. Type 1 diabetes mellitus (last HbA1c 11.2%)
+2. Diabetic nephropathy with proteinuria
+3. Diabetic retinopathy status post bilateral laser photocoagulation
+4. Peripheral neuropathy
+5. Major depressive disorder
+
+HOSPITAL COURSE: Patient was admitted to the medical ICU for DKA management. Started on insulin drip per DKA protocol with aggressive IV fluid resuscitation. Potassium was repleted. Anion gap closed within 18 hours. Transitioned to subcutaneous insulin on hospital day 2. Endocrinology was consulted and recommended basal-bolus insulin regimen with insulin glargine 30 units daily and insulin lispro sliding scale. HbA1c obtained was 11.2%. Diabetes educator provided comprehensive insulin teaching. Social work was consulted given medication non-adherence due to cost concerns. Patient enrolled in insulin assistance program.
+
+DISCHARGE DIAGNOSIS:
+1. Diabetic ketoacidosis
+2. Type 1 diabetes mellitus, poorly controlled
+3. Diabetic nephropathy
+4. Major depressive disorder"
+10004,20004,30004,Discharge summary,"ADMISSION DATE: 2024-03-10  DISCHARGE DATE: 2024-03-14
+
+CHIEF COMPLAINT: Right hip pain after fall.
+
+HISTORY OF PRESENT ILLNESS: 81-year-old female with osteoporosis and Alzheimer dementia was brought to the ED after a mechanical fall at her assisted living facility. She was found on the floor by nursing staff. X-ray and CT of the right hip demonstrated a displaced femoral neck fracture. Patient was unable to bear weight on the right lower extremity.
+
+PAST MEDICAL HISTORY:
+1. Alzheimer dementia (moderate stage)
+2. Osteoporosis (T-score -3.2 at lumbar spine)
+3. Hypertension
+4. Hypothyroidism
+5. Gastroesophageal reflux disease
+
+MEDICATIONS ON ADMISSION:
+- Donepezil 10 mg daily
+- Memantine 10 mg twice daily
+- Amlodipine 5 mg daily
+- Levothyroxine 75 mcg daily
+- Omeprazole 20 mg daily
+- Calcium carbonate 600 mg with vitamin D 400 IU twice daily
+
+HOSPITAL COURSE: Patient underwent right hip hemiarthroplasty on hospital day 1 under spinal anesthesia. Surgery was uncomplicated. Post-operative hemoglobin was 8.2; transfused 1 unit packed red blood cells. Physical therapy was initiated on post-operative day 1. Patient progressed to weight bearing as tolerated with a walker. Delirium screening was positive on POD 1 which resolved by POD 3 with non-pharmacologic interventions. Started on denosumab 60 mg subcutaneous for osteoporosis.
+
+DISCHARGE DIAGNOSIS:
+1. Right femoral neck fracture, status post hemiarthroplasty
+2. Postoperative delirium, resolved
+3. Osteoporosis
+4. Alzheimer dementia"
+10005,20005,30005,Discharge summary,"ADMISSION DATE: 2024-02-20  DISCHARGE DATE: 2024-02-25
+
+CHIEF COMPLAINT: Abdominal pain and jaundice.
+
+HISTORY OF PRESENT ILLNESS: 55-year-old male with a history of alcohol use disorder presented with 5 days of progressive right upper quadrant abdominal pain, nausea, and yellowing of the skin and eyes. Patient reports drinking approximately 12 beers daily for the past 20 years. Last drink was 2 days prior to admission. On examination, patient was jaundiced with hepatomegaly and ascites. Labs notable for AST 280, ALT 120, total bilirubin 8.5, INR 1.8, albumin 2.4, platelets 85,000.
+
+PAST MEDICAL HISTORY:
+1. Alcohol use disorder, severe
+2. Alcohol-related liver disease
+3. Gastritis
+4. Hypertension
+5. Tobacco use disorder
+
+HOSPITAL COURSE: Ultrasound demonstrated hepatic steatosis with cirrhotic morphology and moderate ascites. No biliary ductal dilation. MELD score calculated at 22. Patient was started on lactulose and rifaximin for hepatic encephalopathy prophylaxis. Diagnostic paracentesis performed yielding 2.5L of transudative ascitic fluid with SAAG 1.8; no evidence of spontaneous bacterial peritonitis. Started on spironolactone and furosemide for ascites management. Nutrition consult recommended high-protein diet. Addiction medicine consulted and patient agreed to outpatient alcohol rehabilitation program. CIWA protocol was initiated; no significant withdrawal symptoms developed.
+
+DISCHARGE DIAGNOSIS:
+1. Alcoholic hepatitis
+2. Alcohol-related cirrhosis with ascites
+3. Alcohol use disorder, severe
+4. Hepatic encephalopathy, grade 1
+5. Thrombocytopenia secondary to cirrhosis"
+10006,20001,30006,Discharge summary,"ADMISSION DATE: 2024-04-01  DISCHARGE DATE: 2024-04-05
+
+CHIEF COMPLAINT: Worsening shortness of breath and lower extremity edema.
+
+HISTORY OF PRESENT ILLNESS: 72-year-old male (same patient as note 10001) with known coronary artery disease, prior NSTEMI with PCI, and diabetes mellitus presenting with progressive dyspnea on exertion over 2 weeks and new bilateral lower extremity edema. Patient reports sleeping on 3 pillows (increased from 1) and waking up at night gasping for air. Weight gain of 8 pounds over the past 2 weeks. BNP on admission was 2400 pg/mL.
+
+PAST MEDICAL HISTORY:
+1. Coronary artery disease, status post PCI to RCA (January 2024) and LAD (2021)
+2. Type 2 diabetes mellitus
+3. Hypertension
+4. Chronic kidney disease stage 3
+5. Hyperlipidemia
+
+HOSPITAL COURSE: Echocardiogram demonstrated LVEF 35% (decreased from 45% in January), moderate mitral regurgitation, and elevated RVSP. Patient was diuresed aggressively with IV furosemide drip with net negative 4L over 3 days. Creatinine bumped from 1.6 to 2.1 but improved to 1.8 with slowing of diuresis. Started on sacubitril-valsartan 24/12.5 mg BID (lisinopril discontinued). Metoprolol uptitrated to 200 mg daily. Spironolactone 25 mg daily added. Empagliflozin 10 mg daily started for cardiorenal benefit. Patient counseled on 2g sodium restriction and daily weights. Referred to heart failure clinic for optimization.
+
+DISCHARGE DIAGNOSIS:
+1. Acute decompensated heart failure with reduced ejection fraction
+2. Ischemic cardiomyopathy with worsening LVEF
+3. Type 2 diabetes mellitus
+4. Chronic kidney disease stage 3, acute on chronic kidney injury (resolved)"
+10007,20006,30007,Discharge summary,"ADMISSION DATE: 2024-03-15  DISCHARGE DATE: 2024-03-18
+
+CHIEF COMPLAINT: Seizure.
+
+HISTORY OF PRESENT ILLNESS: 34-year-old female with no significant past medical history was brought to the ED by ambulance after a witnessed generalized tonic-clonic seizure at work lasting approximately 3 minutes. Patient had post-ictal confusion for 20 minutes. She reports a 2-month history of progressive headaches, particularly in the morning, with occasional nausea. No prior seizure history. No family history of epilepsy.
+
+PAST MEDICAL HISTORY: None significant.
+
+HOSPITAL COURSE: CT head without contrast demonstrated a 3.2 cm ring-enhancing mass in the left frontal lobe with surrounding vasogenic edema. MRI brain with contrast confirmed a solitary left frontal mass suspicious for high-grade glioma. Started on dexamethasone 4 mg IV q6h for vasogenic edema and levetiracetam 500 mg BID for seizure prophylaxis. Neurosurgery consulted and patient underwent stereotactic biopsy on hospital day 2. Preliminary pathology consistent with glioblastoma multiforme (WHO grade IV). No further seizures during hospitalization. Patient and family counseled extensively regarding diagnosis and treatment options. Referred to neuro-oncology for definitive treatment planning with Stupp protocol (concurrent temozolomide and radiation therapy).
+
+DISCHARGE DIAGNOSIS:
+1. Glioblastoma multiforme, left frontal lobe
+2. Seizure, secondary to brain mass
+3. Vasogenic cerebral edema"
+10008,20007,30008,Discharge summary,"ADMISSION DATE: 2024-02-14  DISCHARGE DATE: 2024-02-20
+
+CHIEF COMPLAINT: Worsening joint pain and rash.
+
+HISTORY OF PRESENT ILLNESS: 42-year-old female with recently diagnosed systemic lupus erythematosus (3 months ago) presented with 2 weeks of worsening polyarthralgia involving bilateral hands, wrists, and knees, along with new malar rash, oral ulcers, and pleuritic chest pain. Labs notable for dsDNA antibody titer of 1:640 (previously 1:160), complement C3 45 (low), C4 8 (low), ESR 88, CRP 3.2. Urinalysis showed proteinuria (2+) and RBC casts concerning for lupus nephritis.
+
+PAST MEDICAL HISTORY:
+1. Systemic lupus erythematosus (diagnosed 3 months ago)
+2. Iron deficiency anemia
+3. Raynaud phenomenon
+
+HOSPITAL COURSE: Patient admitted for SLE flare with concern for lupus nephritis. Renal biopsy performed on hospital day 2 demonstrating class IV diffuse proliferative lupus nephritis. Started on pulse dose IV methylprednisolone 1g daily for 3 days followed by prednisone 60 mg daily taper. Mycophenolate mofetil 1000 mg BID initiated as steroid-sparing immunosuppression per rheumatology recommendations. Hydroxychloroquine continued at 200 mg BID. 24-hour urine protein was 3.2 g. Serum creatinine was 1.3 (baseline 0.8). Started on lisinopril for renoprotective effect. Pain managed with acetaminophen and low-dose prednisone. Patient educated on sun avoidance and disease monitoring.
+
+DISCHARGE DIAGNOSIS:
+1. Systemic lupus erythematosus flare
+2. Lupus nephritis, class IV (diffuse proliferative)
+3. Proteinuria
+4. Pleuritis secondary to SLE"
+10009,20008,30009,Discharge summary,"ADMISSION DATE: 2024-03-22  DISCHARGE DATE: 2024-03-26
+
+CHIEF COMPLAINT: Acute onset weakness in right arm and leg.
+
+HISTORY OF PRESENT ILLNESS: 68-year-old male with atrial fibrillation (not on anticoagulation due to prior GI bleed), hypertension, and hyperlipidemia presented with acute onset right-sided hemiparesis and expressive aphasia. Symptom onset was witnessed at 10:00 AM, and patient arrived at the ED at 10:45 AM. NIHSS score on presentation was 14. CT head negative for hemorrhage. CT angiography demonstrated left middle cerebral artery M1 occlusion.
+
+PAST MEDICAL HISTORY:
+1. Atrial fibrillation (paroxysmal)
+2. Prior upper GI bleed from duodenal ulcer (2023)
+3. Hypertension
+4. Hyperlipidemia
+5. Benign prostatic hyperplasia
+
+HOSPITAL COURSE: Patient met criteria for IV alteplase, which was administered within 55 minutes of symptom onset. Subsequently underwent mechanical thrombectomy with successful recanalization (TICI 2b). Post-procedure NIHSS improved to 6. MRI brain demonstrated left MCA territory infarct involving the frontal and parietal lobes. Speech therapy evaluation confirmed moderate Broca aphasia. Occupational and physical therapy initiated. GI was consulted regarding anticoagulation given prior GI bleed. EGD performed showing healed duodenal ulcer. GI cleared patient for anticoagulation. Started on apixaban 5 mg BID. Aspirin discontinued. Telemetry confirmed persistent atrial fibrillation. NIHSS at discharge was 4 with improving aphasia and mild right upper extremity weakness. Transferred to acute rehabilitation facility.
+
+DISCHARGE DIAGNOSIS:
+1. Acute ischemic stroke, left MCA territory
+2. Left MCA M1 occlusion, status post thrombectomy
+3. Atrial fibrillation
+4. Moderate Broca aphasia
+5. Right hemiparesis, improving"
+10010,20009,30010,Discharge summary,"ADMISSION DATE: 2024-04-08  DISCHARGE DATE: 2024-04-12
+
+CHIEF COMPLAINT: Bloody diarrhea and abdominal cramping.
+
+HISTORY OF PRESENT ILLNESS: 28-year-old female with no significant past medical history presented with 3 weeks of progressively worsening bloody diarrhea (8-10 episodes daily), diffuse abdominal cramping, urgency, and tenesmus. She reports a 10-pound unintentional weight loss over the past month. No recent travel or sick contacts. No antibiotic use. Stool studies negative for C. difficile, bacterial culture, and ova and parasites. Labs notable for hemoglobin 10.2, albumin 3.0, ESR 65, CRP 4.8, fecal calprotectin >1000.
+
+PAST MEDICAL HISTORY: None significant.
+
+HOSPITAL COURSE: Flexible sigmoidoscopy performed on hospital day 1 demonstrated continuous mucosal inflammation with friability, edema, and ulceration extending from the rectum to the splenic flexure. Biopsies showed chronic active colitis with crypt architectural distortion and crypt abscesses consistent with ulcerative colitis. Classified as moderate-severe based on Montreal classification (E2, S3). Started on IV methylprednisolone 60 mg daily given severity. Mesalamine 4.8g daily initiated. Gastroenterology recommended early introduction of infliximab 5 mg/kg given severity and extent of disease. First infusion administered on hospital day 3 without adverse reaction. Stool frequency decreased from 10 to 4 per day by discharge. Hemoglobin stable. Iron studies consistent with iron deficiency; started on IV iron sucrose. Nutrition consult recommended high-calorie, low-residue diet.
+
+DISCHARGE DIAGNOSIS:
+1. Ulcerative colitis, moderate-severe, newly diagnosed
+2. Iron deficiency anemia secondary to GI blood loss
+3. Malnutrition, moderate"

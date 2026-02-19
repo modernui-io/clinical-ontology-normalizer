@@ -407,23 +407,26 @@ async def change_password(
 
 @router.post(
     "/initialize",
-    summary="Initialize RBAC system",
-    description="Initialize default roles and permissions. Admin only.",
+    summary="Initialize RBAC system and seed admin user",
+    description=(
+        "Bootstrap endpoint: initializes default roles, permissions, and creates "
+        "the initial admin user if no users exist. Does NOT require authentication "
+        "so it can be called on a fresh database. Safe to call multiple times."
+    ),
 )
 async def initialize_rbac(
     db: AsyncSession = Depends(get_db),
     rbac_service: RBACService = Depends(get_rbac_service),
-    current_user: CurrentUser = Depends(require_admin),
+    auth_service: AuthService = Depends(get_auth_service),
 ) -> dict[str, Any]:
-    """Initialize the RBAC system with default roles and permissions.
+    """Initialize the RBAC system with default roles, permissions, and admin user.
 
-    This creates all default permissions and roles if they don't exist.
-    Safe to call multiple times.
+    This is the bootstrap endpoint for a fresh database. It:
+    1. Creates all default permissions if they don't exist
+    2. Creates all default roles (admin, provider, biller, viewer) if they don't exist
+    3. Creates an initial admin user (admin@example.com) if no users exist
 
-    Args:
-        db: Database session
-        rbac_service: RBAC service
-        current_user: Current admin user
+    Safe to call multiple times - existing data is not modified.
 
     Returns:
         Summary of initialized items
@@ -431,13 +434,37 @@ async def initialize_rbac(
     perm_count = await rbac_service.initialize_default_permissions(db)
     role_count = await rbac_service.initialize_default_roles(db)
 
+    # Seed admin user if no users exist
+    admin_created = False
+    from sqlalchemy import select, func
+    from app.models.rbac import User
+    count_stmt = select(func.count()).select_from(User)
+    result = await db.execute(count_stmt)
+    user_count = result.scalar() or 0
+
+    if user_count == 0:
+        try:
+            await auth_service.create_user(
+                db=db,
+                email="admin@example.com",
+                password="Admin123!",
+                name="System Administrator",
+                role_names=["admin"],
+            )
+            admin_created = True
+            logger.info("Seeded initial admin user: admin@example.com")
+        except ValueError:
+            # User already exists (race condition guard)
+            logger.info("Admin user already exists, skipping seed")
+
     logger.info(
-        f"RBAC initialized by {current_user.email}: "
-        f"{perm_count} permissions, {role_count} roles"
+        f"RBAC initialized: {perm_count} permissions, {role_count} roles, "
+        f"admin_created={admin_created}"
     )
 
     return {
         "permissions_created": perm_count,
         "roles_created": role_count,
+        "admin_user_created": admin_created,
         "message": "RBAC system initialized successfully",
     }

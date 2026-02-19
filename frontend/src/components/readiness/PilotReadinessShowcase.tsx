@@ -7,6 +7,7 @@ import {
   ArrowRight,
   PlayCircle,
   ShieldAlert,
+  ShieldCheck,
   Timer,
   Workflow,
 } from "lucide-react";

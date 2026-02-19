@@ -21,7 +21,7 @@ from sqlalchemy.orm import Session
 from app.models.clinical_fact import ClinicalFact
 from app.models.knowledge_graph import KGEdge, KGNode
 from app.schemas.base import Domain
-from app.schemas.knowledge_graph import EdgeType, NodeType, PatientGraph
+from app.schemas.knowledge_graph import EdgeType, NodeType, PatientGraph, TemporalOrder
 from app.services.graph_builder import (
     BaseGraphBuilderService,
     EdgeInput,
@@ -224,6 +224,11 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
             return UUID(existing.id)
 
         # Create new edge with bi-temporal fields
+        # Auto-compute temporal_order via Allen's interval algebra if intervals exist
+        computed_temporal_order = edge_input.temporal_order
+        if computed_temporal_order is None and edge_input.valid_from and edge_input.valid_to:
+            computed_temporal_order = self._compute_temporal_order(edge_input)
+
         edge = KGEdge(
             patient_id=edge_input.patient_id,
             source_node_id=str(edge_input.source_node_id),
@@ -240,13 +245,51 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
             source_document_date=edge_input.source_document_date,
             # Temporal Assertion
             temporality=edge_input.temporality,
-            temporal_order=edge_input.temporal_order.value if edge_input.temporal_order else None,
+            temporal_order=computed_temporal_order.value if computed_temporal_order else None,
             temporal_confidence=edge_input.temporal_confidence,
         )
         self._session.add(edge)
         self._session.flush()
 
         return UUID(edge.id)
+
+    def _compute_temporal_order(self, edge_input: EdgeInput) -> TemporalOrder | None:
+        """Compute temporal_order via Allen's interval algebra.
+
+        Finds the most recent existing edge for the same patient + target concept
+        and computes the Allen relation between the new edge and the existing one.
+        Returns None if no suitable reference edge exists.
+        """
+        try:
+            from app.services.temporal_query_service import (
+                TemporalInterval,
+                temporal_order_from_intervals,
+            )
+
+            # Find related edges for same patient + target concept
+            related_stmt = (
+                select(KGEdge)
+                .where(KGEdge.patient_id == edge_input.patient_id)
+                .where(KGEdge.target_node_id == str(edge_input.target_node_id))
+                .where(KGEdge.valid_from.isnot(None))
+                .where(KGEdge.valid_to.isnot(None))
+                .order_by(KGEdge.valid_from.desc())
+                .limit(1)
+            )
+            related = self._session.execute(related_stmt).scalar_one_or_none()
+
+            if related and related.valid_from and related.valid_to:
+                new_interval = TemporalInterval(
+                    start=edge_input.valid_from, end=edge_input.valid_to
+                )
+                existing_interval = TemporalInterval(
+                    start=related.valid_from, end=related.valid_to
+                )
+                return temporal_order_from_intervals(new_interval, existing_interval)
+        except Exception as exc:
+            logger.debug("Allen's interval computation skipped: %s", exc)
+
+        return None
 
     def project_fact_to_graph(
         self,

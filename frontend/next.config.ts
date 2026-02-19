@@ -4,11 +4,6 @@ const nextConfig: NextConfig = {
   // Enable standalone output for Docker deployment
   output: "standalone",
 
-  // Increase timeout for large document processing (10 minutes)
-  experimental: {
-    proxyTimeout: 600000,
-  },
-
   // API proxy to backend service
   // Proxies /api/* from browser to backend at /api/v1/*
   // Uses BACKEND_URL for server-side (Docker internal), NEXT_PUBLIC_API_URL for fallback

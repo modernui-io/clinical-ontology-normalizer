@@ -114,7 +114,7 @@ class Settings(BaseSettings):
         if self.api_key:
             return {self.api_key}
         return set()
-    jwt_secret_key: str | None = None  # Required when auth_enabled=True
+    jwt_secret_key: str | None = "dev-jwt-secret-do-not-use-in-production"  # Set via JWT_SECRET_KEY env var in production
     jwt_algorithm: str = "HS256"
     jwt_access_token_expire_minutes: int = 30
     auth_bypass_dev: bool = False  # Dev bypass for testing without auth

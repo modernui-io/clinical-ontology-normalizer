@@ -54,6 +54,12 @@ export function middleware(request: NextRequest) {
   const isPublicPath =
     PUBLIC_PATHS.some((path) => (path === "/" ? pathname === "/" : pathname.startsWith(path)));
 
+  // Redirect authenticated users away from login/register to dashboard
+  const hasAuth = request.cookies.get("has_auth");
+  if (isPublicPath && hasAuth?.value === "true" && (pathname === "/login" || pathname === "/register")) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
   if (isPublicPath) {
     return NextResponse.next();
   }
@@ -63,9 +69,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Check for auth cookie (set by use-auth.tsx on login)
-  const hasAuth = request.cookies.get("has_auth");
-
+  // Check for auth cookie (set by AuthContext on login)
   if (!hasAuth || hasAuth.value !== "true") {
     // Store the requested URL for redirect after login
     const loginUrl = new URL("/login", request.url);

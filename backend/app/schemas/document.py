@@ -60,6 +60,7 @@ class Document(DocumentCreate):
     """
 
     id: UUID = Field(..., description="Unique document identifier")
+    owner_id: str | None = Field(None, description="ID of user who uploaded this document")
     status: JobStatus = Field(default=JobStatus.QUEUED, description="Processing status")
     job_id: UUID | None = Field(None, description="Processing job ID")
     created_at: datetime = Field(..., description="When the document was uploaded")
