@@ -1015,8 +1015,8 @@ function HybridResultPanel({
         </CardContent>
       </Card>
 
-      {/* Clinical Narrative */}
-      {result.narrative && (
+      {/* Clinical Narrative — only show when there is actual content */}
+      {result.narrative && result.narrative.extraction_confidence > 0 && (result.narrative.episodes?.length > 0 || result.narrative.admission_reason || result.narrative.hospital_course || result.narrative.discharge_plan) && (
         <Card className="border-purple-200 bg-purple-50/30">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm flex items-center gap-2">
