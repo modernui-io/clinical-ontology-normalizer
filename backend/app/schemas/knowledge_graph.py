@@ -8,6 +8,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from app.schemas.base import Temporality
+
 
 class NodeType(str, Enum):
     """Types of nodes in the knowledge graph."""
@@ -135,14 +137,6 @@ class KGNode(KGNodeCreate):
     created_at: datetime = Field(..., description="When node was created")
 
     model_config = {"from_attributes": True}
-
-
-class Temporality(str, Enum):
-    """Temporal assertion from NLP extraction."""
-
-    CURRENT = "current"  # Happening now / ongoing
-    PAST = "past"  # Historical / happened before
-    FUTURE = "future"  # Planned / anticipated
 
 
 class KGEdgeCreate(BaseModel):

@@ -15,6 +15,7 @@ from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base, SoftDeleteMixin
+from app.schemas.base import Temporality
 from app.schemas.knowledge_graph import EdgeType, NodeType
 
 
@@ -237,8 +238,14 @@ class KGEdge(SoftDeleteMixin, Base):
     )
 
     # Temporal Assertion: Conceptual time from NLP
-    temporality: Mapped[str | None] = mapped_column(
-        String(20),
+    temporality: Mapped[Temporality | None] = mapped_column(
+        Enum(
+            Temporality,
+            name="temporality_type",
+            create_constraint=True,
+            create_type=False,
+            values_callable=lambda x: [e.value for e in x],
+        ),
         nullable=True,
         doc="Temporal assertion: current, past, future (from NLP extraction)",
     )
