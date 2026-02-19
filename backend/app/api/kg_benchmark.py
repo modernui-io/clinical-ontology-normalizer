@@ -229,6 +229,11 @@ async def run_drknows_benchmark(
     try:
         result = await service.run_full_benchmark(None)
 
+        # Persist result to the singleton so /drknows/latest can find it
+        singleton = get_drknows_benchmark_service()
+        if singleton is not service:
+            singleton._benchmark_history.append(result)
+
         return service.export_benchmark_report(result)
     except Exception as e:
         raise log_and_raise_internal_error(
