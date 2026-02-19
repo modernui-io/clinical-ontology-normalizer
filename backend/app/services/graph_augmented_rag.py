@@ -87,8 +87,13 @@ class GraphPath:
     path_type: str  # "condition_treatment", "temporal_sequence", "comorbidity"
     confidence: float = 1.0
 
-    def to_prompt_format(self) -> str:
-        """Format path for LLM prompt."""
+    def to_prompt_format(self, assertion_mode: str = "full") -> str:
+        """Format path for LLM prompt.
+
+        Args:
+            assertion_mode: "full" | "extracted_only" | "none".
+                When "none", assertion labels are omitted from the prompt.
+        """
         if not self.nodes or len(self.nodes) < 2:
             return ""
 
@@ -104,7 +109,12 @@ class GraphPath:
                 temporal = ""
                 if edge.get("temporality"):
                     temporal = f", {edge['temporality']}"
-                parts.append(f" --[{edge_type} (conf: {confidence:.2f}{temporal})]--> ")
+                assertion_str = ""
+                if assertion_mode != "none":
+                    assertion = edge.get("assertion", "present")
+                    if assertion != "present":
+                        assertion_str = f", {assertion.upper()}"
+                parts.append(f" --[{edge_type} (conf: {confidence:.2f}{temporal}{assertion_str})]--> ")
 
         return "".join(parts)
 
@@ -140,18 +150,56 @@ class GraphAugmentedContext:
     total_evidence_pieces: int = 0
     source_retrieval_status: str = field(default=SourceRetrievalStatus.UNAVAILABLE)
 
-    def to_llm_prompt(self) -> str:
-        """Format all context for LLM consumption."""
+    def to_llm_prompt(self, assertion_mode: str = "full") -> str:
+        """Format all context for LLM consumption.
+
+        Args:
+            assertion_mode: "full" | "extracted_only" | "none".
+                Controls whether assertion labels appear in graph evidence
+                and whether the Assertion Notes section is included.
+        """
         sections = []
 
         # Graph Evidence Section
         if self.graph_paths:
             sections.append("=== Graph Evidence ===")
             for i, path in enumerate(self.graph_paths, 1):
-                path_str = path.to_prompt_format()
+                path_str = path.to_prompt_format(assertion_mode=assertion_mode)
                 if path_str:
                     sections.append(f"Path {i} ({path.path_type}): {path_str}")
             sections.append("")
+
+        # Assertion Notes Section (only in full or extracted_only mode)
+        if assertion_mode != "none" and self.graph_paths:
+            negated_findings = []
+            uncertain_findings = []
+            family_findings = []
+            historical_findings = []
+            for path in self.graph_paths:
+                for edge in path.edges:
+                    assertion = edge.get("assertion", "present")
+                    # Find the target node label for this edge
+                    target_label = path.nodes[-1].get("label", "?") if path.nodes else "?"
+                    if assertion == "absent":
+                        negated_findings.append(target_label)
+                    elif assertion == "possible":
+                        uncertain_findings.append(target_label)
+                    elif assertion == "family_history":
+                        family_findings.append(target_label)
+                    elif assertion == "historical":
+                        historical_findings.append(target_label)
+
+            if negated_findings or uncertain_findings or family_findings or historical_findings:
+                sections.append("=== Assertion Notes ===")
+                if negated_findings:
+                    sections.append(f"NEGATED (patient does NOT have): {', '.join(set(negated_findings))}")
+                if uncertain_findings:
+                    sections.append(f"UNCERTAIN (possible/suspected): {', '.join(set(uncertain_findings))}")
+                if family_findings:
+                    sections.append(f"FAMILY HISTORY ONLY (not patient's own): {', '.join(set(family_findings))}")
+                if historical_findings:
+                    sections.append(f"HISTORICAL (past/resolved): {', '.join(set(historical_findings))}")
+                sections.append("")
 
         # Temporal Context Section
         if self.temporal_context:
@@ -254,6 +302,10 @@ class GraphAugmentedRAGService:
         Returns:
             GraphAugmentedContext with paths, temporal info, and documents.
         """
+        # Scale-safety: clamp unbounded parameters
+        max_hops = min(max_hops, 10)
+        max_paths = min(max_paths, 100)
+
         # Step 1: Extract concepts from query (NLP + quoted terms)
         query_concepts = self._extract_query_concepts(query)
 
@@ -319,6 +371,9 @@ class GraphAugmentedRAGService:
         include_temporal: bool = True,
         include_policies: bool = True,
         time_point: datetime | None = None,
+        assertion_mode: str = "full",
+        temporal_mode: str = "full_bitemporal",
+        retrieval_mode: str = "graph_plus_doc",
     ) -> GraphAugmentedContext:
         """Retrieve graph-augmented context for a query (sync version).
 
@@ -330,10 +385,17 @@ class GraphAugmentedRAGService:
             include_temporal: Include temporal context.
             include_policies: Include policy constraints.
             time_point: Optional time point for temporal queries.
+            assertion_mode: "full" | "extracted_only" | "none".
+            temporal_mode: "full_bitemporal" | "timestamps_only" | "no_temporal".
+            retrieval_mode: "doc_only" | "graph_only" | "graph_plus_doc" | "graph_plus_doc_plus_guidelines".
 
         Returns:
             GraphAugmentedContext with paths, temporal info, and documents.
         """
+        # Scale-safety: clamp unbounded parameters
+        max_hops = min(max_hops, 10)
+        max_paths = min(max_paths, 100)
+
         # Step 1: Extract concepts from query (NLP + quoted terms)
         # Note: OMOP enrichment skipped in sync path (requires async DB)
         query_concepts = self._extract_query_concepts(query)
@@ -341,23 +403,28 @@ class GraphAugmentedRAGService:
         # Find relevant starting nodes in patient's graph
         start_nodes = self._find_matching_nodes(patient_id, query_concepts)
 
-        # Traverse graph from starting nodes
-        graph_paths = self._traverse_graph(
-            patient_id=patient_id,
-            start_nodes=start_nodes,
-            query_concepts=query_concepts,
-            max_hops=max_hops,
-            max_paths=max_paths,
-        )
+        # Traverse graph from starting nodes (skip if doc_only mode)
+        graph_paths: list[GraphPath] = []
+        if retrieval_mode != "doc_only":
+            graph_paths = self._traverse_graph(
+                patient_id=patient_id,
+                start_nodes=start_nodes,
+                query_concepts=query_concepts,
+                max_hops=max_hops,
+                max_paths=max_paths,
+                assertion_mode=assertion_mode,
+                temporal_mode=temporal_mode,
+            )
 
         # Causal reasoning: augment paths for causal queries
-        causal_paths = self._get_causal_context(query, query_concepts)
-        if causal_paths:
-            graph_paths = graph_paths + causal_paths
+        if retrieval_mode != "doc_only":
+            causal_paths = self._get_causal_context(query, query_concepts)
+            if causal_paths:
+                graph_paths = graph_paths + causal_paths
 
-        # Get temporal context if requested
+        # Get temporal context if requested (skip if no_temporal mode)
         temporal_context = None
-        if include_temporal:
+        if include_temporal and temporal_mode != "no_temporal":
             temporal_context = self._get_temporal_context(
                 patient_id=patient_id,
                 time_point=time_point,
@@ -365,18 +432,21 @@ class GraphAugmentedRAGService:
 
         # Get applicable policy constraints if requested
         policy_constraints: list[dict[str, Any]] = []
-        if include_policies:
+        if include_policies and retrieval_mode == "graph_plus_doc_plus_guidelines":
             policy_constraints = self._get_policy_constraints(
                 patient_id=patient_id,
                 query_concepts=query_concepts,
             )
 
-        # P1-011: Real document retrieval with status tracking
-        retrieved_documents, source_status = self._retrieve_documents_sync(
-            query=query,
-            patient_id=patient_id,
-            query_concepts=query_concepts,
-        )
+        # P1-011: Real document retrieval with status tracking (skip if graph_only mode)
+        retrieved_documents: list[dict[str, Any]] = []
+        source_status = SourceRetrievalStatus.UNAVAILABLE
+        if retrieval_mode != "graph_only":
+            retrieved_documents, source_status = self._retrieve_documents_sync(
+                query=query,
+                patient_id=patient_id,
+                query_concepts=query_concepts,
+            )
 
         return GraphAugmentedContext(
             query=query,
@@ -608,6 +678,8 @@ class GraphAugmentedRAGService:
         query_concepts: list[QueryConcept],
         max_hops: int,
         max_paths: int,
+        assertion_mode: str = "full",
+        temporal_mode: str = "full_bitemporal",
     ) -> list[GraphPath]:
         """Traverse graph from starting nodes to find relevant paths (async version)."""
         paths = []
@@ -618,6 +690,8 @@ class GraphAugmentedRAGService:
                 start_node=start_node,
                 query_concepts=query_concepts,
                 max_hops=max_hops,
+                assertion_mode=assertion_mode,
+                temporal_mode=temporal_mode,
             )
             paths.extend(node_paths)
 
@@ -632,6 +706,8 @@ class GraphAugmentedRAGService:
         start_node: KGNode,
         query_concepts: list[QueryConcept],
         max_hops: int,
+        assertion_mode: str = "full",
+        temporal_mode: str = "full_bitemporal",
     ) -> list[GraphPath]:
         """BFS traversal from a starting node (async, bidirectional, confidence-weighted)."""
         paths = []
@@ -653,8 +729,11 @@ class GraphAugmentedRAGService:
         outgoing_edges = list(out_result.scalars().all())
         incoming_edges = list(in_result.scalars().all())
 
-        # Step 4: Filter and score edges
-        all_edges = _score_and_filter_edges(outgoing_edges + incoming_edges, query_concepts)
+        # Step 4: Filter and score edges (with mode parameters for ablation)
+        all_edges = _score_and_filter_edges(
+            outgoing_edges + incoming_edges, query_concepts,
+            assertion_mode=assertion_mode, temporal_mode=temporal_mode,
+        )
         all_edges = all_edges[:10]
 
         # Batch-fetch all neighbor nodes in one query (avoids N+1)
@@ -679,6 +758,7 @@ class GraphAugmentedRAGService:
                 neighbor_node = neighbor_map.get(edge.source_node_id)
 
             if neighbor_node:
+                edge_props = edge.properties or {}
                 path = GraphPath(
                     nodes=[
                         {"id": str(start_node.id), "label": start_node.label, "type": start_node.node_type.value},
@@ -689,6 +769,9 @@ class GraphAugmentedRAGService:
                             "edge_type": edge.edge_type.value,
                             "confidence": edge.temporal_confidence or 1.0,
                             "temporality": edge.temporality,
+                            "assertion": edge_props.get("assertion", "present"),
+                            "is_negated": edge_props.get("is_negated", False),
+                            "is_uncertain": edge_props.get("is_uncertain", False),
                             "event_date": edge.event_date.isoformat() if edge.event_date else None,
                         }
                     ],
@@ -704,6 +787,8 @@ class GraphAugmentedRAGService:
                         start_node=neighbor_node,
                         query_concepts=query_concepts,
                         max_hops=max_hops - 1,
+                        assertion_mode=assertion_mode,
+                        temporal_mode=temporal_mode,
                     )
                     for deeper_path in deeper_paths[:3]:
                         combined = GraphPath(
@@ -723,56 +808,58 @@ class GraphAugmentedRAGService:
         query_concepts: list[QueryConcept],
         max_hops: int,
         max_paths: int,
+        assertion_mode: str = "full",
+        temporal_mode: str = "full_bitemporal",
     ) -> list[GraphPath]:
         """Traverse graph from starting nodes to find relevant paths.
 
-        For 2+ hop queries, attempts Neo4j via query router for
-        variable-length path matching. Falls back to PG BFS.
+        For 2+ hop queries, uses the PG-native query router which traverses
+        both kg_edges and concept_relationships (20M+ vocabulary relationships)
+        in a single CTE. Falls back to PG BFS on failure.
         """
-        # Route multi-hop queries to Neo4j when available
-        if max_hops >= 2 and not self._is_async:
+        if max_hops >= 2:
             try:
-                from app.services.neo4j_query_router import MultiHopQuery, Neo4jQueryRouter
-                from app.services.neo4j_query_router import GraphPath as RouterPath
+                from app.services.neo4j_query_router import GraphQueryRouter, MultiHopQuery
 
-                router = Neo4jQueryRouter(self._session)
-                if router.neo4j_available:
-                    start_concept_ids = [
-                        n.omop_concept_id for n in start_nodes
-                        if n.omop_concept_id
-                    ]
-                    if start_concept_ids:
-                        query = MultiHopQuery(
-                            patient_id=patient_id,
-                            start_concept_ids=start_concept_ids,
-                            max_hops=max_hops,
-                            max_paths=max_paths,
-                            min_confidence=MIN_TRAVERSAL_CONFIDENCE,
+                start_concept_ids = [
+                    n.omop_concept_id for n in start_nodes
+                    if n.omop_concept_id
+                ]
+                if start_concept_ids:
+                    router = GraphQueryRouter(self._session)
+                    query = MultiHopQuery(
+                        patient_id=patient_id,
+                        start_concept_ids=start_concept_ids,
+                        max_hops=max_hops,
+                        max_paths=max_paths,
+                        min_confidence=MIN_TRAVERSAL_CONFIDENCE,
+                    )
+                    router_paths = router.execute_multi_hop(query)
+                    return [
+                        GraphPath(
+                            nodes=[
+                                {"id": n.node_id, "label": n.label, "type": n.node_type}
+                                for n in rp.nodes
+                            ],
+                            edges=[
+                                {
+                                    "edge_type": e.edge_type,
+                                    "confidence": e.confidence,
+                                    "temporality": e.temporality,
+                                    "assertion": getattr(e, "assertion", "present") or "present",
+                                    "is_negated": getattr(e, "is_negated", False),
+                                    "is_uncertain": getattr(e, "is_uncertain", False),
+                                    "event_date": e.event_date,
+                                }
+                                for e in rp.edges
+                            ],
+                            path_type="multi_hop",
+                            confidence=rp.path_confidence,
                         )
-                        router_paths = router.execute_multi_hop(query)
-                        # Convert router paths to GraphPath format
-                        return [
-                            GraphPath(
-                                nodes=[
-                                    {"id": n.node_id, "label": n.label, "type": n.node_type}
-                                    for n in rp.nodes
-                                ],
-                                edges=[
-                                    {
-                                        "edge_type": e.edge_type,
-                                        "confidence": e.confidence,
-                                        "temporality": e.temporality,
-                                        "event_date": e.event_date,
-                                    }
-                                    for e in rp.edges
-                                ],
-                                path_type="multi_hop",
-                                confidence=rp.path_confidence,
-                            )
-                            for rp in router_paths
-                        ][:max_paths]
+                        for rp in router_paths
+                    ][:max_paths]
             except Exception as e:
-                logger.debug("Neo4j query router failed, using PG BFS: %s", e)
+                logger.debug("Query router failed, using PG BFS: %s", e)
 
         paths = []
 
@@ -782,6 +869,8 @@ class GraphAugmentedRAGService:
                 start_node=start_node,
                 query_concepts=query_concepts,
                 max_hops=max_hops,
+                assertion_mode=assertion_mode,
+                temporal_mode=temporal_mode,
             )
             paths.extend(node_paths)
 
@@ -796,6 +885,8 @@ class GraphAugmentedRAGService:
         start_node: KGNode,
         query_concepts: list[QueryConcept],
         max_hops: int,
+        assertion_mode: str = "full",
+        temporal_mode: str = "full_bitemporal",
     ) -> list[GraphPath]:
         """BFS traversal from a starting node (sync, bidirectional, confidence-weighted)."""
         paths = []
@@ -817,8 +908,11 @@ class GraphAugmentedRAGService:
         outgoing_edges = list(out_result.scalars().all())
         incoming_edges = list(in_result.scalars().all())
 
-        # Step 4: Filter and score edges
-        all_edges = _score_and_filter_edges(outgoing_edges + incoming_edges, query_concepts)
+        # Step 4: Filter and score edges (with mode parameters for ablation)
+        all_edges = _score_and_filter_edges(
+            outgoing_edges + incoming_edges, query_concepts,
+            assertion_mode=assertion_mode, temporal_mode=temporal_mode,
+        )
         all_edges = all_edges[:10]
 
         # Batch-fetch all neighbor nodes in one query (avoids N+1)
@@ -843,6 +937,7 @@ class GraphAugmentedRAGService:
                 neighbor_node = neighbor_map.get(edge.source_node_id)
 
             if neighbor_node:
+                edge_props = edge.properties or {}
                 path = GraphPath(
                     nodes=[
                         {"id": str(start_node.id), "label": start_node.label, "type": start_node.node_type.value},
@@ -853,6 +948,9 @@ class GraphAugmentedRAGService:
                             "edge_type": edge.edge_type.value,
                             "confidence": edge.temporal_confidence or 1.0,
                             "temporality": edge.temporality,
+                            "assertion": edge_props.get("assertion", "present"),
+                            "is_negated": edge_props.get("is_negated", False),
+                            "is_uncertain": edge_props.get("is_uncertain", False),
                             "event_date": edge.event_date.isoformat() if edge.event_date else None,
                         }
                     ],
@@ -868,6 +966,8 @@ class GraphAugmentedRAGService:
                         start_node=neighbor_node,
                         query_concepts=query_concepts,
                         max_hops=max_hops - 1,
+                        assertion_mode=assertion_mode,
+                        temporal_mode=temporal_mode,
                     )
                     for deeper_path in deeper_paths[:3]:
                         combined = GraphPath(
@@ -1330,14 +1430,29 @@ class GraphAugmentedRAGService:
 def _score_and_filter_edges(
     edges: list[KGEdge],
     query_concepts: list[QueryConcept],
+    assertion_mode: str = "full",
+    temporal_mode: str = "full_bitemporal",
 ) -> list[KGEdge]:
     """Score edges by confidence and query relevance, filter low-confidence.
 
     Scoring criteria:
     1. Base confidence (temporal_confidence)
     2. Query-relevant edge types get a boost
-    3. Current temporality preferred over historical
-    4. Edges below MIN_TRAVERSAL_CONFIDENCE are pruned
+    3. Current temporality preferred over historical (unless temporal_mode="no_temporal")
+    4. Assertion-based scoring (unless assertion_mode="none")
+    5. Edges below MIN_TRAVERSAL_CONFIDENCE are pruned
+
+    Args:
+        edges: Edges to score.
+        query_concepts: Query concepts for relevance boosting.
+        assertion_mode: "full" | "extracted_only" | "none".
+            - "full": Apply assertion-based score modifiers.
+            - "extracted_only": Include assertion in metadata but don't modify scores.
+            - "none": Ignore assertion entirely.
+        temporal_mode: "full_bitemporal" | "timestamps_only" | "no_temporal".
+            - "full_bitemporal": Full temporal scoring including temporality boost.
+            - "timestamps_only": Use event_date but skip temporality enum boost.
+            - "no_temporal": No temporal scoring at all.
     """
     # Collect preferred edge types from all query concepts
     preferred_types: set[str] = set()
@@ -1361,9 +1476,26 @@ def _score_and_filter_edges(
         if preferred_types and edge.edge_type.value in preferred_types:
             score += 0.2
 
-        # Prefer current over historical
-        if edge.temporality == "current":
-            score += 0.1
+        # Temporal scoring (skip if no_temporal mode)
+        if temporal_mode != "no_temporal":
+            if edge.temporality == "current":
+                score += 0.1
+
+        # Assertion-based scoring (only in "full" mode)
+        if assertion_mode == "full":
+            edge_props = edge.properties or {}
+            assertion = edge_props.get("assertion", "present")
+            if assertion == "absent":
+                score *= 0.5  # Negated conditions significantly less relevant
+            elif assertion == "possible":
+                score *= 0.75  # Uncertain conditions moderately less relevant
+            elif assertion in ("hypothetical", "conditional"):
+                score *= 0.6  # Hypothetical/conditional
+            elif assertion == "family_history":
+                score *= 0.7  # Family history, not patient's own
+            elif assertion == "historical":
+                score *= 0.8  # Historical, less current relevance
+            # "present" gets no penalty (default)
 
         scored.append((score, edge))
 
