@@ -59,7 +59,7 @@ async def list_experiments(
     status: str | None = Query(None, description="Filter by status"),
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
-    current_user: dict = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> ExperimentListResponse:
     """List all research experiments."""
     service = get_research_service()
@@ -70,7 +70,7 @@ async def list_experiments(
 @router.get("/experiments/{experiment_id}", response_model=ExperimentResponse)
 async def get_experiment(
     experiment_id: str,
-    current_user: dict = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> ExperimentResponse:
     """Get a research experiment by ID."""
     service = get_research_service()
@@ -84,7 +84,7 @@ async def get_experiment(
 async def update_experiment(
     experiment_id: str,
     data: ExperimentUpdate,
-    current_user: dict = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> ExperimentResponse:
     """Update a research experiment."""
     service = get_research_service()
@@ -97,7 +97,7 @@ async def update_experiment(
 @router.delete("/experiments/{experiment_id}")
 async def delete_experiment(
     experiment_id: str,
-    current_user: dict = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> dict:
     """Soft-delete a research experiment."""
     service = get_research_service()
@@ -109,7 +109,7 @@ async def delete_experiment(
 @router.post("/experiments/{experiment_id}/start", response_model=ExperimentResponse)
 async def start_experiment(
     experiment_id: str,
-    current_user: dict = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> ExperimentResponse:
     """Mark an experiment as running."""
     service = get_research_service()
@@ -122,7 +122,7 @@ async def start_experiment(
 @router.post("/experiments/{experiment_id}/complete", response_model=ExperimentResponse)
 async def complete_experiment(
     experiment_id: str,
-    current_user: dict = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> ExperimentResponse:
     """Mark an experiment as completed and aggregate metrics."""
     service = get_research_service()
@@ -140,7 +140,7 @@ async def complete_experiment(
 @router.post("/runs", response_model=RunResponse)
 async def create_run(
     data: RunCreate,
-    current_user: dict = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> RunResponse:
     """Create a new experiment run and optionally start MIMIC ingestion."""
     service = get_research_service()
@@ -180,7 +180,7 @@ async def list_runs(
     experiment_id: str = Query(..., description="Filter by experiment ID"),
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
-    current_user: dict = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> RunListResponse:
     """List runs for an experiment."""
     service = get_research_service()
@@ -191,7 +191,7 @@ async def list_runs(
 @router.get("/runs/{run_id}", response_model=RunResponse)
 async def get_run(
     run_id: str,
-    current_user: dict = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> RunResponse:
     """Get a run by ID."""
     service = get_research_service()
@@ -204,7 +204,7 @@ async def get_run(
 @router.get("/runs/{run_id}/progress", response_model=RunProgressResponse)
 async def get_run_progress(
     run_id: str,
-    current_user: dict = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> RunProgressResponse:
     """Poll run progress including MIMIC import status."""
     service = get_research_service()
@@ -259,7 +259,7 @@ async def get_run_progress(
 async def get_run_metrics(
     run_id: str,
     category: str | None = Query(None, description="Filter by category"),
-    current_user: dict = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> MetricListResponse:
     """Get all metrics for a run."""
     service = get_research_service()
@@ -270,7 +270,7 @@ async def get_run_metrics(
 @router.get("/runs/{run_id}/assertions", response_model=AssertionAnalytics)
 async def get_assertion_analytics(
     run_id: str,
-    current_user: dict = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> AssertionAnalytics:
     """Get assertion type analytics for a run."""
     service = get_research_service()
@@ -280,7 +280,7 @@ async def get_assertion_analytics(
 @router.get("/runs/{run_id}/mapping-quality", response_model=MappingQuality)
 async def get_mapping_quality(
     run_id: str,
-    current_user: dict = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> MappingQuality:
     """Get OMOP mapping quality metrics for a run."""
     service = get_research_service()
@@ -290,7 +290,7 @@ async def get_mapping_quality(
 @router.get("/runs/{run_id}/kg-metrics", response_model=KGMetrics)
 async def get_kg_metrics(
     run_id: str,
-    current_user: dict = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> KGMetrics:
     """Get knowledge graph metrics for a run."""
     service = get_research_service()
@@ -300,7 +300,7 @@ async def get_kg_metrics(
 @router.get("/runs/{run_id}/timing", response_model=PipelineTimingMetrics)
 async def get_pipeline_timing(
     run_id: str,
-    current_user: dict = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> PipelineTimingMetrics:
     """Get pipeline timing metrics for a run."""
     service = get_research_service()
@@ -315,7 +315,7 @@ async def get_pipeline_timing(
 @router.post("/compare", response_model=ComparisonResponse)
 async def compare_runs(
     data: ComparisonRequest,
-    current_user: dict = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> ComparisonResponse:
     """Compare metrics across multiple runs."""
     service = get_research_service()
@@ -325,7 +325,7 @@ async def compare_runs(
 @router.post("/export", response_model=ExportResponse)
 async def export_metrics(
     data: ExportRequest,
-    current_user: dict = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> ExportResponse:
     """Export metrics as CSV, JSON, or LaTeX."""
     service = get_research_service()
@@ -335,7 +335,7 @@ async def export_metrics(
 @router.post("/export/download")
 async def download_export(
     data: ExportRequest,
-    current_user: dict = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> Response:
     """Download exported metrics as a file."""
     service = get_research_service()
@@ -354,7 +354,7 @@ async def download_export(
 
 @router.get("/datasets")
 async def list_available_datasets(
-    current_user: dict = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> dict:
     """List available datasets and document counts for experiments."""
     from app.services.experiment_runner import get_all_datasets
@@ -375,7 +375,7 @@ async def list_available_datasets(
 
 @router.post("/experiments/neurips/create-all")
 async def create_all_neurips_experiments(
-    current_user: dict = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> dict:
     """Create all 6 NeurIPS 2026 experiment definitions."""
     from app.services.experiment_runner import ExperimentRunner
@@ -388,7 +388,7 @@ async def create_all_neurips_experiments(
 @router.post("/experiments/neurips/run/{experiment_number}")
 async def run_neurips_experiment(
     experiment_number: int,
-    current_user: dict = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> dict:
     """Run a specific NeurIPS experiment by number (1-6).
 
@@ -463,7 +463,7 @@ async def run_neurips_experiment(
 
 @router.post("/experiments/neurips/run-all")
 async def run_all_neurips_experiments(
-    current_user: dict = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> dict:
     """Run all 6 NeurIPS 2026 experiments."""
     from app.services.experiment_runner import ExperimentRunner
@@ -489,7 +489,7 @@ async def run_all_neurips_experiments(
 async def get_qa_questions(
     experiment_number: int,
     category: str | None = Query(None, description="Filter by question category"),
-    current_user: dict = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> dict:
     """Get QA evaluation questions for an experiment."""
     from app.services.qa_evaluation import QAEvaluationService
@@ -550,7 +550,7 @@ def _get_notes_db() -> sqlite3.Connection:
 
 @router.get("/notes/stats")
 async def get_notes_stats(
-    current_user: dict = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> dict:
     """Get MIMIC note database statistics."""
     conn = _get_notes_db()
@@ -577,7 +577,7 @@ async def search_notes(
     category: str = Query("all", description="Note category filter"),
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
-    current_user: dict = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> dict:
     """Search MIMIC clinical notes with full-text search."""
     conn = _get_notes_db()
@@ -636,7 +636,7 @@ async def search_notes(
 @router.get("/notes/{note_id}")
 async def get_note(
     note_id: int,
-    current_user: dict = Depends(get_current_user),
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> dict:
     """Get a single MIMIC note by database ID."""
     conn = _get_notes_db()

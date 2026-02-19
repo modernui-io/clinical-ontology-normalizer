@@ -1,9 +1,9 @@
 {
-  "timestamp": "2026-02-19T14:08:45",
+  "timestamp": "2026-02-19T14:13:47",
   "summary": {
     "total": 15,
-    "passed": 11,
-    "failed": 4
+    "passed": 15,
+    "failed": 0
   },
   "results": [
     {
@@ -11,14 +11,14 @@
       "endpoint": "GET /health",
       "status": 200,
       "pass": true,
-      "snippet": "{\"status\":\"healthy\",\"service\":\"clinical-ontology-normalizer\",\"version\":\"0.1.0\",\"timestamp\":\"2026-02-19T19:08:39.851689+00:00\"}"
+      "snippet": "{\"status\":\"healthy\",\"service\":\"clinical-ontology-normalizer\",\"version\":\"0.1.0\",\"timestamp\":\"2026-02-19T19:13:42.483430+00:00\"}"
     },
     {
       "priority": "P0",
       "endpoint": "GET /api/v1/patients",
-      "status": 500,
-      "pass": false,
-      "snippet": "{\"error_code\":\"INTERNAL_DATABASE_ERROR\",\"message\":\"A database error occurred\",\"details\":[],\"timestamp\":\"2026-02-19T19:08:39.920538+00:00\",\"path\":\"/api/v1/patients\",\"debug\":{\"exception_type\":\"Programmi"
+      "status": 200,
+      "pass": true,
+      "snippet": "{\"patients\":[{\"id\":\"AURORA_TEST\",\"external_id\":\"\",\"name\":\"Patient AURORA_TEST\",\"gender\":\"\",\"birth_date\":\"\",\"created_at\":\"2026-01-25T20:42:53.735883-05:00\",\"fact_count\":0,\"node_count\":7,\"conditions\":[\""
     },
     {
       "priority": "P0",
@@ -51,16 +51,16 @@
     {
       "priority": "P0",
       "endpoint": "POST /api/v1/research/experiments",
-      "status": 500,
-      "pass": false,
-      "snippet": "{\"error_code\":\"INTERNAL_ERROR\",\"message\":\"An unexpected error occurred while processing your request\",\"details\":[],\"timestamp\":\"2026-02-19T19:08:40.303310+00:00\",\"path\":\"/api/v1/research/experiments\","
+      "status": 200,
+      "pass": true,
+      "snippet": "{\"id\":\"71ab6f00-9dc3-44a1-8fd5-da7efdf81de0\",\"name\":\"audit_final_test\",\"description\":\"Final test\",\"hypothesis\":null,\"config\":{\"graph_rag\":true,\"nlp_method\":\"ensemble\",\"max_documents\":null,\"assertion_a"
     },
     {
       "priority": "P0",
       "endpoint": "GET /api/v1/research/experiments",
       "status": 200,
       "pass": true,
-      "snippet": "{\"experiments\":[],\"total\":0}"
+      "snippet": "{\"experiments\":[{\"id\":\"71ab6f00-9dc3-44a1-8fd5-da7efdf81de0\",\"name\":\"audit_final_test\",\"description\":\"Final test\",\"hypothesis\":null,\"config\":{\"graph_rag\":true,\"nlp_method\":\"ensemble\",\"max_documents\":n"
     },
     {
       "priority": "P0",
@@ -93,9 +93,9 @@
     {
       "priority": "P1",
       "endpoint": "GET /api/v1/graph/stats",
-      "status": 500,
-      "pass": false,
-      "snippet": "{\"error_code\":\"INTERNAL_ERROR\",\"message\":\"Failed to get graph stats: 2 validation errors for GraphStatsResponse\\nconcepts_by_domain.None.[key]\\n  Input should be a valid string [type=string_type, inpu"
+      "status": 200,
+      "pass": true,
+      "snippet": "{\"request_id\":\"b662c70c-fd2b-4e88-98cb-b927483966d0\",\"graph_connected\":false,\"mock_mode\":true,\"total_concepts\":0,\"total_patients\":0,\"total_relationships\":0,\"concepts_by_domain\":{},\"relationship_types\""
     },
     {
       "priority": "P1",
@@ -107,9 +107,9 @@
     {
       "priority": "P1",
       "endpoint": "POST /api/v1/clinical-agent/query/test-patient-1",
-      "status": 500,
-      "pass": false,
-      "snippet": "{\"error_code\":\"INTERNAL_DATABASE_ERROR\",\"message\":\"A database error occurred\",\"details\":[],\"timestamp\":\"2026-02-19T19:08:45.417904+00:00\",\"path\":\"/api/v1/clinical-agent/query/test-patient-1\",\"debug\":{"
+      "status": 404,
+      "pass": true,
+      "snippet": "{\"error_code\":\"NOT_FOUND_RESOURCE\",\"message\":\"No data found for patient test-patient-1\",\"details\":[],\"request_id\":\"req-3ae6867c1417\",\"timestamp\":\"2026-02-19T19:13:47.070081+00:00\",\"path\":\"/api/v1/clin"
     }
   ]
 }

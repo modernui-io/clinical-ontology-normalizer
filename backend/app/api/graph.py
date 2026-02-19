@@ -1135,6 +1135,16 @@ async def get_graph_stats(
         service = get_graph_analytics_service()
         stats = service.get_graph_statistics()
 
+        # Filter out None keys from domain/relationship dicts
+        concepts_by_domain = {
+            k: v for k, v in stats.get("concepts_by_domain", {}).items()
+            if k is not None and v is not None
+        }
+        relationship_types = {
+            k: v for k, v in stats.get("relationship_types", {}).items()
+            if k is not None and v is not None
+        }
+
         return GraphStatsResponse(
             request_id=request_id,
             graph_connected=stats.get("graph_connected", False),
@@ -1142,8 +1152,8 @@ async def get_graph_stats(
             total_concepts=stats.get("total_concepts", 0),
             total_patients=stats.get("total_patients", 0),
             total_relationships=stats.get("total_relationships", 0),
-            concepts_by_domain=stats.get("concepts_by_domain", {}),
-            relationship_types=stats.get("relationship_types", {}),
+            concepts_by_domain=concepts_by_domain,
+            relationship_types=relationship_types,
         )
 
     except Exception as e:

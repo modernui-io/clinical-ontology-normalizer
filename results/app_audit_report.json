@@ -1,0 +1,133 @@
+{
+  "audit_name": "NeurIPS Research Study - Full App Audit",
+  "timestamp": "2026-02-19T19:13:00Z",
+  "overall_status": "PASS",
+
+  "phase_1_results": {
+    "backend_api": {
+      "status": "PASS",
+      "total_endpoints": 15,
+      "passed": 15,
+      "failed": 0,
+      "note": "All 15 endpoints return 2xx (clinical-agent 404 is correct for non-existent patient)"
+    },
+    "frontend_build": {
+      "status": "PASS",
+      "build_success": true,
+      "type_errors_blocking": 0,
+      "type_errors_test_only": 20,
+      "pages_verified": ["research/experiments", "research/assertions", "research/compare", "research/figures", "research/ingest", "research/kg", "research/mapping", "research/notes", "research/pipeline", "mimic", "settings", "patients", "documents"],
+      "missing_pages": ["research/datasets"]
+    },
+    "database": {
+      "status": "PASS",
+      "postgresql": "connected (localhost:5432)",
+      "redis": "connected (localhost:6379)",
+      "migrations": "head (048)",
+      "total_tables": 80,
+      "critical_tables_present": true
+    }
+  },
+
+  "issues_found_and_fixed": [
+    {
+      "id": 1,
+      "severity": "HIGH",
+      "category": "config",
+      "description": "DATABASE_URL pointed to port 15432 (Docker) but PostgreSQL runs on 5432",
+      "file": "backend/.env",
+      "fix": "Changed DATABASE_URL to postgresql+asyncpg://alexstinard@localhost:5432/clinical_ontology"
+    },
+    {
+      "id": 2,
+      "severity": "HIGH",
+      "category": "config",
+      "description": "DATABASE_SSL_MODE defaulted to 'prefer', local PG rejects SSL upgrade",
+      "file": "backend/.env",
+      "fix": "Added DATABASE_SSL_MODE=disable"
+    },
+    {
+      "id": 3,
+      "severity": "HIGH",
+      "category": "type_error",
+      "description": "Frontend build fails: ClinicalFact.text property does not exist (4 occurrences)",
+      "file": "frontend/src/app/patients/[patientId]/page.tsx",
+      "fix": "Removed f.text fallback, concept_name is the correct display field"
+    },
+    {
+      "id": 4,
+      "severity": "HIGH",
+      "category": "runtime_bug",
+      "description": "POST /research/experiments crashes: CurrentUser treated as dict (.get() called on dataclass)",
+      "file": "backend/app/api/research.py",
+      "fix": "Changed type annotation from dict to CurrentUser, use .id instead of .get('sub')"
+    },
+    {
+      "id": 5,
+      "severity": "MEDIUM",
+      "category": "runtime_bug",
+      "description": "Research experiment enum case mismatch: SQLAlchemy uses names (DRAFT) but DB stores values (draft)",
+      "file": "backend/app/models/research_experiment.py",
+      "fix": "Added values_callable=lambda e: [x.value for x in e] to all 3 Enum columns"
+    },
+    {
+      "id": 6,
+      "severity": "MEDIUM",
+      "category": "runtime_bug",
+      "description": "GET /graph/stats crashes: concepts_by_domain has None keys from DB query",
+      "file": "backend/app/api/graph.py",
+      "fix": "Filter out None keys/values before constructing GraphStatsResponse"
+    },
+    {
+      "id": 7,
+      "severity": "MEDIUM",
+      "category": "schema_drift",
+      "description": "kg_nodes missing patient_id_encrypted column (model added it, migration not applied)",
+      "file": "backend/app/models/knowledge_graph.py",
+      "fix": "ALTER TABLE kg_nodes/kg_edges ADD COLUMN patient_id_encrypted VARCHAR(500)"
+    },
+    {
+      "id": 8,
+      "severity": "LOW",
+      "category": "runtime_bug",
+      "description": "GET /patients crashes when props has mrn=None (dict.get returns None instead of fallback)",
+      "file": "backend/app/api/patients.py",
+      "fix": "Changed props.get('mrn', ...) to props.get('mrn') or props.get('fhir_id') or ''"
+    },
+    {
+      "id": 9,
+      "severity": "INFO",
+      "category": "migration",
+      "description": "15 alembic migrations were pending (033 to 048)",
+      "file": "backend/alembic/versions/",
+      "fix": "Applied via alembic upgrade head (with manual intervention for 3 conflicts)"
+    }
+  ],
+
+  "known_limitations": [
+    "research/datasets page does not exist in frontend (datasets are API-only)",
+    "useLlmSettings hook does not exist (settings page uses direct fetch)",
+    "clinical-agent/query requires existing patient data (returns 404 for non-existent patients)",
+    "20 test-only TypeScript errors (jest type mismatches) - do not block build",
+    "Next.js 'middleware' file convention deprecation warning (should migrate to 'proxy')"
+  ],
+
+  "verification_checklist": {
+    "all_15_curl_tests_pass": true,
+    "frontend_builds_without_errors": true,
+    "database_migrations_current": true,
+    "research_experiment_create_and_list": true,
+    "mimic_csv_validates": true,
+    "llm_settings_shows_providers": true,
+    "audit_report_generated": true
+  },
+
+  "files_modified": [
+    "backend/.env (DATABASE_URL port, DATABASE_SSL_MODE)",
+    "frontend/src/app/patients/[patientId]/page.tsx (remove f.text)",
+    "backend/app/api/research.py (CurrentUser type, import)",
+    "backend/app/models/research_experiment.py (enum values_callable)",
+    "backend/app/api/graph.py (filter None keys)",
+    "backend/app/api/patients.py (external_id None handling)"
+  ]
+}

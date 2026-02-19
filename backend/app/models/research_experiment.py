@@ -60,7 +60,8 @@ class ResearchExperiment(Base):
     hypothesis: Mapped[str | None] = mapped_column(Text, nullable=True)
     config: Mapped[dict] = mapped_column(JSONB, nullable=False, server_default="{}")
     status: Mapped[ExperimentStatus] = mapped_column(
-        Enum(ExperimentStatus, name="experiment_status", create_type=False),
+        Enum(ExperimentStatus, name="experiment_status", create_type=False,
+             values_callable=lambda e: [x.value for x in e]),
         nullable=False,
         server_default="draft",
     )
@@ -99,7 +100,8 @@ class ResearchExperimentRun(Base):
     document_ids: Mapped[list[str] | None] = mapped_column(ARRAY(String), nullable=True)
     patient_ids: Mapped[list[str] | None] = mapped_column(ARRAY(String), nullable=True)
     status: Mapped[ExperimentRunStatus] = mapped_column(
-        Enum(ExperimentRunStatus, name="experiment_run_status", create_type=False),
+        Enum(ExperimentRunStatus, name="experiment_run_status", create_type=False,
+             values_callable=lambda e: [x.value for x in e]),
         nullable=False,
         server_default="pending",
     )
@@ -133,7 +135,8 @@ class ResearchExperimentMetric(Base):
         String(255), ForeignKey("research_experiment_runs.id", ondelete="CASCADE"), nullable=False
     )
     category: Mapped[MetricCategory] = mapped_column(
-        Enum(MetricCategory, name="metric_category", create_type=False),
+        Enum(MetricCategory, name="metric_category", create_type=False,
+             values_callable=lambda e: [x.value for x in e]),
         nullable=False,
     )
     metric_name: Mapped[str] = mapped_column(String(255), nullable=False)
