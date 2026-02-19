@@ -274,11 +274,18 @@ next_required_artifacts:
 
 | Item | Action | Result | Evidence |
 |------|--------|--------|----------|
-| Graph traversal refactor | Replace default Neo4j path dependency with PG-native edge routing in `neo4j_query_router.py` | In progress | `backend/app/services/neo4j_query_router.py`, `backend/app/services/graph_augmented_rag.py` |
-| OMOP relation mapping | Add relation-edge mapping and edge attribute handling for graph path explainability | In progress | `backend/app/services/neo4j_query_router.py`, `backend/app/models/knowledge_graph.py` |
-| Data source ingestion | Add ingestion routes/jobs/services for MIMIC/MTSamples/Synthea/research | In progress | `backend/app/api/documents/documents_mimic.py`, `backend/app/api/documents/documents_mtsamples.py`, `backend/app/api/documents/documents_synthea.py`, `backend/app/api/research.py`, `backend/app/jobs/*`, `backend/app/services/*_ingestion.py` |
-| Test coverage | Add/update regression tests for graph traversal and ingestion APIs | In progress | `backend/tests/test_graph_augmented_rag.py`, `backend/tests/test_neo4j_query_router.py`, `backend/tests/test_mimic_api.py`, `backend/tests/test_research_api.py`, `backend/tests/test_research_service.py`, `backend/tests/test_mimic_ingestion.py` |
+| Graph traversal refactor | Replace default Neo4j path dependency with PG-native edge routing in `neo4j_query_router.py` | Done | `backend/app/services/neo4j_query_router.py`, `backend/app/services/graph_augmented_rag.py` |
+| OMOP relation mapping | Add relation-edge mapping and edge attribute handling for graph path explainability | Done | `backend/app/services/neo4j_query_router.py`, `backend/app/models/knowledge_graph.py` |
+| Data source ingestion | Add ingestion routes/jobs/services for MIMIC/MTSamples/Synthea/research | Done | `backend/app/api/documents/documents_mimic.py`, `backend/app/api/documents/documents_mtsamples.py`, `backend/app/api/documents/documents_synthea.py`, `backend/app/api/research.py`, `backend/app/jobs/*`, `backend/app/services/*_ingestion.py` |
+| Test coverage | Add/update regression tests for graph traversal and ingestion APIs | Done | `backend/tests/test_graph_augmented_rag.py`, `backend/tests/test_neo4j_query_router.py`, `backend/tests/test_mimic_api.py`, `backend/tests/test_research_api.py`, `backend/tests/test_research_service.py`, `backend/tests/test_mimic_ingestion.py` |
 
 - Operator for this section: continuation-operator (handoff target).
-- Status: implementation work added; runtime graph traversal remains PG-only (no Neo4j route dependency in primary path); formal close evidence verification pending.
-- Next step for agents: run targeted suites and update P1-038/P1-039 to done only after test and evidence lock.
+- Status: **CLOSED** (2026-02-18). KG no-Neo4j execution verified:
+  - AST import quarantine: zero neo4j imports in traversal-critical files (neo4j_query_router.py, graph_augmented_rag.py, mimic/synthea/mtsamples_ingestion.py)
+  - Scale-safety guardrails: MAX_HOPS_LIMIT=10, MAX_PATHS_LIMIT=100, CTE statement timeout
+  - Cycle avoidance: visited_ids anti-cycle clause + SQLite cycle test
+  - Semantic preservation: temporality/event_date/assertion defaults/ranking order verified through adapter
+  - Safety-critical OMOP relations: 6 forward + 5 inverse relations verified
+  - Ingestion-to-traversal contract: shared concept nodes (patient_id=NULL) found via edge-join
+  - 21 new regression tests. 42 router + 64 RAG + 447 graph tests pass. Ruff clean.
+  - ROL-42 and ROL-43 marked done on execution board.
