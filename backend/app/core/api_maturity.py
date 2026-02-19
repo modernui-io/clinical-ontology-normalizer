@@ -106,6 +106,7 @@ ENDPOINT_MATURITY_REGISTRY: dict[str, EndpointMaturity] = {
     "/lineage": EndpointMaturity.PILOT,
     "/consent": EndpointMaturity.PILOT,
     "/clinician-feedback": EndpointMaturity.PILOT,
+    "/benchmarks": EndpointMaturity.PILOT,
     # ── SCAFFOLD: experimental / not wired ──
     "/agent": EndpointMaturity.SCAFFOLD,
     "/guidelines": EndpointMaturity.SCAFFOLD,
