@@ -26,7 +26,9 @@ import {
   Zap,
   BarChart3,
   Loader2,
+  Info,
 } from "lucide-react";
+import DataSourceModeBanner from "@/components/readiness/DataSourceModeBanner";
 
 // ---------------------------------------------------------------------------
 // Types matching backend schemas (revenue_analytics)
@@ -507,23 +509,24 @@ export default function BillingDashboardPage() {
         </Button>
       </div>
 
-      {/* Error Banner */}
-      {error && (
-        <Card className="border-red-300 bg-red-50 dark:bg-red-950">
-          <CardContent className="flex items-center gap-3 py-3">
-            <AlertTriangle className="h-5 w-5 text-red-600" />
-            <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
-            <Button
-              variant="outline"
-              size="sm"
-              className="ml-auto"
-              onClick={fetchData}
-            >
-              Retry
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+      {/* Data source mode banner */}
+      <DataSourceModeBanner
+        mode={error ? "simulation" : "live"}
+        title="Billing data source"
+        description={
+          error
+            ? "Backend API is unavailable. Revenue metrics, contracts, and forecasts cannot be loaded. Billing domain data below (opportunities, HCC gaps, coding suggestions) is locally seeded demonstration data."
+            : "Connected to live backend. Revenue metrics, contracts, and forecasts are served from production endpoints."
+        }
+        evidencePath="frontend/src/app/billing/page.tsx"
+        lastUpdatedAt="2026-02-16"
+        signoffText={
+          error
+            ? "Simulation only — revenue analytics could not be loaded from production APIs. Billing domain tables use seeded data."
+            : undefined
+        }
+        backendEndpoints={["/api/revenue-analytics/metrics", "/api/revenue-analytics/contracts", "/api/revenue-analytics/monthly", "/api/revenue-analytics/forecast"]}
+      />
 
       {/* Key Metrics Cards - wired to /api/revenue-analytics/metrics */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

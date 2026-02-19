@@ -338,6 +338,7 @@ export default function DataSourcesPage() {
   return (
     <PermissionGate
       permission={PERMISSIONS.ADMIN_MANAGE_USERS}
+      hideWhenUnauthenticated={false}
       fallback={
         <div className="p-6">
           <Card>

@@ -74,7 +74,7 @@ function OAuthButton({
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { login, isLoading, error, clearError } = useAuth();
+  const { login, loginDemo, isLoading, error, clearError } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<LoginFormData>({
@@ -330,7 +330,7 @@ function LoginForm() {
               variant="outline"
               className="w-full h-11 border-2 border-[#D50057]/30 bg-[#D50057]/5 text-[#D50057] hover:bg-[#D50057]/10 hover:border-[#D50057]/50 font-semibold transition-all duration-300"
               onClick={() => {
-                document.cookie = "has_auth=true; path=/; max-age=86400";
+                loginDemo();
                 router.push("/dashboard");
               }}
             >

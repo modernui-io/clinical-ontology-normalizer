@@ -24,6 +24,8 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import DataSourceModeBanner from "@/components/readiness/DataSourceModeBanner";
+import { useAuth } from "@/hooks/use-auth";
 import {
   Network,
   Search,
@@ -403,6 +405,7 @@ function GraphCanvas({ nodes, edges, selectedNode, onNodeClick, onNodeHover }: G
 // ============================================================================
 
 export default function GraphExplorerPage() {
+  const { isDemo, isLoading: isAuthLoading } = useAuth();
   const [nodes, setNodes] = useState<GraphNode[]>([]);
   const [edges, setEdges] = useState<GraphEdge[]>([]);
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
@@ -412,6 +415,7 @@ export default function GraphExplorerPage() {
   const [isSearching, setIsSearching] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [healthStatus, setHealthStatus] = useState<HealthStatus | null>(null);
+  const [dataMode, setDataMode] = useState<"live" | "simulation">("live");
   const [activeFilters, setActiveFilters] = useState<string[]>([
     "Condition",
     "Drug",
@@ -420,8 +424,14 @@ export default function GraphExplorerPage() {
   ]);
   const [neighborDepth, setNeighborDepth] = useState("1");
 
-  // Check Neo4j health on load
+  // Check Neo4j health on load (skip in demo mode)
   useEffect(() => {
+    if (isAuthLoading) return;
+    if (isDemo) {
+      setHealthStatus({ status: "mock_mode", latency_ms: null, server_version: null, database: null, error_message: null, mock_mode: true });
+      setDataMode("simulation");
+      return;
+    }
     const checkHealth = async () => {
       try {
         const response = await fetch("/api/graph/health");
@@ -440,12 +450,17 @@ export default function GraphExplorerPage() {
       }
     };
     checkHealth();
-  }, []);
+  }, [isDemo, isAuthLoading]);
 
-  // Load initial sample data
+  // Load initial sample data (use mock in demo mode)
   useEffect(() => {
+    if (isAuthLoading) return;
+    if (isDemo) {
+      loadMockData();
+      return;
+    }
     loadSampleData();
-  }, []);
+  }, [isDemo, isAuthLoading]);
 
   const loadSampleData = async () => {
     setIsLoading(true);
@@ -471,6 +486,7 @@ export default function GraphExplorerPage() {
       console.error("Failed to load sample data:", error);
       // Load mock data as fallback
       loadMockData();
+      setDataMode("simulation");
     } finally {
       setIsLoading(false);
     }
@@ -685,6 +701,15 @@ export default function GraphExplorerPage() {
           </Link>
         </div>
       </div>
+
+      {dataMode === "simulation" && (
+        <DataSourceModeBanner
+          mode={dataMode}
+          title="Graph explorer data source"
+          description="Backend API is unavailable. Graph visualization shows demonstration knowledge graph data."
+          backendEndpoints={["/api/graph/health", "/api/graph/concepts/search"]}
+        />
+      )}
 
       {/* Main Content */}
       <div className="grid grid-cols-12 gap-6">

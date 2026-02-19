@@ -27,6 +27,8 @@ import {
   getResearchPipelineTiming,
   compareResearchRuns,
   exportResearchMetrics,
+  getMimicNoteStats,
+  searchMimicNotes,
   type ResearchExperiment,
   type ResearchExperimentCreate,
   type ResearchExperimentUpdate,
@@ -44,6 +46,8 @@ import {
   type ResearchComparisonResponse,
   type ResearchExportRequest,
   type ResearchExportResponse,
+  type MimicNoteStats,
+  type MimicNoteSearchResult,
 } from "@/lib/api";
 import {
   queryKeys,
@@ -253,5 +257,30 @@ export function useExportMetrics(
   return useMutation({
     mutationFn: (data: ResearchExportRequest) => exportResearchMetrics(data),
     ...options,
+  });
+}
+
+// ============================================================================
+// MIMIC Note Browser Hooks
+// ============================================================================
+
+export function useMimicNoteStats() {
+  return useQuery<MimicNoteStats>({
+    queryKey: ["research", "notes", "stats"],
+    queryFn: getMimicNoteStats,
+    staleTime: 60_000 * 10,
+  });
+}
+
+export function useMimicNoteSearch(params: {
+  q: string;
+  category: string;
+  offset: number;
+  limit: number;
+}) {
+  return useQuery<MimicNoteSearchResult>({
+    queryKey: ["research", "notes", "search", params],
+    queryFn: () => searchMimicNotes(params),
+    placeholderData: (prev) => prev,
   });
 }

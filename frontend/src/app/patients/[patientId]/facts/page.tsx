@@ -28,6 +28,8 @@ import {
 } from "@/components/ui/collapsible";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getPatientFacts, ClinicalFact } from "@/lib/api";
+import DataSourceModeBanner from "@/components/readiness/DataSourceModeBanner";
+import { useAuth } from "@/hooks/use-auth";
 
 const ASSERTION_COLORS: Record<string, string> = {
   present: "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-200",
@@ -160,6 +162,7 @@ function FactCard({ fact, showDomain = false }: FactCardProps) {
 
 export default function PatientFactsPage() {
   const params = useParams();
+  const { isDemo, isLoading: isAuthLoading } = useAuth();
   const patientId = params.patientId as string;
   const [facts, setFacts] = useState<ClinicalFact[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -169,8 +172,45 @@ export default function PatientFactsPage() {
   const [assertionFilter, setAssertionFilter] = useState<string | undefined>();
   const [expandedDomains, setExpandedDomains] = useState<Set<string>>(new Set());
   const [expandedSubcategories, setExpandedSubcategories] = useState<Set<string>>(new Set());
+  const [dataMode, setDataMode] = useState<"live" | "simulation">("live");
 
   const fetchFacts = useCallback(async () => {
+    // In demo mode, skip API calls and load demo data directly
+    if (isDemo) {
+      try {
+        const { DEMO_CLINICAL_FACTS } = await import("@/lib/demo-data");
+        const demoRaw = DEMO_CLINICAL_FACTS?.[patientId];
+        if (demoRaw && demoRaw.length > 0) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const mapped: ClinicalFact[] = (demoRaw as any[]).map((f) => ({
+            id: f.id,
+            patient_id: f.patient_id,
+            domain: (f.fact_type || "Observation").charAt(0).toUpperCase() + (f.fact_type || "observation").slice(1),
+            omop_concept_id: Number(f.concept_id) || 0,
+            concept_name: f.concept_name,
+            assertion: f.assertion || "present",
+            temporality: "current",
+            experiencer: "patient",
+            confidence: f.confidence || 0.9,
+            value: f.value ?? null,
+            unit: f.unit ?? null,
+            start_date: null,
+            end_date: null,
+            created_at: new Date().toISOString(),
+          }));
+          setFacts(mapped);
+          const domains = new Set(mapped.map((f) => f.domain.toLowerCase()));
+          setExpandedDomains(domains);
+        } else {
+          setFacts([]);
+        }
+      } catch {
+        setFacts([]);
+      }
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     try {
       const result = await getPatientFacts(patientId, {
@@ -184,17 +224,50 @@ export default function PatientFactsPage() {
       setExpandedDomains(domains);
     } catch (err) {
       console.error("Failed to fetch facts:", err);
-      setError("No clinical facts found for this patient.");
-      setFacts([]);
+      // Fall back to demo clinical facts
+      try {
+        const { DEMO_CLINICAL_FACTS } = await import("@/lib/demo-data");
+        const demoRaw = DEMO_CLINICAL_FACTS?.[patientId];
+        if (demoRaw && demoRaw.length > 0) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const mapped: ClinicalFact[] = (demoRaw as any[]).map((f) => ({
+            id: f.id,
+            patient_id: f.patient_id,
+            domain: (f.fact_type || "Observation").charAt(0).toUpperCase() + (f.fact_type || "observation").slice(1),
+            omop_concept_id: Number(f.concept_id) || 0,
+            concept_name: f.concept_name,
+            assertion: f.assertion || "present",
+            temporality: "current",
+            experiencer: "patient",
+            confidence: f.confidence || 0.9,
+            value: f.value ?? null,
+            unit: f.unit ?? null,
+            start_date: null,
+            end_date: null,
+            created_at: new Date().toISOString(),
+          }));
+          setFacts(mapped);
+          const domains = new Set(mapped.map((f) => f.domain.toLowerCase()));
+          setExpandedDomains(domains);
+          setDataMode("simulation");
+        } else {
+          setError("No clinical facts found for this patient.");
+          setFacts([]);
+        }
+      } catch {
+        setError("No clinical facts found for this patient.");
+        setFacts([]);
+      }
     } finally {
       setIsLoading(false);
     }
-  }, [patientId, domainFilter, assertionFilter]);
+  }, [patientId, domainFilter, assertionFilter, isDemo]);
 
   useEffect(() => {
-    if (!patientId) return;
+    if (!patientId || isAuthLoading) return;
+    if (isDemo) setDataMode("simulation");
     fetchFacts();
-  }, [patientId, fetchFacts]);
+  }, [patientId, fetchFacts, isAuthLoading, isDemo]);
 
   // Filter facts by search
   const filteredFacts = useMemo(() => {
@@ -295,6 +368,16 @@ export default function PatientFactsPage() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
+        {dataMode === "simulation" && (
+          <div className="mb-6">
+            <DataSourceModeBanner
+              mode={dataMode}
+              title="Clinical facts data source"
+              description="Backend API is unavailable. Clinical facts show demonstration data."
+              backendEndpoints={[`/api/v1/patients/${patientId}/facts`]}
+            />
+          </div>
+        )}
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-zinc-300 border-t-zinc-900" />

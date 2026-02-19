@@ -48,6 +48,7 @@ import {
   Layers,
   BarChart3,
 } from "lucide-react";
+import { DEMO_GEOSPATIAL_DATA } from "@/lib/demo-data";
 
 // Types
 interface GeospatialRegion {
@@ -87,11 +88,15 @@ async function fetchGeospatialData(params: {
   if (params.timePeriod) searchParams.set("time_period", params.timePeriod);
   if (params.granularity) searchParams.set("granularity", params.granularity);
 
-  const response = await fetch(`/api/v1/visualizations/geospatial?${searchParams.toString()}`);
-  if (!response.ok) {
-    throw new Error("Failed to fetch geospatial data");
+  try {
+    const response = await fetch(`/api/v1/visualizations/geospatial?${searchParams.toString()}`);
+    if (!response.ok) {
+      return DEMO_GEOSPATIAL_DATA as GeospatialData;
+    }
+    return response.json();
+  } catch {
+    return DEMO_GEOSPATIAL_DATA as GeospatialData;
   }
-  return response.json();
 }
 
 // US State paths (simplified SVG paths)

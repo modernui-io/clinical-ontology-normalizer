@@ -61,6 +61,7 @@ import {
   Line,
   ErrorBar,
 } from "recharts";
+import { DEMO_FOREST_PLOT_DATA, DEMO_VOLCANO_DATA, DEMO_TIMELINE_DATA } from "@/lib/demo-data";
 
 // Types
 interface ForestPlotStudy {
@@ -143,9 +144,13 @@ async function fetchForestPlotData(params: {
   const searchParams = new URLSearchParams();
   if (params.effectMeasure) searchParams.set("effect_measure", params.effectMeasure);
 
-  const response = await fetch(`/api/v1/visualizations/forest?${searchParams.toString()}`);
-  if (!response.ok) throw new Error("Failed to fetch forest plot data");
-  return response.json();
+  try {
+    const response = await fetch(`/api/v1/visualizations/forest?${searchParams.toString()}`);
+    if (!response.ok) return DEMO_FOREST_PLOT_DATA as ForestPlotData;
+    return response.json();
+  } catch {
+    return DEMO_FOREST_PLOT_DATA as ForestPlotData;
+  }
 }
 
 async function fetchVolcanoData(params: {
@@ -156,15 +161,23 @@ async function fetchVolcanoData(params: {
   if (params.fcThreshold) searchParams.set("fc_threshold", String(params.fcThreshold));
   if (params.pThreshold) searchParams.set("p_threshold", String(params.pThreshold));
 
-  const response = await fetch(`/api/v1/visualizations/volcano?${searchParams.toString()}`);
-  if (!response.ok) throw new Error("Failed to fetch volcano plot data");
-  return response.json();
+  try {
+    const response = await fetch(`/api/v1/visualizations/volcano?${searchParams.toString()}`);
+    if (!response.ok) return DEMO_VOLCANO_DATA as VolcanoData;
+    return response.json();
+  } catch {
+    return DEMO_VOLCANO_DATA as VolcanoData;
+  }
 }
 
 async function fetchTimelineData(): Promise<TimelineData> {
-  const response = await fetch("/api/visualizations/timeline");
-  if (!response.ok) throw new Error("Failed to fetch timeline data");
-  return response.json();
+  try {
+    const response = await fetch("/api/visualizations/timeline");
+    if (!response.ok) return DEMO_TIMELINE_DATA as TimelineData;
+    return response.json();
+  } catch {
+    return DEMO_TIMELINE_DATA as TimelineData;
+  }
 }
 
 // Category colors for timeline

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +22,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useDocuments } from "@/hooks/use-api";
+import { useAuth } from "@/hooks/use-auth";
+import { DEMO_DOCUMENTS } from "@/lib/demo-data";
+import DataSourceModeBanner from "@/components/readiness/DataSourceModeBanner";
 
 const STATUS_COLORS: Record<string, string> = {
   queued: "bg-yellow-500",
@@ -58,11 +61,31 @@ export default function DocumentsPage() {
   // Selection state for bulk actions
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  // Fetch documents using React Query hook
-  const { data, isLoading, error, refetch } = useDocuments({ page, page_size: pageSize });
+  // Demo mode detection
+  const { isDemo, isLoading: isAuthLoading } = useAuth();
 
-  const documents = useMemo(() => data?.documents || [], [data?.documents]);
-  const totalDocuments = data?.total || 0;
+  // Data mode state
+  const [dataMode, setDataMode] = useState<"live" | "simulation">("live");
+
+  // Fetch documents using React Query hook (skip in demo mode and while auth is loading)
+  const { data, isLoading: isQueryLoading, error, refetch } = useDocuments(
+    { page, page_size: pageSize },
+    { enabled: !isDemo && !isAuthLoading }
+  );
+  const isLoading = (isDemo || isAuthLoading) ? false : isQueryLoading;
+
+  // Fall back to demo data on error or demo mode
+  useEffect(() => {
+    if (isDemo || error) {
+      setDataMode("simulation");
+    }
+  }, [error, isDemo]);
+
+  const documents = useMemo(() => {
+    if (isDemo || error) return DEMO_DOCUMENTS;
+    return data?.documents || [];
+  }, [data?.documents, error, isDemo]);
+  const totalDocuments = (isDemo || error) ? DEMO_DOCUMENTS.length : (data?.total || 0);
   const totalPages = Math.ceil(totalDocuments / pageSize);
 
   // Filter and sort documents
@@ -223,6 +246,15 @@ export default function DocumentsPage() {
         </div>
       </div>
 
+      {dataMode === "simulation" && (
+        <DataSourceModeBanner
+          mode={dataMode}
+          title="Documents data source"
+          description="Backend API is unavailable. Document list shows demonstration clinical notes."
+          backendEndpoints={["/api/v1/documents"]}
+        />
+      )}
+
       <div className="space-y-6">
         {/* Filters Card */}
         <Card>
@@ -366,11 +398,11 @@ export default function DocumentsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            {error ? (
+            {error && dataMode !== "simulation" ? (
               <div className="rounded-lg bg-red-50 p-4 text-red-800 dark:bg-red-900/20 dark:text-red-200">
                 Failed to load documents. Is the backend running?
               </div>
-            ) : isLoading ? (
+            ) : isLoading && dataMode !== "simulation" ? (
               <div className="flex items-center justify-center py-12">
                 <div className="h-8 w-8 animate-spin rounded-full border-4 border-zinc-300 border-t-zinc-900" />
               </div>

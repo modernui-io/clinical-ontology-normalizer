@@ -162,7 +162,7 @@ function Nav() {
             <span className="font-semibold text-[15px] tracking-[-0.02em] text-neutral-900">Sulci</span>
           </Link>
           <div className="hidden md:flex items-center gap-0.5 text-[13px]">
-            <Link href="/docs" className="px-3 py-1.5 rounded-md text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100/80 transition-all duration-150">Product</Link>
+            <Link href="/proof" className="px-3 py-1.5 rounded-md text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100/80 transition-all duration-150">Product</Link>
             <Link href="/docs" className="px-3 py-1.5 rounded-md text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100/80 transition-all duration-150">Docs</Link>
             <Link href="/changelog" className="px-3 py-1.5 rounded-md text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100/80 transition-all duration-150">Changelog</Link>
             <Link href="/proof" className="px-3 py-1.5 rounded-md text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100/80 transition-all duration-150">Proof</Link>
@@ -192,7 +192,7 @@ function Nav() {
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2, ease: EASE }} className="fixed top-16 left-0 right-0 z-50 md:hidden">
               <div className="mx-4 mt-2 rounded-2xl border border-neutral-200/80 bg-white/95 backdrop-blur-2xl shadow-[0_8px_40px_rgba(0,0,0,0.12)] p-4">
                 <div className="space-y-1">
-                  <Link href="/docs" onClick={() => setMobileOpen(false)} className="flex items-center px-3 py-2.5 rounded-lg text-[15px] font-medium text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 transition-colors">Product</Link>
+                  <Link href="/proof" onClick={() => setMobileOpen(false)} className="flex items-center px-3 py-2.5 rounded-lg text-[15px] font-medium text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 transition-colors">Product</Link>
                   <Link href="/docs" onClick={() => setMobileOpen(false)} className="flex items-center px-3 py-2.5 rounded-lg text-[15px] font-medium text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 transition-colors">Docs</Link>
                   <Link href="/changelog" onClick={() => setMobileOpen(false)} className="flex items-center px-3 py-2.5 rounded-lg text-[15px] font-medium text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 transition-colors">Changelog</Link>
                   <Link href="/proof" onClick={() => setMobileOpen(false)} className="flex items-center px-3 py-2.5 rounded-lg text-[15px] font-medium text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 transition-colors">Proof</Link>
@@ -323,7 +323,7 @@ function HeroSection() {
             </motion.p>
 
             <motion.div variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE } } }} className="mt-10 flex items-center justify-center">
-              <Link href="/login?next=/dashboard">
+              <Link href="/contact">
                 <Button className="group bg-neutral-900 text-white hover:bg-neutral-800 rounded-xl h-14 px-10 text-[16px] font-medium shadow-[0_1px_2px_rgba(0,0,0,0.1),0_4px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_1px_2px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.1)] transition-all duration-200">
                   Request a Demo <ArrowRight className="ml-1.5 h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
                 </Button>
@@ -919,11 +919,11 @@ function FounderSection() {
 
             <div className="mt-5 flex items-center gap-2.5">
               {[
-                { label: "LinkedIn", href: "#" },
-                { label: "GitHub", href: "#" },
-                { label: "X", href: "#" },
+                { label: "LinkedIn", href: "https://linkedin.com/in/alexstinard" },
+                { label: "GitHub", href: "https://github.com/alexstinard" },
+                { label: "X", href: "https://x.com/alexstinard" },
               ].map(({ label, href }) => (
-                <a key={label} href={href} className="h-8 px-3 flex items-center justify-center text-[11px] font-medium rounded-lg text-neutral-400 border border-neutral-200/80 hover:text-neutral-600 hover:border-neutral-300 hover:shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all">
+                <a key={label} href={href} target="_blank" rel="noopener noreferrer" className="h-8 px-3 flex items-center justify-center text-[11px] font-medium rounded-lg text-neutral-400 border border-neutral-200/80 hover:text-neutral-600 hover:border-neutral-300 hover:shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all">
                   {label} <ExternalLink className="ml-1.5 h-2.5 w-2.5" />
                 </a>
               ))}
@@ -947,6 +947,7 @@ const plans = [
     features: ["1,000 documents/month", "NLP extraction + UMLS mapping", "REST API access", "Community support", "Single user"],
     cta: "Start Free",
     highlight: false,
+    href: "/login?next=/dashboard",
   },
   {
     name: "Pro",
@@ -956,6 +957,7 @@ const plans = [
     features: ["25,000 documents/month", "Full OMOP CDM + custom ontologies", "Knowledge graph + GraphRAG", "FHIR R4 import/export", "Priority support", "Up to 10 users", "SSO + audit logs"],
     cta: "Request Access",
     highlight: true,
+    href: "/contact?plan=pro",
   },
   {
     name: "Enterprise",
@@ -965,6 +967,7 @@ const plans = [
     features: ["Unlimited documents", "On-prem / VPC deployment", "Custom ontology development", "Dedicated success engineer", "BAA + 21 CFR Part 11", "SLA 99.99% uptime", "TEFCA + bulk export"],
     cta: "Contact Sales",
     highlight: false,
+    href: "/contact?plan=enterprise",
   },
 ];
 
@@ -1000,7 +1003,7 @@ function PricingSection() {
                   <span className="text-[2.5rem] font-bold tracking-[-0.04em] text-neutral-900">{plan.price}</span>
                   {plan.period && <span className="text-[14px] text-neutral-400">{plan.period}</span>}
                 </div>
-                <Link href="/login?next=/dashboard">
+                <Link href={plan.href}>
                   <Button className={`w-full rounded-xl h-10 text-[13px] font-medium transition-all ${
                     plan.highlight
                       ? "bg-neutral-900 text-white hover:bg-neutral-800 shadow-sm"
@@ -1036,7 +1039,7 @@ function CTASection() {
         <h2 className="text-[2rem] md:text-[3.25rem] font-semibold tracking-[-0.04em] text-neutral-900 leading-[1.05]">Ready to turn clinical notes into knowledge?</h2>
         <p className="mt-5 text-neutral-500 max-w-md mx-auto text-[16px] leading-relaxed">Stop leaving clinical signal trapped in free text. See how Sulci can transform your data pipeline in a 30-minute walkthrough.</p>
         <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-          <Link href="/login?next=/dashboard">
+          <Link href="/contact">
             <Button className="group bg-neutral-900 text-white hover:bg-neutral-800 rounded-xl h-14 px-10 text-[16px] font-medium shadow-[0_1px_2px_rgba(0,0,0,0.1),0_4px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_1px_2px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.1)] transition-all">
               Request a Demo <ArrowRight className="ml-1.5 h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
             </Button>
@@ -1061,17 +1064,17 @@ function FooterSection() {
     Product: [
       { label: "NLP Engine", href: "/login?next=/nlp" },
       { label: "Ontology Mapping", href: "/login?next=/vocabularies" },
-      { label: "Knowledge Graph", href: "/login?next=/clinical" },
+      { label: "Knowledge Graph", href: "/login?next=/analytics/graph" },
       { label: "FHIR Import/Export", href: "/login?next=/exports" },
       { label: "Clinical Trials", href: "/login?next=/trials" },
-      { label: "API Reference", href: "/login?next=/dashboard" },
+      { label: "API Reference", href: "/docs" },
     ],
     Resources: [
       { label: "Documentation", href: "/docs" },
       { label: "Quickstart Guide", href: "/docs" },
-      { label: "API Status", href: "/docs" },
+      { label: "System Status", href: "/login?next=/admin/diagnostics" },
       { label: "Changelog", href: "/changelog" },
-      { label: "Blog", href: "/docs" },
+      { label: "Release Notes", href: "/changelog" },
     ],
     Company: [
       { label: "About", href: "/about" },
@@ -1092,8 +1095,12 @@ function FooterSection() {
             </div>
             <p className="text-[13px] text-neutral-500 leading-relaxed max-w-[320px] mb-5">Clinical ontology normalization — NLP extraction, UMLS and OMOP mapping, and knowledge graph infrastructure for modern health systems.</p>
             <div className="flex items-center gap-2 mb-5">
-              {["X", "GitHub", "LinkedIn"].map((s) => (
-                <span key={s} className="h-8 px-3 flex items-center justify-center text-[11px] font-medium rounded-lg text-neutral-400 border border-neutral-200/80 hover:text-neutral-600 hover:border-neutral-300 hover:shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all cursor-pointer">{s}</span>
+              {[
+                { label: "X", href: "https://x.com/sulci_ai" },
+                { label: "GitHub", href: "https://github.com/sulci-ai" },
+                { label: "LinkedIn", href: "https://linkedin.com/company/sulci-ai" },
+              ].map(({ label, href }) => (
+                <a key={label} href={href} target="_blank" rel="noopener noreferrer" className="h-8 px-3 flex items-center justify-center text-[11px] font-medium rounded-lg text-neutral-400 border border-neutral-200/80 hover:text-neutral-600 hover:border-neutral-300 hover:shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all">{label}</a>
               ))}
             </div>
             <div className="flex items-center gap-2 max-w-[320px]">

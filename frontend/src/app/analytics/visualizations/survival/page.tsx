@@ -54,6 +54,7 @@ import {
   ComposedChart,
   ReferenceLine,
 } from "recharts";
+import { DEMO_SURVIVAL_DATA } from "@/lib/demo-data";
 
 // Types
 interface SurvivalPoint {
@@ -93,11 +94,15 @@ async function fetchSurvivalData(params: {
   if (params.endpoint) searchParams.set("endpoint", params.endpoint);
   if (params.maxTime) searchParams.set("max_time", String(params.maxTime));
 
-  const response = await fetch(`/api/v1/visualizations/survival?${searchParams.toString()}`);
-  if (!response.ok) {
-    throw new Error("Failed to fetch survival data");
+  try {
+    const response = await fetch(`/api/v1/visualizations/survival?${searchParams.toString()}`);
+    if (!response.ok) {
+      return DEMO_SURVIVAL_DATA as SurvivalData;
+    }
+    return response.json();
+  } catch {
+    return DEMO_SURVIVAL_DATA as SurvivalData;
   }
-  return response.json();
 }
 
 // Cohort colors

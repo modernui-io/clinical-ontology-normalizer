@@ -25,6 +25,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { getPatientGraph, buildPatientGraph, PatientGraph, GraphNode, GraphEdge } from "@/lib/api";
 import { toast } from "sonner";
+import DataSourceModeBanner from "@/components/readiness/DataSourceModeBanner";
+import { useAuth } from "@/hooks/use-auth";
 
 // Dynamic import for D3 visualization (client-side only)
 const KnowledgeGraph = dynamic(() => import("@/components/KnowledgeGraph"), {
@@ -73,28 +75,59 @@ interface NodeStats {
 
 export default function PatientGraphPage() {
   const params = useParams();
+  const { isDemo, isLoading: isAuthLoading } = useAuth();
   const patientId = params.patientId as string;
   const [graph, setGraph] = useState<PatientGraph | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isBuilding, setIsBuilding] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [dataMode, setDataMode] = useState<"live" | "simulation">("live");
 
   const fetchGraph = useCallback(async () => {
+    // In demo mode, skip API calls and load demo data directly
+    if (isDemo) {
+      try {
+        const { DEMO_PATIENT_GRAPHS } = await import("@/lib/demo-data");
+        const demoGraph = DEMO_PATIENT_GRAPHS?.[patientId];
+        if (demoGraph) {
+          setGraph(demoGraph);
+          return;
+        }
+      } catch {
+        // Demo data module not available
+      }
+      setError("No demo graph data found for this patient.");
+      return;
+    }
+
     try {
       const patientGraph = await getPatientGraph(patientId);
       setGraph(patientGraph);
       setError(null);
     } catch (err) {
       console.error("Failed to fetch graph:", err);
+      // Fall back to a demo graph for the patient
+      try {
+        const { DEMO_PATIENT_GRAPHS } = await import("@/lib/demo-data");
+        const demoGraph = DEMO_PATIENT_GRAPHS?.[patientId];
+        if (demoGraph) {
+          setGraph(demoGraph);
+          setDataMode("simulation");
+          return;
+        }
+      } catch {
+        // Demo data module not available yet
+      }
       setError("No graph data found for this patient. Try building the graph.");
     }
-  }, [patientId]);
+  }, [patientId, isDemo]);
 
   useEffect(() => {
-    if (!patientId) return;
+    if (!patientId || isAuthLoading) return;
+    if (isDemo) setDataMode("simulation");
     fetchGraph();
-  }, [patientId, fetchGraph]);
+  }, [patientId, fetchGraph, isAuthLoading, isDemo]);
 
   const handleBuildGraph = async () => {
     setIsBuilding(true);
@@ -255,6 +288,16 @@ export default function PatientGraphPage() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
+        {dataMode === "simulation" && (
+          <div className="mb-6">
+            <DataSourceModeBanner
+              mode={dataMode}
+              title="Patient graph data source"
+              description="Backend API is unavailable. Graph visualization shows demonstration knowledge graph data."
+              backendEndpoints={[`/api/v1/patients/${patientId}/graph`]}
+            />
+          </div>
+        )}
         {error && !graph ? (
           <Card className="mx-auto max-w-2xl">
             <CardContent className="py-8 text-center">

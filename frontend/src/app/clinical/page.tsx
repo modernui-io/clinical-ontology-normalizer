@@ -49,10 +49,84 @@ import DemoScenarioRunner from "@/components/readiness/DemoScenarioRunner";
 import { RefusalCard } from "@/components/RefusalCard";
 import { useSimulationGuard } from "@/lib/simulation-guard";
 import { SCENARIO_QUALITY_OPS } from "@/lib/demo-scenarios";
+import { useAuth } from "@/hooks/use-auth";
 import {
   ChartCoverageSummary,
   type ChartCoverageData,
 } from "@/components/ChartCoverageSummary";
+
+// Lazy-load and map demo data for clinical dashboard fallback
+async function loadClinicalDemoData(): Promise<{
+  drugAlerts: DrugAlert[];
+  hccGaps: HCCOpportunity[];
+  docIssues: DocumentationIssue[];
+  qualityGaps: QualityGap[];
+}> {
+  try {
+    const mod = await import("@/lib/demo-data");
+    const raw = mod as Record<string, unknown>;
+
+    const drugAlerts: DrugAlert[] = (
+      (raw.DEMO_DRUG_ALERTS as Array<Record<string, unknown>>) ?? []
+    ).map((a, i) => ({
+      id: String(i + 1),
+      drug1: String(a.drug1 ?? ""),
+      drug2: String(a.drug2 ?? "Unknown"),
+      severity: normalizeSeverity(String(a.severity ?? "minor")),
+      description: String(a.description ?? ""),
+      management: String(a.alert_type ?? "review") === "contraindication"
+        ? "Contraindicated combination"
+        : "Review clinical appropriateness",
+    }));
+
+    const hccGaps: HCCOpportunity[] = (
+      (raw.DEMO_HCC_GAPS as Array<Record<string, unknown>>) ?? []
+    ).map((o, i) => ({
+      id: String(i + 1),
+      hccCode: String(o.current_code ?? ""),
+      description: String(o.suggested_description ?? o.rationale ?? ""),
+      rafValue: parseFloat(String(o.raf_impact ?? "0").replace("+", "")) || 0,
+      estimatedRevenue: 0,
+      confidence: "high" as const,
+      evidence: String(o.rationale ?? ""),
+    }));
+
+    const docIssues: DocumentationIssue[] = (
+      (raw.DEMO_DOCUMENTATION_ISSUES as Array<Record<string, unknown>>) ?? []
+    ).map((d, i) => ({
+      id: String(i + 1),
+      type: "incomplete" as const,
+      description: String(d.description ?? ""),
+      affectedCode: String(d.issue_type ?? ""),
+      priority: normalizeSeverityToPriority(String(d.severity ?? "low")),
+    }));
+
+    const qualityGaps: QualityGap[] = (
+      (raw.DEMO_QUALITY_GAPS as Array<Record<string, unknown>>) ?? []
+    ).map((q, i) => ({
+      id: String(i + 1),
+      measureId: String(q.measure ?? "").substring(0, 10),
+      measureName: String(q.measure ?? ""),
+      category: "quality",
+      missingElement: String(q.gap ?? ""),
+      dueDate: "",
+      priority: "high" as const,
+    }));
+
+    return { drugAlerts, hccGaps, docIssues, qualityGaps };
+  } catch {
+    return { drugAlerts: [], hccGaps: [], docIssues: [], qualityGaps: [] };
+  }
+}
+
+function normalizeSeverityToPriority(
+  s: string
+): "high" | "medium" | "low" {
+  const lower = s.toLowerCase();
+  if (lower === "high") return "high";
+  if (lower === "moderate" || lower === "medium") return "medium";
+  return "low";
+}
 
 // ---------------------------------------------------------------------------
 // Types matching backend schema shapes
@@ -367,7 +441,8 @@ const issueTypeStyles: Record<string, string> = {
 // ---------------------------------------------------------------------------
 
 export default function ClinicalDashboardPage() {
-  const [isLoading, setIsLoading] = useState(true);
+  const { isDemo, isLoading: isAuthLoading } = useAuth();
+  const [isLoading, setIsLoading] = useState(!isDemo);
   const [error, setError] = useState<string | null>(null);
   const [degradedState, setDegradedState] = useState<DegradedState | null>(null);
 
@@ -387,14 +462,22 @@ export default function ClinicalDashboardPage() {
     null
   );
 
-  const pageMode = error ? "simulation" : "live";
-  const guard = useSimulationGuard(pageMode as "live" | "simulation", "clinical");
+  const guard = useSimulationGuard((isDemo || error) ? "simulation" : "live", "clinical");
 
   // -----------------------------------------------------------------------
   // Fetch data from backend dashboard endpoints
   // -----------------------------------------------------------------------
 
   const refreshData = useCallback(async () => {
+    if (isDemo) {
+      const demoData = await loadClinicalDemoData();
+      setDrugAlerts(demoData.drugAlerts);
+      setHCCOpportunities(demoData.hccGaps);
+      setDocumentationIssues(demoData.docIssues);
+      setQualityGaps(demoData.qualityGaps);
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(true);
     setError(null);
     setDegradedState(null);
@@ -478,17 +561,25 @@ export default function ClinicalDashboardPage() {
         err instanceof Error ? err.message : "Failed to load dashboard data";
       setError(message);
       console.error("Clinical dashboard fetch error:", err);
+      // Populate demo data on failure
+      const demoData = await loadClinicalDemoData();
+      setDrugAlerts(demoData.drugAlerts);
+      setHCCOpportunities(demoData.hccGaps);
+      setDocumentationIssues(demoData.docIssues);
+      setQualityGaps(demoData.qualityGaps);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [isDemo]);
 
   useEffect(() => {
+    if (isAuthLoading) return;
     refreshData();
-  }, [refreshData]);
+  }, [refreshData, isAuthLoading]);
 
   // -----------------------------------------------------------------------
   // Computed summary stats
+  // -----------------------------------------------------------------------
   // -----------------------------------------------------------------------
 
   const totalAlerts = drugAlerts.length;
@@ -607,16 +698,16 @@ export default function ClinicalDashboardPage() {
         </div>
       </div>
 
-      {/* Error Banner */}
+      {/* Error Banner (amber/warning since page falls back to simulation) */}
       {error && (
-        <Card className="border-red-300 bg-red-50 dark:border-red-800 dark:bg-red-950">
+        <Card className="border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-950">
           <CardContent className="flex items-center gap-3 py-4">
-            <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 shrink-0" />
+            <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-red-800 dark:text-red-200">
-                Failed to load dashboard data
+              <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                Backend unavailable — showing simulation data
               </p>
-              <p className="text-xs text-red-600 dark:text-red-400">{error}</p>
+              <p className="text-xs text-amber-600 dark:text-amber-400">{error}</p>
             </div>
             <Button
               variant="outline"
@@ -638,11 +729,11 @@ export default function ClinicalDashboardPage() {
       ) : null}
 
       <DataSourceModeBanner
-        mode={error ? "simulation" : "live"}
+        mode={(isDemo || error) ? "simulation" : "live"}
         title="Clinical decision support data source"
         description={
-          error
-            ? "Backend API is unavailable. Clinical alerts, HCC opportunities, and quality gaps cannot be loaded. Retry or check backend connectivity."
+          (isDemo || error)
+            ? "Backend API is unavailable. Clinical alerts, HCC opportunities, and quality gaps show demonstration data."
             : "Connected to live backend. Drug alerts, HCC gaps, quality measures, and clinical calculator data are served from production endpoints."
         }
         evidencePath="docs/decisions/p4-017-mock-surface-removal.md"

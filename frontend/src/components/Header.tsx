@@ -73,7 +73,7 @@ const getNotificationIcon = (type: Notification["type"]) => {
 
 // Pages that should not show the header
 const AUTH_PAGES = ["/login", "/register", "/forgot-password"];
-const FULL_BLEED_PAGES = ["/", "/investors"];
+const FULL_BLEED_PAGES = ["/", "/investors", "/contact", "/about", "/privacy", "/terms", "/security", "/careers", "/proof", "/changelog", "/docs", "/sales-demo"];
 const isAuthPage = (pathname: string) => {
   return AUTH_PAGES.includes(pathname) || FULL_BLEED_PAGES.includes(pathname) || pathname.startsWith("/smart/");
 };
@@ -81,7 +81,7 @@ const isAuthPage = (pathname: string) => {
 export function Header({ className }: HeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, isDemo, logout } = useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -451,6 +451,9 @@ export function Header({ className }: HeaderProps) {
             <span className="hidden text-sm font-medium md:inline-block">
               {displayName}
             </span>
+            {isDemo && (
+              <Badge variant="secondary" className="text-[10px] h-5 px-1.5">Demo</Badge>
+            )}
             <ChevronDown className="h-4 w-4" aria-hidden="true" />
           </Button>
 
@@ -501,7 +504,6 @@ export function Header({ className }: HeaderProps) {
                     onClick={async () => {
                       setIsUserMenuOpen(false);
                       await logout();
-                      document.cookie = "has_auth=; path=/; max-age=0; SameSite=Lax";
                       router.push("/login");
                     }}
                     role="menuitem"

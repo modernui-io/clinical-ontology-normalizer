@@ -223,6 +223,7 @@ const navSections: NavSection[] = [
         title: "Analysis",
         icon: Microscope,
         items: [
+          { title: "Note Browser", href: "/research/notes", icon: FileText },
           { title: "Pipeline Monitor", href: "/research/pipeline", icon: Workflow },
           { title: "Assertions", href: "/research/assertions", icon: Shield },
           { title: "OMOP Mapping", href: "/research/mapping", icon: Shuffle },
@@ -292,7 +293,7 @@ interface SidebarProps {
 
 // Pages that should not show the sidebar
 const AUTH_PAGES = ["/login", "/register", "/forgot-password"];
-const FULL_BLEED_PAGES = ["/", "/investors"];
+const FULL_BLEED_PAGES = ["/", "/investors", "/contact", "/about", "/privacy", "/terms", "/security", "/careers", "/proof", "/changelog", "/docs", "/sales-demo"];
 const isAuthPage = (pathname: string) => {
   return AUTH_PAGES.includes(pathname) || FULL_BLEED_PAGES.includes(pathname) || pathname.startsWith("/smart/");
 };

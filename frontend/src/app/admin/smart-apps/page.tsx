@@ -194,7 +194,7 @@ export default function SMARTAppsPage() {
   }
 
   return (
-    <PermissionGate permission={PERMISSIONS.ADMIN_MANAGE_USERS} fallback={
+    <PermissionGate permission={PERMISSIONS.ADMIN_MANAGE_USERS} hideWhenUnauthenticated={false} fallback={
       <div className="p-6">
         <Card>
           <CardContent className="py-8 text-center">

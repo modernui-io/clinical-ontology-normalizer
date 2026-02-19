@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
   // Proxies /api/* from browser to backend at /api/v1/*
   // Uses BACKEND_URL for server-side (Docker internal), NEXT_PUBLIC_API_URL for fallback
   async rewrites() {
-    const backendUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const backendUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
     return [
       {
         source: "/api/:path*",

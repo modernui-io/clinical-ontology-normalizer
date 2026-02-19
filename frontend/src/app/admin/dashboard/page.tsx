@@ -330,44 +330,7 @@ export default function AdminDashboardPage() {
   }
 
   // ============================================================================
-  // Error state
-  // ============================================================================
-
-  if (error) {
-    return (
-      <div className="p-6 space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-              <LayoutDashboard className="h-6 w-6" />
-              Admin Dashboard
-            </h1>
-            <p className="text-muted-foreground">
-              System health monitoring and administration
-            </p>
-          </div>
-        </div>
-        <Card className="border-destructive">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-destructive">
-              <XCircle className="h-5 w-5" />
-              Failed to Load Dashboard
-            </CardTitle>
-            <CardDescription>{error}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button variant="outline" onClick={fetchDashboard}>
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Retry
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // ============================================================================
-  // Main dashboard
+  // Main dashboard (error state renders inline, not as full-page replacement)
   // ============================================================================
 
   return (
@@ -404,9 +367,13 @@ export default function AdminDashboardPage() {
       </div>
 
       <DataSourceModeBanner
-        mode="mixed"
+        mode={error ? "simulation" : "mixed"}
         title="Data source mode"
-        description="Service health and metadata are loaded from /api/dashboard/admin (live). Request volume and CPU/memory gauges are simulated until a streaming metrics endpoint is wired."
+        description={
+          error
+            ? "Backend API is unavailable. Service health data cannot be loaded. Resource gauges and request volumes below are simulated demonstration data."
+            : "Service health and metadata are loaded from /api/dashboard/admin (live). Request volume and CPU/memory gauges are simulated until a streaming metrics endpoint is wired."
+        }
         evidencePath="frontend/src/app/admin/dashboard/page.tsx"
         lastUpdatedAt="2026-02-16"
         signoffText="Simulation only — resource gauges and request volumes are seeded demonstration data. Connect to metrics API for live telemetry."

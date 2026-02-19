@@ -27,6 +27,9 @@ import {
   FlaskConical,
 } from "lucide-react";
 import { PersonaNavigator } from "@/components/PersonaNavigator";
+import { useAuth } from "@/hooks/use-auth";
+import { DEMO_DASHBOARD_STATS, DEMO_RECENT_ACTIVITY } from "@/lib/demo-data";
+import DataSourceModeBanner from "@/components/readiness/DataSourceModeBanner";
 
 interface DashboardStats {
   totalDocuments: number;
@@ -90,11 +93,20 @@ const activityIcons: Record<RecentActivity["type"], React.ReactNode> = {
 };
 
 export default function DashboardPage() {
+  const { isDemo, isLoading: isAuthLoading } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [dataMode, setDataMode] = useState<"live" | "simulation">("live");
 
   const refreshData = useCallback(async () => {
+    if (isDemo) {
+      setStats(DEMO_DASHBOARD_STATS);
+      setRecentActivity(DEMO_RECENT_ACTIVITY);
+      setDataMode("simulation");
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(true);
     try {
       const [docsRes, patientsRes, trialsRes, auditRes] = await Promise.all([
@@ -143,14 +155,18 @@ export default function DashboardPage() {
       setRecentActivity(activities);
     } catch (err) {
       console.error("Failed to load dashboard data:", err);
+      setStats(DEMO_DASHBOARD_STATS);
+      setRecentActivity(DEMO_RECENT_ACTIVITY);
+      setDataMode("simulation");
     } finally {
       setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
+    if (isAuthLoading) return;
     refreshData();
-  }, [refreshData]);
+  }, [refreshData, isAuthLoading]);
 
   return (
     <div className="p-6 space-y-6">
@@ -172,6 +188,15 @@ export default function DashboardPage() {
           Refresh
         </Button>
       </div>
+
+      {dataMode === "simulation" && (
+        <DataSourceModeBanner
+          mode={dataMode}
+          title="Dashboard data source"
+          description="Backend API is unavailable. Dashboard metrics and activity feed show demonstration data."
+          backendEndpoints={["/api/documents", "/api/patients", "/api/trials", "/api/audit/logs"]}
+        />
+      )}
 
       {/* Persona Navigation (P3-002) */}
       <PersonaNavigator />

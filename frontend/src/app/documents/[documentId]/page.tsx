@@ -31,6 +31,9 @@ import {
   Document,
   ClinicalFact,
 } from "@/lib/api";
+import { DEMO_DOCUMENTS } from "@/lib/demo-data";
+import { useAuth } from "@/hooks/use-auth";
+import DataSourceModeBanner from "@/components/readiness/DataSourceModeBanner";
 import {
   MentionHighlighter,
   MentionLegend,
@@ -65,6 +68,7 @@ interface MentionSpan {
 
 export default function DocumentViewerPage() {
   const params = useParams();
+  const { isDemo, isLoading: isAuthLoading } = useAuth();
   const documentId = params.documentId as string;
   const [document, setDocument] = useState<Document | null>(null);
   const [mentions, setMentions] = useState<MentionSpan[]>([]);
@@ -73,6 +77,7 @@ export default function DocumentViewerPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoadingMentions, setIsLoadingMentions] = useState(false);
   const [extractionTime, setExtractionTime] = useState<number | null>(null);
+  const [dataMode, setDataMode] = useState<"live" | "simulation">(isDemo ? "simulation" : "live");
 
   // Filter states
   const [mentionTypeFilter, setMentionTypeFilter] = useState<string>("all");
@@ -80,7 +85,18 @@ export default function DocumentViewerPage() {
   const [factDomainFilter, setFactDomainFilter] = useState<string>("all");
 
   useEffect(() => {
-    if (!documentId) return;
+    if (!documentId || isAuthLoading) return;
+
+    // In demo mode, skip API calls and use demo data directly
+    if (isDemo) {
+      const demoDoc = DEMO_DOCUMENTS.find(d => d.id === documentId);
+      if (demoDoc) {
+        setDocument(demoDoc);
+      } else {
+        setError("Document not found in demo data.");
+      }
+      return;
+    }
 
     const fetchDocument = async () => {
       try {
@@ -117,12 +133,19 @@ export default function DocumentViewerPage() {
         }
       } catch (err) {
         console.error("Failed to fetch document:", err);
-        setError("Failed to fetch document. Is the backend running?");
+        // Fall back to demo data
+        const demoDoc = DEMO_DOCUMENTS.find(d => d.id === documentId);
+        if (demoDoc) {
+          setDocument(demoDoc);
+          setDataMode("simulation");
+        } else {
+          setError("Failed to fetch document. Is the backend running?");
+        }
       }
     };
 
     fetchDocument();
-  }, [documentId]);
+  }, [documentId, isDemo, isAuthLoading]);
 
   const handlePreviewExtraction = useCallback(async () => {
     if (!document) return;
@@ -360,6 +383,16 @@ export default function DocumentViewerPage() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
+        {dataMode === "simulation" && (
+          <div className="mx-auto max-w-6xl mb-6">
+            <DataSourceModeBanner
+              mode={dataMode}
+              title="Document viewer data source"
+              description="Backend API is unavailable. Viewing demonstration document data."
+              backendEndpoints={["/api/v1/documents"]}
+            />
+          </div>
+        )}
         {error ? (
           <Card className="mx-auto max-w-4xl">
             <CardContent className="py-8">

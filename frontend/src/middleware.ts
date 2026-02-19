@@ -31,6 +31,8 @@ const PUBLIC_PATHS = [
   "/changelog",
   "/docs",
   "/careers",
+  "/contact",
+  "/sales-demo",
 ];
 
 // Static assets and API routes to skip

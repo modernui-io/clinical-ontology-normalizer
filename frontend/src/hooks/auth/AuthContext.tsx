@@ -52,11 +52,13 @@ export interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isDemo: boolean;
   error: string | null;
 }
 
 export interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<boolean>;
+  loginDemo: () => void;
   logout: () => Promise<void>;
   register: (data: RegisterData) => Promise<boolean>;
   updateProfile: (data: Partial<User>) => Promise<boolean>;
@@ -71,11 +73,27 @@ export interface AuthContextType extends AuthState {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+const DEMO_USER: User = {
+  id: "demo-user",
+  email: "demo@clinicalont.local",
+  name: "Demo User",
+  roles: ["admin"],
+  permissions: ["*"],
+};
+
+const DEMO_TOKENS: AuthTokens = {
+  access_token: "demo-token",
+  refresh_token: "demo-refresh",
+  token_type: "bearer",
+  expires_in: 86400,
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>({
     user: null,
     isAuthenticated: false,
     isLoading: true,
+    isDemo: false,
     error: null,
   });
   const [tokens, setTokens] = useState<AuthTokens | null>(null);
@@ -86,11 +104,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const storedUser = getStoredUser();
 
     if (storedTokens && storedUser) {
+      const isDemo = storedTokens.access_token === "demo-token";
       setTokens(storedTokens);
       setState({
         user: storedUser,
         isAuthenticated: true,
         isLoading: false,
+        isDemo,
         error: null,
       });
     } else {
@@ -101,6 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Token refresh effect
   useEffect(() => {
     if (!tokens) return;
+    if (tokens.access_token === "demo-token") return; // Skip refresh for demo
 
     // Refresh token 1 minute before expiration
     const refreshInterval = (tokens.expires_in - 60) * 1000;
@@ -120,6 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           user: null,
           isAuthenticated: false,
           isLoading: false,
+          isDemo: false,
           error: "Session expired. Please log in again.",
         });
       }
@@ -145,6 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         isAuthenticated: true,
         isLoading: false,
+        isDemo: false,
         error: null,
       });
 
@@ -159,10 +182,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const loginDemo = useCallback(() => {
+    document.cookie = "has_auth=true; path=/; max-age=86400; SameSite=Lax";
+    setTokens(DEMO_TOKENS);
+    setStoredTokens(DEMO_TOKENS);
+    setStoredUser(DEMO_USER);
+    setState({
+      user: DEMO_USER,
+      isAuthenticated: true,
+      isLoading: false,
+      isDemo: true,
+      error: null,
+    });
+  }, []);
+
   const logout = useCallback(async (): Promise<void> => {
-    if (tokens?.refresh_token) {
-      await apiLogout(tokens.refresh_token);
+    // Skip API logout for demo tokens
+    if (tokens?.refresh_token && tokens.access_token !== "demo-token") {
+      try {
+        await apiLogout(tokens.refresh_token);
+      } catch {
+        // Ignore logout API errors
+      }
     }
+
+    // Clear cookie
+    document.cookie = "has_auth=; path=/; max-age=0; SameSite=Lax";
 
     setTokens(null);
     setStoredTokens(null);
@@ -172,6 +217,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user: null,
       isAuthenticated: false,
       isLoading: false,
+      isDemo: false,
       error: null,
     });
   }, [tokens]);
@@ -190,6 +236,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         isAuthenticated: true,
         isLoading: false,
+        isDemo: false,
         error: null,
       });
 
@@ -279,6 +326,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value: AuthContextType = {
     ...state,
     login,
+    loginDemo,
     logout,
     register,
     updateProfile,

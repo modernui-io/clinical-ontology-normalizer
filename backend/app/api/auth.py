@@ -104,6 +104,7 @@ class MeResponse(BaseModel):
 
     id: str = Field(..., description="User ID")
     email: str = Field(..., description="User email")
+    name: str = Field(..., description="User display name")
     roles: list[str] = Field(..., description="Assigned role names")
     permissions: list[str] = Field(..., description="Effective permissions")
     is_admin: bool = Field(..., description="Whether user has admin role")
@@ -298,6 +299,7 @@ async def get_me(
     return MeResponse(
         id=current_user.id,
         email=current_user.email,
+        name=current_user.name,
         roles=current_user.roles,
         permissions=current_user.permissions,
         is_admin=current_user.is_admin(),

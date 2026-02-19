@@ -50,7 +50,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth, useRequireAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/use-auth";
 
 // ============================================================================
 // Types
@@ -1273,7 +1273,7 @@ function LLMSettingsSection() {
 // ============================================================================
 
 export default function SettingsPage() {
-  const { isLoading, isAuthenticated } = useRequireAuth();
+  const { isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -1281,10 +1281,6 @@ export default function SettingsPage() {
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
-  }
-
-  if (!isAuthenticated) {
-    return null;
   }
 
   return (

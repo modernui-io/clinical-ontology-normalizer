@@ -4964,3 +4964,51 @@ export async function exportResearchMetrics(
     { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }
   );
 }
+
+// --- MIMIC Note Browser ---
+
+export interface MimicNoteStats {
+  total: number;
+  categories: Record<string, number>;
+  unique_patients: number;
+}
+
+export interface MimicNote {
+  id: number;
+  note_id: string;
+  subject_id: string;
+  hadm_id: string;
+  note_type: string;
+  note_category: string;
+  charttime: string;
+  text: string;
+}
+
+export interface MimicNoteSearchResult {
+  notes: MimicNote[];
+  total: number;
+}
+
+export async function getMimicNoteStats(): Promise<MimicNoteStats> {
+  return fetchWithRetry<MimicNoteStats>(`${API_BASE_URL}/research/notes/stats`);
+}
+
+export async function searchMimicNotes(params: {
+  q?: string;
+  category?: string;
+  offset?: number;
+  limit?: number;
+}): Promise<MimicNoteSearchResult> {
+  const sp = new URLSearchParams();
+  if (params.q) sp.set("q", params.q);
+  if (params.category && params.category !== "all") sp.set("category", params.category);
+  if (params.offset) sp.set("offset", String(params.offset));
+  if (params.limit) sp.set("limit", String(params.limit));
+  return fetchWithRetry<MimicNoteSearchResult>(
+    `${API_BASE_URL}/research/notes/search?${sp.toString()}`
+  );
+}
+
+export async function getMimicNote(noteId: number): Promise<MimicNote> {
+  return fetchWithRetry<MimicNote>(`${API_BASE_URL}/research/notes/${noteId}`);
+}

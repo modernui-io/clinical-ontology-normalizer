@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import logging
+import os
+import sqlite3
+from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
@@ -521,3 +524,128 @@ async def get_qa_questions(
             for q in questions
         ],
     }
+
+
+# ============================================================================
+# MIMIC Note Browser Endpoints
+# ============================================================================
+
+MIMIC_DB_PATH = os.environ.get(
+    "MIMIC_NOTES_DB",
+    str(Path(__file__).resolve().parents[3] / "tools" / "mimic_notes.db"),
+)
+
+
+def _get_notes_db() -> sqlite3.Connection:
+    """Get a read-only connection to the MIMIC notes SQLite database."""
+    if not os.path.exists(MIMIC_DB_PATH):
+        raise HTTPException(
+            status_code=503,
+            detail="MIMIC notes database not found. Run tools/mimic_loader.py first.",
+        )
+    conn = sqlite3.connect(f"file:{MIMIC_DB_PATH}?mode=ro", uri=True)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+@router.get("/notes/stats")
+async def get_notes_stats(
+    current_user: dict = Depends(get_current_user),
+) -> dict:
+    """Get MIMIC note database statistics."""
+    conn = _get_notes_db()
+    try:
+        c = conn.cursor()
+        c.execute("SELECT COUNT(*) FROM notes")
+        total = c.fetchone()[0]
+        c.execute("SELECT note_category, COUNT(*) FROM notes GROUP BY note_category")
+        categories = {row[0]: row[1] for row in c.fetchall()}
+        c.execute("SELECT COUNT(DISTINCT subject_id) FROM notes")
+        unique_patients = c.fetchone()[0]
+        return {
+            "total": total,
+            "categories": categories,
+            "unique_patients": unique_patients,
+        }
+    finally:
+        conn.close()
+
+
+@router.get("/notes/search")
+async def search_notes(
+    q: str = Query("", description="Full-text search query"),
+    category: str = Query("all", description="Note category filter"),
+    offset: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+    current_user: dict = Depends(get_current_user),
+) -> dict:
+    """Search MIMIC clinical notes with full-text search."""
+    conn = _get_notes_db()
+    try:
+        c = conn.cursor()
+        q = q.strip()
+
+        if q:
+            # FTS5 search
+            fts_query = " ".join(f'"{w}"' for w in q.split() if w)
+            cat_clause = ""
+            cat_params: list = []
+            if category != "all":
+                cat_clause = "AND n.note_category = ?"
+                cat_params = [category]
+
+            c.execute(
+                f"SELECT COUNT(*) FROM notes_fts f JOIN notes n ON n.id = f.rowid WHERE notes_fts MATCH ? {cat_clause}",
+                [fts_query] + cat_params,
+            )
+            total = c.fetchone()[0]
+
+            c.execute(
+                f"SELECT n.* FROM notes_fts f JOIN notes n ON n.id = f.rowid WHERE notes_fts MATCH ? {cat_clause} ORDER BY rank LIMIT ? OFFSET ?",
+                [fts_query] + cat_params + [limit, offset],
+            )
+        else:
+            cat_clause = ""
+            cat_params = []
+            if category != "all":
+                cat_clause = "WHERE note_category = ?"
+                cat_params = [category]
+
+            c.execute(f"SELECT COUNT(*) FROM notes {cat_clause}", cat_params)
+            total = c.fetchone()[0]
+
+            c.execute(
+                f"SELECT * FROM notes {cat_clause} ORDER BY id LIMIT ? OFFSET ?",
+                cat_params + [limit, offset],
+            )
+
+        rows = c.fetchall()
+        notes = []
+        for r in rows:
+            d = dict(r)
+            text = d.get("text", "")
+            if len(text) > 50000:
+                d["text"] = text[:50000] + "\n\n... [truncated at 50,000 chars]"
+            notes.append(d)
+
+        return {"notes": notes, "total": total}
+    finally:
+        conn.close()
+
+
+@router.get("/notes/{note_id}")
+async def get_note(
+    note_id: int,
+    current_user: dict = Depends(get_current_user),
+) -> dict:
+    """Get a single MIMIC note by database ID."""
+    conn = _get_notes_db()
+    try:
+        c = conn.cursor()
+        c.execute("SELECT * FROM notes WHERE id = ?", [note_id])
+        row = c.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Note not found")
+        return dict(row)
+    finally:
+        conn.close()
