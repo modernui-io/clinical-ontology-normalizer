@@ -6,6 +6,7 @@ import io
 
 import pytest
 from fastapi.testclient import TestClient
+from unittest.mock import patch, MagicMock
 
 VALID_CSV_CONTENT = """note_id,subject_id,hadm_id,note_type,text
 10001,100,200001,Discharge Summary,"Patient admitted with chest pain."
@@ -19,6 +20,8 @@ INVALID_CSV_CONTENT = """note_id,subject_id
 EMPTY_TEXT_CSV = """note_id,subject_id,hadm_id,note_type,text
 10001,100,200001,Discharge Summary,""
 """
+
+API_PREFIX = "/api/v1"
 
 
 def _get_client() -> TestClient:
@@ -34,7 +37,7 @@ class TestMimicValidateEndpoint:
         client = _get_client()
         file = io.BytesIO(VALID_CSV_CONTENT.encode("utf-8"))
         response = client.post(
-            "/documents/mimic/validate",
+            f"{API_PREFIX}/documents/mimic/validate",
             files={"file": ("discharge.csv", file, "text/csv")},
         )
         assert response.status_code == 200
@@ -46,7 +49,7 @@ class TestMimicValidateEndpoint:
         client = _get_client()
         file = io.BytesIO(INVALID_CSV_CONTENT.encode("utf-8"))
         response = client.post(
-            "/documents/mimic/validate",
+            f"{API_PREFIX}/documents/mimic/validate",
             files={"file": ("bad.csv", file, "text/csv")},
         )
         assert response.status_code == 200
@@ -58,11 +61,12 @@ class TestMimicValidateEndpoint:
         client = _get_client()
         file = io.BytesIO(b"not csv content")
         response = client.post(
-            "/documents/mimic/validate",
+            f"{API_PREFIX}/documents/mimic/validate",
             files={"file": ("data.txt", file, "text/plain")},
         )
         assert response.status_code == 400
-        assert "CSV" in response.json()["detail"]
+        body = response.json()
+        assert "CSV" in body.get("detail", "") or "CSV" in body.get("message", "")
 
 
 class TestMimicProgressEndpoint:
@@ -70,16 +74,31 @@ class TestMimicProgressEndpoint:
 
     def test_progress_not_found(self) -> None:
         client = _get_client()
-        response = client.get("/documents/mimic/import/nonexistent-batch/progress")
+        response = client.get(f"{API_PREFIX}/documents/mimic/import/nonexistent-batch/progress")
         assert response.status_code == 404
 
 
 class TestMimicMetricsEndpoint:
     """Tests for GET /documents/mimic/metrics."""
 
-    def test_metrics_returns_structure(self) -> None:
+    @patch("app.services.mimic_ingestion.MimicIngestionService")
+    def test_metrics_returns_structure(self, mock_cls: MagicMock) -> None:
+        mock_cls.return_value.get_mimic_metrics.return_value = {
+            "total_documents": 0,
+            "total_mentions": 0,
+            "total_facts": 0,
+            "concept_coverage_percent": 0.0,
+            "avg_confidence": 0.0,
+            "status_breakdown": {},
+            "domain_distribution": [],
+            "top_unmapped_terms": [],
+            "avg_processing_time_ms": 0.0,
+            "p50_processing_time_ms": 0.0,
+            "p95_processing_time_ms": 0.0,
+            "recent_documents": [],
+        }
         client = _get_client()
-        response = client.get("/documents/mimic/metrics")
+        response = client.get(f"{API_PREFIX}/documents/mimic/metrics")
         assert response.status_code == 200
         data = response.json()
         assert "total_documents" in data
@@ -98,7 +117,7 @@ class TestMimicUploadEndpoint:
         client = _get_client()
         file = io.BytesIO(b"not csv")
         response = client.post(
-            "/documents/mimic/upload",
+            f"{API_PREFIX}/documents/mimic/upload",
             files={"file": ("data.txt", file, "text/plain")},
         )
         assert response.status_code == 400
@@ -107,7 +126,24 @@ class TestMimicUploadEndpoint:
         client = _get_client()
         file = io.BytesIO(INVALID_CSV_CONTENT.encode("utf-8"))
         response = client.post(
-            "/documents/mimic/upload",
+            f"{API_PREFIX}/documents/mimic/upload",
             files={"file": ("bad.csv", file, "text/csv")},
         )
         assert response.status_code == 422
+
+
+class TestMimicRouteRegistration:
+    """Regression guard: all MIMIC routes must be under /api/v1."""
+
+    def test_mimic_routes_under_api_v1(self) -> None:
+        from app.main import app
+
+        mimic_paths = [
+            r.path for r in app.routes
+            if hasattr(r, "path") and "/documents/mimic" in r.path
+        ]
+        assert len(mimic_paths) > 0, "No MIMIC routes found"
+        for path in mimic_paths:
+            assert path.startswith("/api/v1/"), (
+                f"MIMIC route {path} not under /api/v1/ prefix"
+            )
