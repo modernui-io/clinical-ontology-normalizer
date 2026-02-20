@@ -43,7 +43,7 @@ from app.services.multi_agent_orchestrator import (
 )
 from app.services.nlp_rule_based import RuleBasedNLPService
 from app.services.provenance_db_service import get_provenance_db_service
-from app.services.concept_lookup import lookup_concept_cached
+from app.services.concept_lookup import lookup_concept_cached, prewarm_concept_cache
 from app.services.confidence_policy_service import check_action_gate
 from app.services.workflow_confidence_policy import detect_workflow_type, get_policy_for_workflow, get_policy_version
 from app.services.temporal_extractor import TemporalExtractor, extract_entity_dates
@@ -1554,6 +1554,31 @@ async def _build_patient_knowledge_graph(
 
     node_count = 1  # Patient node
     edge_count = 0
+
+    # Pre-warm concept cache: batch all lookups into one IN query
+    # instead of 225+ individual full-table-scan queries (~2s each)
+    if settings.enable_concept_mapping:
+        _lookups: list[tuple[str, str | None]] = []
+        for _e in entities:
+            if _e.confidence < 0.5 or _e.omop_concept_id:
+                continue
+            _d = _e.entity_type.upper()
+            if _d == "CONDITION":
+                _d = "Condition"
+            elif _d in ("DRUG", "MEDICATION"):
+                _d = "Drug"
+            elif _d in ("MEASUREMENT", "LAB"):
+                _d = "Measurement"
+            elif _d == "PROCEDURE":
+                _d = "Procedure"
+            else:
+                _d = None
+            _t = _e.text
+            if _d == "Measurement":
+                _t = _normalize_measurement_text(_e.text)
+            _lookups.append((_t, _d))
+        if _lookups:
+            await prewarm_concept_cache(db, _lookups)
 
     for entity in entities:
         # Skip low confidence entities

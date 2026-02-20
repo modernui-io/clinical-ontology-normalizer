@@ -400,3 +400,99 @@ async def lookup_concept_cached(
 def clear_concept_cache() -> None:
     """Clear the concept cache."""
     _concept_cache.clear()
+
+
+async def prewarm_concept_cache(
+    db: AsyncSession,
+    lookups: list[tuple[str, str | None]],
+) -> None:
+    """Batch pre-warm the concept cache with a single IN query.
+
+    Replaces N individual concept lookups (each a full table scan) with one
+    batch query. For 225 entities this turns ~450 DB roundtrips into 1.
+
+    Args:
+        db: Database session
+        lookups: List of (text, domain) pairs to look up
+    """
+    # Deduplicate and filter already-cached entries
+    uncached: dict[str, str | None] = {}  # upper_text -> domain (first domain wins)
+    cache_key_map: dict[str, list[tuple[str, str | None]]] = {}  # upper_text -> [(text, domain), ...]
+
+    for text, domain in lookups:
+        cache_key = f"{text.lower()}:{domain or 'any'}"
+        if cache_key in _concept_cache:
+            continue
+        upper_text = text.upper()
+        cache_key_map.setdefault(upper_text, []).append((text, domain))
+        if upper_text not in uncached:
+            uncached[upper_text] = domain
+
+    if not uncached:
+        return
+
+    # Single batch query for all texts
+    all_upper_texts = list(uncached.keys())
+    result = await db.execute(
+        select(
+            Concept.concept_id,
+            Concept.concept_name,
+            Concept.vocabulary_id,
+            Concept.concept_class_id,
+            Concept.domain_id,
+        ).where(func.upper(Concept.concept_name).in_(all_upper_texts))
+    )
+    rows = result.fetchall()
+
+    # Group results by upper-cased concept name
+    from dataclasses import dataclass as _dc
+
+    @_dc
+    class _SimpleConcept:
+        concept_id: int
+        concept_name: str
+        vocabulary_id: str
+        concept_class_id: str
+        domain_id: str
+
+    text_to_concepts: dict[str, list[_SimpleConcept]] = {}
+    for row in rows:
+        key = row[1].upper()
+        text_to_concepts.setdefault(key, []).append(
+            _SimpleConcept(
+                concept_id=row[0],
+                concept_name=row[1],
+                vocabulary_id=row[2],
+                concept_class_id=row[3],
+                domain_id=row[4],
+            )
+        )
+
+    # Populate cache for each (text, domain) pair
+    for upper_text, pairs in cache_key_map.items():
+        concepts = text_to_concepts.get(upper_text, [])
+        for text, domain in pairs:
+            cache_key = f"{text.lower()}:{domain or 'any'}"
+            if cache_key in _concept_cache:
+                continue
+            if concepts:
+                priority_vocabs = _get_priority_vocabularies(domain)
+                best = _select_best_concept(concepts, priority_vocabs, domain)
+                if best:
+                    _concept_cache[cache_key] = ConceptMatch(
+                        concept_id=best.concept_id,
+                        concept_name=best.concept_name,
+                        vocabulary_id=best.vocabulary_id,
+                        concept_class_id=best.concept_class_id,
+                        domain_id=best.domain_id,
+                        score=1.0,
+                    )
+                else:
+                    _concept_cache[cache_key] = None
+            else:
+                _concept_cache[cache_key] = None
+
+    logger.debug(
+        f"Pre-warmed concept cache: {len(uncached)} texts queried, "
+        f"{len(text_to_concepts)} had matches"
+    )
