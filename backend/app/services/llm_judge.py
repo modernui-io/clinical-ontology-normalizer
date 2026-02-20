@@ -110,7 +110,7 @@ class LLMJudge:
 
     def __init__(
         self,
-        model: str = "claude-opus-4-6",
+        model: str = "claude-sonnet-4-6",
         provider: str = "anthropic",
     ) -> None:
         self.model = model

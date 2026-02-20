@@ -297,6 +297,8 @@ class AblationHarness:
         use_llm_judge: bool = False,
         condition_ids: list[str] | None = None,
         ollama_base_url: str = "http://localhost:11434",
+        checkpoint_path: str | None = None,
+        output_dir: str | None = None,
     ) -> AblationResult:
         """Run the full 5-condition ablation.
 
@@ -313,6 +315,8 @@ class AblationHarness:
         Returns:
             AblationResult with all condition results and export methods.
         """
+        import os
+
         ablation_id = f"ablation_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
         t0 = time.perf_counter()
 
@@ -326,6 +330,8 @@ class AblationHarness:
             "ABLATION HARNESS: %d conditions × %d questions (model=%s)",
             len(selected), len(questions), llm_model,
         )
+        if checkpoint_path:
+            logger.info("Checkpoint: %s", checkpoint_path)
         logger.info("=" * 70)
 
         condition_results: dict[str, ConditionResult] = {}
@@ -354,6 +360,7 @@ class AblationHarness:
                 config=config,
                 experiment_name=f"Ablation: {cond_def['label']}",
                 run_id=run_id,
+                checkpoint_path=checkpoint_path,
             )
 
             safety = self.qa_service.compute_clinical_safety_score(report.results)
@@ -379,6 +386,32 @@ class AblationHarness:
                 "  %s: accuracy=%.1f%%, safety=%.3f, latency=%.0fms",
                 cond_id, report.accuracy * 100, safety, cond_latency,
             )
+
+            # Save per-condition incremental results if output_dir set
+            if output_dir:
+                os.makedirs(output_dir, exist_ok=True)
+                cond_path = os.path.join(output_dir, f"condition_{cond_id}.json")
+                cond_data = {
+                    "condition_id": cond_id,
+                    "label": cond_def["label"],
+                    "accuracy": report.accuracy,
+                    "correct": report.correct,
+                    "total": report.total_questions,
+                    "safety": safety,
+                    "category_accuracies": report.category_accuracies,
+                    "per_question": [
+                        {
+                            "question_id": r.question_id,
+                            "correct": r.correct,
+                            "score": r.score,
+                            "category": r.category,
+                        }
+                        for r in report.results
+                    ],
+                }
+                with open(cond_path, "w") as f:
+                    json.dump(cond_data, f, indent=2, default=str)
+                logger.info("  Saved condition result: %s", cond_path)
 
         total_duration = time.perf_counter() - t0
 

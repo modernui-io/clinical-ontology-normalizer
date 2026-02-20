@@ -8,7 +8,13 @@
 
 - [x] Phase A: Research & Paper Strategy (completed 2026-02-18)
 - [x] Phase B-1: Experiment Infrastructure (completed 2026-02-18)
-- [ ] Phase B-2: Run Experiments on Live Data
+- [~] Phase B-2: Run Experiments on Live Data (in progress)
+  - [x] MedQA-USMLE: 965/1273 valid, 81.6% accuracy (308 credit-error retries pending)
+  - [x] DR.KNOWS benchmark: 42.0% overall (49.7% of baseline)
+  - [x] Scalability analysis: 3,100 nodes, 8,803 edges, <1ms traversal
+  - [ ] ClinicalIntelligenceBench: 600q × 5 conditions (blocked on API credits until Mar 1)
+  - [ ] LLM Judge re-scoring (blocked on API credits)
+  - [ ] MedQA error retries (blocked on API credits)
 - [ ] Phase C: Paper Writing
 - [ ] Phase D: Submission
 
@@ -46,16 +52,16 @@ Existing clinical KG and medical RAG systems discard epistemic metadata (negatio
 
 No published system demonstrates end-to-end assertion preservation from NLP extraction through knowledge graph construction to query-time retrieval. The literature review confirms this gap across 25+ surveyed systems.
 
-## Experiments (6)
+## Experiments
 
 | # | Experiment | Key Metric | Status |
 |---|---|---|---|
-| 1 | End-to-End Pipeline Evaluation | Entity F1, concept coverage, assertion accuracy, KG density | Infrastructure ready |
-| 2 | Assertion Preservation Ablation | Clinical QA accuracy across 3 assertion conditions | Infrastructure ready, 50 QA questions defined |
-| 3 | Temporal Reasoning Ablation | Temporal QA accuracy across 3 temporal conditions | Infrastructure ready, 25+ QA questions defined |
-| 4 | Graph-RAG vs Document-RAG | Accuracy, faithfulness, nDCG@5 across 4 conditions | Infrastructure ready, 20+ QA questions defined |
-| 5 | Benchmark Comparison | MedAgentBench + DR.KNOWS scores | Services exist, LLM evaluation needed |
-| 6 | Scalability Analysis | Throughput, query latency, dedup ratio at scale | Infrastructure ready |
+| 1 | MedQA-USMLE (1,273 MCQ) | Accuracy vs published baselines | **81.6% (965 valid)** — 308 retries pending |
+| 2 | ClinicalIntelligenceBench (600q × 5 conditions) | Ablation accuracy per condition | Blocked on API credits (Mar 1) |
+| 3 | DR.KNOWS KG Reasoning | Multi-hop reasoning, path discovery | **42.0% (49.7% of baseline)** |
+| 4 | Scalability Analysis | Throughput, query latency, dedup ratio | **Complete** (0.57ms 1-hop, 0.75ms 2-hop) |
+| 5 | LLM Judge Re-scoring | Judge vs keyword accuracy comparison | Blocked on API credits |
+| 6 | Physician Evaluation | Blind clinical review, 100 held-out questions | Infrastructure built, recruitment pending |
 
 ## Datasets
 

@@ -125,6 +125,7 @@ from app.api.tefca import router as tefca_router
 from app.api.knowledge_graph_fhir import router as knowledge_graph_fhir_router
 from app.api.benchmarks import router as benchmarks_router
 from app.api.kg_benchmark import router as kg_benchmark_router
+from app.api.physician_evaluation import router as physician_evaluation_router
 from app.api.kg_health import router as kg_health_router
 from app.api.kg_orchestration import router as kg_orchestration_router
 from app.api.drug_safety import router as drug_safety_router
@@ -444,6 +445,7 @@ __all__ = [
     "knowledge_graph_fhir_router",
     "benchmarks_router",
     "kg_benchmark_router",
+    "physician_evaluation_router",
     "kg_health_router",
     "kg_orchestration_router",
     "drug_safety_router",

@@ -172,7 +172,11 @@ async def main() -> None:
 
     harness = AblationHarness()
 
-    # Run ablation
+    # Checkpoint path for resume support
+    checkpoint_path = os.path.join(output_dir, "clinicalbench_checkpoint.jsonl")
+    logger.info("Checkpoint: %s", checkpoint_path)
+
+    # Run ablation (resumes from checkpoint if available)
     result = await harness.run(
         patient_id=primary_patient,
         questions=all_questions,
@@ -182,6 +186,8 @@ async def main() -> None:
         use_llm_judge=use_llm_judge,
         condition_ids=condition_ids,
         ollama_base_url=ollama_url,
+        checkpoint_path=checkpoint_path,
+        output_dir=output_dir,
     )
 
     total_time = time.perf_counter() - t0_global

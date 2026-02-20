@@ -398,6 +398,27 @@ class MedQAEvaluator:
 
         return questions
 
+    def _load_checkpoint(self, checkpoint_path: str, condition: str) -> dict[str, dict]:
+        """Load checkpoint file and return dict of question_id -> result for a condition."""
+        completed: dict[str, dict] = {}
+        try:
+            with open(checkpoint_path) as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    entry = json.loads(line)
+                    if entry.get("condition") == condition:
+                        completed[entry["question_id"]] = entry
+        except FileNotFoundError:
+            pass
+        return completed
+
+    def _append_checkpoint(self, checkpoint_path: str, entry: dict) -> None:
+        """Append a single result entry to the checkpoint JSONL file."""
+        with open(checkpoint_path, "a") as f:
+            f.write(json.dumps(entry, default=str) + "\n")
+
     async def run(
         self,
         llm_model: str = "claude-sonnet-4-5-20250929",
@@ -406,8 +427,9 @@ class MedQAEvaluator:
         ollama_base_url: str = "http://localhost:11434",
         include_ontology_condition: bool = False,
         batch_size: int = 10,
+        checkpoint_path: str | None = None,
     ) -> MedQAResult:
-        """Run MedQA evaluation.
+        """Run MedQA evaluation with optional checkpoint/resume support.
 
         Args:
             llm_model: LLM to use.
@@ -416,6 +438,9 @@ class MedQAEvaluator:
             ollama_base_url: Ollama server URL.
             include_ontology_condition: Also run with OMOP ontology context.
             batch_size: Log progress every N questions.
+            checkpoint_path: Path to JSONL checkpoint file for resume support.
+                If set, each question result is saved incrementally and
+                already-completed questions are skipped on resume.
 
         Returns:
             MedQAResult with accuracy metrics and baseline comparisons.
@@ -445,6 +470,13 @@ class MedQAEvaluator:
             logger.info("--- MedQA Condition: %s ---", condition)
             cond_t0 = time.perf_counter()
 
+            # Load checkpoint for resume
+            checkpoint: dict[str, dict] = {}
+            if checkpoint_path:
+                checkpoint = self._load_checkpoint(checkpoint_path, condition)
+                if checkpoint:
+                    logger.info("  Resuming: %d questions already completed", len(checkpoint))
+
             system_prompt = MCQ_SYSTEM_PROMPT
             correct = 0
             total = 0
@@ -453,66 +485,95 @@ class MedQAEvaluator:
             step23_correct = 0
             step23_total = 0
             per_question: list[dict[str, Any]] = []
+            skipped = 0
 
             for i, q in enumerate(questions):
                 total += 1
                 exam_level = q.metadata.get("exam_level", "unknown")
 
-                try:
-                    prompt = q.question
-                    if condition == "ontology_augmented":
-                        ontology_ctx = await self._get_ontology_context(q.question)
-                        if ontology_ctx:
-                            prompt = (
-                                f"Relevant medical ontology context:\n{ontology_ctx}\n\n"
-                                f"Question:\n{q.question}"
-                            )
+                # Check checkpoint — skip if already completed successfully
+                cached = checkpoint.get(q.question_id)
+                if cached and not cached.get("error"):
+                    predicted = cached.get("predicted")
+                    is_correct = cached.get("correct", False)
+                    skipped += 1
+                else:
+                    cached = None  # Force re-evaluation on error entries
 
-                    response = await _call_llm(
-                        question=prompt,
-                        system_prompt=system_prompt,
-                        llm_model=llm_model,
-                        llm_provider=llm_provider,
-                        ollama_base_url=ollama_base_url,
-                    )
+                if cached is None:
+                    try:
+                        prompt = q.question
+                        if condition == "ontology_augmented":
+                            ontology_ctx = await self._get_ontology_context(q.question)
+                            if ontology_ctx:
+                                prompt = (
+                                    f"Relevant medical ontology context:\n{ontology_ctx}\n\n"
+                                    f"Question:\n{q.question}"
+                                )
 
-                    predicted = extract_mcq_answer(response)
-                    is_correct = predicted is not None and predicted == q.expected_answer
+                        response = await _call_llm(
+                            question=prompt,
+                            system_prompt=system_prompt,
+                            llm_model=llm_model,
+                            llm_provider=llm_provider,
+                            ollama_base_url=ollama_base_url,
+                        )
 
+                        predicted = extract_mcq_answer(response)
+                        is_correct = predicted is not None and predicted == q.expected_answer
+
+                        entry = {
+                            "condition": condition,
+                            "question_id": q.question_id,
+                            "predicted": predicted,
+                            "expected": q.expected_answer,
+                            "correct": is_correct,
+                            "exam_level": exam_level,
+                            "response_preview": response[:100] if response else "",
+                        }
+
+                        if checkpoint_path:
+                            self._append_checkpoint(checkpoint_path, entry)
+
+                    except Exception as exc:
+                        logger.warning("Error on %s: %s", q.question_id, exc)
+                        predicted = None
+                        is_correct = False
+
+                        entry = {
+                            "condition": condition,
+                            "question_id": q.question_id,
+                            "predicted": None,
+                            "expected": q.expected_answer,
+                            "correct": False,
+                            "error": str(exc),
+                        }
+                        if checkpoint_path:
+                            self._append_checkpoint(checkpoint_path, entry)
+
+                if is_correct:
+                    correct += 1
+                if exam_level == "step1":
+                    step1_total += 1
                     if is_correct:
-                        correct += 1
-                    if exam_level == "step1":
-                        step1_total += 1
-                        if is_correct:
-                            step1_correct += 1
-                    elif exam_level in ("step2&3", "step2_3"):
-                        step23_total += 1
-                        if is_correct:
-                            step23_correct += 1
+                        step1_correct += 1
+                elif exam_level in ("step2&3", "step2_3"):
+                    step23_total += 1
+                    if is_correct:
+                        step23_correct += 1
 
-                    per_question.append({
-                        "question_id": q.question_id,
-                        "predicted": predicted,
-                        "expected": q.expected_answer,
-                        "correct": is_correct,
-                        "exam_level": exam_level,
-                        "response_preview": response[:100] if response else "",
-                    })
-
-                except Exception as exc:
-                    logger.warning("Error on %s: %s", q.question_id, exc)
-                    per_question.append({
-                        "question_id": q.question_id,
-                        "predicted": None,
-                        "expected": q.expected_answer,
-                        "correct": False,
-                        "error": str(exc),
-                    })
+                per_question.append({
+                    "question_id": q.question_id,
+                    "predicted": predicted,
+                    "expected": q.expected_answer,
+                    "correct": is_correct,
+                    "exam_level": exam_level,
+                })
 
                 if (i + 1) % batch_size == 0:
                     logger.info(
-                        "  Progress: %d/%d (%.1f%% correct so far)",
-                        i + 1, len(questions), correct / total * 100 if total else 0,
+                        "  Progress: %d/%d (%.1f%% correct so far, %d resumed)",
+                        i + 1, len(questions), correct / total * 100 if total else 0, skipped,
                     )
 
             cond_latency = time.perf_counter() - cond_t0
@@ -533,13 +594,14 @@ class MedQAEvaluator:
             )
 
             logger.info(
-                "  %s: accuracy=%.1f%% (%d/%d), step1=%.1f%%, step2&3=%.1f%%, time=%.1fs",
+                "  %s: accuracy=%.1f%% (%d/%d), step1=%.1f%%, step2&3=%.1f%%, time=%.1fs (resumed %d)",
                 condition,
                 all_results[condition].accuracy * 100,
                 correct, total,
                 all_results[condition].step1_accuracy * 100,
                 all_results[condition].step23_accuracy * 100,
                 cond_latency,
+                skipped,
             )
 
         duration = time.perf_counter() - t0

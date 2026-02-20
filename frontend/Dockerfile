@@ -21,7 +21,6 @@ COPY . .
 
 # Set backend URL for build-time rewrites (Docker internal networking)
 ENV BACKEND_URL=http://backend:8000
-ENV NEXT_PUBLIC_API_URL=http://backend:8000
 
 # Auth bypass disabled by default (set NEXT_PUBLIC_AUTH_BYPASS=true to bypass)
 ARG NEXT_PUBLIC_AUTH_BYPASS=false
@@ -58,7 +57,7 @@ USER nextjs
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD wget -q --spider http://localhost:3000/ || exit 1
+    CMD wget -q --spider http://0.0.0.0:3000/ || exit 1
 
 # Expose port
 EXPOSE 3000

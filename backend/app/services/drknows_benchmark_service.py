@@ -441,25 +441,45 @@ class DRKNOWSBenchmarkService:
 
         return self._mock_discover_path(query)
 
+    _STOPWORDS = frozenset({
+        "what", "which", "where", "when", "does", "that", "this", "with",
+        "from", "have", "been", "were", "they", "their", "there", "will",
+        "would", "could", "should", "about", "after", "before", "between",
+        "through", "during", "into", "over", "under", "find", "explain",
+        "related", "lead", "leads", "cause", "causes", "treat", "treats",
+        "interact", "interacts", "reduce", "reduces", "developed",
+        "starting", "medication", "drugs", "diseases", "conditions",
+        "entities", "type", "many", "much", "more", "most", "also",
+        "these", "those", "than", "then", "only", "very", "just",
+    })
+
     async def _discover_path_pg(self, query: dict[str, Any]) -> dict[str, Any] | None:
         """Discover a path using the PG-backed knowledge graph (async)."""
-        from sqlalchemy import select, func as sa_func
+        from sqlalchemy import select, func as sa_func, or_
         from app.models.knowledge_graph import KGNode, KGEdge
 
         query_text = query.get("query", "")
         hops = query.get("hops", 1)
 
-        # Extract keywords from query for node label matching
-        keywords = [w.lower() for w in query_text.split() if len(w) > 3]
+        # Extract keywords: skip stopwords, prefer longer medical terms
+        words = [w.strip("?.,!;:\"'()").lower() for w in query_text.split()]
+        keywords = [w for w in words if len(w) > 3 and w not in self._STOPWORDS]
         if not keywords:
             return None
 
-        # Find matching start nodes
-        stmt = select(KGNode).where(
-            sa_func.lower(KGNode.label).contains(keywords[0])
-        ).limit(5)
-        result = await self._db_session.execute(stmt)
-        start_nodes = list(result.scalars().all())
+        # Sort by length (longer = more specific medical terms)
+        keywords.sort(key=len, reverse=True)
+
+        # Try each keyword until we find matching nodes
+        start_nodes = []
+        for kw in keywords[:5]:
+            stmt = select(KGNode).where(
+                sa_func.lower(KGNode.label).contains(kw)
+            ).limit(5)
+            result = await self._db_session.execute(stmt)
+            start_nodes = list(result.scalars().all())
+            if start_nodes:
+                break
 
         if not start_nodes:
             return None

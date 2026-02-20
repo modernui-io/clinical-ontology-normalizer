@@ -1,0 +1,96 @@
+{
+  "analysis_type": "scalability",
+  "metrics": {},
+  "corpus": {
+    "documents": 145,
+    "patients": 85,
+    "mentions": 12379,
+    "clinical_facts": 4855,
+    "kg_nodes": 3100,
+    "kg_edges": 8803,
+    "avg_mentions_per_doc": 85.37241379310345,
+    "avg_facts_per_doc": 33.48275862068966,
+    "avg_edges_per_node": 2.839677419354839
+  },
+  "node_type_distribution": {
+    "condition": 1122,
+    "measurement": 626,
+    "drug": 500,
+    "observation": 400,
+    "procedure": 293,
+    "patient": 130,
+    "clinical_note": 16,
+    "date": 13
+  },
+  "edge_type_distribution": {
+    "has_condition": 2153,
+    "has_measurement": 1584,
+    "extracted_from": 1397,
+    "occurred_on": 1396,
+    "takes_drug": 928,
+    "has_observation": 578,
+    "has_procedure": 454,
+    "drug_treats": 93,
+    "monitors": 91,
+    "symptom_of": 59,
+    "condition_treated_by": 54,
+    "contraindicated_with": 14,
+    "has_morphology": 2
+  },
+  "per_patient_density": {
+    "num_patients": 130,
+    "total_patient_edges": 8803,
+    "max_edges": 1512,
+    "min_edges": 1,
+    "avg_edges": 67.71538461538462,
+    "median_edges": 11,
+    "top_5": [
+      {
+        "patient_id": "TEST10101",
+        "edges": 1512
+      },
+      {
+        "patient_id": "TEST66066",
+        "edges": 1333
+      },
+      {
+        "patient_id": "TEST77777",
+        "edges": 989
+      },
+      {
+        "patient_id": "STRESS_TEST",
+        "edges": 450
+      },
+      {
+        "patient_id": "TEST55555",
+        "edges": 318
+      }
+    ]
+  },
+  "query_latencies": {
+    "node_lookup_by_label": {
+      "avg_ms": 1.4801834127865732,
+      "min_ms": 0.6678749923594296,
+      "max_ms": 3.72587499441579,
+      "samples": 5
+    },
+    "edge_traversal_1hop": {
+      "avg_ms": 0.5704831914044917,
+      "min_ms": 0.3597079776227474,
+      "max_ms": 1.2565409997478127,
+      "samples": 5
+    },
+    "edge_traversal_2hop": {
+      "avg_ms": 0.7472166209481657,
+      "min_ms": 0.3035420086234808,
+      "max_ms": 1.539791002869606,
+      "samples": 5
+    },
+    "full_count_queries": {
+      "avg_ms": 0.7954723356912533,
+      "min_ms": 0.5880829994566739,
+      "max_ms": 1.0045000235550106,
+      "samples": 3
+    }
+  }
+}

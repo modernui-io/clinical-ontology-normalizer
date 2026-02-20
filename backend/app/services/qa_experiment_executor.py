@@ -167,6 +167,31 @@ async def _call_ollama(
     )
 
 
+def _load_checkpoint(checkpoint_path: str, condition: str) -> dict[str, dict]:
+    """Load checkpoint file and return dict of question_id -> result for a condition."""
+    completed: dict[str, dict] = {}
+    try:
+        with open(checkpoint_path) as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                entry = json.loads(line)
+                if entry.get("condition") == condition:
+                    completed[entry["question_id"]] = entry
+    except FileNotFoundError:
+        pass
+    return completed
+
+
+def _append_checkpoint(checkpoint_path: str, entry: dict) -> None:
+    """Append a single result entry to the checkpoint JSONL file."""
+    import os
+    os.makedirs(os.path.dirname(checkpoint_path), exist_ok=True)
+    with open(checkpoint_path, "a") as f:
+        f.write(json.dumps(entry, default=str) + "\n")
+
+
 class QAExperimentExecutor:
     """Executes QA experiments by querying GraphRAG + LLM and scoring results."""
 
@@ -405,6 +430,7 @@ class QAExperimentExecutor:
         config: QARunConfig,
         experiment_name: str,
         run_id: str | None = None,
+        checkpoint_path: str | None = None,
     ) -> QAEvaluationReport:
         """Run a full question set through GraphRAG + LLM.
 
@@ -413,15 +439,43 @@ class QAExperimentExecutor:
             config: QA run configuration.
             experiment_name: Name for the report.
             run_id: Optional research run ID for metric recording.
+            checkpoint_path: Optional JSONL file for per-question checkpointing.
+                If set, completed questions are skipped on resume.
 
         Returns:
             QAEvaluationReport with per-question results.
         """
+        # Load checkpoint for resume
+        checkpoint: dict[str, dict] = {}
+        if checkpoint_path:
+            checkpoint = _load_checkpoint(checkpoint_path, config.condition)
+            if checkpoint:
+                logger.info(
+                    "Resuming %s: %d questions already checkpointed",
+                    config.condition, len(checkpoint),
+                )
+
         with Session(get_sync_engine()) as session:
             rag_service = GraphAugmentedRAGService(session)
 
             results: list[QAResult] = []
             for i, question in enumerate(questions):
+                # Check if already completed in checkpoint
+                cached = checkpoint.get(question.question_id)
+                if cached and not cached.get("error"):
+                    result = QAResult(
+                        question_id=cached["question_id"],
+                        predicted_answer=cached.get("predicted_answer", ""),
+                        expected_answer=cached.get("expected_answer", ""),
+                        correct=cached.get("correct", False),
+                        score=cached.get("score", 0.0),
+                        category=cached.get("category", question.category),
+                        condition=config.condition,
+                        latency_ms=cached.get("latency_ms", 0.0),
+                    )
+                    results.append(result)
+                    continue
+
                 logger.info(
                     "QA [%s/%s] %s | %s | %s",
                     i + 1, len(questions),
@@ -431,6 +485,20 @@ class QAExperimentExecutor:
                 )
                 result = await self._ask_question(question, config, rag_service)
                 results.append(result)
+
+                # Save to checkpoint
+                if checkpoint_path:
+                    _append_checkpoint(checkpoint_path, {
+                        "condition": config.condition,
+                        "question_id": result.question_id,
+                        "predicted_answer": result.predicted_answer[:500],
+                        "expected_answer": result.expected_answer[:500],
+                        "correct": result.correct,
+                        "score": result.score,
+                        "category": result.category,
+                        "latency_ms": result.latency_ms,
+                        "error": result.error,
+                    })
 
         # Build aggregate report
         total = len(results)

@@ -17,13 +17,15 @@ fi
 # Default Redis URL if not set
 REDIS_URL="${REDIS_URL:-redis://localhost:6379/0}"
 
+QUEUES="${1:-document_processing graph_building default}"
+
 echo "Starting RQ worker..."
 echo "  Redis URL: $REDIS_URL"
-echo "  Queues: document_processing, default"
+echo "  Queues: $QUEUES"
 
 # Start the worker with all required queues
 cd "$BACKEND_DIR"
 exec uv run rq worker \
     --url "$REDIS_URL" \
     --with-scheduler \
-    document_processing default
+    $QUEUES

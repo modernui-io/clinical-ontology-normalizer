@@ -133,7 +133,15 @@ async def main() -> None:
     )
     logger.info("  Step 1: %d | Step 2&3: %d | Other: %d", step1, step23, len(evaluator._questions) - step1 - step23)
 
-    # Run evaluation
+    # Checkpoint path for resume support
+    checkpoint_path = os.environ.get(
+        "CHECKPOINT_PATH",
+        "data/benchmarks/results/medqa_checkpoint.jsonl",
+    )
+    os.makedirs(os.path.dirname(checkpoint_path), exist_ok=True)
+    logger.info("Checkpoint: %s", checkpoint_path)
+
+    # Run evaluation (resumes from checkpoint if available)
     result = await evaluator.run(
         llm_model=llm_model,
         llm_provider=llm_provider,
@@ -141,6 +149,7 @@ async def main() -> None:
         ollama_base_url=ollama_url,
         include_ontology_condition=include_ontology,
         batch_size=batch_size,
+        checkpoint_path=checkpoint_path,
     )
 
     # Print results

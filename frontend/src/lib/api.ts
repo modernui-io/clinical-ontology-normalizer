@@ -10,8 +10,14 @@
 
 // Base URL configuration
 const getApiBaseUrl = (): string => {
-  // Use backend URL directly (bypasses Next.js proxy which is unreliable in dev)
-  const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+  // In the browser, use relative paths so requests go through
+  // the Next.js proxy (which forwards to the backend).
+  // This works in both Docker and local dev.
+  if (typeof window !== "undefined") {
+    return "/api/v1";
+  }
+  // Server-side (SSR/API routes): use backend URL directly
+  const backendUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
   return `${backendUrl}/api/v1`;
 };
 

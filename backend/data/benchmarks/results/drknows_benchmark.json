@@ -1,0 +1,61 @@
+{
+  "benchmark_id": "drknows_20260219_195444",
+  "run_at": "2026-02-19T19:54:44.672914+00:00",
+  "overall_score": 0.4203,
+  "metrics": {
+    "path_discovery": {
+      "coverage": 0.4444444444444444,
+      "semantic_diversity": 0.031496062992125984
+    },
+    "reasoning": {
+      "accuracy": 0.2222222222222222,
+      "f1_score": 0.36363636363636365
+    },
+    "semantic_coverage": {
+      "type_coverage": 0.06299212598425197,
+      "group_coverage": 0.26666666666666666
+    },
+    "multi_hop": {
+      "hop_1": 0.5,
+      "hop_2": 0.25,
+      "hop_3": 0.0,
+      "hop_4": 0.0,
+      "degradation_per_hop": 0.25
+    }
+  },
+  "comparison": {
+    "overall": {
+      "your_score": 0.4203,
+      "baseline": 0.846,
+      "delta": -0.42569999999999997,
+      "percentage_of_baseline": 49.68085106382979
+    },
+    "reasoning": {
+      "your_accuracy": 0.2222222222222222,
+      "baseline_accuracy": 0.846,
+      "delta": -0.6237777777777778
+    },
+    "path_discovery": {
+      "your_coverage": 0.4444444444444444,
+      "baseline_coverage": 0.847,
+      "delta": -0.40255555555555556
+    },
+    "multi_hop": {
+      "hop_1": {
+        "yours": 0.5,
+        "baseline": 0.923
+      },
+      "hop_2": {
+        "yours": 0.25,
+        "baseline": 0.891
+      },
+      "hop_3": {
+        "yours": 0.0,
+        "baseline": 0.856
+      }
+    },
+    "assessment": "Below DR.KNOWS baseline - improvements needed",
+    "status": "needs_improvement"
+  },
+  "duration_s": 0.11707387497881427
+}

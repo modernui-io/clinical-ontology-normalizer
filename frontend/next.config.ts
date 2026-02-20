@@ -10,13 +10,13 @@ const nextConfig: NextConfig = {
   },
 
   // API proxy to backend service
-  // Proxies /api/* from browser to backend at /api/v1/*
-  // Uses BACKEND_URL for server-side (Docker internal), NEXT_PUBLIC_API_URL for fallback
+  // Proxies /api/v1/* from browser to backend at /api/v1/*
+  // Uses BACKEND_URL (server-side only) for Docker internal networking
   async rewrites() {
-    const backendUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+    const backendUrl = process.env.BACKEND_URL || "http://localhost:8080";
     return [
       {
-        source: "/api/:path*",
+        source: "/api/v1/:path*",
         destination: `${backendUrl}/api/v1/:path*`,
       },
     ];
