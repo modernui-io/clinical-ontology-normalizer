@@ -42,6 +42,17 @@ from app.services.multi_agent_orchestrator import (
     get_multi_agent_orchestrator,
 )
 from app.services.nlp_rule_based import RuleBasedNLPService
+
+# Module-level singleton: avoids rebuilding the Aho-Corasick automaton
+# (~100K patterns) on every request.  The service is stateless once initialized.
+_rule_nlp_singleton: RuleBasedNLPService | None = None
+
+
+def _get_rule_nlp() -> RuleBasedNLPService:
+    global _rule_nlp_singleton
+    if _rule_nlp_singleton is None:
+        _rule_nlp_singleton = RuleBasedNLPService()
+    return _rule_nlp_singleton
 from app.services.provenance_db_service import get_provenance_db_service
 from app.services.concept_lookup import lookup_concept_cached, prewarm_concept_cache
 from app.services.confidence_policy_service import check_action_gate
@@ -856,8 +867,8 @@ async def bulk_import_documents(
     """
     start_time = datetime.now(timezone.utc)
 
-    # Initialize NLP service
-    nlp_service = RuleBasedNLPService()
+    # Initialize NLP service (singleton to avoid re-building Aho-Corasick automaton)
+    nlp_service = _get_rule_nlp()
 
     imported_notes: list[ImportedNote] = []
     all_entities: list[ExtractedEntity] = []
@@ -1114,7 +1125,7 @@ async def build_graph_from_entities(
         # to capture entities the frontend might have missed
         if request.clinical_text:
             try:
-                rule_nlp = RuleBasedNLPService()
+                rule_nlp = _get_rule_nlp()
                 mentions = rule_nlp.extract_mentions(request.clinical_text, document_id=uuid4())
                 # Map domain_hint from ExtractedMention to KG entity types
                 domain_map = {
