@@ -1528,7 +1528,11 @@ async def _build_patient_knowledge_graph(
             "extraction_method": extraction_method,
         },
     )
-    db.add(patient_node)
+
+    # Batch collections — avoid per-entity db.add() to eliminate
+    # intermediate flushes during concept lookup queries
+    pending_nodes: list[KGNode] = [patient_node]
+    pending_edges: list[KGEdge] = []
 
     # Track unique entities (deduplicate by text + type + assertion)
     # Include assertion in key to allow both "HIV present" and "HIV absent" nodes
@@ -1542,6 +1546,11 @@ async def _build_patient_knowledge_graph(
     measurements: list[str] = []
     procedures: list[str] = []
     negated_conditions: list[str] = []
+
+    # Pre-indexed entity type dicts for O(1) lookups in synthetic edge creation
+    drug_entities: dict[str, str] = {}       # text_lower -> node_id
+    condition_entities: dict[str, str] = {}  # text_lower -> node_id
+    measurement_entities: dict[str, str] = {}  # text_lower -> node_id
 
     node_count = 1  # Patient node
     edge_count = 0
@@ -1573,15 +1582,13 @@ async def _build_patient_knowledge_graph(
                 if domain == "Measurement":
                     lookup_text = _normalize_measurement_text(entity.text)
 
-                # Use savepoint for concept lookup so failures don't affect main transaction
-                async with db.begin_nested():
-                    concept_match = await lookup_concept_cached(db, lookup_text, domain)
-                    if concept_match:
-                        entity.omop_concept_id = concept_match.concept_id
-                        logger.debug(
-                            f"Mapped '{entity.text}' -> concept_id {concept_match.concept_id} "
-                            f"({concept_match.concept_name}, {concept_match.vocabulary_id})"
-                        )
+                concept_match = await lookup_concept_cached(db, lookup_text, domain)
+                if concept_match:
+                    entity.omop_concept_id = concept_match.concept_id
+                    logger.debug(
+                        f"Mapped '{entity.text}' -> concept_id {concept_match.concept_id} "
+                        f"({concept_match.concept_name}, {concept_match.vocabulary_id})"
+                    )
             except Exception as e:
                 DegradationContext.record_stage_failure("concept_lookup", e, None)
                 logger.warning(f"Concept lookup failed for '{entity.text}': {e}")
@@ -1633,7 +1640,7 @@ async def _build_patient_knowledge_graph(
                 omop_concept_id=entity.omop_concept_id,
                 properties=node_properties,
             )
-            db.add(entity_node)
+            pending_nodes.append(entity_node)
             seen_entities[entity_key] = node_id
             node_count += 1
 
@@ -1678,7 +1685,7 @@ async def _build_patient_knowledge_graph(
                 # Provenance in properties
                 properties=edge_properties,
             )
-            db.add(edge)
+            pending_edges.append(edge)
             edge_count += 1
 
             # Create provenance edge: Entity -> EXTRACTED_FROM -> Note
@@ -1696,7 +1703,7 @@ async def _build_patient_knowledge_graph(
                             "document_date": entity.document_date,
                         },
                     )
-                    db.add(note_node)
+                    pending_nodes.append(note_node)
                     note_nodes[note_key] = note_node.id
                     node_count += 1
 
@@ -1709,7 +1716,7 @@ async def _build_patient_knowledge_graph(
                     edge_type=EdgeType.EXTRACTED_FROM,
                     properties={"extraction_method": extraction_method},
                 )
-                db.add(provenance_edge)
+                pending_edges.append(provenance_edge)
                 edge_count += 1
 
             # Create temporal edge: Entity -> OCCURRED_ON -> Date
@@ -1727,7 +1734,7 @@ async def _build_patient_knowledge_graph(
                         label=date_str,
                         properties={"date": date_str, "year": temporal_date.year},
                     )
-                    db.add(date_node)
+                    pending_nodes.append(date_node)
                     date_nodes[date_key] = date_node.id
                     node_count += 1
 
@@ -1744,19 +1751,22 @@ async def _build_patient_knowledge_graph(
                         "date_source": "event_date" if event_date_parsed else "document_date",
                     },
                 )
-                db.add(temporal_edge)
+                pending_edges.append(temporal_edge)
                 edge_count += 1
 
-            # Track for summary
+            # Track for summary and pre-index by type for synthetic edges
             if node_type == NodeType.CONDITION:
                 if entity.assertion == "ABSENT":
                     negated_conditions.append(f"[RULED OUT] {entity.text}")
                 else:
                     conditions.append(entity.text)
+                condition_entities[entity.text.lower()] = node_id
             elif node_type == NodeType.DRUG:
                 medications.append(entity.text)
+                drug_entities[entity.text.lower()] = node_id
             elif node_type == NodeType.MEASUREMENT:
                 measurements.append(entity.text)
+                measurement_entities[entity.text.lower()] = node_id
             elif node_type == NodeType.PROCEDURE:
                 procedures.append(entity.text)
         else:
@@ -1780,13 +1790,9 @@ async def _build_patient_knowledge_graph(
         _allow_synthetic_edges = False
     if _allow_synthetic_edges:
         logger.info("Using hardcoded treatment mappings (USE_ONTOLOGY_EDGES=false, non-production)")
-        for drug_key, drug_node_id in seen_entities.items():
-            if "|DRUG" not in drug_key:
-                continue
-            drug_text = drug_key.split("|")[0]
 
-            # Expanded drug -> condition treatment mappings
-            treatment_map = {
+        # Expanded drug -> condition treatment mappings
+        treatment_map = {
             # Diabetes medications
             "metformin": ["diabetes", "dm", "dm2", "type 2 diabetes", "hyperglycemia"],
             "insulin": ["diabetes", "dm", "dm2", "type 1 diabetes", "hyperglycemia"],
@@ -1892,43 +1898,41 @@ async def _build_patient_knowledge_graph(
             "albumin": ["hypoalbuminemia", "ascites", "spontaneous bacterial peritonitis"],
         }
 
-        for drug_pattern, condition_patterns in treatment_map.items():
-            if drug_pattern in drug_text.lower():
-                for condition_key, condition_node_id in seen_entities.items():
-                    if "|CONDITION" not in condition_key:
-                        continue
-                    condition_text = condition_key.split("|")[0]
+        # Use pre-indexed drug_entities dict instead of scanning all seen_entities
+        for drug_text, drug_node_id in drug_entities.items():
+            for drug_pattern, condition_patterns in treatment_map.items():
+                if drug_pattern in drug_text:
+                    # O(1) dict lookup per condition pattern instead of scanning all entities
+                    for cp in condition_patterns:
+                        for cond_text, condition_node_id in condition_entities.items():
+                            if cp in cond_text:
+                                # Determine temporal ordering if both entities have event dates
+                                temporal_order = None
+                                drug_date = entity_event_dates.get(drug_node_id)
+                                condition_date = entity_event_dates.get(condition_node_id)
 
-                    if any(cp in condition_text.lower() for cp in condition_patterns):
-                        # Determine temporal ordering if both entities have event dates
-                        temporal_order = None
-                        drug_date = entity_event_dates.get(drug_node_id)
-                        condition_date = entity_event_dates.get(condition_node_id)
+                                if drug_date and condition_date:
+                                    if drug_date > condition_date:
+                                        temporal_order = "after"
+                                    elif drug_date < condition_date:
+                                        temporal_order = "before"
+                                    else:
+                                        temporal_order = "concurrent"
 
-                        if drug_date and condition_date:
-                            # Drug started AFTER condition was diagnosed
-                            if drug_date > condition_date:
-                                temporal_order = "after"  # Drug follows condition
-                            elif drug_date < condition_date:
-                                temporal_order = "before"  # Drug precedes condition (unusual)
-                            else:
-                                temporal_order = "concurrent"  # Same time
-
-                        # Create treats relationship with temporal ordering
-                        treats_edge = KGEdge(
-                            id=str(uuid4()),
-                            patient_id=patient_id,
-                            source_node_id=drug_node_id,
-                            target_node_id=condition_node_id,
-                            edge_type=EdgeType.DRUG_TREATS,
-                            temporal_order=temporal_order,
-                            properties={
-                                "inferred": True,
-                                "temporal_ordering_source": "event_date_comparison" if temporal_order else None,
-                            },
-                        )
-                        db.add(treats_edge)
-                        edge_count += 1
+                                treats_edge = KGEdge(
+                                    id=str(uuid4()),
+                                    patient_id=patient_id,
+                                    source_node_id=drug_node_id,
+                                    target_node_id=condition_node_id,
+                                    edge_type=EdgeType.DRUG_TREATS,
+                                    temporal_order=temporal_order,
+                                    properties={
+                                        "inferred": True,
+                                        "temporal_ordering_source": "event_date_comparison" if temporal_order else None,
+                                    },
+                                )
+                                pending_edges.append(treats_edge)
+                                edge_count += 1
 
     # Create symptom -> condition and measurement -> condition associations
     # P0-008: All synthetic/hardcoded edges are gated by _allow_synthetic_edges
@@ -1971,41 +1975,33 @@ async def _build_patient_knowledge_graph(
         "depression": ["mdd", "bipolar", "adjustment disorder"],
     }
 
-    # Find symptom-condition relationships within existing entities
+    # Find symptom-condition relationships using pre-indexed condition_entities
     # P0-008: Only create synthetic edges outside production
     for symptom_pattern, condition_patterns in (
         symptom_condition_map.items() if _allow_synthetic_edges else []
     ):
         # Look for the symptom in conditions (symptoms are often extracted as conditions)
-        for entity_key, symptom_node_id in seen_entities.items():
-            if "|CONDITION" not in entity_key:
-                continue
-            entity_text = entity_key.split("|")[0]
-
-            if symptom_pattern in entity_text.lower():
-                # Found a symptom, look for associated conditions
-                for condition_key, condition_node_id in seen_entities.items():
-                    if condition_key == entity_key:  # Skip self
-                        continue
-                    if "|CONDITION" not in condition_key:
-                        continue
-                    condition_text = condition_key.split("|")[0]
-
-                    if any(cp in condition_text.lower() for cp in condition_patterns):
-                        # Create symptom_of relationship
-                        symptom_edge = KGEdge(
-                            id=str(uuid4()),
-                            patient_id=patient_id,
-                            source_node_id=symptom_node_id,
-                            target_node_id=condition_node_id,
-                            edge_type=EdgeType.SYMPTOM_OF,
-                            properties={
-                                "inferred": True,
-                                "source": "symptom_condition_mapping",
-                            },
-                        )
-                        db.add(symptom_edge)
-                        edge_count += 1
+        for cond_text, symptom_node_id in condition_entities.items():
+            if symptom_pattern in cond_text:
+                # Found a symptom, look for associated conditions via dict
+                for cp in condition_patterns:
+                    for other_cond_text, condition_node_id in condition_entities.items():
+                        if other_cond_text == cond_text:  # Skip self
+                            continue
+                        if cp in other_cond_text:
+                            symptom_edge = KGEdge(
+                                id=str(uuid4()),
+                                patient_id=patient_id,
+                                source_node_id=symptom_node_id,
+                                target_node_id=condition_node_id,
+                                edge_type=EdgeType.SYMPTOM_OF,
+                                properties={
+                                    "inferred": True,
+                                    "source": "symptom_condition_mapping",
+                                },
+                            )
+                            pending_edges.append(symptom_edge)
+                            edge_count += 1
 
     # Create measurement -> condition associations
     measurement_condition_map = {
@@ -2043,32 +2039,25 @@ async def _build_patient_knowledge_graph(
     for measurement_pattern, condition_patterns in (
         measurement_condition_map.items() if _allow_synthetic_edges else []
     ):
-        for entity_key, measurement_node_id in seen_entities.items():
-            if "|MEASUREMENT" not in entity_key:
-                continue
-            entity_text = entity_key.split("|")[0]
-
-            if measurement_pattern in entity_text.lower():
-                for condition_key, condition_node_id in seen_entities.items():
-                    if "|CONDITION" not in condition_key:
-                        continue
-                    condition_text = condition_key.split("|")[0]
-
-                    if any(cp in condition_text.lower() for cp in condition_patterns):
-                        # Create monitors relationship (measurement monitors condition)
-                        monitors_edge = KGEdge(
-                            id=str(uuid4()),
-                            patient_id=patient_id,
-                            source_node_id=measurement_node_id,
-                            target_node_id=condition_node_id,
-                            edge_type=EdgeType.MONITORS,
-                            properties={
-                                "inferred": True,
-                                "source": "measurement_condition_mapping",
-                            },
-                        )
-                        db.add(monitors_edge)
-                        edge_count += 1
+        # Use pre-indexed measurement_entities instead of scanning all seen_entities
+        for meas_text, measurement_node_id in measurement_entities.items():
+            if measurement_pattern in meas_text:
+                for cp in condition_patterns:
+                    for cond_text, condition_node_id in condition_entities.items():
+                        if cp in cond_text:
+                            monitors_edge = KGEdge(
+                                id=str(uuid4()),
+                                patient_id=patient_id,
+                                source_node_id=measurement_node_id,
+                                target_node_id=condition_node_id,
+                                edge_type=EdgeType.MONITORS,
+                                properties={
+                                    "inferred": True,
+                                    "source": "measurement_condition_mapping",
+                                },
+                            )
+                            pending_edges.append(monitors_edge)
+                            edge_count += 1
 
     # Query OMOP relationships between entities with concept IDs
     # This creates entity-to-entity edges based on OMOP concept_relationship table
@@ -2117,13 +2106,17 @@ async def _build_patient_knowledge_graph(
                     "temporal_ordering_source": "event_date_comparison" if temporal_order else None,
                 },
             )
-            db.add(omop_edge)
+            pending_edges.append(omop_edge)
             edge_count += 1
 
         if omop_relationships:
             logger.info(
                 f"Created {len(omop_relationships)} entity-to-entity edges from OMOP relationships"
             )
+
+    # Bulk insert all collected nodes and edges (avoids ~1500 individual db.add() roundtrips)
+    db.add_all(pending_nodes)
+    db.add_all(pending_edges)
 
     # Create narrative nodes and edges if narrative data is provided
     if narrative:
