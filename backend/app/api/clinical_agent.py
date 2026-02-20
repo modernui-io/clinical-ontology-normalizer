@@ -11,6 +11,7 @@ All new pilot integrations should use /api/v1/clinical-agent.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 from dataclasses import dataclass, field
@@ -2453,79 +2454,15 @@ async def hybrid_query(
         DegradationContext.record_stage_failure("kg_provenance", e, None)
         logger.warning(f"Failed to record KG provenance: {e}")
 
-    # Step: Multi-hop Graph RAG Retrieval for enriched context
-    graph_rag_start = time.perf_counter()
-    graph_paths_data: list[dict] = []
-    graph_context = ""
-    try:
-        graph_rag_service = GraphAugmentedRAGService(db)
-        enriched_context = await graph_rag_service.retrieve_context_async(
-            query=request.question,
-            patient_id=patient_id,
-            max_hops=3,  # Multi-hop traversal for richer context
-            max_paths=10,
-            include_temporal=True,
-            include_policies=True,
-        )
+    # =========================================================================
+    # Derive shared inputs from KG for all downstream stages
+    # =========================================================================
+    conditions = [n.label for n in nodes if n.node_type == NodeType.CONDITION]
+    medications = [n.label for n in nodes if n.node_type == NodeType.DRUG]
+    measurements = [n.label for n in nodes if n.node_type == NodeType.MEASUREMENT]
+    procedures = [n.label for n in nodes if n.node_type == NodeType.PROCEDURE]
 
-        # Format graph context for LLM
-        graph_context = enriched_context.to_llm_prompt()
-
-        # Extract path data for provenance
-        for path in enriched_context.graph_paths:
-            graph_paths_data.append({
-                "path_type": path.path_type,
-                "nodes": [n.get("label", "?") for n in path.nodes],
-                "edges": [e.get("edge_type", "?") for e in path.edges],
-                "confidence": path.confidence,
-            })
-
-        graph_rag_duration = (time.perf_counter() - graph_rag_start) * 1000
-
-        # Record GRAPH_RAG_RETRIEVAL provenance trace
-        step_order += 1
-        await provenance_svc.create_reasoning_trace(
-            session=db,
-            query_id=query_id,
-            step_order=step_order,
-            step_type=ReasoningStepType.GRAPH_RAG_RETRIEVAL.value,
-            patient_id=patient_id,
-            input_summary=f"Query: '{request.question}', max_hops: 3",
-            output_summary=(
-                f"Traversed {len(graph_paths_data)} paths, "
-                f"{enriched_context.total_evidence_pieces} total evidence pieces"
-            ),
-            duration_ms=round(graph_rag_duration, 2),
-            metadata={
-                "paths_traversed": len(graph_paths_data),
-                "total_evidence": enriched_context.total_evidence_pieces,
-                "path_types": list(set(p["path_type"] for p in graph_paths_data)),
-                "temporal_events": len(enriched_context.temporal_context.event_timeline)
-                if enriched_context.temporal_context else 0,
-                "sample_paths": graph_paths_data[:3],
-            },
-        )
-        reasoning_chain.append({
-            "step": step_order,
-            "type": "graph_rag_retrieval",
-            "summary": f"Multi-hop graph traversal found {len(graph_paths_data)} paths",
-            "duration_ms": round(graph_rag_duration, 2),
-            "details": {
-                "paths_traversed": len(graph_paths_data),
-                "total_evidence": enriched_context.total_evidence_pieces,
-                "path_types": list(set(p["path_type"] for p in graph_paths_data)),
-            },
-        })
-
-        logger.info(
-            f"Graph RAG retrieved {len(graph_paths_data)} paths for patient {patient_id}"
-        )
-    except Exception as e:
-        DegradationContext.record_stage_failure("graph_rag", e, [])
-        logger.warning(f"Graph RAG retrieval failed, continuing without: {e}")
-        graph_rag_duration = (time.perf_counter() - graph_rag_start) * 1000
-
-    # Find evidence in documents (only if documents exist)
+    # Find evidence in documents (fast, inline — no DB or heavy compute)
     if request.include_evidence and documents:
         search_terms = [n.label.lower() for n in matching_nodes[:5]]
 
@@ -2534,7 +2471,6 @@ async def hybrid_query(
             relevance = sum(1 for term in search_terms if term in doc_text)
 
             if relevance > 0:
-                # Extract relevant excerpt
                 excerpt = doc.text[:300] + "..." if len(doc.text) > 300 else doc.text
 
                 evidence_sources.append(EvidenceSource(
@@ -2545,16 +2481,387 @@ async def hybrid_query(
                     relevance_score=min(relevance / len(search_terms), 1.0) if search_terms else 0.5,
                 ))
 
-        # Sort by relevance
         evidence_sources.sort(key=lambda x: x.relevance_score, reverse=True)
         evidence_sources = evidence_sources[:5]
 
-    # Build clinical context for LLM
-    conditions = [n.label for n in nodes if n.node_type == NodeType.CONDITION]
-    medications = [n.label for n in nodes if n.node_type == NodeType.DRUG]
-    measurements = [n.label for n in nodes if n.node_type == NodeType.MEASUREMENT]
-    procedures = [n.label for n in nodes if n.node_type == NodeType.PROCEDURE]
+    # =========================================================================
+    # Parallel pipeline: DB-dependent stages run sequentially in Group 1,
+    # non-DB stages run concurrently in Group 2. Both groups run in parallel.
+    # =========================================================================
 
+    # --- Group 1 coroutine: DB-dependent stages (Graph RAG + Policy RAG) ---
+    async def _run_db_stages() -> tuple[
+        list[dict], str, float, list[dict], str, float,
+    ]:
+        """Run Graph RAG and Policy RAG sequentially (shared db session)."""
+        # Graph RAG
+        _graph_paths_data: list[dict] = []
+        _graph_context = ""
+        _graph_rag_duration = 0.0
+        _graph_rag_start = time.perf_counter()
+        try:
+            graph_rag_service = GraphAugmentedRAGService(db)
+            enriched_context = await graph_rag_service.retrieve_context_async(
+                query=request.question,
+                patient_id=patient_id,
+                max_hops=3,
+                max_paths=10,
+                include_temporal=True,
+                include_policies=True,
+            )
+            _graph_context = enriched_context.to_llm_prompt()
+            for path in enriched_context.graph_paths:
+                _graph_paths_data.append({
+                    "path_type": path.path_type,
+                    "nodes": [n.get("label", "?") for n in path.nodes],
+                    "edges": [e.get("edge_type", "?") for e in path.edges],
+                    "confidence": path.confidence,
+                })
+            _graph_rag_duration = (time.perf_counter() - _graph_rag_start) * 1000
+            logger.info(
+                f"Graph RAG retrieved {len(_graph_paths_data)} paths for patient {patient_id}"
+            )
+        except Exception as e:
+            DegradationContext.record_stage_failure("graph_rag", e, [])
+            logger.warning(f"Graph RAG retrieval failed, continuing without: {e}")
+            _graph_rag_duration = (time.perf_counter() - _graph_rag_start) * 1000
+
+        # Policy RAG
+        _policy_citations_data: list[dict] = []
+        _policy_context = ""
+        _policy_rag_start = time.perf_counter()
+        try:
+            from app.services.policy_service import get_policy_service
+
+            policy_svc = get_policy_service()
+            policy_results = await policy_svc.search_policy_sections(
+                session=db,
+                query=request.question,
+                patient_conditions=conditions,
+                top_k=3,
+            )
+            if policy_results:
+                _policy_context = "\n\nInstitutional Policy References:"
+                for i, pr in enumerate(policy_results, 1):
+                    _policy_context += (
+                        f"\n[Policy {i}] {pr['policy_name']} — {pr['section_title']}: "
+                        f"{pr['content_text'][:300]}"
+                    )
+                    _policy_citations_data.append({
+                        "policy_number": i,
+                        "policy_id": pr["policy_id"],
+                        "policy_name": pr["policy_name"],
+                        "section_id": pr["section_id"],
+                        "section_title": pr["section_title"],
+                        "relevance_score": pr["relevance_score"],
+                    })
+        except Exception as e:
+            DegradationContext.record_stage_failure("policy_rag", e, None)
+            logger.debug(f"Policy RAG unavailable: {e}")
+
+        _policy_duration = (time.perf_counter() - _policy_rag_start) * 1000
+        return (
+            _graph_paths_data, _graph_context, _graph_rag_duration,
+            _policy_citations_data, _policy_context, _policy_duration,
+        )
+
+    # --- Group 2a: Guideline RAG (no DB, synchronous service) ---
+    async def _run_guideline_rag() -> tuple[list[dict], str, float]:
+        """Retrieve clinical guideline citations via RAG."""
+        _guideline_citations: list[dict] = []
+        _guideline_ctx = ""
+        _start = time.perf_counter()
+        try:
+            from app.services.guideline_rag_service import get_guideline_rag_service
+
+            rag_service = get_guideline_rag_service()
+
+            topic_citations = rag_service.search(
+                query=request.question,
+                top_k=3,
+                min_score=0.25,
+            )
+            patient_citations = rag_service.search(
+                query=request.question,
+                patient_conditions=conditions,
+                patient_medications=medications,
+                patient_measurements=measurements,
+                top_k=5,
+                min_score=0.3,
+            )
+
+            patient_conditions_lower = {c.lower() for c in conditions}
+            patient_medications_lower = {m.lower() for m in medications}
+
+            common_medications = {
+                "aspirin", "atorvastatin", "metformin", "lisinopril", "amlodipine",
+                "omeprazole", "metoprolol", "losartan", "furosemide", "warfarin",
+                "clopidogrel", "rivaroxaban", "apixaban", "heparin", "insulin",
+            }
+
+            _seen_ids: set[str] = set()
+            condition_matched_citations = []
+            medication_only_citations = []
+
+            for c in topic_citations + patient_citations:
+                if c.section.section_id not in _seen_ids:
+                    _seen_ids.add(c.section.section_id)
+
+                    from app.services.condition_matching_service import match_conditions
+
+                    section_conditions = {cond.lower() for cond in c.section.applies_to_conditions}
+                    section_medications = {med.lower() for med in c.section.applies_to_medications}
+
+                    cond_result = match_conditions(
+                        list(patient_conditions_lower),
+                        list(section_conditions),
+                        primary_conditions=getattr(c.section, "primary_conditions", None) or None,
+                        use_hierarchy=False,
+                    )
+                    has_condition_match = cond_result.has_match
+
+                    specific_section_meds = section_medications - common_medications
+                    specific_patient_meds = patient_medications_lower - common_medications
+                    has_specific_medication_match = bool(specific_patient_meds & specific_section_meds)
+
+                    has_partial_medication_match = any(
+                        any(pm in sm or sm in pm for sm in specific_section_meds)
+                        for pm in specific_patient_meds
+                    ) if not has_specific_medication_match else False
+
+                    if has_condition_match:
+                        condition_matched_citations.append(c)
+                    elif has_specific_medication_match or has_partial_medication_match:
+                        medication_only_citations.append(c)
+                    else:
+                        logger.debug(
+                            f"Filtered out irrelevant guideline: {c.section.guideline} "
+                            f"(applies_to: {c.section.applies_to_conditions})"
+                        )
+                        continue
+
+            citations = condition_matched_citations[:5]
+            remaining_slots = 5 - len(citations)
+            if remaining_slots > 0:
+                citations.extend(medication_only_citations[:remaining_slots])
+
+            logger.info(
+                f"Guideline filtering: {len(condition_matched_citations)} condition matches, "
+                f"{len(medication_only_citations)} medication-only matches, returning {len(citations)}"
+            )
+
+            if citations:
+                _guideline_ctx = "\n\nClinical Guideline References:"
+                for i, citation in enumerate(citations, 1):
+                    sec = citation.section
+                    _guideline_ctx += (
+                        f"\n[Guideline {i}] {sec.guideline} — {sec.section_title} "
+                        f"(Evidence: {sec.evidence_grade}, {sec.recommendation_level}): "
+                        f"{sec.recommendation_text}"
+                    )
+                    _guideline_citations.append({
+                        "guideline_number": i,
+                        "section_id": sec.section_id,
+                        "guideline": sec.guideline,
+                        "section_title": sec.section_title,
+                        "recommendation_text": sec.recommendation_text,
+                        "evidence_grade": sec.evidence_grade,
+                        "recommendation_level": sec.recommendation_level,
+                        "relevance_score": citation.score,
+                        "match_reasons": citation.match_reasons,
+                    })
+
+                logger.info(f"Retrieved {len(citations)} guideline sections for query")
+
+        except Exception as e:
+            DegradationContext.record_stage_failure("guideline_rag", e, [])
+            logger.warning(f"Guideline RAG retrieval failed, proceeding without: {e}")
+
+        _duration = (time.perf_counter() - _start) * 1000
+        return _guideline_citations, _guideline_ctx, _duration
+
+    # --- Group 2b: MDT Orchestrator (no DB) ---
+    async def _run_mdt_orchestration() -> tuple[str, dict[str, Any], float]:
+        """Run multi-agent MDT discussion."""
+        _consensus_ctx = ""
+        _session_summary: dict[str, Any] = {}
+        _start = time.perf_counter()
+        try:
+            agent_context = AgentContext(
+                patient_id=patient_id,
+                clinical_text=request.question,
+            )
+
+            for node in nodes:
+                if node.node_type == NodeType.CONDITION:
+                    agent_context.conditions.append({
+                        "name": node.label,
+                        "confidence": node.properties.get("confidence", 0.9) if node.properties else 0.9,
+                        "source": node.properties.get("source_notes", ["note"])[0] if node.properties else "note",
+                    })
+                elif node.node_type == NodeType.DRUG:
+                    agent_context.medications.append({
+                        "name": node.label,
+                        "dose": node.properties.get("dose", "") if node.properties else "",
+                    })
+                elif node.node_type == NodeType.MEASUREMENT:
+                    agent_context.lab_values.append({
+                        "name": node.label,
+                        "value": node.properties.get("value", "") if node.properties else "",
+                        "unit": node.properties.get("unit", "") if node.properties else "",
+                    })
+
+            for node in nodes:
+                if node.properties and node.properties.get("assertion") == "ALLERGY":
+                    agent_context.allergies.append(node.label)
+
+            orchestrator = get_multi_agent_orchestrator()
+            mdt_session = await orchestrator.create_session(patient_id, agent_context)
+            _mdt_result = await orchestrator.run_mdt_discussion(mdt_session.session_id)
+
+            if _mdt_result.consensus_results:
+                _consensus_ctx = "\n\nClinical Agent Consensus (Multi-Disciplinary Team):"
+                for i, consensus in enumerate(_mdt_result.consensus_results[:5], 1):
+                    rec = consensus.recommendation
+                    _consensus_ctx += (
+                        f"\n[Agent {i}] {rec.agent_role.value.title()} Agent — "
+                        f"{rec.recommendation_type.value}: {rec.content} "
+                        f"(Consensus: {consensus.consensus_level.value}, "
+                        f"Confidence: {consensus.final_confidence:.2f})"
+                    )
+                    if consensus.dissenting_concerns:
+                        concerns_str = "; ".join(consensus.dissenting_concerns[:2])
+                        _consensus_ctx += f"\n  Concerns: {concerns_str}"
+
+                _session_summary = orchestrator.get_session_summary(mdt_session.session_id)
+
+            logger.info(
+                f"MDT discussion completed: {len(_mdt_result.consensus_results)} "
+                f"recommendations from {len(orchestrator.agents)} agents"
+            )
+
+        except Exception as e:
+            DegradationContext.record_stage_failure("multi_agent_orchestration", e, {})
+            logger.warning(f"Multi-agent orchestration failed, proceeding without: {e}")
+
+        _duration = (time.perf_counter() - _start) * 1000
+        return _consensus_ctx, _session_summary, _duration
+
+    # --- Group 2c: Calculator Reasoning (no DB) ---
+    async def _run_calculator_reasoning() -> tuple[str, list[dict], float]:
+        """Run applicable clinical calculators."""
+        _calc_ctx = ""
+        _calc_results: list[dict] = []
+        _start = time.perf_counter()
+        try:
+            from app.services.calculator_reasoning_service import get_calculator_reasoning_service
+
+            calc_service = get_calculator_reasoning_service()
+
+            patient_measurements = []
+            for node in nodes:
+                if node.node_type == NodeType.MEASUREMENT:
+                    patient_measurements.append({
+                        "label": node.label,
+                        "value": node.properties.get("value", "") if node.properties else "",
+                        "unit": node.properties.get("unit", "") if node.properties else "",
+                    })
+
+            patient_demographics = {}
+            for node in nodes:
+                if node.node_type == NodeType.PATIENT and node.properties:
+                    if "age" in node.properties:
+                        patient_demographics["age"] = node.properties["age"]
+                    if "sex" in node.properties:
+                        patient_demographics["sex"] = node.properties["sex"]
+
+            calculator_results = calc_service.run_applicable_calculators(
+                conditions=conditions,
+                measurements=patient_measurements,
+                demographics=patient_demographics,
+                clinical_question=request.question,
+                min_relevance=1.5,
+                min_data_completeness=0.3,
+                max_calculators=5,
+            )
+
+            if calculator_results:
+                _calc_ctx = calc_service.generate_calculator_context_for_llm(calculator_results)
+                _calc_results = calculator_results
+                logger.info(
+                    f"Calculator reasoning: ran {len(calculator_results)} calculators for patient {patient_id}"
+                )
+
+        except Exception as e:
+            DegradationContext.record_stage_failure("calculator_reasoning", e, [])
+            logger.warning(f"Calculator reasoning failed, proceeding without: {e}")
+
+        _duration = (time.perf_counter() - _start) * 1000
+        return _calc_ctx, _calc_results, _duration
+
+    # =========================================================================
+    # Execute both groups concurrently
+    # =========================================================================
+    parallel_start = time.perf_counter()
+
+    db_stages_result, guideline_result, mdt_result_tuple, calc_result = await asyncio.gather(
+        _run_db_stages(),
+        _run_guideline_rag(),
+        _run_mdt_orchestration(),
+        _run_calculator_reasoning(),
+        return_exceptions=True,
+    )
+
+    # Unpack results, handling any unexpected exceptions from gather
+    # Group 1: DB stages (Graph RAG + Policy RAG)
+    if isinstance(db_stages_result, BaseException):
+        logger.error(f"DB stages group failed unexpectedly: {db_stages_result}")
+        graph_paths_data, graph_context, graph_rag_duration = [], "", 0.0
+        policy_citations_data, policy_context_str, policy_duration = [], "", 0.0
+    else:
+        (
+            graph_paths_data, graph_context, graph_rag_duration,
+            policy_citations_data, policy_context_str, policy_duration,
+        ) = db_stages_result
+
+    # Group 2a: Guideline RAG
+    if isinstance(guideline_result, BaseException):
+        logger.error(f"Guideline RAG failed unexpectedly: {guideline_result}")
+        guideline_citations_data, guideline_context, guideline_rag_duration = [], "", 0.0
+    else:
+        guideline_citations_data, guideline_context, guideline_rag_duration = guideline_result
+
+    # Group 2b: MDT Orchestration
+    if isinstance(mdt_result_tuple, BaseException):
+        logger.error(f"MDT orchestration failed unexpectedly: {mdt_result_tuple}")
+        consensus_context, mdt_session_summary, orchestrator_duration = "", {}, 0.0
+    else:
+        consensus_context, mdt_session_summary, orchestrator_duration = mdt_result_tuple
+
+    # Group 2c: Calculator Reasoning
+    if isinstance(calc_result, BaseException):
+        logger.error(f"Calculator reasoning failed unexpectedly: {calc_result}")
+        calculator_context, calculator_results_data, calculator_duration = "", [], 0.0
+    else:
+        calculator_context, calculator_results_data, calculator_duration = calc_result
+
+    # Combine guideline + policy context strings
+    guideline_context += policy_context_str
+
+    # Combined RAG duration for provenance (guideline + policy)
+    rag_duration = guideline_rag_duration + policy_duration
+
+    parallel_duration = (time.perf_counter() - parallel_start) * 1000
+    logger.info(
+        f"Parallel pipeline completed in {parallel_duration:.0f}ms "
+        f"(graph_rag={graph_rag_duration:.0f}ms, guideline={guideline_rag_duration:.0f}ms, "
+        f"policy={policy_duration:.0f}ms, mdt={orchestrator_duration:.0f}ms, "
+        f"calc={calculator_duration:.0f}ms)"
+    )
+
+    # =========================================================================
+    # Build clinical context for LLM (uses results from all stages)
+    # =========================================================================
     clinical_context = f"""Patient ID: {patient_id}
 
 Knowledge Graph Summary ({len(nodes)} nodes):
@@ -2563,181 +2870,54 @@ Knowledge Graph Summary ({len(nodes)} nodes):
 - Measurements ({len(measurements)}): {', '.join(measurements[:30]) if measurements else 'None recorded'}
 - Procedures ({len(procedures)}): {', '.join(procedures[:30]) if procedures else 'None recorded'}"""
 
-    # Add narrative context if this is a narrative-related query or narrative nodes exist
     narrative_context = _get_narrative_context(nodes) if is_narrative_query else ""
     if narrative_context:
         clinical_context += f"\n\n{narrative_context}"
 
-    # Add document evidence if available
     if evidence_sources:
         clinical_context += "\n\nRelevant Clinical Notes:"
         for ev in evidence_sources[:3]:
             clinical_context += f"\n[{ev.note_type} - {ev.note_date}]: {ev.excerpt}"
 
-    # Retrieve relevant clinical guidelines via RAG
-    rag_start = time.perf_counter()
-    guideline_citations_data: list[dict] = []
-    guideline_context = ""
-    policy_citations_data: list[dict] = []
-    try:
-        from app.services.guideline_rag_service import get_guideline_rag_service
+    # =========================================================================
+    # Record provenance traces sequentially (assigns step_order)
+    # =========================================================================
 
-        rag_service = get_guideline_rag_service()
-
-        # Two-pool search: topic-relevant (raw question) + patient-relevant (with context)
-        topic_citations = rag_service.search(
-            query=request.question,
-            top_k=3,
-            min_score=0.25,
-        )
-        patient_citations = rag_service.search(
-            query=request.question,
-            patient_conditions=conditions,
-            patient_medications=medications,
-            patient_measurements=measurements,
-            top_k=5,
-            min_score=0.3,
-        )
-        # Merge: topic results first, then patient results (deduplicated)
-        # Filter to only include guidelines relevant to patient's conditions
-        # IMPORTANT: Prioritize condition matches over medication-only matches
-        patient_conditions_lower = {c.lower() for c in conditions}
-        patient_medications_lower = {m.lower() for m in medications}
-
-        # Common medications that shouldn't drive guideline selection alone
-        # (too generic - appear in many unrelated guidelines)
-        common_medications = {
-            "aspirin", "atorvastatin", "metformin", "lisinopril", "amlodipine",
-            "omeprazole", "metoprolol", "losartan", "furosemide", "warfarin",
-            "clopidogrel", "rivaroxaban", "apixaban", "heparin", "insulin",
-        }
-
-        seen_ids: set[str] = set()
-        condition_matched_citations = []  # Guidelines matching patient conditions
-        medication_only_citations = []    # Guidelines only matching medications
-
-        for c in topic_citations + patient_citations:
-            if c.section.section_id not in seen_ids:
-                seen_ids.add(c.section.section_id)
-
-                # Relevance filter: guideline must apply to at least one
-                # of the patient's conditions or medications.
-                # Uses ConditionMatchingService for safe condition matching
-                # that prevents false positives (e.g., "anemia" ≠ "sickle cell anemia").
-                from app.services.condition_matching_service import match_conditions
-
-                section_conditions = {cond.lower() for cond in c.section.applies_to_conditions}
-                section_medications = {med.lower() for med in c.section.applies_to_medications}
-
-                cond_result = match_conditions(
-                    list(patient_conditions_lower),
-                    list(section_conditions),
-                    primary_conditions=getattr(c.section, "primary_conditions", None) or None,
-                    use_hierarchy=False,
-                )
-                has_condition_match = cond_result.has_match
-
-                # Check for medication matches (excluding common medications)
-                specific_section_meds = section_medications - common_medications
-                specific_patient_meds = patient_medications_lower - common_medications
-                has_specific_medication_match = bool(specific_patient_meds & specific_section_meds)
-
-                # Partial medication match for specific drugs
-                has_partial_medication_match = any(
-                    any(pm in sm or sm in pm for sm in specific_section_meds)
-                    for pm in specific_patient_meds
-                ) if not has_specific_medication_match else False
-
-                # Categorize the citation
-                if has_condition_match:
-                    # Strong match: condition-based
-                    condition_matched_citations.append(c)
-                elif has_specific_medication_match or has_partial_medication_match:
-                    # Weaker match: medication-only (specific drugs)
-                    medication_only_citations.append(c)
-                else:
-                    # No relevant match - skip
-                    logger.debug(
-                        f"Filtered out irrelevant guideline: {c.section.guideline} "
-                        f"(applies_to: {c.section.applies_to_conditions})"
-                    )
-                    continue
-
-        # Prioritize condition-matched guidelines, then add medication-only if needed
-        citations = condition_matched_citations[:5]
-        remaining_slots = 5 - len(citations)
-        if remaining_slots > 0:
-            citations.extend(medication_only_citations[:remaining_slots])
-
-        logger.info(
-            f"Guideline filtering: {len(condition_matched_citations)} condition matches, "
-            f"{len(medication_only_citations)} medication-only matches, returning {len(citations)}"
-        )
-
-        if citations:
-            guideline_context = "\n\nClinical Guideline References:"
-            for i, citation in enumerate(citations, 1):
-                sec = citation.section
-                guideline_context += (
-                    f"\n[Guideline {i}] {sec.guideline} — {sec.section_title} "
-                    f"(Evidence: {sec.evidence_grade}, {sec.recommendation_level}): "
-                    f"{sec.recommendation_text}"
-                )
-                guideline_citations_data.append({
-                    "guideline_number": i,
-                    "section_id": sec.section_id,
-                    "guideline": sec.guideline,
-                    "section_title": sec.section_title,
-                    "recommendation_text": sec.recommendation_text,
-                    "evidence_grade": sec.evidence_grade,
-                    "recommendation_level": sec.recommendation_level,
-                    "relevance_score": citation.score,
-                    "match_reasons": citation.match_reasons,
-                })
-
-            logger.info(f"Retrieved {len(citations)} guideline sections for query")
-
-    except Exception as e:
-        DegradationContext.record_stage_failure("guideline_rag", e, [])
-        logger.warning(f"Guideline RAG retrieval failed, proceeding without: {e}")
-
-    # Policy RAG search (Step 25 integration point)
-    try:
-        from app.services.policy_service import get_policy_service
-
-        policy_svc = get_policy_service()
-        policy_results = await policy_svc.search_policy_sections(
-            session=db,
-            query=request.question,
-            patient_conditions=conditions,
-            top_k=3,
-        )
-        if policy_results:
-            guideline_context += "\n\nInstitutional Policy References:"
-            policy_offset = len(guideline_citations_data)
-            for i, pr in enumerate(policy_results, 1):
-                guideline_context += (
-                    f"\n[Policy {i}] {pr['policy_name']} — {pr['section_title']}: "
-                    f"{pr['content_text'][:300]}"
-                )
-                policy_citations_data.append({
-                    "policy_number": i,
-                    "policy_id": pr["policy_id"],
-                    "policy_name": pr["policy_name"],
-                    "section_id": pr["section_id"],
-                    "section_title": pr["section_title"],
-                    "relevance_score": pr["relevance_score"],
-                })
-    except Exception as e:
-        DegradationContext.record_stage_failure("policy_rag", e, None)
-        logger.debug(f"Policy RAG unavailable: {e}")
-
-    rag_duration = (time.perf_counter() - rag_start) * 1000
-
-    # Step 5: Record RAG_SEARCH reasoning trace
+    # Graph RAG provenance
     try:
         step_order += 1
-        rag_trace = await provenance_svc.create_reasoning_trace(
+        await provenance_svc.create_reasoning_trace(
+            session=db,
+            query_id=query_id,
+            step_order=step_order,
+            step_type=ReasoningStepType.GRAPH_RAG_RETRIEVAL.value,
+            patient_id=patient_id,
+            input_summary=f"Query: '{request.question}', max_hops: 3",
+            output_summary=f"Traversed {len(graph_paths_data)} paths",
+            duration_ms=round(graph_rag_duration, 2),
+            metadata={
+                "paths_traversed": len(graph_paths_data),
+                "sample_paths": graph_paths_data[:3],
+            },
+        )
+        reasoning_chain.append({
+            "step": step_order,
+            "type": "graph_rag_retrieval",
+            "summary": f"Multi-hop graph traversal found {len(graph_paths_data)} paths",
+            "duration_ms": round(graph_rag_duration, 2),
+            "details": {
+                "paths_traversed": len(graph_paths_data),
+                "path_types": list(set(p["path_type"] for p in graph_paths_data)),
+            },
+        })
+    except Exception as e:
+        DegradationContext.record_stage_failure("graph_rag_provenance", e, None)
+        logger.warning(f"Failed to record Graph RAG provenance: {e}")
+
+    # RAG search provenance (guideline + policy)
+    try:
+        step_order += 1
+        await provenance_svc.create_reasoning_trace(
             session=db,
             query_id=query_id,
             step_order=step_order,
@@ -2768,7 +2948,6 @@ Knowledge Graph Summary ({len(nodes)} nodes):
             },
         })
 
-        # Record guideline citation provenance
         for gc in guideline_citations_data:
             try:
                 await provenance_svc.create_guideline_citation_provenance(
@@ -2787,81 +2966,7 @@ Knowledge Graph Summary ({len(nodes)} nodes):
         DegradationContext.record_stage_failure("rag_provenance", e, None)
         logger.warning(f"Failed to record RAG provenance: {e}")
 
-    # =============================================================================
-    # Multi-Agent Orchestrator: Consensus-based clinical reasoning
-    # =============================================================================
-    orchestrator_start = time.perf_counter()
-    consensus_context = ""
-    mdt_session_summary: dict[str, Any] = {}
-    try:
-        # Build AgentContext from KG nodes
-        agent_context = AgentContext(
-            patient_id=patient_id,
-            clinical_text=request.question,
-        )
-
-        # Populate conditions with confidence
-        for node in nodes:
-            if node.node_type == NodeType.CONDITION:
-                agent_context.conditions.append({
-                    "name": node.label,
-                    "confidence": node.properties.get("confidence", 0.9) if node.properties else 0.9,
-                    "source": node.properties.get("source_notes", ["note"])[0] if node.properties else "note",
-                })
-            elif node.node_type == NodeType.DRUG:
-                agent_context.medications.append({
-                    "name": node.label,
-                    "dose": node.properties.get("dose", "") if node.properties else "",
-                })
-            elif node.node_type == NodeType.MEASUREMENT:
-                # Parse measurement for name/value if available
-                agent_context.lab_values.append({
-                    "name": node.label,
-                    "value": node.properties.get("value", "") if node.properties else "",
-                    "unit": node.properties.get("unit", "") if node.properties else "",
-                })
-
-        # Add allergies from properties if available
-        # TODO: Read from edge.properties once shared concept migration is complete
-        for node in nodes:
-            if node.properties and node.properties.get("assertion") == "ALLERGY":
-                agent_context.allergies.append(node.label)
-
-        # Run multi-agent orchestration
-        orchestrator = get_multi_agent_orchestrator()
-        session = await orchestrator.create_session(patient_id, agent_context)
-        mdt_result = await orchestrator.run_mdt_discussion(session.session_id)
-
-        # Build consensus context for LLM prompt
-        if mdt_result.consensus_results:
-            consensus_context = "\n\nClinical Agent Consensus (Multi-Disciplinary Team):"
-            for i, consensus in enumerate(mdt_result.consensus_results[:5], 1):
-                rec = consensus.recommendation
-                consensus_context += (
-                    f"\n[Agent {i}] {rec.agent_role.value.title()} Agent — "
-                    f"{rec.recommendation_type.value}: {rec.content} "
-                    f"(Consensus: {consensus.consensus_level.value}, "
-                    f"Confidence: {consensus.final_confidence:.2f})"
-                )
-                if consensus.dissenting_concerns:
-                    concerns_str = "; ".join(consensus.dissenting_concerns[:2])
-                    consensus_context += f"\n  Concerns: {concerns_str}"
-
-            # Store session summary for provenance
-            mdt_session_summary = orchestrator.get_session_summary(session.session_id)
-
-        logger.info(
-            f"MDT discussion completed: {len(mdt_result.consensus_results)} "
-            f"recommendations from {len(orchestrator.agents)} agents"
-        )
-
-    except Exception as e:
-        DegradationContext.record_stage_failure("multi_agent_orchestration", e, {})
-        logger.warning(f"Multi-agent orchestration failed, proceeding without: {e}")
-
-    orchestrator_duration = (time.perf_counter() - orchestrator_start) * 1000
-
-    # Record ORCHESTRATOR_CONSENSUS reasoning trace
+    # Orchestrator consensus provenance
     try:
         step_order += 1
         await provenance_svc.create_reasoning_trace(
@@ -2902,64 +3007,13 @@ Knowledge Graph Summary ({len(nodes)} nodes):
         DegradationContext.record_stage_failure("orchestrator_provenance", e, None)
         logger.warning(f"Failed to record orchestrator provenance: {e}")
 
-    # =============================================================================
-    # Clinical Calculator Integration: Run applicable calculators
-    # =============================================================================
-    calculator_start = time.perf_counter()
-    calculator_context = ""
-    calculator_results_data: list[dict] = []
-    try:
-        from app.services.calculator_reasoning_service import get_calculator_reasoning_service
-
-        calc_service = get_calculator_reasoning_service()
-
-        # Build measurement list from KG nodes
-        patient_measurements = []
-        for node in nodes:
-            if node.node_type == NodeType.MEASUREMENT:
-                measurement = {
-                    "label": node.label,
-                    "value": node.properties.get("value", "") if node.properties else "",
-                    "unit": node.properties.get("unit", "") if node.properties else "",
-                }
-                patient_measurements.append(measurement)
-
-        # Build demographics from KG (if available)
-        patient_demographics = {}
-        for node in nodes:
-            if node.node_type == NodeType.PATIENT and node.properties:
-                if "age" in node.properties:
-                    patient_demographics["age"] = node.properties["age"]
-                if "sex" in node.properties:
-                    patient_demographics["sex"] = node.properties["sex"]
-
-        # Run applicable calculators
-        calculator_results = calc_service.run_applicable_calculators(
-            conditions=conditions,
-            measurements=patient_measurements,
-            demographics=patient_demographics,
-            clinical_question=request.question,
-            min_relevance=1.5,
-            min_data_completeness=0.3,
-            max_calculators=5,
-        )
-
-        if calculator_results:
-            calculator_context = calc_service.generate_calculator_context_for_llm(calculator_results)
-            calculator_results_data = calculator_results
-
-            logger.info(
-                f"Calculator reasoning: ran {len(calculator_results)} calculators for patient {patient_id}"
-            )
-
-    except Exception as e:
-        DegradationContext.record_stage_failure("calculator_reasoning", e, [])
-        logger.warning(f"Calculator reasoning failed, proceeding without: {e}")
-
-    calculator_duration = (time.perf_counter() - calculator_start) * 1000
-
-    # Record CALCULATOR_REASONING reasoning trace
+    # Calculator reasoning provenance
     if calculator_results_data:
+        # Build patient_measurements for provenance metadata
+        patient_measurements = [
+            {"label": n.label}
+            for n in nodes if n.node_type == NodeType.MEASUREMENT
+        ]
         try:
             step_order += 1
             await provenance_svc.create_reasoning_trace(
@@ -3350,6 +3404,12 @@ Provide a clear, evidence-based answer synthesizing the clinical data, graph rel
         kg_node_count=len(matching_nodes),
         dependency_state=_dep_state,
         fallback_used=fallback_used,
+    )
+
+    total_ms = (time.perf_counter() - kg_start) * 1000
+    logger.info(
+        f"Q&A query completed for {patient_id}: {total_ms:.0f}ms total, "
+        f"{len(nodes)} nodes, confidence={confidence:.2f}, declined={declined}"
     )
 
     return HybridQueryResponse(

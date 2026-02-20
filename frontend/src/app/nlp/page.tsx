@@ -2095,7 +2095,10 @@ export default function NLPWorkbenchPage() {
         };
         setQaMessages((prev) => [...prev, assistantMessage]);
       } else {
-        toast.error("Failed to get answer. Please try again.");
+        const errBody = await response.text().catch(() => "");
+        const detail = errBody ? `: ${errBody.slice(0, 200)}` : "";
+        toast.error(`Q&A failed (${response.status})${detail}`);
+        console.error("Q&A error:", response.status, errBody);
       }
     } catch (error) {
       console.error("Q&A error:", error);
