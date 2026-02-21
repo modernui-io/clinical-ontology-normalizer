@@ -1578,7 +1578,7 @@ export default function NLPWorkbenchPage() {
   useEffect(() => {
     const fetchModels = async () => {
       try {
-        const response = await fetch("/api/nlp/models");
+        const response = await fetch("/api/v1/nlp/models");
         if (response.ok) {
           const data = await response.json();
           setAvailableModels(data.models || []);
@@ -1779,7 +1779,7 @@ export default function NLPWorkbenchPage() {
       }));
 
       // Use the new /build-graph endpoint that accepts pre-extracted entities
-      const response = await fetch("/api/clinical-agent/build-graph", {
+      const response = await fetch("/api/v1/clinical-agent/build-graph", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1798,7 +1798,7 @@ export default function NLPWorkbenchPage() {
         }
 
         // Fetch the full graph data with nodes and edges
-        const graphResponse = await fetch(`/api/clinical-agent/graph/${patientId}`);
+        const graphResponse = await fetch(`/api/v1/clinical-agent/graph/${patientId}`);
         console.log("Graph response status:", graphResponse.status);
 
         if (graphResponse.ok) {
@@ -1972,7 +1972,7 @@ export default function NLPWorkbenchPage() {
 
       // Use the /build-graph endpoint with both entities and raw text
       // Sending clinical_text lets the backend do additional extraction
-      const response = await fetch("/api/clinical-agent/build-graph", {
+      const response = await fetch("/api/v1/clinical-agent/build-graph", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1991,7 +1991,7 @@ export default function NLPWorkbenchPage() {
         }
 
         // Fetch the full graph data with nodes and edges
-        const graphResponse = await fetch(`/api/clinical-agent/graph/${patientId}`);
+        const graphResponse = await fetch(`/api/v1/clinical-agent/graph/${patientId}`);
         console.log("Graph response status:", graphResponse.status);
 
         if (graphResponse.ok) {
@@ -2043,7 +2043,7 @@ export default function NLPWorkbenchPage() {
     setIsQuerying(true);
 
     try {
-      const response = await fetch(`/api/clinical-agent/query/${kgPatientId}?provenance_depth=full`, {
+      const response = await fetch(`/api/v1/clinical-agent/query/${kgPatientId}?provenance_depth=full`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: qaInput }),
@@ -2683,7 +2683,7 @@ export default function NLPWorkbenchPage() {
                       onClick={async () => {
                         setIsPreloading(true);
                         try {
-                          const response = await fetch("/api/nlp/preload", { method: "POST" });
+                          const response = await fetch("/api/v1/nlp/preload", { method: "POST" });
                           const data = await response.json();
                           if (data.status === "success") {
                             setModelPreloaded(true);

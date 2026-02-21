@@ -132,7 +132,7 @@ services:
       NEO4J_URI: bolt://con-neo4j:7687
       NEO4J_USER: ${NEO4J_USER:-neo4j}
       NEO4J_PASSWORD: ${NEO4J_PASSWORD:?required}
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      # KAFKA_BOOTSTRAP_SERVERS: kafka:9092  # disabled — not needed for NLP/KG/QA
       DEBUG: ${DEBUG:-false}
       AUTH_BYPASS_DEV: ${AUTH_BYPASS_DEV:-false}
       AUTH_ENABLED: ${AUTH_ENABLED:-false}
@@ -147,8 +147,9 @@ services:
       DATABASE_SSL_MODE: disable
       # LLM Configuration for Q&A Agent
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-      LLM_PROVIDER: ${LLM_PROVIDER:-anthropic}
-      LLM_MODEL: ${LLM_MODEL:-claude-opus-4-5-20251101}
+      LLM_PROVIDER: ollama
+      LLM_MODEL: ${LLM_MODEL:-qwen3:latest}
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
     ports:
       - "8080:8000"
     volumes:
