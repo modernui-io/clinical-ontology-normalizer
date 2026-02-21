@@ -1,0 +1,102 @@
+{
+  "timestamp": "2026-02-19T00:00:00Z",
+  "overall_status": "PASS",
+  "checks": {
+    "frontend_build": {
+      "status": "PASS",
+      "details": "Compiled successfully in 5.0s. 184/184 static pages generated in 498.3ms. No errors."
+    },
+    "research_pages": {
+      "status": "PASS",
+      "pages_found": 9,
+      "all_export_default": true,
+      "pages": [
+        { "path": "research/experiments/page.tsx", "component": "ExperimentsPage" },
+        { "path": "research/ingest/page.tsx", "component": "ResearchIngestPage" },
+        { "path": "research/pipeline/page.tsx", "component": "PipelineMonitorPage" },
+        { "path": "research/assertions/page.tsx", "component": "AssertionsPage" },
+        { "path": "research/mapping/page.tsx", "component": "MappingQualityPage" },
+        { "path": "research/kg/page.tsx", "component": "KGExplorerPage" },
+        { "path": "research/compare/page.tsx", "component": "ComparePage" },
+        { "path": "research/figures/page.tsx", "component": "PaperFiguresPage" },
+        { "path": "research/notes/page.tsx", "component": "NoteBrowserPage" }
+      ]
+    },
+    "mimic_page": {
+      "status": "PASS",
+      "component": "MimicImportPage",
+      "exports_default": true
+    },
+    "settings_page": {
+      "status": "PASS",
+      "component": "SettingsPage",
+      "exports_default": true
+    },
+    "sidebar_entries": {
+      "status": "PASS",
+      "has_research_lab_section": true,
+      "has_mimic_entry": true,
+      "entries": [
+        "MIMIC Import (/mimic)",
+        "Research Lab (section)",
+        "Dashboard (/research)",
+        "Experiments (/research/experiments)",
+        "Data Ingestion (/research/ingest)",
+        "Note Browser (/research/notes)",
+        "Pipeline Monitor (/research/pipeline)",
+        "Assertions (/research/assertions)",
+        "OMOP Mapping (/research/mapping)",
+        "KG Explorer (/research/kg)",
+        "Compare (/research/compare)",
+        "Paper Figures (/research/figures)"
+      ]
+    },
+    "api_hooks": {
+      "status": "PASS",
+      "useResearch": {
+        "exports_count": 10,
+        "key_exports": [
+          "useCreateExperiment",
+          "useExperiments",
+          "useExperiment",
+          "useUpdateExperiment",
+          "useDeleteExperiment",
+          "useStartExperiment",
+          "useCompleteExperiment",
+          "useCreateRun",
+          "useRuns",
+          "useRun"
+        ]
+      },
+      "useMimic": {
+        "exports_count": 7,
+        "key_exports": [
+          "useUploadMimicCsv",
+          "useImportMimicFromPath",
+          "useValidateMimicCsv",
+          "useValidateMimicPath",
+          "useMimicImportProgress",
+          "useMimicMetrics",
+          "useMimicPipelineResults"
+        ]
+      }
+    },
+    "imports_validation": {
+      "status": "PASS",
+      "experiments_page": {
+        "all_ui_components_exist": true,
+        "components_verified": ["card", "button", "input", "label", "textarea", "dialog", "select"],
+        "hooks_verified": ["useExperiments", "useCreateExperiment", "useDeleteExperiment", "useStartExperiment", "useCompleteExperiment"]
+      },
+      "kg_page": {
+        "imports_valid": true,
+        "hooks_verified": ["useExperiments", "useRuns", "useKGMetrics"]
+      },
+      "pipeline_page": {
+        "imports_valid": true,
+        "progress_component_exists": true
+      }
+    }
+  },
+  "summary": "Frontend is demo-ready. Build compiles cleanly with 184 static pages. All 9 research pages, mimic page, and settings page export default components. Sidebar has full Research Lab section with 12 navigation entries. API hooks (useResearch: 10 exports, useMimic: 7 exports) are properly structured. No broken imports detected."
+}
