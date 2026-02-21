@@ -28,6 +28,17 @@ jest.mock('@/components/PersonaNavigator', () => ({
   PersonaNavigator: () => <div data-testid="persona-navigator" />,
 }));
 
+// Mock useAuth to avoid requiring AuthProvider
+jest.mock('@/hooks/use-auth', () => ({
+  useAuth: () => ({
+    isDemo: false,
+    isLoading: false,
+    isAuthenticated: true,
+    user: { id: 'user-1', email: 'test@example.com', name: 'Test', roles: ['admin'], permissions: ['*'] },
+    error: null,
+  }),
+}));
+
 // --- Mock fetch data for dashboard API calls ---
 const MOCK_NOW = 1700000000000;
 

@@ -112,7 +112,7 @@ describe("Auth API Functions", () => {
     it("should handle network errors gracefully", async () => {
       mockFetch.mockRejectedValueOnce(new Error("Network error"));
 
-      await expect(apiLogin(mockCredentials)).rejects.toThrow("Network error");
+      await expect(apiLogin(mockCredentials)).rejects.toThrow("Unable to connect to the server. Please try again later.");
     });
   });
 

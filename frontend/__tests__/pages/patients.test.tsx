@@ -3,14 +3,14 @@
  *
  * Tests:
  * - Page rendering
- * - Patient search functionality
- * - Patient graph display
+ * - Patient list display
+ * - Search / filter functionality
  * - Loading states
- * - Error handling
- * - Navigation links
+ * - Empty state
+ * - Accessibility
  */
 
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import PatientsPage from '@/app/patients/page';
 
@@ -32,425 +32,236 @@ jest.mock('sonner', () => ({
   },
 }));
 
+// Mock useAuth to avoid requiring AuthProvider
+jest.mock('@/hooks/use-auth', () => ({
+  useAuth: () => ({
+    isDemo: false,
+    isLoading: false,
+    isAuthenticated: true,
+    user: { id: 'user-1', email: 'test@example.com', name: 'Test', roles: ['admin'], permissions: ['*'] },
+    error: null,
+  }),
+}));
+
 // Mock the API
 jest.mock('@/lib/api', () => ({
+  getPatients: jest.fn(),
   getPatientGraph: jest.fn(),
 }));
 
-import { toast } from 'sonner';
+// Mock DataSourceModeBanner
+jest.mock('@/components/readiness/DataSourceModeBanner', () => {
+  return function MockBanner() {
+    return <div data-testid="data-source-banner" />;
+  };
+});
 
-const { getPatientGraph } = require('@/lib/api') as {
-  getPatientGraph: (...args: unknown[]) => Promise<unknown>;
+const { getPatients } = require('@/lib/api') as {
+  getPatients: (...args: unknown[]) => Promise<unknown>;
 };
+const mockGetPatients = getPatients as jest.Mock;
 
-const mockGetPatientGraph = getPatientGraph as jest.Mock;
+const MOCK_PATIENTS = [
+  {
+    id: 'P001',
+    external_id: 'EXT-001',
+    name: 'John Doe',
+    gender: 'male',
+    birth_date: '1980-01-15',
+    created_at: '2025-01-01T00:00:00Z',
+    document_count: 3,
+    fact_count: 15,
+    node_count: 10,
+    conditions: ['Hypertension', 'Diabetes'],
+    medications: ['Metformin', 'Lisinopril'],
+  },
+  {
+    id: 'P002',
+    external_id: 'EXT-002',
+    name: 'Jane Smith',
+    gender: 'female',
+    birth_date: '1990-05-20',
+    created_at: '2025-01-02T00:00:00Z',
+    document_count: 1,
+    fact_count: 8,
+    node_count: 5,
+    conditions: ['Asthma'],
+    medications: ['Albuterol'],
+  },
+];
 
 describe('Patients Page', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Reset timer mocks
-    jest.useFakeTimers();
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
+    mockGetPatients.mockResolvedValue({
+      patients: MOCK_PATIENTS,
+      total: 2,
+      page: 1,
+      page_size: 200,
+    });
   });
 
   describe('Rendering', () => {
-    it('renders page heading', () => {
+    it('renders page heading', async () => {
       render(<PatientsPage />);
       expect(screen.getByText('Patients')).toBeInTheDocument();
     });
 
-    it('renders page description', () => {
+    it('renders page description', async () => {
       render(<PatientsPage />);
       expect(
-        screen.getByText(/view and manage patient records/i)
+        screen.getByText(/browse patient records/i)
       ).toBeInTheDocument();
     });
 
-    it('renders find patient card', () => {
+    it('renders search/filter input', async () => {
       render(<PatientsPage />);
-      expect(screen.getByText('Find Patient')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText(/filter patients/i)).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Patient List Display', () => {
+    it('displays patient names after loading', async () => {
+      render(<PatientsPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('John Doe')).toBeInTheDocument();
+        expect(screen.getByText('Jane Smith')).toBeInTheDocument();
+      });
     });
 
-    it('renders search input', () => {
+    it('displays patient IDs', async () => {
       render(<PatientsPage />);
-      expect(
-        screen.getByPlaceholderText(/search by patient id/i)
-      ).toBeInTheDocument();
+
+      await waitFor(() => {
+        expect(screen.getByText('P001')).toBeInTheDocument();
+        expect(screen.getByText('P002')).toBeInTheDocument();
+      });
     });
 
-    it('renders search card description', () => {
+    it('displays conditions as badges', async () => {
       render(<PatientsPage />);
-      expect(
-        screen.getByText(/search for a patient by id/i)
-      ).toBeInTheDocument();
+
+      await waitFor(() => {
+        expect(screen.getByText('Hypertension')).toBeInTheDocument();
+        expect(screen.getByText('Diabetes')).toBeInTheDocument();
+      });
+    });
+
+    it('displays total patients stat card', async () => {
+      render(<PatientsPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Total Patients')).toBeInTheDocument();
+      });
+    });
+
+    it('calls getPatients API on mount', async () => {
+      render(<PatientsPage />);
+
+      await waitFor(() => {
+        expect(mockGetPatients).toHaveBeenCalledWith({ page: 1, page_size: 200 });
+      });
     });
   });
 
   describe('Search Functionality', () => {
-    it('updates input value on typing', async () => {
-      const user = userEvent.setup({ delay: null });
+    it('filters patients by name', async () => {
+      const user = userEvent.setup();
       render(<PatientsPage />);
 
-      const input = screen.getByPlaceholderText(/search by patient id/i);
-      await user.type(input, 'P001');
-
-      expect(input).toHaveValue('P001');
-    });
-
-    it('triggers search after debounce', async () => {
-      mockGetPatientGraph.mockResolvedValueOnce({
-        patient_id: 'P001',
-        nodes: [],
-        edges: [],
-        node_count: 10,
-        edge_count: 5,
+      // Wait for patients to load
+      await waitFor(() => {
+        expect(screen.getByText('John Doe')).toBeInTheDocument();
       });
 
-      const user = userEvent.setup({ delay: null });
+      const input = screen.getByPlaceholderText(/filter patients/i);
+      await user.type(input, 'Jane');
+
+      expect(screen.getByText('Jane Smith')).toBeInTheDocument();
+      expect(screen.queryByText('John Doe')).not.toBeInTheDocument();
+    });
+
+    it('filters patients by condition', async () => {
+      const user = userEvent.setup();
       render(<PatientsPage />);
-
-      const input = screen.getByPlaceholderText(/search by patient id/i);
-      await user.type(input, 'P001');
-
-      // Fast-forward debounce timer
-      await jest.advanceTimersByTimeAsync(500);
 
       await waitFor(() => {
-        expect(mockGetPatientGraph).toHaveBeenCalledWith('P001');
+        expect(screen.getByText('John Doe')).toBeInTheDocument();
       });
+
+      const input = screen.getByPlaceholderText(/filter patients/i);
+      await user.type(input, 'Asthma');
+
+      expect(screen.getByText('Jane Smith')).toBeInTheDocument();
+      expect(screen.queryByText('John Doe')).not.toBeInTheDocument();
     });
 
-    it('does not search for empty input', async () => {
-      const user = userEvent.setup({ delay: null });
+    it('shows no matching message when filter has no results', async () => {
+      const user = userEvent.setup();
       render(<PatientsPage />);
 
-      const input = screen.getByPlaceholderText(/search by patient id/i);
+      await waitFor(() => {
+        expect(screen.getByText('John Doe')).toBeInTheDocument();
+      });
 
-      // Type and then clear
-      await user.type(input, 'P001');
-      await user.clear(input);
+      const input = screen.getByPlaceholderText(/filter patients/i);
+      await user.type(input, 'ZZZZNOPATIENT');
 
-      // Fast-forward debounce timer
-      await jest.advanceTimersByTimeAsync(500);
-
-      // Should not have been called with empty string
-      const calls = mockGetPatientGraph.mock.calls;
-      const emptyCalls = calls.filter((call: [string, ...unknown[]]) => call[0] === '');
-      expect(emptyCalls.length).toBe(0);
+      expect(screen.getByText(/no matching patients/i)).toBeInTheDocument();
     });
   });
 
   describe('Loading State', () => {
-    it('shows loading skeleton while searching', async () => {
-      // Make the API call slow
-      mockGetPatientGraph.mockImplementation(
-        () =>
-          new Promise((resolve) =>
-            setTimeout(
-              () =>
-                resolve({
-                  patient_id: 'P001',
-                  nodes: [],
-                  edges: [],
-                  node_count: 10,
-                  edge_count: 5,
-                }),
-              1000
-            )
-          )
+    it('shows loading spinner while fetching', async () => {
+      mockGetPatients.mockImplementation(
+        () => new Promise(() => {}) // never resolves
       );
 
-      const user = userEvent.setup({ delay: null });
       render(<PatientsPage />);
 
-      const input = screen.getByPlaceholderText(/search by patient id/i);
-      await user.type(input, 'P001');
-
-      // Fast-forward past debounce
-      await jest.advanceTimersByTimeAsync(500);
-
-      // Loading skeleton should be visible
-      // The component uses SkeletonCard which has a specific structure
-      await waitFor(() => {
-        const loadingElement = document.querySelector('[data-slot="card"]');
-        expect(loadingElement).toBeInTheDocument();
-      });
+      expect(screen.getByText(/loading patients/i)).toBeInTheDocument();
     });
   });
 
-  describe('Search Results', () => {
-    it('displays patient information when found', async () => {
-      mockGetPatientGraph.mockResolvedValueOnce({
-        patient_id: 'P001',
-        nodes: [],
-        edges: [],
-        node_count: 15,
-        edge_count: 8,
-      });
+  describe('Error / Fallback State', () => {
+    it('falls back to demo data when API fails', async () => {
+      mockGetPatients.mockRejectedValueOnce(new Error('Backend error'));
 
-      const user = userEvent.setup({ delay: null });
       render(<PatientsPage />);
 
-      const input = screen.getByPlaceholderText(/search by patient id/i);
-      await user.type(input, 'P001');
-
-      // Fast-forward debounce timer
-      await jest.advanceTimersByTimeAsync(500);
-
+      // Should fall back to demo patients and show the data source banner
       await waitFor(() => {
-        expect(screen.getByText(/patient p001/i)).toBeInTheDocument();
-      });
-    });
-
-    it('displays node count', async () => {
-      mockGetPatientGraph.mockResolvedValueOnce({
-        patient_id: 'P001',
-        nodes: [],
-        edges: [],
-        node_count: 15,
-        edge_count: 8,
-      });
-
-      const user = userEvent.setup({ delay: null });
-      render(<PatientsPage />);
-
-      const input = screen.getByPlaceholderText(/search by patient id/i);
-      await user.type(input, 'P001');
-
-      await jest.advanceTimersByTimeAsync(500);
-
-      await waitFor(() => {
-        expect(screen.getByText('15')).toBeInTheDocument();
-        expect(screen.getByText('Total Nodes')).toBeInTheDocument();
-      });
-    });
-
-    it('displays edge count', async () => {
-      mockGetPatientGraph.mockResolvedValueOnce({
-        patient_id: 'P001',
-        nodes: [],
-        edges: [],
-        node_count: 15,
-        edge_count: 8,
-      });
-
-      const user = userEvent.setup({ delay: null });
-      render(<PatientsPage />);
-
-      const input = screen.getByPlaceholderText(/search by patient id/i);
-      await user.type(input, 'P001');
-
-      await jest.advanceTimersByTimeAsync(500);
-
-      await waitFor(() => {
-        expect(screen.getByText('8')).toBeInTheDocument();
-        expect(screen.getByText('Total Edges')).toBeInTheDocument();
-      });
-    });
-
-    it('renders view knowledge graph button', async () => {
-      mockGetPatientGraph.mockResolvedValueOnce({
-        patient_id: 'P001',
-        nodes: [],
-        edges: [],
-        node_count: 10,
-        edge_count: 5,
-      });
-
-      const user = userEvent.setup({ delay: null });
-      render(<PatientsPage />);
-
-      const input = screen.getByPlaceholderText(/search by patient id/i);
-      await user.type(input, 'P001');
-
-      await jest.advanceTimersByTimeAsync(500);
-
-      await waitFor(() => {
-        expect(screen.getByText('View Knowledge Graph')).toBeInTheDocument();
-      });
-    });
-
-    it('renders timeline button', async () => {
-      mockGetPatientGraph.mockResolvedValueOnce({
-        patient_id: 'P001',
-        nodes: [],
-        edges: [],
-        node_count: 10,
-        edge_count: 5,
-      });
-
-      const user = userEvent.setup({ delay: null });
-      render(<PatientsPage />);
-
-      const input = screen.getByPlaceholderText(/search by patient id/i);
-      await user.type(input, 'P001');
-
-      await jest.advanceTimersByTimeAsync(500);
-
-      await waitFor(() => {
-        expect(screen.getByText('Timeline')).toBeInTheDocument();
-      });
-    });
-
-    it('renders facts button', async () => {
-      mockGetPatientGraph.mockResolvedValueOnce({
-        patient_id: 'P001',
-        nodes: [],
-        edges: [],
-        node_count: 10,
-        edge_count: 5,
-      });
-
-      const user = userEvent.setup({ delay: null });
-      render(<PatientsPage />);
-
-      const input = screen.getByPlaceholderText(/search by patient id/i);
-      await user.type(input, 'P001');
-
-      await jest.advanceTimersByTimeAsync(500);
-
-      await waitFor(() => {
-        expect(screen.getByText('Facts')).toBeInTheDocument();
-      });
-    });
-  });
-
-  describe('Not Found State', () => {
-    it('shows not found message when patient is not found', async () => {
-      mockGetPatientGraph.mockRejectedValueOnce(new Error('Not found'));
-
-      const user = userEvent.setup({ delay: null });
-      render(<PatientsPage />);
-
-      const input = screen.getByPlaceholderText(/search by patient id/i);
-      await user.type(input, 'INVALID');
-
-      await jest.advanceTimersByTimeAsync(500);
-
-      await waitFor(() => {
-        expect(screen.getByText(/no patient found/i)).toBeInTheDocument();
-      });
-    });
-
-    it('shows toast error on failed search', async () => {
-      mockGetPatientGraph.mockRejectedValueOnce(new Error('Backend error'));
-
-      const user = userEvent.setup({ delay: null });
-      render(<PatientsPage />);
-
-      const input = screen.getByPlaceholderText(/search by patient id/i);
-      await user.type(input, 'P001');
-
-      await jest.advanceTimersByTimeAsync(500);
-
-      await waitFor(() => {
-        expect(toast.error).toHaveBeenCalled();
-      });
-    });
-
-    it('suggests trying different patient ID', async () => {
-      mockGetPatientGraph.mockRejectedValueOnce(new Error('Not found'));
-
-      const user = userEvent.setup({ delay: null });
-      render(<PatientsPage />);
-
-      const input = screen.getByPlaceholderText(/search by patient id/i);
-      await user.type(input, 'INVALID');
-
-      await jest.advanceTimersByTimeAsync(500);
-
-      await waitFor(() => {
-        expect(
-          screen.getByText(/try searching with a different patient id/i)
-        ).toBeInTheDocument();
+        expect(screen.getByTestId('data-source-banner')).toBeInTheDocument();
       });
     });
   });
 
   describe('Navigation Links', () => {
-    it('has correct link to knowledge graph', async () => {
-      mockGetPatientGraph.mockResolvedValueOnce({
-        patient_id: 'P001',
-        nodes: [],
-        edges: [],
-        node_count: 10,
-        edge_count: 5,
-      });
-
-      const user = userEvent.setup({ delay: null });
+    it('has correct links to patient graph pages', async () => {
       render(<PatientsPage />);
 
-      const input = screen.getByPlaceholderText(/search by patient id/i);
-      await user.type(input, 'P001');
-
-      await jest.advanceTimersByTimeAsync(500);
-
       await waitFor(() => {
-        const graphLink = screen.getByRole('link', { name: /view knowledge graph/i });
-        expect(graphLink).toHaveAttribute('href', '/patients/P001/graph');
-      });
-    });
-
-    it('has correct link to timeline', async () => {
-      mockGetPatientGraph.mockResolvedValueOnce({
-        patient_id: 'P001',
-        nodes: [],
-        edges: [],
-        node_count: 10,
-        edge_count: 5,
-      });
-
-      const user = userEvent.setup({ delay: null });
-      render(<PatientsPage />);
-
-      const input = screen.getByPlaceholderText(/search by patient id/i);
-      await user.type(input, 'P001');
-
-      await jest.advanceTimersByTimeAsync(500);
-
-      await waitFor(() => {
-        const timelineLink = screen.getByRole('link', { name: /timeline/i });
-        expect(timelineLink).toHaveAttribute('href', '/patients/P001/timeline');
-      });
-    });
-
-    it('has correct link to facts', async () => {
-      mockGetPatientGraph.mockResolvedValueOnce({
-        patient_id: 'P001',
-        nodes: [],
-        edges: [],
-        node_count: 10,
-        edge_count: 5,
-      });
-
-      const user = userEvent.setup({ delay: null });
-      render(<PatientsPage />);
-
-      const input = screen.getByPlaceholderText(/search by patient id/i);
-      await user.type(input, 'P001');
-
-      await jest.advanceTimersByTimeAsync(500);
-
-      await waitFor(() => {
-        const factsLink = screen.getByRole('link', { name: /facts/i });
-        expect(factsLink).toHaveAttribute('href', '/patients/P001/facts');
+        const link = screen.getByRole('link', { name: /john doe/i });
+        expect(link).toHaveAttribute('href', '/patients/P001/graph');
       });
     });
   });
 
   describe('Accessibility', () => {
-    it('has accessible heading', () => {
+    it('has accessible heading', async () => {
       render(<PatientsPage />);
       expect(screen.getByRole('heading', { name: /patients/i })).toBeInTheDocument();
     });
 
-    it('search input has accessible label', () => {
+    it('filter input is accessible', async () => {
       render(<PatientsPage />);
-      const input = screen.getByPlaceholderText(/search by patient id/i);
-      expect(input).toBeInTheDocument();
+      await waitFor(() => {
+        const input = screen.getByPlaceholderText(/filter patients/i);
+        expect(input).toBeInTheDocument();
+      });
     });
   });
 });
