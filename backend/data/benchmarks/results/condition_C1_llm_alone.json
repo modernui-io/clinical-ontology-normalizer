@@ -1,18 +1,18 @@
 {
   "condition_id": "C1_llm_alone",
   "label": "LLM Alone",
-  "accuracy": 0.375,
-  "correct": 3,
-  "total": 8,
-  "safety": 0.45714285714285713,
+  "accuracy": 0.4230769230769231,
+  "correct": 11,
+  "total": 26,
+  "safety": 0.4365079365079365,
   "category_accuracies": {
-    "negation": 1.0,
-    "conditional": 0.0,
+    "negation": 0.8333333333333334,
+    "conditional": 0.5,
+    "uncertainty": 0.4,
     "sequence": 1.0,
-    "current_state": 1.0,
-    "wells_pe": 0.0,
-    "heart": 0.0,
-    "vital_note": 0.0
+    "current_state": 0.0,
+    "duration": 0.0,
+    "historical": 0.14285714285714285
   },
   "per_question": [
     {
@@ -23,45 +23,153 @@
     },
     {
       "question_id": "bench_a_conditional_b9464ee7",
+      "correct": true,
+      "score": 1.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_uncertainty_4d840683",
+      "correct": true,
+      "score": 1.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_negation_36dc36ff",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_uncertainty_3d8cd3fc",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_426541c7",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_negation_d77aa1a3",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_3276c129",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_cad47ef1",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_5e397dc9",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_uncertainty_eab1a2aa",
+      "correct": true,
+      "score": 1.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_conditional_e9039cad",
       "correct": false,
       "score": 0.0,
       "category": "conditional"
     },
     {
+      "question_id": "bench_a_uncertainty_06127456",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
       "question_id": "bench_b_seq_2fc0d0e1",
       "correct": true,
-      "score": 0.8666666666666667,
+      "score": 0.6666666666666666,
       "category": "sequence"
     },
     {
       "question_id": "bench_b_current_state_5e677ee6",
-      "correct": true,
-      "score": 1.0,
+      "correct": false,
+      "score": 0.0,
       "category": "current_state"
     },
     {
-      "question_id": "bench_c_wells_pe_1295fa2d",
+      "question_id": "bench_b_current_state_57ee4127",
       "correct": false,
-      "score": 0.26111111111111107,
-      "category": "wells_pe"
+      "score": 0.0,
+      "category": "current_state"
     },
     {
-      "question_id": "bench_c_heart_739fb8d1",
+      "question_id": "bench_b_dur_9aac4d9f",
       "correct": false,
-      "score": 0.22692307692307692,
-      "category": "heart"
+      "score": 0.0,
+      "category": "duration"
     },
     {
-      "question_id": "bench_d_vital_note_35f64cbf",
+      "question_id": "bench_b_historical_fa44308d",
       "correct": false,
-      "score": 0.23333333333333334,
-      "category": "vital_note"
+      "score": 0.0,
+      "category": "historical"
     },
     {
-      "question_id": "bench_d_vital_note_8205d0e8",
+      "question_id": "bench_b_historical_20d74443",
       "correct": false,
-      "score": 0.13333333333333333,
-      "category": "vital_note"
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_272efd04",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_seq_76233349",
+      "correct": true,
+      "score": 0.4857142857142857,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_historical_47333321",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_a701eaf4",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_current_state_3fad479a",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_historical_a29de042",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_e8241796",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
     }
   ]
 }
