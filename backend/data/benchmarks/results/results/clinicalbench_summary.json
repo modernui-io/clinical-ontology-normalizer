@@ -1,0 +1,104 @@
+{
+  "benchmark": "ClinicalIntelligenceBench",
+  "llm_model": "claude-opus-4-5-20251101",
+  "total_questions": 12,
+  "task_counts": {
+    "task_a": 3,
+    "task_b": 3,
+    "task_c": 3,
+    "task_d": 3
+  },
+  "total_duration_s": 596.7674272290315,
+  "conditions": {
+    "C1_llm_alone": {
+      "label": "LLM Alone",
+      "accuracy": 0.25,
+      "correct": 3,
+      "total": 12,
+      "safety": 0.0784313725490196,
+      "category_accuracies": {
+        "negation": 0.0,
+        "conditional": 0.0,
+        "uncertainty": 0.0,
+        "sequence": 0.0,
+        "current_state": 0.0,
+        "wells_pe": 0.0,
+        "heart": 1.0,
+        "other": 1.0,
+        "vital_note": 0.3333333333333333
+      }
+    },
+    "C2_vanilla_rag": {
+      "label": "LLM + Vanilla RAG",
+      "accuracy": 0.0,
+      "correct": 0,
+      "total": 12,
+      "safety": -0.1568627450980392,
+      "category_accuracies": {
+        "negation": 0.0,
+        "conditional": 0.0,
+        "uncertainty": 0.0,
+        "sequence": 0.0,
+        "current_state": 0.0,
+        "wells_pe": 0.0,
+        "heart": 0.0,
+        "other": 0.0,
+        "vital_note": 0.0
+      }
+    },
+    "C3_kg_rag": {
+      "label": "LLM + KG-RAG",
+      "accuracy": 0.0,
+      "correct": 0,
+      "total": 12,
+      "safety": -0.1568627450980392,
+      "category_accuracies": {
+        "negation": 0.0,
+        "conditional": 0.0,
+        "uncertainty": 0.0,
+        "sequence": 0.0,
+        "current_state": 0.0,
+        "wells_pe": 0.0,
+        "heart": 0.0,
+        "other": 0.0,
+        "vital_note": 0.0
+      }
+    },
+    "C4_epistemic_kg_rag": {
+      "label": "LLM + Epistemic KG-RAG",
+      "accuracy": 0.08333333333333333,
+      "correct": 1,
+      "total": 12,
+      "safety": -0.0784313725490196,
+      "category_accuracies": {
+        "negation": 0.0,
+        "conditional": 0.0,
+        "uncertainty": 0.0,
+        "sequence": 0.0,
+        "current_state": 0.0,
+        "wells_pe": 0.0,
+        "heart": 0.0,
+        "other": 1.0,
+        "vital_note": 0.0
+      }
+    },
+    "C5_full_system": {
+      "label": "Full System",
+      "accuracy": 0.0,
+      "correct": 0,
+      "total": 12,
+      "safety": -0.1568627450980392,
+      "category_accuracies": {
+        "negation": 0.0,
+        "conditional": 0.0,
+        "uncertainty": 0.0,
+        "sequence": 0.0,
+        "current_state": 0.0,
+        "wells_pe": 0.0,
+        "heart": 0.0,
+        "other": 0.0,
+        "vital_note": 0.0
+      }
+    }
+  }
+}

@@ -1,0 +1,756 @@
+{
+  "ablation_id": "ablation_20260219_192856",
+  "run_at": "2026-02-19T19:38:46.388642+00:00",
+  "patient_id": "MIMIC-10000935",
+  "question_set_name": "ClinicalIntelligenceBench",
+  "total_questions": 12,
+  "llm_model": "claude-opus-4-5-20251101",
+  "total_duration_s": 590.0236937259906,
+  "conditions": {
+    "C1_llm_alone": {
+      "label": "LLM Alone",
+      "accuracy": 0.25,
+      "total_questions": 12,
+      "correct": 3,
+      "category_accuracies": {
+        "negation": 0.0,
+        "conditional": 0.0,
+        "uncertainty": 0.0,
+        "sequence": 0.0,
+        "current_state": 0.0,
+        "wells_pe": 0.0,
+        "heart": 1.0,
+        "other": 1.0,
+        "vital_note": 0.3333333333333333
+      },
+      "safety_score": 0.0784313725490196,
+      "avg_latency_ms": 5104.044783574257,
+      "config": {
+        "assertion_mode": "none",
+        "temporal_mode": "no_temporal",
+        "retrieval_mode": "doc_only",
+        "raw_note_only": true,
+        "calculator_enabled": false,
+        "guidelines_enabled": false
+      },
+      "per_question": [
+        {
+          "question_id": "bench_a_negation_f500d64e",
+          "category": "negation",
+          "correct": false,
+          "score": 0.48,
+          "predicted_answer": "Based on the provided clinical notes, there is no documentation of lung examination findings including crackles. The physical exam section is incomplete in the notes provided, showing only vital signs",
+          "expected_answer": "No. crackles is negated/absent in the clinical record. The Physical Exam section indicates the patient does not have this condition.",
+          "latency_ms": 11633.688256028108,
+          "error": null
+        },
+        {
+          "question_id": "bench_a_conditional_b9464ee7",
+          "category": "conditional",
+          "correct": false,
+          "score": 0.4,
+          "predicted_answer": "Based on the evidence provided, yes, the patient needs management for HIV. The notes clearly document that she has HIV and is \"not on HAART\" (highly active antiretroviral therapy). This indicates she ",
+          "expected_answer": "HIV is conditional. The clinical note indicates management is contingent on specific conditions being met.",
+          "latency_ms": 3074.6107929735444,
+          "error": null
+        },
+        {
+          "question_id": "bench_a_uncertainty_4d840683",
+          "category": "uncertainty",
+          "correct": false,
+          "score": 0.225,
+          "predicted_answer": "Based on the evidence provided, there is **no diagnostic certainty for alcohol use** in this patient. The only mention of alcohol is in the **Family History** section, which notes \"Mother with possibl",
+          "expected_answer": "Uncertain. alcohol is suspected but not confirmed. Further workup may be needed.",
+          "latency_ms": 4939.385002013296,
+          "error": null
+        },
+        {
+          "question_id": "bench_b_seq_2fc0d0e1",
+          "category": "sequence",
+          "correct": false,
+          "score": 0.3,
+          "predicted_answer": "Based on the provided evidence, I cannot determine the order in which osteomyelitis and vomiting were identified. \n\nThe clinical notes show:\n- **Vomiting**: The patient denies vomiting in the review o",
+          "expected_answer": "osteomyelitis was identified first, followed by vomiting.",
+          "latency_ms": 3464.1859179828316,
+          "error": null
+        },
+        {
+          "question_id": "bench_b_current_state_5e677ee6",
+          "category": "current_state",
+          "correct": false,
+          "score": 0.745,
+          "predicted_answer": "Based on the evidence provided, sacral osteoarthritis is listed in the patient's Past Medical History in both clinical notes. However, the notes do not provide any information about whether this condi",
+          "expected_answer": "Yes. osteoarthritis is documented as a current/active problem.",
+          "latency_ms": 3787.183961016126,
+          "error": null
+        },
+        {
+          "question_id": "bench_b_current_state_57ee4127",
+          "category": "current_state",
+          "correct": false,
+          "score": 0.375,
+          "predicted_answer": "Based on the provided clinical notes, there is no documentation of bibasilar crackles being assessed or present. The admission physical exam notes \"Chest: clear ant\" (clear anteriorly), and the discha",
+          "expected_answer": "bibasilar crackles is currently active/present as of the most recent admission.",
+          "latency_ms": 3436.6264589480124,
+          "error": null
+        },
+        {
+          "question_id": "bench_c_wells_pe_1295fa2d",
+          "category": "wells_pe",
+          "correct": false,
+          "score": 0.87,
+          "predicted_answer": "Based on the clinical evidence provided, I can identify the following Wells criteria components:\n\n**Present:**\n- Heart rate >100 (tachycardia of 116-117 documented): **1.5 points**\n- Malignancy (metas",
+          "expected_answer": "Based on the patient's clinical features: Relevant findings: Tachycardia, tachycardia. Sections: History of Present Illness, Hospital Course, Imaging.. The Wells PE score is computed from clinical sig",
+          "latency_ms": 7705.166836967692,
+          "error": null
+        },
+        {
+          "question_id": "bench_c_heart_739fb8d1",
+          "category": "heart",
+          "correct": true,
+          "score": 0.93,
+          "predicted_answer": "Based on the clinical evidence, I cannot calculate a HEART score for this patient because **the patient explicitly denies chest pain** in both the ROS (\"Denies chest pain or tightness\") and HPI (\"No c",
+          "expected_answer": "Based on the patient's data: Relevant findings: BRONCHOALVEOLAR LAVAGE, chest pain. Sections: History of Present Illness, Review of Systems, Labs.. The HEART score should be computed from History, ECG",
+          "latency_ms": 4099.849876947701,
+          "error": null
+        },
+        {
+          "question_id": "bench_c_other_8b8b78a5",
+          "category": "other",
+          "correct": true,
+          "score": 0.965,
+          "predicted_answer": "Based on the clinical notes, the patient's weight values are:\n\n- **First admission**: Weight increased from 154 lbs to 161 lbs (7 lb gain over one week)\n- **Second admission**: 10 lb weight gain noted",
+          "expected_answer": "The patient's weight should be retrieved from the clinical record and interpreted in clinical context.",
+          "latency_ms": 4712.9432100337,
+          "error": null
+        },
+        {
+          "question_id": "bench_d_vital_note_35f64cbf",
+          "category": "vital_note",
+          "correct": true,
+          "score": 0.83,
+          "predicted_answer": "Yes, the vital signs are consistent with the clinical picture. In the first admission, the patient developed fever (102.4\u00b0F) and tachycardia (HR 105) post-procedure, which is consistent with sepsis fo",
+          "expected_answer": "Multi-source analysis required. Patient has 22 Vital Signs mentions and 64 Hospital Course mentions that need to be compared and integrated.",
+          "latency_ms": 4073.23425199138,
+          "error": null
+        },
+        {
+          "question_id": "bench_d_vital_note_8205d0e8",
+          "category": "vital_note",
+          "correct": false,
+          "score": 0.845,
+          "predicted_answer": "Yes, the vital signs are consistent with the clinical picture. The patient presented with fever (102.8\u00b0F reported by father, 98.5\u00b0F on exam) and tachycardia (heart rate 117), which aligns with the chi",
+          "expected_answer": "Multi-source analysis required. Patient has 2 Vital Signs mentions and 48 Hospital Course mentions that need to be compared and integrated.",
+          "latency_ms": 4689.637918956578,
+          "error": null
+        },
+        {
+          "question_id": "bench_d_vital_note_6ec0257c",
+          "category": "vital_note",
+          "correct": false,
+          "score": 0.755,
+          "predicted_answer": "Yes, the vital signs are consistent with the clinical picture. Both admissions show tachycardia (HR 116-117) and tachypnea (RR 18-24), which are appropriate findings for a patient with metastatic canc",
+          "expected_answer": "Multi-source analysis required. Patient has 63 Physical Exam mentions and 151 Hospital Course mentions that need to be compared and integrated.",
+          "latency_ms": 5632.024919032119,
+          "error": null
+        }
+      ]
+    },
+    "C2_vanilla_rag": {
+      "label": "LLM + Vanilla RAG",
+      "accuracy": 0.0,
+      "total_questions": 12,
+      "correct": 0,
+      "category_accuracies": {
+        "negation": 0.0,
+        "conditional": 0.0,
+        "uncertainty": 0.0,
+        "sequence": 0.0,
+        "current_state": 0.0,
+        "wells_pe": 0.0,
+        "heart": 0.0,
+        "other": 0.0,
+        "vital_note": 0.0
+      },
+      "safety_score": -0.1568627450980392,
+      "avg_latency_ms": 3709.0247272475003,
+      "config": {
+        "assertion_mode": "none",
+        "temporal_mode": "no_temporal",
+        "retrieval_mode": "doc_only",
+        "raw_note_only": false,
+        "calculator_enabled": false,
+        "guidelines_enabled": false
+      },
+      "per_question": [
+        {
+          "question_id": "bench_a_negation_f500d64e",
+          "category": "negation",
+          "correct": false,
+          "score": 0.555,
+          "predicted_answer": "Based on the provided evidence, there is no information about crackles or any lung/respiratory examination findings. The documents focus on the patient's abdominal pain and diarrhea presentations, wit",
+          "expected_answer": "No. crackles is negated/absent in the clinical record. The Physical Exam section indicates the patient does not have this condition.",
+          "latency_ms": 2499.254875991028,
+          "error": null
+        },
+        {
+          "question_id": "bench_a_conditional_b9464ee7",
+          "category": "conditional",
+          "correct": false,
+          "score": 0.41,
+          "predicted_answer": "Based on the evidence provided, the patient has a documented history of being HIV+ (HIV positive) as noted in their past medical history.\n\n**Yes, the patient needs HIV management.** The medical record",
+          "expected_answer": "HIV is conditional. The clinical note indicates management is contingent on specific conditions being met.",
+          "latency_ms": 4276.951086008921,
+          "error": null
+        },
+        {
+          "question_id": "bench_a_uncertainty_4d840683",
+          "category": "uncertainty",
+          "correct": false,
+          "score": 0.53,
+          "predicted_answer": "Based on the provided evidence, there is **no information** about alcohol use or alcohol-related conditions for this patient. The documents do not mention alcohol in any context - neither as a diagnos",
+          "expected_answer": "Uncertain. alcohol is suspected but not confirmed. Further workup may be needed.",
+          "latency_ms": 3145.01300099073,
+          "error": null
+        },
+        {
+          "question_id": "bench_b_seq_2fc0d0e1",
+          "category": "sequence",
+          "correct": false,
+          "score": 0.375,
+          "predicted_answer": "Based on the provided evidence, I cannot determine the order in which osteomyelitis and vomiting were identified. The documents only show admission information including chief complaints (left shoulde",
+          "expected_answer": "osteomyelitis was identified first, followed by vomiting.",
+          "latency_ms": 3499.537709983997,
+          "error": null
+        },
+        {
+          "question_id": "bench_b_current_state_5e677ee6",
+          "category": "current_state",
+          "correct": false,
+          "score": 0.375,
+          "predicted_answer": "Based on the provided evidence, there is no mention of osteoarthritis. The documents focus on the patient's abdominal pain, partial bowel obstruction, and related surgical procedures. **I cannot deter",
+          "expected_answer": "Yes. osteoarthritis is documented as a current/active problem.",
+          "latency_ms": 3081.6487509873696,
+          "error": null
+        },
+        {
+          "question_id": "bench_b_current_state_57ee4127",
+          "category": "current_state",
+          "correct": false,
+          "score": 0.375,
+          "predicted_answer": "Based on the provided evidence, there is no information about the patient's current status for bibasilar crackles. The documents contain admission information, medical history (including sarcoidosis, ",
+          "expected_answer": "bibasilar crackles is currently active/present as of the most recent admission.",
+          "latency_ms": 3597.8427520021796,
+          "error": null
+        },
+        {
+          "question_id": "bench_c_wells_pe_1295fa2d",
+          "category": "wells_pe",
+          "correct": false,
+          "score": 0.655,
+          "predicted_answer": "Based on the provided evidence, I cannot calculate a Wells score for pulmonary embolism. The documents show admission information including chief complaints (weakness, nausea/vomiting in one admission",
+          "expected_answer": "Based on the patient's clinical features: Relevant findings: Tachycardia, tachycardia. Sections: History of Present Illness, Hospital Course, Imaging.. The Wells PE score is computed from clinical sig",
+          "latency_ms": 3789.822041988373,
+          "error": null
+        },
+        {
+          "question_id": "bench_c_heart_739fb8d1",
+          "category": "heart",
+          "correct": false,
+          "score": 0.81,
+          "predicted_answer": "Based on the provided evidence, I cannot calculate a HEART score for this patient. The HEART score requires five specific components:\n\n1. **History** - The patient presented with hypotension, blurry v",
+          "expected_answer": "Based on the patient's data: Relevant findings: BRONCHOALVEOLAR LAVAGE, chest pain. Sections: History of Present Illness, Review of Systems, Labs.. The HEART score should be computed from History, ECG",
+          "latency_ms": 5630.513168987818,
+          "error": null
+        },
+        {
+          "question_id": "bench_c_other_8b8b78a5",
+          "category": "other",
+          "correct": false,
+          "score": 0.775,
+          "predicted_answer": "Based on the provided evidence, there is no weight value documented for this patient. The clinical notes show admission information, medical history, and chief complaints, but do not include any weigh",
+          "expected_answer": "The patient's weight should be retrieved from the clinical record and interpreted in clinical context.",
+          "latency_ms": 3313.482209981885,
+          "error": null
+        },
+        {
+          "question_id": "bench_d_vital_note_35f64cbf",
+          "category": "vital_note",
+          "correct": false,
+          "score": 0.68,
+          "predicted_answer": "Based on the provided evidence, I cannot answer this question. The document excerpts shown do not include any vital signs data (such as blood pressure, heart rate, temperature, respiratory rate, or ox",
+          "expected_answer": "Multi-source analysis required. Patient has 22 Vital Signs mentions and 64 Hospital Course mentions that need to be compared and integrated.",
+          "latency_ms": 3768.887876009103,
+          "error": null
+        },
+        {
+          "question_id": "bench_d_vital_note_8205d0e8",
+          "category": "vital_note",
+          "correct": false,
+          "score": 0.715,
+          "predicted_answer": "Based on the provided evidence, I cannot answer this question. The documents contain admission information, chief complaints, and surgical history, but **no vital signs data is included** in the retri",
+          "expected_answer": "Multi-source analysis required. Patient has 2 Vital Signs mentions and 48 Hospital Course mentions that need to be compared and integrated.",
+          "latency_ms": 4210.660502023529,
+          "error": null
+        },
+        {
+          "question_id": "bench_d_vital_note_6ec0257c",
+          "category": "vital_note",
+          "correct": false,
+          "score": 0.81,
+          "predicted_answer": "Based on the provided evidence, I cannot answer this question. The documents show the patient's chief complaints (shortness of breath in one admission; weakness, nausea/vomiting in another) and mentio",
+          "expected_answer": "Multi-source analysis required. Patient has 63 Physical Exam mentions and 151 Hospital Course mentions that need to be compared and integrated.",
+          "latency_ms": 3694.682752015069,
+          "error": null
+        }
+      ]
+    },
+    "C3_kg_rag": {
+      "label": "LLM + KG-RAG",
+      "accuracy": 0.0,
+      "total_questions": 12,
+      "correct": 0,
+      "category_accuracies": {
+        "negation": 0.0,
+        "conditional": 0.0,
+        "uncertainty": 0.0,
+        "sequence": 0.0,
+        "current_state": 0.0,
+        "wells_pe": 0.0,
+        "heart": 0.0,
+        "other": 0.0,
+        "vital_note": 0.0
+      },
+      "safety_score": -0.1568627450980392,
+      "avg_latency_ms": 4867.065790342167,
+      "config": {
+        "assertion_mode": "none",
+        "temporal_mode": "no_temporal",
+        "retrieval_mode": "graph_plus_doc",
+        "raw_note_only": false,
+        "calculator_enabled": false,
+        "guidelines_enabled": false
+      },
+      "per_question": [
+        {
+          "question_id": "bench_a_negation_f500d64e",
+          "category": "negation",
+          "correct": false,
+          "score": 0.4,
+          "predicted_answer": "Based on the provided evidence, I cannot answer whether the patient has crackles. The evidence contains information about alcohol use history (showing the patient does NOT misuse alcohol, but has fami",
+          "expected_answer": "No. crackles is negated/absent in the clinical record. The Physical Exam section indicates the patient does not have this condition.",
+          "latency_ms": 4342.34033402754,
+          "error": null
+        },
+        {
+          "question_id": "bench_a_conditional_b9464ee7",
+          "category": "conditional",
+          "correct": false,
+          "score": 0.36,
+          "predicted_answer": "Based on the evidence, **yes, the patient needs management for HIV**. The clinical documents clearly indicate the patient has a past medical history (PMH) of \"HIV+\" as documented in the admission note",
+          "expected_answer": "HIV is conditional. The clinical note indicates management is contingent on specific conditions being met.",
+          "latency_ms": 4336.671418044716,
+          "error": null
+        },
+        {
+          "question_id": "bench_a_uncertainty_4d840683",
+          "category": "uncertainty",
+          "correct": false,
+          "score": 0.53,
+          "predicted_answer": "Based on the provided evidence, there is **no information about alcohol** in relation to this patient. The documents describe a female patient with diabetes, CAD, COPD, and heart failure, with an alle",
+          "expected_answer": "Uncertain. alcohol is suspected but not confirmed. Further workup may be needed.",
+          "latency_ms": 7049.009502981789,
+          "error": null
+        },
+        {
+          "question_id": "bench_b_seq_2fc0d0e1",
+          "category": "sequence",
+          "correct": false,
+          "score": 0.375,
+          "predicted_answer": "Based on the provided evidence, I cannot determine the order in which osteomyelitis and vomiting were identified. The retrieved documents discuss a patient with left shoulder pain, septic arthritis, f",
+          "expected_answer": "osteomyelitis was identified first, followed by vomiting.",
+          "latency_ms": 5567.600335984025,
+          "error": null
+        },
+        {
+          "question_id": "bench_b_current_state_5e677ee6",
+          "category": "current_state",
+          "correct": false,
+          "score": 0.375,
+          "predicted_answer": "Based on the provided evidence, there is no mention of osteoarthritis. The documents focus on the patient's abdominal pain, partial bowel obstruction, and related surgical procedures. **I cannot deter",
+          "expected_answer": "Yes. osteoarthritis is documented as a current/active problem.",
+          "latency_ms": 2855.956209998112,
+          "error": null
+        },
+        {
+          "question_id": "bench_b_current_state_57ee4127",
+          "category": "current_state",
+          "correct": false,
+          "score": 0.375,
+          "predicted_answer": "Based on the provided evidence, there is no information about bibasilar crackles or lung examination findings. The documents mention the patient has a history of systemic sarcoidosis affecting the lun",
+          "expected_answer": "bibasilar crackles is currently active/present as of the most recent admission.",
+          "latency_ms": 3268.1880019954406,
+          "error": null
+        },
+        {
+          "question_id": "bench_c_wells_pe_1295fa2d",
+          "category": "wells_pe",
+          "correct": false,
+          "score": 0.69,
+          "predicted_answer": "Based on the provided evidence, I cannot calculate a Wells score for pulmonary embolism for this patient. The evidence does not contain the clinical data needed to calculate a Wells score, which requi",
+          "expected_answer": "Based on the patient's clinical features: Relevant findings: Tachycardia, tachycardia. Sections: History of Present Illness, Hospital Course, Imaging.. The Wells PE score is computed from clinical sig",
+          "latency_ms": 5166.481877036858,
+          "error": null
+        },
+        {
+          "question_id": "bench_c_heart_739fb8d1",
+          "category": "heart",
+          "correct": false,
+          "score": 0.845,
+          "predicted_answer": "Based on the provided evidence, I cannot calculate a HEART score for this patient. The HEART score requires five specific components:\n\n1. **History** - characteristics of chest pain\n2. **ECG** - findi",
+          "expected_answer": "Based on the patient's data: Relevant findings: BRONCHOALVEOLAR LAVAGE, chest pain. Sections: History of Present Illness, Review of Systems, Labs.. The HEART score should be computed from History, ECG",
+          "latency_ms": 7374.288670020178,
+          "error": null
+        },
+        {
+          "question_id": "bench_c_other_8b8b78a5",
+          "category": "other",
+          "correct": false,
+          "score": 0.775,
+          "predicted_answer": "Based on the provided evidence, **there is no weight value documented** for this patient. The clinical documents and graph evidence do not contain any weight measurements.\n\nThe evidence shows this pat",
+          "expected_answer": "The patient's weight should be retrieved from the clinical record and interpreted in clinical context.",
+          "latency_ms": 5310.679086018354,
+          "error": null
+        },
+        {
+          "question_id": "bench_d_vital_note_35f64cbf",
+          "category": "vital_note",
+          "correct": false,
+          "score": 0.81,
+          "predicted_answer": "Based on the evidence provided, I cannot adequately answer this question. \n\nThe evidence shows that Patient MIMIC-10001401 has current conditions of **sepsis** and **hypothyroidism**, and has a sodium",
+          "expected_answer": "Multi-source analysis required. Patient has 22 Vital Signs mentions and 64 Hospital Course mentions that need to be compared and integrated.",
+          "latency_ms": 5323.411210963968,
+          "error": null
+        },
+        {
+          "question_id": "bench_d_vital_note_8205d0e8",
+          "category": "vital_note",
+          "correct": false,
+          "score": 0.715,
+          "predicted_answer": "Based on the evidence provided, I cannot answer this question. The documents and graph evidence do not include any vital signs data (such as blood pressure, heart rate, temperature, respiratory rate, ",
+          "expected_answer": "Multi-source analysis required. Patient has 2 Vital Signs mentions and 48 Hospital Course mentions that need to be compared and integrated.",
+          "latency_ms": 3510.8246270101517,
+          "error": null
+        },
+        {
+          "question_id": "bench_d_vital_note_6ec0257c",
+          "category": "vital_note",
+          "correct": false,
+          "score": 0.81,
+          "predicted_answer": "Based on the provided evidence, I cannot answer this question adequately. The evidence shows the patient has current conditions including edema, hyperlipidemia, and DJD (degenerative joint disease), a",
+          "expected_answer": "Multi-source analysis required. Patient has 63 Physical Exam mentions and 151 Hospital Course mentions that need to be compared and integrated.",
+          "latency_ms": 4299.338210024871,
+          "error": null
+        }
+      ]
+    },
+    "C4_epistemic_kg_rag": {
+      "label": "LLM + Epistemic KG-RAG",
+      "accuracy": 0.08333333333333333,
+      "total_questions": 12,
+      "correct": 1,
+      "category_accuracies": {
+        "negation": 0.0,
+        "conditional": 0.0,
+        "uncertainty": 0.0,
+        "sequence": 0.0,
+        "current_state": 0.0,
+        "wells_pe": 0.0,
+        "heart": 0.0,
+        "other": 1.0,
+        "vital_note": 0.0
+      },
+      "safety_score": -0.0784313725490196,
+      "avg_latency_ms": 4392.861519319315,
+      "config": {
+        "assertion_mode": "full",
+        "temporal_mode": "full_bitemporal",
+        "retrieval_mode": "graph_plus_doc",
+        "raw_note_only": false,
+        "calculator_enabled": false,
+        "guidelines_enabled": false
+      },
+      "per_question": [
+        {
+          "question_id": "bench_a_negation_f500d64e",
+          "category": "negation",
+          "correct": false,
+          "score": 0.45,
+          "predicted_answer": "Based on the provided evidence, I cannot answer this question. The evidence contains information about alcohol use history, family history of alcohol misuse, and gastrointestinal complaints (abdominal",
+          "expected_answer": "No. crackles is negated/absent in the clinical record. The Physical Exam section indicates the patient does not have this condition.",
+          "latency_ms": 3909.467459016014,
+          "error": null
+        },
+        {
+          "question_id": "bench_a_conditional_b9464ee7",
+          "category": "conditional",
+          "correct": false,
+          "score": 0.41,
+          "predicted_answer": "Based on the evidence, **yes, the patient needs management for HIV**. The clinical documents clearly indicate the patient has a past medical history (PMH) of \"HIV+\" as noted in the admission documenta",
+          "expected_answer": "HIV is conditional. The clinical note indicates management is contingent on specific conditions being met.",
+          "latency_ms": 4945.282001979649,
+          "error": null
+        },
+        {
+          "question_id": "bench_a_uncertainty_4d840683",
+          "category": "uncertainty",
+          "correct": false,
+          "score": 0.555,
+          "predicted_answer": "Based on the provided evidence, there is **no information about alcohol** in the patient's records. The documents focus on the patient's diabetic foot ulcer, coronary artery disease (CAD) with multipl",
+          "expected_answer": "Uncertain. alcohol is suspected but not confirmed. Further workup may be needed.",
+          "latency_ms": 4476.191293972079,
+          "error": null
+        },
+        {
+          "question_id": "bench_b_seq_2fc0d0e1",
+          "category": "sequence",
+          "correct": false,
+          "score": 0.375,
+          "predicted_answer": "Based on the provided evidence, I cannot determine the order in which osteomyelitis and vomiting were identified. The evidence contains information about alcohol-related findings and two clinical docu",
+          "expected_answer": "osteomyelitis was identified first, followed by vomiting.",
+          "latency_ms": 4900.726293970365,
+          "error": null
+        },
+        {
+          "question_id": "bench_b_current_state_5e677ee6",
+          "category": "current_state",
+          "correct": false,
+          "score": 0.375,
+          "predicted_answer": "Based on the provided evidence, there is no mention of osteoarthritis. The documents focus on the patient's abdominal pain, partial bowel obstruction, and related surgical procedures. **I cannot deter",
+          "expected_answer": "Yes. osteoarthritis is documented as a current/active problem.",
+          "latency_ms": 2597.3173759994097,
+          "error": null
+        },
+        {
+          "question_id": "bench_b_current_state_57ee4127",
+          "category": "current_state",
+          "correct": false,
+          "score": 0.375,
+          "predicted_answer": "Based on the provided evidence, there is no information about the patient's current status for bibasilar crackles. The documents contain admission/discharge summaries mentioning the patient's history ",
+          "expected_answer": "bibasilar crackles is currently active/present as of the most recent admission.",
+          "latency_ms": 3693.4340429725125,
+          "error": null
+        },
+        {
+          "question_id": "bench_c_wells_pe_1295fa2d",
+          "category": "wells_pe",
+          "correct": false,
+          "score": 0.69,
+          "predicted_answer": "Based on the provided evidence, I cannot calculate a Wells score for pulmonary embolism for this patient. The evidence does not contain the clinical data needed to calculate a Wells score, which requi",
+          "expected_answer": "Based on the patient's clinical features: Relevant findings: Tachycardia, tachycardia. Sections: History of Present Illness, Hospital Course, Imaging.. The Wells PE score is computed from clinical sig",
+          "latency_ms": 4517.889544018544,
+          "error": null
+        },
+        {
+          "question_id": "bench_c_heart_739fb8d1",
+          "category": "heart",
+          "correct": false,
+          "score": 0.845,
+          "predicted_answer": "Based on the provided evidence, I cannot calculate a HEART score for this patient. The HEART score requires five specific components:\n\n1. **History** - characteristics of chest pain\n2. **ECG** - findi",
+          "expected_answer": "Based on the patient's data: Relevant findings: BRONCHOALVEOLAR LAVAGE, chest pain. Sections: History of Present Illness, Review of Systems, Labs.. The HEART score should be computed from History, ECG",
+          "latency_ms": 6006.277877953835,
+          "error": null
+        },
+        {
+          "question_id": "bench_c_other_8b8b78a5",
+          "category": "other",
+          "correct": true,
+          "score": 0.825,
+          "predicted_answer": "Based on the provided evidence, **there is no weight value documented** for this patient. The evidence contains information about the patient's medications (furosemide/brand names), cardiac history (c",
+          "expected_answer": "The patient's weight should be retrieved from the clinical record and interpreted in clinical context.",
+          "latency_ms": 4341.270669014193,
+          "error": null
+        },
+        {
+          "question_id": "bench_d_vital_note_35f64cbf",
+          "category": "vital_note",
+          "correct": false,
+          "score": 0.835,
+          "predicted_answer": "Based on the evidence provided, I cannot adequately answer this question. The evidence shows:\n\n1. **Current conditions**: The patient has sepsis and hypothyroidism (from graph evidence)\n2. **Measureme",
+          "expected_answer": "Multi-source analysis required. Patient has 22 Vital Signs mentions and 64 Hospital Course mentions that need to be compared and integrated.",
+          "latency_ms": 4680.222751980182,
+          "error": null
+        },
+        {
+          "question_id": "bench_d_vital_note_8205d0e8",
+          "category": "vital_note",
+          "correct": false,
+          "score": 0.74,
+          "predicted_answer": "Based on the provided evidence, I cannot answer this question. The evidence includes:\n\n1. **Graph evidence** showing current medications (cefepime, metoprolol succinate, warfarin)\n2. **Document contex",
+          "expected_answer": "Multi-source analysis required. Patient has 2 Vital Signs mentions and 48 Hospital Course mentions that need to be compared and integrated.",
+          "latency_ms": 4455.059544008691,
+          "error": null
+        },
+        {
+          "question_id": "bench_d_vital_note_6ec0257c",
+          "category": "vital_note",
+          "correct": false,
+          "score": 0.835,
+          "predicted_answer": "Based on the provided evidence, I cannot adequately answer this question. The evidence shows the patient has current conditions including edema, hyperlipidemia, and DJD (degenerative joint disease), a",
+          "expected_answer": "Multi-source analysis required. Patient has 63 Physical Exam mentions and 151 Hospital Course mentions that need to be compared and integrated.",
+          "latency_ms": 4191.199376946315,
+          "error": null
+        }
+      ]
+    },
+    "C5_full_system": {
+      "label": "Full System",
+      "accuracy": 0.0,
+      "total_questions": 12,
+      "correct": 0,
+      "category_accuracies": {
+        "negation": 0.0,
+        "conditional": 0.0,
+        "uncertainty": 0.0,
+        "sequence": 0.0,
+        "current_state": 0.0,
+        "wells_pe": 0.0,
+        "heart": 0.0,
+        "other": 0.0,
+        "vital_note": 0.0
+      },
+      "safety_score": -0.1568627450980392,
+      "avg_latency_ms": 5360.1160368367955,
+      "config": {
+        "assertion_mode": "full",
+        "temporal_mode": "full_bitemporal",
+        "retrieval_mode": "graph_plus_doc_plus_guidelines",
+        "raw_note_only": false,
+        "calculator_enabled": true,
+        "guidelines_enabled": true
+      },
+      "per_question": [
+        {
+          "question_id": "bench_a_negation_f500d64e",
+          "category": "negation",
+          "correct": false,
+          "score": 0.45,
+          "predicted_answer": "Based on the provided evidence, I cannot answer whether the patient has crackles. The evidence contains information about alcohol use history (showing the patient does NOT misuse alcohol, but has fami",
+          "expected_answer": "No. crackles is negated/absent in the clinical record. The Physical Exam section indicates the patient does not have this condition.",
+          "latency_ms": 10687.485503964126,
+          "error": null
+        },
+        {
+          "question_id": "bench_a_conditional_b9464ee7",
+          "category": "conditional",
+          "correct": false,
+          "score": 0.405,
+          "predicted_answer": "Based on the evidence, **yes, the patient needs management for HIV**.\n\nThe clinical documents confirm the patient is **HIV+** (documented in the medical history). According to the IDSA HIV Treatment G",
+          "expected_answer": "HIV is conditional. The clinical note indicates management is contingent on specific conditions being met.",
+          "latency_ms": 5641.559336043429,
+          "error": null
+        },
+        {
+          "question_id": "bench_a_uncertainty_4d840683",
+          "category": "uncertainty",
+          "correct": false,
+          "score": 0.615,
+          "predicted_answer": "Based on the provided evidence, I cannot determine any diagnostic certainty for alcohol use or alcohol-related conditions in this patient. \n\nThe evidence shows:\n- **Graph evidence**: Only contains inf",
+          "expected_answer": "Uncertain. alcohol is suspected but not confirmed. Further workup may be needed.",
+          "latency_ms": 4903.377834998537,
+          "error": null
+        },
+        {
+          "question_id": "bench_b_seq_2fc0d0e1",
+          "category": "sequence",
+          "correct": false,
+          "score": 0.425,
+          "predicted_answer": "Based on the provided evidence, I cannot determine the order in which osteomyelitis and vomiting were identified. The clinical documents mention conditions like septic arthritis, foot cellulitis, and ",
+          "expected_answer": "osteomyelitis was identified first, followed by vomiting.",
+          "latency_ms": 3485.747583967168,
+          "error": null
+        },
+        {
+          "question_id": "bench_b_current_state_5e677ee6",
+          "category": "current_state",
+          "correct": false,
+          "score": 0.325,
+          "predicted_answer": "Based on the provided evidence, I cannot determine whether osteoarthritis is an active problem for this patient. The clinical documents describe a male patient hospitalized for abdominal pain and part",
+          "expected_answer": "Yes. osteoarthritis is documented as a current/active problem.",
+          "latency_ms": 5184.3714190181345,
+          "error": null
+        },
+        {
+          "question_id": "bench_b_current_state_57ee4127",
+          "category": "current_state",
+          "correct": false,
+          "score": 0.375,
+          "predicted_answer": "Based on the provided evidence, there is no information about the patient's current status for bibasilar crackles. The documents contain admission/discharge summaries mentioning the patient's history ",
+          "expected_answer": "bibasilar crackles is currently active/present as of the most recent admission.",
+          "latency_ms": 3497.5400010007434,
+          "error": null
+        },
+        {
+          "question_id": "bench_c_wells_pe_1295fa2d",
+          "category": "wells_pe",
+          "correct": false,
+          "score": 0.715,
+          "predicted_answer": "Based on the provided evidence, **I cannot calculate this patient's Wells score for pulmonary embolism** because the clinical documentation does not include the specific components needed for the Well",
+          "expected_answer": "Based on the patient's clinical features: Relevant findings: Tachycardia, tachycardia. Sections: History of Present Illness, Hospital Course, Imaging.. The Wells PE score is computed from clinical sig",
+          "latency_ms": 5561.9118780014105,
+          "error": null
+        },
+        {
+          "question_id": "bench_c_heart_739fb8d1",
+          "category": "heart",
+          "correct": false,
+          "score": 0.81,
+          "predicted_answer": "Based on the provided evidence, I cannot calculate this patient's HEART score. The HEART score requires five specific components:\n\n1. **History** - characteristics of chest pain\n2. **ECG** - findings\n",
+          "expected_answer": "Based on the patient's data: Relevant findings: BRONCHOALVEOLAR LAVAGE, chest pain. Sections: History of Present Illness, Review of Systems, Labs.. The HEART score should be computed from History, ECG",
+          "latency_ms": 5568.984211015049,
+          "error": null
+        },
+        {
+          "question_id": "bench_c_other_8b8b78a5",
+          "category": "other",
+          "correct": false,
+          "score": 0.825,
+          "predicted_answer": "Based on the provided evidence, **I cannot determine this patient's weight value**. The clinical documents mention the patient has a history of coronary artery disease, heart failure, hypertension, an",
+          "expected_answer": "The patient's weight should be retrieved from the clinical record and interpreted in clinical context.",
+          "latency_ms": 5532.338294025976,
+          "error": null
+        },
+        {
+          "question_id": "bench_d_vital_note_35f64cbf",
+          "category": "vital_note",
+          "correct": false,
+          "score": 0.81,
+          "predicted_answer": "Based on the evidence provided, I cannot adequately answer this question. The evidence shows:\n\n1. **Current conditions**: The patient has sepsis and hypothyroidism (from graph evidence)\n2. **Available",
+          "expected_answer": "Multi-source analysis required. Patient has 22 Vital Signs mentions and 64 Hospital Course mentions that need to be compared and integrated.",
+          "latency_ms": 4958.983584016096,
+          "error": null
+        },
+        {
+          "question_id": "bench_d_vital_note_8205d0e8",
+          "category": "vital_note",
+          "correct": false,
+          "score": 0.74,
+          "predicted_answer": "Based on the provided evidence, I cannot answer this question. The evidence includes:\n\n1. **Graph evidence** showing current medications (cefepime, metoprolol succinate, warfarin)\n2. **Document contex",
+          "expected_answer": "Multi-source analysis required. Patient has 2 Vital Signs mentions and 48 Hospital Course mentions that need to be compared and integrated.",
+          "latency_ms": 4579.663627024274,
+          "error": null
+        },
+        {
+          "question_id": "bench_d_vital_note_6ec0257c",
+          "category": "vital_note",
+          "correct": false,
+          "score": 0.775,
+          "predicted_answer": "Based on the provided evidence, I cannot adequately answer this question. The evidence shows the patient has current conditions including edema, hyperlipidemia, and DJD (degenerative joint disease), a",
+          "expected_answer": "Multi-source analysis required. Patient has 63 Physical Exam mentions and 151 Hospital Course mentions that need to be compared and integrated.",
+          "latency_ms": 4719.429168966599,
+          "error": null
+        }
+      ]
+    }
+  }
+}
