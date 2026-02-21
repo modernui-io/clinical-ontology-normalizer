@@ -79,7 +79,7 @@ class LLMConfig:
     model: str = "claude-opus-4-6"
     max_tokens: int = 4096
     temperature: float = 0.3
-    timeout_seconds: int = 60
+    timeout_seconds: int = 180
 
     # Rate limiting
     requests_per_minute: int = 60
