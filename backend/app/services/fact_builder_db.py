@@ -162,7 +162,7 @@ class DatabaseFactBuilderService(BaseFactBuilderService):
             .where(ClinicalFact.experiencer == fact_input.experiencer)
         )
         result = self._session.execute(stmt)
-        existing = result.scalar_one_or_none()
+        existing = result.scalars().first()
 
         if existing:
             fact_id = UUID(existing.id)

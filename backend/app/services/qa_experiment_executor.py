@@ -95,7 +95,7 @@ class QARunConfig:
     llm_model: str = "claude-sonnet-4-5-20250929"
     llm_provider: str = "anthropic"  # "anthropic", "openai", or "ollama"
     ollama_base_url: str = "http://localhost:11434"
-    max_hops: int = 3
+    max_hops: int = 2
     max_paths: int = 10
     # NeurIPS ablation extensions
     raw_note_only: bool = False  # C1: bypass RAG, send raw note text to LLM
