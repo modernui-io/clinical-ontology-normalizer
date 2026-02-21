@@ -147,8 +147,8 @@ services:
       DATABASE_SSL_MODE: disable
       # LLM Configuration for Q&A Agent
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-      LLM_PROVIDER: ollama
-      LLM_MODEL: ${LLM_MODEL:-qwen3:latest}
+      LLM_PROVIDER: ${LLM_PROVIDER:-anthropic}
+      LLM_MODEL: ${LLM_MODEL:-claude-opus-4-6}
       OLLAMA_BASE_URL: http://host.docker.internal:11434
     ports:
       - "8080:8000"
