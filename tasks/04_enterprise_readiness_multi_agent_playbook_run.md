@@ -3,7 +3,7 @@
 Run metadata
 - Run ID: `enterprise-readiness-openehr-pilot-v1`
 - Started: `2026-02-13`
-- Last Updated: `2026-02-18`
+- Last Updated: `2026-02-21`
 - Mode: implementation (non-blocking handoff + execution)
 - Region context: Ramsey Health Australia
 - Canonical target model: OpenEHR
@@ -12,8 +12,8 @@ Run metadata
 ```yaml
 run_id: enterprise-readiness-openehr-pilot-v1
 phase: implementation
-status: in_progress
-current_stage: sprint_1_execution
+status: sprint_1_closed
+current_stage: sprint_1_closed
 completed_roles:
   - cto
   - ciso
@@ -224,6 +224,7 @@ next_required_artifacts:
 - 2026-02-17: **Staging provisioning checklist published.** 5-phase runbook covering infrastructure provisioning, secrets/config, deployment, 5 staging drill procedures (OpenEHR round-trip, Redis failover, Neo4j restore, cascade simulation, 30-day signoff review), and post-staging validation. Evidence targets: `docs/evidence/staging/`. Estimated drill duration: ~3 hours sequential. Execution board staging blockers table updated with checklist cross-references. Artifact: `docs/operations/staging_provisioning_checklist.md`. Operator: autonomous-agent.
 - 2026-02-19: Fixed 6 MIMIC API test failures in `test_mimic_api.py` (URL prefix + MimicIngestionService mock). Root cause: tests used bare paths (`/documents/mimic/*`) but production routes registered under `/api/v1`. Added `API_PREFIX` constant, mocked metrics endpoint DB dependency, added route registration regression test. 8/8 MIMIC tests pass. KG invariants verified: 42 router, 64 RAG, 42 maturity tests green. Broad suite: 42,962 passed, 22 pre-existing failures, 0 regressions. Operator: autonomous-agent.
 - 2026-02-21: **Clean baseline verification.** Legacy triage session initiated to fix 22 pre-existing failures referenced in prior run. Full suite result: **43,000 passed, 0 failures**, 11 skipped, 3 xfailed. All 22 failures resolved by prior commits (778570b and earlier). Key invariants verified independently: test_graph_augmented_rag.py 64/64 PASS, test_neo4j_query_router.py 42/42 PASS, test_api_maturity_labeling.py 42/42 PASS. No legacy regressions remain. No code changes required. Operator: autonomous-agent.
+- 2026-02-21: **Sprint 1 formal closure.** Verification results: backend 43,005 pass / 0 fail / 11 skip / 3 xfail; frontend build PASS (185 pages); frontend lint PASS (0 errors). Evidence audit: 143/143 paths verified, 0 broken. Sprint 2-6 reconciliation: 191/191 subtasks superseded by parent closure (P0: 28/28, P1: 35/35, P2: 30/30, P3: 25/25 all closed). Sprint 1 exit gate: PASS. Phase updated to `sprint_1_closed`. Staging remains `blocked_by_infrastructure` (5 conditions). Operator: autonomous-agent.
 - 2026-02-18: KG/Research extension completed in-code: PG-native graph query path added in `backend/app/services/neo4j_query_router.py` + graph augmentation updates in `backend/app/services/graph_augmented_rag.py`; multi-source ingestion stack added for MIMIC/MTSamples/Synthea/research (`backend/app/api/documents/documents_*.py`, `backend/app/jobs/*`, `backend/app/services/*_ingestion.py`, `backend/app/api/research.py`, `backend/app/services/experiment_runner.py`). Tests added/updated: `backend/tests/test_graph_augmented_rag.py`, `backend/tests/test_neo4j_query_router.py`, `backend/tests/test_mimic_api.py`, `backend/tests/test_research_api.py`, `backend/tests/test_research_service.py`, `backend/tests/test_mimic_ingestion.py`. Frontend routes updated under `frontend/src/app/{mimic,datasets,research}`.
 
 ### Final Closure — ROL-08 + ROL-09 (2026-02-17)

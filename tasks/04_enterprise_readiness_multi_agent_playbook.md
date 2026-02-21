@@ -21,10 +21,10 @@ run_id: enterprise-readiness-openehr-pilot-v1
 goal: production-readiness_assessment
 phase: 4
 status: in_progress
-current_stage: sprint_1_execution
+current_stage: sprint_1_closed
 started_utc: "2026-02-13T00:00:00Z"
-last_updated_utc: "2026-02-14T12:00:00Z"
-next_stage: sprint_1_p0_closure
+last_updated_utc: "2026-02-21T22:00:00Z"
+next_stage: staging_provisioning
 completed_roles:
   - cto
   - ciso

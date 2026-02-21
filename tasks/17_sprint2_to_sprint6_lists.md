@@ -3,7 +3,24 @@
 Source
 - `tasks/09_master_change_backlog_p0_p4.md`
 
-## Sprint-2
+## Reconciliation Status (2026-02-21)
+
+All Sprint 2-6 subtasks are **SUPERSEDED** — parent items in the master backlog were closed ahead of schedule during Sprint 1 execution.
+
+| Sprint | Subtask Count | Superseded | Remaining | Notes |
+|--------|--------------|------------|-----------|-------|
+| Sprint 2 | 17 | 17 | 0 | P0-001..P0-017 parents closed |
+| Sprint 3 | 39 | 39 | 0 | P0-001..P0-028 parents closed |
+| Sprint 4 | 47 | 47 | 0 | P1-001..P1-035 parents closed |
+| Sprint 5 | 58 | 58 | 0 | P1-001..P1-035 parents closed |
+| Sprint 6 | 30 | 30 | 0 | P2-001..P2-030 parents closed |
+| **Total** | **191** | **191** | **0** | |
+
+**Remaining work**: Staging infrastructure provisioning (5 conditions from P0-028 signoff). No sprint subtask execution required.
+
+---
+
+## Sprint-2 — SUPERSEDED (all 17 parent items closed)
 - Task count: 17
 
 1. P0-001-B | Owner: `CTO + Ops` | Due: `2026-03-13` | Fail closed in readiness when Neo4j is unavailable.
@@ -24,7 +41,7 @@ Source
 16. P0-016-B | Owner: `CISO + Platform` | Due: `2026-03-13` | Enforce tenant/org boundary checks at query boundaries.
 17. P0-017-B | Owner: `CISO + Clinical AI` | Due: `2026-03-13` | Add explicit policy gate for external model routes handling PHI.
 
-## Sprint-3
+## Sprint-3 — SUPERSEDED (all 39 parent items closed)
 - Task count: 39
 
 1. P0-001-C | Owner: `CTO + Ops` | Due: `2026-03-27` | Fail closed in readiness when Neo4j is unavailable.
@@ -67,7 +84,7 @@ Source
 38. P0-028-B | Owner: `Program Lead` | Due: `2026-03-27` | Produce final pre-pilot signoff matrix (CTO/CISO/CIO/Clinical AI/Product/Ops).
 39. P0-028-C | Owner: `Program Lead` | Due: `2026-03-27` | Produce final pre-pilot signoff matrix (CTO/CISO/CIO/Clinical AI/Product/Ops).
 
-## Sprint-4
+## Sprint-4 — SUPERSEDED (all 47 parent items closed)
 - Task count: 47
 
 1. P1-001-A | Owner: `Clinical AI` | Due: `2026-04-10` | Replace heuristic confidence assembly with tiered evidence-weighted scoring.
@@ -118,7 +135,7 @@ Source
 46. P1-034-A | Owner: `CISO + Legal` | Due: `2026-04-10` | Add legal/provider contract gate for any external LLM with PHI exposure potential.
 47. P1-035-A | Owner: `CTO + Ops` | Due: `2026-04-10` | Add immutable release checklist tying deployment SHA to safety checks.
 
-## Sprint-5
+## Sprint-5 — SUPERSEDED (all 58 parent items closed)
 - Task count: 58
 
 1. P1-001-C | Owner: `Clinical AI` | Due: `2026-04-24` | Replace heuristic confidence assembly with tiered evidence-weighted scoring.
@@ -180,7 +197,7 @@ Source
 57. P1-035-B | Owner: `CTO + Ops` | Due: `2026-04-24` | Add immutable release checklist tying deployment SHA to safety checks.
 58. P1-035-C | Owner: `CTO + Ops` | Due: `2026-04-24` | Add immutable release checklist tying deployment SHA to safety checks.
 
-## Sprint-6
+## Sprint-6 — SUPERSEDED (all 30 parent items closed)
 - Task count: 30
 
 1. P2-001-A | Owner: `QA + CTO` | Due: `2026-05-08` | Add integration tests with real Neo4j + PostgreSQL for KG/QA pathways.

@@ -31,7 +31,21 @@ Commitments
 Exit gate
 - Zero unresolved acceptance ambiguities for P0 scope.
 
-## Sprint 2 (2026-03-02 to 2026-03-13)
+### Sprint 1 Exit Gate Record (2026-02-21)
+| Criterion | Result |
+|-----------|--------|
+| Planned IDs | P0-001..P0-028 (28 items) |
+| Completed IDs | P0-001..P0-028 (28/28 — 100%) |
+| Slipped IDs | None |
+| Blockers | BLK-01..BLK-04 all CLOSED |
+| Risk acceptance | 5 staging conditions documented in P0-028 signoff |
+| Decision posture | `conditional_go` (pilot), `blocked_by_infrastructure` (staging), `hold` (broad rollout) |
+| Test baseline | 43,005 passed, 0 failed |
+| Evidence integrity | 143/143 paths verified |
+
+**Note**: Sprint 1 completed ahead of schedule. All P0 items closed by 2026-02-19. P1 (35/35), P2 (30/30), P3 (25/25), and P4 plans also completed. Sprint 2-6 subtasks (191 total) are superseded by parent item closure. Remaining work is staging infrastructure provisioning.
+
+## Sprint 2 (2026-03-02 to 2026-03-13) — SUPERSEDED
 
 Theme
 - P0 core implementation batch A (dependency safety + security defaults)
@@ -48,7 +62,7 @@ Commitments
 Exit gate
 - Batch A controls verified in pre-prod environment.
 
-## Sprint 3 (2026-03-16 to 2026-03-27)
+## Sprint 3 (2026-03-16 to 2026-03-27) — SUPERSEDED
 
 Theme
 - P0 core implementation batch B (clinical AI safety + product gating + ops drills)
@@ -67,7 +81,7 @@ Commitments
 Exit gate
 - P0 closure review passed or signed bounded exceptions recorded.
 
-## Sprint 4 (2026-03-30 to 2026-04-10)
+## Sprint 4 (2026-03-30 to 2026-04-10) — SUPERSEDED
 
 Theme
 - P1 safety batch A (confidence model, provenance integrity, evidence fields)
@@ -84,7 +98,7 @@ Commitments
 Exit gate
 - High-risk workflows pass confidence/evidence acceptance suite.
 
-## Sprint 5 (2026-04-13 to 2026-04-24)
+## Sprint 5 (2026-04-13 to 2026-04-24) — SUPERSEDED
 
 Theme
 - P1 safety batch B (operations governance, OpenEHR replay, compliance controls)
@@ -102,7 +116,7 @@ Commitments
 Exit gate
 - P1 closure posture declared with evidence packet.
 
-## Sprint 6 (2026-04-27 to 2026-05-08)
+## Sprint 6 (2026-04-27 to 2026-05-08) — SUPERSEDED
 
 Theme
 - Transition sprint into P2 scale gate
