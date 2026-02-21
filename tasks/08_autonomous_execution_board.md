@@ -146,6 +146,7 @@ The following 5 P4 items have approved ADR decisions (DEFER / CONDITIONAL DEFER)
 | P4-020-D | done | `docs/decisions/p4-020-evidence-indexed-docs.md` | EvidenceEntry schema + 3-click navigation target |
 
 ## Current posture
+- Test baseline as of `2026-02-21`: `clean` (43,000 passed, 0 failures, 11 skipped, 3 xfailed. All 22 pre-existing failures from 2026-02-19 snapshot resolved. Key invariants: RAG 64/64, router 42/42, maturity 42/42.)
 - Pilot posture as of `2026-02-17`: `conditional_go` (ALL 28 P0 items closed with evidence. Signoff: CONDITIONAL GO with 5 staging conditions. P1: all 35 closed. ROL-08/ROL-09 re-validated: 79 tests (72 pass + 7 skip), lint clean, 4/4 evidence audit PASS.)
 - Staging posture as of `2026-02-16`: `blocked_by_infrastructure` (5 conditions require staging provisioning — no gate marked final GO)
 - Broad rollout posture as of `2026-02-16`: `hold` (staging confirmation required for OpenEHR round-trip, Redis failover, Neo4j restore, and cascade simulation)
