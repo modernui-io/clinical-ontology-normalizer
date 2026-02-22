@@ -5,7 +5,8 @@ from __future__ import annotations
 import pytest
 
 from app.services.qa_experiment_executor import (
-    CLINICAL_QA_SYSTEM_PROMPT,
+    CLINICAL_QA_SYSTEM_PROMPT_BASE,
+    CLINICAL_QA_SYSTEM_PROMPT_EPISTEMIC,
     QAExperimentExecutor,
     QARunConfig,
     print_ablation_table,
@@ -72,17 +73,20 @@ class TestQARunConfig:
 
 
 class TestSystemPrompt:
-    def test_system_prompt_covers_assertion_types(self):
-        prompt = CLINICAL_QA_SYSTEM_PROMPT
+    def test_epistemic_prompt_covers_assertion_types(self):
+        prompt = CLINICAL_QA_SYSTEM_PROMPT_EPISTEMIC
         assert "NEGATED" in prompt
-        assert "UNCERTAINTY" in prompt
+        assert "UNCERTAIN" in prompt
         assert "FAMILY HISTORY" in prompt
         assert "HISTORICAL" in prompt
         assert "CONDITIONAL" in prompt
 
-    def test_system_prompt_covers_temporal(self):
-        assert "temporal" in CLINICAL_QA_SYSTEM_PROMPT.lower()
-        assert "most recent" in CLINICAL_QA_SYSTEM_PROMPT.lower()
+    def test_epistemic_prompt_covers_temporal(self):
+        assert "temporal" in CLINICAL_QA_SYSTEM_PROMPT_EPISTEMIC.lower()
+
+    def test_base_prompt_is_concise(self):
+        assert "evidence" in CLINICAL_QA_SYSTEM_PROMPT_BASE.lower()
+        assert len(CLINICAL_QA_SYSTEM_PROMPT_BASE) < len(CLINICAL_QA_SYSTEM_PROMPT_EPISTEMIC)
 
 
 class TestExecutorInit:
