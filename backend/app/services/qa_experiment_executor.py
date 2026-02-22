@@ -18,6 +18,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import re
 import time
 from dataclasses import dataclass, field
 
@@ -92,6 +93,21 @@ def _get_system_prompt(assertion_mode: str) -> str:
 # ============================================================================
 
 
+# Keywords indicating a question is about calculable clinical scores
+_CALCULATOR_KEYWORDS = re.compile(
+    r"\b(score|risk|calculate|calculator|wells|heart\s+score|cha2ds2|chads|"
+    r"has-bled|hasbled|meld|child-pugh|apache|sofa|curb-65|ascvd|"
+    r"framingham|gfr|ckd-epi|mdrd|bmi|corrected\s+calcium|anion\s+gap|"
+    r"glasgow|nihss|timi|grace)\b",
+    re.IGNORECASE,
+)
+
+
+def _is_calculator_question(question: str) -> bool:
+    """Return True if the question is about a calculable clinical score."""
+    return bool(_CALCULATOR_KEYWORDS.search(question))
+
+
 @dataclass
 class QARunConfig:
     """Configuration for a QA experiment run.
@@ -120,6 +136,8 @@ class QARunConfig:
     calculator_enabled: bool = False  # C5: run clinical calculators on KG data
     guidelines_enabled: bool = False  # C5: include guideline retrieval
     use_llm_judge: bool = False  # Use LLM judge for scoring instead of keyword matching
+    # Reproducibility
+    random_seed: int = 42
 
 
 # ============================================================================
@@ -132,7 +150,8 @@ async def _call_ollama(
     system_prompt: str,
     model: str,
     base_url: str = "http://localhost:11434",
-    temperature: float = 0.1,
+    temperature: float = 0.0,
+    seed: int = 42,
 ) -> LLMResponse:
     """Call a local Ollama model.
 
@@ -141,7 +160,8 @@ async def _call_ollama(
         system_prompt: System prompt.
         model: Ollama model name (e.g., "alibayram/medgemma:27b").
         base_url: Ollama server URL.
-        temperature: Sampling temperature.
+        temperature: Sampling temperature (0.0 for deterministic).
+        seed: Random seed for reproducibility.
 
     Returns:
         LLMResponse with generated content.
@@ -157,6 +177,7 @@ async def _call_ollama(
         "stream": False,
         "options": {
             "temperature": temperature,
+            "seed": seed,
             "num_predict": 512,
         },
     }
@@ -263,20 +284,29 @@ class QAExperimentExecutor:
                 # Step 2: Build LLM prompt
                 evidence = context.to_llm_prompt(assertion_mode=config.assertion_mode)
 
-                # C5: Append calculator results if enabled
+                # C5: Conditionally inject calculator results (only for calculator questions)
                 calculator_context = ""
-                if config.calculator_enabled:
+                if config.calculator_enabled and _is_calculator_question(question.question):
                     calculator_context = self._get_calculator_context(
                         effective_patient_id, question.question,
                     )
-                    if calculator_context:
-                        evidence += f"\n\n=== Calculator Results ===\n{calculator_context}"
 
-                user_prompt = (
-                    f"Patient evidence:\n{evidence}\n\n"
-                    f"Question: {question.question}\n\n"
-                    f"Answer concisely based on the evidence above."
-                )
+                if calculator_context:
+                    # Structured prompt: calculator results as supplementary context AFTER question
+                    user_prompt = (
+                        f"Patient evidence:\n{evidence}\n\n"
+                        f"Question: {question.question}\n\n"
+                        f"Answer concisely based on the evidence above.\n\n"
+                        f"--- Supplementary: Calculator Results ---\n"
+                        f"{calculator_context}\n"
+                        f"Use these calculator results only if directly relevant to the question."
+                    )
+                else:
+                    user_prompt = (
+                        f"Patient evidence:\n{evidence}\n\n"
+                        f"Question: {question.question}\n\n"
+                        f"Answer concisely based on the evidence above."
+                    )
                 evidence_pieces = context.total_evidence_pieces
                 graph_path_count = len(context.graph_paths)
 
@@ -288,13 +318,15 @@ class QAExperimentExecutor:
                     system_prompt=system_prompt,
                     model=config.llm_model,
                     base_url=config.ollama_base_url,
+                    temperature=0.0,
+                    seed=config.random_seed,
                 )
             else:
                 llm = get_llm_service(LLMConfig(
                     provider=LLMProvider(config.llm_provider),
                     model=config.llm_model,
                     max_tokens=512,
-                    temperature=0.1,
+                    temperature=0.0,
                 ))
                 response = await llm.generate(
                     prompt=user_prompt,
@@ -517,6 +549,7 @@ class QAExperimentExecutor:
                         "category": result.category,
                         "latency_ms": result.latency_ms,
                         "error": result.error,
+                        "random_seed": config.random_seed,
                     })
 
         # Build aggregate report

@@ -336,6 +336,42 @@ def main():
     print("=" * 70)
     print_latex_table(medqa, clinicalbench)
 
+    # Statistical analysis (CIs, McNemar, effect sizes)
+    print("\n" + "=" * 70)
+    print("STATISTICAL ANALYSIS")
+    print("=" * 70)
+
+    try:
+        from scripts.statistical_analysis import (
+            load_condition_results,
+            markdown_results_table,
+            latex_results_table,
+            per_category_stats,
+        )
+
+        cb_checkpoint_stat = os.path.join(RESULTS_DIR, "clinicalbench_checkpoint.jsonl")
+        if os.path.exists(cb_checkpoint_stat):
+            condition_results = load_condition_results(cb_checkpoint_stat)
+            if condition_results:
+                print("\n## ClinicalBench with Bootstrap CIs & Significance Tests\n")
+                print(markdown_results_table(condition_results))
+                print("\n### LaTeX (with CIs and p-values)\n")
+                print(latex_results_table(condition_results))
+
+                print("\n### Per-Category Breakdown with CIs\n")
+                cat_stats = per_category_stats(cb_checkpoint_stat)
+                for cond in sorted(cat_stats):
+                    print(f"\n  {cond}:")
+                    for cat, s in sorted(cat_stats[cond].items()):
+                        print(
+                            f"    {cat}: {s['accuracy']:.1%} "
+                            f"[{s['ci_lower']:.1%}, {s['ci_upper']:.1%}] (n={s['n']})"
+                        )
+        else:
+            print("\nNo checkpoint file for statistical analysis.")
+    except ImportError:
+        print("\nStatistical analysis module not available (run from backend/ directory).")
+
     print("\n" + "=" * 70)
     print("ANALYSIS COMPLETE")
     print("=" * 70)

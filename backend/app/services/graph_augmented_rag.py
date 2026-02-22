@@ -1298,8 +1298,8 @@ class GraphAugmentedRAGService:
                 query=query_text,
                 patient_conditions=patient_conditions or None,
                 patient_medications=patient_medications or None,
-                top_k=5,
-                min_score=0.3,
+                top_k=2,
+                min_score=0.5,
             )
 
             constraints: list[dict[str, Any]] = []
