@@ -253,9 +253,9 @@ class LongBenchCohortSelector:
 # Template questions by domain — used as seeds for LLM generation
 QUESTION_TEMPLATES: dict[QuestionDomain, list[str]] = {
     QuestionDomain.MEDICATION_RECONCILIATION: [
-        "What medications is this patient currently taking, and are there any potential interactions?",
-        "Has this patient's medication regimen changed over time? Describe the key changes.",
-        "Are there any medications that were started and then discontinued? Why?",
+        "What medications is this patient currently taking with dosages, what medications were changed during their care, and what were the documented reasons for each change?",
+        "Has this patient's medication regimen changed over time? For each change, cite the encounter and reason.",
+        "Are there any medications that were started and then discontinued? Cite specific encounters and reasons.",
     ],
     QuestionDomain.PROBLEM_LIST: [
         "Summarize this patient's active medical conditions and their current status.",
@@ -268,9 +268,9 @@ QUESTION_TEMPLATES: dict[QuestionDomain, list[str]] = {
         "What hereditary risk factors should be considered based on the family history?",
     ],
     QuestionDomain.TEMPORAL_REASONING: [
-        "How has this patient's primary condition evolved over time?",
-        "What is the chronological sequence of major clinical events?",
-        "Are there any conditions that were initially uncertain but later confirmed or ruled out?",
+        "Create a detailed timeline of this patient's clinical events across all encounters, citing specific dates and noting any changes in diagnosis status or treatment.",
+        "What is the chronological sequence of major clinical events with specific encounter dates?",
+        "Which conditions changed status (uncertain to confirmed, active to resolved) across encounters, and when did each change occur?",
     ],
     QuestionDomain.RISK_ASSESSMENT: [
         "What are the key risk factors for this patient based on all available data?",
@@ -529,27 +529,33 @@ def _medication_criteria(qid: str) -> list[LongBenchCriterion]:
     return [
         LongBenchCriterion(
             criterion_id=f"{qid}_c0",
-            text="Identifies specific medications the patient is taking from the clinical record",
-            criterion_type=CriterionType.SYNTHESIS,
+            text="Identifies specific medications WITH dosages from the clinical record",
+            criterion_type=CriterionType.MEDICATION,
             weight=CriterionWeight.CRITICAL,
         ),
         LongBenchCriterion(
             criterion_id=f"{qid}_c1",
-            text="Does not fabricate specific medications or dosages not documented in the record",
+            text="Does not fabricate medications, dosages, or medication changes not documented in the record",
             criterion_type=CriterionType.ASSERTION,
             weight=CriterionWeight.CRITICAL,
         ),
         LongBenchCriterion(
             criterion_id=f"{qid}_c2",
-            text="Identifies potential drug interactions or contraindications based on the medication list",
+            text="Identifies potential drug interactions or contraindications based on the ACTUAL medication list",
             criterion_type=CriterionType.CAUSAL,
             weight=CriterionWeight.IMPORTANT,
         ),
         LongBenchCriterion(
             criterion_id=f"{qid}_c3",
-            text="Distinguishes current medications from previously discontinued ones",
+            text="Distinguishes current medications from discontinued ones with approximate dates or encounter references for changes",
             criterion_type=CriterionType.CHRONOLOGY,
-            weight=CriterionWeight.NICE,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c4",
+            text="Correctly attributes medication changes to specific encounters or clinical events that triggered the change",
+            criterion_type=CriterionType.CHRONOLOGY,
+            weight=CriterionWeight.IMPORTANT,
         ),
     ]
 
@@ -616,27 +622,33 @@ def _temporal_reasoning_criteria(qid: str) -> list[LongBenchCriterion]:
     return [
         LongBenchCriterion(
             criterion_id=f"{qid}_c0",
-            text="Describes how the patient's condition has changed over time using evidence from the record",
+            text="Cites specific dates or encounter references for at least 3 clinical events from the patient record",
             criterion_type=CriterionType.CHRONOLOGY,
             weight=CriterionWeight.CRITICAL,
         ),
         LongBenchCriterion(
             criterion_id=f"{qid}_c1",
-            text="Does not fabricate a clinical timeline or events not documented in the record",
-            criterion_type=CriterionType.ASSERTION,
+            text="Correctly identifies which encounter a key diagnosis or finding first appeared versus when it changed status",
+            criterion_type=CriterionType.CHRONOLOGY,
             weight=CriterionWeight.CRITICAL,
         ),
         LongBenchCriterion(
             criterion_id=f"{qid}_c2",
-            text="Correctly sequences clinical events in chronological order",
+            text="Does not misattribute clinical events to incorrect encounters or fabricate dates not in the record",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c3",
+            text="Identifies conditions whose status changed across encounters (uncertain to confirmed, active to resolved) with correct temporal ordering",
             criterion_type=CriterionType.CHRONOLOGY,
             weight=CriterionWeight.IMPORTANT,
         ),
         LongBenchCriterion(
-            criterion_id=f"{qid}_c3",
-            text="Identifies clinically significant trends or turning points in the patient's course",
-            criterion_type=CriterionType.SYNTHESIS,
-            weight=CriterionWeight.NICE,
+            criterion_id=f"{qid}_c4",
+            text="Distinguishes between findings documented in different encounters rather than conflating them into a single narrative",
+            criterion_type=CriterionType.CHRONOLOGY,
+            weight=CriterionWeight.IMPORTANT,
         ),
     ]
 

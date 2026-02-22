@@ -239,6 +239,52 @@ async def main(provider: str, model: str) -> None:
     print("\n--- Criterion Type Breakdown ---")
     print(ct_table)
 
+    # Bootstrap confidence intervals
+    print("\n--- Bootstrap 95% CIs (2000 resamples, seed=42) ---")
+    print(f"| Condition | Mean | 95% CI |")
+    print(f"|---|---|---|")
+    ci_data = {}
+    for cond in conditions:
+        mean, lo, hi = LongBenchAnalyzer.bootstrap_ci(report.results, cond)
+        label = f"{cond.value}"
+        ci_data[cond] = {"mean": mean, "ci_lower": lo, "ci_upper": hi}
+        print(f"| {label} | {mean:.1%} | [{lo:.1%}, {hi:.1%}] |")
+
+    # Paired condition deltas (B2→B3, B3→B4, B2→B4)
+    print("\n--- Paired Condition Deltas (bootstrap 95% CI) ---")
+    pairs = [
+        (ConditionID.B2, ConditionID.B3, "B2→B3 (KG layer)"),
+        (ConditionID.B3, ConditionID.B4, "B3→B4 (guidelines+calc)"),
+        (ConditionID.B2, ConditionID.B4, "B2→B4 (full uplift)"),
+        (ConditionID.B0, ConditionID.B2, "B0→B2 (RAG uplift)"),
+    ]
+    paired_data = {}
+    for cond_a, cond_b, label in pairs:
+        delta = LongBenchAnalyzer.compute_paired_deltas(
+            report.results, cond_a, cond_b,
+        )
+        paired_data[label] = delta
+        sig = "*" if delta["ci_lower"] > 0 or delta["ci_upper"] < 0 else "ns"
+        print(
+            f"  {label}: Δ={delta['mean_delta']:+.1%} "
+            f"CI=[{delta['ci_lower']:+.1%}, {delta['ci_upper']:+.1%}] "
+            f"n={delta['n_pairs']} {sig}"
+        )
+
+    # Criterion leakage check
+    print("\n--- Criterion Leakage Check (>50% word overlap) ---")
+    flagged = LongBenchAnalyzer.criterion_leakage_check(
+        report.results, cohort.questions,
+    )
+    if flagged:
+        for f in flagged:
+            print(
+                f"  ⚠ {f['condition']} | {f['question_id']} | {f['criterion_id']} "
+                f"| overlap={f['overlap']:.0%} | {f['criterion_text']}"
+            )
+    else:
+        print("  No leakage detected.")
+
     # Print per-result detail
     print("\n--- Per-Result Detail ---")
     for r in report.results:
@@ -254,9 +300,29 @@ async def main(provider: str, model: str) -> None:
     output_dir = "data/benchmarks/results/longbench_smoke"
     os.makedirs(output_dir, exist_ok=True)
 
+    # Add run metadata to report
+    report.metadata.update({
+        "llm_model": model,
+        "llm_provider": provider,
+        "judge_model": model,
+        "judge_provider": provider,
+        "llm_temperature": 0.0,
+        "judge_temperature": 0.0,
+        "bootstrap_seed": 42,
+        "n_bootstrap": 2000,
+        "section_aware_rag": True,
+    })
+
+    report_json = LongBenchAnalyzer.report_to_json(report)
+    report_json["bootstrap_cis"] = {
+        cond.value: ci_data[cond] for cond in conditions
+    }
+    report_json["paired_deltas"] = paired_data
+    report_json["criterion_leakage"] = flagged
+
     report_path = os.path.join(output_dir, "smoke_report.json")
     with open(report_path, "w") as f:
-        json.dump(LongBenchAnalyzer.report_to_json(report), f, indent=2, default=str)
+        json.dump(report_json, f, indent=2, default=str)
 
     cohort_path = os.path.join(output_dir, "smoke_cohort.json")
     with open(cohort_path, "w") as f:

@@ -16,6 +16,7 @@ import json
 import logging
 import math
 import os
+import random
 import time
 from dataclasses import dataclass
 from typing import Any
@@ -472,6 +473,15 @@ class LongBenchRunner:
                     entry = json.loads(line)
                     if entry.get("error"):
                         continue  # Retry errors
+                    # Restore criterion results if checkpointed
+                    cr_list = []
+                    for cr_entry in entry.get("criterion_results", []):
+                        cr_list.append(CriterionResult(
+                            criterion_id=cr_entry.get("criterion_id", ""),
+                            satisfied=bool(cr_entry.get("satisfied", False)),
+                            confidence=float(cr_entry.get("confidence", 0.5)),
+                            reasoning=cr_entry.get("reasoning", ""),
+                        ))
                     result = LongBenchResult(
                         question_id=entry["question_id"],
                         patient_id=entry["patient_id"],
@@ -479,6 +489,7 @@ class LongBenchRunner:
                         tier=LongitudinalTier(entry["tier"]),
                         domain=entry.get("domain", "problem_list"),
                         predicted_answer=entry.get("predicted_answer", ""),
+                        criterion_results=cr_list,
                         normalized_score=entry.get("normalized_score", 0.0),
                         raw_score=entry.get("raw_score", 0.0),
                         max_score=entry.get("max_score", 0.0),
@@ -522,6 +533,7 @@ class LongBenchRunner:
                     "criterion_id": cr.criterion_id,
                     "satisfied": cr.satisfied,
                     "confidence": cr.confidence,
+                    "reasoning": cr.reasoning[:200],
                 }
                 for cr in result.criterion_results
             ],
@@ -786,6 +798,132 @@ class LongBenchAnalyzer:
         return "\n".join(lines)
 
     @staticmethod
+    def bootstrap_ci(
+        results: list[LongBenchResult],
+        condition: ConditionID,
+        n_bootstrap: int = 2000,
+        ci: float = 0.95,
+        seed: int = 42,
+    ) -> tuple[float, float, float]:
+        """Compute bootstrap confidence interval for a condition's mean score.
+
+        Returns (mean, ci_lower, ci_upper).
+        """
+        scores = [
+            r.normalized_score
+            for r in results
+            if r.condition == condition and not r.error
+        ]
+        if not scores:
+            return (0.0, 0.0, 0.0)
+
+        rng = random.Random(seed)
+        n = len(scores)
+        means = []
+        for _ in range(n_bootstrap):
+            sample = [rng.choice(scores) for _ in range(n)]
+            means.append(sum(sample) / n)
+
+        means.sort()
+        alpha = (1 - ci) / 2
+        lo_idx = max(0, int(alpha * n_bootstrap))
+        hi_idx = min(n_bootstrap - 1, int((1 - alpha) * n_bootstrap))
+
+        return (sum(scores) / n, means[lo_idx], means[hi_idx])
+
+    @staticmethod
+    def compute_paired_deltas(
+        results: list[LongBenchResult],
+        condition_a: ConditionID,
+        condition_b: ConditionID,
+        n_bootstrap: int = 2000,
+        seed: int = 42,
+    ) -> dict[str, Any]:
+        """Compute paired per-question deltas between two conditions.
+
+        Returns mean delta, bootstrap CI, and per-question deltas.
+        condition_b - condition_a (positive = B improves over A).
+        """
+        scores_a = {
+            r.question_id: r.normalized_score
+            for r in results
+            if r.condition == condition_a and not r.error
+        }
+        scores_b = {
+            r.question_id: r.normalized_score
+            for r in results
+            if r.condition == condition_b and not r.error
+        }
+
+        common = sorted(set(scores_a.keys()) & set(scores_b.keys()))
+        if not common:
+            return {
+                "mean_delta": 0.0, "ci_lower": 0.0, "ci_upper": 0.0,
+                "n_pairs": 0, "per_question": {},
+            }
+
+        deltas = [scores_b[qid] - scores_a[qid] for qid in common]
+        mean_delta = sum(deltas) / len(deltas)
+
+        rng = random.Random(seed)
+        n = len(deltas)
+        boot_means = []
+        for _ in range(n_bootstrap):
+            sample = [rng.choice(deltas) for _ in range(n)]
+            boot_means.append(sum(sample) / n)
+
+        boot_means.sort()
+        lo = boot_means[max(0, int(0.025 * n_bootstrap))]
+        hi = boot_means[min(n_bootstrap - 1, int(0.975 * n_bootstrap))]
+
+        return {
+            "mean_delta": mean_delta,
+            "ci_lower": lo,
+            "ci_upper": hi,
+            "n_pairs": len(common),
+            "per_question": {qid: scores_b[qid] - scores_a[qid] for qid in common},
+        }
+
+    @staticmethod
+    def criterion_leakage_check(
+        results: list[LongBenchResult],
+        questions: list[LongBenchQuestion],
+        overlap_threshold: float = 0.5,
+    ) -> list[dict[str, Any]]:
+        """Check for criterion leakage — answers that parrot rubric wording.
+
+        Flags items where >50% of criterion's significant words (4+ chars)
+        appear verbatim in the predicted answer.
+        """
+        question_map = {q.question_id: q for q in questions}
+        flagged: list[dict[str, Any]] = []
+
+        for r in results:
+            if r.error or not r.predicted_answer:
+                continue
+            q = question_map.get(r.question_id)
+            if not q:
+                continue
+
+            answer_lower = r.predicted_answer.lower()
+            for crit in q.criteria:
+                words = [w for w in crit.text.lower().split() if len(w) >= 4]
+                if not words:
+                    continue
+                matches = sum(1 for w in words if w in answer_lower)
+                overlap = matches / len(words)
+                if overlap >= overlap_threshold:
+                    flagged.append({
+                        "question_id": r.question_id,
+                        "condition": r.condition.value,
+                        "criterion_id": crit.criterion_id,
+                        "overlap": round(overlap, 2),
+                        "criterion_text": crit.text[:80],
+                    })
+
+        return flagged
+
+    @staticmethod
     def report_to_json(report: LongBenchReport) -> dict:
         """Serialize a report to JSON-compatible dict."""
         return {
@@ -819,6 +957,15 @@ class LongBenchAnalyzer:
                     "token_count": r.token_count,
                     "error": r.error,
                     "predicted_answer": r.predicted_answer[:500],
+                    "criterion_results": [
+                        {
+                            "criterion_id": cr.criterion_id,
+                            "satisfied": cr.satisfied,
+                            "confidence": cr.confidence,
+                            "reasoning": cr.reasoning[:200],
+                        }
+                        for cr in r.criterion_results
+                    ],
                 }
                 for r in report.results
             ],

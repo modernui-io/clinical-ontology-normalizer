@@ -1,5 +1,5 @@
 {
-  "cohort_id": "longbench_20260222_183028",
+  "cohort_id": "longbench_20260222_203933",
   "version": "1.0.0",
   "metadata": {
     "tier_sizes": {
@@ -9,7 +9,7 @@
     },
     "min_note_chars": 200,
     "random_seed": 42,
-    "selection_date": "2026-02-22T18:30:28.683663"
+    "selection_date": "2026-02-22T20:39:33.323893"
   },
   "tier_summary": {
     "A": {
@@ -75,7 +75,7 @@
     {
       "question_id": "lb_A_tmpl_0",
       "patient_id": "MIMIC-14124085",
-      "question_text": "What medications is this patient currently taking, and are there any potential interactions?",
+      "question_text": "What medications is this patient currently taking with dosages, what medications were changed during their care, and what were the documented reasons for each change?",
       "domain": "medication_reconciliation",
       "tier": "A",
       "encounter_count": 1,
@@ -84,30 +84,37 @@
       "criteria": [
         {
           "criterion_id": "lb_A_tmpl_0_c0",
-          "text": "Identifies specific medications the patient is taking from the clinical record",
-          "criterion_type": "synthesis",
+          "text": "Identifies specific medications WITH dosages from the clinical record",
+          "criterion_type": "medication",
           "weight": "critical",
           "evidence_source": ""
         },
         {
           "criterion_id": "lb_A_tmpl_0_c1",
-          "text": "Does not fabricate specific medications or dosages not documented in the record",
+          "text": "Does not fabricate medications, dosages, or medication changes not documented in the record",
           "criterion_type": "assertion",
           "weight": "critical",
           "evidence_source": ""
         },
         {
           "criterion_id": "lb_A_tmpl_0_c2",
-          "text": "Identifies potential drug interactions or contraindications based on the medication list",
+          "text": "Identifies potential drug interactions or contraindications based on the ACTUAL medication list",
           "criterion_type": "causal",
           "weight": "important",
           "evidence_source": ""
         },
         {
           "criterion_id": "lb_A_tmpl_0_c3",
-          "text": "Distinguishes current medications from previously discontinued ones",
+          "text": "Distinguishes current medications from discontinued ones with approximate dates or encounter references for changes",
           "criterion_type": "chronology",
-          "weight": "nice",
+          "weight": "important",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_0_c4",
+          "text": "Correctly attributes medication changes to specific encounters or clinical events that triggered the change",
+          "criterion_type": "chronology",
+          "weight": "important",
           "evidence_source": ""
         }
       ]
@@ -195,7 +202,7 @@
     {
       "question_id": "lb_A_tmpl_3",
       "patient_id": "MIMIC-14124085",
-      "question_text": "How has this patient's primary condition evolved over time?",
+      "question_text": "Create a detailed timeline of this patient's clinical events across all encounters, citing specific dates and noting any changes in diagnosis status or treatment.",
       "domain": "temporal_reasoning",
       "tier": "A",
       "encounter_count": 1,
@@ -204,30 +211,37 @@
       "criteria": [
         {
           "criterion_id": "lb_A_tmpl_3_c0",
-          "text": "Describes how the patient's condition has changed over time using evidence from the record",
+          "text": "Cites specific dates or encounter references for at least 3 clinical events from the patient record",
           "criterion_type": "chronology",
           "weight": "critical",
           "evidence_source": ""
         },
         {
           "criterion_id": "lb_A_tmpl_3_c1",
-          "text": "Does not fabricate a clinical timeline or events not documented in the record",
-          "criterion_type": "assertion",
+          "text": "Correctly identifies which encounter a key diagnosis or finding first appeared versus when it changed status",
+          "criterion_type": "chronology",
           "weight": "critical",
           "evidence_source": ""
         },
         {
           "criterion_id": "lb_A_tmpl_3_c2",
-          "text": "Correctly sequences clinical events in chronological order",
+          "text": "Does not misattribute clinical events to incorrect encounters or fabricate dates not in the record",
+          "criterion_type": "assertion",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_3_c3",
+          "text": "Identifies conditions whose status changed across encounters (uncertain to confirmed, active to resolved) with correct temporal ordering",
           "criterion_type": "chronology",
           "weight": "important",
           "evidence_source": ""
         },
         {
-          "criterion_id": "lb_A_tmpl_3_c3",
-          "text": "Identifies clinically significant trends or turning points in the patient's course",
-          "criterion_type": "synthesis",
-          "weight": "nice",
+          "criterion_id": "lb_A_tmpl_3_c4",
+          "text": "Distinguishes between findings documented in different encounters rather than conflating them into a single narrative",
+          "criterion_type": "chronology",
+          "weight": "important",
           "evidence_source": ""
         }
       ]
@@ -275,7 +289,7 @@
     {
       "question_id": "lb_A_tmpl_0",
       "patient_id": "MIMIC-11764274",
-      "question_text": "What medications is this patient currently taking, and are there any potential interactions?",
+      "question_text": "What medications is this patient currently taking with dosages, what medications were changed during their care, and what were the documented reasons for each change?",
       "domain": "medication_reconciliation",
       "tier": "A",
       "encounter_count": 1,
@@ -284,30 +298,37 @@
       "criteria": [
         {
           "criterion_id": "lb_A_tmpl_0_c0",
-          "text": "Identifies specific medications the patient is taking from the clinical record",
-          "criterion_type": "synthesis",
+          "text": "Identifies specific medications WITH dosages from the clinical record",
+          "criterion_type": "medication",
           "weight": "critical",
           "evidence_source": ""
         },
         {
           "criterion_id": "lb_A_tmpl_0_c1",
-          "text": "Does not fabricate specific medications or dosages not documented in the record",
+          "text": "Does not fabricate medications, dosages, or medication changes not documented in the record",
           "criterion_type": "assertion",
           "weight": "critical",
           "evidence_source": ""
         },
         {
           "criterion_id": "lb_A_tmpl_0_c2",
-          "text": "Identifies potential drug interactions or contraindications based on the medication list",
+          "text": "Identifies potential drug interactions or contraindications based on the ACTUAL medication list",
           "criterion_type": "causal",
           "weight": "important",
           "evidence_source": ""
         },
         {
           "criterion_id": "lb_A_tmpl_0_c3",
-          "text": "Distinguishes current medications from previously discontinued ones",
+          "text": "Distinguishes current medications from discontinued ones with approximate dates or encounter references for changes",
           "criterion_type": "chronology",
-          "weight": "nice",
+          "weight": "important",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_0_c4",
+          "text": "Correctly attributes medication changes to specific encounters or clinical events that triggered the change",
+          "criterion_type": "chronology",
+          "weight": "important",
           "evidence_source": ""
         }
       ]
@@ -395,7 +416,7 @@
     {
       "question_id": "lb_A_tmpl_3",
       "patient_id": "MIMIC-11764274",
-      "question_text": "How has this patient's primary condition evolved over time?",
+      "question_text": "Create a detailed timeline of this patient's clinical events across all encounters, citing specific dates and noting any changes in diagnosis status or treatment.",
       "domain": "temporal_reasoning",
       "tier": "A",
       "encounter_count": 1,
@@ -404,30 +425,37 @@
       "criteria": [
         {
           "criterion_id": "lb_A_tmpl_3_c0",
-          "text": "Describes how the patient's condition has changed over time using evidence from the record",
+          "text": "Cites specific dates or encounter references for at least 3 clinical events from the patient record",
           "criterion_type": "chronology",
           "weight": "critical",
           "evidence_source": ""
         },
         {
           "criterion_id": "lb_A_tmpl_3_c1",
-          "text": "Does not fabricate a clinical timeline or events not documented in the record",
-          "criterion_type": "assertion",
+          "text": "Correctly identifies which encounter a key diagnosis or finding first appeared versus when it changed status",
+          "criterion_type": "chronology",
           "weight": "critical",
           "evidence_source": ""
         },
         {
           "criterion_id": "lb_A_tmpl_3_c2",
-          "text": "Correctly sequences clinical events in chronological order",
+          "text": "Does not misattribute clinical events to incorrect encounters or fabricate dates not in the record",
+          "criterion_type": "assertion",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_3_c3",
+          "text": "Identifies conditions whose status changed across encounters (uncertain to confirmed, active to resolved) with correct temporal ordering",
           "criterion_type": "chronology",
           "weight": "important",
           "evidence_source": ""
         },
         {
-          "criterion_id": "lb_A_tmpl_3_c3",
-          "text": "Identifies clinically significant trends or turning points in the patient's course",
-          "criterion_type": "synthesis",
-          "weight": "nice",
+          "criterion_id": "lb_A_tmpl_3_c4",
+          "text": "Distinguishes between findings documented in different encounters rather than conflating them into a single narrative",
+          "criterion_type": "chronology",
+          "weight": "important",
           "evidence_source": ""
         }
       ]
@@ -475,7 +503,7 @@
     {
       "question_id": "lb_B_tmpl_0",
       "patient_id": "MIMIC-13746089",
-      "question_text": "What medications is this patient currently taking, and are there any potential interactions?",
+      "question_text": "What medications is this patient currently taking with dosages, what medications were changed during their care, and what were the documented reasons for each change?",
       "domain": "medication_reconciliation",
       "tier": "B",
       "encounter_count": 5,
@@ -484,30 +512,37 @@
       "criteria": [
         {
           "criterion_id": "lb_B_tmpl_0_c0",
-          "text": "Identifies specific medications the patient is taking from the clinical record",
-          "criterion_type": "synthesis",
+          "text": "Identifies specific medications WITH dosages from the clinical record",
+          "criterion_type": "medication",
           "weight": "critical",
           "evidence_source": ""
         },
         {
           "criterion_id": "lb_B_tmpl_0_c1",
-          "text": "Does not fabricate specific medications or dosages not documented in the record",
+          "text": "Does not fabricate medications, dosages, or medication changes not documented in the record",
           "criterion_type": "assertion",
           "weight": "critical",
           "evidence_source": ""
         },
         {
           "criterion_id": "lb_B_tmpl_0_c2",
-          "text": "Identifies potential drug interactions or contraindications based on the medication list",
+          "text": "Identifies potential drug interactions or contraindications based on the ACTUAL medication list",
           "criterion_type": "causal",
           "weight": "important",
           "evidence_source": ""
         },
         {
           "criterion_id": "lb_B_tmpl_0_c3",
-          "text": "Distinguishes current medications from previously discontinued ones",
+          "text": "Distinguishes current medications from discontinued ones with approximate dates or encounter references for changes",
           "criterion_type": "chronology",
-          "weight": "nice",
+          "weight": "important",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_0_c4",
+          "text": "Correctly attributes medication changes to specific encounters or clinical events that triggered the change",
+          "criterion_type": "chronology",
+          "weight": "important",
           "evidence_source": ""
         }
       ]
@@ -595,7 +630,7 @@
     {
       "question_id": "lb_B_tmpl_3",
       "patient_id": "MIMIC-13746089",
-      "question_text": "How has this patient's primary condition evolved over time?",
+      "question_text": "Create a detailed timeline of this patient's clinical events across all encounters, citing specific dates and noting any changes in diagnosis status or treatment.",
       "domain": "temporal_reasoning",
       "tier": "B",
       "encounter_count": 5,
@@ -604,30 +639,37 @@
       "criteria": [
         {
           "criterion_id": "lb_B_tmpl_3_c0",
-          "text": "Describes how the patient's condition has changed over time using evidence from the record",
+          "text": "Cites specific dates or encounter references for at least 3 clinical events from the patient record",
           "criterion_type": "chronology",
           "weight": "critical",
           "evidence_source": ""
         },
         {
           "criterion_id": "lb_B_tmpl_3_c1",
-          "text": "Does not fabricate a clinical timeline or events not documented in the record",
-          "criterion_type": "assertion",
+          "text": "Correctly identifies which encounter a key diagnosis or finding first appeared versus when it changed status",
+          "criterion_type": "chronology",
           "weight": "critical",
           "evidence_source": ""
         },
         {
           "criterion_id": "lb_B_tmpl_3_c2",
-          "text": "Correctly sequences clinical events in chronological order",
+          "text": "Does not misattribute clinical events to incorrect encounters or fabricate dates not in the record",
+          "criterion_type": "assertion",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_3_c3",
+          "text": "Identifies conditions whose status changed across encounters (uncertain to confirmed, active to resolved) with correct temporal ordering",
           "criterion_type": "chronology",
           "weight": "important",
           "evidence_source": ""
         },
         {
-          "criterion_id": "lb_B_tmpl_3_c3",
-          "text": "Identifies clinically significant trends or turning points in the patient's course",
-          "criterion_type": "synthesis",
-          "weight": "nice",
+          "criterion_id": "lb_B_tmpl_3_c4",
+          "text": "Distinguishes between findings documented in different encounters rather than conflating them into a single narrative",
+          "criterion_type": "chronology",
+          "weight": "important",
           "evidence_source": ""
         }
       ]
@@ -675,7 +717,7 @@
     {
       "question_id": "lb_B_tmpl_0",
       "patient_id": "MIMIC-19340580",
-      "question_text": "What medications is this patient currently taking, and are there any potential interactions?",
+      "question_text": "What medications is this patient currently taking with dosages, what medications were changed during their care, and what were the documented reasons for each change?",
       "domain": "medication_reconciliation",
       "tier": "B",
       "encounter_count": 6,
@@ -684,30 +726,37 @@
       "criteria": [
         {
           "criterion_id": "lb_B_tmpl_0_c0",
-          "text": "Identifies specific medications the patient is taking from the clinical record",
-          "criterion_type": "synthesis",
+          "text": "Identifies specific medications WITH dosages from the clinical record",
+          "criterion_type": "medication",
           "weight": "critical",
           "evidence_source": ""
         },
         {
           "criterion_id": "lb_B_tmpl_0_c1",
-          "text": "Does not fabricate specific medications or dosages not documented in the record",
+          "text": "Does not fabricate medications, dosages, or medication changes not documented in the record",
           "criterion_type": "assertion",
           "weight": "critical",
           "evidence_source": ""
         },
         {
           "criterion_id": "lb_B_tmpl_0_c2",
-          "text": "Identifies potential drug interactions or contraindications based on the medication list",
+          "text": "Identifies potential drug interactions or contraindications based on the ACTUAL medication list",
           "criterion_type": "causal",
           "weight": "important",
           "evidence_source": ""
         },
         {
           "criterion_id": "lb_B_tmpl_0_c3",
-          "text": "Distinguishes current medications from previously discontinued ones",
+          "text": "Distinguishes current medications from discontinued ones with approximate dates or encounter references for changes",
           "criterion_type": "chronology",
-          "weight": "nice",
+          "weight": "important",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_0_c4",
+          "text": "Correctly attributes medication changes to specific encounters or clinical events that triggered the change",
+          "criterion_type": "chronology",
+          "weight": "important",
           "evidence_source": ""
         }
       ]
@@ -795,7 +844,7 @@
     {
       "question_id": "lb_B_tmpl_3",
       "patient_id": "MIMIC-19340580",
-      "question_text": "How has this patient's primary condition evolved over time?",
+      "question_text": "Create a detailed timeline of this patient's clinical events across all encounters, citing specific dates and noting any changes in diagnosis status or treatment.",
       "domain": "temporal_reasoning",
       "tier": "B",
       "encounter_count": 6,
@@ -804,30 +853,37 @@
       "criteria": [
         {
           "criterion_id": "lb_B_tmpl_3_c0",
-          "text": "Describes how the patient's condition has changed over time using evidence from the record",
+          "text": "Cites specific dates or encounter references for at least 3 clinical events from the patient record",
           "criterion_type": "chronology",
           "weight": "critical",
           "evidence_source": ""
         },
         {
           "criterion_id": "lb_B_tmpl_3_c1",
-          "text": "Does not fabricate a clinical timeline or events not documented in the record",
-          "criterion_type": "assertion",
+          "text": "Correctly identifies which encounter a key diagnosis or finding first appeared versus when it changed status",
+          "criterion_type": "chronology",
           "weight": "critical",
           "evidence_source": ""
         },
         {
           "criterion_id": "lb_B_tmpl_3_c2",
-          "text": "Correctly sequences clinical events in chronological order",
+          "text": "Does not misattribute clinical events to incorrect encounters or fabricate dates not in the record",
+          "criterion_type": "assertion",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_3_c3",
+          "text": "Identifies conditions whose status changed across encounters (uncertain to confirmed, active to resolved) with correct temporal ordering",
           "criterion_type": "chronology",
           "weight": "important",
           "evidence_source": ""
         },
         {
-          "criterion_id": "lb_B_tmpl_3_c3",
-          "text": "Identifies clinically significant trends or turning points in the patient's course",
-          "criterion_type": "synthesis",
-          "weight": "nice",
+          "criterion_id": "lb_B_tmpl_3_c4",
+          "text": "Distinguishes between findings documented in different encounters rather than conflating them into a single narrative",
+          "criterion_type": "chronology",
+          "weight": "important",
           "evidence_source": ""
         }
       ]
