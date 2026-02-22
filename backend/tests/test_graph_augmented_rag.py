@@ -619,7 +619,7 @@ class TestPromptFormat:
             policy_constraints=[],
         )
         prompt = ctx.to_llm_prompt()
-        assert "=== Assertion Notes ===" in prompt
+        assert "=== IMPORTANT: Clinical Assertion Status ===" in prompt
         assert "NEGATED" in prompt
         assert "Diabetes" in prompt
 
@@ -650,7 +650,7 @@ class TestPromptFormat:
             policy_constraints=[],
         )
         prompt = ctx.to_llm_prompt(assertion_mode="none")
-        assert "=== Assertion Notes ===" not in prompt
+        assert "=== IMPORTANT: Clinical Assertion Status ===" not in prompt
 
 
 # ===========================================================================
