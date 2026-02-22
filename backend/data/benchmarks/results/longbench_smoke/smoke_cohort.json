@@ -1,5 +1,5 @@
 {
-  "cohort_id": "longbench_20260222_150144",
+  "cohort_id": "longbench_20260222_183028",
   "version": "1.0.0",
   "metadata": {
     "tier_sizes": {
@@ -9,16 +9,16 @@
     },
     "min_note_chars": 200,
     "random_seed": 42,
-    "selection_date": "2026-02-22T15:01:44.555453"
+    "selection_date": "2026-02-22T18:30:28.683663"
   },
   "tier_summary": {
     "A": {
       "patients": 2,
-      "questions": 4
+      "questions": 10
     },
     "B": {
-      "patients": 0,
-      "questions": 0
+      "patients": 2,
+      "questions": 10
     },
     "C": {
       "patients": 0,
@@ -44,6 +44,28 @@
       "total_note_length": 11284,
       "earliest_date": "2116-02-03 00:00:00+00:00",
       "latest_date": "2116-02-03 00:00:00+00:00",
+      "condition_count": 0,
+      "medication_count": 0,
+      "has_family_history": false
+    },
+    {
+      "patient_id": "MIMIC-13746089",
+      "tier": "B",
+      "encounter_count": 5,
+      "total_note_length": 62693,
+      "earliest_date": "2121-10-16 00:00:00+00:00",
+      "latest_date": "2121-12-10 00:00:00+00:00",
+      "condition_count": 0,
+      "medication_count": 0,
+      "has_family_history": false
+    },
+    {
+      "patient_id": "MIMIC-19340580",
+      "tier": "B",
+      "encounter_count": 6,
+      "total_note_length": 67268,
+      "earliest_date": "2122-03-18 00:00:00+00:00",
+      "latest_date": "2124-08-08 00:00:00+00:00",
       "condition_count": 0,
       "medication_count": 0,
       "has_family_history": false
@@ -131,6 +153,126 @@
       ]
     },
     {
+      "question_id": "lb_A_tmpl_2",
+      "patient_id": "MIMIC-14124085",
+      "question_text": "What family history is documented for this patient, and how does it relate to their risk profile?",
+      "domain": "family_history",
+      "tier": "A",
+      "encounter_count": 1,
+      "generated_by": "template",
+      "validated_by": null,
+      "criteria": [
+        {
+          "criterion_id": "lb_A_tmpl_2_c0",
+          "text": "Correctly identifies family history entries documented in the record",
+          "criterion_type": "experiencer",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_2_c1",
+          "text": "Does not attribute family member conditions to the patient themselves",
+          "criterion_type": "experiencer",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_2_c2",
+          "text": "Does not fabricate family history details not documented in the record",
+          "criterion_type": "assertion",
+          "weight": "important",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_2_c3",
+          "text": "Identifies the clinical relevance of the family history to the patient's risk profile",
+          "criterion_type": "causal",
+          "weight": "nice",
+          "evidence_source": ""
+        }
+      ]
+    },
+    {
+      "question_id": "lb_A_tmpl_3",
+      "patient_id": "MIMIC-14124085",
+      "question_text": "How has this patient's primary condition evolved over time?",
+      "domain": "temporal_reasoning",
+      "tier": "A",
+      "encounter_count": 1,
+      "generated_by": "template",
+      "validated_by": null,
+      "criteria": [
+        {
+          "criterion_id": "lb_A_tmpl_3_c0",
+          "text": "Describes how the patient's condition has changed over time using evidence from the record",
+          "criterion_type": "chronology",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_3_c1",
+          "text": "Does not fabricate a clinical timeline or events not documented in the record",
+          "criterion_type": "assertion",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_3_c2",
+          "text": "Correctly sequences clinical events in chronological order",
+          "criterion_type": "chronology",
+          "weight": "important",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_3_c3",
+          "text": "Identifies clinically significant trends or turning points in the patient's course",
+          "criterion_type": "synthesis",
+          "weight": "nice",
+          "evidence_source": ""
+        }
+      ]
+    },
+    {
+      "question_id": "lb_A_tmpl_4",
+      "patient_id": "MIMIC-14124085",
+      "question_text": "What are the key risk factors for this patient based on all available data?",
+      "domain": "risk_assessment",
+      "tier": "A",
+      "encounter_count": 1,
+      "generated_by": "template",
+      "validated_by": null,
+      "criteria": [
+        {
+          "criterion_id": "lb_A_tmpl_4_c0",
+          "text": "Identifies specific risk factors present in the patient's clinical record",
+          "criterion_type": "synthesis",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_4_c1",
+          "text": "Does not fabricate risk factors or clinical findings not documented in the record",
+          "criterion_type": "assertion",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_4_c2",
+          "text": "Connects identified risk factors to specific clinical outcomes or recommendations",
+          "criterion_type": "causal",
+          "weight": "important",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_4_c3",
+          "text": "References specific clinical data (labs, vitals, history) to support the risk assessment",
+          "criterion_type": "synthesis",
+          "weight": "nice",
+          "evidence_source": ""
+        }
+      ]
+    },
+    {
       "question_id": "lb_A_tmpl_0",
       "patient_id": "MIMIC-11764274",
       "question_text": "What medications is this patient currently taking, and are there any potential interactions?",
@@ -206,6 +348,526 @@
           "text": "Distinguishes active conditions from resolved or historical ones",
           "criterion_type": "chronology",
           "weight": "important",
+          "evidence_source": ""
+        }
+      ]
+    },
+    {
+      "question_id": "lb_A_tmpl_2",
+      "patient_id": "MIMIC-11764274",
+      "question_text": "What family history is documented for this patient, and how does it relate to their risk profile?",
+      "domain": "family_history",
+      "tier": "A",
+      "encounter_count": 1,
+      "generated_by": "template",
+      "validated_by": null,
+      "criteria": [
+        {
+          "criterion_id": "lb_A_tmpl_2_c0",
+          "text": "Correctly identifies family history entries documented in the record",
+          "criterion_type": "experiencer",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_2_c1",
+          "text": "Does not attribute family member conditions to the patient themselves",
+          "criterion_type": "experiencer",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_2_c2",
+          "text": "Does not fabricate family history details not documented in the record",
+          "criterion_type": "assertion",
+          "weight": "important",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_2_c3",
+          "text": "Identifies the clinical relevance of the family history to the patient's risk profile",
+          "criterion_type": "causal",
+          "weight": "nice",
+          "evidence_source": ""
+        }
+      ]
+    },
+    {
+      "question_id": "lb_A_tmpl_3",
+      "patient_id": "MIMIC-11764274",
+      "question_text": "How has this patient's primary condition evolved over time?",
+      "domain": "temporal_reasoning",
+      "tier": "A",
+      "encounter_count": 1,
+      "generated_by": "template",
+      "validated_by": null,
+      "criteria": [
+        {
+          "criterion_id": "lb_A_tmpl_3_c0",
+          "text": "Describes how the patient's condition has changed over time using evidence from the record",
+          "criterion_type": "chronology",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_3_c1",
+          "text": "Does not fabricate a clinical timeline or events not documented in the record",
+          "criterion_type": "assertion",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_3_c2",
+          "text": "Correctly sequences clinical events in chronological order",
+          "criterion_type": "chronology",
+          "weight": "important",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_3_c3",
+          "text": "Identifies clinically significant trends or turning points in the patient's course",
+          "criterion_type": "synthesis",
+          "weight": "nice",
+          "evidence_source": ""
+        }
+      ]
+    },
+    {
+      "question_id": "lb_A_tmpl_4",
+      "patient_id": "MIMIC-11764274",
+      "question_text": "What are the key risk factors for this patient based on all available data?",
+      "domain": "risk_assessment",
+      "tier": "A",
+      "encounter_count": 1,
+      "generated_by": "template",
+      "validated_by": null,
+      "criteria": [
+        {
+          "criterion_id": "lb_A_tmpl_4_c0",
+          "text": "Identifies specific risk factors present in the patient's clinical record",
+          "criterion_type": "synthesis",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_4_c1",
+          "text": "Does not fabricate risk factors or clinical findings not documented in the record",
+          "criterion_type": "assertion",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_4_c2",
+          "text": "Connects identified risk factors to specific clinical outcomes or recommendations",
+          "criterion_type": "causal",
+          "weight": "important",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_4_c3",
+          "text": "References specific clinical data (labs, vitals, history) to support the risk assessment",
+          "criterion_type": "synthesis",
+          "weight": "nice",
+          "evidence_source": ""
+        }
+      ]
+    },
+    {
+      "question_id": "lb_B_tmpl_0",
+      "patient_id": "MIMIC-13746089",
+      "question_text": "What medications is this patient currently taking, and are there any potential interactions?",
+      "domain": "medication_reconciliation",
+      "tier": "B",
+      "encounter_count": 5,
+      "generated_by": "template",
+      "validated_by": null,
+      "criteria": [
+        {
+          "criterion_id": "lb_B_tmpl_0_c0",
+          "text": "Identifies specific medications the patient is taking from the clinical record",
+          "criterion_type": "synthesis",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_0_c1",
+          "text": "Does not fabricate specific medications or dosages not documented in the record",
+          "criterion_type": "assertion",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_0_c2",
+          "text": "Identifies potential drug interactions or contraindications based on the medication list",
+          "criterion_type": "causal",
+          "weight": "important",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_0_c3",
+          "text": "Distinguishes current medications from previously discontinued ones",
+          "criterion_type": "chronology",
+          "weight": "nice",
+          "evidence_source": ""
+        }
+      ]
+    },
+    {
+      "question_id": "lb_B_tmpl_1",
+      "patient_id": "MIMIC-13746089",
+      "question_text": "Summarize this patient's active medical conditions and their current status.",
+      "domain": "problem_list",
+      "tier": "B",
+      "encounter_count": 5,
+      "generated_by": "template",
+      "validated_by": null,
+      "criteria": [
+        {
+          "criterion_id": "lb_B_tmpl_1_c0",
+          "text": "Lists specific active medical conditions documented in the clinical record",
+          "criterion_type": "synthesis",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_1_c1",
+          "text": "Does not fabricate conditions or diagnoses not documented in the record",
+          "criterion_type": "assertion",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_1_c2",
+          "text": "References specific clinical data (labs, vitals, imaging) that support each condition",
+          "criterion_type": "synthesis",
+          "weight": "important",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_1_c3",
+          "text": "Distinguishes active conditions from resolved or historical ones",
+          "criterion_type": "chronology",
+          "weight": "important",
+          "evidence_source": ""
+        }
+      ]
+    },
+    {
+      "question_id": "lb_B_tmpl_2",
+      "patient_id": "MIMIC-13746089",
+      "question_text": "What family history is documented for this patient, and how does it relate to their risk profile?",
+      "domain": "family_history",
+      "tier": "B",
+      "encounter_count": 5,
+      "generated_by": "template",
+      "validated_by": null,
+      "criteria": [
+        {
+          "criterion_id": "lb_B_tmpl_2_c0",
+          "text": "Correctly identifies family history entries documented in the record",
+          "criterion_type": "experiencer",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_2_c1",
+          "text": "Does not attribute family member conditions to the patient themselves",
+          "criterion_type": "experiencer",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_2_c2",
+          "text": "Does not fabricate family history details not documented in the record",
+          "criterion_type": "assertion",
+          "weight": "important",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_2_c3",
+          "text": "Identifies the clinical relevance of the family history to the patient's risk profile",
+          "criterion_type": "causal",
+          "weight": "nice",
+          "evidence_source": ""
+        }
+      ]
+    },
+    {
+      "question_id": "lb_B_tmpl_3",
+      "patient_id": "MIMIC-13746089",
+      "question_text": "How has this patient's primary condition evolved over time?",
+      "domain": "temporal_reasoning",
+      "tier": "B",
+      "encounter_count": 5,
+      "generated_by": "template",
+      "validated_by": null,
+      "criteria": [
+        {
+          "criterion_id": "lb_B_tmpl_3_c0",
+          "text": "Describes how the patient's condition has changed over time using evidence from the record",
+          "criterion_type": "chronology",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_3_c1",
+          "text": "Does not fabricate a clinical timeline or events not documented in the record",
+          "criterion_type": "assertion",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_3_c2",
+          "text": "Correctly sequences clinical events in chronological order",
+          "criterion_type": "chronology",
+          "weight": "important",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_3_c3",
+          "text": "Identifies clinically significant trends or turning points in the patient's course",
+          "criterion_type": "synthesis",
+          "weight": "nice",
+          "evidence_source": ""
+        }
+      ]
+    },
+    {
+      "question_id": "lb_B_tmpl_4",
+      "patient_id": "MIMIC-13746089",
+      "question_text": "What are the key risk factors for this patient based on all available data?",
+      "domain": "risk_assessment",
+      "tier": "B",
+      "encounter_count": 5,
+      "generated_by": "template",
+      "validated_by": null,
+      "criteria": [
+        {
+          "criterion_id": "lb_B_tmpl_4_c0",
+          "text": "Identifies specific risk factors present in the patient's clinical record",
+          "criterion_type": "synthesis",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_4_c1",
+          "text": "Does not fabricate risk factors or clinical findings not documented in the record",
+          "criterion_type": "assertion",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_4_c2",
+          "text": "Connects identified risk factors to specific clinical outcomes or recommendations",
+          "criterion_type": "causal",
+          "weight": "important",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_4_c3",
+          "text": "References specific clinical data (labs, vitals, history) to support the risk assessment",
+          "criterion_type": "synthesis",
+          "weight": "nice",
+          "evidence_source": ""
+        }
+      ]
+    },
+    {
+      "question_id": "lb_B_tmpl_0",
+      "patient_id": "MIMIC-19340580",
+      "question_text": "What medications is this patient currently taking, and are there any potential interactions?",
+      "domain": "medication_reconciliation",
+      "tier": "B",
+      "encounter_count": 6,
+      "generated_by": "template",
+      "validated_by": null,
+      "criteria": [
+        {
+          "criterion_id": "lb_B_tmpl_0_c0",
+          "text": "Identifies specific medications the patient is taking from the clinical record",
+          "criterion_type": "synthesis",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_0_c1",
+          "text": "Does not fabricate specific medications or dosages not documented in the record",
+          "criterion_type": "assertion",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_0_c2",
+          "text": "Identifies potential drug interactions or contraindications based on the medication list",
+          "criterion_type": "causal",
+          "weight": "important",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_0_c3",
+          "text": "Distinguishes current medications from previously discontinued ones",
+          "criterion_type": "chronology",
+          "weight": "nice",
+          "evidence_source": ""
+        }
+      ]
+    },
+    {
+      "question_id": "lb_B_tmpl_1",
+      "patient_id": "MIMIC-19340580",
+      "question_text": "Summarize this patient's active medical conditions and their current status.",
+      "domain": "problem_list",
+      "tier": "B",
+      "encounter_count": 6,
+      "generated_by": "template",
+      "validated_by": null,
+      "criteria": [
+        {
+          "criterion_id": "lb_B_tmpl_1_c0",
+          "text": "Lists specific active medical conditions documented in the clinical record",
+          "criterion_type": "synthesis",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_1_c1",
+          "text": "Does not fabricate conditions or diagnoses not documented in the record",
+          "criterion_type": "assertion",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_1_c2",
+          "text": "References specific clinical data (labs, vitals, imaging) that support each condition",
+          "criterion_type": "synthesis",
+          "weight": "important",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_1_c3",
+          "text": "Distinguishes active conditions from resolved or historical ones",
+          "criterion_type": "chronology",
+          "weight": "important",
+          "evidence_source": ""
+        }
+      ]
+    },
+    {
+      "question_id": "lb_B_tmpl_2",
+      "patient_id": "MIMIC-19340580",
+      "question_text": "What family history is documented for this patient, and how does it relate to their risk profile?",
+      "domain": "family_history",
+      "tier": "B",
+      "encounter_count": 6,
+      "generated_by": "template",
+      "validated_by": null,
+      "criteria": [
+        {
+          "criterion_id": "lb_B_tmpl_2_c0",
+          "text": "Correctly identifies family history entries documented in the record",
+          "criterion_type": "experiencer",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_2_c1",
+          "text": "Does not attribute family member conditions to the patient themselves",
+          "criterion_type": "experiencer",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_2_c2",
+          "text": "Does not fabricate family history details not documented in the record",
+          "criterion_type": "assertion",
+          "weight": "important",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_2_c3",
+          "text": "Identifies the clinical relevance of the family history to the patient's risk profile",
+          "criterion_type": "causal",
+          "weight": "nice",
+          "evidence_source": ""
+        }
+      ]
+    },
+    {
+      "question_id": "lb_B_tmpl_3",
+      "patient_id": "MIMIC-19340580",
+      "question_text": "How has this patient's primary condition evolved over time?",
+      "domain": "temporal_reasoning",
+      "tier": "B",
+      "encounter_count": 6,
+      "generated_by": "template",
+      "validated_by": null,
+      "criteria": [
+        {
+          "criterion_id": "lb_B_tmpl_3_c0",
+          "text": "Describes how the patient's condition has changed over time using evidence from the record",
+          "criterion_type": "chronology",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_3_c1",
+          "text": "Does not fabricate a clinical timeline or events not documented in the record",
+          "criterion_type": "assertion",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_3_c2",
+          "text": "Correctly sequences clinical events in chronological order",
+          "criterion_type": "chronology",
+          "weight": "important",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_3_c3",
+          "text": "Identifies clinically significant trends or turning points in the patient's course",
+          "criterion_type": "synthesis",
+          "weight": "nice",
+          "evidence_source": ""
+        }
+      ]
+    },
+    {
+      "question_id": "lb_B_tmpl_4",
+      "patient_id": "MIMIC-19340580",
+      "question_text": "What are the key risk factors for this patient based on all available data?",
+      "domain": "risk_assessment",
+      "tier": "B",
+      "encounter_count": 6,
+      "generated_by": "template",
+      "validated_by": null,
+      "criteria": [
+        {
+          "criterion_id": "lb_B_tmpl_4_c0",
+          "text": "Identifies specific risk factors present in the patient's clinical record",
+          "criterion_type": "synthesis",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_4_c1",
+          "text": "Does not fabricate risk factors or clinical findings not documented in the record",
+          "criterion_type": "assertion",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_4_c2",
+          "text": "Connects identified risk factors to specific clinical outcomes or recommendations",
+          "criterion_type": "causal",
+          "weight": "important",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_B_tmpl_4_c3",
+          "text": "References specific clinical data (labs, vitals, history) to support the risk assessment",
+          "criterion_type": "synthesis",
+          "weight": "nice",
           "evidence_source": ""
         }
       ]
