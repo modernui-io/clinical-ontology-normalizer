@@ -1,16 +1,16 @@
 {
   "condition_id": "C4_epistemic_kg_rag",
   "label": "LLM + Epistemic KG-RAG",
-  "accuracy": 0.6153846153846154,
-  "correct": 16,
+  "accuracy": 0.6538461538461539,
+  "correct": 17,
   "total": 26,
-  "safety": 0.6984126984126984,
+  "safety": 0.7222222222222222,
   "category_accuracies": {
     "negation": 1.0,
-    "conditional": 0.0,
-    "uncertainty": 0.0,
+    "conditional": 0.5,
+    "uncertainty": 0.2,
     "sequence": 1.0,
-    "current_state": 0.6666666666666666,
+    "current_state": 0.3333333333333333,
     "duration": 1.0,
     "historical": 0.7142857142857143
   },
@@ -23,8 +23,8 @@
     },
     {
       "question_id": "bench_a_conditional_b9464ee7",
-      "correct": false,
-      "score": 0.0,
+      "correct": true,
+      "score": 1.0,
       "category": "conditional"
     },
     {
@@ -77,8 +77,8 @@
     },
     {
       "question_id": "bench_a_uncertainty_eab1a2aa",
-      "correct": false,
-      "score": 0.0,
+      "correct": true,
+      "score": 1.0,
       "category": "uncertainty"
     },
     {
@@ -101,8 +101,8 @@
     },
     {
       "question_id": "bench_b_current_state_5e677ee6",
-      "correct": true,
-      "score": 1.0,
+      "correct": false,
+      "score": 0.0,
       "category": "current_state"
     },
     {

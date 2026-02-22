@@ -52,21 +52,39 @@ logger = logging.getLogger(__name__)
 # System prompts for clinical QA
 # ============================================================================
 
-CLINICAL_QA_SYSTEM_PROMPT = """\
+CLINICAL_QA_SYSTEM_PROMPT_BASE = """\
+You are a clinical reasoning assistant answering questions about a specific patient.
+Use ONLY the provided evidence to answer. Be precise and concise.
+If the evidence is insufficient, say so rather than guessing.
+Answer in 1-3 sentences. Do not hedge unnecessarily when the evidence is clear."""
+
+CLINICAL_QA_SYSTEM_PROMPT_EPISTEMIC = """\
 You are a clinical reasoning assistant answering questions about a specific patient.
 Use ONLY the provided evidence to answer. Be precise and concise.
 
-Key rules:
-- If the evidence shows a condition is NEGATED (absent), clearly state the patient
-  does NOT have that condition.
-- If the evidence shows UNCERTAINTY (possible/suspected), communicate that clearly.
-- If something is FAMILY HISTORY only, distinguish it from the patient's own conditions.
-- If a condition is HISTORICAL (resolved/former), state that clearly.
-- If a recommendation is CONDITIONAL, state the conditions required.
-- For temporal questions, use the most recent data and note any changes over time.
-- If the evidence is insufficient, say so rather than guessing.
+CRITICAL — The evidence includes ASSERTION STATUS metadata that you MUST use:
 
+1. **NEGATED / ABSENT**: If a finding is marked NEGATED or listed under "NEGATED (patient does NOT have)",
+   the patient definitively DOES NOT have that condition. Answer "No" to questions about negated conditions.
+2. **UNCERTAIN / POSSIBLE**: If marked UNCERTAIN, the condition is suspected but NOT confirmed.
+   Answer with "uncertain" or "suspected but not confirmed."
+3. **FAMILY HISTORY**: If marked FAMILY_HISTORY, this is a relative's condition, NOT the patient's own.
+   Answer "No, this is family history only" for questions about the patient having it.
+4. **HISTORICAL / RESOLVED**: If marked HISTORICAL, the condition existed in the past but is resolved.
+   Answer "Previously, but no longer" or similar.
+5. **CONDITIONAL**: If marked CONDITIONAL, the recommendation depends on specific conditions being met.
+
+The "Assertion Notes" section summarizes these statuses. Always check it FIRST before answering.
+For temporal questions, use the timeline and note any changes over time.
+If the evidence is insufficient, say so rather than guessing.
 Answer in 1-3 sentences. Do not hedge unnecessarily when the evidence is clear."""
+
+
+def _get_system_prompt(assertion_mode: str) -> str:
+    """Return the appropriate system prompt based on assertion mode."""
+    if assertion_mode == "full":
+        return CLINICAL_QA_SYSTEM_PROMPT_EPISTEMIC
+    return CLINICAL_QA_SYSTEM_PROMPT_BASE
 
 
 # ============================================================================
@@ -263,10 +281,11 @@ class QAExperimentExecutor:
                 graph_path_count = len(context.graph_paths)
 
             # Step 3: Call LLM (local Ollama or cloud API)
+            system_prompt = _get_system_prompt(config.assertion_mode)
             if config.llm_provider == "ollama":
                 response = await _call_ollama(
                     prompt=user_prompt,
-                    system_prompt=CLINICAL_QA_SYSTEM_PROMPT,
+                    system_prompt=system_prompt,
                     model=config.llm_model,
                     base_url=config.ollama_base_url,
                 )
@@ -279,7 +298,7 @@ class QAExperimentExecutor:
                 ))
                 response = await llm.generate(
                     prompt=user_prompt,
-                    system_prompt=CLINICAL_QA_SYSTEM_PROMPT,
+                    system_prompt=system_prompt,
                 )
 
             predicted_answer = response.content.strip()

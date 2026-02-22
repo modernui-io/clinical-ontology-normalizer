@@ -1,10 +1,10 @@
 {
   "condition_id": "C3_kg_rag",
   "label": "LLM + KG-RAG",
-  "accuracy": 0.6153846153846154,
-  "correct": 16,
+  "accuracy": 0.5769230769230769,
+  "correct": 15,
   "total": 26,
-  "safety": 0.6984126984126984,
+  "safety": 0.6666666666666666,
   "category_accuracies": {
     "negation": 1.0,
     "conditional": 0.0,
@@ -12,7 +12,7 @@
     "sequence": 1.0,
     "current_state": 0.6666666666666666,
     "duration": 1.0,
-    "historical": 0.7142857142857143
+    "historical": 0.5714285714285714
   },
   "per_question": [
     {
@@ -149,8 +149,8 @@
     },
     {
       "question_id": "bench_b_historical_a701eaf4",
-      "correct": true,
-      "score": 1.0,
+      "correct": false,
+      "score": 0.0,
       "category": "historical"
     },
     {

@@ -167,26 +167,22 @@ class GraphAugmentedContext:
         """
         sections = []
 
-        # Graph Evidence Section
-        if self.graph_paths:
-            sections.append("=== Graph Evidence ===")
-            for i, path in enumerate(self.graph_paths, 1):
-                path_str = path.to_prompt_format(assertion_mode=assertion_mode)
-                if path_str:
-                    sections.append(f"Path {i} ({path.path_type}): {path_str}")
-            sections.append("")
-
-        # Assertion Notes Section (only in full or extracted_only mode)
+        # Assertion Notes Section FIRST (only in full or extracted_only mode)
+        # Placed at the top so the model sees critical assertion status before evidence
         if assertion_mode != "none" and self.graph_paths:
             negated_findings = []
             uncertain_findings = []
             family_findings = []
             historical_findings = []
             for path in self.graph_paths:
-                for edge in path.edges:
+                for idx, edge in enumerate(path.edges):
                     assertion = edge.get("assertion", "present")
-                    # Find the target node label for this edge
-                    target_label = path.nodes[-1].get("label", "?") if path.nodes else "?"
+                    # Use the target node (idx+1) for this edge, not just the last node
+                    target_label = (
+                        path.nodes[idx + 1].get("label", "?")
+                        if idx + 1 < len(path.nodes)
+                        else path.nodes[-1].get("label", "?") if path.nodes else "?"
+                    )
                     if assertion == "absent":
                         negated_findings.append(target_label)
                     elif assertion == "possible":
@@ -197,16 +193,36 @@ class GraphAugmentedContext:
                         historical_findings.append(target_label)
 
             if negated_findings or uncertain_findings or family_findings or historical_findings:
-                sections.append("=== Assertion Notes ===")
+                sections.append("=== IMPORTANT: Clinical Assertion Status ===")
+                sections.append("The following findings have NON-PRESENT assertion status.")
+                sections.append("You MUST use this information when answering.")
                 if negated_findings:
-                    sections.append(f"NEGATED (patient does NOT have): {', '.join(set(negated_findings))}")
+                    sections.append(
+                        f">>> NEGATED (patient does NOT have): {', '.join(set(negated_findings))}"
+                    )
                 if uncertain_findings:
-                    sections.append(f"UNCERTAIN (possible/suspected): {', '.join(set(uncertain_findings))}")
+                    sections.append(
+                        f">>> UNCERTAIN (suspected, NOT confirmed): {', '.join(set(uncertain_findings))}"
+                    )
                 if family_findings:
-                    sections.append(f"FAMILY HISTORY ONLY (not patient's own): {', '.join(set(family_findings))}")
+                    sections.append(
+                        f">>> FAMILY HISTORY ONLY (relative's condition, NOT patient's): "
+                        f"{', '.join(set(family_findings))}"
+                    )
                 if historical_findings:
-                    sections.append(f"HISTORICAL (past/resolved): {', '.join(set(historical_findings))}")
+                    sections.append(
+                        f">>> HISTORICAL (past/resolved, NOT current): {', '.join(set(historical_findings))}"
+                    )
                 sections.append("")
+
+        # Graph Evidence Section
+        if self.graph_paths:
+            sections.append("=== Graph Evidence ===")
+            for i, path in enumerate(self.graph_paths, 1):
+                path_str = path.to_prompt_format(assertion_mode=assertion_mode)
+                if path_str:
+                    sections.append(f"Path {i} ({path.path_type}): {path_str}")
+            sections.append("")
 
         # Temporal Context Section
         if self.temporal_context:

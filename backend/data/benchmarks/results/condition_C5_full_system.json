@@ -4,13 +4,13 @@
   "accuracy": 0.5769230769230769,
   "correct": 15,
   "total": 26,
-  "safety": 0.6587301587301587,
+  "safety": 0.6666666666666666,
   "category_accuracies": {
     "negation": 1.0,
-    "conditional": 0.5,
+    "conditional": 0.0,
     "uncertainty": 0.0,
     "sequence": 1.0,
-    "current_state": 0.3333333333333333,
+    "current_state": 0.6666666666666666,
     "duration": 1.0,
     "historical": 0.5714285714285714
   },
@@ -83,8 +83,8 @@
     },
     {
       "question_id": "bench_a_conditional_e9039cad",
-      "correct": true,
-      "score": 1.0,
+      "correct": false,
+      "score": 0.0,
       "category": "conditional"
     },
     {
@@ -101,8 +101,8 @@
     },
     {
       "question_id": "bench_b_current_state_5e677ee6",
-      "correct": false,
-      "score": 0.0,
+      "correct": true,
+      "score": 1.0,
       "category": "current_state"
     },
     {

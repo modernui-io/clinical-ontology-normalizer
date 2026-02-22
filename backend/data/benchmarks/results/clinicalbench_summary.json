@@ -6,21 +6,21 @@
     "task_a": 13,
     "task_b": 13
   },
-  "total_duration_s": 1430.0320756499996,
+  "total_duration_s": 1559.3343830459999,
   "conditions": {
     "C1_llm_alone": {
       "label": "LLM Alone",
-      "accuracy": 0.4230769230769231,
-      "correct": 11,
+      "accuracy": 0.46153846153846156,
+      "correct": 12,
       "total": 26,
-      "safety": 0.4365079365079365,
+      "safety": 0.5634920634920635,
       "category_accuracies": {
-        "negation": 0.8333333333333334,
+        "negation": 1.0,
         "conditional": 0.5,
-        "uncertainty": 0.4,
+        "uncertainty": 0.2,
         "sequence": 1.0,
         "current_state": 0.0,
-        "duration": 0.0,
+        "duration": 1.0,
         "historical": 0.14285714285714285
       }
     },
@@ -29,23 +29,23 @@
       "accuracy": 0.5384615384615384,
       "correct": 14,
       "total": 26,
-      "safety": 0.626984126984127,
+      "safety": 0.6349206349206349,
       "category_accuracies": {
         "negation": 1.0,
-        "conditional": 0.5,
+        "conditional": 0.0,
         "uncertainty": 0.0,
         "sequence": 1.0,
         "current_state": 0.6666666666666666,
         "duration": 1.0,
-        "historical": 0.2857142857142857
+        "historical": 0.42857142857142855
       }
     },
     "C3_kg_rag": {
       "label": "LLM + KG-RAG",
-      "accuracy": 0.6153846153846154,
-      "correct": 16,
+      "accuracy": 0.5769230769230769,
+      "correct": 15,
       "total": 26,
-      "safety": 0.6984126984126984,
+      "safety": 0.6666666666666666,
       "category_accuracies": {
         "negation": 1.0,
         "conditional": 0.0,
@@ -53,21 +53,21 @@
         "sequence": 1.0,
         "current_state": 0.6666666666666666,
         "duration": 1.0,
-        "historical": 0.7142857142857143
+        "historical": 0.5714285714285714
       }
     },
     "C4_epistemic_kg_rag": {
       "label": "LLM + Epistemic KG-RAG",
-      "accuracy": 0.6153846153846154,
-      "correct": 16,
+      "accuracy": 0.6538461538461539,
+      "correct": 17,
       "total": 26,
-      "safety": 0.6984126984126984,
+      "safety": 0.7222222222222222,
       "category_accuracies": {
         "negation": 1.0,
-        "conditional": 0.0,
-        "uncertainty": 0.0,
+        "conditional": 0.5,
+        "uncertainty": 0.2,
         "sequence": 1.0,
-        "current_state": 0.6666666666666666,
+        "current_state": 0.3333333333333333,
         "duration": 1.0,
         "historical": 0.7142857142857143
       }
@@ -77,13 +77,13 @@
       "accuracy": 0.5769230769230769,
       "correct": 15,
       "total": 26,
-      "safety": 0.6587301587301587,
+      "safety": 0.6666666666666666,
       "category_accuracies": {
         "negation": 1.0,
-        "conditional": 0.5,
+        "conditional": 0.0,
         "uncertainty": 0.0,
         "sequence": 1.0,
-        "current_state": 0.3333333333333333,
+        "current_state": 0.6666666666666666,
         "duration": 1.0,
         "historical": 0.5714285714285714
       }

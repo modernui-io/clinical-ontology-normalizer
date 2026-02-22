@@ -1,17 +1,17 @@
 {
   "condition_id": "C1_llm_alone",
   "label": "LLM Alone",
-  "accuracy": 0.4230769230769231,
-  "correct": 11,
+  "accuracy": 0.46153846153846156,
+  "correct": 12,
   "total": 26,
-  "safety": 0.4365079365079365,
+  "safety": 0.5634920634920635,
   "category_accuracies": {
-    "negation": 0.8333333333333334,
+    "negation": 1.0,
     "conditional": 0.5,
-    "uncertainty": 0.4,
+    "uncertainty": 0.2,
     "sequence": 1.0,
     "current_state": 0.0,
-    "duration": 0.0,
+    "duration": 1.0,
     "historical": 0.14285714285714285
   },
   "per_question": [
@@ -29,8 +29,8 @@
     },
     {
       "question_id": "bench_a_uncertainty_4d840683",
-      "correct": true,
-      "score": 1.0,
+      "correct": false,
+      "score": 0.0,
       "category": "uncertainty"
     },
     {
@@ -53,8 +53,8 @@
     },
     {
       "question_id": "bench_a_negation_d77aa1a3",
-      "correct": false,
-      "score": 0.0,
+      "correct": true,
+      "score": 1.0,
       "category": "negation"
     },
     {
@@ -113,8 +113,8 @@
     },
     {
       "question_id": "bench_b_dur_9aac4d9f",
-      "correct": false,
-      "score": 0.0,
+      "correct": true,
+      "score": 0.5,
       "category": "duration"
     },
     {
