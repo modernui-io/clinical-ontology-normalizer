@@ -4,7 +4,6 @@ from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
-from sqlalchemy.dialects.postgresql import JSONB
 
 revision: str = "045"
 down_revision: str | None = "044"
@@ -13,182 +12,88 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
-    # Create experiment status enum (idempotent)
-    op.execute(
-        "DO $$ BEGIN "
-        "CREATE TYPE experiment_status AS ENUM "
-        "('draft', 'running', 'completed', 'failed', 'archived'); "
-        "EXCEPTION WHEN duplicate_object THEN NULL; END $$"
-    )
+    conn = op.get_bind()
 
-    # Create run status enum (idempotent)
-    op.execute(
-        "DO $$ BEGIN "
-        "CREATE TYPE experiment_run_status AS ENUM "
-        "('pending', 'processing', 'completed', 'failed'); "
-        "EXCEPTION WHEN duplicate_object THEN NULL; END $$"
-    )
+    # Create enums idempotently
+    for type_name, values in [
+        ("experiment_status", "'draft', 'running', 'completed', 'failed', 'archived'"),
+        ("experiment_run_status", "'pending', 'processing', 'completed', 'failed'"),
+        ("metric_category", "'nlp', 'mapping', 'assertion', 'kg', 'rag', 'timing'"),
+    ]:
+        result = conn.execute(
+            sa.text("SELECT 1 FROM pg_type WHERE typname = :name"),
+            {"name": type_name},
+        )
+        if result.fetchone() is None:
+            conn.execute(sa.text(
+                f"CREATE TYPE {type_name} AS ENUM ({values})"
+            ))
 
-    # Create metric category enum (idempotent)
-    op.execute(
-        "DO $$ BEGIN "
-        "CREATE TYPE metric_category AS ENUM "
-        "('nlp', 'mapping', 'assertion', 'kg', 'rag', 'timing'); "
-        "EXCEPTION WHEN duplicate_object THEN NULL; END $$"
-    )
+    # Create tables via raw SQL to avoid asyncpg/sa.Enum interaction bug
+    conn.execute(sa.text("""
+        CREATE TABLE IF NOT EXISTS research_experiments (
+            id VARCHAR(255) PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            description TEXT,
+            hypothesis TEXT,
+            config JSONB NOT NULL DEFAULT '{}'::jsonb,
+            status experiment_status NOT NULL DEFAULT 'draft',
+            summary_metrics JSONB,
+            tags TEXT[],
+            created_by VARCHAR(255),
+            created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+            updated_at TIMESTAMPTZ,
+            started_at TIMESTAMPTZ,
+            completed_at TIMESTAMPTZ,
+            deleted_at TIMESTAMPTZ
+        )
+    """))
 
-    # Research Experiments table
-    op.create_table(
-        "research_experiments",
-        sa.Column("id", sa.String(255), primary_key=True),
-        sa.Column("name", sa.String(255), nullable=False),
-        sa.Column("description", sa.Text, nullable=True),
-        sa.Column("hypothesis", sa.Text, nullable=True),
-        sa.Column(
-            "config",
-            JSONB,
-            nullable=False,
-            server_default=sa.text("'{}'::jsonb"),
-        ),
-        sa.Column(
-            "status",
-            sa.Enum(
-                "draft",
-                "running",
-                "completed",
-                "failed",
-                "archived",
-                name="experiment_status",
-                create_type=False,
-            ),
-            nullable=False,
-            server_default="draft",
-        ),
-        sa.Column("summary_metrics", JSONB, nullable=True),
-        sa.Column("tags", sa.ARRAY(sa.String), nullable=True),
-        sa.Column("created_by", sa.String(255), nullable=True),
-        sa.Column(
-            "created_at",
-            sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
-            nullable=False,
-        ),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("started_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("completed_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True),
-    )
+    conn.execute(sa.text("""
+        CREATE TABLE IF NOT EXISTS research_experiment_runs (
+            id VARCHAR(255) PRIMARY KEY,
+            experiment_id VARCHAR(255) NOT NULL REFERENCES research_experiments(id) ON DELETE CASCADE,
+            mimic_batch_id VARCHAR(255),
+            run_config JSONB,
+            document_ids TEXT[],
+            patient_ids TEXT[],
+            status experiment_run_status NOT NULL DEFAULT 'pending',
+            error TEXT,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+            started_at TIMESTAMPTZ,
+            completed_at TIMESTAMPTZ
+        )
+    """))
 
-    op.create_index(
-        "ix_research_experiments_status",
-        "research_experiments",
-        ["status"],
-    )
-    op.create_index(
-        "ix_research_experiments_created_by",
-        "research_experiments",
-        ["created_by"],
-    )
+    conn.execute(sa.text("""
+        CREATE TABLE IF NOT EXISTS research_experiment_metrics (
+            id VARCHAR(255) PRIMARY KEY,
+            run_id VARCHAR(255) NOT NULL REFERENCES research_experiment_runs(id) ON DELETE CASCADE,
+            category metric_category NOT NULL,
+            metric_name VARCHAR(255) NOT NULL,
+            metric_value DOUBLE PRECISION NOT NULL,
+            detail JSONB,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+        )
+    """))
 
-    # Research Experiment Runs table
-    op.create_table(
-        "research_experiment_runs",
-        sa.Column("id", sa.String(255), primary_key=True),
-        sa.Column(
-            "experiment_id",
-            sa.String(255),
-            sa.ForeignKey("research_experiments.id", ondelete="CASCADE"),
-            nullable=False,
-        ),
-        sa.Column("mimic_batch_id", sa.String(255), nullable=True),
-        sa.Column("run_config", JSONB, nullable=True),
-        sa.Column("document_ids", sa.ARRAY(sa.String), nullable=True),
-        sa.Column("patient_ids", sa.ARRAY(sa.String), nullable=True),
-        sa.Column(
-            "status",
-            sa.Enum(
-                "pending",
-                "processing",
-                "completed",
-                "failed",
-                name="experiment_run_status",
-                create_type=False,
-            ),
-            nullable=False,
-            server_default="pending",
-        ),
-        sa.Column("error", sa.Text, nullable=True),
-        sa.Column(
-            "created_at",
-            sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
-            nullable=False,
-        ),
-        sa.Column("started_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("completed_at", sa.DateTime(timezone=True), nullable=True),
-    )
+    # Indexes
+    for idx_name, table, cols in [
+        ("ix_research_experiments_status", "research_experiments", "status"),
+        ("ix_research_experiments_created_by", "research_experiments", "created_by"),
+        ("ix_research_runs_experiment_id", "research_experiment_runs", "experiment_id"),
+        ("ix_research_runs_status", "research_experiment_runs", "status"),
+        ("ix_research_metrics_run_id", "research_experiment_metrics", "run_id"),
+        ("ix_research_metrics_category", "research_experiment_metrics", "category"),
+    ]:
+        conn.execute(sa.text(
+            f"CREATE INDEX IF NOT EXISTS {idx_name} ON {table} ({cols})"
+        ))
 
-    op.create_index(
-        "ix_research_runs_experiment_id",
-        "research_experiment_runs",
-        ["experiment_id"],
-    )
-    op.create_index(
-        "ix_research_runs_status",
-        "research_experiment_runs",
-        ["status"],
-    )
-
-    # Research Experiment Metrics table
-    op.create_table(
-        "research_experiment_metrics",
-        sa.Column("id", sa.String(255), primary_key=True),
-        sa.Column(
-            "run_id",
-            sa.String(255),
-            sa.ForeignKey("research_experiment_runs.id", ondelete="CASCADE"),
-            nullable=False,
-        ),
-        sa.Column(
-            "category",
-            sa.Enum(
-                "nlp",
-                "mapping",
-                "assertion",
-                "kg",
-                "rag",
-                "timing",
-                name="metric_category",
-                create_type=False,
-            ),
-            nullable=False,
-        ),
-        sa.Column("metric_name", sa.String(255), nullable=False),
-        sa.Column("metric_value", sa.Float, nullable=False),
-        sa.Column("detail", JSONB, nullable=True),
-        sa.Column(
-            "created_at",
-            sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
-            nullable=False,
-        ),
-    )
-
-    op.create_index(
-        "ix_research_metrics_run_id",
-        "research_experiment_metrics",
-        ["run_id"],
-    )
-    op.create_index(
-        "ix_research_metrics_category",
-        "research_experiment_metrics",
-        ["category"],
-    )
-    op.create_index(
-        "ix_research_metrics_run_category",
-        "research_experiment_metrics",
-        ["run_id", "category"],
-    )
+    conn.execute(sa.text(
+        "CREATE INDEX IF NOT EXISTS ix_research_metrics_run_category "
+        "ON research_experiment_metrics (run_id, category)"
+    ))
 
 
 def downgrade() -> None:
