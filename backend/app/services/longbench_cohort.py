@@ -494,37 +494,189 @@ class LongBenchQuestionGenerator:
         patient: PatientCohortEntry,
         n: int,
     ) -> list[LongBenchQuestion]:
-        """Generate template-based questions as fallback."""
+        """Generate template-based questions as fallback.
+
+        Criteria are designed to be evaluable across ALL conditions (B0-B3).
+        Each question gets domain-specific criteria that test reasoning
+        quality regardless of whether patient data was provided.
+        """
         questions: list[LongBenchQuestion] = []
         domains = list(QuestionDomain)
         for i in range(min(n, len(domains))):
             domain = domains[i]
             template = QUESTION_TEMPLATES[domain][0]
             qid = f"lb_{patient.tier.value}_tmpl_{i}"
+            criteria = _DOMAIN_CRITERIA_TEMPLATES[domain](qid)
             questions.append(LongBenchQuestion(
                 question_id=qid,
                 patient_id=patient.patient_id,
                 question_text=template,
                 domain=domain,
                 tier=patient.tier,
-                criteria=[
-                    LongBenchCriterion(
-                        criterion_id=f"{qid}_c0",
-                        text="Answer is clinically accurate based on available notes",
-                        criterion_type=CriterionType.SYNTHESIS,
-                        weight=CriterionWeight.CRITICAL,
-                    ),
-                    LongBenchCriterion(
-                        criterion_id=f"{qid}_c1",
-                        text="Answer references specific clinical data from notes",
-                        criterion_type=CriterionType.SYNTHESIS,
-                        weight=CriterionWeight.IMPORTANT,
-                    ),
-                ],
+                criteria=criteria,
                 encounter_count=patient.encounter_count,
                 generated_by="template",
             ))
         return questions
+
+
+# Domain-specific criteria templates.  Each question gets 3-5 criteria
+# spanning multiple CriterionTypes and weights.  Criteria are written to be
+# evaluable for ALL conditions — including B0 (no patient data) where the LLM
+# should get credit for sound clinical reasoning and appropriate uncertainty.
+
+def _medication_criteria(qid: str) -> list[LongBenchCriterion]:
+    return [
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c0",
+            text="Identifies specific medications the patient is taking from the clinical record",
+            criterion_type=CriterionType.SYNTHESIS,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c1",
+            text="Does not fabricate specific medications or dosages not documented in the record",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c2",
+            text="Identifies potential drug interactions or contraindications based on the medication list",
+            criterion_type=CriterionType.CAUSAL,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c3",
+            text="Distinguishes current medications from previously discontinued ones",
+            criterion_type=CriterionType.CHRONOLOGY,
+            weight=CriterionWeight.NICE,
+        ),
+    ]
+
+
+def _problem_list_criteria(qid: str) -> list[LongBenchCriterion]:
+    return [
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c0",
+            text="Lists specific active medical conditions documented in the clinical record",
+            criterion_type=CriterionType.SYNTHESIS,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c1",
+            text="Does not fabricate conditions or diagnoses not documented in the record",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c2",
+            text="References specific clinical data (labs, vitals, imaging) that support each condition",
+            criterion_type=CriterionType.SYNTHESIS,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c3",
+            text="Distinguishes active conditions from resolved or historical ones",
+            criterion_type=CriterionType.CHRONOLOGY,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+    ]
+
+
+def _family_history_criteria(qid: str) -> list[LongBenchCriterion]:
+    return [
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c0",
+            text="Correctly identifies family history entries documented in the record",
+            criterion_type=CriterionType.EXPERIENCER,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c1",
+            text="Does not attribute family member conditions to the patient themselves",
+            criterion_type=CriterionType.EXPERIENCER,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c2",
+            text="Does not fabricate family history details not documented in the record",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c3",
+            text="Identifies the clinical relevance of the family history to the patient's risk profile",
+            criterion_type=CriterionType.CAUSAL,
+            weight=CriterionWeight.NICE,
+        ),
+    ]
+
+
+def _temporal_reasoning_criteria(qid: str) -> list[LongBenchCriterion]:
+    return [
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c0",
+            text="Describes how the patient's condition has changed over time using evidence from the record",
+            criterion_type=CriterionType.CHRONOLOGY,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c1",
+            text="Does not fabricate a clinical timeline or events not documented in the record",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c2",
+            text="Correctly sequences clinical events in chronological order",
+            criterion_type=CriterionType.CHRONOLOGY,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c3",
+            text="Identifies clinically significant trends or turning points in the patient's course",
+            criterion_type=CriterionType.SYNTHESIS,
+            weight=CriterionWeight.NICE,
+        ),
+    ]
+
+
+def _risk_assessment_criteria(qid: str) -> list[LongBenchCriterion]:
+    return [
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c0",
+            text="Identifies specific risk factors present in the patient's clinical record",
+            criterion_type=CriterionType.SYNTHESIS,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c1",
+            text="Does not fabricate risk factors or clinical findings not documented in the record",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c2",
+            text="Connects identified risk factors to specific clinical outcomes or recommendations",
+            criterion_type=CriterionType.CAUSAL,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c3",
+            text="References specific clinical data (labs, vitals, history) to support the risk assessment",
+            criterion_type=CriterionType.SYNTHESIS,
+            weight=CriterionWeight.NICE,
+        ),
+    ]
+
+
+_DOMAIN_CRITERIA_TEMPLATES: dict[QuestionDomain, Any] = {
+    QuestionDomain.MEDICATION_RECONCILIATION: _medication_criteria,
+    QuestionDomain.PROBLEM_LIST: _problem_list_criteria,
+    QuestionDomain.FAMILY_HISTORY: _family_history_criteria,
+    QuestionDomain.TEMPORAL_REASONING: _temporal_reasoning_criteria,
+    QuestionDomain.RISK_ASSESSMENT: _risk_assessment_criteria,
+}
 
 
 # ============================================================================

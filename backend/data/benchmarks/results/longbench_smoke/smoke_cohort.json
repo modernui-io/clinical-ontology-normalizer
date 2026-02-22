@@ -1,0 +1,214 @@
+{
+  "cohort_id": "longbench_20260222_150144",
+  "version": "1.0.0",
+  "metadata": {
+    "tier_sizes": {
+      "A": 2,
+      "B": 2,
+      "C": 2
+    },
+    "min_note_chars": 200,
+    "random_seed": 42,
+    "selection_date": "2026-02-22T15:01:44.555453"
+  },
+  "tier_summary": {
+    "A": {
+      "patients": 2,
+      "questions": 4
+    },
+    "B": {
+      "patients": 0,
+      "questions": 0
+    },
+    "C": {
+      "patients": 0,
+      "questions": 0
+    }
+  },
+  "patients": [
+    {
+      "patient_id": "MIMIC-14124085",
+      "tier": "A",
+      "encounter_count": 1,
+      "total_note_length": 9006,
+      "earliest_date": "2175-08-14 00:00:00+00:00",
+      "latest_date": "2175-08-14 00:00:00+00:00",
+      "condition_count": 0,
+      "medication_count": 0,
+      "has_family_history": false
+    },
+    {
+      "patient_id": "MIMIC-11764274",
+      "tier": "A",
+      "encounter_count": 1,
+      "total_note_length": 11284,
+      "earliest_date": "2116-02-03 00:00:00+00:00",
+      "latest_date": "2116-02-03 00:00:00+00:00",
+      "condition_count": 0,
+      "medication_count": 0,
+      "has_family_history": false
+    }
+  ],
+  "questions": [
+    {
+      "question_id": "lb_A_tmpl_0",
+      "patient_id": "MIMIC-14124085",
+      "question_text": "What medications is this patient currently taking, and are there any potential interactions?",
+      "domain": "medication_reconciliation",
+      "tier": "A",
+      "encounter_count": 1,
+      "generated_by": "template",
+      "validated_by": null,
+      "criteria": [
+        {
+          "criterion_id": "lb_A_tmpl_0_c0",
+          "text": "Identifies specific medications the patient is taking from the clinical record",
+          "criterion_type": "synthesis",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_0_c1",
+          "text": "Does not fabricate specific medications or dosages not documented in the record",
+          "criterion_type": "assertion",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_0_c2",
+          "text": "Identifies potential drug interactions or contraindications based on the medication list",
+          "criterion_type": "causal",
+          "weight": "important",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_0_c3",
+          "text": "Distinguishes current medications from previously discontinued ones",
+          "criterion_type": "chronology",
+          "weight": "nice",
+          "evidence_source": ""
+        }
+      ]
+    },
+    {
+      "question_id": "lb_A_tmpl_1",
+      "patient_id": "MIMIC-14124085",
+      "question_text": "Summarize this patient's active medical conditions and their current status.",
+      "domain": "problem_list",
+      "tier": "A",
+      "encounter_count": 1,
+      "generated_by": "template",
+      "validated_by": null,
+      "criteria": [
+        {
+          "criterion_id": "lb_A_tmpl_1_c0",
+          "text": "Lists specific active medical conditions documented in the clinical record",
+          "criterion_type": "synthesis",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_1_c1",
+          "text": "Does not fabricate conditions or diagnoses not documented in the record",
+          "criterion_type": "assertion",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_1_c2",
+          "text": "References specific clinical data (labs, vitals, imaging) that support each condition",
+          "criterion_type": "synthesis",
+          "weight": "important",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_1_c3",
+          "text": "Distinguishes active conditions from resolved or historical ones",
+          "criterion_type": "chronology",
+          "weight": "important",
+          "evidence_source": ""
+        }
+      ]
+    },
+    {
+      "question_id": "lb_A_tmpl_0",
+      "patient_id": "MIMIC-11764274",
+      "question_text": "What medications is this patient currently taking, and are there any potential interactions?",
+      "domain": "medication_reconciliation",
+      "tier": "A",
+      "encounter_count": 1,
+      "generated_by": "template",
+      "validated_by": null,
+      "criteria": [
+        {
+          "criterion_id": "lb_A_tmpl_0_c0",
+          "text": "Identifies specific medications the patient is taking from the clinical record",
+          "criterion_type": "synthesis",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_0_c1",
+          "text": "Does not fabricate specific medications or dosages not documented in the record",
+          "criterion_type": "assertion",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_0_c2",
+          "text": "Identifies potential drug interactions or contraindications based on the medication list",
+          "criterion_type": "causal",
+          "weight": "important",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_0_c3",
+          "text": "Distinguishes current medications from previously discontinued ones",
+          "criterion_type": "chronology",
+          "weight": "nice",
+          "evidence_source": ""
+        }
+      ]
+    },
+    {
+      "question_id": "lb_A_tmpl_1",
+      "patient_id": "MIMIC-11764274",
+      "question_text": "Summarize this patient's active medical conditions and their current status.",
+      "domain": "problem_list",
+      "tier": "A",
+      "encounter_count": 1,
+      "generated_by": "template",
+      "validated_by": null,
+      "criteria": [
+        {
+          "criterion_id": "lb_A_tmpl_1_c0",
+          "text": "Lists specific active medical conditions documented in the clinical record",
+          "criterion_type": "synthesis",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_1_c1",
+          "text": "Does not fabricate conditions or diagnoses not documented in the record",
+          "criterion_type": "assertion",
+          "weight": "critical",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_1_c2",
+          "text": "References specific clinical data (labs, vitals, imaging) that support each condition",
+          "criterion_type": "synthesis",
+          "weight": "important",
+          "evidence_source": ""
+        },
+        {
+          "criterion_id": "lb_A_tmpl_1_c3",
+          "text": "Distinguishes active conditions from resolved or historical ones",
+          "criterion_type": "chronology",
+          "weight": "important",
+          "evidence_source": ""
+        }
+      ]
+    }
+  ]
+}

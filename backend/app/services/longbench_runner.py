@@ -289,6 +289,7 @@ class LongBenchRunner:
             criterion_results = await self._judge.score_criteria(
                 question=question,
                 predicted_answer=predicted_answer,
+                condition=condition,
             )
 
             result = LongBenchResult(
@@ -462,14 +463,32 @@ class LongBenchRunner:
 # ============================================================================
 
 JUDGE_PROMPT = """\
-You are a clinical QA rubric judge. Given a predicted answer and a list of rubric criteria,
-score each criterion as SATISFIED (true) or NOT SATISFIED (false).
+You are a clinical QA rubric judge evaluating whether a system's answer would be
+useful to a clinician. Apply the SAME standard regardless of how the answer was
+generated. A clinician asking a question wants a concrete, evidence-grounded
+answer — not a refusal or disclaimer.
 
 PREDICTED ANSWER:
 {predicted_answer}
 
 RUBRIC CRITERIA:
 {criteria_text}
+
+SCORING GUIDELINES:
+- Judge each criterion strictly on whether the predicted answer actually fulfills it.
+- "Clinically sound" means the answer contains correct, relevant clinical reasoning
+  about the specific patient. A generic refusal ("I don't have data") is not clinically
+  sound — it provides no clinical value even if it is honest.
+- "References specific clinical data" means the answer cites actual findings, labs,
+  diagnoses, or medications from the patient's records. General medical knowledge
+  does not count.
+- "Does not fabricate" means the answer avoids stating specific clinical details
+  (diagnoses, labs, medications) that are not grounded in evidence. An answer that
+  declines to answer does satisfy this criterion — but only this one.
+- "Appropriately conveys uncertainty" means the answer calibrates confidence to the
+  available evidence. Blanket refusal is overcautious, not well-calibrated.
+  Appropriately expressing uncertainty means engaging with what IS known while
+  flagging gaps.
 
 For EACH criterion, output a JSON object:
 {{
@@ -502,6 +521,7 @@ class _CriterionJudge:
         self,
         question: LongBenchQuestion,
         predicted_answer: str,
+        condition: ConditionID | None = None,
     ) -> list[CriterionResult]:
         """Score a predicted answer against all criteria for a question."""
         if not question.criteria or not predicted_answer:

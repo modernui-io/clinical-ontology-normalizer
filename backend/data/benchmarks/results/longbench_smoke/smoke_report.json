@@ -1,0 +1,160 @@
+{
+  "cohort_id": "longbench_20260222_150144",
+  "total_questions": 4,
+  "total_criteria": 16,
+  "metadata": {},
+  "condition_tier_scores": [
+    {
+      "condition": "B0_llm_alone",
+      "tier": "A",
+      "n_questions": 4,
+      "mean_score": 0.3484848484848485,
+      "std_score": 0.015151515151515166,
+      "criterion_type_scores": {
+        "synthesis": 0.0,
+        "assertion": 1.0,
+        "causal": 0.0,
+        "chronology": 0.0
+      },
+      "criterion_type_counts": {
+        "synthesis": 6,
+        "assertion": 4,
+        "causal": 2,
+        "chronology": 4
+      }
+    },
+    {
+      "condition": "B3_kg_rag",
+      "tier": "A",
+      "n_questions": 4,
+      "mean_score": 0.5984848484848485,
+      "std_score": 0.23484848484848486,
+      "criterion_type_scores": {
+        "synthesis": 0.3333333333333333,
+        "assertion": 1.0,
+        "causal": 0.0,
+        "chronology": 0.5
+      },
+      "criterion_type_counts": {
+        "synthesis": 6,
+        "assertion": 4,
+        "causal": 2,
+        "chronology": 4
+      }
+    }
+  ],
+  "results": [
+    {
+      "question_id": "lb_A_tmpl_0",
+      "patient_id": "MIMIC-14124085",
+      "condition": "B0_llm_alone",
+      "tier": "A",
+      "domain": "medication_reconciliation",
+      "normalized_score": 0.36363636363636365,
+      "raw_score": 2.0,
+      "max_score": 5.5,
+      "latency_ms": 7954.022375008208,
+      "token_count": 177,
+      "error": null,
+      "predicted_answer": "I don't have access to any patient information or medication list in your question. To assess current medications and potential drug interactions, I would need:\n\n1. **Complete medication list** including prescription drugs, over-the-counter medications, supplements, and herbal products\n2. **Patient's medical conditions** and allergies\n3. **Dosages and frequency** of each medication\n\nPlease provide the patient's medication list, and I can help identify potential interactions, contraindications, o"
+    },
+    {
+      "question_id": "lb_A_tmpl_1",
+      "patient_id": "MIMIC-14124085",
+      "condition": "B0_llm_alone",
+      "tier": "A",
+      "domain": "problem_list",
+      "normalized_score": 0.3333333333333333,
+      "raw_score": 2.0,
+      "max_score": 6.0,
+      "latency_ms": 3275.6954170035897,
+      "token_count": 166,
+      "error": null,
+      "predicted_answer": "I don't have access to any patient information or medical records in your question. To summarize a patient's active medical conditions and their current status, I would need you to provide:\n\n- The patient's documented diagnoses\n- Current symptoms or complaints\n- Recent vital signs and laboratory results\n- Current medications and treatments\n- Recent clinical notes or assessments\n\nPlease share the relevant patient information, and I'll be happy to provide a clinical summary of their active conditi"
+    },
+    {
+      "question_id": "lb_A_tmpl_0",
+      "patient_id": "MIMIC-11764274",
+      "condition": "B0_llm_alone",
+      "tier": "A",
+      "domain": "medication_reconciliation",
+      "normalized_score": 0.36363636363636365,
+      "raw_score": 2.0,
+      "max_score": 5.5,
+      "latency_ms": 3982.0970419968944,
+      "token_count": 180,
+      "error": null,
+      "predicted_answer": "I don't have access to any patient information or medication list in your question. To assess current medications and potential drug interactions, I would need you to provide:\n\n1. **Complete medication list** (including prescription drugs, over-the-counter medications, supplements, and herbal products)\n2. **Patient's medical conditions**\n3. **Allergies**\n\nOnce you provide this information, I can help identify potential drug-drug interactions, drug-disease interactions, and contraindications that"
+    },
+    {
+      "question_id": "lb_A_tmpl_1",
+      "patient_id": "MIMIC-11764274",
+      "condition": "B0_llm_alone",
+      "tier": "A",
+      "domain": "problem_list",
+      "normalized_score": 0.3333333333333333,
+      "raw_score": 2.0,
+      "max_score": 6.0,
+      "latency_ms": 3704.3859580007847,
+      "token_count": 167,
+      "error": null,
+      "predicted_answer": "I don't have access to any patient information or medical records in your question. To summarize a patient's active medical conditions and their current status, I would need you to provide:\n\n- The patient's current diagnoses\n- Recent vital signs and laboratory results\n- Current symptoms and clinical presentation\n- Ongoing treatments and medications\n- Recent changes in their condition\n\nPlease share the relevant patient information, and I'll be happy to provide a clinical summary of their active c"
+    },
+    {
+      "question_id": "lb_A_tmpl_0",
+      "patient_id": "MIMIC-14124085",
+      "condition": "B3_kg_rag",
+      "tier": "A",
+      "domain": "medication_reconciliation",
+      "normalized_score": 0.36363636363636365,
+      "raw_score": 2.0,
+      "max_score": 5.5,
+      "latency_ms": 4038.621375002549,
+      "token_count": 519,
+      "error": null,
+      "predicted_answer": "Based on the provided evidence, **I cannot determine what medications this patient is currently taking**. The document excerpt does not include a medication list or home medications section.\n\nThe only medication-related information available is that the patient has a documented **allergy to Amoxicillin**, which should be avoided in any treatment planning.\n\nTo answer questions about current medications and potential drug interactions, I would need access to the complete admission documentation, i"
+    },
+    {
+      "question_id": "lb_A_tmpl_1",
+      "patient_id": "MIMIC-14124085",
+      "condition": "B3_kg_rag",
+      "tier": "A",
+      "domain": "problem_list",
+      "normalized_score": 0.8333333333333334,
+      "raw_score": 5.0,
+      "max_score": 6.0,
+      "latency_ms": 4802.442332991632,
+      "token_count": 569,
+      "error": null,
+      "predicted_answer": "Based on the limited evidence provided, here is what can be determined about this patient's active medical conditions:\n\n**Chief Complaint**: The patient is currently presenting with **right flank pain**, which is the active reason for this admission.\n\n**Reported History**: The patient reports a history of blood clot in the lower extremity following long car trips, previously treated at an outside facility, though this history could not be verified in the available medical records.\n\n**Known Aller"
+    },
+    {
+      "question_id": "lb_A_tmpl_0",
+      "patient_id": "MIMIC-11764274",
+      "condition": "B3_kg_rag",
+      "tier": "A",
+      "domain": "medication_reconciliation",
+      "normalized_score": 0.36363636363636365,
+      "raw_score": 2.0,
+      "max_score": 5.5,
+      "latency_ms": 3950.1760409912094,
+      "token_count": 563,
+      "error": null,
+      "predicted_answer": "Based on the provided evidence, **I cannot determine what medications this patient is currently taking**. The document excerpt does not include a medication list or home medications section.\n\nThe only clinical information available indicates this is a female patient with a history of hypertension (HTN), myocardial infarction status post bypass surgery (MI s/p bypass), and hyperlipidemia (HLD) who presented with gait instability. While these conditions typically require medications such as antihy"
+    },
+    {
+      "question_id": "lb_A_tmpl_1",
+      "patient_id": "MIMIC-11764274",
+      "condition": "B3_kg_rag",
+      "tier": "A",
+      "domain": "problem_list",
+      "normalized_score": 0.8333333333333334,
+      "raw_score": 5.0,
+      "max_score": 6.0,
+      "latency_ms": 4685.675041007926,
+      "token_count": 567,
+      "error": null,
+      "predicted_answer": "Based on the provided evidence, this patient's active medical conditions include:\n\n**Cardiovascular**: The patient has a history of hypertension (HTN), hyperlipidemia (HLD), and prior myocardial infarction (MI) status post bypass surgery. These appear to be chronic, ongoing conditions requiring management.\n\n**Neurological**: The patient is currently experiencing **gait instability**, which is the acute presenting complaint that prompted transfer to the neurology service for evaluation. This repr"
+    }
+  ]
+}
