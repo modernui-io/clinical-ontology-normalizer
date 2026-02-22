@@ -74,3 +74,12 @@ Source
 - Decision posture: CONDITIONAL GO for pilot; BLOCKED for staging; HOLD for broad rollout
 
 **Operator**: autonomous-agent | **Date**: 2026-02-21
+
+## Sprint 1 → Staging Transition (2026-02-21)
+
+- **Sprint 1 phase**: formally closed (28/28 P0, all P1-P3 closed, P4 plans complete)
+- **Remaining P0/P1 code items**: none
+- **Blocking status**: infrastructure only — 5 staging conditions remain `blocked_by_infrastructure`
+- **Next lane**: staging provisioning (hold until infrastructure provisioned)
+- **Working tree**: resolved — QA experiment data committed, debug artifact excluded
+- **Escalation**: if no staging by 2026-03-02, escalate to CTO + CIO for infra decision

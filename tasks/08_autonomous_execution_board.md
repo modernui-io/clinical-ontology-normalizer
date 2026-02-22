@@ -169,6 +169,26 @@ The following 5 P4 items have approved ADR decisions (DEFER / CONDITIONAL DEFER)
 
 **Operator**: autonomous-agent. **Gate**: Sprint 1 exit PASS.
 
+## Sprint 1 → Staging Transition (2026-02-21)
+
+All code execution lanes are now closed. The only remaining blockers are staging infrastructure conditions.
+
+| Item | Status |
+|------|--------|
+| Sprint 1 P0 tasks | 28/28 CLOSED |
+| P1-P3 backlog | All closed |
+| P4 plans | All complete (20/20 ADR, 15/15 I+V closed, 5+5 deferred by ADR) |
+| Working tree | Resolved — QA experiment data committed |
+| Code blockers | None remaining |
+| Staging blockers | 5 conditions `blocked_by_infrastructure` |
+
+**Next steps:**
+1. Infrastructure team provisions staging environment (PG + Redis + Neo4j + Kafka containers)
+2. If no staging by 2026-03-02: escalate to CTO + CIO for infra decision
+3. If no staging by 2026-03-09: executive review
+4. 30-day signoff review scheduled 2026-03-16
+5. Once staging provisioned: execute 5 staging drills per `docs/operations/staging_provisioning_checklist.md`
+
 ## Current posture
 - Test baseline as of `2026-02-21`: `clean` (43,005 passed, 0 failures, 11 skipped, 3 xfailed. All 22 pre-existing failures from 2026-02-19 snapshot resolved. Key invariants: RAG 64/64, router 42/42, maturity 42/42.)
 - Sprint 1 posture as of `2026-02-21`: `closed` (28/28 P0 tasks done. Formal closure verification passed. Evidence integrity: 143/143 paths verified.)

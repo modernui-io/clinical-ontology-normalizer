@@ -12,8 +12,10 @@ Run metadata
 ```yaml
 run_id: enterprise-readiness-openehr-pilot-v1
 phase: implementation
-status: sprint_1_closed
-current_stage: sprint_1_closed
+status: staging_provisioning_hold
+current_stage: staging_provisioning_hold
+next_stage: staging_drills
+last_updated_utc: 2026-02-21T12:00:00Z
 completed_roles:
   - cto
   - ciso
@@ -225,6 +227,7 @@ next_required_artifacts:
 - 2026-02-19: Fixed 6 MIMIC API test failures in `test_mimic_api.py` (URL prefix + MimicIngestionService mock). Root cause: tests used bare paths (`/documents/mimic/*`) but production routes registered under `/api/v1`. Added `API_PREFIX` constant, mocked metrics endpoint DB dependency, added route registration regression test. 8/8 MIMIC tests pass. KG invariants verified: 42 router, 64 RAG, 42 maturity tests green. Broad suite: 42,962 passed, 22 pre-existing failures, 0 regressions. Operator: autonomous-agent.
 - 2026-02-21: **Clean baseline verification.** Legacy triage session initiated to fix 22 pre-existing failures referenced in prior run. Full suite result: **43,000 passed, 0 failures**, 11 skipped, 3 xfailed. All 22 failures resolved by prior commits (778570b and earlier). Key invariants verified independently: test_graph_augmented_rag.py 64/64 PASS, test_neo4j_query_router.py 42/42 PASS, test_api_maturity_labeling.py 42/42 PASS. No legacy regressions remain. No code changes required. Operator: autonomous-agent.
 - 2026-02-21: **Sprint 1 formal closure.** Verification results: backend 43,005 pass / 0 fail / 11 skip / 3 xfail; frontend build PASS (185 pages); frontend lint PASS (0 errors). Evidence audit: 143/143 paths verified, 0 broken. Sprint 2-6 reconciliation: 191/191 subtasks superseded by parent closure (P0: 28/28, P1: 35/35, P2: 30/30, P3: 25/25 all closed). Sprint 1 exit gate: PASS. Phase updated to `sprint_1_closed`. Staging remains `blocked_by_infrastructure` (5 conditions). Operator: autonomous-agent.
+- 2026-02-21: Sprint 1 formally closed. Working tree resolved (QA experiment data committed). Transition to staging_provisioning hold lane. No remaining P0/P1 code items. 5 staging conditions remain `blocked_by_infrastructure`.
 - 2026-02-18: KG/Research extension completed in-code: PG-native graph query path added in `backend/app/services/neo4j_query_router.py` + graph augmentation updates in `backend/app/services/graph_augmented_rag.py`; multi-source ingestion stack added for MIMIC/MTSamples/Synthea/research (`backend/app/api/documents/documents_*.py`, `backend/app/jobs/*`, `backend/app/services/*_ingestion.py`, `backend/app/api/research.py`, `backend/app/services/experiment_runner.py`). Tests added/updated: `backend/tests/test_graph_augmented_rag.py`, `backend/tests/test_neo4j_query_router.py`, `backend/tests/test_mimic_api.py`, `backend/tests/test_research_api.py`, `backend/tests/test_research_service.py`, `backend/tests/test_mimic_ingestion.py`. Frontend routes updated under `frontend/src/app/{mimic,datasets,research}`.
 
 ### Final Closure — ROL-08 + ROL-09 (2026-02-17)
@@ -292,3 +295,19 @@ next_required_artifacts:
   - Ingestion-to-traversal contract: shared concept nodes (patient_id=NULL) found via edge-join
   - 21 new regression tests. 42 router + 64 RAG + 447 graph tests pass. Ruff clean.
   - ROL-42 and ROL-43 marked done on execution board.
+
+## Staging Blocker Execution Lane
+
+All code execution lanes are closed. The 5 remaining conditions require staging infrastructure provisioning. Each condition has an assigned owner, dependencies, and escalation path.
+
+| # | Condition | Owner | Dependencies | Next Escalation Step |
+|---|-----------|-------|-------------|---------------------|
+| 1 | OpenEHR round-trip staging confirmation | CIO + Ops | Staging URL provisioned; OpenEHR sandbox access | If no staging URL by 2026-03-02: escalate to CTO + CIO for infra decision |
+| 2 | Redis containerized failover drill | Ops + CTO | Redis containerized in Docker/K8s staging | If not containerized by 2026-03-02: evaluate managed Redis (ElastiCache) |
+| 3 | Neo4j restore drill on staging | Ops | Staging Neo4j instance provisioned | If not provisioned by 2026-03-02: evaluate Neo4j Aura sandbox |
+| 4 | Cascade failover simulation | Ops + CTO | Redis + Neo4j + Kafka all containerized | Depends on conditions 2+3; blocked until both resolved |
+| 5 | 30-day signoff review | Program Lead + all leads | Scheduled 2026-03-16 | Auto-escalate if no staging by 2026-03-02; executive review 2026-03-09 |
+
+**Drill procedures**: `docs/operations/staging_provisioning_checklist.md`
+**Evidence targets**: `docs/evidence/staging/`
+**Estimated drill duration**: ~3 hours sequential (once staging provisioned)
