@@ -198,7 +198,7 @@ async def main(provider: str, model: str) -> None:
 
     # Step 2: Configure run
     logger.info("\n--- Step 2: Run Configuration ---")
-    conditions = [ConditionID.B0, ConditionID.B3]  # Just 2 conditions for smoke test
+    conditions = [ConditionID.B0, ConditionID.B3, ConditionID.B4]  # B0 + B3 + B4 for smoke test
     logger.info("Conditions: %s", [c.value for c in conditions])
 
     config = LongBenchRunConfig(

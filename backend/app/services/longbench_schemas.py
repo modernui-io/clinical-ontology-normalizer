@@ -57,7 +57,8 @@ class ConditionID(str, Enum):
     B0 = "B0_llm_alone"           # LLM with no patient data
     B1 = "B1_latest_note"         # LLM + latest discharge summary only
     B2 = "B2_all_notes_rag"       # LLM + naive "all notes" RAG (flattened text retrieval)
-    B3 = "B3_kg_rag"              # LLM + full KG-RAG system
+    B3 = "B3_kg_rag"              # LLM + full KG-RAG (assertion + temporal)
+    B4 = "B4_full_system"         # B3 + guideline RAG + clinical calculators
 
 
 class QuestionDomain(str, Enum):

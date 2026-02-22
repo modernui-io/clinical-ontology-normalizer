@@ -264,11 +264,19 @@ class TestConditionConfigs:
         assert cfg["retrieval_mode"] == "doc_only"
         assert cfg["assertion_mode"] == "none"
 
-    def test_b3_is_full_kg_rag(self):
+    def test_b3_is_kg_rag(self):
         cfg = CONDITION_CONFIGS[ConditionID.B3]
         assert cfg["retrieval_mode"] == "graph_plus_doc"
         assert cfg["assertion_mode"] == "full"
         assert cfg["temporal_mode"] == "full_bitemporal"
+
+    def test_b4_is_full_system(self):
+        cfg = CONDITION_CONFIGS[ConditionID.B4]
+        assert cfg["retrieval_mode"] == "graph_plus_doc_plus_guidelines"
+        assert cfg["assertion_mode"] == "full"
+        assert cfg["temporal_mode"] == "full_bitemporal"
+        assert cfg["calculator_enabled"] is True
+        assert cfg["guidelines_enabled"] is True
 
 
 # ============================================================================
@@ -402,7 +410,7 @@ class TestLongBenchAnalyzer:
         assert "Tier A" in table
         assert "Tier C" in table
         assert "LLM Alone" in table
-        assert "Full KG-RAG" in table
+        assert "KG-RAG" in table
 
     def test_criterion_type_table(self):
         results, questions = self._make_results()

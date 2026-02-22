@@ -76,12 +76,22 @@ CONDITION_CONFIGS: dict[ConditionID, dict[str, Any]] = {
         "temporal_mode": "no_temporal",
     },
     ConditionID.B3: {
-        "label": "Full KG-RAG",
+        "label": "KG-RAG",
         "raw_note_only": False,
         "no_patient_data": False,
         "retrieval_mode": "graph_plus_doc",
         "assertion_mode": "full",
         "temporal_mode": "full_bitemporal",
+    },
+    ConditionID.B4: {
+        "label": "Full System",
+        "raw_note_only": False,
+        "no_patient_data": False,
+        "retrieval_mode": "graph_plus_doc_plus_guidelines",
+        "assertion_mode": "full",
+        "temporal_mode": "full_bitemporal",
+        "calculator_enabled": True,
+        "guidelines_enabled": True,
     },
 }
 
@@ -354,7 +364,7 @@ class LongBenchRunner:
                 SYSTEM_PROMPT_BASE,
             )
 
-        # B2 / B3: use RAG pipeline
+        # B2 / B3 / B4: use RAG pipeline
         retrieval_mode = cond_cfg.get("retrieval_mode", "doc_only")
         assertion_mode = cond_cfg.get("assertion_mode", "none")
         temporal_mode = cond_cfg.get("temporal_mode", "no_temporal")
@@ -374,12 +384,73 @@ class LongBenchRunner:
             SYSTEM_PROMPT_EPISTEMIC if assertion_mode == "full"
             else SYSTEM_PROMPT_BASE
         )
+
+        # B4: inject calculator results for applicable questions
+        calculator_context = ""
+        if cond_cfg.get("calculator_enabled"):
+            calculator_context = self._get_calculator_context(
+                question.patient_id, question.question_text,
+            )
+
+        if calculator_context:
+            return (
+                f"Patient evidence:\n{evidence}\n\n"
+                f"Question: {question.question_text}\n\n"
+                f"Clinical calculator results:\n{calculator_context}\n"
+                f"Use these calculator results only if directly relevant.\n\n"
+                f"Answer based on all evidence above.",
+                system,
+            )
+
         return (
             f"Patient evidence:\n{evidence}\n\n"
             f"Question: {question.question_text}\n\n"
             f"Answer based on the evidence above.",
             system,
         )
+
+    # ========================================================================
+    # B4: Calculator support
+    # ========================================================================
+
+    def _get_calculator_context(
+        self, patient_id: str, question_text: str,
+    ) -> str:
+        """Get clinical calculator results for B4 condition."""
+        try:
+            from app.services.calculator_reasoning_service import (
+                CalculatorReasoningService,
+            )
+
+            calc_service = CalculatorReasoningService()
+            applicable = calc_service.identify_applicable_calculators(
+                question_text,
+            )
+            if not applicable:
+                return ""
+
+            results = []
+            for calc_type in applicable[:3]:
+                try:
+                    calc_result = calc_service.calculate_for_patient(
+                        patient_id=patient_id,
+                        calculator_type=calc_type,
+                    )
+                    if calc_result and calc_result.get("score") is not None:
+                        name = calc_result.get("calculator_name", calc_type)
+                        score = calc_result["score"]
+                        interpretation = calc_result.get("interpretation", "")
+                        results.append(f"{name}: {score} — {interpretation}")
+                except Exception:
+                    continue
+
+            return "\n".join(results)
+        except ImportError:
+            logger.debug("CalculatorReasoningService not available")
+            return ""
+        except Exception as exc:
+            logger.warning("Calculator context failed: %s", exc)
+            return ""
 
     # ========================================================================
     # Checkpointing
