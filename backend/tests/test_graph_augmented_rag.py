@@ -110,6 +110,8 @@ def _make_edge(
     temporality: str | None = "current",
     temporal_confidence: float = 0.9,
     event_date: datetime | None = None,
+    experiencer: str | None = None,
+    properties: dict | None = None,
 ) -> KGEdge:
     edge = KGEdge(
         id=str(uuid4()),
@@ -120,6 +122,8 @@ def _make_edge(
         temporality=temporality,
         temporal_confidence=temporal_confidence,
         event_date=event_date,
+        experiencer=experiencer,
+        properties=properties or {},
     )
     session.add(edge)
     session.flush()

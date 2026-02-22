@@ -361,7 +361,7 @@ class TestProjectFactEdgeProperties:
         assert edges[0].properties["assertion"] == "absent"
         assert edges[0].properties["is_negated"] is True
 
-    def test_experiencer_on_edge(self, svc: DatabaseGraphBuilderService) -> None:
+    def test_experiencer_on_edge(self, svc: DatabaseGraphBuilderService, db_session: Session) -> None:
         svc.project_fact_to_graph(
             fact_id=uuid4(),
             patient_id="PA",
@@ -375,6 +375,10 @@ class TestProjectFactEdgeProperties:
 
         edges = svc.get_edges_for_patient("PA")
         assert edges[0].properties["experiencer"] == "family"
+
+        # Also verify the first-class column
+        db_edge = db_session.query(KGEdge).filter(KGEdge.patient_id == "PA").first()
+        assert db_edge.experiencer == "family"
 
     def test_shared_node_has_no_assertion_property(
         self, svc: DatabaseGraphBuilderService, db_session: Session

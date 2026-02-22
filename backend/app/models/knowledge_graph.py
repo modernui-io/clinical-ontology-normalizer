@@ -15,7 +15,7 @@ from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base, SoftDeleteMixin
-from app.schemas.base import Temporality
+from app.schemas.base import Experiencer, Temporality
 from app.schemas.knowledge_graph import EdgeType, NodeType
 
 
@@ -248,6 +248,20 @@ class KGEdge(SoftDeleteMixin, Base):
         ),
         nullable=True,
         doc="Temporal assertion: current, past, future (from NLP extraction)",
+    )
+
+    # Experiencer: Who this clinical finding applies to
+    experiencer: Mapped[Experiencer | None] = mapped_column(
+        Enum(
+            Experiencer,
+            name="experiencer_type",
+            create_constraint=True,
+            create_type=False,
+            values_callable=lambda x: [e.value for e in x],
+        ),
+        nullable=True,
+        index=True,
+        doc="Who this finding applies to: patient, family, other",
     )
 
     # Temporal Ordering: Allen's interval algebra relationship

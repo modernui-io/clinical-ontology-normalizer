@@ -63,6 +63,9 @@ class EdgeInput:
     temporal_order: TemporalOrder | None = None
     temporal_confidence: float | None = None
 
+    # Experiencer: Who this clinical finding applies to
+    experiencer: str | None = None  # "patient", "family", "other"
+
 
 @dataclass
 class GraphResult:

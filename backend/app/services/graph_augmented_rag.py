@@ -183,12 +183,13 @@ class GraphAugmentedContext:
                         if idx + 1 < len(path.nodes)
                         else path.nodes[-1].get("label", "?") if path.nodes else "?"
                     )
-                    if assertion == "absent":
+                    experiencer = edge.get("experiencer", "patient")
+                    if experiencer == "family" or assertion == "family_history":
+                        family_findings.append(target_label)
+                    elif assertion == "absent":
                         negated_findings.append(target_label)
                     elif assertion == "possible":
                         uncertain_findings.append(target_label)
-                    elif assertion == "family_history":
-                        family_findings.append(target_label)
                     elif assertion == "historical":
                         historical_findings.append(target_label)
 
@@ -423,53 +424,99 @@ class GraphAugmentedRAGService:
         # Note: OMOP enrichment skipped in sync path (requires async DB)
         query_concepts = self._extract_query_concepts(query)
 
-        # Find relevant starting nodes in patient's graph
-        start_nodes = self._find_matching_nodes(patient_id, query_concepts)
+        # Find relevant starting nodes in patient's graph (skip for doc_only)
+        # Each SQL-touching step is wrapped in try/except with rollback to
+        # prevent InFailedSqlTransaction cascading between steps.
+        start_nodes: list[Any] = []
+        if retrieval_mode != "doc_only":
+            try:
+                start_nodes = self._find_matching_nodes(patient_id, query_concepts)
+            except Exception as exc:
+                logger.warning("_find_matching_nodes failed: %s", exc)
+                try:
+                    self._session.rollback()
+                except Exception:
+                    pass
 
         # Traverse graph from starting nodes (skip if doc_only mode)
         graph_paths: list[GraphPath] = []
-        if retrieval_mode != "doc_only":
-            graph_paths = self._traverse_graph(
-                patient_id=patient_id,
-                start_nodes=start_nodes,
-                query_concepts=query_concepts,
-                max_hops=max_hops,
-                max_paths=max_paths,
-                assertion_mode=assertion_mode,
-                temporal_mode=temporal_mode,
-            )
+        if retrieval_mode != "doc_only" and start_nodes:
+            try:
+                graph_paths = self._traverse_graph(
+                    patient_id=patient_id,
+                    start_nodes=start_nodes,
+                    query_concepts=query_concepts,
+                    max_hops=max_hops,
+                    max_paths=max_paths,
+                    assertion_mode=assertion_mode,
+                    temporal_mode=temporal_mode,
+                )
+            except Exception as exc:
+                logger.warning("_traverse_graph failed: %s", exc)
+                try:
+                    self._session.rollback()
+                except Exception:
+                    pass
 
         # Causal reasoning: augment paths for causal queries
         if retrieval_mode != "doc_only":
-            causal_paths = self._get_causal_context(query, query_concepts)
-            if causal_paths:
-                graph_paths = graph_paths + causal_paths
+            try:
+                causal_paths = self._get_causal_context(query, query_concepts)
+                if causal_paths:
+                    graph_paths = graph_paths + causal_paths
+            except Exception as exc:
+                logger.warning("_get_causal_context failed: %s", exc)
+                try:
+                    self._session.rollback()
+                except Exception:
+                    pass
 
         # Get temporal context if requested (skip if no_temporal mode)
         temporal_context = None
         if include_temporal and temporal_mode != "no_temporal":
-            temporal_context = self._get_temporal_context(
-                patient_id=patient_id,
-                time_point=time_point,
-            )
+            try:
+                temporal_context = self._get_temporal_context(
+                    patient_id=patient_id,
+                    time_point=time_point,
+                )
+            except Exception as exc:
+                logger.warning("_get_temporal_context failed: %s", exc)
+                try:
+                    self._session.rollback()
+                except Exception:
+                    pass
 
         # Get applicable policy constraints if requested
         policy_constraints: list[dict[str, Any]] = []
         if include_policies and retrieval_mode == "graph_plus_doc_plus_guidelines":
-            policy_constraints = self._get_policy_constraints(
-                patient_id=patient_id,
-                query_concepts=query_concepts,
-            )
+            try:
+                policy_constraints = self._get_policy_constraints(
+                    patient_id=patient_id,
+                    query_concepts=query_concepts,
+                )
+            except Exception as exc:
+                logger.warning("_get_policy_constraints failed: %s", exc)
+                try:
+                    self._session.rollback()
+                except Exception:
+                    pass
 
         # P1-011: Real document retrieval with status tracking (skip if graph_only mode)
         retrieved_documents: list[dict[str, Any]] = []
         source_status = SourceRetrievalStatus.UNAVAILABLE
         if retrieval_mode != "graph_only":
-            retrieved_documents, source_status = self._retrieve_documents_sync(
-                query=query,
-                patient_id=patient_id,
-                query_concepts=query_concepts,
-            )
+            try:
+                retrieved_documents, source_status = self._retrieve_documents_sync(
+                    query=query,
+                    patient_id=patient_id,
+                    query_concepts=query_concepts,
+                )
+            except Exception as exc:
+                logger.warning("_retrieve_documents_sync failed: %s", exc)
+                try:
+                    self._session.rollback()
+                except Exception:
+                    pass
 
         return GraphAugmentedContext(
             query=query,
@@ -807,6 +854,7 @@ class GraphAugmentedRAGService:
                             "is_negated": edge_props.get("is_negated", False),
                             "is_uncertain": edge_props.get("is_uncertain", False),
                             "event_date": edge.event_date.isoformat() if edge.event_date else None,
+                            "experiencer": edge.experiencer or edge_props.get("experiencer", "patient"),
                         }
                     ],
                     path_type=self._classify_path_type(start_node, edge, neighbor_node),
@@ -906,6 +954,10 @@ class GraphAugmentedRAGService:
                     return result
             except Exception as e:
                 logger.debug("Query router failed, using PG BFS: %s", e)
+                try:
+                    self._session.rollback()
+                except Exception:
+                    pass
 
         paths = []
 
@@ -999,6 +1051,7 @@ class GraphAugmentedRAGService:
                             "is_negated": edge_props.get("is_negated", False),
                             "is_uncertain": edge_props.get("is_uncertain", False),
                             "event_date": edge.event_date.isoformat() if edge.event_date else None,
+                            "experiencer": edge.experiencer or edge_props.get("experiencer", "patient"),
                         }
                     ],
                     path_type=self._classify_path_type(start_node, edge, neighbor_node),
@@ -1374,6 +1427,10 @@ class GraphAugmentedRAGService:
                     return formatted, SourceRetrievalStatus.FULL
             except Exception as fts_exc:
                 logger.debug("FTS query failed, falling back to Python scoring: %s", fts_exc)
+                try:
+                    await self._session.rollback()
+                except Exception:
+                    pass
 
             # Fallback: load all docs and score in Python
             stmt = select(Document).where(Document.patient_id == patient_id)
@@ -1387,6 +1444,10 @@ class GraphAugmentedRAGService:
 
         except Exception as exc:
             logger.warning("Document retrieval failed for patient %s: %s", patient_id, exc)
+            try:
+                await self._session.rollback()
+            except Exception:
+                pass
             return [], SourceRetrievalStatus.UNAVAILABLE
 
     def _retrieve_documents_sync(
@@ -1437,6 +1498,10 @@ class GraphAugmentedRAGService:
                     return formatted, SourceRetrievalStatus.FULL
             except Exception as fts_exc:
                 logger.debug("FTS query failed, falling back to Python scoring: %s", fts_exc)
+                try:
+                    self._session.rollback()
+                except Exception:
+                    pass
 
             # Fallback: load all docs and score in Python
             stmt = select(Document).where(Document.patient_id == patient_id)
@@ -1450,6 +1515,10 @@ class GraphAugmentedRAGService:
 
         except Exception as exc:
             logger.warning("Document retrieval failed for patient %s: %s", patient_id, exc)
+            try:
+                self._session.rollback()
+            except Exception:
+                pass
             return [], SourceRetrievalStatus.UNAVAILABLE
 
     def _score_and_format_docs(
@@ -1605,6 +1674,18 @@ def _score_and_filter_edges(
             elif assertion == "historical":
                 score *= 0.8  # Historical, less current relevance
             # "present" gets no penalty (default)
+
+            # Experiencer-based scoring — takes priority over assertion penalty
+            experiencer = getattr(edge, "experiencer", None) or edge_props.get("experiencer", "patient")
+            if experiencer == "family":
+                # Family history much less relevant than patient's own.
+                # Apply the lower of assertion and experiencer penalties.
+                family_score = score / max(
+                    (0.7 if assertion == "family_history" else 1.0), 1e-9
+                ) * 0.4
+                score = min(score, family_score)
+            elif experiencer == "other":
+                score *= 0.3  # Other person's condition rarely relevant
 
         scored.append((score, edge))
 

@@ -247,6 +247,8 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
             temporality=edge_input.temporality,
             temporal_order=computed_temporal_order.value if computed_temporal_order else None,
             temporal_confidence=edge_input.temporal_confidence,
+            # Experiencer
+            experiencer=edge_input.experiencer,
         )
         self._session.add(edge)
         self._session.flush()
@@ -356,6 +358,8 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
             source_document_date=source_document_date,
             temporality=temporality,
             temporal_confidence=temporal_confidence,
+            # Experiencer as first-class column
+            experiencer=experiencer,
         )
         self.create_edge(edge_input)
 
@@ -777,6 +781,7 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
                     "temporality": ei.temporality,
                     "temporal_order": ei.temporal_order.value if ei.temporal_order else None,
                     "temporal_confidence": ei.temporal_confidence,
+                    "experiencer": ei.experiencer,
                 }
                 for ei, new_id in to_insert
             ]
@@ -894,6 +899,8 @@ class DatabaseGraphBuilderService(BaseGraphBuilderService):
                 source_document_date=fact.created_at,
                 temporality=fact.temporality.value,
                 temporal_confidence=fact.confidence,
+                # Experiencer as first-class column
+                experiencer=fact.experiencer.value,
             )
             edge_inputs.append(edge_input)
 

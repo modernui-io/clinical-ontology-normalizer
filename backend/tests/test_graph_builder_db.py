@@ -287,6 +287,79 @@ class TestEdgeCreation:
         assert edge.fact_id == str(fact_id)
 
 
+class TestEdgeExperiencerColumn:
+    """Tests for experiencer column on KGEdge."""
+
+    def test_create_edge_persists_experiencer_column(
+        self, graph_service: DatabaseGraphBuilderService, db_session: Session
+    ) -> None:
+        """Test that create_edge persists the experiencer column."""
+        patient_id = graph_service.create_patient_node("P001")
+        condition_node = graph_service.create_node(
+            NodeInput(
+                patient_id="P001",
+                node_type=NodeType.CONDITION,
+                label="Alcohol Abuse",
+                omop_concept_id=435243,
+            )
+        )
+
+        edge_input = EdgeInput(
+            patient_id="P001",
+            source_node_id=patient_id,
+            target_node_id=condition_node,
+            edge_type=EdgeType.HAS_CONDITION,
+            properties={"experiencer": "family", "assertion": "present"},
+            experiencer="family",
+        )
+        edge_id = graph_service.create_edge(edge_input)
+
+        edge = db_session.query(KGEdge).filter_by(id=str(edge_id)).first()
+        assert edge is not None
+        assert edge.experiencer == "family"
+        assert edge.properties["experiencer"] == "family"
+
+    def test_project_fact_sets_experiencer_column(
+        self, graph_service: DatabaseGraphBuilderService, db_session: Session
+    ) -> None:
+        """Test that project_fact_to_graph sets experiencer column."""
+        fact_id = uuid4()
+        graph_service.project_fact_to_graph(
+            fact_id=fact_id,
+            patient_id="P001",
+            domain=Domain.CONDITION,
+            omop_concept_id=435243,
+            concept_name="Alcohol Abuse",
+            assertion="present",
+            temporality="current",
+            experiencer="family",
+        )
+
+        edge = db_session.query(KGEdge).filter(KGEdge.patient_id == "P001").first()
+        assert edge is not None
+        assert edge.experiencer == "family"
+
+    def test_patient_experiencer_default(
+        self, graph_service: DatabaseGraphBuilderService, db_session: Session
+    ) -> None:
+        """Test that patient experiencer is stored correctly."""
+        fact_id = uuid4()
+        graph_service.project_fact_to_graph(
+            fact_id=fact_id,
+            patient_id="P001",
+            domain=Domain.CONDITION,
+            omop_concept_id=437663,
+            concept_name="Fever",
+            assertion="present",
+            temporality="current",
+            experiencer="patient",
+        )
+
+        edge = db_session.query(KGEdge).filter(KGEdge.patient_id == "P001").first()
+        assert edge is not None
+        assert edge.experiencer == "patient"
+
+
 class TestFactToNodeProjection:
     """Tests for fact-to-node projection (task 7.3)."""
 
