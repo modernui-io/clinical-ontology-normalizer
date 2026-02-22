@@ -355,8 +355,8 @@ class LongBenchRunner:
         if cond_cfg.get("raw_note_only") and cond_cfg.get("latest_only"):
             from app.services.longbench_cohort import LongBenchCohortSelector
             selector = LongBenchCohortSelector(session)
-            notes = selector.get_patient_notes(question.patient_id, limit=1)
-            note_text = notes[0]["text"] if notes else "No notes available."
+            notes = selector.get_patient_notes(question.patient_id)
+            note_text = notes[-1]["text"] if notes else "No notes available."
             return (
                 f"Clinical note:\n{note_text}\n\n"
                 f"Question: {question.question_text}\n\n"
@@ -377,6 +377,7 @@ class LongBenchRunner:
             assertion_mode=assertion_mode,
             temporal_mode=temporal_mode,
             retrieval_mode=retrieval_mode,
+            query_domain=question.domain.value,
         )
         evidence = context.to_llm_prompt(assertion_mode=assertion_mode)
 

@@ -33,6 +33,8 @@ from app.models.document import Document
 from app.models.knowledge_graph import KGEdge, KGNode
 from app.schemas.knowledge_graph import EdgeType, NodeType
 
+from app.services.section_parser import ClinicalSection, SectionSpan, get_section_parser
+
 from app.services.kg_cache_service import (
     invalidate_traversal_cache,
     traversal_cache_get as _traversal_cache_get,
@@ -41,6 +43,12 @@ from app.services.kg_cache_service import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Per-document content limit for RAG context (chars)
+# Section-aware extraction makes this budget more efficient than blind truncation
+MAX_DOC_CONTENT_CHARS = 6000
+# Max documents to include in LLM prompt
+MAX_RETRIEVED_DOCS = 2
 
 # Minimum edge confidence for traversal inclusion (Step 4)
 MIN_TRAVERSAL_CONFIDENCE = 0.3
@@ -73,6 +81,104 @@ _ENTITY_TYPE_TO_PREFERRED_EDGES: dict[str, set[str]] = {
     "procedure": {EdgeType.HAS_PROCEDURE.value},
     "symptom": {EdgeType.HAS_CONDITION.value, EdgeType.SYMPTOM_OF.value},
 }
+
+# Domain → relevant clinical sections, ordered by priority
+DOMAIN_SECTION_MAP: dict[str, list[ClinicalSection]] = {
+    "medication_reconciliation": [
+        ClinicalSection.DISCHARGE_MEDICATIONS,
+        ClinicalSection.HOME_MEDICATIONS,
+        ClinicalSection.MEDICATIONS,
+        ClinicalSection.ALLERGIES,
+    ],
+    "problem_list": [
+        ClinicalSection.DISCHARGE_DIAGNOSIS,
+        ClinicalSection.DIAGNOSIS,
+        ClinicalSection.ASSESSMENT_PLAN,
+        ClinicalSection.ASSESSMENT,
+        ClinicalSection.PAST_MEDICAL_HISTORY,
+        ClinicalSection.HPI,
+    ],
+    "family_history": [
+        ClinicalSection.FAMILY_HISTORY,
+        ClinicalSection.SOCIAL_HISTORY,
+    ],
+    "temporal_reasoning": [
+        ClinicalSection.HOSPITAL_COURSE,
+        ClinicalSection.HPI,
+        ClinicalSection.ASSESSMENT_PLAN,
+        ClinicalSection.PROCEDURES,
+    ],
+    "risk_assessment": [
+        ClinicalSection.PAST_MEDICAL_HISTORY,
+        ClinicalSection.ASSESSMENT_PLAN,
+        ClinicalSection.HOSPITAL_COURSE,
+        ClinicalSection.FAMILY_HISTORY,
+        ClinicalSection.SOCIAL_HISTORY,
+        ClinicalSection.LABS,
+    ],
+}
+
+# Fallback sections when domain is unknown or no sections match
+DEFAULT_SECTIONS = [
+    ClinicalSection.ASSESSMENT_PLAN,
+    ClinicalSection.HOSPITAL_COURSE,
+    ClinicalSection.HPI,
+    ClinicalSection.DISCHARGE_DIAGNOSIS,
+]
+
+
+def extract_relevant_sections(
+    text: str,
+    domain: str | None = None,
+    budget: int = MAX_DOC_CONTENT_CHARS,
+) -> str:
+    """Extract the most relevant sections from a clinical note for a given domain.
+
+    Uses SectionParser to identify section boundaries, then selects sections
+    by domain priority until the character budget is filled.
+
+    If no sections are found (unstructured note), falls back to first `budget` chars.
+    """
+    parser = get_section_parser()
+    spans = parser.parse(text)
+
+    if not spans:
+        return text[:budget]
+
+    priority_sections = DOMAIN_SECTION_MAP.get(domain, DEFAULT_SECTIONS) if domain else DEFAULT_SECTIONS
+
+    # Build section text map: ClinicalSection → text content
+    section_texts: dict[ClinicalSection, str] = {}
+    for span in spans:
+        section_text = text[span.start:span.end].strip()
+        if section_text:
+            section_texts[span.section] = section_text
+
+    collected: list[str] = []
+    chars_used = 0
+
+    # Phase 1: Priority sections for this domain
+    for section in priority_sections:
+        if section in section_texts and chars_used < budget:
+            chunk = section_texts.pop(section)
+            remaining = budget - chars_used
+            if len(chunk) > remaining:
+                chunk = chunk[:remaining]
+            collected.append(chunk)
+            chars_used += len(chunk)
+
+    # Phase 2: Fill remaining budget with other sections (by document order)
+    if chars_used < budget:
+        for span in spans:
+            if span.section in section_texts and chars_used < budget:
+                chunk = section_texts.pop(span.section)
+                remaining = budget - chars_used
+                if len(chunk) > remaining:
+                    chunk = chunk[:remaining]
+                collected.append(chunk)
+                chars_used += len(chunk)
+
+    return "\n\n".join(collected) if collected else text[:budget]
 
 
 @dataclass
@@ -259,9 +365,9 @@ class GraphAugmentedContext:
         # Retrieved Documents Section
         if self.retrieved_documents:
             sections.append("=== Retrieved Document Context ===")
-            for doc in self.retrieved_documents[:5]:
+            for doc in self.retrieved_documents[:MAX_RETRIEVED_DOCS]:
                 source = doc.get("source", "document")
-                content = doc.get("content", "")[:500]
+                content = doc.get("content", "")[:MAX_DOC_CONTENT_CHARS]
                 sections.append(f"[{source}]: {content}")
             sections.append("")
 
@@ -311,6 +417,7 @@ class GraphAugmentedRAGService:
         include_temporal: bool = True,
         include_policies: bool = True,
         time_point: datetime | None = None,
+        query_domain: str | None = None,
     ) -> GraphAugmentedContext:
         """Retrieve graph-augmented context for a query (async version).
 
@@ -369,6 +476,7 @@ class GraphAugmentedRAGService:
             query=query,
             patient_id=patient_id,
             query_concepts=query_concepts,
+            query_domain=query_domain,
         )
 
         return GraphAugmentedContext(
@@ -398,6 +506,7 @@ class GraphAugmentedRAGService:
         assertion_mode: str = "full",
         temporal_mode: str = "full_bitemporal",
         retrieval_mode: str = "graph_plus_doc",
+        query_domain: str | None = None,
     ) -> GraphAugmentedContext:
         """Retrieve graph-augmented context for a query (sync version).
 
@@ -510,6 +619,7 @@ class GraphAugmentedRAGService:
                     query=query,
                     patient_id=patient_id,
                     query_concepts=query_concepts,
+                    query_domain=query_domain,
                 )
             except Exception as exc:
                 logger.warning("_retrieve_documents_sync failed: %s", exc)
@@ -1384,6 +1494,7 @@ class GraphAugmentedRAGService:
         query: str,
         patient_id: str,
         query_concepts: list[QueryConcept] | None = None,
+        query_domain: str | None = None,
     ) -> tuple[list[dict[str, Any]], str]:
         """Retrieve real patient documents using FTS with Python fallback (async)."""
         try:
@@ -1408,14 +1519,14 @@ class GraphAugmentedRAGService:
                     .where(Document.patient_id == patient_id)
                     .where(Document.search_vector.op("@@")(fts_query))
                     .order_by(sa_text("rank DESC"))
-                    .limit(5)
+                    .limit(MAX_RETRIEVED_DOCS)
                 )
                 result = await self._session.execute(stmt)
                 rows = result.all()
                 if rows:
                     formatted = []
                     for doc, rank in rows:
-                        content = doc.text[:500] if doc.text else ""
+                        content = extract_relevant_sections(doc.text, domain=query_domain, budget=MAX_DOC_CONTENT_CHARS) if doc.text else ""
                         formatted.append({
                             "source": f"document:{doc.id}",
                             "source_available": True,
@@ -1440,7 +1551,7 @@ class GraphAugmentedRAGService:
             if not docs:
                 return [], SourceRetrievalStatus.UNAVAILABLE
 
-            return self._score_and_format_docs(docs, query, query_concepts)
+            return self._score_and_format_docs(docs, query, query_concepts, query_domain=query_domain)
 
         except Exception as exc:
             logger.warning("Document retrieval failed for patient %s: %s", patient_id, exc)
@@ -1455,6 +1566,7 @@ class GraphAugmentedRAGService:
         query: str,
         patient_id: str,
         query_concepts: list[QueryConcept] | None = None,
+        query_domain: str | None = None,
     ) -> tuple[list[dict[str, Any]], str]:
         """Retrieve real patient documents using FTS with Python fallback (sync)."""
         try:
@@ -1479,14 +1591,14 @@ class GraphAugmentedRAGService:
                     .where(Document.patient_id == patient_id)
                     .where(Document.search_vector.op("@@")(fts_query))
                     .order_by(sa_text("rank DESC"))
-                    .limit(5)
+                    .limit(MAX_RETRIEVED_DOCS)
                 )
                 result = self._session.execute(stmt)
                 rows = result.all()
                 if rows:
                     formatted = []
                     for doc, rank in rows:
-                        content = doc.text[:500] if doc.text else ""
+                        content = extract_relevant_sections(doc.text, domain=query_domain, budget=MAX_DOC_CONTENT_CHARS) if doc.text else ""
                         formatted.append({
                             "source": f"document:{doc.id}",
                             "source_available": True,
@@ -1511,7 +1623,7 @@ class GraphAugmentedRAGService:
             if not docs:
                 return [], SourceRetrievalStatus.UNAVAILABLE
 
-            return self._score_and_format_docs(docs, query, query_concepts)
+            return self._score_and_format_docs(docs, query, query_concepts, query_domain=query_domain)
 
         except Exception as exc:
             logger.warning("Document retrieval failed for patient %s: %s", patient_id, exc)
@@ -1526,6 +1638,7 @@ class GraphAugmentedRAGService:
         docs: list[Any],
         query: str,
         query_concepts: list[QueryConcept] | None = None,
+        query_domain: str | None = None,
     ) -> tuple[list[dict[str, Any]], str]:
         """Score documents by relevance and return with retrieval status.
 
@@ -1559,9 +1672,9 @@ class GraphAugmentedRAGService:
         if not scored:
             return [], SourceRetrievalStatus.UNAVAILABLE
 
-        # Sort by score descending, take top 5
+        # Sort by score descending, take top docs
         scored.sort(key=lambda x: x[0], reverse=True)
-        top_docs = scored[:5]
+        top_docs = scored[:MAX_RETRIEVED_DOCS]
 
         formatted: list[dict[str, Any]] = []
         any_failed = False
@@ -1569,7 +1682,7 @@ class GraphAugmentedRAGService:
             if score <= 0:
                 continue
             try:
-                content = doc.text[:500] if doc.text else ""
+                content = extract_relevant_sections(doc.text, domain=query_domain, budget=MAX_DOC_CONTENT_CHARS) if doc.text else ""
                 formatted.append({
                     "source": f"document:{doc.id}",
                     "source_available": True,

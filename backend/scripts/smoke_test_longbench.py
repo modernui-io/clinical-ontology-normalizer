@@ -3,8 +3,8 @@
 
 Tests the full pipeline end-to-end with a small cohort:
 1. Cohort selection (or synthetic fallback if DB is empty)
-2. Question generation (template-based for speed)
-3. Run 2 conditions (B0 + B3) on 2 questions
+2. Question generation (template-based, all 5 domains)
+3. Run all 5 conditions (B0-B4) on 4 patients x 5 questions
 4. LLM-judge scoring
 5. Analysis + markdown output
 
@@ -184,10 +184,10 @@ async def main(provider: str, model: str) -> None:
         # Generate template questions for smoke test (skip LLM generation)
         from app.services.longbench_cohort import LongBenchQuestionGenerator
         gen = LongBenchQuestionGenerator()
-        for patient in cohort.patients[:2]:  # Limit to 2 patients
-            questions = gen._fallback_template_questions(patient, n=2)
+        for patient in cohort.patients[:4]:  # Limit to 4 patients
+            questions = gen._fallback_template_questions(patient, n=5)
             cohort.questions.extend(questions)
-        cohort.patients = cohort.patients[:2]
+        cohort.patients = cohort.patients[:4]
     else:
         cohort = _build_synthetic_cohort()
 
@@ -198,7 +198,7 @@ async def main(provider: str, model: str) -> None:
 
     # Step 2: Configure run
     logger.info("\n--- Step 2: Run Configuration ---")
-    conditions = [ConditionID.B0, ConditionID.B3, ConditionID.B4]  # B0 + B3 + B4 for smoke test
+    conditions = [ConditionID.B0, ConditionID.B1, ConditionID.B2, ConditionID.B3, ConditionID.B4]
     logger.info("Conditions: %s", [c.value for c in conditions])
 
     config = LongBenchRunConfig(
@@ -244,7 +244,7 @@ async def main(provider: str, model: str) -> None:
     for r in report.results:
         status = f"{r.normalized_score:.0%}" if not r.error else "ERR"
         answer_preview = r.predicted_answer[:80].replace("\n", " ") if r.predicted_answer else "(empty)"
-        print(f"  [{status}] {r.condition.value} | {r.question_id} | {answer_preview}")
+        print(f"  [{status}] {r.condition.value} | {r.question_id} ({r.domain}) | {answer_preview}")
         if r.criterion_results:
             for cr in r.criterion_results:
                 mark = "+" if cr.satisfied else "-"
