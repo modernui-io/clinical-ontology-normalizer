@@ -13,6 +13,17 @@
 \DeclareOption{nonatbib}{\@nonatbibtrue}
 \ProcessOptions\relax
 
+% Line numbers for submission mode (required by NeurIPS)
+\if@neuripsfinal\else
+  \if@preprint\else
+    \usepackage{lineno}
+    \AtBeginDocument{\linenumbers}
+  \fi
+\fi
+
+% Suppress date (NeurIPS standard)
+\date{}
+
 % Fonts - Times Roman (NeurIPS standard)
 \renewcommand{\rmdefault}{ptm}
 \renewcommand{\sfdefault}{phv}

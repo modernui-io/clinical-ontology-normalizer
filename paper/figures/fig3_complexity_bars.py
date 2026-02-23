@@ -6,6 +6,8 @@ import numpy as np
 
 plt.rcParams['font.family'] = 'serif'
 plt.rcParams['font.size'] = 10
+plt.rcParams['pdf.fonttype'] = 42
+plt.rcParams['ps.fonttype'] = 42
 
 # Data — point estimates (per-tier CIs not available; overall B2→B3 CI: [-1.5, +5.9])
 tiers = ['Tier A\n(1\u20132 enc.)', 'Tier B\n(5\u201310 enc.)', 'Tier C\n(15+ enc.)']

@@ -6,6 +6,8 @@ import numpy as np
 
 plt.rcParams['font.family'] = 'serif'
 plt.rcParams['font.size'] = 10
+plt.rcParams['pdf.fonttype'] = 42
+plt.rcParams['ps.fonttype'] = 42
 
 # Data
 conditions = ['B0', 'B1', 'B2', 'B3', 'B4']

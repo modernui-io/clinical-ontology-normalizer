@@ -7,7 +7,7 @@
 
 We evaluate \epikg on the DR.KNOWS diagnostic reasoning benchmark~\cite{drknows2025}, which measures knowledge graph traversal accuracy using real PostgreSQL-backed clinical data.
 
-\begin{table}[h]
+\begin{table}[ht]
 \centering
 \small
 \begin{tabular}{lcc}
@@ -33,7 +33,7 @@ The 3-hop traversal failure reflects the PostgreSQL CTE approach, which requires
 
 To establish the baseline LLM capability, we evaluated the system's language model (Claude Opus 4.5) on MedQA-USMLE~\cite{medagentbench2025} without any retrieval augmentation.
 
-\begin{table}[h]
+\begin{table}[ht]
 \centering
 \small
 \begin{tabular}{lccc}
@@ -53,7 +53,7 @@ Claude 3 Opus (2024) & 78.0\% & --- & 1{,}273 \\
 \section{Scalability Metrics}
 \label{app:scalability}
 
-\begin{table}[h]
+\begin{table}[ht]
 \centering
 \small
 \begin{tabular}{lr}
@@ -76,7 +76,7 @@ Shared concept dedup ratio & $\sim$36 nodes/patient \\
 \section{System Component Scale}
 \label{app:scale}
 
-\begin{table}[h]
+\begin{table}[ht]
 \centering
 \small
 \begin{tabular}{lr}
@@ -100,20 +100,19 @@ Assertion classes & 7 \\
 \section{Human Validation Pilot}
 \label{app:human}
 
-Two board-certified physicians (identities withheld for double-blind review; specialties: emergency medicine and [second specialty]) independently adjudicated a sample of question-answer pairs from ClinicalBench and Slice Bench using a blinded protocol.
-Each reviewer scored system outputs on a 4-point scale (correct, partially correct, incorrect, clinically dangerous) without knowledge of condition labels.
-Inter-rater agreement was computed using Cohen's $\kappa$.
+To assess LLM-as-judge reliability, we conducted a pilot validation study with a single board-certified physician (specialty withheld for double-blind review) who scored system outputs on a 4-point scale (correct, partially correct, incorrect, clinically dangerous) without knowledge of condition labels.
 
 \paragraph{Pilot findings ($n=5$, single reviewer).}
-An initial pilot of 5 ClinicalBench C1 pairs revealed:
+The pilot covered 5 ClinicalBench C1 pairs and revealed:
 \begin{itemize}[nosep]
     \item The automated LLM-as-judge scoring was overly strict on uncertainty and sequence questions, rating partially correct answers as incorrect.
     \item Gold standard answers were assessed as fully correct in 3/5 cases, partially correct in 1/5, and requiring revision in 1/5.
     \item Model answers were rated partially correct or better in 3/5 cases where the auto-scorer marked them incorrect.
 \end{itemize}
 
-\paragraph{Full adjudication protocol.}
-The full study targets $n \geq 30$ pairs stratified across conditions (C1/C4 for ClinicalBench; B2/B3 for Slice Bench) and question categories, with predefined endpoints: (1)~inter-rater $\kappa$, (2)~human--LLM judge agreement rate, (3)~discordance taxonomy (false strict, false lenient, genuine disagreement).
+\paragraph{Planned full adjudication (not yet complete).}
+A two-physician blinded adjudication targeting $n \geq 30$ pairs stratified across conditions (C1/C4 for ClinicalBench; B2/B3 for Slice Bench) is planned, with predefined endpoints: (1)~inter-rater $\kappa$, (2)~human--LLM judge agreement rate, (3)~discordance taxonomy (false strict, false lenient, genuine disagreement).
+This study is in preparation and results are not included in the current paper.
 
 \section{Reproducibility Details}
 \label{app:reproducibility}
@@ -129,10 +128,10 @@ The full study targets $n \geq 30$ pairs stratified across conditions (C1/C4 for
 \section{Assertion Category Definitions}
 \label{app:assertions}
 
-\begin{table}[h]
+\begin{table}[ht]
 \centering
 \small
-\begin{tabular}{lp{7cm}l}
+\begin{tabular}{lp{6.5cm}l}
 \toprule
 \textbf{Assertion} & \textbf{Definition} & \textbf{Example} \\
 \midrule
@@ -152,7 +151,7 @@ The full study targets $n \geq 30$ pairs stratified across conditions (C1/C4 for
 \section{Slice Bench Tier-Stratified Results}
 \label{app:slicebench_tiers}
 
-\begin{table}[h]
+\begin{table}[ht]
 \centering
 \small
 \caption{Slice Bench results stratified by patient complexity tier. B2$\rightarrow$B3 $\Delta$ shows the incremental KG contribution. The KG benefit concentrates in Tier~C.}
@@ -173,7 +172,7 @@ C & 15+ notes & 48.4 & 74.2 & 86.5 & 91.5 & 90.3 & $+5.0\pp$ \\
 \section{ClinicalBench Full Per-Category Results}
 \label{app:percategory}
 
-\begin{table}[h]
+\begin{table}[ht]
 \centering
 \small
 \begin{tabular}{lccccc}

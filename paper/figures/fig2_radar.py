@@ -7,6 +7,8 @@ from matplotlib.lines import Line2D
 
 plt.rcParams['font.family'] = 'serif'
 plt.rcParams['font.size'] = 9
+plt.rcParams['pdf.fonttype'] = 42
+plt.rcParams['ps.fonttype'] = 42
 
 # Data — 8 categories (Change omitted: 0.0, 0.0, 3.3 for C1/C2/C4)
 categories = [

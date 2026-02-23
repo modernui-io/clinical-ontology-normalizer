@@ -24,8 +24,8 @@ ID & Condition & Retrieval & Assertion & Temporal \\
 C1 & LLM Alone & None & None & None \\
 C2 & + Vanilla RAG & Document & None & None \\
 C3 & + KG-RAG & Graph + Doc & None & None \\
-C4 & + Epistemic KG-RAG & Graph + Doc & Full (7-class) & Bitemporal \\
-C5 & Full System & Graph + Doc + Guidelines & Full (7-class) & Bitemporal + Calc.\ \\
+C4 & + Epistemic KG-RAG & Graph + Doc & Full (7-class) & Tri-temporal \\
+C5 & Full System & Graph + Doc + Guidelines & Full (7-class) & Tri-temporal + Calc.\ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -65,5 +65,5 @@ B4 & Full System & KG-RAG + guidelines + calculators \\
 \label{sec:bench:protocol}
 
 Both benchmarks use separated judge and answering models to prevent self-evaluation bias~\cite{xiong2024mirage}: MedGemma 27B / separate LLM judge (ClinicalBench) and Claude Sonnet 4.5 / Claude Opus 4.6 (Slice Bench).
-We report BCa bootstrap 95\% CIs on all metrics; pairwise comparisons use McNemar's test (ClinicalBench) and paired BCa bootstrap CIs (Slice Bench).
-The safety score $S = 1 - \frac{1}{N} \sum_{i=1}^{N} w_i \cdot \mathbb{1}[\hat{y}_i \neq y_i]$ applies $w_i > 1$ for false-positive assertion errors (reporting a negated condition as present), capturing asymmetric clinical risk.
+We report BCa bootstrap 95\% CIs ($n=2{,}000$, seed 42) on all aggregate metrics; CIs are computed at the question level (not cluster-bootstrapped by patient).
+The safety score $S = 1 - \frac{1}{N} \sum_{i=1}^{N} w_i \cdot \mathbb{1}[\hat{y}_i \neq y_i]$ applies $w_i = 2.0$ for false-positive assertion errors (reporting a negated or absent condition as present) and $w_i = 1.0$ otherwise, capturing asymmetric clinical risk where acting on a falsely affirmed condition is more dangerous than missing a present one.

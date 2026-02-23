@@ -23,7 +23,7 @@ OMOP excludes negated conditions entirely~\cite{omop2024}; FHIR restricts assert
 %
 \begin{equation}
 \label{eq:assertion}
-\alpha \in \{\text{\small Pres., Abs., Poss., Cond., Hypo., Fam.Hx., Hist.}\}
+\alpha \in \{\text{\footnotesize Pres., Abs., Poss., Cond., Hypo., Fam.Hx., Hist.}\}
 \end{equation}
 %
 This extends the i2b2 six-class taxonomy~\cite{uzuner2011i2b2assertion} by separating \textsc{Historical} from \textsc{Family\_History}, a clinically important distinction that prior work conflates.
@@ -52,7 +52,7 @@ An edge $e = (s, p, o, \alpha, \boldsymbol{\tau}_v, \boldsymbol{\tau}_t, \tau_a,
 \end{itemize}
 \end{definition}
 
-$\mathcal{R}$ captures nine qualitative temporal relationships (\textsc{Before}, \textsc{After}, \textsc{During}, \textsc{Contains}, \textsc{Overlaps}, \textsc{Starts}, \textsc{Finishes}, \textsc{Concurrent}, \textsc{Unknown}).
+$\mathcal{R}$ captures nine qualitative temporal relationships (\textsc{Before}, \textsc{After}, \textsc{During}, \textsc{Contains}, \textsc{Overlaps}, \textsc{Starts}, \textsc{Finishes}, \textsc{Concurrent}, \textsc{Un\-known}).
 Unlike TEO~\cite{li2020teo} and TCL~\cite{ong2023tcl}, which use Allen's relations as annotation-ontology classes or modal operators, \epikg stores $r$ and $c$ directly on materialized edges with composite indexes on \texttt{(patient\_id, valid\_from)}, enabling efficient temporal filtering during traversal.
 A \texttt{TemporalContext} object assembles four views---event timeline, detected conflicts, current state, and historical state---serialized into the LLM prompt alongside graph evidence.
 

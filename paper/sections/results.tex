@@ -2,7 +2,7 @@
 % NOTE: \section{Results} and \label{sec:results} are in main.tex
 
 We evaluate \epikg through two benchmarks: ClinicalBench tests assertion-sensitive reasoning, while Slice Bench measures longitudinal QA across patient complexity tiers.
-All confidence intervals use the bias-corrected and accelerated (BCa) bootstrap ($n=2{,}000$, seed 42)~\cite{efron1993bootstrap}.
+All confidence intervals use the bias-corrected and accelerated (BCa) bootstrap ($n=2{,}000$, seed 42)~\cite{efron1993bootstrap}, resampled at the question level.
 
 % ----------------------------------------------------------
 \subsection{ClinicalBench: Assertion-Sensitive Reasoning}
@@ -32,7 +32,7 @@ Adding vanilla RAG \emph{hurts}: C2 underperforms C1 by $9.0\pp$ on accuracy and
 Retrieved passages like ``patient denies diabetes'' enter context without epistemic framing, leading the LLM to conflate mention with presence---consistent with GraphRAG-Bench~\cite{graphragbench2026}.
 Assertion-blind KG-RAG (C3) compounds the problem, scoring lowest (59.3\%, 0.562), as structured paths presenting negated conditions as graph edges actively mislead the model.
 Epistemic KG-RAG (C4) matches C1 at 71.5\% accuracy with higher safety (0.775 vs.\ 0.752), achieving this through a fundamentally different category distribution.
-C5 drops $3.2\pp$ below C4 due to component interaction effects when calculator and guideline modules activate on queries not requiring them, motivating query-aware component selection (Section~\ref{sec:discussion}).
+C5 drops $3.2\pp$ below C4; we hypothesize this results from calculator and guideline modules activating on queries not requiring them, though controlled per-component ablations are needed to confirm this (Section~\ref{sec:discussion}).
 
 \begin{table}[t]
 \centering
@@ -65,7 +65,7 @@ Change & 30 & 0.0 & 0.0 & 3.3 & $\uparrow 3.3\pp$ \\
 \label{fig:radar}
 \end{figure}
 
-Table~\ref{tab:clinicalbench_categories} and Figure~\ref{fig:radar} reveal that C4's matching aggregate masks large category shifts: $+20.0\pp$ on uncertainty (57.5\% vs.\ 37.5\%) and $+70.0\pp$ on family history (70.0\% vs.\ 0.0\%), where assertion-tagged edges resolve a category the LLM alone cannot address.
+Table~\ref{tab:clinicalbench_categories} and Figure~\ref{fig:radar} reveal that C4's matching aggregate masks large category shifts: $+20.0\pp$ on uncertainty (57.5\% vs.\ 37.5\%) and $+70.0\pp$ on family history (70.0\% vs.\ 0.0\%), where assertion-tagged edges resolve a category the LLM alone does not address.
 The trade-off is reduced performance on categories where parametric knowledge was already strong: historical ($-34.0\pp$), conditional ($-30.0\pp$), duration ($-16.7\pp$)---attributable to context dilution.
 The ``change'' category remains near zero across all conditions (0.0--3.3\%), a genuine capability gap.
 
@@ -94,31 +94,33 @@ B4 & Full System & 87.6\% & \ci{83.7\%}{91.2\%} & $+37.8\pp$ * \\
 \end{table}
 
 Document retrieval provides a large benefit: B0$\rightarrow$B2 = $+34.8\pp$ (CI: \ci{+26.8\pp}{+42.4\pp}).
-The incremental KG layer (B2$\rightarrow$B3) contributes $+2.2\pp$ overall (CI: \ci{-1.5\pp}{+5.9\pp}), not reaching aggregate significance, but this hides a strong interaction with patient complexity.
+The incremental KG layer (B2$\rightarrow$B3) contributes $+2.2\pp$ overall (CI: \ci{-1.5\pp}{+5.9\pp}), not reaching aggregate significance, but the tier-stratified point estimates suggest a possible interaction with patient complexity.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.48\textwidth]{figures/fig3_complexity_bars.pdf}%
-\hfill%
-\includegraphics[width=0.51\textwidth]{figures/fig4_waterfall.pdf}
-\caption{Slice Bench results ($n=2$ patients per tier, 24 questions each; point estimates without per-tier CIs). \textbf{Left:}~The KG layer's incremental benefit (B2$\rightarrow$B3) shows a directional, complexity-dependent trend: $+0.6\pp$ (Tier~A) to $+5.0\pp$ (Tier~C). \textbf{Right:}~Full condition progression shows tier convergence at higher conditions. The overall B2$\rightarrow$B3 delta is $+2.2\pp$ (CI: \ci{-1.5\pp}{+5.9\pp}).}
+\includegraphics[width=0.75\textwidth]{figures/fig3_complexity_bars.pdf}
+\vspace{4pt}
+\includegraphics[width=\textwidth]{figures/fig4_waterfall.pdf}
+\caption{Slice Bench results ($n=2$ patients per tier, 24 questions each; point estimates without per-tier CIs). \textbf{Top:}~The KG layer's incremental benefit (B2$\rightarrow$B3) shows a directional, complexity-dependent trend: $+0.6\pp$ (Tier~A) to $+5.0\pp$ (Tier~C). \textbf{Bottom:}~Full condition progression shows tier convergence at higher conditions. The overall B2$\rightarrow$B3 delta is $+2.2\pp$ (CI: \ci{-1.5\pp}{+5.9\pp}).}
 \label{fig:slicebench_figures}
 \end{figure}
 
-Table~\ref{tab:slicebench_tiers} (Appendix) and Figure~\ref{fig:slicebench_figures} reveal a complexity-dependent pattern: B2$\rightarrow$B3 is $+0.6\pp$ (Tier~A), $+1.0\pp$ (Tier~B), and $+5.0\pp$ (Tier~C)---an eightfold difference.
-When document volume overwhelms simple retrieval, the KG provides a compressed, assertion-aware summary enabling cross-encounter synthesis.
+Table~\ref{tab:slicebench_tiers} (Appendix) and Figure~\ref{fig:slicebench_figures} show a directional trend in B2$\rightarrow$B3 gains: $+0.6\pp$ (Tier~A), $+1.0\pp$ (Tier~B), and $+5.0\pp$ (Tier~C).
+With only 2 patients per tier these are point estimates without per-tier CIs, so the pattern is suggestive rather than confirmed.
+If replicated, it would be consistent with the hypothesis that structured KG context is most valuable when document volume overwhelms chunk-level retrieval.
 
 % ----------------------------------------------------------
 \subsection{Cross-Model Validation}
 \label{sec:results:crossmodel}
 
-ClinicalBench (MedGemma 27B, open-source) and Slice Bench (Claude Sonnet 4.5, commercial) show consistent directional findings on different task distributions: vanilla RAG can degrade assertion-sensitive performance, and epistemic KG-RAG recovers or improves accuracy.
-While the benchmarks test different question types and patient populations, this directional consistency across model families suggests the effects are driven by retrieval architecture rather than model-specific behavior, though further controlled cross-model experiments are needed to confirm this.
+ClinicalBench (MedGemma 27B, open-source) and Slice Bench (Claude Sonnet 4.5, commercial) show directionally consistent findings: vanilla RAG can degrade assertion-sensitive performance, and epistemic KG-RAG recovers or improves accuracy.
+However, these benchmarks differ in question types, patient populations, evaluation models, and task design, so the comparison is observational rather than controlled.
+Directional consistency across model families is encouraging but does not establish that effects are architecture-driven; controlled cross-model experiments on the same benchmark are needed.
 
 % ----------------------------------------------------------
 \subsection{Supporting Results}
 \label{sec:results:supporting}
 
-On MedQA-USMLE (965 questions), the backbone LLM achieves 81.6\% accuracy, competitive with GPT-4 (86.7\%) and Med-PaLM~2 (86.5\%)~\cite{medagentbench2025}.
+On MedQA-USMLE (965 questions), the backbone LLM achieves 81.6\% accuracy (5.1\,pp below GPT-4 at 86.7\% and Med-PaLM~2 at 86.5\%~\cite{medagentbench2025}), establishing a reasonable baseline for the system's underlying language model.
 Graph traversal latency is sub-millisecond at current scale (3,100 nodes, 8,803 edges): 0.57\,ms (1-hop), 0.75\,ms (2-hop).
 The full system integrates 201 calculators, 1,202 guideline sections, 101 trigger patterns, and 24 edge types across 13 node types.

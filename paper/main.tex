@@ -23,6 +23,11 @@
 \usepackage{tabularx}
 \usepackage{colortbl}
 
+% NeurIPS checklist answer commands
+\newcommand{\answerYes}[1][]{{\bf Yes.} #1}
+\newcommand{\answerNo}[1][]{{\bf No.} #1}
+\newcommand{\answerNA}[1][]{{\bf N/A.} #1}
+
 % Custom commands
 \newcommand{\epikg}{EpiKG\xspace}
 \newcommand{\ie}{i.e.,\xspace}
@@ -112,5 +117,10 @@
 \newpage
 \appendix
 \input{sections/appendix}
+
+% ============================================================
+% NEURIPS PAPER CHECKLIST (mandatory)
+% ============================================================
+\input{sections/checklist}
 
 \end{document}

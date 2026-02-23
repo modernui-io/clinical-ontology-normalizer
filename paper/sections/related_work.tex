@@ -43,7 +43,7 @@ TEO~\cite{li2020teo} formalizes Allen's 13 interval relations~\cite{allen1983tem
 
 \begin{table}[t]
 \centering
-\caption{Capability comparison across representative systems. \smark{} = supported, \xmark{} = not supported.}
+\caption{Capability comparison across representative systems. \smark{} = supported, $\circ$ = partial, \xmark{} = not supported. ``Partial'' indicates the system addresses some aspect of the capability without full coverage (see text).}
 \label{tab:gap}
 \small
 \setlength{\tabcolsep}{3.5pt}
@@ -52,12 +52,12 @@ TEO~\cite{li2020teo} formalizes Allen's 13 interval relations~\cite{allen1983tem
 \textbf{System} & \rotatebox{70}{\textbf{Patient KG}} & \rotatebox{70}{\textbf{OMOP mapping}} & \rotatebox{70}{\textbf{Assertion (7-class)}} & \rotatebox{70}{\textbf{Tri-temporal}} & \rotatebox{70}{\textbf{Assert.-aware RAG}} & \rotatebox{70}{\textbf{Experiencer}} & \rotatebox{70}{\textbf{Allen's algebra}} \\
 \midrule
 DoctorRAG~\cite{lu2025doctorrag}         & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark \\
-GFM-RAG~\cite{luo2025gfmrag}             & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark \\
-MedRAG~\cite{wang2025medrag}              & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark \\
-KARE~\cite{jiang2025kare}                 & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark \\
-Multi-LLM KG~\cite{chen2026multilllmkgrag} & \xmark & \smark{} & \xmark & \xmark & \xmark & \xmark & \xmark \\
-MedTKG~\cite{huang2024medtkg}             & \smark{} & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark \\
-Graphiti~\cite{ramirez2025graphiti}       & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark \\
+GFM-RAG~\cite{luo2025gfmrag}             & $\circ$ & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark \\
+MedRAG~\cite{wang2025medrag}              & $\circ$ & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark \\
+KARE~\cite{jiang2025kare}                 & $\circ$ & \xmark & \xmark & \xmark & $\circ$ & \xmark & \xmark \\
+Multi-LLM KG~\cite{chen2026multilllmkgrag} & \xmark & \smark{} & $\circ$ & \xmark & \xmark & \xmark & \xmark \\
+MedTKG~\cite{huang2024medtkg}             & \smark{} & \xmark & \xmark & $\circ$ & \xmark & \xmark & \xmark \\
+Graphiti~\cite{ramirez2025graphiti}       & \xmark & \xmark & \xmark & $\circ$ & \xmark & \xmark & \xmark \\
 \midrule
 \textbf{\epikg (ours)}                    & \smark{} & \smark{} & \smark{} & \smark{} & \smark{} & \smark{} & \smark{} \\
 \bottomrule
@@ -65,5 +65,6 @@ Graphiti~\cite{ramirez2025graphiti}       & \xmark & \xmark & \xmark & \xmark & 
 \end{table}
 
 Table~\ref{tab:gap} synthesizes capabilities across representative systems.
-Two structural gaps emerge: an \emph{epistemic propagation gap} (assertion-detecting systems do not persist labels into KGs; KG-building systems do not model assertions) and a \emph{temporal integration gap} (temporal relation formalisms operate as annotation layers, not as KG edge attributes participating in retrieval).
+Partial marks indicate limited coverage: GFM-RAG, MedRAG, and KARE build population-level or hierarchical KGs (not per-patient longitudinal graphs); KARE uses KG-augmented retrieval but without assertion awareness; Multi-LLM KG models uncertainty via entropy but not the full assertion taxonomy; MedTKG and Graphiti use temporal annotations (event-time snapshots and bitemporal edges, respectively) but not tri-temporal models.
+Two structural gaps emerge: an \emph{epistemic propagation gap} (assertion-detecting systems do not persist labels into KGs; KG-building systems do not model assertions end-to-end) and a \emph{temporal integration gap} (temporal relation formalisms operate as annotation layers, not as KG edge attributes participating in retrieval).
 \epikg closes both by carrying assertion and temporal metadata as first-class properties through every pipeline stage.
