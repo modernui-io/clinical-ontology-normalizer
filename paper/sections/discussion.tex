@@ -1,0 +1,21 @@
+% Section 6: Discussion and Limitations
+% NOTE: \section{Discussion and Limitations} and \label{sec:discussion} are in main.tex
+
+\paragraph{Why vanilla RAG hurts.}
+Clinical notes contain dense negated, uncertain, and historical findings.
+When vanilla RAG retrieves ``patient denies diabetes,'' the word ``diabetes'' enters context without the epistemic frame distinguishing absence from presence, actively misleading the model.
+The C2~$<$~C1 finding (Table~\ref{tab:clinicalbench_ablation}) is consistent with GraphRAG-Bench~\cite{graphragbench2026}, which reports that GraphRAG underperforms when graph structure fails to encode task-relevant semantics---here, assertion status.
+
+\paragraph{When KG context matters.}
+The complexity-dependent Slice Bench effect (Tier~C: $+5.0\pp$ vs.\ Tier~A: $+0.6\pp$) suggests structured epistemic context is most valuable when: (a)~document volume overwhelms chunk-level retrieval, (b)~questions require cross-encounter synthesis where the same concept appears with different assertion states, and (c)~assertion status evolves across encounters.
+For simple patients with few notes, the LLM tracks assertion context within retrieved chunks and the KG adds little.
+
+\paragraph{Limitations.}
+Sample size is modest: Slice Bench covers 6 patients (144 questions) and ClinicalBench covers 45 scenarios (400 questions), both from MIMIC-IV~\cite{johnson2023mimiciv}.
+The overall B2$\rightarrow$B3 CI crosses zero (\ci{-1.5\pp}{+5.9\pp}), though the effect reaches practical significance within Tier~C.
+Calculator/guideline integration (C5, B4) showed degradation attributable to component interaction effects when non-relevant modules activate, motivating query-aware component selection.
+LLM-as-judge evaluation may introduce biases; our human validation by two board-certified physicians (blinded adjudication with inter-rater agreement) is reported in Appendix~\ref{app:human} and revealed overly strict automated scoring on uncertainty and sequence categories.
+The majority of experiments use Claude, with cross-model validation (MedGemma 27B) covering only ClinicalBench.
+
+\paragraph{Future work.}
+Three directions follow: (1)~query-aware component selection to address C5/B4 degradation, (2)~expanding Tier~C to 20+ patients for sufficient statistical power, and (3)~systematic multi-model validation across open-source medical LLMs.

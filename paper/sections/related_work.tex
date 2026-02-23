@@ -1,0 +1,69 @@
+% Section 2: Related Work
+% NOTE: \section{Related Work} and \label{sec:related} are in main.tex
+
+We organize prior work along four axes and synthesize the gaps that \epikg addresses.
+
+\paragraph{Medical RAG systems.}
+\label{sec:related:rag}
+Graph-augmented retrieval has become the leading paradigm for medical QA.
+Microsoft GraphRAG~\cite{edge2024graphrag} introduced community-based summarization over LLM-extracted graphs.
+GFM-RAG~\cite{luo2025gfmrag} trained an 8M-parameter graph foundation model across 60 KGs (14M+ triples), achieving state-of-the-art multi-hop QA without domain fine-tuning.
+KARE~\cite{jiang2025kare} adapted community-level retrieval to clinical decision support (+10.8--15.0\% on MIMIC-III/IV).
+DoctorRAG~\cite{lu2025doctorrag} emulates physician reasoning via hybrid retrieval with conceptual tags.
+MedRAG~\cite{wang2025medrag} constructs four-tier hierarchical diagnostic KGs with dynamic EHR integration.
+Medical-Graph-RAG~\cite{wu2025medicalgraphrag} links documents to credible sources via triple graph construction.
+Yet no medical RAG system models assertion status or temporal context; GFM-RAG and KARE build population-level graphs from biomedical databases rather than patient-level graphs from clinical text, and a recent survey~\cite{graphragsurvey2025} confirms no system incorporates epistemic metadata into the retrieval graph.
+
+\paragraph{Clinical KG construction.}
+\label{sec:related:kgconstruction}
+Multi-LLM KG-RAG~\cite{chen2026multilllmkgrag} uses multi-agent LLM prompting with schema-constrained extraction for oncology, modeling uncertainty via entropy but not tracking assertion classes on graph edges.
+AutoRD~\cite{li2024autord} applies GPT-4 to rare disease literature (83.5\% entity F1).
+RECAP-KG~\cite{remy2024recapkg} handles messy GP notes using SNOMED-CT.
+FHIR-Ontop-OMOP~\cite{yun2022fhirontopomop} generates virtual KGs from structured OMOP data.
+All share a common limitation: assertion status is not propagated into the final graph.
+\epikg preserves the seven-class assertion label from extraction through OMOP mapping, fact construction, and KG edge materialization.
+
+\paragraph{Assertion detection.}
+\label{sec:related:assertion}
+NegEx~\cite{chapman2001negex} introduced trigger-based negation detection ($\sim$97\% accuracy on discharge summaries); ConText~\cite{harkema2009context} extended it with temporality and experiencer attributes.
+The i2b2/VA shared task~\cite{uzuner2011i2b2assertion} formalized a six-class taxonomy evaluated across 21 systems.
+Gul et al.~\cite{gul2025beyondnegation} fine-tuned LLMs to 0.962 accuracy (+23.4\% on hypothetical assertions vs.\ GPT-4o).
+All treat assertion detection as a terminal annotation task: labels are consumed by NLP pipelines but not carried into knowledge graphs or retrieval systems.
+\epikg extends the i2b2 taxonomy to seven classes (separating \textsc{Historical} from \textsc{Family\_History}) and propagates labels end-to-end into KG edges and RAG context.
+
+\paragraph{Temporal knowledge graphs.}
+\label{sec:related:temporal}
+MedTKG~\cite{huang2024medtkg} constructs temporal KGs with time-stamped snapshots over SNOMED CT (event time only, no assertion status).
+Graphiti~\cite{ramirez2025graphiti} implements bitemporal edges for conversational AI but lacks clinical ontology alignment or NLP-asserted temporality.
+TEO~\cite{li2020teo} formalizes Allen's 13 interval relations~\cite{allen1983temporal} as an annotation ontology, and TCL~\cite{ong2023tcl} uses Allen's algebra as modal operators for cohort queries---both operate as annotation layers rather than storing relations on KG edges.
+\epikg introduces a tri-temporal model (valid time, transaction time, NLP-asserted temporality) with nine Allen's relations as first-class edge attributes.
+
+\paragraph{Gap analysis.}
+\label{sec:related:gap}
+
+\begin{table}[t]
+\centering
+\caption{Capability comparison across representative systems. \smark{} = supported, \xmark{} = not supported.}
+\label{tab:gap}
+\small
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+\textbf{System} & \rotatebox{70}{\textbf{Patient KG}} & \rotatebox{70}{\textbf{OMOP mapping}} & \rotatebox{70}{\textbf{Assertion (7-class)}} & \rotatebox{70}{\textbf{Tri-temporal}} & \rotatebox{70}{\textbf{Assert.-aware RAG}} & \rotatebox{70}{\textbf{Experiencer}} & \rotatebox{70}{\textbf{Allen's algebra}} \\
+\midrule
+DoctorRAG~\cite{lu2025doctorrag}         & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark \\
+GFM-RAG~\cite{luo2025gfmrag}             & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark \\
+MedRAG~\cite{wang2025medrag}              & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark \\
+KARE~\cite{jiang2025kare}                 & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark \\
+Multi-LLM KG~\cite{chen2026multilllmkgrag} & \xmark & \smark{} & \xmark & \xmark & \xmark & \xmark & \xmark \\
+MedTKG~\cite{huang2024medtkg}             & \smark{} & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark \\
+Graphiti~\cite{ramirez2025graphiti}       & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark \\
+\midrule
+\textbf{\epikg (ours)}                    & \smark{} & \smark{} & \smark{} & \smark{} & \smark{} & \smark{} & \smark{} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:gap} synthesizes capabilities across representative systems.
+Two structural gaps emerge: an \emph{epistemic propagation gap} (assertion-detecting systems do not persist labels into KGs; KG-building systems do not model assertions) and a \emph{temporal integration gap} (temporal relation formalisms operate as annotation layers, not as KG edge attributes participating in retrieval).
+\epikg closes both by carrying assertion and temporal metadata as first-class properties through every pipeline stage.

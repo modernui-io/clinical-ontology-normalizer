@@ -1,0 +1,69 @@
+% Section 4: Benchmark Design
+
+Existing clinical QA benchmarks evaluate factual recall (MedQA) or agent task completion~\cite{medagentbench2025} but do not test handling of epistemic qualifiers or reasoning over longitudinal records of varying complexity.
+We introduce two complementary benchmarks built on MIMIC-IV~\cite{johnson2023mimiciv}.
+
+
+\subsection{ClinicalBench: Assertion-Sensitive Clinical QA}
+\label{sec:bench:clinicalbench}
+
+ClinicalBench comprises 400 gold-standard questions over 45 MIMIC-IV patients in two tasks: \textbf{Task~A} (200 questions, negation-aware retrieval---answers depend on recognizing negated, uncertain, or family-attributed conditions) and \textbf{Task~B} (200 questions, temporal reasoning---current state, sequences, durations, longitudinal changes).
+Questions span 9 categories: \textit{negation}, \textit{conditional}, \textit{uncertainty}, \textit{family\_history}, \textit{sequence}, \textit{current\_state}, \textit{duration}, \textit{historical}, and \textit{change}, each with gold-standard answers from manual chart review.
+
+Five ablation conditions progressively add system components:
+
+\begin{table}[h]
+\centering
+\small
+\caption{ClinicalBench ablation conditions. Each row adds one component to the previous condition.}
+\label{tab:clinicalbench_conditions}
+\begin{tabular}{@{}clccc@{}}
+\toprule
+ID & Condition & Retrieval & Assertion & Temporal \\
+\midrule
+C1 & LLM Alone & None & None & None \\
+C2 & + Vanilla RAG & Document & None & None \\
+C3 & + KG-RAG & Graph + Doc & None & None \\
+C4 & + Epistemic KG-RAG & Graph + Doc & Full (7-class) & Bitemporal \\
+C5 & Full System & Graph + Doc + Guidelines & Full (7-class) & Bitemporal + Calc.\ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent The C3$\to$C4 transition isolates the effect of epistemic preservation: both use graph-augmented retrieval, but only C4 carries the 7-value assertion schema and tri-temporal model.
+C5 adds clinical guidelines (1{,}202 sections) and 201 calculators.
+
+
+\subsection{Slice Bench: Complexity-Stratified Longitudinal QA}
+\label{sec:bench:slicebench}
+
+Slice Bench tests the hypothesis that KG-augmented retrieval provides increasing benefit as patient record complexity grows.
+We select 6 MIMIC-IV patients in three tiers: \textbf{Tier~A} (2 patients, 1--2 encounters), \textbf{Tier~B} (2 patients, 5--10 encounters), and \textbf{Tier~C} (2 patients, 15+ encounters).
+Each patient receives 24 questions (categories A1--F6, where F1--F6 are hard longitudinal questions: cross-encounter medication timelines, problem list reconciliation, causal chain tracing), yielding 144 total questions.
+
+\begin{table}[h]
+\centering
+\small
+\caption{Slice Bench conditions. B0--B4 form a monotone context progression.}
+\label{tab:slicebench_conditions}
+\begin{tabular}{@{}clp{7.5cm}@{}}
+\toprule
+ID & Condition & Context Provided to LLM \\
+\midrule
+B0 & LLM Alone & Question only (parametric knowledge) \\
+B1 & Latest Note & Most recent clinical note \\
+B2 & All Notes RAG & All notes, retrieved by relevance \\
+B3 & KG-RAG & Knowledge graph context + all notes \\
+B4 & Full System & KG-RAG + guidelines + calculators \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent The critical comparison is B2$\to$B3: both have access to the same documents, but B3 additionally provides structured KG context with assertion metadata and temporal relations.
+
+\subsection{Evaluation Protocol}
+\label{sec:bench:protocol}
+
+Both benchmarks use separated judge and answering models to prevent self-evaluation bias~\cite{xiong2024mirage}: MedGemma 27B / separate LLM judge (ClinicalBench) and Claude Sonnet 4.5 / Claude Opus 4.6 (Slice Bench).
+We report BCa bootstrap 95\% CIs on all metrics; pairwise comparisons use McNemar's test (ClinicalBench) and paired BCa bootstrap CIs (Slice Bench).
+The safety score $S = 1 - \frac{1}{N} \sum_{i=1}^{N} w_i \cdot \mathbb{1}[\hat{y}_i \neq y_i]$ applies $w_i > 1$ for false-positive assertion errors (reporting a negated condition as present), capturing asymmetric clinical risk.

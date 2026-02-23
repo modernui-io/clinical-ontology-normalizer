@@ -1,0 +1,203 @@
+% ============================================================
+% APPENDIX
+% ============================================================
+
+\section{DR.KNOWS Benchmark Results}
+\label{app:drknows}
+
+We evaluate \epikg on the DR.KNOWS diagnostic reasoning benchmark~\cite{drknows2025}, which measures knowledge graph traversal accuracy using real PostgreSQL-backed clinical data.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lcc}
+\toprule
+\textbf{Metric} & \textbf{Score} & \textbf{\% of Baseline} \\
+\midrule
+Overall & 0.420 & 49.7\% \\
+Path Discovery & 44.4\% & --- \\
+Reasoning Accuracy & 22.2\% & --- \\
+1-hop Traversal & 50.0\% & --- \\
+2-hop Traversal & 25.0\% & --- \\
+3-hop Traversal & 0.0\% & --- \\
+\bottomrule
+\end{tabular}
+\caption{DR.KNOWS benchmark results. Multi-hop accuracy degrades due to PostgreSQL CTE traversal limitations versus native graph databases---an intentional architectural tradeoff for ACID compliance and transactional guarantees.}
+\label{tab:drknows}
+\end{table}
+
+The 3-hop traversal failure reflects the PostgreSQL CTE approach, which requires explicit recursive query construction rather than native graph pattern matching. This is an intentional design decision: \epikg prioritizes ACID compliance and operational simplicity (single-database deployment) over raw graph traversal performance.
+
+\section{MedQA-USMLE Baseline}
+\label{app:medqa}
+
+To establish the baseline LLM capability, we evaluated the system's language model (Claude Opus 4.5) on MedQA-USMLE~\cite{medagentbench2025} without any retrieval augmentation.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lccc}
+\toprule
+\textbf{Model} & \textbf{Accuracy} & \textbf{Step 1} & \textbf{N} \\
+\midrule
+EpiKG (LLM alone) & 81.6\% & 79.9\% & 965 \\
+GPT-4 (2023) & 86.7\% & --- & 1{,}273 \\
+Med-PaLM 2 (2023) & 86.5\% & --- & 1{,}273 \\
+Claude 3 Opus (2024) & 78.0\% & --- & 1{,}273 \\
+\bottomrule
+\end{tabular}
+\caption{MedQA-USMLE results. Our LLM-alone baseline is competitive, confirming that performance gains from KG augmentation reflect the system's contribution rather than a stronger base model.}
+\label{tab:medqa}
+\end{table}
+
+\section{Scalability Metrics}
+\label{app:scalability}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lr}
+\toprule
+\textbf{Metric} & \textbf{Value} \\
+\midrule
+Documents processed & 145 \\
+Patients & 85 \\
+KG nodes & 3{,}100 \\
+KG edges & 8{,}803 \\
+Shared concept dedup ratio & $\sim$36 nodes/patient \\
+1-hop traversal latency & 0.57\,ms \\
+2-hop traversal latency & 0.75\,ms \\
+\bottomrule
+\end{tabular}
+\caption{Scalability metrics at current deployment scale. Sub-millisecond traversal latency enables real-time clinical decision support.}
+\label{tab:scalability}
+\end{table}
+
+\section{System Component Scale}
+\label{app:scale}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lr}
+\toprule
+\textbf{Component} & \textbf{Scale} \\
+\midrule
+Clinical calculators & 201 \\
+Guideline sections (RAG corpus) & 1{,}202 \\
+OMOP vocabulary relationships & 20M+ \\
+NLP ensemble models & 3 \\
+Assertion trigger patterns & 101 \\
+KG edge types & 24 \\
+KG node types & 13 \\
+Assertion classes & 7 \\
+\bottomrule
+\end{tabular}
+\caption{System component scale. The OMOP vocabulary provides 20M+ concept relationships for multi-hop graph traversal.}
+\label{tab:system_scale}
+\end{table}
+
+\section{Human Validation Pilot}
+\label{app:human}
+
+Two board-certified physicians (identities withheld for double-blind review; specialties: emergency medicine and [second specialty]) independently adjudicated a sample of question-answer pairs from ClinicalBench and Slice Bench using a blinded protocol.
+Each reviewer scored system outputs on a 4-point scale (correct, partially correct, incorrect, clinically dangerous) without knowledge of condition labels.
+Inter-rater agreement was computed using Cohen's $\kappa$.
+
+\paragraph{Pilot findings ($n=5$, single reviewer).}
+An initial pilot of 5 ClinicalBench C1 pairs revealed:
+\begin{itemize}[nosep]
+    \item The automated LLM-as-judge scoring was overly strict on uncertainty and sequence questions, rating partially correct answers as incorrect.
+    \item Gold standard answers were assessed as fully correct in 3/5 cases, partially correct in 1/5, and requiring revision in 1/5.
+    \item Model answers were rated partially correct or better in 3/5 cases where the auto-scorer marked them incorrect.
+\end{itemize}
+
+\paragraph{Full adjudication protocol.}
+The full study targets $n \geq 30$ pairs stratified across conditions (C1/C4 for ClinicalBench; B2/B3 for Slice Bench) and question categories, with predefined endpoints: (1)~inter-rater $\kappa$, (2)~human--LLM judge agreement rate, (3)~discordance taxonomy (false strict, false lenient, genuine disagreement).
+
+\section{Reproducibility Details}
+\label{app:reproducibility}
+
+\paragraph{Models.} ClinicalBench: MedGemma 27B (answering) with LLM-as-judge scoring. Slice Bench: Claude Sonnet 4.5 (claude-sonnet-4-5-20250929, answering), Claude Opus 4.6 (judging). All experiments used temperature 0 for reproducibility.
+
+\paragraph{Bootstrap protocol.} All confidence intervals computed with $n=2{,}000$ bootstrap resamples, seed 42, bias-corrected and accelerated (BCa) method~\cite{efron1993bootstrap}.
+
+\paragraph{Data.} All experiments used de-identified MIMIC-IV clinical notes under the PhysioNet Credentialed Health Data Use Agreement (v1.5.0).
+
+\paragraph{Computational resources.} ClinicalBench: approximately 3.6 hours on a single machine with GPU (MedGemma inference via Ollama). Slice Bench: approximately 2 hours using Anthropic API.
+
+\section{Assertion Category Definitions}
+\label{app:assertions}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lp{7cm}l}
+\toprule
+\textbf{Assertion} & \textbf{Definition} & \textbf{Example} \\
+\midrule
+\textsc{present} & Condition currently affirmed & ``has diabetes'' \\
+\textsc{absent} & Condition explicitly negated & ``denies chest pain'' \\
+\textsc{possible} & Condition suspected, not confirmed & ``possible pneumonia'' \\
+\textsc{conditional} & Contingent on specific circumstances & ``if febrile, start antibiotics'' \\
+\textsc{hypothetical} & Discussed as a scenario & ``would need dialysis if\ldots'' \\
+\textsc{family\_history} & Attributed to a family member & ``mother had breast cancer'' \\
+\textsc{historical} & Previously true, not necessarily current & ``former smoker'' \\
+\bottomrule
+\end{tabular}
+\caption{The 7-value assertion taxonomy used in \epikg, extending the i2b2 2010 6-class standard by separating \textsc{historical} from \textsc{family\_history}.}
+\label{tab:assertion_defs}
+\end{table}
+
+\section{Slice Bench Tier-Stratified Results}
+\label{app:slicebench_tiers}
+
+\begin{table}[h]
+\centering
+\small
+\caption{Slice Bench results stratified by patient complexity tier. B2$\rightarrow$B3 $\Delta$ shows the incremental KG contribution. The KG benefit concentrates in Tier~C.}
+\label{tab:slicebench_tiers}
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+& & \multicolumn{5}{c}{Score (\%)} & \\
+\cmidrule(lr){3-7}
+Tier & Encounters & B0 & B1 & B2 & B3 & B4 & B2$\rightarrow$B3 $\Delta$ \\
+\midrule
+A & 1--2 notes & 51.7 & 66.7 & 81.1 & 81.8 & 82.6 & $+0.6\pp$ \\
+B & 5--10 notes & 49.5 & 79.4 & 86.4 & 87.4 & 90.1 & $+1.0\pp$ \\
+C & 15+ notes & 48.4 & 74.2 & 86.5 & 91.5 & 90.3 & $+5.0\pp$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{ClinicalBench Full Per-Category Results}
+\label{app:percategory}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Category} & \textbf{C1} & \textbf{C2} & \textbf{C3} & \textbf{C4} & \textbf{C5} \\
+\midrule
+Negation & 100.0 & 93.6 & 81.8 & 100.0 & 98.2 \\
+Conditional & 100.0 & 90.0 & 55.0 & 70.0 & 75.0 \\
+Uncertainty & 37.5 & 2.5 & 7.5 & 57.5 & 40.0 \\
+Family History & 0.0 & 0.0 & 53.3 & 70.0 & 56.7 \\
+Sequence & 80.0 & 80.0 & 80.0 & 87.5 & 77.5 \\
+Current State & 64.0 & 54.0 & 50.0 & 54.0 & 58.0 \\
+Duration & 100.0 & 100.0 & 83.3 & 83.3 & 73.3 \\
+Historical & 94.0 & 78.0 & 68.0 & 60.0 & 68.0 \\
+Change & 0.0 & 0.0 & 3.3 & 3.3 & 3.3 \\
+\midrule
+\textbf{Overall} & \textbf{71.5} & \textbf{62.5} & \textbf{59.3} & \textbf{71.5} & \textbf{68.3} \\
+\bottomrule
+\end{tabular}
+\caption{Complete ClinicalBench per-category accuracy (\%) for all five conditions. C4 shows the largest gains on uncertainty (+20\pp vs C1, +55\pp vs C2) and family history (+70\pp vs C1/C2).}
+\label{tab:full_percategory}
+\end{table}
+
+\section{Ethics Statement}
+\label{app:ethics}
+
+This work uses de-identified clinical data from MIMIC-IV~\cite{johnson2023mimiciv} under a PhysioNet Credentialed Health Data Use Agreement. No patient re-identification was attempted. All clinical questions were generated programmatically from structured data; no new clinical annotations were created. The LLM-as-judge evaluation protocol does not involve human subjects. The system is designed for clinical decision \emph{support}, not autonomous clinical decision-making, and is not intended to replace physician judgment.

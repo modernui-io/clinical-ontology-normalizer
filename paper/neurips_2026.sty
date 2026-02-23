@@ -1,0 +1,108 @@
+% neurips_2026.sty - Style file for NeurIPS 2026
+% Based on the standard NeurIPS template
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{neurips_2026}[2026/01/01 NeurIPS 2026 submission]
+
+% Options
+\newif\if@neuripsfinal\@neuripsfinalfalse
+\DeclareOption{final}{\@neuripsfinaltrue}
+\newif\if@preprint\@preprintfalse
+\DeclareOption{preprint}{\@preprinttrue}
+\newif\if@nonatbib\@nonatbibfalse
+\DeclareOption{nonatbib}{\@nonatbibtrue}
+\ProcessOptions\relax
+
+% Fonts - Times Roman (NeurIPS standard)
+\renewcommand{\rmdefault}{ptm}
+\renewcommand{\sfdefault}{phv}
+
+% Page layout - exact NeurIPS dimensions
+\usepackage[verbose=true,letterpaper]{geometry}
+\AtBeginDocument{
+  \newgeometry{
+    textheight=9in,
+    textwidth=5.5in,
+    top=1in,
+    headheight=12pt,
+    headsep=25pt,
+    footskip=30pt
+  }
+}
+
+% Line spacing - NeurIPS standard
+\linespread{1.0}
+
+% Sections - NeurIPS compact style
+\usepackage[compact]{titlesec}
+\titleformat{\section}{\large\bfseries}{\thesection}{0.75em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.75em}{}
+\titleformat{\subsubsection}{\normalsize\itshape}{\thesubsubsection}{0.75em}{}
+\titlespacing{\section}{0pt}{8pt plus 2pt minus 2pt}{4pt plus 1pt minus 1pt}
+\titlespacing{\subsection}{0pt}{6pt plus 2pt minus 2pt}{3pt plus 1pt minus 1pt}
+\titlespacing{\subsubsection}{0pt}{4pt plus 1pt minus 1pt}{2pt plus 1pt minus 1pt}
+
+% Abstract
+\renewenvironment{abstract}%
+{%
+  \centerline{\large\bfseries Abstract}%
+  \vspace{0.5ex}%
+  \begin{quote}\small%
+}
+{%
+  \par%
+  \end{quote}%
+  \vskip 1ex%
+}
+
+% Title
+\newcommand{\@notefinaltrue}{}
+\if@neuripsfinal
+  \renewcommand{\@notefinaltrue}{}
+\fi
+
+% Citation
+\if@nonatbib\else
+  \usepackage[numbers,compress]{natbib}
+  \bibliographystyle{unsrtnat}
+  \setlength{\bibsep}{3pt plus 1pt minus 1pt}
+\fi
+
+% Anonymous submission
+\if@neuripsfinal
+\else
+  \if@preprint
+  \else
+    \AtBeginDocument{%
+      \hypersetup{pdfauthor={Anonymous}}%
+    }
+  \fi
+\fi
+
+% Paragraphs - NeurIPS uses indentation, not skip
+\setlength{\parindent}{1em}
+\setlength{\parskip}{0pt plus 1pt}
+
+% Footnotes
+\renewcommand{\footnoterule}{\kern-3pt \hrule width 0.4\columnwidth \kern 2.6pt}
+
+% Float placement - aggressive
+\renewcommand{\topfraction}{0.95}
+\renewcommand{\bottomfraction}{0.85}
+\setcounter{topnumber}{3}
+\setcounter{bottomnumber}{3}
+\setcounter{totalnumber}{5}
+\renewcommand{\textfraction}{0.05}
+\renewcommand{\floatpagefraction}{0.8}
+\setlength{\floatsep}{8pt plus 2pt minus 2pt}
+\setlength{\textfloatsep}{10pt plus 2pt minus 4pt}
+\setlength{\intextsep}{8pt plus 2pt minus 2pt}
+
+% Table/figure captions - compact
+\usepackage[font=small,labelfont=bf,skip=4pt]{caption}
+
+% Lists - compact
+\setlength{\topsep}{2pt plus 1pt minus 1pt}
+\setlength{\itemsep}{1pt plus 1pt minus 0pt}
+
+\endinput

@@ -1,0 +1,116 @@
+\documentclass[10pt]{article}
+\usepackage{neurips_2026}
+
+% Core packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\newtheorem{definition}{Definition}
+\usepackage{nicefrac}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{subcaption}
+\usepackage{enumitem}
+\usepackage{xspace}
+\usepackage{tabularx}
+\usepackage{colortbl}
+
+% Custom commands
+\newcommand{\epikg}{EpiKG\xspace}
+\newcommand{\ie}{i.e.,\xspace}
+\newcommand{\eg}{e.g.,\xspace}
+\newcommand{\cf}{cf.\xspace}
+\newcommand{\pp}{\,\text{pp}}
+\newcommand{\ci}[2]{[#1, #2]}
+\newcommand{\smark}{\textcolor{green!60!black}{\checkmark}}
+\newcommand{\xmark}{\textcolor{red!80!black}{$\times$}}
+
+% For double-blind
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!60!black,
+  citecolor=blue!60!black,
+  urlcolor=blue!60!black,
+  pdfborder={0 0 0}
+}
+
+\title{EpiKG: End-to-End Epistemic Preservation in Clinical Knowledge Graphs for Assertion-Aware Retrieval-Augmented Generation}
+
+\author{
+  Anonymous Author(s)
+}
+
+\begin{document}
+
+\maketitle
+
+% ============================================================
+% ABSTRACT
+% ============================================================
+\begin{abstract}
+\input{sections/abstract}
+\end{abstract}
+
+% ============================================================
+% 1. INTRODUCTION
+% ============================================================
+\section{Introduction}
+\label{sec:intro}
+\input{sections/introduction}
+
+% ============================================================
+% 2. RELATED WORK
+% ============================================================
+\section{Related Work}
+\label{sec:related}
+\input{sections/related_work}
+
+% ============================================================
+% 3. SYSTEM DESIGN
+% ============================================================
+\section{System Design}
+\label{sec:system}
+\input{sections/system_design}
+
+% ============================================================
+% 4. BENCHMARK DESIGN
+% ============================================================
+\section{Benchmark Design}
+\label{sec:benchmarks}
+\input{sections/benchmark_design}
+
+% ============================================================
+% 5. RESULTS
+% ============================================================
+\section{Results}
+\label{sec:results}
+\input{sections/results}
+
+% ============================================================
+% 6. DISCUSSION & LIMITATIONS
+% ============================================================
+\section{Discussion and Limitations}
+\label{sec:discussion}
+\input{sections/discussion}
+
+% ============================================================
+% REFERENCES
+% ============================================================
+\bibliography{references}
+
+% ============================================================
+% APPENDIX (supplementary, not counted in 9-page limit)
+% ============================================================
+\newpage
+\appendix
+\input{sections/appendix}
+
+\end{document}

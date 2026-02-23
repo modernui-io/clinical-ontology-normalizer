@@ -1,0 +1,29 @@
+% Section 1: Introduction
+% NOTE: \section{Introduction} and \label{sec:intro} are in main.tex
+
+A physician documents ``patient denies chest pain, sister had MI at 45, will consider statin if lipids remain elevated''---a single sentence encoding four epistemic states: a negated symptom, a family-history event, a hypothetical action, and an implicit present condition.
+Clinical NLP can detect these assertions accurately~\cite{uzuner2011i2b2assertion, gul2025beyondnegation}, yet when a RAG system ingests the same note, assertion context is flattened: negation is lost, family attribution collapses onto the patient, and downstream reasoning may conclude the patient \emph{has} chest pain and \emph{had} an MI.
+We call this the \emph{epistemic propagation gap}---the systematic loss of assertion status as clinical information moves from extraction through storage to retrieval.
+
+The gap persists because, to our knowledge, no system connects assertion detection to knowledge representation.
+The i2b2 2010 six-class taxonomy~\cite{uzuner2011i2b2assertion} remains the standard, yet we are unaware of a subsequent system that propagates these labels beyond extraction.
+OMOP excludes negated conditions from \texttt{CONDITION\_OCCURRENCE}~\cite{omop2024}; FHIR provides \texttt{verificationStatus} for conditions only.
+Graph-augmented RAG systems---GraphRAG~\cite{edge2024graphrag}, GFM-RAG~\cite{luo2025gfmrag}, KARE~\cite{jiang2025kare}, Medical-Graph-RAG~\cite{wu2025medicalgraphrag}---build KGs that discard the metadata distinguishing ``patient has diabetes'' from ``rule out diabetes.''
+Two KG surveys~\cite{alkhatib2024pckgsurvey,abusalih2023healthcarekg} do not identify assertion preservation as a concern.
+A parallel \emph{temporal integration gap} exists: clinical events span three time dimensions (valid time, transaction time, NLP-asserted temporality), yet existing systems model at most two~\cite{huang2024medtkg,ramirez2025graphiti}, and Allen's interval algebra~\cite{allen1983temporal} has been formalized only as annotation ontologies~\cite{li2020teo} or modal operators~\cite{ong2023tcl}, never as first-class KG edge attributes.
+
+We present \epikg, a clinical KG system that closes both gaps by preserving epistemic status end-to-end from NLP extraction through OMOP mapping, fact construction, KG materialization, and graph-augmented retrieval.
+Our contributions:
+
+\begin{enumerate}[leftmargin=*, topsep=4pt, itemsep=2pt]
+  \item \textbf{End-to-end epistemic assertion preservation}: a seven-value assertion schema extending i2b2, carried from NLP extraction to RAG context serialization---to our knowledge, no prior system maintains this invariant.
+
+  \item \textbf{Tri-temporal KG with Allen's interval algebra}: edges carry valid time, transaction time, and NLP-asserted temporality alongside nine Allen's relations as first-class attributes.
+
+  \item \textbf{Shared concept node architecture}: global OMOP concept deduplication with patient-specific edges enabling both per-patient reasoning and cross-patient cohort queries.
+
+  \item \textbf{Assertion-sensitive clinical benchmarks}: ClinicalBench (400 questions, 9 epistemic categories) and Slice Bench (144 questions, 3 complexity tiers) designed to expose the epistemic propagation gap.
+\end{enumerate}
+
+Our experiments reveal that vanilla RAG \emph{degrades} assertion-sensitive performance ($71.5\% \rightarrow 62.5\%$, $-9.0\pp$), while \epikg's assertion-aware KG-RAG recovers to 71.5\% with higher safety scores (0.775 vs.\ 0.752) and large gains on epistemic categories: $+20\pp$ on uncertainty, $+70\pp$ on family history.
+On Slice Bench, the KG benefit concentrates in complex patients: B2$\rightarrow$B3 is $+5.0\pp$ for 15+ encounters versus $+0.6\pp$ for 1--2 encounters, an eightfold difference.
