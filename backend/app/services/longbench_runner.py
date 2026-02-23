@@ -36,10 +36,13 @@ from app.services.longbench_schemas import (
     ConditionTierScore,
     CriterionResult,
     CriterionType,
+    ConditionSliceScore,
+    ExpectedMechanism,
     LongBenchCohort,
     LongBenchQuestion,
     LongBenchReport,
     LongBenchResult,
+    QuestionSlice,
     LongitudinalTier,
 )
 
@@ -255,6 +258,11 @@ class LongBenchRunner:
         report.condition_tier_scores = LongBenchAnalyzer.compute_condition_tier_scores(
             all_results, cohort.questions,
         )
+        if any(q.slice_id is not None for q in cohort.questions):
+            report.condition_slice_scores = LongBenchAnalyzer.compute_condition_slice_scores(
+                all_results,
+                cohort.questions,
+            )
 
         return report
 
@@ -731,6 +739,183 @@ class LongBenchAnalyzer:
         return scores
 
     @staticmethod
+    def compute_condition_slice_scores(
+        results: list[LongBenchResult],
+        questions: list[LongBenchQuestion],
+    ) -> list[ConditionSliceScore]:
+        """Compute per-condition x slice aggregate scores."""
+        question_map = {q.question_id: q for q in questions}
+
+        groups: dict[tuple[ConditionID, QuestionSlice], list[LongBenchResult]] = {}
+        for r in results:
+            question = question_map.get(r.question_id)
+            if not question or question.slice_id is None:
+                continue
+            groups.setdefault((r.condition, question.slice_id), []).append(r)
+
+        scores: list[ConditionSliceScore] = []
+        for (condition, slice_id), group in sorted(groups.items()):
+            valid = [r for r in group if not r.error]
+            n = len(valid)
+            if n == 0:
+                scores.append(ConditionSliceScore(
+                    condition=condition,
+                    slice_id=slice_id,
+                    n_questions=0,
+                ))
+                continue
+
+            mean = sum(r.normalized_score for r in valid) / n
+            variance = sum((r.normalized_score - mean) ** 2 for r in valid) / n
+            std = math.sqrt(variance)
+
+            mechanism_scores_raw: dict[str, list[float]] = {}
+            for r in valid:
+                q = question_map.get(r.question_id)
+                if not q or q.expected_mechanism is None:
+                    continue
+                mech_key = q.expected_mechanism.value
+                mechanism_scores_raw.setdefault(mech_key, []).append(r.normalized_score)
+
+            mechanism_counts = {
+                mech: len(values)
+                for mech, values in mechanism_scores_raw.items()
+            }
+            mechanism_scores = {
+                mech: sum(values) / len(values)
+                for mech, values in mechanism_scores_raw.items()
+                if values
+            }
+
+            scores.append(ConditionSliceScore(
+                condition=condition,
+                slice_id=slice_id,
+                n_questions=n,
+                mean_score=mean,
+                std_score=std,
+                mechanism_scores=mechanism_scores,
+                mechanism_counts=mechanism_counts,
+            ))
+
+        return scores
+
+    @staticmethod
+    def compute_mechanism_scores(
+        results: list[LongBenchResult],
+        questions: list[LongBenchQuestion],
+    ) -> dict[str, dict[ConditionID, dict[str, float]]]:
+        """Compute average score per condition for each expected mechanism."""
+        question_map = {q.question_id: q for q in questions}
+        grouped: dict[str, dict[ConditionID, list[float]]] = {}
+        for r in results:
+            if r.error:
+                continue
+            q = question_map.get(r.question_id)
+            if not q or q.expected_mechanism is None:
+                continue
+            mechanism = q.expected_mechanism.value
+            grouped.setdefault(mechanism, {}).setdefault(r.condition, []).append(
+                r.normalized_score,
+            )
+
+        output: dict[str, dict[ConditionID, dict[str, float]]] = {}
+        for mechanism, by_condition in grouped.items():
+            output[mechanism] = {}
+            for condition, values in by_condition.items():
+                n = len(values)
+                if n == 0:
+                    continue
+                mean = sum(values) / n
+                variance = sum((v - mean) ** 2 for v in values) / n
+                std = math.sqrt(variance)
+                output[mechanism][condition] = {
+                    "n_questions": n,
+                    "mean_score": mean,
+                    "std_score": std,
+                }
+
+        return output
+
+    @staticmethod
+    def to_slice_table(scores: list[ConditionSliceScore]) -> str:
+        """Format condition x slice scores as a markdown table."""
+        if not scores:
+            return "No slice-annotated questions available."
+
+        conditions = sorted({s.condition for s in scores}, key=lambda c: c.value)
+        slices = sorted({s.slice_id for s in scores}, key=lambda s: s.value)
+        lookup = {(s.condition, s.slice_id): s for s in scores}
+
+        header = "| Slice | " + " | ".join(
+            CONDITION_CONFIGS[c]["label"] for c in conditions
+        ) + " |"
+        sep = "|---|" + "|".join("---" for _ in conditions) + "|"
+
+        lines = [header, sep]
+        for slice_id in slices:
+            row = [slice_id.value]
+            for condition in conditions:
+                s = lookup.get((condition, slice_id))
+                if s and s.n_questions > 0:
+                    row.append(f"{s.mean_score:.1%} (n={s.n_questions})")
+                else:
+                    row.append("N/A")
+            lines.append("| " + " | ".join(row) + " |")
+        return "\n".join(lines)
+
+    @staticmethod
+    def to_mechanism_delta_table(
+        results: list[LongBenchResult],
+        questions: list[LongBenchQuestion],
+        pairs: list[tuple[ConditionID, ConditionID, str]] | None = None,
+    ) -> str:
+        """Format mechanism-aware paired deltas as markdown."""
+        if pairs is None:
+            pairs = [
+                (ConditionID.B2, ConditionID.B3, "B2→B3 (KG layer)"),
+                (ConditionID.B3, ConditionID.B4, "B3→B4 (guidelines+calc)"),
+                (ConditionID.B2, ConditionID.B4, "B2→B4 (full uplift)"),
+            ]
+
+        mechanism_values = {
+            q.expected_mechanism.value
+            for q in questions
+            if q.expected_mechanism is not None
+        }
+        if not mechanism_values:
+            return "No mechanism-annotated questions available."
+        question_lookup = {q.question_id: q for q in questions}
+
+        header = "| Mechanism | " + " | ".join(
+            label for _, _, label in pairs
+        ) + " |"
+        sep = "|---|" + "|".join("---" for _ in pairs) + "|"
+        lines = [header, sep]
+        for mechanism in sorted(mechanism_values):
+            row = [mechanism]
+            expected_mechanism = ExpectedMechanism(mechanism)
+            for condition_a, condition_b, _label in pairs:
+                delta = LongBenchAnalyzer.compute_paired_deltas(
+                    results,
+                    condition_a,
+                    condition_b,
+                    mechanism=expected_mechanism,
+                    question_lookup=question_lookup,
+                )
+                if delta["n_pairs"] == 0:
+                    row.append("N/A")
+                else:
+                    sig = "*" if (
+                        delta["ci_lower"] > 0 or delta["ci_upper"] < 0
+                    ) else "ns"
+                    row.append(
+                        f"{delta['mean_delta']:+.1%} [{delta['ci_lower']:+.1%}, "
+                        f"{delta['ci_upper']:+.1%}] ({delta['n_pairs']}) {sig}"
+                    )
+            lines.append("| " + " | ".join(row) + " |")
+        return "\n".join(lines)
+
+    @staticmethod
     def to_markdown_table(scores: list[ConditionTierScore]) -> str:
         """Format condition x tier scores as a markdown table."""
         tiers = sorted({s.tier for s in scores}, key=lambda t: t.value)
@@ -838,12 +1023,17 @@ class LongBenchAnalyzer:
         condition_b: ConditionID,
         n_bootstrap: int = 2000,
         seed: int = 42,
+        mechanism: ExpectedMechanism | None = None,
+        question_lookup: dict[str, LongBenchQuestion] | None = None,
     ) -> dict[str, Any]:
         """Compute paired per-question deltas between two conditions.
 
         Returns mean delta, bootstrap CI, and per-question deltas.
         condition_b - condition_a (positive = B improves over A).
         """
+        if question_lookup is None:
+            question_lookup = {}
+
         scores_a = {
             r.question_id: r.normalized_score
             for r in results
@@ -856,6 +1046,22 @@ class LongBenchAnalyzer:
         }
 
         common = sorted(set(scores_a.keys()) & set(scores_b.keys()))
+        if not common:
+            return {
+                "mean_delta": 0.0, "ci_lower": 0.0, "ci_upper": 0.0,
+                "n_pairs": 0, "per_question": {},
+            }
+
+        if mechanism is not None:
+            filtered = [
+                qid for qid in common
+                if (
+                    question_lookup.get(qid) is not None
+                    and question_lookup[qid].expected_mechanism == mechanism
+                )
+            ]
+            common = [qid for qid in filtered if qid in scores_a and qid in scores_b]
+
         if not common:
             return {
                 "mean_delta": 0.0, "ci_lower": 0.0, "ci_upper": 0.0,
@@ -942,6 +1148,18 @@ class LongBenchAnalyzer:
                     "criterion_type_counts": s.criterion_type_counts,
                 }
                 for s in report.condition_tier_scores
+            ],
+            "condition_slice_scores": [
+                {
+                    "condition": s.condition.value,
+                    "slice_id": s.slice_id.value,
+                    "n_questions": s.n_questions,
+                    "mean_score": s.mean_score,
+                    "std_score": s.std_score,
+                    "mechanism_scores": s.mechanism_scores,
+                    "mechanism_counts": s.mechanism_counts,
+                }
+                for s in report.condition_slice_scores
             ],
             "results": [
                 {

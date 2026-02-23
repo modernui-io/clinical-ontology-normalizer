@@ -38,6 +38,8 @@ from app.services.longbench_schemas import (
     LongitudinalTier,
     PatientCohortEntry,
     QuestionDomain,
+    QuestionSlice,
+    ExpectedMechanism,
 )
 
 logger = logging.getLogger(__name__)
@@ -322,6 +324,215 @@ Output a JSON array of question objects. No markdown, no explanation — just th
 """
 
 
+# Slice-based micro-benchmark templates designed for clinician-style chart review.
+# The questions are intentionally phrased as real clinical questions; graph concepts
+# are only used in internal analysis annotations.
+SLICE_QUESTION_TEMPLATES: list[dict[str, Any]] = [
+    # A: Temporal reconciliation
+    {
+        "id": "A1",
+        "slice_id": QuestionSlice.A_TEMPORAL,
+        "expected_mechanism": ExpectedMechanism.SINGLE_NOTE,
+        "domain": QuestionDomain.MEDICATION_RECONCILIATION,
+        "question_text": (
+            "What medications was this patient prescribed at their most recent discharge, "
+            "and at what dosages?"
+        ),
+        "kg_edge_types_needed": ["takes_drug"],
+    },
+    {
+        "id": "A2",
+        "slice_id": QuestionSlice.A_TEMPORAL,
+        "expected_mechanism": ExpectedMechanism.CROSS_ENCOUNTER,
+        "domain": QuestionDomain.TEMPORAL_REASONING,
+        "question_text": (
+            "How did this patient's medication regimen change between their first and most "
+            "recent encounters? For each change, identify when it occurred and what prompted it."
+        ),
+        "kg_edge_types_needed": ["takes_drug", "condition_treated_by", "precedes", "occurred_on"],
+    },
+    {
+        "id": "A3",
+        "slice_id": QuestionSlice.A_TEMPORAL,
+        "expected_mechanism": ExpectedMechanism.CROSS_ENCOUNTER,
+        "domain": QuestionDomain.TEMPORAL_REASONING,
+        "question_text": (
+            "Which diagnoses changed status over the course of care — suspected to confirmed, "
+            "or active to resolved? Cite the encounters where each change is documented."
+        ),
+        "kg_edge_types_needed": ["has_condition", "precedes", "occurred_on"],
+    },
+    {
+        "id": "A4",
+        "slice_id": QuestionSlice.A_TEMPORAL,
+        "expected_mechanism": ExpectedMechanism.SINGLE_NOTE,
+        "domain": QuestionDomain.TEMPORAL_REASONING,
+        "question_text": (
+            "What were the key clinical events during this patient's most recent "
+            "hospitalization, in chronological order?"
+        ),
+        "kg_edge_types_needed": ["precedes", "follows"],
+    },
+    # B: Assertion and attribution
+    {
+        "id": "B1",
+        "slice_id": QuestionSlice.B_ASSERTION,
+        "expected_mechanism": ExpectedMechanism.ASSERTION_REASONING,
+        "domain": QuestionDomain.PROBLEM_LIST,
+        "question_text": (
+            "Were any diagnoses considered but ultimately ruled out? Which ones, and what "
+            "evidence led to their exclusion?"
+        ),
+        "kg_edge_types_needed": ["has_condition"],
+    },
+    {
+        "id": "B2",
+        "slice_id": QuestionSlice.B_ASSERTION,
+        "expected_mechanism": ExpectedMechanism.ASSERTION_REASONING,
+        "domain": QuestionDomain.FAMILY_HISTORY,
+        "question_text": (
+            "What conditions are documented in family history, and are any also present "
+            "in the patient? Be precise about which belong to relatives."
+        ),
+        "kg_edge_types_needed": ["has_condition"],
+    },
+    {
+        "id": "B3",
+        "slice_id": QuestionSlice.B_ASSERTION,
+        "expected_mechanism": ExpectedMechanism.SINGLE_NOTE,
+        "domain": QuestionDomain.PROBLEM_LIST,
+        "question_text": (
+            "What are this patient's currently active medical problems as documented in "
+            "their most recent encounter?"
+        ),
+        "kg_edge_types_needed": ["has_condition"],
+    },
+    {
+        "id": "B4",
+        "slice_id": QuestionSlice.B_ASSERTION,
+        "expected_mechanism": ExpectedMechanism.ASSERTION_REASONING,
+        "domain": QuestionDomain.PROBLEM_LIST,
+        "question_text": (
+            "Which conditions are currently active versus historical or resolved? For resolved ones, "
+            "indicate when resolution was documented."
+        ),
+        "kg_edge_types_needed": ["has_condition"],
+    },
+    # C: Causal chains
+    {
+        "id": "C1",
+        "slice_id": QuestionSlice.C_CAUSAL,
+        "expected_mechanism": ExpectedMechanism.CAUSAL_CHAIN,
+        "domain": QuestionDomain.TEMPORAL_REASONING,
+        "question_text": (
+            "What clinical finding prompted the most significant treatment change? "
+            "Describe the chain from triggering finding to treatment decision."
+        ),
+        "kg_edge_types_needed": ["caused_by", "resulted_in", "condition_treated_by"],
+    },
+    {
+        "id": "C2",
+        "slice_id": QuestionSlice.C_CAUSAL,
+        "expected_mechanism": ExpectedMechanism.CAUSAL_CHAIN,
+        "domain": QuestionDomain.TEMPORAL_REASONING,
+        "question_text": (
+            "Did this patient experience any adverse effects from treatment? Trace: what treatment, "
+            "what complication, and how was it managed?"
+        ),
+        "kg_edge_types_needed": ["may_cause", "resulted_in", "condition_treated_by"],
+    },
+    {
+        "id": "C3",
+        "slice_id": QuestionSlice.C_CAUSAL,
+        "expected_mechanism": ExpectedMechanism.SINGLE_NOTE,
+        "domain": QuestionDomain.PROBLEM_LIST,
+        "question_text": (
+            "What was the primary reason for admission, and what was the principal diagnosis at discharge?"
+        ),
+        "kg_edge_types_needed": ["has_condition"],
+    },
+    # D: Safety and monitoring
+    {
+        "id": "D1",
+        "slice_id": QuestionSlice.D_SAFETY,
+        "expected_mechanism": ExpectedMechanism.SAFETY_CHECK,
+        "domain": QuestionDomain.MEDICATION_RECONCILIATION,
+        "question_text": (
+            "Given the complete medication list across all encounters, are there any drug-drug "
+            "interactions or contraindications that should be flagged?"
+        ),
+        "kg_edge_types_needed": ["takes_drug", "drug_interaction", "contraindicated_with"],
+    },
+    {
+        "id": "D2",
+        "slice_id": QuestionSlice.D_SAFETY,
+        "expected_mechanism": ExpectedMechanism.SAFETY_CHECK,
+        "domain": QuestionDomain.RISK_ASSESSMENT,
+        "question_text": (
+            "Are any current medications potentially inappropriate given documented conditions or "
+            "recent labs? Explain the clinical concern."
+        ),
+        "kg_edge_types_needed": ["takes_drug", "has_condition", "contraindicated_with", "has_measurement"],
+    },
+    {
+        "id": "D3",
+        "slice_id": QuestionSlice.D_SAFETY,
+        "expected_mechanism": ExpectedMechanism.SINGLE_NOTE,
+        "domain": QuestionDomain.FAMILY_HISTORY,
+        "question_text": (
+            "Does this patient have documented medication allergies, and are any current medications "
+            "in the same drug class?"
+        ),
+        "kg_edge_types_needed": ["has_observation", "takes_drug"],
+    },
+    # E: Guideline triggers
+    {
+        "id": "E1",
+        "slice_id": QuestionSlice.E_GUIDELINE,
+        "expected_mechanism": ExpectedMechanism.GUIDELINE_TRIGGER,
+        "domain": QuestionDomain.RISK_ASSESSMENT,
+        "question_text": (
+            "Based on risk factors, comorbidities, and lab values, does this patient meet criteria for "
+            "statin therapy? Cite the specific data points."
+        ),
+        "kg_edge_types_needed": ["has_condition", "has_measurement", "takes_drug"],
+    },
+    {
+        "id": "E2",
+        "slice_id": QuestionSlice.E_GUIDELINE,
+        "expected_mechanism": ExpectedMechanism.GUIDELINE_TRIGGER,
+        "domain": QuestionDomain.MEDICATION_RECONCILIATION,
+        "question_text": (
+            "Given the current medication list, are any monitoring labs or follow-up assessments "
+            "overdue or missing?"
+        ),
+        "kg_edge_types_needed": ["takes_drug", "monitors", "has_measurement", "occurred_on"],
+    },
+    {
+        "id": "E3",
+        "slice_id": QuestionSlice.E_GUIDELINE,
+        "expected_mechanism": ExpectedMechanism.SINGLE_NOTE,
+        "domain": QuestionDomain.RISK_ASSESSMENT,
+        "question_text": (
+            "What modifiable risk factors are documented that could be addressed through "
+            "lifestyle changes or preventive treatment?"
+        ),
+        "kg_edge_types_needed": ["has_condition", "has_observation"],
+    },
+    {
+        "id": "E4",
+        "slice_id": QuestionSlice.E_GUIDELINE,
+        "expected_mechanism": ExpectedMechanism.CROSS_ENCOUNTER,
+        "domain": QuestionDomain.TEMPORAL_REASONING,
+        "question_text": (
+            "Looking at lab trends over time, are any values trending in a clinically concerning direction? "
+            "Cite specific values and dates."
+        ),
+        "kg_edge_types_needed": ["has_measurement", "monitors", "occurred_on"],
+    },
+]
+
+
 class LongBenchQuestionGenerator:
     """Generates HealthBench-style questions for each patient in the cohort."""
 
@@ -487,6 +698,11 @@ class LongBenchQuestionGenerator:
             criteria=criteria,
             encounter_count=patient.encounter_count,
             generated_by="llm",
+            slice_id=_optional_slice_id(data.get("slice_id")),
+            expected_mechanism=_optional_expected_mechanism(data.get("expected_mechanism")),
+            kg_edge_types_needed=_normalize_edge_types(
+                data.get("kg_edge_types_needed"),
+            ),
         )
 
     def _fallback_template_questions(
@@ -518,6 +734,58 @@ class LongBenchQuestionGenerator:
                 generated_by="template",
             ))
         return questions
+
+
+class SliceBenchQuestionGenerator:
+    """Generate the clinical reasoning micro-benchmark question set."""
+
+    def generate(self, patient: PatientCohortEntry) -> list[LongBenchQuestion]:
+        """Generate all 18 slice-specific questions for a patient."""
+        pid_hash = hashlib.md5(patient.patient_id.encode("utf-8")).hexdigest()[:8]
+        questions: list[LongBenchQuestion] = []
+
+        for spec in SLICE_QUESTION_TEMPLATES:
+            qid = f"lb_{patient.tier.value}_{spec['id']}_{pid_hash}"
+            criterion_builder = _SLICE_CRITERIA_TEMPLATES[spec["id"]]
+            questions.append(LongBenchQuestion(
+                question_id=qid,
+                patient_id=patient.patient_id,
+                question_text=spec["question_text"],
+                domain=spec["domain"],
+                tier=patient.tier,
+                criteria=criterion_builder(qid),
+                encounter_count=patient.encounter_count,
+                generated_by="slice_template",
+                slice_id=spec["slice_id"],
+                expected_mechanism=spec["expected_mechanism"],
+                kg_edge_types_needed=list(spec["kg_edge_types_needed"]),
+            ))
+
+        return questions
+
+
+def _optional_slice_id(value: str | None) -> QuestionSlice | None:
+    if isinstance(value, str):
+        try:
+            return QuestionSlice(value)
+        except ValueError:
+            return None
+    return None
+
+
+def _optional_expected_mechanism(value: str | None) -> ExpectedMechanism | None:
+    if isinstance(value, str):
+        try:
+            return ExpectedMechanism(value)
+        except ValueError:
+            return None
+    return None
+
+
+def _normalize_edge_types(value: Any) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    return [str(v) for v in value if isinstance(v, str)]
 
 
 # Domain-specific criteria templates.  Each question gets 3-5 criteria
@@ -682,6 +950,520 @@ def _risk_assessment_criteria(qid: str) -> list[LongBenchCriterion]:
     ]
 
 
+def _slice_a1_criteria(qid: str) -> list[LongBenchCriterion]:
+    return [
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c0",
+            text="Lists each current medication and dosage from the most recent discharge",
+            criterion_type=CriterionType.MEDICATION,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c1",
+            text="Distinguishes current medication orders from historical or discontinued ones",
+            criterion_type=CriterionType.CHRONOLOGY,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c2",
+            text="Does not introduce medications or doses not documented in chart",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+    ]
+
+
+def _slice_a2_criteria(qid: str) -> list[LongBenchCriterion]:
+    return [
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c0",
+            text="Identifies at least two medication changes across encounters",
+            criterion_type=CriterionType.CHRONOLOGY,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c1",
+            text="Attaches each change to a specific encounter date or event",
+            criterion_type=CriterionType.CHRONOLOGY,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c2",
+            text="Does not attribute a change to an incorrect time window",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c3",
+            text="Notes the trigger that led to the medication change (symptom, test result, or clinical event)",
+            criterion_type=CriterionType.CAUSAL,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+    ]
+
+
+def _slice_a3_criteria(qid: str) -> list[LongBenchCriterion]:
+    return [
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c0",
+            text="Identifies diagnoses that changed from suspected to confirmed status",
+            criterion_type=CriterionType.CHRONOLOGY,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c1",
+            text="Identifies diagnoses that changed from active to resolved status",
+            criterion_type=CriterionType.CHRONOLOGY,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c2",
+            text="Reports the encounters where status changes were first documented",
+            criterion_type=CriterionType.CHRONOLOGY,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c3",
+            text="Does not confuse uncertainty language as a confirmed diagnosis",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+    ]
+
+
+def _slice_a4_criteria(qid: str) -> list[LongBenchCriterion]:
+    return [
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c0",
+            text="Lists at least three key events from the most recent hospitalization",
+            criterion_type=CriterionType.SYNTHESIS,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c1",
+            text="Preserves event order for that admission",
+            criterion_type=CriterionType.CHRONOLOGY,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c2",
+            text="Avoids fabricating encounter-level events not in the chart",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+    ]
+
+
+def _slice_b1_criteria(qid: str) -> list[LongBenchCriterion]:
+    return [
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c0",
+            text="Identifies at least one ruled-out diagnosis",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c1",
+            text="Does not report ruled-out findings as confirmed active problems",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c2",
+            text="Cites evidence language or testing that supported exclusion",
+            criterion_type=CriterionType.CHRONOLOGY,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c3",
+            text="Separates exclusion rationale from active plan items",
+            criterion_type=CriterionType.SYNTHESIS,
+            weight=CriterionWeight.NICE,
+        ),
+    ]
+
+
+def _slice_b2_criteria(qid: str) -> list[LongBenchCriterion]:
+    return [
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c0",
+            text="Identifies which historical findings belong to family members",
+            criterion_type=CriterionType.EXPERIENCER,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c1",
+            text="Separately identifies conditions documented for the patient",
+            criterion_type=CriterionType.EXPERIENCER,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c2",
+            text="Does not merge family history and patient findings into one list",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c3",
+            text="Cites at least one specific evidence snippet location for the attribution",
+            criterion_type=CriterionType.CHRONOLOGY,
+            weight=CriterionWeight.NICE,
+        ),
+    ]
+
+
+def _slice_b3_criteria(qid: str) -> list[LongBenchCriterion]:
+    return [
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c0",
+            text="Lists current active conditions from the latest encounter",
+            criterion_type=CriterionType.SYNTHESIS,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c1",
+            text="Includes only active/ongoing problems for the latest encounter",
+            criterion_type=CriterionType.CHRONOLOGY,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c2",
+            text="Does not include unrelated historical or family findings",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+    ]
+
+
+def _slice_b4_criteria(qid: str) -> list[LongBenchCriterion]:
+    return [
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c0",
+            text="Separates active and resolved conditions",
+            criterion_type=CriterionType.CHRONOLOGY,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c1",
+            text="Provides a documented resolution date or encounter window for each resolved condition",
+            criterion_type=CriterionType.CHRONOLOGY,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c2",
+            text="Does not represent unresolved conditions as resolved",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c3",
+            text="Avoids listing active findings without status support",
+            criterion_type=CriterionType.CHRONOLOGY,
+            weight=CriterionWeight.NICE,
+        ),
+    ]
+
+
+def _slice_c1_criteria(qid: str) -> list[LongBenchCriterion]:
+    return [
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c0",
+            text="Identifies the triggering clinical finding preceding treatment change",
+            criterion_type=CriterionType.CAUSAL,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c1",
+            text="Connects the trigger to the medication action in the same causal chain",
+            criterion_type=CriterionType.CAUSAL,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c2",
+            text="Uses timeline or encounter order to justify sequence",
+            criterion_type=CriterionType.CHRONOLOGY,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c3",
+            text="Does not infer causality without chart support",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+    ]
+
+
+def _slice_c2_criteria(qid: str) -> list[LongBenchCriterion]:
+    return [
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c0",
+            text="Identifies if any treatment-related adverse effects are documented",
+            criterion_type=CriterionType.CAUSAL,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c1",
+            text="Maps each adverse effect to a likely treatment or medication",
+            criterion_type=CriterionType.CAUSAL,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c2",
+            text="Describes how the care team managed the complication",
+            criterion_type=CriterionType.CHRONOLOGY,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c3",
+            text="Does not state a complication without encounter-level support",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+    ]
+
+
+def _slice_c3_criteria(qid: str) -> list[LongBenchCriterion]:
+    return [
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c0",
+            text="States the documented reason for admission",
+            criterion_type=CriterionType.SYNTHESIS,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c1",
+            text="States the principal discharge diagnosis",
+            criterion_type=CriterionType.SYNTHESIS,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c2",
+            text="Maintains consistency between admission reason and discharge diagnosis",
+            criterion_type=CriterionType.CHRONOLOGY,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c3",
+            text="Does not add diagnoses not appearing in either admission or discharge narrative",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+    ]
+
+
+def _slice_d1_criteria(qid: str) -> list[LongBenchCriterion]:
+    return [
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c0",
+            text="Flags at least one interaction or contraindication that is explicitly plausible from chart evidence",
+            criterion_type=CriterionType.CAUSAL,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c1",
+            text="Cites the medication pairing and its potential risk",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c2",
+            text="Includes appropriate caution language instead of absolute certainty when evidence is limited",
+            criterion_type=CriterionType.UNCERTAINTY,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c3",
+            text="Avoids fabricating interactions not implied by the medication history",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+    ]
+
+
+def _slice_d2_criteria(qid: str) -> list[LongBenchCriterion]:
+    return [
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c0",
+            text="Identifies at least one medication-condition or medication-lab mismatch",
+            criterion_type=CriterionType.RISK,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c1",
+            text="Explains the clinical concern with context from documented conditions or labs",
+            criterion_type=CriterionType.CAUSAL,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c2",
+            text="Does not overstate risk absent supporting data",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c3",
+            text="Provides encounter-level specificity for the concern",
+            criterion_type=CriterionType.CHRONOLOGY,
+            weight=CriterionWeight.NICE,
+        ),
+    ]
+
+
+def _slice_d3_criteria(qid: str) -> list[LongBenchCriterion]:
+    return [
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c0",
+            text="Identifies documented medication allergies",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c1",
+            text="Assesses whether a current medication shares a high-risk class overlap concern",
+            criterion_type=CriterionType.MEDICATION,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c2",
+            text="Does not add allergies or class relationships not documented",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+    ]
+
+
+def _slice_e1_criteria(qid: str) -> list[LongBenchCriterion]:
+    return [
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c0",
+            text="Reviews the chart for risk factors relevant to statin eligibility",
+            criterion_type=CriterionType.RISK,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c1",
+            text="Cites specific age, lipid, diagnosis, or comorbidity evidence if available",
+            criterion_type=CriterionType.CHRONOLOGY,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c2",
+            text="Reports uncertainty if required threshold data are missing",
+            criterion_type=CriterionType.UNCERTAINTY,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c3",
+            text="Does not recommend therapy solely from general guideline recall",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+    ]
+
+
+def _slice_e2_criteria(qid: str) -> list[LongBenchCriterion]:
+    return [
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c0",
+            text="Identifies at least one monitoring or follow-up item that is missing or overdue",
+            criterion_type=CriterionType.RISK,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c1",
+            text="Supports each identified gap with medication, condition, or timeline context",
+            criterion_type=CriterionType.CHRONOLOGY,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c2",
+            text="Does not claim monitoring is missing when it is documented",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c3",
+            text="Avoids suggesting incorrect lab targets for the given clinical context",
+            criterion_type=CriterionType.CAUSAL,
+            weight=CriterionWeight.NICE,
+        ),
+    ]
+
+
+def _slice_e3_criteria(qid: str) -> list[LongBenchCriterion]:
+    return [
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c0",
+            text="Identifies at least two modifiable risk factors in the chart",
+            criterion_type=CriterionType.SYNTHESIS,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c1",
+            text="Uses chart evidence (conditions, labs, vitals, social data) to justify each factor",
+            criterion_type=CriterionType.SYNTHESIS,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c2",
+            text="Does not invent preventive opportunities not documented",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+    ]
+
+
+def _slice_e4_criteria(qid: str) -> list[LongBenchCriterion]:
+    return [
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c0",
+            text="Identifies trend direction (improving, worsening, unstable) for at least two serial labs",
+            criterion_type=CriterionType.CHRONOLOGY,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c1",
+            text="Cites values and dates supporting the observed trend",
+            criterion_type=CriterionType.SYNTHESIS,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c2",
+            text="Identifies whether a concerning threshold was newly crossed",
+            criterion_type=CriterionType.RISK,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c3",
+            text="Avoids drawing trend conclusions from single data points",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+    ]
+
+
+_SLICE_CRITERIA_TEMPLATES: dict[str, Any] = {
+    "A1": _slice_a1_criteria,
+    "A2": _slice_a2_criteria,
+    "A3": _slice_a3_criteria,
+    "A4": _slice_a4_criteria,
+    "B1": _slice_b1_criteria,
+    "B2": _slice_b2_criteria,
+    "B3": _slice_b3_criteria,
+    "B4": _slice_b4_criteria,
+    "C1": _slice_c1_criteria,
+    "C2": _slice_c2_criteria,
+    "C3": _slice_c3_criteria,
+    "D1": _slice_d1_criteria,
+    "D2": _slice_d2_criteria,
+    "D3": _slice_d3_criteria,
+    "E1": _slice_e1_criteria,
+    "E2": _slice_e2_criteria,
+    "E3": _slice_e3_criteria,
+    "E4": _slice_e4_criteria,
+}
+
+
 _DOMAIN_CRITERIA_TEMPLATES: dict[QuestionDomain, Any] = {
     QuestionDomain.MEDICATION_RECONCILIATION: _medication_criteria,
     QuestionDomain.PROBLEM_LIST: _problem_list_criteria,
@@ -727,6 +1509,11 @@ def cohort_to_json(cohort: LongBenchCohort) -> dict:
                 "encounter_count": q.encounter_count,
                 "generated_by": q.generated_by,
                 "validated_by": q.validated_by,
+                "slice_id": q.slice_id.value if q.slice_id else None,
+                "expected_mechanism": (
+                    q.expected_mechanism.value if q.expected_mechanism else None
+                ),
+                "kg_edge_types_needed": q.kg_edge_types_needed,
                 "criteria": [
                     {
                         "criterion_id": c.criterion_id,
@@ -782,6 +1569,9 @@ def cohort_from_json(data: dict) -> LongBenchCohort:
             encounter_count=q.get("encounter_count", 0),
             generated_by=q.get("generated_by", "unknown"),
             validated_by=q.get("validated_by"),
+            slice_id=_optional_slice_id(q.get("slice_id")),
+            expected_mechanism=_optional_expected_mechanism(q.get("expected_mechanism")),
+            kg_edge_types_needed=q.get("kg_edge_types_needed", []),
         ))
 
     return LongBenchCohort(

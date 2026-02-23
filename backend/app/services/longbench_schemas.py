@@ -71,6 +71,27 @@ class QuestionDomain(str, Enum):
     RISK_ASSESSMENT = "risk_assessment"
 
 
+class QuestionSlice(str, Enum):
+    """Clinical reasoning slice — organizes questions by reasoning demand."""
+
+    A_TEMPORAL = "temporal_reconciliation"
+    B_ASSERTION = "assertion_attribution"
+    C_CAUSAL = "causal_chains"
+    D_SAFETY = "safety_interactions"
+    E_GUIDELINE = "guideline_trigger"
+
+
+class ExpectedMechanism(str, Enum):
+    """Internal annotation — how we expect the question to be answered."""
+
+    SINGLE_NOTE = "single_note"
+    CROSS_ENCOUNTER = "cross_encounter"
+    ASSERTION_REASONING = "assertion_reasoning"
+    CAUSAL_CHAIN = "causal_chain"
+    SAFETY_CHECK = "safety_check"
+    GUIDELINE_TRIGGER = "guideline_trigger"
+
+
 # ============================================================================
 # Data Structures
 # ============================================================================
@@ -115,6 +136,10 @@ class LongBenchQuestion:
     evidence_window: str = ""            # Temporal bounds of relevant evidence
     generated_by: str = "llm"            # "llm", "template", "human"
     validated_by: str | None = None      # annotator ID if human-validated
+    # Slice-based benchmark annotations (optional, backward-compatible)
+    slice_id: QuestionSlice | None = None
+    expected_mechanism: ExpectedMechanism | None = None
+    kg_edge_types_needed: list[str] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
@@ -246,12 +271,27 @@ class ConditionTierScore:
 
 
 @dataclass
+class ConditionSliceScore:
+    """Aggregate score for one condition × slice cell."""
+
+    condition: ConditionID
+    slice_id: QuestionSlice
+    n_questions: int = 0
+    mean_score: float = 0.0
+    std_score: float = 0.0
+    # Per-mechanism rollups for each slice
+    mechanism_scores: dict[str, float] = field(default_factory=dict)
+    mechanism_counts: dict[str, int] = field(default_factory=dict)
+
+
+@dataclass
 class LongBenchReport:
     """Full benchmark report — the output artifact."""
 
     cohort_id: str
     results: list[LongBenchResult] = field(default_factory=list)
     condition_tier_scores: list[ConditionTierScore] = field(default_factory=list)
+    condition_slice_scores: list[ConditionSliceScore] = field(default_factory=list)
     # Global metrics
     total_questions: int = 0
     total_criteria: int = 0

@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
+from __future__ import annotations
+
 """Smoke test for the Longitudinal Clinical Benchmark harness.
 
 Tests the full pipeline end-to-end with a small cohort:
 1. Cohort selection (or synthetic fallback if DB is empty)
-2. Question generation (template-based, all 5 domains)
-3. Run all 5 conditions (B0-B4) on 4 patients x 5 questions
+2. Question generation (template-based or slice benchmark mode)
+3. Run selected conditions (B0-B4) on generated questions
 4. LLM-judge scoring
 5. Analysis + markdown output
 
 Usage:
     cd backend
-    python scripts/smoke_test_longbench.py [--provider anthropic|ollama] [--model MODEL]
+    python scripts/smoke_test_longbench.py [--provider anthropic|ollama] [--model MODEL] [--slice-bench]
 """
 
 import argparse
@@ -157,15 +159,34 @@ def _try_db_cohort():
             return None, False
     except Exception as exc:
         logger.info("Database not available (%s), using synthetic cohort", exc)
-        return None, False
+    return None, False
 
 
-async def main(provider: str, model: str) -> None:
+def _print_slice_summary(cohort: LongBenchCohort) -> None:
+    """Print concise slice/mechanism information for debugging."""
+    slice_counts: dict[str, int] = {}
+    mechanism_counts: dict[str, int] = {}
+    for q in cohort.questions:
+        if q.slice_id is not None:
+            slice_counts[q.slice_id.value] = slice_counts.get(q.slice_id.value, 0) + 1
+        if q.expected_mechanism is not None:
+            mechanism_counts[q.expected_mechanism.value] = (
+                mechanism_counts.get(q.expected_mechanism.value, 0) + 1
+            )
+
+    if slice_counts:
+        logger.info("Slice distribution: %s", slice_counts)
+    if mechanism_counts:
+        logger.info("Mechanism distribution: %s", mechanism_counts)
+
+
+async def main(provider: str, model: str, slice_bench: bool = False) -> None:
     t0 = time.perf_counter()
     logger.info("=" * 70)
     logger.info("LONGITUDINAL BENCHMARK SMOKE TEST")
     logger.info("=" * 70)
     logger.info("Provider: %s | Model: %s", provider, model)
+    logger.info("Slice benchmark mode: %s", "on" if slice_bench else "off")
 
     from app.services.longbench_schemas import ConditionID
     from app.services.longbench_runner import (
@@ -174,6 +195,10 @@ async def main(provider: str, model: str) -> None:
         LongBenchRunner,
     )
     from app.services.longbench_cohort import cohort_to_json
+    from app.services.longbench_cohort import (
+        LongBenchQuestionGenerator,
+        SliceBenchQuestionGenerator,
+    )
 
     # Step 1: Get cohort
     logger.info("\n--- Step 1: Cohort Selection ---")
@@ -182,19 +207,39 @@ async def main(provider: str, model: str) -> None:
     if has_db and db_cohort and db_cohort.patients:
         cohort = db_cohort
         # Generate template questions for smoke test (skip LLM generation)
-        from app.services.longbench_cohort import LongBenchQuestionGenerator
-        gen = LongBenchQuestionGenerator()
+        gen = SliceBenchQuestionGenerator() if slice_bench else LongBenchQuestionGenerator()
         for patient in cohort.patients[:4]:  # Limit to 4 patients
-            questions = gen._fallback_template_questions(patient, n=5)
+            if slice_bench:
+                questions = gen.generate(patient)
+            else:
+                questions = gen._fallback_template_questions(patient, n=5)
             cohort.questions.extend(questions)
         cohort.patients = cohort.patients[:4]
     else:
         cohort = _build_synthetic_cohort()
+        if slice_bench:
+            gen = SliceBenchQuestionGenerator()
+            cohort.questions.extend(
+                q for patient in cohort.patients for q in gen.generate(patient)
+            )
+
+    _print_slice_summary(cohort)
 
     logger.info("Cohort: %d patients, %d questions", len(cohort.patients), len(cohort.questions))
     logger.info("Tier summary: %s", cohort.tier_summary)
     for q in cohort.questions:
         logger.info("  %s [%s, tier=%s]: %s", q.question_id, q.domain.value, q.tier.value, q.question_text[:60])
+
+    # Validate slice benchmark text does not mention graph terminology
+    if slice_bench:
+        banned_terms = {"graph", "edge", "node", "traversal", "knowledge graph"}
+        for q in cohort.questions:
+            full_text = " ".join([q.question_text] + [c.text for c in q.criteria]).lower()
+            if any(term in full_text for term in banned_terms):
+                logger.warning(
+                    "Potential benchmark leakage in question %s: contains forbidden term",
+                    q.question_id,
+                )
 
     # Step 2: Configure run
     logger.info("\n--- Step 2: Run Configuration ---")
@@ -238,6 +283,12 @@ async def main(provider: str, model: str) -> None:
     ct_table = LongBenchAnalyzer.to_criterion_type_table(report.condition_tier_scores)
     print("\n--- Criterion Type Breakdown ---")
     print(ct_table)
+
+    if report.condition_slice_scores:
+        print("\n--- Condition × Slice Scores ---")
+        print(LongBenchAnalyzer.to_slice_table(report.condition_slice_scores))
+        print("\n--- Mechanism-aware B2→B3 / B3→B4 Deltas ---")
+        print(LongBenchAnalyzer.to_mechanism_delta_table(report.results, cohort.questions))
 
     # Bootstrap confidence intervals
     print("\n--- Bootstrap 95% CIs (2000 resamples, seed=42) ---")
@@ -318,7 +369,26 @@ async def main(provider: str, model: str) -> None:
         cond.value: ci_data[cond] for cond in conditions
     }
     report_json["paired_deltas"] = paired_data
+    if report.condition_slice_scores:
+        report_json["condition_slice_scores"] = [
+            {
+                "condition": s.condition.value,
+                "slice_id": s.slice_id.value,
+                "n_questions": s.n_questions,
+                "mean_score": s.mean_score,
+                "std_score": s.std_score,
+                "mechanism_scores": s.mechanism_scores,
+                "mechanism_counts": s.mechanism_counts,
+            }
+            for s in report.condition_slice_scores
+        ]
+        report_json["mechanism_delta_table"] = (
+            LongBenchAnalyzer.to_mechanism_delta_table(
+                report.results, cohort.questions
+            )
+        )
     report_json["criterion_leakage"] = flagged
+    report_json["slice_bench"] = slice_bench
 
     report_path = os.path.join(output_dir, "smoke_report.json")
     with open(report_path, "w") as f:
@@ -340,10 +410,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="LongBench smoke test")
     parser.add_argument("--provider", default="anthropic", choices=["anthropic", "ollama"])
     parser.add_argument("--model", default=None)
+    parser.add_argument("--slice-bench", action="store_true", help="Run the 18-question slice benchmark")
     args = parser.parse_args()
 
     model = args.model
     if model is None:
         model = "claude-sonnet-4-5-20250929" if args.provider == "anthropic" else "gemma3:27b"
 
-    asyncio.run(main(args.provider, model))
+    asyncio.run(main(args.provider, model, slice_bench=args.slice_bench))
