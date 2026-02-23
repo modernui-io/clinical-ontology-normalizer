@@ -186,6 +186,7 @@ async def main(
     slice_bench: bool = False,
     judge_provider: str | None = None,
     judge_model: str | None = None,
+    output_dir: str | None = None,
 ) -> None:
     t0 = time.perf_counter()
     judge_provider = judge_provider or provider
@@ -254,12 +255,13 @@ async def main(
     conditions = [ConditionID.B0, ConditionID.B1, ConditionID.B2, ConditionID.B3, ConditionID.B4]
     logger.info("Conditions: %s", [c.value for c in conditions])
 
+    run_output_dir = output_dir or "data/benchmarks/results/longbench_smoke"
     config = LongBenchRunConfig(
         llm_model=model,
         llm_provider=provider,
         judge_model=judge_model,
         judge_provider=judge_provider,
-        checkpoint_dir="data/benchmarks/results/longbench_smoke",
+        checkpoint_dir=run_output_dir,
     )
 
     # Step 3: Run
@@ -356,8 +358,7 @@ async def main(
                 print(f"    {mark} {cr.criterion_id}: {cr.reasoning[:60]}")
 
     # Step 5: Export
-    output_dir = "data/benchmarks/results/longbench_smoke"
-    os.makedirs(output_dir, exist_ok=True)
+    os.makedirs(run_output_dir, exist_ok=True)
 
     # Add run metadata to report
     report.metadata.update({
@@ -398,11 +399,11 @@ async def main(
     report_json["criterion_leakage"] = flagged
     report_json["slice_bench"] = slice_bench
 
-    report_path = os.path.join(output_dir, "smoke_report.json")
+    report_path = os.path.join(run_output_dir, "smoke_report.json")
     with open(report_path, "w") as f:
         json.dump(report_json, f, indent=2, default=str)
 
-    cohort_path = os.path.join(output_dir, "smoke_cohort.json")
+    cohort_path = os.path.join(run_output_dir, "smoke_cohort.json")
     with open(cohort_path, "w") as f:
         json.dump(cohort_to_json(cohort), f, indent=2, default=str)
 
@@ -423,6 +424,8 @@ if __name__ == "__main__":
     parser.add_argument("--judge-model", default=None,
                         help="Model for judge LLM (defaults to claude-opus-4-6 for anthropic)")
     parser.add_argument("--slice-bench", action="store_true", help="Run the 18-question slice benchmark")
+    parser.add_argument("--output-dir", default=None,
+                        help="Output/checkpoint directory (default: data/benchmarks/results/longbench_smoke)")
     args = parser.parse_args()
 
     model = args.model
@@ -439,4 +442,5 @@ if __name__ == "__main__":
         slice_bench=args.slice_bench,
         judge_provider=judge_provider,
         judge_model=judge_model,
+        output_dir=args.output_dir,
     ))
