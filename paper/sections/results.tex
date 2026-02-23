@@ -31,7 +31,7 @@ C5 & + Full System & 68.3\% & 0.734 \\
 Adding vanilla RAG \emph{hurts}: C2 underperforms C1 by $9.0\pp$ on accuracy and $0.109$ on safety.
 Retrieved passages like ``patient denies diabetes'' enter context without epistemic framing, leading the LLM to conflate mention with presence---consistent with GraphRAG-Bench~\cite{graphragbench2026}.
 Assertion-blind KG-RAG (C3) compounds the problem, scoring lowest (59.3\%, 0.562), as structured paths presenting negated conditions as graph edges actively mislead the model.
-Epistemic KG-RAG (C4) matches C1 at 71.5\% accuracy with higher safety (0.775 vs.\ 0.752), achieving this through a fundamentally different category distribution.
+Epistemic KG-RAG (C4) matches C1 at 71.5\% aggregate accuracy but with a fundamentally different category profile (Table~\ref{tab:clinicalbench_categories}), and achieves a higher safety score (0.775 vs.\ 0.752), indicating that C4's errors are less clinically dangerous on average.
 C5 drops $3.2\pp$ below C4; we hypothesize this results from calculator and guideline modules activating on queries not requiring them, though controlled per-component ablations are needed to confirm this (Section~\ref{sec:discussion}).
 
 \begin{table}[t]
@@ -61,12 +61,15 @@ Change & 30 & 0.0 & 0.0 & 3.3 & $\uparrow 3.3\pp$ \\
 \begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/fig2_radar.pdf}
-\caption{ClinicalBench per-category accuracy for three key conditions (Change category omitted; near zero for all conditions). Vanilla RAG (C2, dashed red) collapses on uncertainty and family history. Epistemic KG-RAG (C4, solid blue) recovers uncertainty and opens the family history category entirely. C1 (dotted gray) provides the reference.}
+\caption{ClinicalBench per-category accuracy (Change omitted; near zero for all). C4 (solid blue) gains on uncertainty and family history but loses on historical, conditional, and duration vs.\ C1 (dotted gray). C2 (dashed red) degrades broadly.}
 \label{fig:radar}
 \end{figure}
 
-Table~\ref{tab:clinicalbench_categories} and Figure~\ref{fig:radar} reveal that C4's matching aggregate masks large category shifts: $+20.0\pp$ on uncertainty (57.5\% vs.\ 37.5\%) and $+70.0\pp$ on family history (70.0\% vs.\ 0.0\%), where assertion-tagged edges resolve a category the LLM alone does not address.
-The trade-off is reduced performance on categories where parametric knowledge was already strong: historical ($-34.0\pp$), conditional ($-30.0\pp$), duration ($-16.7\pp$)---attributable to context dilution.
+Table~\ref{tab:clinicalbench_categories} and Figure~\ref{fig:radar} reveal that C4's matching aggregate masks large bidirectional category shifts.
+C4 gains on categories requiring structured epistemic metadata: $+70.0\pp$ on family history (0.0\%$\to$70.0\%), $+20.0\pp$ on uncertainty (37.5\%$\to$57.5\%), and $+7.5\pp$ on sequence.
+However, C4 loses substantially on categories where C1's parametric knowledge was already strong: historical ($-34.0\pp$, from 94.0\% to 60.0\%), conditional ($-30.0\pp$), and duration ($-16.7\pp$).
+The net effect is an accuracy profile trade-off, not a uniform improvement.
+The higher safety score (0.775 vs.\ 0.752) reflects that C4's category gains involve high-risk assertion errors (e.g., misattributing a family member's condition to the patient), while its losses occur on categories with lower clinical harm potential.
 The ``change'' category remains near zero across all conditions (0.0--3.3\%), a genuine capability gap.
 
 % ----------------------------------------------------------
