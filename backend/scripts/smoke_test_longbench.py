@@ -217,13 +217,12 @@ async def main(
         cohort = db_cohort
         # Generate template questions for smoke test (skip LLM generation)
         gen = SliceBenchQuestionGenerator() if slice_bench else LongBenchQuestionGenerator()
-        for patient in cohort.patients[:4]:  # Limit to 4 patients
+        for patient in cohort.patients:
             if slice_bench:
                 questions = gen.generate(patient)
             else:
                 questions = gen._fallback_template_questions(patient, n=5)
             cohort.questions.extend(questions)
-        cohort.patients = cohort.patients[:4]
     else:
         cohort = _build_synthetic_cohort()
         if slice_bench:
