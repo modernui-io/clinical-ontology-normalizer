@@ -373,6 +373,132 @@ class GraphAugmentedContext:
 
         return "\n".join(sections)
 
+    def to_structured_llm_prompt(self, assertion_mode: str = "full") -> str:
+        """Format context with visually distinct structured sections.
+
+        Uses box-drawing characters and tables so the LLM treats
+        structured KG data as authoritative, distinct from raw documents.
+        """
+        sections: list[str] = []
+
+        # 1. Authoritative Clinical Status (assertion table)
+        if assertion_mode != "none" and self.graph_paths:
+            negated: set[str] = set()
+            uncertain: set[str] = set()
+            family: set[str] = set()
+            historical: set[str] = set()
+
+            for path in self.graph_paths:
+                for idx, edge in enumerate(path.edges):
+                    assertion = edge.get("assertion", "present")
+                    target_label = (
+                        path.nodes[idx + 1].get("label", "?")
+                        if idx + 1 < len(path.nodes)
+                        else path.nodes[-1].get("label", "?") if path.nodes else "?"
+                    )
+                    experiencer = edge.get("experiencer", "patient")
+                    if experiencer == "family" or assertion == "family_history":
+                        family.add(target_label)
+                    elif assertion == "absent":
+                        negated.add(target_label)
+                    elif assertion == "possible":
+                        uncertain.add(target_label)
+                    elif assertion == "historical":
+                        historical.add(target_label)
+
+            if negated or uncertain or family or historical:
+                lines = [
+                    "╔══ AUTHORITATIVE CLINICAL STATUS (from structured medical record) ══╗",
+                ]
+                if negated:
+                    lines.append(f"║ RULED OUT:    {', '.join(sorted(negated))}")
+                if uncertain:
+                    lines.append(f"║ UNCERTAIN:    {', '.join(sorted(uncertain))} (suspected, not confirmed)")
+                if family:
+                    lines.append(f"║ FAMILY ONLY:  {', '.join(sorted(family))} (relative, NOT patient)")
+                if historical:
+                    lines.append(f"║ RESOLVED:     {', '.join(sorted(historical))} (past, no longer active)")
+                lines.append(
+                    "╚═══════════════════════════════════════════════════════════════════════╝"
+                )
+                sections.append("\n".join(lines))
+                sections.append("")
+
+        # 2. Structured Clinical Relationships (graph paths as table)
+        if self.graph_paths:
+            rel_lines = ["=== STRUCTURED CLINICAL RELATIONSHIPS ==="]
+            rel_lines.append("┌─────────────────────────────────────────────────────────────┐")
+            row_num = 0
+            for path in self.graph_paths:
+                for idx, edge in enumerate(path.edges):
+                    if idx + 1 >= len(path.nodes):
+                        continue
+                    src = path.nodes[idx].get("label", "?")
+                    tgt = path.nodes[idx + 1].get("label", "?")
+                    rel = edge.get("type", edge.get("relationship", "RELATED_TO"))
+                    assertion = edge.get("assertion", "present")
+                    conf = edge.get("confidence", "")
+                    status = assertion.upper() if assertion != "present" else "ACTIVE"
+                    conf_str = f", conf:{conf:.2f}" if isinstance(conf, (int, float)) else ""
+                    row_num += 1
+                    rel_lines.append(
+                        f"│ {row_num}. {src} {rel} → {tgt} [{status}{conf_str}]"
+                    )
+            rel_lines.append("└─────────────────────────────────────────────────────────────┘")
+            if row_num > 0:
+                sections.append("\n".join(rel_lines))
+                sections.append("")
+
+        # 3. Patient Timeline (temporal context as table)
+        if self.temporal_context:
+            tl_lines = ["=== PATIENT TIMELINE (structured, verified dates) ==="]
+            tl_lines.append("| Date       | Event                              | Status    |")
+            tl_lines.append("|------------|-------------------------------------|-----------|")
+            if self.temporal_context.event_timeline:
+                for event in self.temporal_context.event_timeline[:15]:
+                    date_str = str(event.get("date", "unknown"))[:10]
+                    desc = str(event.get("description", ""))[:37]
+                    status = str(event.get("status", event.get("assertion", "ACTIVE"))).upper()[:9]
+                    tl_lines.append(f"| {date_str:<10} | {desc:<37} | {status:<9} |")
+
+            if self.temporal_context.current_state:
+                tl_lines.append("")
+                tl_lines.append("Current clinical state:")
+                for key, value in self.temporal_context.current_state.items():
+                    tl_lines.append(f"  {key}: {value}")
+
+            if self.temporal_context.temporal_conflicts:
+                tl_lines.append("")
+                tl_lines.append("Temporal concerns:")
+                for conflict in self.temporal_context.temporal_conflicts:
+                    tl_lines.append(f"  - {conflict}")
+
+            sections.append("\n".join(tl_lines))
+            sections.append("")
+
+        # 4. Policy Constraints (if any)
+        if self.policy_constraints:
+            sections.append("=== Applicable Policy Rules ===")
+            for policy in self.policy_constraints[:5]:
+                rule_id = policy.get("rule_id", "")
+                description = policy.get("description", "")
+                strength = policy.get("strength", "")
+                sections.append(f"Rule {rule_id} ({strength}): {description}")
+            sections.append("")
+
+        # 5. Supporting Documents (explicitly labelled as supplementary)
+        if self.retrieved_documents:
+            sections.append(
+                "=== SUPPORTING DOCUMENTS (raw clinical notes — may contain ambiguity) ==="
+            )
+            for doc in self.retrieved_documents[:MAX_RETRIEVED_DOCS]:
+                source = doc.get("source", "document")
+                content = doc.get("content", "")[:MAX_DOC_CONTENT_CHARS]
+                sections.append(f"[{source}]: {content}")
+            sections.append("")
+
+        return "\n".join(sections)
+
 
 class GraphAugmentedRAGService:
     """Service for graph-augmented retrieval-augmented generation.

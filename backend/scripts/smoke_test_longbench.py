@@ -180,12 +180,21 @@ def _print_slice_summary(cohort: LongBenchCohort) -> None:
         logger.info("Mechanism distribution: %s", mechanism_counts)
 
 
-async def main(provider: str, model: str, slice_bench: bool = False) -> None:
+async def main(
+    provider: str,
+    model: str,
+    slice_bench: bool = False,
+    judge_provider: str | None = None,
+    judge_model: str | None = None,
+) -> None:
     t0 = time.perf_counter()
+    judge_provider = judge_provider or provider
+    judge_model = judge_model or model
     logger.info("=" * 70)
     logger.info("LONGITUDINAL BENCHMARK SMOKE TEST")
     logger.info("=" * 70)
-    logger.info("Provider: %s | Model: %s", provider, model)
+    logger.info("LLM:   %s / %s", provider, model)
+    logger.info("Judge: %s / %s", judge_provider, judge_model)
     logger.info("Slice benchmark mode: %s", "on" if slice_bench else "off")
 
     from app.services.longbench_schemas import ConditionID
@@ -249,8 +258,8 @@ async def main(provider: str, model: str, slice_bench: bool = False) -> None:
     config = LongBenchRunConfig(
         llm_model=model,
         llm_provider=provider,
-        judge_model=model,
-        judge_provider=provider,
+        judge_model=judge_model,
+        judge_provider=judge_provider,
         checkpoint_dir="data/benchmarks/results/longbench_smoke",
     )
 
@@ -410,6 +419,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="LongBench smoke test")
     parser.add_argument("--provider", default="anthropic", choices=["anthropic", "ollama"])
     parser.add_argument("--model", default=None)
+    parser.add_argument("--judge-provider", default=None, choices=["anthropic", "ollama"],
+                        help="Provider for judge LLM (defaults to --provider)")
+    parser.add_argument("--judge-model", default=None,
+                        help="Model for judge LLM (defaults to claude-opus-4-6 for anthropic)")
     parser.add_argument("--slice-bench", action="store_true", help="Run the 18-question slice benchmark")
     args = parser.parse_args()
 
@@ -417,4 +430,14 @@ if __name__ == "__main__":
     if model is None:
         model = "claude-sonnet-4-5-20250929" if args.provider == "anthropic" else "gemma3:27b"
 
-    asyncio.run(main(args.provider, model, slice_bench=args.slice_bench))
+    judge_provider = args.judge_provider or args.provider
+    judge_model = args.judge_model
+    if judge_model is None:
+        judge_model = "claude-opus-4-6" if judge_provider == "anthropic" else model
+
+    asyncio.run(main(
+        args.provider, model,
+        slice_bench=args.slice_bench,
+        judge_provider=judge_provider,
+        judge_model=judge_model,
+    ))

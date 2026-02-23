@@ -86,6 +86,7 @@ CONDITION_CONFIGS: dict[ConditionID, dict[str, Any]] = {
         "retrieval_mode": "graph_plus_doc",
         "assertion_mode": "full",
         "temporal_mode": "full_bitemporal",
+        "structured_prompt": True,
     },
     ConditionID.B4: {
         "label": "Full System",
@@ -96,6 +97,7 @@ CONDITION_CONFIGS: dict[ConditionID, dict[str, Any]] = {
         "temporal_mode": "full_bitemporal",
         "calculator_enabled": True,
         "guidelines_enabled": True,
+        "structured_prompt": True,
     },
 }
 
@@ -117,18 +119,21 @@ Answer in 2-5 sentences."""
 
 SYSTEM_PROMPT_EPISTEMIC = """\
 You are a clinical reasoning assistant answering questions about a specific patient.
-Use ONLY the provided evidence to answer. Be precise and concise.
 
-CRITICAL — The evidence includes ASSERTION STATUS and EXPERIENCER metadata:
+EVIDENCE HIERARCHY (use in this order of authority):
+1. AUTHORITATIVE CLINICAL STATUS — Structured, verified assertions from the medical record.
+   These override any conflicting information in raw notes.
+2. STRUCTURED CLINICAL RELATIONSHIPS — Verified connections between conditions, medications, and events.
+3. PATIENT TIMELINE — Dated, ordered clinical events.
+4. SUPPORTING DOCUMENTS — Raw clinical notes that may contain ambiguity or outdated information.
 
-1. **NEGATED / ABSENT**: Patient definitively DOES NOT have that condition.
-2. **UNCERTAIN / POSSIBLE**: Condition is suspected but NOT confirmed.
-3. **FAMILY HISTORY / experiencer=family**: This is a relative's condition, NOT the patient's.
-4. **HISTORICAL / RESOLVED**: Condition existed in the past but is now resolved.
-
-Always check assertion status and experiencer attribution FIRST before answering.
-For temporal questions, use the timeline and note changes over time.
-Answer in 2-5 sentences with clinical specificity."""
+RULES:
+- If the AUTHORITATIVE STATUS says a condition is RULED OUT, it is definitively absent
+  even if raw notes mention it in a differential diagnosis.
+- If FAMILY ONLY is listed, that condition belongs to a relative, NOT the patient.
+- Use the TIMELINE for temporal ordering; do not infer dates from raw note text.
+- Be precise and concise. Answer in 2-5 sentences with clinical specificity.
+- If evidence is insufficient, say so rather than guessing."""
 
 
 # ============================================================================
@@ -290,15 +295,12 @@ class LongBenchRunner:
             )
 
             # Call LLM
-            llm = get_llm_service(LLMConfig(
-                provider=LLMProvider(config.llm_provider),
-                model=config.llm_model,
-                max_tokens=1024,
-                temperature=0.0,
-            ))
+            llm = get_llm_service()
             response = await llm.generate(
                 prompt=user_prompt,
                 system_prompt=system_prompt,
+                model=config.llm_model,
+                provider=LLMProvider(config.llm_provider),
             )
             predicted_answer = response.content.strip()
             latency_ms = (time.perf_counter() - t0) * 1000
@@ -388,7 +390,10 @@ class LongBenchRunner:
             retrieval_mode=retrieval_mode,
             query_domain=question.domain.value,
         )
-        evidence = context.to_llm_prompt(assertion_mode=assertion_mode)
+        if cond_cfg.get("structured_prompt"):
+            evidence = context.to_structured_llm_prompt(assertion_mode=assertion_mode)
+        else:
+            evidence = context.to_llm_prompt(assertion_mode=assertion_mode)
 
         system = (
             SYSTEM_PROMPT_EPISTEMIC if assertion_mode == "full"
@@ -630,10 +635,12 @@ class _CriterionJudge:
         )
 
         try:
-            llm = get_llm_service(self._llm_config)
+            llm = get_llm_service()
             response = await llm.generate(
                 prompt=prompt,
                 system_prompt="You are a precise clinical QA rubric judge. Output valid JSON only.",
+                model=self._llm_config.model,
+                provider=self._llm_config.provider,
             )
 
             raw = response.content.strip()

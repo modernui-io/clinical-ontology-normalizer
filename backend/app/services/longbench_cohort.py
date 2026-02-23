@@ -530,6 +530,79 @@ SLICE_QUESTION_TEMPLATES: list[dict[str, Any]] = [
         ),
         "kg_edge_types_needed": ["has_measurement", "monitors", "occurred_on"],
     },
+    # F: Hard longitudinal questions requiring cross-encounter synthesis
+    {
+        "id": "F1",
+        "slice_id": QuestionSlice.A_TEMPORAL,
+        "expected_mechanism": ExpectedMechanism.CROSS_ENCOUNTER,
+        "domain": QuestionDomain.MEDICATION_RECONCILIATION,
+        "question_text": (
+            "This patient has records spanning multiple years. Reconstruct the complete medication "
+            "timeline: for each medication started, changed, or stopped, identify the encounter date "
+            "and the documented reason for the change."
+        ),
+        "kg_edge_types_needed": ["takes_drug", "condition_treated_by", "precedes", "occurred_on"],
+    },
+    {
+        "id": "F2",
+        "slice_id": QuestionSlice.B_ASSERTION,
+        "expected_mechanism": ExpectedMechanism.ASSERTION_REASONING,
+        "domain": QuestionDomain.PROBLEM_LIST,
+        "question_text": (
+            "Multiple notes contain different problem lists. Reconcile any contradictions: which "
+            "conditions appear in some notes but not others, and what is the most current accurate "
+            "problem list?"
+        ),
+        "kg_edge_types_needed": ["has_condition", "precedes", "occurred_on"],
+    },
+    {
+        "id": "F3",
+        "slice_id": QuestionSlice.C_CAUSAL,
+        "expected_mechanism": ExpectedMechanism.CAUSAL_CHAIN,
+        "domain": QuestionDomain.TEMPORAL_REASONING,
+        "question_text": (
+            "Trace the longest causal chain you can identify: starting from an initial clinical "
+            "finding, follow each subsequent diagnosis, treatment, complication, and intervention "
+            "that followed from it."
+        ),
+        "kg_edge_types_needed": ["caused_by", "resulted_in", "condition_treated_by", "may_cause"],
+    },
+    {
+        "id": "F4",
+        "slice_id": QuestionSlice.A_TEMPORAL,
+        "expected_mechanism": ExpectedMechanism.CROSS_ENCOUNTER,
+        "domain": QuestionDomain.TEMPORAL_REASONING,
+        "question_text": (
+            "Compare the earliest and most recent encounters. What clinically significant changes "
+            "occurred between them? For each change, identify the encounter where it was first "
+            "documented."
+        ),
+        "kg_edge_types_needed": ["has_condition", "takes_drug", "precedes", "occurred_on"],
+    },
+    {
+        "id": "F5",
+        "slice_id": QuestionSlice.D_SAFETY,
+        "expected_mechanism": ExpectedMechanism.SAFETY_CHECK,
+        "domain": QuestionDomain.MEDICATION_RECONCILIATION,
+        "question_text": (
+            "Considering the complete medication history across all encounters, identify any period "
+            "where the patient was on medications that interact with each other. When were they "
+            "co-prescribed, and was the interaction addressed?"
+        ),
+        "kg_edge_types_needed": ["takes_drug", "drug_interaction", "occurred_on", "precedes"],
+    },
+    {
+        "id": "F6",
+        "slice_id": QuestionSlice.E_GUIDELINE,
+        "expected_mechanism": ExpectedMechanism.GUIDELINE_TRIGGER,
+        "domain": QuestionDomain.RISK_ASSESSMENT,
+        "question_text": (
+            "Based on the full clinical trajectory, were there any points where standard-of-care "
+            "guidelines suggest an intervention that doesn't appear in the record? Cite the specific "
+            "data supporting your assessment."
+        ),
+        "kg_edge_types_needed": ["has_condition", "has_measurement", "takes_drug", "monitors"],
+    },
 ]
 
 
@@ -1442,6 +1515,204 @@ def _slice_e4_criteria(qid: str) -> list[LongBenchCriterion]:
     ]
 
 
+def _slice_f1_criteria(qid: str) -> list[LongBenchCriterion]:
+    return [
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c0",
+            text="Lists at least three medication changes with encounter dates",
+            criterion_type=CriterionType.CHRONOLOGY,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c1",
+            text="Identifies the documented reason for each medication change",
+            criterion_type=CriterionType.CAUSAL,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c2",
+            text="Correctly distinguishes starts, dose changes, and discontinuations",
+            criterion_type=CriterionType.SYNTHESIS,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c3",
+            text="Timeline is internally consistent with no contradictory ordering",
+            criterion_type=CriterionType.CHRONOLOGY,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c4",
+            text="Does not attribute medication changes to encounters where they are not documented",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+    ]
+
+
+def _slice_f2_criteria(qid: str) -> list[LongBenchCriterion]:
+    return [
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c0",
+            text="Identifies at least one condition that appears in some notes but not others",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c1",
+            text="Provides a reconciled current problem list based on the most recent evidence",
+            criterion_type=CriterionType.SYNTHESIS,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c2",
+            text="Distinguishes active from resolved conditions in the reconciled list",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c3",
+            text="Does not include family history conditions as patient conditions",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c4",
+            text="Cites which notes support or contradict each condition's status",
+            criterion_type=CriterionType.SYNTHESIS,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+    ]
+
+
+def _slice_f3_criteria(qid: str) -> list[LongBenchCriterion]:
+    return [
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c0",
+            text="Identifies a plausible causal chain spanning at least three clinical events",
+            criterion_type=CriterionType.CAUSAL,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c1",
+            text="Each link in the chain is supported by documented clinical evidence",
+            criterion_type=CriterionType.CAUSAL,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c2",
+            text="Chain follows correct temporal ordering (causes precede effects)",
+            criterion_type=CriterionType.CHRONOLOGY,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c3",
+            text="Does not assert causal relationships not supported by the clinical record",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+    ]
+
+
+def _slice_f4_criteria(qid: str) -> list[LongBenchCriterion]:
+    return [
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c0",
+            text="Correctly identifies content from both the earliest and most recent encounters",
+            criterion_type=CriterionType.CHRONOLOGY,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c1",
+            text="Lists at least two clinically significant changes between the encounters",
+            criterion_type=CriterionType.SYNTHESIS,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c2",
+            text="For each change, identifies the encounter where it was first documented",
+            criterion_type=CriterionType.CHRONOLOGY,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c3",
+            text="Does not confuse intermediate encounters with the earliest or most recent",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+    ]
+
+
+def _slice_f5_criteria(qid: str) -> list[LongBenchCriterion]:
+    return [
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c0",
+            text="Identifies any documented or potential drug-drug interactions across the medication history",
+            criterion_type=CriterionType.RISK,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c1",
+            text="Specifies the time period when interacting medications were co-prescribed",
+            criterion_type=CriterionType.CHRONOLOGY,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c2",
+            text="Notes whether the interaction was addressed or recognized in the record",
+            criterion_type=CriterionType.SYNTHESIS,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c3",
+            text="Does not claim interactions without evidence of concurrent prescriptions",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c4",
+            text="If no interactions found, explicitly states this rather than fabricating one",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.CRITICAL,
+        ),
+    ]
+
+
+def _slice_f6_criteria(qid: str) -> list[LongBenchCriterion]:
+    return [
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c0",
+            text="Identifies at least one guideline-recommended intervention relevant to the patient's conditions",
+            criterion_type=CriterionType.RISK,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c1",
+            text="Cites specific patient data (labs, conditions, risk factors) supporting the assessment",
+            criterion_type=CriterionType.SYNTHESIS,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c2",
+            text="Correctly identifies whether the recommended intervention appears in the record",
+            criterion_type=CriterionType.SYNTHESIS,
+            weight=CriterionWeight.CRITICAL,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c3",
+            text="Does not recommend interventions that are already documented in the patient's care",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+        LongBenchCriterion(
+            criterion_id=f"{qid}_c4",
+            text="Assessment is based on documented clinical trajectory, not hypothetical scenarios",
+            criterion_type=CriterionType.ASSERTION,
+            weight=CriterionWeight.IMPORTANT,
+        ),
+    ]
+
+
 _SLICE_CRITERIA_TEMPLATES: dict[str, Any] = {
     "A1": _slice_a1_criteria,
     "A2": _slice_a2_criteria,
@@ -1461,6 +1732,12 @@ _SLICE_CRITERIA_TEMPLATES: dict[str, Any] = {
     "E2": _slice_e2_criteria,
     "E3": _slice_e3_criteria,
     "E4": _slice_e4_criteria,
+    "F1": _slice_f1_criteria,
+    "F2": _slice_f2_criteria,
+    "F3": _slice_f3_criteria,
+    "F4": _slice_f4_criteria,
+    "F5": _slice_f5_criteria,
+    "F6": _slice_f6_criteria,
 }
 
 
