@@ -98,10 +98,15 @@ docker compose up  # full local stack
 
 Auto-generated indexes live in `memory/`. Regenerate with: `python3 backend/scripts/generate_context_index.py`
 
-- **Always read** `memory/service_registry.md` when working across multiple services — has one-line-per-file index for all 459 services, model index, and route index
-- Read `memory/domain_rag.md` when working on RAG, benchmark conditions (C1-C5), or QA experiments
-- Read `memory/domain_calculators.md` when working on calculators or benchmark condition B4
-- Read `memory/domain_kg.md` when working on knowledge graph construction, caching, or traversal
+**Tier 1 — Codebase map** (load `service_registry.md` first, drill into others as needed):
+- `memory/service_registry.md` (~350 lines) — top 20 hottest files + route index (5K+ endpoints grouped by file)
+- `memory/service_index.md` (~460 lines) — one line per service file with docstring, key functions, deps
+- `memory/model_index.md` (~150 lines) — ORM models with table names and columns
+
+**Tier 2 — Domain deep-dives** (load when working in that area):
+- `memory/domain_rag.md` — RAG pipeline, benchmark conditions C1-C5, QA experiments
+- `memory/domain_calculators.md` — calculator definitions, execution, reasoning, KG integration
+- `memory/domain_kg.md` — knowledge graph construction, caching, traversal
 
 ## Important Notes
 
