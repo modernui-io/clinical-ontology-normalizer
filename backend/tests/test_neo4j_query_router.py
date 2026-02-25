@@ -363,6 +363,8 @@ class TestPgRecursiveCteDeserialization:
                 [201826, 1503297],
                 ["May treat"],
                 [0.9],
+                ["patient"],
+                ["present"],
                 1,
                 0.9,
             ),
@@ -383,6 +385,8 @@ class TestPgRecursiveCteDeserialization:
         assert len(path.edges) == 1
         assert path.edges[0].edge_type == "drug_treats"
         assert path.edges[0].confidence == 0.9
+        assert path.edges[0].experiencer == "patient"
+        assert path.edges[0].assertion == "present"
 
     def test_two_hop_vocab_path(self) -> None:
         """Mock 2-hop vocab result with 3 nodes, 2 edges."""
@@ -394,6 +398,8 @@ class TestPgRecursiveCteDeserialization:
                 [201826, 300000, 400000],
                 ["May cause", "Has finding site"],
                 [1.0, 1.0],
+                ["patient", "patient"],
+                ["present", "present"],
                 2,
                 1.0,
             ),
@@ -419,6 +425,8 @@ class TestPgRecursiveCteDeserialization:
                 [201826, 1503297],
                 ["May treat"],
                 [0.9],
+                ["patient"],
+                ["present"],
                 1,
                 0.9,
             ),
@@ -439,6 +447,8 @@ class TestPgRecursiveCteDeserialization:
                 [100, 200],
                 ["Unknown Relationship XYZ"],
                 [1.0],
+                ["patient"],
+                ["present"],
                 1,
                 1.0,
             ),
@@ -541,8 +551,8 @@ class TestPgRecursiveCteDeserialization:
     def test_path_source_is_pg_cte(self) -> None:
         """Every returned path has source='pg_cte'."""
         rows = [
-            (["n1", "n2"], ["A", "B"], ["condition", "drug"], [100, 200], ["May treat"], [0.9], 1, 0.9),
-            (["n3", "n4"], ["C", "D"], ["drug", "condition"], [300, 400], ["May cause"], [0.8], 1, 0.8),
+            (["n1", "n2"], ["A", "B"], ["condition", "drug"], [100, 200], ["May treat"], [0.9], ["patient"], ["present"], 1, 0.9),
+            (["n3", "n4"], ["C", "D"], ["drug", "condition"], [300, 400], ["May cause"], [0.8], ["patient"], ["present"], 1, 0.8),
         ]
         session = self._make_mock_session(rows)
         router = GraphQueryRouter(session)
@@ -560,6 +570,8 @@ class TestPgRecursiveCteDeserialization:
                 [201826, 500000],
                 ["Has finding site"],
                 [1.0],
+                ["patient"],
+                ["present"],
                 1,
                 1.0,
             ),
@@ -571,6 +583,32 @@ class TestPgRecursiveCteDeserialization:
 
         assert paths[0].nodes[0].node_type == "condition"
         assert paths[0].nodes[1].node_type == "anatomy"
+
+    def test_experiencer_and_assertion_propagated(self) -> None:
+        """experiencer and assertion from CTE rows are set on PathEdge."""
+        rows = [
+            (
+                ["n1", "n2"],
+                ["Hypertension", "Patient"],
+                ["condition", "patient"],
+                [316866, None],
+                ["HAS_CONDITION"],
+                [0.95],
+                ["family"],
+                ["family_history"],
+                1,
+                0.95,
+            ),
+        ]
+        session = self._make_mock_session(rows)
+        router = GraphQueryRouter(session)
+        query = MultiHopQuery(patient_id="P001", start_concept_ids=[316866], max_hops=2)
+        paths = router._pg_recursive_cte(query)
+
+        assert len(paths) == 1
+        edge = paths[0].edges[0]
+        assert edge.experiencer == "family"
+        assert edge.assertion == "family_history"
 
 
 # ===========================================================================

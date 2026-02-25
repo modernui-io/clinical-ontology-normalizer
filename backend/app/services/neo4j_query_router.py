@@ -231,6 +231,8 @@ class PathEdge:
     confidence: float = 1.0
     temporality: str | None = None
     event_date: str | None = None
+    assertion: str | None = None
+    experiencer: str | None = None
 
 
 @dataclass
@@ -313,12 +315,16 @@ class GraphQueryRouter:
         clinical_edges AS (
             SELECT e.source_node_id AS from_id, e.target_node_id AS to_id,
                    e.edge_type::text AS edge_label,
-                   COALESCE(e.temporal_confidence, 1.0)::float AS confidence
+                   COALESCE(e.temporal_confidence, 1.0)::float AS confidence,
+                   COALESCE(e.experiencer::text, e.properties->>'experiencer', 'patient') AS experiencer,
+                   COALESCE(e.properties->>'assertion', 'present') AS assertion
             FROM kg_edges e
             WHERE e.patient_id = :patient_id
             UNION ALL
             SELECT e.target_node_id, e.source_node_id, e.edge_type::text,
-                   COALESCE(e.temporal_confidence, 1.0)::float
+                   COALESCE(e.temporal_confidence, 1.0)::float,
+                   COALESCE(e.experiencer::text, e.properties->>'experiencer', 'patient'),
+                   COALESCE(e.properties->>'assertion', 'present')
             FROM kg_edges e
             WHERE e.patient_id = :patient_id
         ),
@@ -334,6 +340,8 @@ class GraphQueryRouter:
                 ARRAY[n.omop_concept_id]::bigint[] AS path_concepts,
                 ARRAY[]::text[] AS edge_types,
                 ARRAY[]::float[] AS edge_confidences,
+                ARRAY[]::text[] AS edge_experiencers,
+                ARRAY[]::text[] AS edge_assertions,
                 1.0::float AS path_confidence
             FROM kg_nodes n
             WHERE n.omop_concept_id = ANY(:start_concept_ids)
@@ -349,6 +357,8 @@ class GraphQueryRouter:
                 t.path_concepts || n2.omop_concept_id,
                 t.edge_types || ce.edge_label,
                 t.edge_confidences || ce.confidence,
+                t.edge_experiencers || ce.experiencer,
+                t.edge_assertions || ce.assertion,
                 t.path_confidence * ce.confidence
             FROM clinical_traversal t
             JOIN clinical_edges ce ON ce.from_id = t.node_id
@@ -429,7 +439,8 @@ class GraphQueryRouter:
         combined AS (
             -- Clinical paths (kg_edges traversal)
             SELECT visited_ids AS path_ids, path_labels, path_types, path_concepts,
-                   edge_types, edge_confidences, depth, path_confidence
+                   edge_types, edge_confidences, edge_experiencers, edge_assertions,
+                   depth, path_confidence
             FROM clinical_traversal
             WHERE depth > 0
 
@@ -443,6 +454,8 @@ class GraphQueryRouter:
                 ARRAY[start_concept_id, end_concept_id],
                 ARRAY[edge_label],
                 ARRAY[1.0::float],
+                ARRAY['patient'::text],
+                ARRAY['present'::text],
                 1,
                 1.0::float
             FROM vocab_hop1
@@ -457,12 +470,15 @@ class GraphQueryRouter:
                 ARRAY[start_concept_id, mid_concept_id, end_concept_id],
                 ARRAY[edge1, edge2],
                 ARRAY[1.0::float, 1.0::float],
+                ARRAY['patient'::text, 'patient'::text],
+                ARRAY['present'::text, 'present'::text],
                 2,
                 1.0::float
             FROM vocab_hop2
         )
         SELECT path_ids, path_labels, path_types, path_concepts,
-               edge_types, edge_confidences, depth, path_confidence
+               edge_types, edge_confidences, edge_experiencers, edge_assertions,
+               depth, path_confidence
         FROM combined
         WHERE path_confidence >= :min_confidence
         ORDER BY path_confidence DESC, depth ASC
@@ -489,8 +505,10 @@ class GraphQueryRouter:
             path_concepts = row[3]
             edge_types = row[4]
             edge_confs = row[5]
-            depth = row[6]
-            path_conf = row[7]
+            edge_experiencers = row[6]
+            edge_assertions = row[7]
+            depth = row[8]
+            path_conf = row[9]
 
             nodes = [
                 PathNode(
@@ -505,6 +523,8 @@ class GraphQueryRouter:
                 PathEdge(
                     edge_type=OMOP_REL_TO_EDGE_TYPE.get(edge_types[i], edge_types[i]),
                     confidence=edge_confs[i] if i < len(edge_confs) else 1.0,
+                    experiencer=edge_experiencers[i] if i < len(edge_experiencers) else "patient",
+                    assertion=edge_assertions[i] if i < len(edge_assertions) else "present",
                 )
                 for i in range(len(edge_types))
             ]
@@ -610,6 +630,8 @@ class GraphQueryRouter:
                             confidence=edge_conf,
                             temporality=edge.temporality,
                             event_date=edge.event_date.isoformat() if edge.event_date else None,
+                            assertion=getattr(edge, "assertion", None) or "present",
+                            experiencer=(edge.experiencer.value if edge.experiencer else "patient") if hasattr(edge, "experiencer") else "patient",
                         ),
                     ],
                     hops=1,

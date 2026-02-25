@@ -1479,10 +1479,11 @@ class GraphAugmentedRAGService:
                                     "edge_type": e.edge_type,
                                     "confidence": e.confidence,
                                     "temporality": e.temporality,
-                                    "assertion": getattr(e, "assertion", "present") or "present",
+                                    "assertion": getattr(e, "assertion", None) or "present",
                                     "is_negated": getattr(e, "is_negated", False),
                                     "is_uncertain": getattr(e, "is_uncertain", False),
                                     "event_date": e.event_date,
+                                    "experiencer": getattr(e, "experiencer", None) or "patient",
                                 }
                                 for e in rp.edges
                             ],
