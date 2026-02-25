@@ -94,6 +94,15 @@ docker compose up  # full local stack
 - Tests: pytest (backend), Jest + Playwright (frontend)
 - All phases completed through Phase 12 (see `docs/IMPLEMENTATION_PLAN.md`)
 
+## Context Loading Guide
+
+Auto-generated indexes live in `memory/`. Regenerate with: `python3 backend/scripts/generate_context_index.py`
+
+- **Always read** `memory/service_registry.md` when working across multiple services — has one-line-per-file index for all 459 services, model index, and route index
+- Read `memory/domain_rag.md` when working on RAG, benchmark conditions (C1-C5), or QA experiments
+- Read `memory/domain_calculators.md` when working on calculators or benchmark condition B4
+- Read `memory/domain_kg.md` when working on knowledge graph construction, caching, or traversal
+
 ## Important Notes
 
 - Do NOT read `codebase_kg.json` (730KB) or `docs/agent_context_health_graph.md` (120KB) into context - they will fill the entire context window
