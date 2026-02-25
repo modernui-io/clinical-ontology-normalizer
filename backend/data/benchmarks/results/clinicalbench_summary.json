@@ -1,0 +1,43 @@
+{
+  "benchmark": "ClinicalIntelligenceBench",
+  "llm_model": "alibayram/medgemma:27b",
+  "total_questions": 600,
+  "task_counts": {
+    "task_a": 200,
+    "task_b": 200,
+    "task_c": 100,
+    "task_d": 100
+  },
+  "total_duration_s": 45.30019616702339,
+  "conditions": {
+    "C4e_epistemic_kg_rag_v5": {
+      "label": "LLM + Epistemic KG-RAG v5",
+      "accuracy": 0.0,
+      "correct": 0,
+      "total": 600,
+      "safety": -0.3055555555555556,
+      "category_accuracies": {
+        "negation": 0.0,
+        "conditional": 0.0,
+        "uncertainty": 0.0,
+        "family_history": 0.0,
+        "sequence": 0.0,
+        "current_state": 0.0,
+        "duration": 0.0,
+        "historical": 0.0,
+        "change": 0.0,
+        "wells_pe": 0.0,
+        "heart": 0.0,
+        "other": 0.0,
+        "ascvd": 0.0,
+        "sofa": 0.0,
+        "ckd_epi": 0.0,
+        "meld": 0.0,
+        "vital_note": 0.0,
+        "lab_note": 0.0,
+        "cross_note_discordance": 0.0,
+        "temporal_fusion": 0.0
+      }
+    }
+  }
+}
