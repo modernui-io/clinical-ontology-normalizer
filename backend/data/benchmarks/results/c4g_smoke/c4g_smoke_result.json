@@ -1,0 +1,26 @@
+{
+  "model": "gemma3:27b",
+  "provider": "ollama",
+  "n_questions": 20,
+  "duration_s": 436.12130665802397,
+  "conditions": {
+    "C4_epistemic_kg_rag": {
+      "accuracy": 0.25,
+      "category_scores": {
+        "change": 0.0,
+        "current_state": 0.0,
+        "historical": 0.0,
+        "negation": 1.0
+      }
+    },
+    "C4g_intent_aware": {
+      "accuracy": 0.6,
+      "category_scores": {
+        "change": 0.4,
+        "current_state": 0.8,
+        "historical": 0.2,
+        "negation": 1.0
+      }
+    }
+  }
+}

@@ -138,6 +138,17 @@ ABLATION_CONDITIONS: dict[str, dict[str, Any]] = {
         "calculator_enabled": False,
         "guidelines_enabled": False,
     },
+    "C4g_intent_aware": {
+        "label": "LLM + Intent-Aware KG-RAG",
+        "description": "C4 + question-type-specific graph retrieval for temporal categories",
+        "raw_note_only": False,
+        "retrieval_mode": "graph_plus_doc",
+        "assertion_mode": "full",
+        "temporal_mode": "full_bitemporal",
+        "calculator_enabled": False,
+        "guidelines_enabled": False,
+        "intent_aware": True,
+    },
     "C5_full_system": {
         "label": "Full System",
         "description": "Everything: graph + doc + guidelines + assertion + temporal + calculators",
@@ -403,6 +414,7 @@ class AblationHarness:
                 calculator_enabled=cond_def.get("calculator_enabled", False),
                 guidelines_enabled=cond_def.get("guidelines_enabled", False),
                 use_llm_judge=use_llm_judge,
+                intent_aware=cond_def.get("intent_aware", False),
             )
 
             report = await self.executor.run_question_set(

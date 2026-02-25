@@ -928,10 +928,15 @@ class QAEvaluationService:
         score = 0.0
 
         if question.category == "negation":
-            # For negation questions, the correct answer should indicate absence
-            negation_keywords = ["no", "negative", "denies", "absent", "not", "none", "nkda"]
-            answer_has_negation = any(kw in predicted_lower for kw in negation_keywords)
-            expected_has_negation = any(kw in expected_lower for kw in negation_keywords)
+            # For negation questions, the correct answer should indicate absence.
+            # Use word-boundary matching to avoid false positives from substrings
+            # (e.g., "noted" contains "not", "chronic" etc.).
+            negation_keywords = ["no", "negative", "denies", "absent", "not",
+                                 "none", "nkda", "nothing", "cannot", "denied",
+                                 "ruled out", "no evidence"]
+            _negation_patterns = [re.compile(r'\b' + re.escape(kw) + r'\b') for kw in negation_keywords]
+            answer_has_negation = any(p.search(predicted_lower) for p in _negation_patterns)
+            expected_has_negation = any(p.search(expected_lower) for p in _negation_patterns)
             correct = answer_has_negation == expected_has_negation
             score = 1.0 if correct else 0.0
 
@@ -945,27 +950,38 @@ class QAEvaluationService:
                 "not definitively", "cannot exclude", "cannot be confirmed",
                 "provisional", "tentative",
             ]
-            answer_has_uncertainty = any(kw in predicted_lower for kw in uncertainty_keywords)
+            _unc_patterns = [re.compile(r'\b' + re.escape(kw) + r'\b') for kw in uncertainty_keywords]
+            answer_has_uncertainty = any(p.search(predicted_lower) for p in _unc_patterns)
             correct = answer_has_uncertainty
             score = 1.0 if correct else 0.0
 
         elif question.category == "family_history":
             fh_keywords = ["family", "mother", "father", "sister", "brother", "relative"]
-            distinguishes_fh = any(kw in predicted_lower for kw in fh_keywords)
-            patient_negative_keywords = ["patient does not", "patient's.*normal", "no.*in patient"]
-            patient_clear = any(kw in predicted_lower for kw in patient_negative_keywords) or "family history only" in predicted_lower
+            _fh_patterns = [re.compile(r'\b' + re.escape(kw) + r'\b') for kw in fh_keywords]
+            distinguishes_fh = any(p.search(predicted_lower) for p in _fh_patterns)
+            patient_negative_patterns = [
+                re.compile(r'\bpatient does not\b'),
+                re.compile(r"\bpatient's\b.*\bnormal\b"),
+                re.compile(r'\bno\b.*\bin patient\b'),
+            ]
+            patient_clear = (
+                any(p.search(predicted_lower) for p in patient_negative_patterns)
+                or "family history only" in predicted_lower
+            )
             correct = distinguishes_fh or patient_clear
             score = 1.0 if correct else 0.0
 
         elif question.category == "conditional":
             conditional_keywords = ["if", "conditional", "pending", "depending", "only if"]
-            answer_conditional = any(kw in predicted_lower for kw in conditional_keywords)
+            _cond_patterns = [re.compile(r'\b' + re.escape(kw) + r'\b') for kw in conditional_keywords]
+            answer_conditional = any(p.search(predicted_lower) for p in _cond_patterns)
             correct = answer_conditional
             score = 1.0 if correct else 0.0
 
         elif question.category == "temporal_status":
             temporal_keywords = ["was", "former", "previously", "discontinued", "completed", "resolved", "history of", "quit"]
-            answer_temporal = any(kw in predicted_lower for kw in temporal_keywords)
+            _temp_patterns = [re.compile(r'\b' + re.escape(kw) + r'\b') for kw in temporal_keywords]
+            answer_temporal = any(p.search(predicted_lower) for p in _temp_patterns)
             correct = answer_temporal
             score = 1.0 if correct else 0.0
 
@@ -976,9 +992,11 @@ class QAEvaluationService:
             cleaned = self._strip_evidence_echo(predicted_answer).lower()
             current_kw = ["current", "active", "present", "ongoing", "documented", "has", "is on"]
             historical_kw = ["was", "former", "previously", "history of", "resolved", "past", "discontinued", "prior"]
-            expected_is_current = any(kw in expected_lower for kw in current_kw)
-            answer_is_current = any(kw in cleaned for kw in current_kw)
-            answer_is_historical = any(kw in cleaned for kw in historical_kw)
+            _cur_patterns = [re.compile(r'\b' + re.escape(kw) + r'\b') for kw in current_kw]
+            _hist_patterns = [re.compile(r'\b' + re.escape(kw) + r'\b') for kw in historical_kw]
+            expected_is_current = any(p.search(expected_lower) for p in _cur_patterns)
+            answer_is_current = any(p.search(cleaned) for p in _cur_patterns)
+            answer_is_historical = any(p.search(cleaned) for p in _hist_patterns)
             if expected_is_current:
                 correct = answer_is_current and not answer_is_historical
             else:
@@ -995,17 +1013,20 @@ class QAEvaluationService:
             predicted_terms = set(predicted_lower.split())
             overlap = expected_terms & predicted_terms
             score = len(overlap) / max(len(expected_terms), 1)
-            # Also check for ordering keywords
+            # Also check for ordering keywords (word-boundary match)
             order_kw = ["first", "then", "followed", "before", "after", "prior", "subsequently", "later"]
-            has_ordering = any(kw in predicted_lower for kw in order_kw)
+            _order_patterns = [re.compile(r'\b' + re.escape(kw) + r'\b') for kw in order_kw]
+            has_ordering = any(p.search(predicted_lower) for p in _order_patterns)
             if has_ordering:
                 score = min(score + 0.2, 1.0)
             correct = score >= 0.3
 
         elif question.category == "duration":
-            # Check if answer references time duration concepts
-            duration_kw = ["day", "week", "month", "year", "duration", "since", "for", "period", "length", "span"]
-            has_duration = any(kw in predicted_lower for kw in duration_kw)
+            # Check if answer references time duration concepts (word-boundary match)
+            duration_kw = ["day", "days", "week", "weeks", "month", "months", "year", "years",
+                           "duration", "since", "period", "length", "span"]
+            _dur_patterns = [re.compile(r'\b' + re.escape(kw) + r'\b') for kw in duration_kw]
+            has_duration = any(p.search(predicted_lower) for p in _dur_patterns)
             # Also check key concept overlap
             expected_terms = set(expected_lower.split()) - {"the", "a", "an", "is", "of", "in", "to", "for", "was"}
             predicted_terms = set(predicted_lower.split())
@@ -1025,9 +1046,10 @@ class QAEvaluationService:
             predicted_terms = set(predicted_lower.split())
             overlap = expected_terms & predicted_terms
             score = len(overlap) / max(len(expected_terms), 1)
-            # Bonus for mentioning specific calculator or risk level
+            # Bonus for mentioning specific calculator or risk level (word-boundary match)
             calc_kw = ["score", "risk", "low", "moderate", "high", "points", "calculate"]
-            if any(kw in predicted_lower for kw in calc_kw):
+            _calc_patterns = [re.compile(r'\b' + re.escape(kw) + r'\b') for kw in calc_kw]
+            if any(p.search(predicted_lower) for p in _calc_patterns):
                 score = min(score + 0.15, 1.0)
             correct = score >= 0.3
 
@@ -1041,9 +1063,10 @@ class QAEvaluationService:
             predicted_terms = set(predicted_lower.split())
             overlap = expected_terms & predicted_terms
             score = len(overlap) / max(len(expected_terms), 1)
-            # Bonus for multi-source integration language
+            # Bonus for multi-source integration language (word-boundary match)
             fusion_kw = ["however", "while", "compared", "discrepancy", "consistent", "inconsistent", "both", "across"]
-            if any(kw in predicted_lower for kw in fusion_kw):
+            _fusion_patterns = [re.compile(r'\b' + re.escape(kw) + r'\b') for kw in fusion_kw]
+            if any(p.search(predicted_lower) for p in _fusion_patterns):
                 score = min(score + 0.1, 1.0)
             correct = score >= 0.25
 

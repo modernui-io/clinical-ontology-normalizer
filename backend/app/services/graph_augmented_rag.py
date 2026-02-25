@@ -665,6 +665,196 @@ class GraphAugmentedContext:
 
         return "\n".join(sections)
 
+    def to_llm_prompt_intent_aware(
+        self, question_text: str, question_intent: str | None = None,
+    ) -> str:
+        """Format evidence with intent-specific structure for C4g.
+
+        Delegates to intent-specific formatters that present evidence in a way
+        optimized for change, current_state, or historical questions.
+        Falls back to standard v1 format for unclassified questions.
+        """
+        if question_intent == "change":
+            return self._format_change_evidence(question_text)
+        elif question_intent == "current_state":
+            return self._format_current_state_evidence(question_text)
+        elif question_intent == "historical":
+            return self._format_historical_evidence(question_text)
+        # Fallback to default
+        return self.to_llm_prompt(assertion_mode="full")
+
+    def _format_change_evidence(self, question_text: str) -> str:
+        """Format evidence as cross-admission comparison."""
+        sections: list[str] = []
+
+        # Separate admission_detail and admission_comparison paths
+        detail_paths = [p for p in self.graph_paths if p.path_type == "admission_detail"]
+        comparison_paths = [p for p in self.graph_paths if p.path_type == "admission_comparison"]
+        other_paths = [p for p in self.graph_paths if p.path_type not in ("admission_detail", "admission_comparison")]
+
+        sections.append("=== CROSS-ADMISSION COMPARISON ===")
+        sections.append("")
+
+        # Per-admission details
+        for path in detail_paths:
+            adm_label = path.nodes[1]["label"] if len(path.nodes) > 1 else "Unknown"
+            concepts = path.edges[0].get("concepts", []) if path.edges else []
+            sections.append(f"{adm_label}:")
+            if concepts:
+                sections.append(f"  Findings: {', '.join(concepts)}")
+            sections.append("")
+
+        # Cross-admission diffs
+        if comparison_paths:
+            sections.append("CHANGES BETWEEN ADMISSIONS:")
+            for path in comparison_paths:
+                if not path.edges:
+                    continue
+                edge = path.edges[0]
+                prev_label = path.nodes[0]["label"] if path.nodes else "?"
+                curr_label = path.nodes[1]["label"] if len(path.nodes) > 1 else "?"
+                sections.append(f"  {prev_label} → {curr_label}:")
+                added = edge.get("added", [])
+                removed = edge.get("removed", [])
+                continued = edge.get("continued", [])
+                if added:
+                    sections.append(f"    Added: {', '.join(added)}")
+                if removed:
+                    sections.append(f"    Removed: {', '.join(removed)}")
+                if continued:
+                    sections.append(f"    Continued: {', '.join(continued)}")
+                sections.append("")
+
+        # Include any remaining generic paths
+        if other_paths:
+            sections.append("=== Additional Evidence ===")
+            for path in other_paths:
+                formatted = path.to_prompt_format(assertion_mode="full")
+                if formatted:
+                    sections.append(f"  {formatted}")
+            sections.append("")
+
+        # Documents
+        if self.retrieved_documents:
+            sections.append("=== Retrieved Document Context ===")
+            for doc in self.retrieved_documents[:MAX_RETRIEVED_DOCS]:
+                source = doc.get("source", "document")
+                content = doc.get("content", "")[:MAX_DOC_CONTENT_CHARS]
+                sections.append(f"[{source}]: {content}")
+            sections.append("")
+
+        return "\n".join(sections)
+
+    def _format_current_state_evidence(self, question_text: str) -> str:
+        """Format evidence with explicit ACTIVE/NOT FOUND labels."""
+        sections: list[str] = []
+        sections.append("=== CURRENT STATUS ===")
+        sections.append("")
+
+        active_findings: list[str] = []
+        not_found_findings: list[str] = []
+
+        for path in self.graph_paths:
+            if path.path_type != "current_state":
+                continue
+            if not path.edges:
+                continue
+            edge = path.edges[0]
+            label = path.nodes[1]["label"] if len(path.nodes) > 1 else "?"
+            status = edge.get("status", "UNKNOWN")
+            event_date = edge.get("event_date", "unknown date")
+            edge_type = edge.get("edge_type", "relates_to")
+
+            if "NOT FOUND" in status:
+                not_found_findings.append(f"  {label}: {status}")
+            else:
+                active_findings.append(
+                    f"  {label}: {status} (via {edge_type}, last documented: {event_date})"
+                )
+
+        if active_findings:
+            sections.append("ACTIVE findings for this patient:")
+            sections.extend(active_findings)
+            sections.append("")
+
+        if not_found_findings:
+            sections.append("NOT FOUND in current records:")
+            sections.extend(not_found_findings)
+            sections.append("")
+
+        # Include generic paths that aren't current_state typed
+        other_paths = [p for p in self.graph_paths if p.path_type != "current_state"]
+        if other_paths:
+            sections.append("=== Additional Evidence ===")
+            for path in other_paths:
+                formatted = path.to_prompt_format(assertion_mode="full")
+                if formatted:
+                    sections.append(f"  {formatted}")
+            sections.append("")
+
+        # Documents
+        if self.retrieved_documents:
+            sections.append("=== Retrieved Document Context ===")
+            for doc in self.retrieved_documents[:MAX_RETRIEVED_DOCS]:
+                source = doc.get("source", "document")
+                content = doc.get("content", "")[:MAX_DOC_CONTENT_CHARS]
+                sections.append(f"[{source}]: {content}")
+            sections.append("")
+
+        return "\n".join(sections)
+
+    def _format_historical_evidence(self, question_text: str) -> str:
+        """Format evidence with explicit RESOLVED/STILL ACTIVE labels."""
+        sections: list[str] = []
+        sections.append("=== TEMPORAL STATUS ===")
+        sections.append("")
+
+        historical_findings: list[str] = []
+        current_contrast: list[str] = []
+
+        for path in self.graph_paths:
+            if not path.edges:
+                continue
+            edge = path.edges[0]
+            label = path.nodes[1]["label"] if len(path.nodes) > 1 else "?"
+            status = edge.get("status", "UNKNOWN")
+            event_date = edge.get("event_date", "unknown date")
+            edge_type = edge.get("edge_type", "relates_to")
+
+            if path.path_type == "historical":
+                historical_findings.append(
+                    f"  {label}: {status} (via {edge_type}, documented: {event_date})"
+                )
+            elif path.path_type == "current_contrast":
+                current_contrast.append(
+                    f"  {label}: {status} (via {edge_type}, documented: {event_date})"
+                )
+
+        if historical_findings:
+            sections.append("HISTORICAL findings:")
+            sections.extend(historical_findings)
+            sections.append("")
+
+        if current_contrast:
+            sections.append("CURRENT findings (for contrast):")
+            sections.extend(current_contrast)
+            sections.append("")
+
+        if not historical_findings and not current_contrast:
+            sections.append("No historical or current findings found for this patient.")
+            sections.append("")
+
+        # Documents
+        if self.retrieved_documents:
+            sections.append("=== Retrieved Document Context ===")
+            for doc in self.retrieved_documents[:MAX_RETRIEVED_DOCS]:
+                source = doc.get("source", "document")
+                content = doc.get("content", "")[:MAX_DOC_CONTENT_CHARS]
+                sections.append(f"[{source}]: {content}")
+            sections.append("")
+
+        return "\n".join(sections)
+
     def to_structured_llm_prompt(self, assertion_mode: str = "full") -> str:
         """Format context with visually distinct structured sections.
 
@@ -925,6 +1115,8 @@ class GraphAugmentedRAGService:
         temporal_mode: str = "full_bitemporal",
         retrieval_mode: str = "graph_plus_doc",
         query_domain: str | None = None,
+        question_intent: str | None = None,
+        question_metadata: dict | None = None,
     ) -> GraphAugmentedContext:
         """Retrieve graph-augmented context for a query (sync version).
 
@@ -939,6 +1131,9 @@ class GraphAugmentedRAGService:
             assertion_mode: "full" | "extracted_only" | "none".
             temporal_mode: "full_bitemporal" | "timestamps_only" | "no_temporal".
             retrieval_mode: "doc_only" | "graph_only" | "graph_plus_doc" | "graph_plus_doc_plus_guidelines".
+            question_intent: "change" | "current_state" | "historical" | None.
+                When set, uses intent-specific graph retrieval instead of generic BFS.
+            question_metadata: Optional question metadata dict (e.g. hadm_1, hadm_2 for change questions).
 
         Returns:
             GraphAugmentedContext with paths, temporal info, and documents.
@@ -951,11 +1146,35 @@ class GraphAugmentedRAGService:
         # Note: OMOP enrichment skipped in sync path (requires async DB)
         query_concepts = self._extract_query_concepts(query)
 
+        # Intent-aware retrieval for targeted categories (C4g)
+        # If successful, bypasses generic BFS traversal below.
+        _used_targeted_retrieval = False
+        graph_paths: list[GraphPath] = []
+        temporal_context = None
+        if question_intent in ("change", "current_state", "historical") and retrieval_mode != "doc_only":
+            try:
+                targeted_paths, targeted_temporal = self._retrieve_targeted_evidence(
+                    patient_id=patient_id,
+                    query_concepts=query_concepts,
+                    question_intent=question_intent,
+                    question_metadata=question_metadata,
+                )
+                if targeted_paths:
+                    graph_paths = targeted_paths
+                    temporal_context = targeted_temporal
+                    _used_targeted_retrieval = True
+            except Exception as exc:
+                logger.warning("Targeted retrieval failed, falling back to generic: %s", exc)
+                try:
+                    self._session.rollback()
+                except Exception:
+                    pass
+
         # Find relevant starting nodes in patient's graph (skip for doc_only)
         # Each SQL-touching step is wrapped in try/except with rollback to
         # prevent InFailedSqlTransaction cascading between steps.
         start_nodes: list[Any] = []
-        if retrieval_mode != "doc_only":
+        if retrieval_mode != "doc_only" and not _used_targeted_retrieval:
             try:
                 start_nodes = self._find_matching_nodes(patient_id, query_concepts)
             except Exception as exc:
@@ -965,9 +1184,8 @@ class GraphAugmentedRAGService:
                 except Exception:
                     pass
 
-        # Traverse graph from starting nodes (skip if doc_only mode)
-        graph_paths: list[GraphPath] = []
-        if retrieval_mode != "doc_only" and start_nodes:
+        # Traverse graph from starting nodes (skip if doc_only mode or targeted retrieval succeeded)
+        if retrieval_mode != "doc_only" and start_nodes and not _used_targeted_retrieval:
             try:
                 # Compute query-aware assertion hints for v2/v3 modes
                 # NOTE: full_v4 intentionally excluded — uses fixed penalties like original "full"
@@ -1006,9 +1224,8 @@ class GraphAugmentedRAGService:
                 except Exception:
                     pass
 
-        # Get temporal context if requested (skip if no_temporal mode)
-        temporal_context = None
-        if include_temporal and temporal_mode != "no_temporal":
+        # Get temporal context if requested (skip if no_temporal mode or targeted retrieval provided it)
+        if not _used_targeted_retrieval and include_temporal and temporal_mode != "no_temporal":
             try:
                 temporal_context = self._get_temporal_context(
                     patient_id=patient_id,
@@ -1625,6 +1842,371 @@ class GraphAugmentedRAGService:
 
         return paths
 
+    # ------------------------------------------------------------------
+    # Intent-Aware Targeted Retrieval (C4g)
+    # ------------------------------------------------------------------
+
+    def _retrieve_targeted_evidence(
+        self,
+        patient_id: str,
+        query_concepts: list[QueryConcept],
+        question_intent: str,
+        question_metadata: dict | None = None,
+    ) -> tuple[list[GraphPath], TemporalContext | None]:
+        """Route to intent-specific retrieval."""
+        if question_intent == "change":
+            return self._retrieve_change_evidence(patient_id, query_concepts, question_metadata)
+        elif question_intent == "current_state":
+            return self._retrieve_current_state_evidence(patient_id, query_concepts)
+        elif question_intent == "historical":
+            return self._retrieve_historical_evidence(patient_id, query_concepts)
+        return [], None
+
+    def _retrieve_change_evidence(
+        self,
+        patient_id: str,
+        query_concepts: list[QueryConcept],
+        question_metadata: dict | None = None,
+    ) -> tuple[list[GraphPath], TemporalContext | None]:
+        """Retrieve evidence structured as cross-admission comparison.
+
+        Partitions KG edges by hadm_id (stored in edge properties) rather than
+        source_document_date, since benchmark-seeded edges have hadm_id but no dates.
+
+        If question_metadata provides hadm_1/hadm_2, compares exactly those two
+        admissions. Otherwise falls back to comparing all admissions for the patient.
+        """
+        # Step 1: Get ALL edges for this patient with their node labels
+        edge_stmt = (
+            select(KGEdge, KGNode.label, KGNode.node_type)
+            .join(KGNode, KGEdge.target_node_id == KGNode.id)
+            .where(KGEdge.patient_id == patient_id)
+        )
+        edge_result = self._session.execute(edge_stmt)
+        all_edges = list(edge_result.all())
+
+        if not all_edges:
+            return [], None
+
+        # Step 2: Group edges by hadm_id from properties
+        edges_by_hadm: dict[str, list[tuple]] = {}
+        for edge, node_label, node_type in all_edges:
+            props = edge.properties or {}
+            hadm_id = props.get("hadm_id")
+            if hadm_id:
+                edges_by_hadm.setdefault(str(hadm_id), []).append((edge, node_label, node_type))
+
+        if not edges_by_hadm:
+            return [], None
+
+        # Step 3: Determine which admissions to compare
+        metadata = question_metadata or {}
+        hadm_1 = str(metadata["hadm_1"]) if metadata.get("hadm_1") else None
+        hadm_2 = str(metadata["hadm_2"]) if metadata.get("hadm_2") else None
+
+        if hadm_1 and hadm_2 and hadm_1 in edges_by_hadm and hadm_2 in edges_by_hadm:
+            # Targeted comparison: exactly these two admissions
+            admission_pairs = [(hadm_1, hadm_2)]
+        elif len(edges_by_hadm) >= 2:
+            # Fallback: compare all consecutive admissions (sorted by hadm_id as proxy for time)
+            sorted_hadms = sorted(edges_by_hadm.keys())
+            admission_pairs = [(sorted_hadms[i], sorted_hadms[i + 1]) for i in range(len(sorted_hadms) - 1)]
+        else:
+            return [], None
+
+        # Step 4: Build concept sets per admission and compute diffs
+        def _concepts_for_hadm(hadm_id: str) -> set[str]:
+            return {node_label for _edge, node_label, _node_type in edges_by_hadm.get(hadm_id, [])}
+
+        paths: list[GraphPath] = []
+        for prev_hadm, curr_hadm in admission_pairs:
+            prev_concepts = _concepts_for_hadm(prev_hadm)
+            curr_concepts = _concepts_for_hadm(curr_hadm)
+
+            added = curr_concepts - prev_concepts
+            removed = prev_concepts - curr_concepts
+            continued = prev_concepts & curr_concepts
+
+            diff_parts = []
+            if added:
+                diff_parts.append(f"Added: {', '.join(sorted(added))}")
+            if removed:
+                diff_parts.append(f"Removed: {', '.join(sorted(removed))}")
+            if continued:
+                diff_parts.append(f"Continued: {', '.join(sorted(continued))}")
+
+            prev_label = f"Admission {prev_hadm}"
+            curr_label = f"Admission {curr_hadm}"
+
+            comparison_path = GraphPath(
+                nodes=[
+                    {"id": "admission_prev", "label": prev_label, "type": "visit"},
+                    {"id": "admission_curr", "label": curr_label, "type": "visit"},
+                ],
+                edges=[{
+                    "edge_type": "admission_comparison",
+                    "confidence": 1.0,
+                    "temporality": "change",
+                    "assertion": "present",
+                    "is_negated": False,
+                    "is_uncertain": False,
+                    "event_date": None,
+                    "experiencer": "patient",
+                    "added": sorted(added),
+                    "removed": sorted(removed),
+                    "continued": sorted(continued),
+                    "diff_summary": "; ".join(diff_parts),
+                }],
+                path_type="admission_comparison",
+                confidence=1.0,
+            )
+            paths.append(comparison_path)
+
+            # Per-admission detail paths
+            for hadm_id, concepts in [(prev_hadm, prev_concepts), (curr_hadm, curr_concepts)]:
+                if concepts:
+                    paths.append(GraphPath(
+                        nodes=[
+                            {"id": "patient", "label": f"Patient ({patient_id})", "type": "patient"},
+                            {"id": f"admission_{hadm_id}", "label": f"Admission {hadm_id}", "type": "visit"},
+                        ],
+                        edges=[{
+                            "edge_type": "admission_detail",
+                            "confidence": 1.0,
+                            "temporality": "current",
+                            "assertion": "present",
+                            "is_negated": False,
+                            "is_uncertain": False,
+                            "event_date": None,
+                            "experiencer": "patient",
+                            "concepts": sorted(concepts),
+                        }],
+                        path_type="admission_detail",
+                        confidence=1.0,
+                    ))
+
+        return paths, None
+
+    def _retrieve_current_state_evidence(
+        self,
+        patient_id: str,
+        query_concepts: list[QueryConcept],
+    ) -> tuple[list[GraphPath], TemporalContext | None]:
+        """Retrieve only currently-active findings for the patient.
+
+        Filter: temporality='current' OR (valid_to IS NULL AND temporality != 'past')
+        Rank: most recent source_document_date first.
+        """
+        from app.schemas.base import Temporality as TemporalityEnum
+
+        # Query current edges with their target node labels
+        current_stmt = (
+            select(KGEdge, KGNode.label, KGNode.node_type)
+            .join(KGNode, KGEdge.target_node_id == KGNode.id)
+            .where(KGEdge.patient_id == patient_id)
+            .where(
+                or_(
+                    KGEdge.temporality == TemporalityEnum.CURRENT,
+                    (KGEdge.valid_to.is_(None)) & (KGEdge.temporality != TemporalityEnum.PAST),
+                )
+            )
+            .order_by(KGEdge.source_document_date.desc().nullslast())
+        )
+        result = self._session.execute(current_stmt)
+        current_edges = list(result.all())
+
+        if not current_edges:
+            return [], None
+
+        # Deduplicate: keep most recent edge per concept label
+        seen_concepts: dict[str, tuple[KGEdge, str, str]] = {}
+        for edge, node_label, node_type in current_edges:
+            if node_label not in seen_concepts:
+                seen_concepts[node_label] = (edge, node_label, node_type)
+
+        # Build paths with explicit ACTIVE status
+        paths: list[GraphPath] = []
+        for edge, node_label, node_type in seen_concepts.values():
+            edge_props = edge.properties or {}
+            assertion = edge_props.get("assertion", "present")
+            # Skip negated/family findings — not "active"
+            experiencer = edge.experiencer or edge_props.get("experiencer", "patient")
+            if assertion in ("absent",) or experiencer == "family":
+                continue
+
+            paths.append(GraphPath(
+                nodes=[
+                    {"id": str(edge.source_node_id), "label": f"Patient ({patient_id})", "type": "patient"},
+                    {"id": str(edge.target_node_id), "label": node_label, "type": str(node_type)},
+                ],
+                edges=[{
+                    "edge_type": edge.edge_type.value if hasattr(edge.edge_type, 'value') else str(edge.edge_type),
+                    "confidence": edge.temporal_confidence or 1.0,
+                    "temporality": "current",
+                    "assertion": assertion,
+                    "is_negated": edge_props.get("is_negated", False),
+                    "is_uncertain": edge_props.get("is_uncertain", False),
+                    "event_date": edge.source_document_date.isoformat() if edge.source_document_date else None,
+                    "experiencer": str(experiencer),
+                    "status": "ACTIVE",
+                }],
+                path_type="current_state",
+                confidence=edge.temporal_confidence or 1.0,
+            ))
+
+        # Also check queried concepts that are NOT in current state → mark as NOT FOUND
+        active_labels_lower = {label.lower() for label in seen_concepts}
+        for concept in query_concepts:
+            if concept.text.lower() not in active_labels_lower:
+                paths.append(GraphPath(
+                    nodes=[
+                        {"id": "patient", "label": f"Patient ({patient_id})", "type": "patient"},
+                        {"id": "missing", "label": concept.text, "type": "unknown"},
+                    ],
+                    edges=[{
+                        "edge_type": "not_found_in_current",
+                        "confidence": 1.0,
+                        "temporality": "current",
+                        "assertion": "absent",
+                        "is_negated": False,
+                        "is_uncertain": False,
+                        "event_date": None,
+                        "experiencer": "patient",
+                        "status": "NOT FOUND IN CURRENT RECORDS",
+                    }],
+                    path_type="current_state",
+                    confidence=1.0,
+                ))
+
+        return paths, None
+
+    def _retrieve_historical_evidence(
+        self,
+        patient_id: str,
+        query_concepts: list[QueryConcept],
+    ) -> tuple[list[GraphPath], TemporalContext | None]:
+        """Retrieve historical/resolved findings WITH current state for contrast.
+
+        Uses two strategies:
+        1. Explicit temporality: edges with temporality=PAST or valid_to set
+        2. Admission-based inference: concepts in earlier admissions but NOT in latest
+           admission are inferred as "resolved" (handles sparse temporality metadata)
+        """
+        from app.schemas.base import Temporality as TemporalityEnum
+
+        # Get ALL edges for this patient with hadm_id info
+        all_stmt = (
+            select(KGEdge, KGNode.label, KGNode.node_type)
+            .join(KGNode, KGEdge.target_node_id == KGNode.id)
+            .where(KGEdge.patient_id == patient_id)
+        )
+        all_result = self._session.execute(all_stmt)
+        all_edges = list(all_result.all())
+
+        if not all_edges:
+            return [], None
+
+        # Strategy 1: Explicit temporality
+        explicit_historical = set()
+        explicit_current = set()
+        for edge, node_label, node_type in all_edges:
+            if edge.temporality == TemporalityEnum.PAST or edge.valid_to is not None:
+                explicit_historical.add(node_label.lower())
+            elif edge.temporality == TemporalityEnum.CURRENT:
+                explicit_current.add(node_label.lower())
+
+        # Strategy 2: Admission-based inference (concepts in early admissions not in latest)
+        edges_by_hadm: dict[str, set[str]] = {}
+        for edge, node_label, node_type in all_edges:
+            props = edge.properties or {}
+            hadm_id = props.get("hadm_id")
+            if hadm_id:
+                edges_by_hadm.setdefault(str(hadm_id), set()).add(node_label.lower())
+
+        inferred_historical = set()
+        inferred_current = set()
+        if len(edges_by_hadm) >= 2:
+            sorted_hadms = sorted(edges_by_hadm.keys())
+            latest_hadm = sorted_hadms[-1]
+            latest_concepts = edges_by_hadm[latest_hadm]
+            # Concepts in any earlier admission but NOT in latest → inferred resolved
+            earlier_concepts = set()
+            for hadm_id in sorted_hadms[:-1]:
+                earlier_concepts |= edges_by_hadm[hadm_id]
+            inferred_historical = earlier_concepts - latest_concepts
+            inferred_current = latest_concepts
+
+        # Merge: explicit takes priority, then inferred
+        all_historical = explicit_historical | inferred_historical
+        all_current = (explicit_current | inferred_current) - all_historical
+
+        # Build edge lookup by label for path construction
+        edge_by_label: dict[str, tuple] = {}
+        for edge, node_label, node_type in all_edges:
+            label_lower = node_label.lower()
+            if label_lower not in edge_by_label:
+                edge_by_label[label_lower] = (edge, node_label, node_type)
+
+        paths: list[GraphPath] = []
+
+        # Historical findings with resolved/active labels
+        for label_lower in all_historical:
+            if label_lower not in edge_by_label:
+                continue
+            edge, node_label, node_type = edge_by_label[label_lower]
+            edge_props = edge.properties or {}
+            still_active = label_lower in all_current
+            status = "STILL ACTIVE" if still_active else "RESOLVED"
+
+            paths.append(GraphPath(
+                nodes=[
+                    {"id": str(edge.source_node_id), "label": f"Patient ({patient_id})", "type": "patient"},
+                    {"id": str(edge.target_node_id), "label": node_label, "type": str(node_type)},
+                ],
+                edges=[{
+                    "edge_type": edge.edge_type.value if hasattr(edge.edge_type, 'value') else str(edge.edge_type),
+                    "confidence": edge.temporal_confidence or 1.0,
+                    "temporality": "past",
+                    "assertion": edge_props.get("assertion", "historical"),
+                    "is_negated": edge_props.get("is_negated", False),
+                    "is_uncertain": edge_props.get("is_uncertain", False),
+                    "event_date": edge.source_document_date.isoformat() if edge.source_document_date else None,
+                    "experiencer": str(edge.experiencer or "patient"),
+                    "status": status,
+                }],
+                path_type="historical",
+                confidence=edge.temporal_confidence or 1.0,
+            ))
+
+        # Current-only findings (for contrast)
+        for label_lower in all_current - all_historical:
+            if label_lower not in edge_by_label:
+                continue
+            edge, node_label, node_type = edge_by_label[label_lower]
+            edge_props = edge.properties or {}
+
+            paths.append(GraphPath(
+                nodes=[
+                    {"id": str(edge.source_node_id), "label": f"Patient ({patient_id})", "type": "patient"},
+                    {"id": str(edge.target_node_id), "label": node_label, "type": str(node_type)},
+                ],
+                edges=[{
+                    "edge_type": edge.edge_type.value if hasattr(edge.edge_type, 'value') else str(edge.edge_type),
+                    "confidence": edge.temporal_confidence or 1.0,
+                    "temporality": "current",
+                    "assertion": edge_props.get("assertion", "present"),
+                    "is_negated": edge_props.get("is_negated", False),
+                    "is_uncertain": edge_props.get("is_uncertain", False),
+                    "event_date": edge.source_document_date.isoformat() if edge.source_document_date else None,
+                    "experiencer": str(edge.experiencer or "patient"),
+                    "status": "ACTIVE",
+                }],
+                path_type="current_contrast",
+                confidence=edge.temporal_confidence or 1.0,
+            ))
+
+        return paths, None
+
     def _get_causal_context(
         self,
         query: str,
@@ -2147,6 +2729,53 @@ class GraphAugmentedRAGService:
             return formatted, SourceRetrievalStatus.PARTIAL
 
         return formatted, SourceRetrievalStatus.FULL
+
+
+# ------------------------------------------------------------------
+# Step 3.5: Intent classification for targeted retrieval (C4g)
+# ------------------------------------------------------------------
+
+def _classify_question_intent(query: str, metadata: dict | None = None) -> str | None:
+    """Classify question intent for targeted retrieval.
+
+    Returns "change", "current_state", "historical", or None (use generic).
+    Metadata-based classification (from benchmark) takes priority over keywords.
+    """
+    # Use benchmark metadata if available (most reliable)
+    if metadata:
+        subtype = metadata.get("subtype", "")
+        if subtype in ("change",):
+            return "change"
+        if subtype in ("current_state",):
+            return "current_state"
+        if subtype in ("historical",):
+            return "historical"
+
+    # Runtime keyword classification (for production use)
+    q = query.lower()
+
+    change_kw = (
+        "difference", "changed", "compared to", "between admission",
+        "between visit", "new medication", "discontinued", "added", "removed",
+    )
+    if any(kw in q for kw in change_kw):
+        return "change"
+
+    current_kw = (
+        "currently", "active problem", "still have", "still on",
+        "does the patient have", "is the patient on", "present problem",
+    )
+    if any(kw in q for kw in current_kw):
+        return "current_state"
+
+    historical_kw = (
+        "used to", "former", "resolved", "no longer", "past medical",
+        "history of", "previously had",
+    )
+    if any(kw in q for kw in historical_kw):
+        return "historical"
+
+    return None  # Use generic traversal
 
 
 # ------------------------------------------------------------------

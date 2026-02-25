@@ -135,8 +135,23 @@ If evidence is insufficient or contradictory, say "insufficient evidence."
 Answer in 1-3 sentences."""
 
 
-def _get_system_prompt(assertion_mode: str) -> str:
+CLINICAL_QA_SYSTEM_PROMPT_INTENT_AWARE = CLINICAL_QA_SYSTEM_PROMPT_EPISTEMIC + """
+
+ADDITIONAL GUIDANCE FOR TEMPORAL QUESTIONS:
+- For questions about CHANGES between visits: Look at the CROSS-ADMISSION COMPARISON section.
+  List specific items that were added, removed, or continued.
+- For questions about CURRENT STATUS: Check the CURRENT STATUS section.
+  If marked ACTIVE, answer "Yes, currently active." If NOT FOUND, it is not in current records.
+  If RESOLVED, answer "No, resolved."
+- For questions about HISTORICAL findings: Check both historical and current evidence.
+  If found only in historical records, answer that it is a past/resolved finding.
+  If marked STILL ACTIVE, it was historical but remains active now."""
+
+
+def _get_system_prompt(assertion_mode: str, intent_aware: bool = False) -> str:
     """Return the appropriate system prompt based on assertion mode."""
+    if intent_aware:
+        return CLINICAL_QA_SYSTEM_PROMPT_INTENT_AWARE
     if assertion_mode == "full_v6":
         return CLINICAL_QA_SYSTEM_PROMPT_EPISTEMIC_V6
     if assertion_mode == "full_v4":
@@ -196,6 +211,7 @@ class QARunConfig:
     calculator_enabled: bool = False  # C5: run clinical calculators on KG data
     guidelines_enabled: bool = False  # C5: include guideline retrieval
     use_llm_judge: bool = False  # Use LLM judge for scoring instead of keyword matching
+    intent_aware: bool = False  # C4g: intent-specific graph retrieval for temporal categories
     # Reproducibility
     random_seed: int = 42
 
@@ -330,6 +346,15 @@ class QAExperimentExecutor:
                 evidence_pieces = 1
                 graph_path_count = 0
             else:
+                # Detect question intent for targeted retrieval (C4g)
+                question_intent = None
+                if config.intent_aware:
+                    from app.services.graph_augmented_rag import _classify_question_intent
+                    question_intent = _classify_question_intent(
+                        question.question,
+                        question.metadata,
+                    )
+
                 # Step 1: Retrieve graph-augmented context
                 context = rag_service.retrieve_context(
                     query=question.question,
@@ -339,10 +364,18 @@ class QAExperimentExecutor:
                     assertion_mode=config.assertion_mode,
                     temporal_mode=config.temporal_mode,
                     retrieval_mode=config.retrieval_mode,
+                    question_intent=question_intent,
+                    question_metadata=question.metadata if question_intent else None,
                 )
 
                 # Step 2: Build LLM prompt
-                if config.assertion_mode == "full_v5":
+                if question_intent:
+                    # Intent-aware formatting for C4g
+                    evidence = context.to_llm_prompt_intent_aware(
+                        question_text=question.question,
+                        question_intent=question_intent,
+                    )
+                elif config.assertion_mode == "full_v5":
                     evidence = context.to_llm_prompt_v5(question_text=question.question)
                 elif config.assertion_mode == "full_v4":
                     evidence = context.to_llm_prompt_v4(question_text=question.question)
@@ -385,7 +418,7 @@ class QAExperimentExecutor:
                 graph_path_count = len(context.graph_paths)
 
             # Step 3: Call LLM (local Ollama or cloud API)
-            system_prompt = _get_system_prompt(config.assertion_mode)
+            system_prompt = _get_system_prompt(config.assertion_mode, intent_aware=config.intent_aware)
             if config.llm_provider == "ollama":
                 response = await _call_ollama(
                     prompt=user_prompt,
