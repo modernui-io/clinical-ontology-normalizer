@@ -1,0 +1,48 @@
+{
+  "benchmark": "ClinicalIntelligenceBench",
+  "llm_model": "alibayram/medgemma:27b",
+  "total_questions": 400,
+  "task_counts": {
+    "task_a": 200,
+    "task_b": 200
+  },
+  "total_duration_s": 10013.839581416047,
+  "conditions": {
+    "C1_llm_alone": {
+      "label": "LLM Alone",
+      "accuracy": 0.58,
+      "correct": 232,
+      "total": 400,
+      "safety": 0.6221153846153846,
+      "category_accuracies": {
+        "negation": 0.9272727272727272,
+        "conditional": 0.8,
+        "uncertainty": 0.35,
+        "family_history": 0.6333333333333333,
+        "sequence": 0.875,
+        "current_state": 0.32,
+        "duration": 0.3333333333333333,
+        "historical": 0.36,
+        "change": 0.06666666666666667
+      }
+    },
+    "C4_epistemic_kg_rag": {
+      "label": "LLM + Epistemic KG-RAG",
+      "accuracy": 0.67,
+      "correct": 268,
+      "total": 400,
+      "safety": 0.7326923076923076,
+      "category_accuracies": {
+        "negation": 0.990909090909091,
+        "conditional": 0.8,
+        "uncertainty": 0.5,
+        "family_history": 0.6666666666666666,
+        "sequence": 0.925,
+        "current_state": 0.42,
+        "duration": 0.6333333333333333,
+        "historical": 0.48,
+        "change": 0.06666666666666667
+      }
+    }
+  }
+}

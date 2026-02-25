@@ -1,20 +1,20 @@
 {
   "condition_id": "C4_epistemic_kg_rag",
   "label": "LLM + Epistemic KG-RAG",
-  "accuracy": 0.7025,
-  "correct": 281,
+  "accuracy": 0.67,
+  "correct": 268,
   "total": 400,
-  "safety": 0.7610576923076923,
+  "safety": 0.7326923076923076,
   "category_accuracies": {
     "negation": 0.990909090909091,
-    "conditional": 0.65,
-    "uncertainty": 0.55,
-    "family_history": 0.7333333333333333,
-    "sequence": 0.95,
-    "current_state": 0.48,
-    "duration": 1.0,
-    "historical": 0.38,
-    "change": 0.13333333333333333
+    "conditional": 0.8,
+    "uncertainty": 0.5,
+    "family_history": 0.6666666666666666,
+    "sequence": 0.925,
+    "current_state": 0.42,
+    "duration": 0.6333333333333333,
+    "historical": 0.48,
+    "change": 0.06666666666666667
   },
   "per_question": [
     {
@@ -139,8 +139,8 @@
     },
     {
       "question_id": "bench_a_family_83f2914e",
-      "correct": true,
-      "score": 1.0,
+      "correct": false,
+      "score": 0.0,
       "category": "family_history"
     },
     {
@@ -163,8 +163,8 @@
     },
     {
       "question_id": "bench_a_conditional_f726e827",
-      "correct": true,
-      "score": 1.0,
+      "correct": false,
+      "score": 0.0,
       "category": "conditional"
     },
     {
@@ -259,8 +259,8 @@
     },
     {
       "question_id": "bench_a_conditional_0e65a291",
-      "correct": false,
-      "score": 0.0,
+      "correct": true,
+      "score": 1.0,
       "category": "conditional"
     },
     {
@@ -301,8 +301,8 @@
     },
     {
       "question_id": "bench_a_uncertainty_20e90dbf",
-      "correct": true,
-      "score": 1.0,
+      "correct": false,
+      "score": 0.0,
       "category": "uncertainty"
     },
     {
@@ -403,8 +403,8 @@
     },
     {
       "question_id": "bench_a_uncertainty_f7ea98b9",
-      "correct": false,
-      "score": 0.0,
+      "correct": true,
+      "score": 1.0,
       "category": "uncertainty"
     },
     {
@@ -433,8 +433,8 @@
     },
     {
       "question_id": "bench_a_conditional_f36d9cd4",
-      "correct": false,
-      "score": 0.0,
+      "correct": true,
+      "score": 1.0,
       "category": "conditional"
     },
     {
@@ -475,8 +475,8 @@
     },
     {
       "question_id": "bench_a_uncertainty_e88c624f",
-      "correct": true,
-      "score": 1.0,
+      "correct": false,
+      "score": 0.0,
       "category": "uncertainty"
     },
     {
@@ -619,8 +619,8 @@
     },
     {
       "question_id": "bench_a_conditional_79224dcd",
-      "correct": false,
-      "score": 0.0,
+      "correct": true,
+      "score": 1.0,
       "category": "conditional"
     },
     {
@@ -661,8 +661,8 @@
     },
     {
       "question_id": "bench_a_uncertainty_2f1a4469",
-      "correct": false,
-      "score": 0.0,
+      "correct": true,
+      "score": 1.0,
       "category": "uncertainty"
     },
     {
@@ -673,8 +673,8 @@
     },
     {
       "question_id": "bench_a_uncertainty_bb90a843",
-      "correct": true,
-      "score": 1.0,
+      "correct": false,
+      "score": 0.0,
       "category": "uncertainty"
     },
     {
@@ -685,8 +685,8 @@
     },
     {
       "question_id": "bench_a_uncertainty_ff0b7361",
-      "correct": false,
-      "score": 0.0,
+      "correct": true,
+      "score": 1.0,
       "category": "uncertainty"
     },
     {
@@ -709,8 +709,8 @@
     },
     {
       "question_id": "bench_a_uncertainty_23f60748",
-      "correct": true,
-      "score": 1.0,
+      "correct": false,
+      "score": 0.0,
       "category": "uncertainty"
     },
     {
@@ -727,8 +727,8 @@
     },
     {
       "question_id": "bench_a_uncertainty_34cca5f5",
-      "correct": true,
-      "score": 1.0,
+      "correct": false,
+      "score": 0.0,
       "category": "uncertainty"
     },
     {
@@ -763,14 +763,14 @@
     },
     {
       "question_id": "bench_a_family_2a6d3070",
-      "correct": true,
-      "score": 1.0,
+      "correct": false,
+      "score": 0.0,
       "category": "family_history"
     },
     {
       "question_id": "bench_a_uncertainty_1d230654",
-      "correct": false,
-      "score": 0.0,
+      "correct": true,
+      "score": 1.0,
       "category": "uncertainty"
     },
     {
@@ -841,8 +841,8 @@
     },
     {
       "question_id": "bench_a_conditional_98cef13a",
-      "correct": false,
-      "score": 0.0,
+      "correct": true,
+      "score": 1.0,
       "category": "conditional"
     },
     {
@@ -1039,8 +1039,8 @@
     },
     {
       "question_id": "bench_a_uncertainty_123f4464",
-      "correct": true,
-      "score": 1.0,
+      "correct": false,
+      "score": 0.0,
       "category": "uncertainty"
     },
     {
@@ -1057,14 +1057,14 @@
     },
     {
       "question_id": "bench_a_negation_6f8ef34c",
-      "correct": false,
-      "score": 0.0,
+      "correct": true,
+      "score": 1.0,
       "category": "negation"
     },
     {
       "question_id": "bench_a_family_c973d63a",
-      "correct": true,
-      "score": 1.0,
+      "correct": false,
+      "score": 0.0,
       "category": "family_history"
     },
     {
@@ -1135,8 +1135,8 @@
     },
     {
       "question_id": "bench_a_family_60efbaa6",
-      "correct": false,
-      "score": 0.0,
+      "correct": true,
+      "score": 1.0,
       "category": "family_history"
     },
     {
@@ -1159,8 +1159,8 @@
     },
     {
       "question_id": "bench_a_negation_7c1a4038",
-      "correct": true,
-      "score": 1.0,
+      "correct": false,
+      "score": 0.0,
       "category": "negation"
     },
     {
@@ -1220,7 +1220,7 @@
     {
       "question_id": "bench_b_seq_2fc0d0e1",
       "correct": true,
-      "score": 0.3333333333333333,
+      "score": 0.6666666666666666,
       "category": "sequence"
     },
     {
@@ -1231,38 +1231,38 @@
     },
     {
       "question_id": "bench_b_current_state_57ee4127",
-      "correct": false,
-      "score": 0.0,
+      "correct": true,
+      "score": 1.0,
       "category": "current_state"
     },
     {
       "question_id": "bench_b_dur_9aac4d9f",
-      "correct": true,
-      "score": 0.5,
+      "correct": false,
+      "score": 0.23076923076923078,
       "category": "duration"
     },
     {
       "question_id": "bench_b_historical_fa44308d",
-      "correct": false,
-      "score": 0.0,
+      "correct": true,
+      "score": 1.0,
       "category": "historical"
     },
     {
       "question_id": "bench_b_historical_20d74443",
-      "correct": false,
-      "score": 0.0,
+      "correct": true,
+      "score": 1.0,
       "category": "historical"
     },
     {
       "question_id": "bench_b_historical_272efd04",
-      "correct": false,
-      "score": 0.0,
+      "correct": true,
+      "score": 1.0,
       "category": "historical"
     },
     {
       "question_id": "bench_b_seq_76233349",
       "correct": true,
-      "score": 0.9142857142857144,
+      "score": 0.7714285714285714,
       "category": "sequence"
     },
     {
@@ -1273,8 +1273,8 @@
     },
     {
       "question_id": "bench_b_historical_a701eaf4",
-      "correct": false,
-      "score": 0.0,
+      "correct": true,
+      "score": 1.0,
       "category": "historical"
     },
     {
@@ -1298,19 +1298,19 @@
     {
       "question_id": "bench_b_chg_799b8ee4",
       "correct": false,
-      "score": 0.08333333333333333,
+      "score": 0.0,
       "category": "change"
     },
     {
       "question_id": "bench_b_historical_99912897",
-      "correct": false,
-      "score": 0.0,
+      "correct": true,
+      "score": 1.0,
       "category": "historical"
     },
     {
       "question_id": "bench_b_historical_651babd4",
-      "correct": true,
-      "score": 1.0,
+      "correct": false,
+      "score": 0.0,
       "category": "historical"
     },
     {
@@ -1322,7 +1322,7 @@
     {
       "question_id": "bench_b_seq_e2ff5594",
       "correct": true,
-      "score": 0.9142857142857144,
+      "score": 0.6285714285714286,
       "category": "sequence"
     },
     {
@@ -1352,13 +1352,13 @@
     {
       "question_id": "bench_b_chg_3b4387cb",
       "correct": false,
-      "score": 0.1111111111111111,
+      "score": 0.0,
       "category": "change"
     },
     {
       "question_id": "bench_b_dur_e06e4775",
       "correct": true,
-      "score": 0.5,
+      "score": 0.5384615384615384,
       "category": "duration"
     },
     {
@@ -1369,14 +1369,14 @@
     },
     {
       "question_id": "bench_b_chg_3af4dea4",
-      "correct": true,
-      "score": 0.3333333333333333,
+      "correct": false,
+      "score": 0.1111111111111111,
       "category": "change"
     },
     {
       "question_id": "bench_b_seq_bb930318",
       "correct": true,
-      "score": 0.5,
+      "score": 0.75,
       "category": "sequence"
     },
     {
@@ -1412,7 +1412,7 @@
     {
       "question_id": "bench_b_seq_50429da1",
       "correct": true,
-      "score": 0.825,
+      "score": 0.95,
       "category": "sequence"
     },
     {
@@ -1424,7 +1424,7 @@
     {
       "question_id": "bench_b_seq_7f016097",
       "correct": true,
-      "score": 0.95,
+      "score": 0.7,
       "category": "sequence"
     },
     {
@@ -1436,7 +1436,7 @@
     {
       "question_id": "bench_b_seq_a6bac5fb",
       "correct": true,
-      "score": 0.8666666666666667,
+      "score": 0.9777777777777779,
       "category": "sequence"
     },
     {
@@ -1454,7 +1454,7 @@
     {
       "question_id": "bench_b_seq_02b5c47c",
       "correct": true,
-      "score": 0.95,
+      "score": 0.825,
       "category": "sequence"
     },
     {
@@ -1472,19 +1472,19 @@
     {
       "question_id": "bench_b_dur_765d3190",
       "correct": true,
-      "score": 0.5384615384615384,
+      "score": 0.5,
       "category": "duration"
     },
     {
       "question_id": "bench_b_chg_e934a618",
       "correct": false,
-      "score": 0.1,
+      "score": 0.2,
       "category": "change"
     },
     {
       "question_id": "bench_b_historical_4d8e2ad9",
-      "correct": false,
-      "score": 0.0,
+      "correct": true,
+      "score": 1.0,
       "category": "historical"
     },
     {
@@ -1496,19 +1496,19 @@
     {
       "question_id": "bench_b_chg_9b769505",
       "correct": false,
-      "score": 0.1,
+      "score": 0.0,
       "category": "change"
     },
     {
       "question_id": "bench_b_historical_f27baba4",
-      "correct": false,
-      "score": 0.0,
+      "correct": true,
+      "score": 1.0,
       "category": "historical"
     },
     {
       "question_id": "bench_b_chg_a2d2f2df",
       "correct": false,
-      "score": 0.2222222222222222,
+      "score": 0.1111111111111111,
       "category": "change"
     },
     {
@@ -1526,7 +1526,7 @@
     {
       "question_id": "bench_b_chg_63fd19b7",
       "correct": false,
-      "score": 0.0,
+      "score": 0.2,
       "category": "change"
     },
     {
@@ -1537,8 +1537,8 @@
     },
     {
       "question_id": "bench_b_historical_b2d36cd9",
-      "correct": false,
-      "score": 0.0,
+      "correct": true,
+      "score": 1.0,
       "category": "historical"
     },
     {
@@ -1573,14 +1573,14 @@
     },
     {
       "question_id": "bench_b_current_state_351fb38e",
-      "correct": true,
-      "score": 1.0,
+      "correct": false,
+      "score": 0.0,
       "category": "current_state"
     },
     {
       "question_id": "bench_b_dur_adcd04fb",
-      "correct": true,
-      "score": 0.5384615384615384,
+      "correct": false,
+      "score": 0.15384615384615385,
       "category": "duration"
     },
     {
@@ -1591,20 +1591,20 @@
     },
     {
       "question_id": "bench_b_current_state_1f2194cb",
-      "correct": true,
-      "score": 1.0,
+      "correct": false,
+      "score": 0.0,
       "category": "current_state"
     },
     {
       "question_id": "bench_b_seq_b0d0c8a4",
       "correct": true,
-      "score": 0.6,
+      "score": 0.8,
       "category": "sequence"
     },
     {
       "question_id": "bench_b_current_state_cf722731",
-      "correct": true,
-      "score": 1.0,
+      "correct": false,
+      "score": 0.0,
       "category": "current_state"
     },
     {
@@ -1628,19 +1628,19 @@
     {
       "question_id": "bench_b_dur_04bba7f9",
       "correct": true,
-      "score": 0.5,
+      "score": 0.3076923076923077,
       "category": "duration"
     },
     {
       "question_id": "bench_b_historical_bf929993",
-      "correct": false,
-      "score": 0.0,
+      "correct": true,
+      "score": 1.0,
       "category": "historical"
     },
     {
       "question_id": "bench_b_historical_c9f4d6b7",
-      "correct": false,
-      "score": 0.0,
+      "correct": true,
+      "score": 1.0,
       "category": "historical"
     },
     {
@@ -1651,26 +1651,26 @@
     },
     {
       "question_id": "bench_b_seq_75335843",
-      "correct": true,
-      "score": 0.5333333333333333,
+      "correct": false,
+      "score": 0.2,
       "category": "sequence"
     },
     {
       "question_id": "bench_b_seq_d701be1b",
       "correct": true,
-      "score": 0.3333333333333333,
+      "score": 0.6666666666666666,
       "category": "sequence"
     },
     {
       "question_id": "bench_b_seq_4acb1eb0",
       "correct": true,
-      "score": 0.825,
+      "score": 0.95,
       "category": "sequence"
     },
     {
       "question_id": "bench_b_chg_4ce4b0e5",
       "correct": false,
-      "score": 0.09090909090909091,
+      "score": 0.2909090909090909,
       "category": "change"
     },
     {
@@ -1687,8 +1687,8 @@
     },
     {
       "question_id": "bench_b_current_state_ab1c0783",
-      "correct": false,
-      "score": 0.0,
+      "correct": true,
+      "score": 1.0,
       "category": "current_state"
     },
     {
@@ -1699,8 +1699,8 @@
     },
     {
       "question_id": "bench_b_current_state_0e1ad5ef",
-      "correct": true,
-      "score": 1.0,
+      "correct": false,
+      "score": 0.0,
       "category": "current_state"
     },
     {
@@ -1723,14 +1723,14 @@
     },
     {
       "question_id": "bench_b_historical_d786bffa",
-      "correct": false,
-      "score": 0.0,
+      "correct": true,
+      "score": 1.0,
       "category": "historical"
     },
     {
       "question_id": "bench_b_chg_7eaa968e",
-      "correct": false,
-      "score": 0.1,
+      "correct": true,
+      "score": 0.5,
       "category": "change"
     },
     {
@@ -1748,13 +1748,13 @@
     {
       "question_id": "bench_b_seq_dbe2e232",
       "correct": true,
-      "score": 0.95,
+      "score": 0.5,
       "category": "sequence"
     },
     {
       "question_id": "bench_b_current_state_dd21fc0b",
-      "correct": false,
-      "score": 0.0,
+      "correct": true,
+      "score": 1.0,
       "category": "current_state"
     },
     {
@@ -1772,7 +1772,7 @@
     {
       "question_id": "bench_b_seq_5afdd873",
       "correct": true,
-      "score": 0.95,
+      "score": 0.575,
       "category": "sequence"
     },
     {
@@ -1790,7 +1790,7 @@
     {
       "question_id": "bench_b_seq_6a58114f",
       "correct": true,
-      "score": 0.5333333333333333,
+      "score": 0.8666666666666667,
       "category": "sequence"
     },
     {
@@ -1807,20 +1807,20 @@
     },
     {
       "question_id": "bench_b_dur_99a99dcb",
-      "correct": true,
-      "score": 0.5,
+      "correct": false,
+      "score": 0.23076923076923078,
       "category": "duration"
     },
     {
       "question_id": "bench_b_seq_13e249a4",
       "correct": false,
-      "score": 0.25,
+      "score": 0.0,
       "category": "sequence"
     },
     {
       "question_id": "bench_b_dur_2483a94a",
       "correct": true,
-      "score": 0.5,
+      "score": 0.3076923076923077,
       "category": "duration"
     },
     {
@@ -1838,31 +1838,31 @@
     {
       "question_id": "bench_b_seq_9c168c92",
       "correct": true,
-      "score": 0.5333333333333333,
+      "score": 0.3333333333333333,
       "category": "sequence"
     },
     {
       "question_id": "bench_b_historical_757a7f78",
-      "correct": false,
-      "score": 0.0,
-      "category": "historical"
-    },
-    {
-      "question_id": "bench_b_chg_c86d8b22",
-      "correct": true,
-      "score": 0.3666666666666667,
-      "category": "change"
-    },
-    {
-      "question_id": "bench_b_historical_4290eb4f",
       "correct": true,
       "score": 1.0,
       "category": "historical"
     },
     {
-      "question_id": "bench_b_current_state_4e36b2bb",
+      "question_id": "bench_b_chg_c86d8b22",
+      "correct": false,
+      "score": 0.16666666666666666,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_historical_4290eb4f",
       "correct": false,
       "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_current_state_4e36b2bb",
+      "correct": true,
+      "score": 1.0,
       "category": "current_state"
     },
     {
@@ -1880,7 +1880,7 @@
     {
       "question_id": "bench_b_dur_79178b50",
       "correct": true,
-      "score": 0.5384615384615384,
+      "score": 0.5,
       "category": "duration"
     },
     {
@@ -1897,8 +1897,8 @@
     },
     {
       "question_id": "bench_b_historical_b7386de2",
-      "correct": true,
-      "score": 1.0,
+      "correct": false,
+      "score": 0.0,
       "category": "historical"
     },
     {
@@ -1910,7 +1910,7 @@
     {
       "question_id": "bench_b_seq_b2053490",
       "correct": true,
-      "score": 0.95,
+      "score": 1.0,
       "category": "sequence"
     },
     {
@@ -1921,20 +1921,20 @@
     },
     {
       "question_id": "bench_b_dur_9a7579d3",
-      "correct": true,
-      "score": 0.5714285714285714,
+      "correct": false,
+      "score": 0.2857142857142857,
       "category": "duration"
     },
     {
       "question_id": "bench_b_current_state_cd3a6d9f",
-      "correct": true,
-      "score": 1.0,
+      "correct": false,
+      "score": 0.0,
       "category": "current_state"
     },
     {
       "question_id": "bench_b_dur_44f27bb7",
-      "correct": true,
-      "score": 0.5,
+      "correct": false,
+      "score": 0.0,
       "category": "duration"
     },
     {
@@ -1963,8 +1963,8 @@
     },
     {
       "question_id": "bench_b_current_state_9453ec83",
-      "correct": false,
-      "score": 0.0,
+      "correct": true,
+      "score": 1.0,
       "category": "current_state"
     },
     {
@@ -1975,14 +1975,14 @@
     },
     {
       "question_id": "bench_b_current_state_9a0fed0b",
-      "correct": false,
-      "score": 0.0,
+      "correct": true,
+      "score": 1.0,
       "category": "current_state"
     },
     {
       "question_id": "bench_b_seq_6a9703ee",
       "correct": true,
-      "score": 0.8666666666666667,
+      "score": 0.3333333333333333,
       "category": "sequence"
     },
     {
@@ -1994,7 +1994,7 @@
     {
       "question_id": "bench_b_dur_e7e5e5f1",
       "correct": true,
-      "score": 0.5,
+      "score": 0.3076923076923077,
       "category": "duration"
     },
     {
@@ -2005,8 +2005,8 @@
     },
     {
       "question_id": "bench_b_dur_f5120145",
-      "correct": true,
-      "score": 0.6153846153846154,
+      "correct": false,
+      "score": 0.15384615384615385,
       "category": "duration"
     },
     {
@@ -2023,14 +2023,14 @@
     },
     {
       "question_id": "bench_b_dur_f717e466",
-      "correct": true,
-      "score": 0.6153846153846154,
+      "correct": false,
+      "score": 0.23076923076923078,
       "category": "duration"
     },
     {
       "question_id": "bench_b_seq_553c0b7e",
       "correct": true,
-      "score": 0.3333333333333333,
+      "score": 0.6666666666666666,
       "category": "sequence"
     },
     {
@@ -2041,14 +2041,14 @@
     },
     {
       "question_id": "bench_b_current_state_6824e5ae",
-      "correct": true,
-      "score": 1.0,
+      "correct": false,
+      "score": 0.0,
       "category": "current_state"
     },
     {
       "question_id": "bench_b_seq_fe472053",
       "correct": true,
-      "score": 0.3333333333333333,
+      "score": 0.8666666666666667,
       "category": "sequence"
     },
     {
@@ -2066,7 +2066,7 @@
     {
       "question_id": "bench_b_dur_6c498e2a",
       "correct": true,
-      "score": 0.5,
+      "score": 0.3333333333333333,
       "category": "duration"
     },
     {
@@ -2095,20 +2095,20 @@
     },
     {
       "question_id": "bench_b_dur_3155170d",
-      "correct": true,
-      "score": 0.5,
+      "correct": false,
+      "score": 0.07692307692307693,
       "category": "duration"
     },
     {
       "question_id": "bench_b_seq_95635373",
       "correct": true,
-      "score": 0.8,
+      "score": 0.6,
       "category": "sequence"
     },
     {
       "question_id": "bench_b_dur_57a305bc",
-      "correct": true,
-      "score": 0.6923076923076923,
+      "correct": false,
+      "score": 0.23076923076923078,
       "category": "duration"
     },
     {
@@ -2125,38 +2125,38 @@
     },
     {
       "question_id": "bench_b_historical_a3143fbf",
-      "correct": true,
-      "score": 1.0,
+      "correct": false,
+      "score": 0.0,
       "category": "historical"
     },
     {
       "question_id": "bench_b_dur_a8089cad",
-      "correct": true,
-      "score": 0.5384615384615384,
+      "correct": false,
+      "score": 0.15384615384615385,
       "category": "duration"
     },
     {
       "question_id": "bench_b_current_state_96ef4bd2",
-      "correct": true,
-      "score": 1.0,
+      "correct": false,
+      "score": 0.0,
       "category": "current_state"
     },
     {
       "question_id": "bench_b_seq_8edc10b0",
       "correct": true,
-      "score": 0.3333333333333333,
+      "score": 0.6666666666666666,
       "category": "sequence"
     },
     {
       "question_id": "bench_b_chg_fd1db324",
       "correct": false,
-      "score": 0.2909090909090909,
+      "score": 0.09090909090909091,
       "category": "change"
     },
     {
       "question_id": "bench_b_dur_c8b1f3aa",
       "correct": true,
-      "score": 0.5384615384615384,
+      "score": 0.3076923076923077,
       "category": "duration"
     },
     {
@@ -2173,8 +2173,8 @@
     },
     {
       "question_id": "bench_b_current_state_18236822",
-      "correct": true,
-      "score": 1.0,
+      "correct": false,
+      "score": 0.0,
       "category": "current_state"
     },
     {
@@ -2186,7 +2186,7 @@
     {
       "question_id": "bench_b_seq_0ae41c1a",
       "correct": true,
-      "score": 0.825,
+      "score": 0.575,
       "category": "sequence"
     },
     {
@@ -2204,25 +2204,25 @@
     {
       "question_id": "bench_b_seq_e3d7e0d1",
       "correct": true,
-      "score": 0.3333333333333333,
+      "score": 0.6666666666666666,
       "category": "sequence"
     },
     {
       "question_id": "bench_b_seq_0db29eb5",
       "correct": true,
-      "score": 0.9142857142857144,
+      "score": 0.4857142857142857,
       "category": "sequence"
     },
     {
       "question_id": "bench_b_seq_3896bfc0",
       "correct": true,
-      "score": 0.5555555555555556,
+      "score": 0.7555555555555555,
       "category": "sequence"
     },
     {
       "question_id": "bench_b_dur_b14b3517",
-      "correct": true,
-      "score": 0.5,
+      "correct": false,
+      "score": 0.07692307692307693,
       "category": "duration"
     },
     {
@@ -2239,8 +2239,8 @@
     },
     {
       "question_id": "bench_b_historical_1c8bd655",
-      "correct": true,
-      "score": 1.0,
+      "correct": false,
+      "score": 0.0,
       "category": "historical"
     },
     {
@@ -2252,13 +2252,13 @@
     {
       "question_id": "bench_b_seq_08a5bc5c",
       "correct": true,
-      "score": 0.7714285714285714,
+      "score": 0.6285714285714286,
       "category": "sequence"
     },
     {
       "question_id": "bench_b_dur_efdc513d",
       "correct": true,
-      "score": 0.6153846153846154,
+      "score": 0.5,
       "category": "duration"
     },
     {
@@ -2269,20 +2269,20 @@
     },
     {
       "question_id": "bench_b_historical_dd28f2b3",
-      "correct": true,
-      "score": 1.0,
+      "correct": false,
+      "score": 0.0,
       "category": "historical"
     },
     {
       "question_id": "bench_b_historical_28252ff2",
-      "correct": true,
-      "score": 1.0,
+      "correct": false,
+      "score": 0.0,
       "category": "historical"
     },
     {
       "question_id": "bench_b_current_state_fe918698",
-      "correct": true,
-      "score": 1.0,
+      "correct": false,
+      "score": 0.0,
       "category": "current_state"
     },
     {
@@ -2306,7 +2306,7 @@
     {
       "question_id": "bench_b_dur_3efd8123",
       "correct": true,
-      "score": 0.5,
+      "score": 0.5384615384615384,
       "category": "duration"
     },
     {
@@ -2318,7 +2318,7 @@
     {
       "question_id": "bench_b_seq_8877125e",
       "correct": true,
-      "score": 0.75,
+      "score": 0.7,
       "category": "sequence"
     },
     {
@@ -2359,8 +2359,8 @@
     },
     {
       "question_id": "bench_b_chg_d8ecd86b",
-      "correct": true,
-      "score": 0.4857142857142857,
+      "correct": false,
+      "score": 0.2857142857142857,
       "category": "change"
     },
     {
@@ -2372,7 +2372,7 @@
     {
       "question_id": "bench_b_seq_b8f793c1",
       "correct": true,
-      "score": 0.95,
+      "score": 0.7,
       "category": "sequence"
     },
     {
@@ -2384,19 +2384,19 @@
     {
       "question_id": "bench_b_seq_9d3c7a86",
       "correct": true,
-      "score": 0.3333333333333333,
+      "score": 0.5333333333333333,
       "category": "sequence"
     },
     {
       "question_id": "bench_b_seq_d481f0fa",
       "correct": true,
-      "score": 0.9142857142857144,
+      "score": 0.7714285714285714,
       "category": "sequence"
     },
     {
       "question_id": "bench_b_seq_56a31237",
       "correct": true,
-      "score": 0.7714285714285714,
+      "score": 0.6285714285714286,
       "category": "sequence"
     },
     {
@@ -2414,7 +2414,7 @@
     {
       "question_id": "bench_b_chg_bf95749e",
       "correct": false,
-      "score": 0.2909090909090909,
+      "score": 0.09090909090909091,
       "category": "change"
     }
   ]

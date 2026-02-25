@@ -1,0 +1,24 @@
+{
+  "benchmark": "ClinicalIntelligenceBench",
+  "llm_model": "alibayram/medgemma:27b",
+  "total_questions": 200,
+  "task_counts": {
+    "task_a": 200
+  },
+  "total_duration_s": 2709.148427874956,
+  "conditions": {
+    "C4_epistemic_kg_rag": {
+      "label": "LLM + Epistemic KG-RAG",
+      "accuracy": 0.825,
+      "correct": 165,
+      "total": 200,
+      "safety": 0.86875,
+      "category_accuracies": {
+        "negation": 0.990909090909091,
+        "conditional": 0.8,
+        "uncertainty": 0.5,
+        "family_history": 0.6666666666666666
+      }
+    }
+  }
+}
