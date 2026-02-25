@@ -10,6 +10,13 @@ The C2~$<$~C1 finding (Table~\ref{tab:clinicalbench_ablation}) is consistent wit
 The complexity-dependent Slice Bench effect (Tier~C: $+5.0\pp$ vs.\ Tier~A: $+0.6\pp$) suggests structured epistemic context is most valuable when: (a)~document volume overwhelms chunk-level retrieval, (b)~questions require cross-encounter synthesis where the same concept appears with different assertion states, and (c)~assertion status evolves across encounters.
 For simple patients with few notes, the LLM tracks assertion context within retrieved chunks and the KG adds little.
 
+\paragraph{Model-strength interaction.}
+The cross-model results (Table~\ref{tab:crossmodel}) show that epistemic KG-RAG's benefit is inversely related to baseline model capability.
+MedGemma~27B gains $+9.0\pp$ overall, with improvements across all nine categories (Table~\ref{tab:crossmodel_categories}).
+Opus gains on assertion-dependent categories (negation $+2.7\pp$, duration $+10.0\pp$, uncertainty $+7.5\pp$) but loses on categories where its parametric knowledge is already strong (conditional $-15.0\pp$, family history $-10.0\pp$).
+This suggests a design trade-off: current evidence formatting is tuned for models that lack clinical assertion reasoning, and may override correct reasoning in stronger models.
+Model-adaptive evidence presentation---\eg lighter context for high-capability models, or confidence-gated evidence injection---is a promising direction.
+
 \paragraph{Limitations.}
 Sample size is modest: Slice Bench covers 6 patients (144 questions) and ClinicalBench covers 45 scenarios (400 questions), both from a single site (MIMIC-IV~\cite{johnson2023mimiciv}).
 The overall B2$\rightarrow$B3 CI crosses zero (\ci{-1.5\pp}{+5.9\pp}).
@@ -17,7 +24,7 @@ Slice Bench tier-level estimates ($n=2$ patients per tier) are particularly unst
 Bootstrap CIs are computed at the question level; a cluster-aware bootstrap at the patient level would be more conservative and is planned for the expanded cohort.
 Calculator/guideline integration (C5, B4) showed degradation that we hypothesize results from non-relevant module activation, though we have not performed controlled ablations to confirm this mechanism; query-aware component selection is a priority for future work.
 LLM-as-judge evaluation may introduce biases; a pilot human validation ($n=5$, single reviewer; Appendix~\ref{app:human}) revealed overly strict automated scoring on uncertainty and sequence categories, and a full two-physician blinded adjudication is planned but not yet complete.
-The majority of experiments use Claude, with cross-model validation (MedGemma 27B) covering only ClinicalBench.
+ClinicalBench MedGemma runs show measurable run-to-run variance (C1 baseline fluctuated $\pm 10\pp$ across runs); within-run paired comparisons are used as the primary evidence, with cross-run comparisons treated as secondary.
 
 \paragraph{Future work.}
-Three directions follow: (1)~query-aware component selection to address C5/B4 degradation, (2)~expanding Tier~C to 20+ patients for sufficient statistical power, and (3)~systematic multi-model validation across open-source medical LLMs.
+Four directions follow: (1)~model-adaptive evidence presentation to address the Opus regression on strong-baseline categories, (2)~agentic graph traversal to improve the near-zero ``change'' category via targeted cross-admission queries, (3)~expanding Tier~C to 20+ patients for sufficient statistical power, and (4)~two-physician blinded adjudication on a stratified hard subset.

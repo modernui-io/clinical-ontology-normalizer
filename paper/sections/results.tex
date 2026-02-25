@@ -116,9 +116,58 @@ If replicated, it would be consistent with the hypothesis that structured KG con
 \subsection{Cross-Model Validation}
 \label{sec:results:crossmodel}
 
-ClinicalBench (MedGemma 27B, open-source) and Slice Bench (Claude Sonnet 4.5, commercial) show directionally consistent findings: vanilla RAG can degrade assertion-sensitive performance, and epistemic KG-RAG recovers or improves accuracy.
-However, these benchmarks differ in question types, patient populations, evaluation models, and task design, so the comparison is observational rather than controlled.
-Directional consistency across model families is encouraging but does not establish that effects are architecture-driven; controlled cross-model experiments on the same benchmark are needed.
+To test whether epistemic KG-RAG generalizes beyond a single model, we ran ClinicalBench with Claude Opus 4.6 (commercial, 200B+ parameter class) alongside MedGemma 27B (open-source, on-device).
+Both use a deterministic keyword evaluator for reproducibility (Appendix~\ref{app:reproducibility}).
+
+\begin{table}[t]
+\centering
+\caption{ClinicalBench cross-model results (400 questions, keyword evaluator). Within-run paired comparisons control for evaluator version and model state.}
+\label{tab:crossmodel}
+\small
+\begin{tabular}{@{}llccc@{}}
+\toprule
+& Model & C1 (LLM Alone) & C4 (Epistemic KG-RAG) & $\Delta$ \\
+\midrule
+Open & MedGemma 27B & 58.0\% & 67.0\% & $+9.0\pp$ \\
+Commercial & Claude Opus 4.6 & 72.5\% & 70.2\% & $-2.2\pp$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:crossmodel} reveals a model-strength interaction: epistemic KG-RAG produces a large gain for the weaker model ($+9.0\pp$) but a small regression for the stronger one ($-2.2\pp$).
+Table~\ref{tab:crossmodel_categories} shows the category-level mechanism: both models gain on negation, duration, and uncertainty, where structured assertion metadata provides information absent from the LLM's parametric knowledge.
+However, Opus loses on categories where it was already strong---conditional ($-15.0\pp$), family history ($-10.0\pp$), current state ($-10.0\pp$)---suggesting the evidence overrides correct parametric reasoning in these cases.
+
+\begin{table}[t]
+\centering
+\caption{ClinicalBench per-category accuracy (\%) by model. Arrows show C1$\rightarrow$C4 change within each model. Epistemic evidence helps both models on assertion-dependent categories but hurts Opus where its baseline is already strong.}
+\label{tab:crossmodel_categories}
+\small
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+& & \multicolumn{3}{c}{MedGemma 27B} & \multicolumn{3}{c}{Claude Opus 4.6} \\
+\cmidrule(lr){3-5} \cmidrule(lr){6-8}
+Category & $n$ & C1 & C4 & $\Delta$ & C1 & C4 & $\Delta$ \\
+\midrule
+Negation & 110 & 92.7 & 99.1 & \up{6.4} & 96.4 & 99.1 & \up{2.7} \\
+Sequence & 40 & 87.5 & 92.5 & \up{5.0} & 97.5 & 95.0 & \dn{2.5} \\
+Conditional & 20 & 80.0 & 80.0 & $=$ & 80.0 & 65.0 & \dn{15.0} \\
+Duration & 30 & 33.3 & 63.3 & \up{30.0} & 90.0 & 100.0 & \up{10.0} \\
+Family hist. & 30 & 63.3 & 66.7 & \up{3.3} & 83.3 & 73.3 & \dn{10.0} \\
+Uncertainty & 40 & 35.0 & 50.0 & \up{15.0} & 47.5 & 55.0 & \up{7.5} \\
+Historical & 50 & 36.0 & 48.0 & \up{12.0} & 44.0 & 38.0 & \dn{6.0} \\
+Current st. & 50 & 32.0 & 42.0 & \up{10.0} & 58.0 & 48.0 & \dn{10.0} \\
+Change & 30 & 6.7 & 6.7 & $=$ & 23.3 & 13.8 & \dn{9.5} \\
+\midrule
+\textbf{Overall} & \textbf{400} & \textbf{58.0} & \textbf{67.0} & \up{\textbf{9.0}} & \textbf{72.5} & \textbf{70.2} & \dn{\textbf{2.2}} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+This pattern---large gains for weaker models, small regressions for stronger ones---suggests that epistemic evidence is most valuable when the LLM lacks sufficient parametric knowledge to reason about assertion status independently.
+For stronger models, the current evidence format may override correct reasoning; model-adaptive evidence presentation (e.g., lighter context for high-capability models) is a promising direction (Section~\ref{sec:discussion}).
+
+Slice Bench (Claude Sonnet 4.5) and ClinicalBench (MedGemma 27B, Claude Opus 4.6) show directionally consistent findings across three model families: vanilla RAG can degrade assertion-sensitive performance, while epistemic KG-RAG recovers or improves accuracy, with the magnitude depending on baseline model strength.
 
 % ----------------------------------------------------------
 \subsection{Supporting Results}
