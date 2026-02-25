@@ -81,9 +81,69 @@ If the evidence is insufficient, say so rather than guessing.
 Answer in 1-3 sentences. Do not hedge unnecessarily when the evidence is clear."""
 
 
+CLINICAL_QA_SYSTEM_PROMPT_EPISTEMIC_V2 = """\
+You are a clinical reasoning assistant answering questions about a specific patient.
+Use ONLY the provided evidence to answer. Be precise and concise.
+
+The evidence includes ASSERTION STATUS labels on clinical findings:
+- NEGATED/ABSENT = patient does NOT have this condition
+- UNCERTAIN/POSSIBLE = suspected, not confirmed
+- FAMILY_HISTORY = a relative's condition, not the patient's
+- HISTORICAL = past/resolved condition
+- CONDITIONAL = depends on specific circumstances
+
+Use these labels to inform your reasoning, but answer the question directly.
+If the evidence is insufficient, say so rather than guessing.
+Answer in 1-3 sentences. Do not hedge unnecessarily when the evidence is clear."""
+
+
+CLINICAL_QA_SYSTEM_PROMPT_EPISTEMIC_V4 = """\
+You are a clinical reasoning assistant answering questions about a specific patient.
+Use ONLY the provided evidence to answer. Be precise and concise.
+
+CRITICAL — Match your answer to the ASSERTION STATUS of the finding asked about.
+
+The evidence starts with a "FINDING RELEVANT TO YOUR QUESTION" section that tells you
+the clinical status of the finding the question asks about. Use this to guide your answer:
+
+For HISTORICAL/RESOLVED findings, use past-tense temporal language:
+  - "was", "previously", "formerly", "had", "resolved", "no longer active"
+For CURRENT/ACTIVE findings, use present-tense language:
+  - "has", "currently", "is", "active", "ongoing"
+For NEGATED findings:
+  - "does not have", "no evidence of", "ruled out"
+For FAMILY HISTORY findings:
+  - "family history of", "relative has/had", not the patient's own condition
+For UNCERTAIN findings:
+  - "suspected", "possible", "not confirmed"
+For CONDITIONAL findings:
+  - "if", "would", "depending on", "when indicated"
+
+Always check the "IMPORTANT: Clinical Assertion Status" section for a full list of
+non-present findings. Answer in 1-3 sentences. Do not hedge when the evidence is clear."""
+
+
+CLINICAL_QA_SYSTEM_PROMPT_EPISTEMIC_V6 = """\
+You are a clinical reasoning assistant. Answer using ONLY the provided evidence.
+
+Before answering, check three things:
+1. SUBJECT — Is this about the patient or a family member?
+2. TIME — Is the finding current/active or historical/resolved?
+3. ASSERTION — Is it present, absent, possible, or conditional?
+
+If evidence is insufficient or contradictory, say "insufficient evidence."
+Answer in 1-3 sentences."""
+
+
 def _get_system_prompt(assertion_mode: str) -> str:
     """Return the appropriate system prompt based on assertion mode."""
-    if assertion_mode == "full":
+    if assertion_mode == "full_v6":
+        return CLINICAL_QA_SYSTEM_PROMPT_EPISTEMIC_V6
+    if assertion_mode == "full_v4":
+        return CLINICAL_QA_SYSTEM_PROMPT_EPISTEMIC_V4
+    if assertion_mode == "full_v2":
+        return CLINICAL_QA_SYSTEM_PROMPT_EPISTEMIC_V2
+    if assertion_mode in ("full", "full_v3", "full_v5"):
         return CLINICAL_QA_SYSTEM_PROMPT_EPISTEMIC
     return CLINICAL_QA_SYSTEM_PROMPT_BASE
 
@@ -282,7 +342,12 @@ class QAExperimentExecutor:
                 )
 
                 # Step 2: Build LLM prompt
-                evidence = context.to_llm_prompt(assertion_mode=config.assertion_mode)
+                if config.assertion_mode == "full_v5":
+                    evidence = context.to_llm_prompt_v5(question_text=question.question)
+                elif config.assertion_mode == "full_v4":
+                    evidence = context.to_llm_prompt_v4(question_text=question.question)
+                else:
+                    evidence = context.to_llm_prompt(assertion_mode=config.assertion_mode)
 
                 # C5: Conditionally inject calculator results (only for calculator questions)
                 calculator_context = ""
@@ -300,6 +365,15 @@ class QAExperimentExecutor:
                         f"--- Supplementary: Calculator Results ---\n"
                         f"{calculator_context}\n"
                         f"Use these calculator results only if directly relevant to the question."
+                    )
+                elif config.assertion_mode == "full_v4":
+                    user_prompt = (
+                        f"Patient evidence:\n{evidence}\n\n"
+                        f"Question: {question.question}\n\n"
+                        f"IMPORTANT: Check the assertion status of the relevant finding before answering.\n"
+                        f"Use temporal language (was, previously, former, resolved) for historical findings.\n"
+                        f"Use present language (has, current, active, ongoing) for current findings.\n\n"
+                        f"Answer concisely based on the evidence above."
                     )
                 else:
                     user_prompt = (
@@ -359,6 +433,11 @@ class QAExperimentExecutor:
             logger.warning(
                 "QA question %s failed: %s", question.question_id, exc,
             )
+            # Rollback session on DB errors to prevent cascade failures
+            try:
+                rag_service._session.rollback()
+            except Exception:
+                pass
             return QAResult(
                 question_id=question.question_id,
                 predicted_answer="",
@@ -416,7 +495,11 @@ class QAExperimentExecutor:
             from app.services.calculator_reasoning_service import CalculatorReasoningService
 
             calc_service = CalculatorReasoningService()
-            applicable = calc_service.identify_applicable_calculators(question)
+            applicable = calc_service.identify_applicable_calculators(
+                conditions=[],
+                measurements=[],
+                clinical_question=question,
+            )
 
             if not applicable:
                 return ""
@@ -506,10 +589,12 @@ class QAExperimentExecutor:
                     config.condition, len(checkpoint),
                 )
 
-        with Session(get_sync_engine()) as session:
-            rag_service = GraphAugmentedRAGService(session)
+        engine = get_sync_engine()
+        session = Session(engine)
+        rag_service = GraphAugmentedRAGService(session)
 
-            results: list[QAResult] = []
+        results: list[QAResult] = []
+        try:
             for i, question in enumerate(questions):
                 # Check if already completed in checkpoint
                 cached = checkpoint.get(question.question_id)
@@ -537,6 +622,15 @@ class QAExperimentExecutor:
                 result = await self._ask_question(question, config, rag_service)
                 results.append(result)
 
+                # If error occurred, reset session to prevent cascade
+                if result.error:
+                    try:
+                        session.close()
+                    except Exception:
+                        pass
+                    session = Session(engine)
+                    rag_service = GraphAugmentedRAGService(session)
+
                 # Save to checkpoint
                 if checkpoint_path:
                     _append_checkpoint(checkpoint_path, {
@@ -551,6 +645,11 @@ class QAExperimentExecutor:
                         "error": result.error,
                         "random_seed": config.random_seed,
                     })
+        finally:
+            try:
+                session.close()
+            except Exception:
+                pass
 
         # Build aggregate report
         total = len(results)

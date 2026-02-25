@@ -12,6 +12,7 @@ and scoring rubrics for automated + expert evaluation.
 from __future__ import annotations
 
 import logging
+import re
 from dataclasses import dataclass, field
 from enum import Enum
 
@@ -884,6 +885,30 @@ class QAEvaluationService:
         """Filter questions by category."""
         return [q for q in questions if q.category == category]
 
+    @staticmethod
+    def _strip_evidence_echo(text: str) -> str:
+        """Strip echoed evidence preamble from model answers.
+
+        MedGemma often starts answers by repeating the 'Assertion Notes'
+        section from the evidence.  This pollutes keyword-based scoring
+        because historical/negation keywords in the echo trigger false
+        matches.  We strip the preamble so only the model's actual answer
+        is scored.
+        """
+        if not text.strip().startswith("Assertion Notes"):
+            return text
+        # Split on first double-newline — preamble is before, answer after
+        parts = re.split(r"\n\n+", text, maxsplit=1)
+        if len(parts) > 1:
+            return parts[1].strip()
+        # Fallback: skip leading bullet lines
+        lines = text.split("\n")
+        for i, line in enumerate(lines):
+            s = line.strip()
+            if i > 0 and s and not s.startswith(("-", "*", ">", "Assertion", "=")):
+                return "\n".join(lines[i:]).strip()
+        return text
+
     def score_answer(
         self,
         question: QAQuestion,
@@ -911,7 +936,15 @@ class QAEvaluationService:
             score = 1.0 if correct else 0.0
 
         elif question.category == "uncertainty":
-            uncertainty_keywords = ["uncertain", "possible", "suspected", "pending", "cannot rule out", "unclear", "equivocal"]
+            uncertainty_keywords = [
+                "uncertain", "possible", "suspected", "pending",
+                "cannot rule out", "unclear", "equivocal",
+                # Medical hedging — valid clinical uncertainty language
+                "likely", "probable", "concerning for", "suggestive",
+                "may be", "may indicate", "not confirmed",
+                "not definitively", "cannot exclude", "cannot be confirmed",
+                "provisional", "tentative",
+            ]
             answer_has_uncertainty = any(kw in predicted_lower for kw in uncertainty_keywords)
             correct = answer_has_uncertainty
             score = 1.0 if correct else 0.0
@@ -938,12 +971,14 @@ class QAEvaluationService:
 
         # --- Task B: Temporal reasoning categories ---
         elif question.category in ("current_state", "historical"):
-            # Check if answer correctly identifies current vs historical status
+            # Strip echoed assertion notes — they contain historical/current
+            # keywords that cause cross-contamination between these categories.
+            cleaned = self._strip_evidence_echo(predicted_answer).lower()
             current_kw = ["current", "active", "present", "ongoing", "documented", "has", "is on"]
             historical_kw = ["was", "former", "previously", "history of", "resolved", "past", "discontinued", "prior"]
             expected_is_current = any(kw in expected_lower for kw in current_kw)
-            answer_is_current = any(kw in predicted_lower for kw in current_kw)
-            answer_is_historical = any(kw in predicted_lower for kw in historical_kw)
+            answer_is_current = any(kw in cleaned for kw in current_kw)
+            answer_is_historical = any(kw in cleaned for kw in historical_kw)
             if expected_is_current:
                 correct = answer_is_current and not answer_is_historical
             else:

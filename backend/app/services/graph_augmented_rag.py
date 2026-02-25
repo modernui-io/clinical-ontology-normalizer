@@ -373,6 +373,298 @@ class GraphAugmentedContext:
 
         return "\n".join(sections)
 
+    def to_llm_prompt_v5(self, question_text: str) -> str:
+        """C4's proven evidence format + question-subject callout prepended.
+
+        V5 strategy: minimal intervention.  Keep traversal-ordered evidence,
+        assertion notes, temporal context and simple prompt from C4.  Only add
+        a short callout identifying the finding the question asks about and its
+        assertion status so the model doesn't have to hunt for it.
+
+        Args:
+            question_text: The question being asked (used for subject extraction).
+        """
+        # Build the question-subject callout (same extraction as v4)
+        callout = self._question_subject_callout(question_text)
+
+        # Reuse C4's proven evidence formatter (traversal-ordered, assertion notes)
+        base = self.to_llm_prompt(assertion_mode="full")
+
+        if callout:
+            return callout + "\n" + base
+        return base
+
+    def _question_subject_callout(self, question_text: str) -> str:
+        """Return a short callout identifying the question-relevant finding."""
+        if not self.graph_paths:
+            return ""
+
+        q_lower = question_text.lower()
+        best_match_len = 0
+        matched_label: str | None = None
+        matched_assertion: str | None = None
+        matched_experiencer: str | None = None
+
+        for path in self.graph_paths:
+            for idx, edge in enumerate(path.edges):
+                target_label = (
+                    path.nodes[idx + 1].get("label", "")
+                    if idx + 1 < len(path.nodes)
+                    else path.nodes[-1].get("label", "") if path.nodes else ""
+                )
+                if target_label and target_label.lower() in q_lower:
+                    if len(target_label) > best_match_len:
+                        best_match_len = len(target_label)
+                        matched_label = target_label
+                        matched_assertion = edge.get("assertion", "present")
+                        matched_experiencer = edge.get("experiencer", "patient")
+
+        if not matched_label:
+            return ""
+
+        lines = ["=== FINDING RELEVANT TO YOUR QUESTION ==="]
+        lines.append(f"The question asks about: {matched_label}")
+
+        if matched_experiencer == "family" or matched_assertion == "family_history":
+            lines.append(
+                "Clinical status: FAMILY HISTORY — this is a RELATIVE's condition, NOT the patient's own"
+            )
+        elif matched_assertion == "absent":
+            lines.append(
+                "Clinical status: NEGATED — the patient does NOT have this condition"
+            )
+        elif matched_assertion == "possible":
+            lines.append(
+                "Clinical status: UNCERTAIN — suspected but NOT confirmed"
+            )
+        elif matched_assertion == "historical":
+            lines.append(
+                "Clinical status: HISTORICAL/RESOLVED — the patient HAD this in the past but it is no longer active"
+            )
+        elif matched_assertion in ("hypothetical", "conditional"):
+            lines.append(
+                "Clinical status: CONDITIONAL — this depends on specific circumstances"
+            )
+        else:
+            lines.append(
+                "Clinical status: CURRENT/ACTIVE — the patient currently has this"
+            )
+        lines.append("")
+        return "\n".join(lines)
+
+    def to_llm_prompt_v4(self, question_text: str, assertion_mode: str = "full_v4") -> str:
+        """Format context with question-subject extraction and assertion-grouped evidence.
+
+        V4 strategy: highlight the question-relevant finding's assertion status upfront,
+        group evidence by assertion type, and preserve the Assertion Notes section that
+        drives high negation accuracy.
+
+        Args:
+            question_text: The question being asked (used for subject extraction).
+            assertion_mode: Assertion mode (should be "full_v4").
+        """
+        sections: list[str] = []
+
+        # ------------------------------------------------------------------
+        # 1. Question-subject extraction: match question against node labels
+        # ------------------------------------------------------------------
+        matched_label: str | None = None
+        matched_assertion: str | None = None
+        matched_experiencer: str | None = None
+
+        if self.graph_paths:
+            q_lower = question_text.lower()
+            best_match_len = 0
+            for path in self.graph_paths:
+                for idx, edge in enumerate(path.edges):
+                    target_label = (
+                        path.nodes[idx + 1].get("label", "")
+                        if idx + 1 < len(path.nodes)
+                        else path.nodes[-1].get("label", "") if path.nodes else ""
+                    )
+                    if target_label and target_label.lower() in q_lower:
+                        if len(target_label) > best_match_len:
+                            best_match_len = len(target_label)
+                            matched_label = target_label
+                            matched_assertion = edge.get("assertion", "present")
+                            matched_experiencer = edge.get(
+                                "experiencer",
+                                edge.get("experiencer", "patient"),
+                            )
+
+            if matched_label:
+                sections.append("=== FINDING RELEVANT TO YOUR QUESTION ===")
+                sections.append(f"The question asks about: {matched_label}")
+
+                if matched_experiencer == "family":
+                    sections.append(
+                        "Clinical status: FAMILY HISTORY — this is a RELATIVE's condition, NOT the patient's own"
+                    )
+                elif matched_assertion == "absent":
+                    sections.append(
+                        "Clinical status: NEGATED — the patient does NOT have this condition"
+                    )
+                elif matched_assertion == "possible":
+                    sections.append(
+                        "Clinical status: UNCERTAIN — suspected but NOT confirmed"
+                    )
+                elif matched_assertion == "historical":
+                    sections.append(
+                        "Clinical status: HISTORICAL/RESOLVED — the patient HAD this in the past but it is no longer active"
+                    )
+                elif matched_assertion == "family_history":
+                    sections.append(
+                        "Clinical status: FAMILY HISTORY — this is a RELATIVE's condition, NOT the patient's own"
+                    )
+                elif matched_assertion in ("hypothetical", "conditional"):
+                    sections.append(
+                        "Clinical status: CONDITIONAL — this depends on specific circumstances"
+                    )
+                else:
+                    sections.append(
+                        "Clinical status: CURRENT/ACTIVE — the patient currently has this"
+                    )
+                sections.append("")
+
+        # ------------------------------------------------------------------
+        # 2. Assertion Notes (preserved from v1 — drives 94.5% negation accuracy)
+        # ------------------------------------------------------------------
+        if self.graph_paths:
+            negated_findings: list[str] = []
+            uncertain_findings: list[str] = []
+            family_findings: list[str] = []
+            historical_findings: list[str] = []
+            for path in self.graph_paths:
+                for idx, edge in enumerate(path.edges):
+                    assertion = edge.get("assertion", "present")
+                    target_label = (
+                        path.nodes[idx + 1].get("label", "?")
+                        if idx + 1 < len(path.nodes)
+                        else path.nodes[-1].get("label", "?") if path.nodes else "?"
+                    )
+                    experiencer = edge.get("experiencer", "patient")
+                    if experiencer == "family" or assertion == "family_history":
+                        family_findings.append(target_label)
+                    elif assertion == "absent":
+                        negated_findings.append(target_label)
+                    elif assertion == "possible":
+                        uncertain_findings.append(target_label)
+                    elif assertion == "historical":
+                        historical_findings.append(target_label)
+
+            if negated_findings or uncertain_findings or family_findings or historical_findings:
+                sections.append("=== IMPORTANT: Clinical Assertion Status ===")
+                sections.append("The following findings have NON-PRESENT assertion status.")
+                sections.append("You MUST use this information when answering.")
+                if negated_findings:
+                    sections.append(
+                        f">>> NEGATED (patient does NOT have): {', '.join(set(negated_findings))}"
+                    )
+                if uncertain_findings:
+                    sections.append(
+                        f">>> UNCERTAIN (suspected, NOT confirmed): {', '.join(set(uncertain_findings))}"
+                    )
+                if family_findings:
+                    sections.append(
+                        f">>> FAMILY HISTORY ONLY (relative's condition, NOT patient's): "
+                        f"{', '.join(set(family_findings))}"
+                    )
+                if historical_findings:
+                    sections.append(
+                        f">>> HISTORICAL (past/resolved, NOT current): {', '.join(set(historical_findings))}"
+                    )
+                sections.append("")
+
+        # ------------------------------------------------------------------
+        # 3. Evidence grouped by assertion status
+        # ------------------------------------------------------------------
+        if self.graph_paths:
+            # Categorize edges by assertion
+            groups: dict[str, list[str]] = {
+                "CURRENT": [],
+                "HISTORICAL": [],
+                "NEGATED": [],
+                "UNCERTAIN": [],
+                "FAMILY": [],
+                "OTHER": [],
+            }
+            row = 0
+            for path in self.graph_paths:
+                for idx, edge in enumerate(path.edges):
+                    if idx + 1 >= len(path.nodes):
+                        continue
+                    src = path.nodes[idx].get("label", "?")
+                    tgt = path.nodes[idx + 1].get("label", "?")
+                    edge_type = edge.get("edge_type", "relates_to")
+                    conf = edge.get("confidence", 1.0)
+                    assertion = edge.get("assertion", "present")
+                    experiencer = edge.get("experiencer", "patient")
+                    row += 1
+
+                    line = f"  {row}. {src} --[{edge_type}]--> {tgt} (conf: {conf:.2f})"
+
+                    if experiencer == "family" or assertion == "family_history":
+                        groups["FAMILY"].append(line)
+                    elif assertion == "absent":
+                        groups["NEGATED"].append(line)
+                    elif assertion == "possible":
+                        groups["UNCERTAIN"].append(line)
+                    elif assertion == "historical":
+                        groups["HISTORICAL"].append(line)
+                    elif assertion in ("hypothetical", "conditional"):
+                        groups["OTHER"].append(line)
+                    else:
+                        groups["CURRENT"].append(line)
+
+            # Emit groups in priority order: current first, then historical
+            group_labels = [
+                ("CURRENT", "=== CURRENT CLINICAL FINDINGS (active) ==="),
+                ("HISTORICAL", "=== HISTORICAL FINDINGS (past/resolved, NOT current) ==="),
+                ("NEGATED", "=== NEGATED FINDINGS (patient does NOT have) ==="),
+                ("UNCERTAIN", "=== UNCERTAIN FINDINGS (suspected, not confirmed) ==="),
+                ("FAMILY", "=== FAMILY HISTORY (relative's condition, NOT patient's) ==="),
+                ("OTHER", "=== OTHER FINDINGS ==="),
+            ]
+            for key, header in group_labels:
+                if groups[key]:
+                    sections.append(header)
+                    sections.extend(groups[key])
+            sections.append("")
+
+        # ------------------------------------------------------------------
+        # 4. Temporal Context (unchanged from v1)
+        # ------------------------------------------------------------------
+        if self.temporal_context:
+            sections.append("=== Temporal Context ===")
+            if self.temporal_context.current_state:
+                sections.append("Current State:")
+                for key, value in self.temporal_context.current_state.items():
+                    sections.append(f"  - {key}: {value}")
+            if self.temporal_context.event_timeline:
+                sections.append("Timeline:")
+                for event in self.temporal_context.event_timeline[:10]:
+                    date_str = event.get("date", "unknown")
+                    desc = event.get("description", "")
+                    sections.append(f"  - {date_str}: {desc}")
+            if self.temporal_context.temporal_conflicts:
+                sections.append("Temporal Concerns:")
+                for conflict in self.temporal_context.temporal_conflicts:
+                    sections.append(f"  - {conflict}")
+            sections.append("")
+
+        # ------------------------------------------------------------------
+        # 5. Retrieved Documents (unchanged from v1)
+        # ------------------------------------------------------------------
+        if self.retrieved_documents:
+            sections.append("=== Retrieved Document Context ===")
+            for doc in self.retrieved_documents[:MAX_RETRIEVED_DOCS]:
+                source = doc.get("source", "document")
+                content = doc.get("content", "")[:MAX_DOC_CONTENT_CHARS]
+                sections.append(f"[{source}]: {content}")
+            sections.append("")
+
+        return "\n".join(sections)
+
     def to_structured_llm_prompt(self, assertion_mode: str = "full") -> str:
         """Format context with visually distinct structured sections.
 
@@ -677,6 +969,13 @@ class GraphAugmentedRAGService:
         graph_paths: list[GraphPath] = []
         if retrieval_mode != "doc_only" and start_nodes:
             try:
+                # Compute query-aware assertion hints for v2/v3 modes
+                # NOTE: full_v4 intentionally excluded — uses fixed penalties like original "full"
+                query_hints = (
+                    _detect_query_assertion_focus(query)
+                    if assertion_mode in ("full_v2", "full_v3")
+                    else None
+                )
                 graph_paths = self._traverse_graph(
                     patient_id=patient_id,
                     start_nodes=start_nodes,
@@ -685,6 +984,7 @@ class GraphAugmentedRAGService:
                     max_paths=max_paths,
                     assertion_mode=assertion_mode,
                     temporal_mode=temporal_mode,
+                    query_hint_assertions=query_hints,
                 )
             except Exception as exc:
                 logger.warning("_traverse_graph failed: %s", exc)
@@ -986,6 +1286,7 @@ class GraphAugmentedRAGService:
         max_paths: int,
         assertion_mode: str = "full",
         temporal_mode: str = "full_bitemporal",
+        query_hint_assertions: set[str] | None = None,
     ) -> list[GraphPath]:
         """Traverse graph from starting nodes to find relevant paths (async version)."""
         # Check traversal cache
@@ -1008,6 +1309,7 @@ class GraphAugmentedRAGService:
                 max_hops=max_hops,
                 assertion_mode=assertion_mode,
                 temporal_mode=temporal_mode,
+                query_hint_assertions=query_hint_assertions,
             )
             paths.extend(node_paths)
 
@@ -1025,6 +1327,7 @@ class GraphAugmentedRAGService:
         max_hops: int,
         assertion_mode: str = "full",
         temporal_mode: str = "full_bitemporal",
+        query_hint_assertions: set[str] | None = None,
     ) -> list[GraphPath]:
         """BFS traversal from a starting node (async, bidirectional, confidence-weighted)."""
         paths = []
@@ -1050,6 +1353,7 @@ class GraphAugmentedRAGService:
         all_edges = _score_and_filter_edges(
             outgoing_edges + incoming_edges, query_concepts,
             assertion_mode=assertion_mode, temporal_mode=temporal_mode,
+            query_hint_assertions=query_hint_assertions,
         )
         all_edges = all_edges[:10]
 
@@ -1128,6 +1432,7 @@ class GraphAugmentedRAGService:
         max_paths: int,
         assertion_mode: str = "full",
         temporal_mode: str = "full_bitemporal",
+        query_hint_assertions: set[str] | None = None,
     ) -> list[GraphPath]:
         """Traverse graph from starting nodes to find relevant paths.
 
@@ -1205,6 +1510,7 @@ class GraphAugmentedRAGService:
                 max_hops=max_hops,
                 assertion_mode=assertion_mode,
                 temporal_mode=temporal_mode,
+                query_hint_assertions=query_hint_assertions,
             )
             paths.extend(node_paths)
 
@@ -1222,6 +1528,7 @@ class GraphAugmentedRAGService:
         max_hops: int,
         assertion_mode: str = "full",
         temporal_mode: str = "full_bitemporal",
+        query_hint_assertions: set[str] | None = None,
     ) -> list[GraphPath]:
         """BFS traversal from a starting node (sync, bidirectional, confidence-weighted)."""
         paths = []
@@ -1247,6 +1554,7 @@ class GraphAugmentedRAGService:
         all_edges = _score_and_filter_edges(
             outgoing_edges + incoming_edges, query_concepts,
             assertion_mode=assertion_mode, temporal_mode=temporal_mode,
+            query_hint_assertions=query_hint_assertions,
         )
         all_edges = all_edges[:10]
 
@@ -1844,11 +2152,44 @@ class GraphAugmentedRAGService:
 # Step 4: Edge scoring and filtering (module-level helper)
 # ------------------------------------------------------------------
 
+def _detect_query_assertion_focus(query: str) -> set[str]:
+    """Detect which assertion types a question is specifically asking about.
+
+    Returns a set of assertion type strings that should NOT be penalized
+    during edge scoring because the question targets them directly.
+    """
+    q = query.lower()
+    focus: set[str] = set()
+
+    historical_keywords = (
+        "currently", "still", "active", "former", "previous", "history of",
+        "used to", "resolved", "was ", "had ", "past ", "no longer",
+    )
+    conditional_keywords = (
+        "should", "would", "could", "if ", "whether", "recommend",
+        "management", "indicated", "need", "appropriate",
+    )
+    duration_keywords = (
+        "how long", "chronic", "new ", "duration", "since ", "onset",
+        "when did", "how recent",
+    )
+
+    if any(kw in q for kw in historical_keywords):
+        focus.add("historical")
+    if any(kw in q for kw in conditional_keywords):
+        focus.update({"hypothetical", "conditional"})
+    if any(kw in q for kw in duration_keywords):
+        focus.add("historical")  # duration questions need historical context too
+
+    return focus
+
+
 def _score_and_filter_edges(
     edges: list[KGEdge],
     query_concepts: list[QueryConcept],
     assertion_mode: str = "full",
     temporal_mode: str = "full_bitemporal",
+    query_hint_assertions: set[str] | None = None,
 ) -> list[KGEdge]:
     """Score edges by confidence and query relevance, filter low-confidence.
 
@@ -1898,20 +2239,23 @@ def _score_and_filter_edges(
             if edge.temporality == "current":
                 score += 0.1
 
-        # Assertion-based scoring (only in "full" mode)
-        if assertion_mode == "full":
+        # Assertion-based scoring (only in "full" or "full_v2" mode)
+        if assertion_mode in ("full", "full_v2", "full_v3", "full_v4", "full_v5", "full_v6"):
             edge_props = edge.properties or {}
             assertion = edge_props.get("assertion", "present")
+            hints = query_hint_assertions or set()
             if assertion == "absent":
                 score *= 0.5  # Negated conditions significantly less relevant
             elif assertion == "possible":
                 score *= 0.75  # Uncertain conditions moderately less relevant
             elif assertion in ("hypothetical", "conditional"):
-                score *= 0.6  # Hypothetical/conditional
+                if assertion not in hints:
+                    score *= 0.6  # Penalize only when query isn't about conditionals
             elif assertion == "family_history":
                 score *= 0.7  # Family history, not patient's own
             elif assertion == "historical":
-                score *= 0.8  # Historical, less current relevance
+                if "historical" not in hints:
+                    score *= 0.8  # Penalize only when query isn't about history
             # "present" gets no penalty (default)
 
             # Experiencer-based scoring — takes priority over assertion penalty
