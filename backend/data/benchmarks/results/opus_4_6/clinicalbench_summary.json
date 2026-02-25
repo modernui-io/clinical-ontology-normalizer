@@ -1,0 +1,48 @@
+{
+  "benchmark": "ClinicalIntelligenceBench",
+  "llm_model": "claude-opus-4-20250514",
+  "total_questions": 400,
+  "task_counts": {
+    "task_a": 200,
+    "task_b": 200
+  },
+  "total_duration_s": 2821.2875906249974,
+  "conditions": {
+    "C1_llm_alone": {
+      "label": "LLM Alone",
+      "accuracy": 0.725,
+      "correct": 290,
+      "total": 400,
+      "safety": 0.7625,
+      "category_accuracies": {
+        "negation": 0.9636363636363636,
+        "conditional": 0.8,
+        "uncertainty": 0.475,
+        "family_history": 0.8333333333333334,
+        "sequence": 0.975,
+        "current_state": 0.58,
+        "duration": 0.9,
+        "historical": 0.44,
+        "change": 0.23333333333333334
+      }
+    },
+    "C4_epistemic_kg_rag": {
+      "label": "LLM + Epistemic KG-RAG",
+      "accuracy": 0.6825,
+      "correct": 273,
+      "total": 400,
+      "safety": 0.7427884615384616,
+      "category_accuracies": {
+        "negation": 0.990909090909091,
+        "conditional": 0.65,
+        "uncertainty": 0.5,
+        "family_history": 0.6333333333333333,
+        "sequence": 0.95,
+        "current_state": 0.46,
+        "duration": 1.0,
+        "historical": 0.34,
+        "change": 0.13333333333333333
+      }
+    }
+  }
+}
