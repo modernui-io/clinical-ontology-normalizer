@@ -12,27 +12,27 @@ Table~\ref{tab:clinicalbench_ablation} presents the main ablation results across
 
 \begin{table}[t]
 \centering
-\caption{ClinicalBench ablation results (400 questions, MedGemma 27B). Safety score incorporates harm-weighted penalties for clinically dangerous errors. Best per column in \textbf{bold}.}
+\caption{ClinicalBench ablation results (400 questions, MedGemma 27B, deterministic keyword evaluator). Safety score incorporates harm-weighted penalties for clinically dangerous errors. Best per column in \textbf{bold}.}
 \label{tab:clinicalbench_ablation}
 \small
 \begin{tabular}{@{}llcc@{}}
 \toprule
 & Condition & Accuracy & Safety \\
 \midrule
-C1 & LLM Alone & 71.5\% & 0.752 \\
+C1 & LLM Alone & 73.2\% & 0.765 \\
 C2 & + Vanilla RAG & 62.5\% & 0.643 \\
-C3 & + KG-RAG (no assertion) & 59.3\% & 0.562 \\
+C3 & + KG-RAG (no assertion) & 60.5\% & 0.572 \\
 C4 & + Epistemic KG-RAG & \textbf{71.5\%} & \textbf{0.775} \\
-C5 & + Full System & 68.3\% & 0.734 \\
+C5 & + Full System & 68.2\% & 0.735 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Adding vanilla RAG \emph{hurts}: C2 underperforms C1 by $9.0\pp$ on accuracy and $0.109$ on safety.
+Adding vanilla RAG \emph{hurts}: C2 underperforms C1 by $10.7\pp$ on accuracy and $0.122$ on safety.
 Retrieved passages like ``patient denies diabetes'' enter context without epistemic framing, leading the LLM to conflate mention with presence---consistent with GraphRAG-Bench~\cite{graphragbench2026}.
-Assertion-blind KG-RAG (C3) compounds the problem, scoring lowest (59.3\%, 0.562), as structured paths presenting negated conditions as graph edges actively mislead the model.
-Epistemic KG-RAG (C4) matches C1 at 71.5\% aggregate accuracy but with a fundamentally different category profile (Table~\ref{tab:clinicalbench_categories}), and achieves a higher safety score (0.775 vs.\ 0.752), indicating that C4's errors are less clinically dangerous on average.
-C5 drops $3.2\pp$ below C4; we hypothesize this results from calculator and guideline modules activating on queries not requiring them, though controlled per-component ablations are needed to confirm this (Section~\ref{sec:discussion}).
+Assertion-blind KG-RAG (C3) compounds the problem, scoring lowest (60.5\%, 0.572), as structured paths presenting negated conditions as graph edges actively mislead the model.
+Epistemic KG-RAG (C4) recovers to 71.5\% with a fundamentally different category profile (Table~\ref{tab:clinicalbench_categories}), and achieves the highest safety score (0.775 vs.\ 0.765), indicating that C4's errors are less clinically dangerous on average.
+C5 drops $3.3\pp$ below C4; we hypothesize this results from calculator and guideline modules activating on queries not requiring them, though controlled per-component ablations are needed to confirm this (Section~\ref{sec:discussion}).
 
 \begin{table}[t]
 \centering
@@ -43,17 +43,17 @@ C5 drops $3.2\pp$ below C4; we hypothesize this results from calculator and guid
 \toprule
 Category & $n$ & C1 & C2 & C4 & C1$\rightarrow$C4 \\
 \midrule
-Negation & 55 & 100.0 & 93.6 & 100.0 & $=$ \\
-Conditional & 20 & 100.0 & 90.0 & 70.0 & $\downarrow 30.0\pp$ \\
-Uncertainty & 40 & 37.5 & 2.5 & 57.5 & $\uparrow 20.0\pp$ \\
+Negation & 110 & 100.0 & 93.6 & 100.0 & $=$ \\
+Conditional & 20 & 100.0 & 90.0 & 65.0 & $\downarrow 35.0\pp$ \\
+Uncertainty & 40 & 55.0 & 2.5 & 62.5 & $\uparrow 7.5\pp$ \\
 Family history & 30 & 0.0 & 0.0 & 70.0 & $\uparrow 70.0\pp$ \\
-Sequence & 40 & 80.0 & 80.0 & 87.5 & $\uparrow 7.5\pp$ \\
-Current state & 50 & 64.0 & 54.0 & 54.0 & $\downarrow 10.0\pp$ \\
-Duration & 30 & 100.0 & 100.0 & 83.3 & $\downarrow 16.7\pp$ \\
-Historical & 50 & 94.0 & 78.0 & 60.0 & $\downarrow 34.0\pp$ \\
+Sequence & 40 & 80.0 & 80.0 & 80.0 & $=$ \\
+Current state & 50 & 64.0 & 54.0 & 64.0 & $=$ \\
+Duration & 30 & 100.0 & 100.0 & 53.3 & $\downarrow 46.7\pp$ \\
+Historical & 50 & 94.0 & 78.0 & 72.0 & $\downarrow 22.0\pp$ \\
 Change & 30 & 0.0 & 0.0 & 3.3 & $\uparrow 3.3\pp$ \\
 \midrule
-\textbf{Overall} & \textbf{400} & \textbf{71.5} & \textbf{62.5} & \textbf{71.5} & $=$ \\
+\textbf{Overall} & \textbf{400} & \textbf{73.2} & \textbf{62.5} & \textbf{71.5} & $\downarrow 1.7\pp$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -65,11 +65,10 @@ Change & 30 & 0.0 & 0.0 & 3.3 & $\uparrow 3.3\pp$ \\
 \label{fig:radar}
 \end{figure}
 
-Table~\ref{tab:clinicalbench_categories} and Figure~\ref{fig:radar} reveal that C4's matching aggregate masks large bidirectional category shifts.
-C4 gains on categories requiring structured epistemic metadata: $+70.0\pp$ on family history (0.0\%$\to$70.0\%), $+20.0\pp$ on uncertainty (37.5\%$\to$57.5\%), and $+7.5\pp$ on sequence.
-However, C4 loses substantially on categories where C1's parametric knowledge was already strong: historical ($-34.0\pp$, from 94.0\% to 60.0\%), conditional ($-30.0\pp$), and duration ($-16.7\pp$).
-The net effect is an accuracy profile trade-off, not a uniform improvement.
-The higher safety score (0.775 vs.\ 0.752) reflects that C4's category gains involve high-risk assertion errors (e.g., misattributing a family member's condition to the patient), while its losses occur on categories with lower clinical harm potential.
+Table~\ref{tab:clinicalbench_categories} and Figure~\ref{fig:radar} reveal that C4's aggregate masks large bidirectional category shifts.
+C4 gains on categories requiring structured epistemic metadata: $+70.0\pp$ on family history (0.0\%$\to$70.0\%) and $+7.5\pp$ on uncertainty (55.0\%$\to$62.5\%).
+However, C4 loses on categories where C1's parametric knowledge was already strong: duration ($-46.7\pp$), conditional ($-35.0\pp$), and historical ($-22.0\pp$).
+The net effect is an accuracy profile trade-off ($-1.7\pp$ overall) with a higher safety score (0.775 vs.\ 0.765), reflecting that C4's gains involve high-risk assertion errors (e.g., misattributing a family member's condition to the patient), while its losses occur on categories with lower clinical harm potential.
 The ``change'' category remains near zero across all conditions (0.0--3.3\%), a genuine capability gap.
 
 % ----------------------------------------------------------
@@ -168,6 +167,32 @@ This pattern---large gains for weaker models, small regressions for stronger one
 For stronger models, the current evidence format may override correct reasoning; model-adaptive evidence presentation (e.g., lighter context for high-capability models) is a promising direction (Section~\ref{sec:discussion}).
 
 Slice Bench (Claude Sonnet 4.5) and ClinicalBench (MedGemma 27B, Claude Opus 4.6) show directionally consistent findings across three model families: vanilla RAG can degrade assertion-sensitive performance, while epistemic KG-RAG recovers or improves accuracy, with the magnitude depending on baseline model strength.
+
+\paragraph{Experiencer propagation fix.}
+During development, we identified that the graph traversal pipeline dropped the \texttt{experiencer} attribute (which distinguishes patient conditions from family member conditions), causing family history misattribution.
+Table~\ref{tab:experiencer_fix} shows the impact of propagating this attribute through the multi-hop traversal, measured on Opus (deterministic API, same C1 baseline):
+
+\begin{table}[t]
+\centering
+\caption{Impact of experiencer attribute propagation on Opus C4 (400 questions, same C1 baseline of 72.5\%). Categories with no change omitted.}
+\label{tab:experiencer_fix}
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Category & Pre-fix & Post-fix & $\Delta$ \\
+\midrule
+Family history & 63.3\% & \textbf{73.3\%} & $+10.0\pp$ \\
+Uncertainty & 50.0\% & \textbf{55.0\%} & $+5.0\pp$ \\
+Historical & 34.0\% & 38.0\% & $+4.0\pp$ \\
+Current state & 46.0\% & 48.0\% & $+2.0\pp$ \\
+\midrule
+\textbf{Overall C4} & \textbf{68.2\%} & \textbf{70.2\%} & $+2.0\pp$ \\
+C4 vs C1 gap & $-4.2\pp$ & $-2.2\pp$ & gap halved \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The fix improved family history by $+10.0\pp$ with zero regressions on guard categories (negation, conditional, duration, sequence all unchanged), confirming that the experiencer attribute is load-bearing for assertion-sensitive reasoning.
 
 % ----------------------------------------------------------
 \subsection{Supporting Results}

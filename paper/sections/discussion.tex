@@ -4,7 +4,7 @@
 \paragraph{Why vanilla RAG hurts.}
 Clinical notes contain dense negated, uncertain, and historical findings.
 When vanilla RAG retrieves ``patient denies diabetes,'' the word ``diabetes'' enters context without the epistemic frame distinguishing absence from presence, actively misleading the model.
-The C2~$<$~C1 finding (Table~\ref{tab:clinicalbench_ablation}) is consistent with GraphRAG-Bench~\cite{graphragbench2026}, which reports that GraphRAG underperforms when graph structure fails to encode task-relevant semantics---here, assertion status.
+The C2~$<$~C1 finding ($-10.7\pp$, Table~\ref{tab:clinicalbench_ablation}) is consistent with GraphRAG-Bench~\cite{graphragbench2026}, which reports that GraphRAG underperforms when graph structure fails to encode task-relevant semantics---here, assertion status.
 
 \paragraph{When KG context matters.}
 The complexity-dependent Slice Bench effect (Tier~C: $+5.0\pp$ vs.\ Tier~A: $+0.6\pp$) suggests structured epistemic context is most valuable when: (a)~document volume overwhelms chunk-level retrieval, (b)~questions require cross-encounter synthesis where the same concept appears with different assertion states, and (c)~assertion status evolves across encounters.
