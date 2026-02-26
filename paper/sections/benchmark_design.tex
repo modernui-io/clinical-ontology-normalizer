@@ -80,6 +80,16 @@ B4 & Full System & KG-RAG + guidelines + calculators \\
 \subsection{Evaluation Protocol}
 \label{sec:bench:protocol}
 
-Both benchmarks use separated judge and answering models to prevent self-evaluation bias~\cite{xiong2024mirage}: MedGemma 27B / separate LLM judge (ClinicalBench) and Claude Sonnet 4.5 / Claude Opus 4.6 (SliceBench).
+The two benchmarks use different evaluation strategies, chosen to match their design goals:
+
+\paragraph{ClinicalBench} uses a \emph{deterministic keyword evaluator} that performs exact word-boundary matching of gold-standard assertion and temporal keywords against model answers.
+This evaluator is fully reproducible (no stochastic LLM judge) and is used for all ClinicalBench ablation results (Table~\ref{tab:clinicalbench_ablation}), per-category breakdowns, and cross-model validation (Section~\ref{sec:results:crossmodel}).
+The answering model is MedGemma 27B (primary) or Claude Opus 4.6 (cross-model validation).
+
+\paragraph{SliceBench} uses an \emph{LLM-as-judge} protocol with separated answering and judging models to prevent self-evaluation bias~\cite{xiong2024mirage}: Claude Sonnet 4.5 generates answers and Claude Opus 4.6 judges correctness.
+This allows richer semantic assessment of the open-ended longitudinal questions in SliceBench.
+
+\paragraph{Statistical reporting.}
 We report BCa bootstrap 95\% CIs ($n=2{,}000$, seed 42) on all aggregate metrics; CIs are computed at the question level (not cluster-bootstrapped by patient).
 The safety score $S = 1 - \frac{1}{N} \sum_{i=1}^{N} w_i \cdot \mathbb{1}[\hat{y}_i \neq y_i]$ applies $w_i = 2.0$ for false-positive assertion errors (reporting a negated or absent condition as present) and $w_i = 1.0$ otherwise, capturing asymmetric clinical risk where acting on a falsely affirmed condition is more dangerous than missing a present one.
+The asymmetric weight reflects clinical practice: acting on a falsely affirmed condition (e.g., treating a negated diagnosis) carries greater immediate risk than failing to act on a present condition, which may be caught in subsequent encounters. We treat $w=2.0$ as a reasonable default; sensitivity to this choice is a direction for future work.

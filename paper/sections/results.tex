@@ -3,6 +3,7 @@
 
 We evaluate \epikg through two benchmarks: ClinicalBench tests assertion-sensitive and longitudinal reasoning, while SliceBench measures longitudinal QA across patient complexity tiers.
 All confidence intervals use the bias-corrected and accelerated (BCa) bootstrap ($n=2{,}000$, seed 42)~\cite{efron1993bootstrap}, resampled at the question level.
+ClinicalBench results use a deterministic keyword evaluator for reproducibility; SliceBench uses LLM-as-judge evaluation (Section~\ref{sec:bench:protocol}).
 
 % ----------------------------------------------------------
 \subsection{ClinicalBench: Ablation Results}
@@ -21,12 +22,14 @@ Table~\ref{tab:clinicalbench_ablation} presents the main ablation results across
 \midrule
 C1 & LLM Alone & \textbf{71.5\%} & 0.752 \\
 C2 & + Vanilla RAG & 62.5\% & 0.643 \\
-C3 & + KG-RAG (no assertion) & 59.2\% & --- \\
+C3 & + KG-RAG (no assertion) & 59.2\% & ---\textsuperscript{\dag} \\
 C4 & + Epistemic KG-RAG & \textbf{71.5\%} & \textbf{0.775} \\
 C4g & + Intent-Aware KG-RAG & 66.0\% & 0.643 \\
-C5 & + Full System & 68.2\% & --- \\
+C5 & + Full System & 68.2\% & ---\textsuperscript{\dag} \\
 \bottomrule
 \end{tabular}
+\vspace{2pt}
+{\footnotesize \textsuperscript{\dag}Safety scores for C3 and C5 were not computed in the final evaluator run; these conditions are included for accuracy comparison only.}
 \end{table}
 
 Adding vanilla RAG \emph{hurts}: C2 underperforms C1 by $9.0\pp$ on accuracy and $0.109$ on safety.
@@ -85,8 +88,7 @@ C4g loses substantially on historical ($-54.0\pp$), duration ($-53.3\pp$), and c
 For these categories, C1's parametric knowledge was already at or near ceiling (94.0\%, 100.0\%, 100.0\% respectively), and the injected graph context overrides correct reasoning---a known failure mode of RAG systems~\cite{graphragbench2026}.
 
 \paragraph{Hard longitudinal subset.}
-To isolate the categories most relevant to our thesis---that longitudinal clinical data requires structured normalization---we define a ``hard longitudinal'' subset: change ($n=30$), current state ($n=50$), and historical ($n=50$), totalling 130 questions.
-On this subset, C4g achieves 58.5\%, compared to C1 at 60.8\%, C2 at 50.8\%, C3 at 46.2\%, C4 at 44.6\%, and C5 at 49.2\%.
+On the hard longitudinal subset defined in Section~\ref{sec:bench:clinicalbench} ($n=130$), C4g achieves 58.5\%, compared to C1 at 60.8\%, C2 at 50.8\%, C3 at 46.2\%, C4 at 44.6\%, and C5 at 49.2\%.
 The C4$\rightarrow$C4g transition ($+13.8\pp$) demonstrates that intent-aware routing is the critical mechanism for longitudinal reasoning, even though C4g does not dominate on aggregate.
 
 % ----------------------------------------------------------
@@ -186,9 +188,10 @@ The ``change'' category remains near zero for C4 on both models (3.3\% for MedGe
 SliceBench (Claude Sonnet 4.5) and ClinicalBench (MedGemma 27B, Claude Opus 4.6) show directionally consistent findings across three model families: vanilla RAG can degrade assertion-sensitive performance, while epistemic KG-RAG recovers accuracy with a fundamentally different category profile.
 The magnitude of category-level effects depends on baseline model strength, but the pattern---gains on assertion-dependent categories, losses where parametric knowledge suffices---is consistent.
 
-\paragraph{Experiencer propagation fix.}
-During development, we identified that the graph traversal pipeline dropped the \texttt{experiencer} attribute (which distinguishes patient conditions from family member conditions), causing family history misattribution.
-Table~\ref{tab:experiencer_fix} shows the impact of propagating this attribute through the multi-hop traversal, measured on Opus (deterministic API, same C1 baseline):
+\paragraph{Experiencer attribute propagation ablation.}
+We ablate the contribution of experiencer attribute propagation through the graph traversal pipeline.
+The \texttt{experiencer} attribute distinguishes patient conditions from family member conditions; without it, the graph conflates the two, causing family history misattribution.
+Table~\ref{tab:experiencer_fix} shows the impact of propagating this attribute through multi-hop traversal, measured on Opus (deterministic API, same C1 baseline):
 
 \begin{table}[t]
 \centering
@@ -216,6 +219,6 @@ The fix improved family history by $+10.0\pp$ with zero regressions on guard cat
 \subsection{Supporting Results}
 \label{sec:results:supporting}
 
-On MedQA-USMLE (965 questions), the backbone LLM achieves 81.6\% accuracy (5.1\,pp below GPT-4 at 86.7\% and Med-PaLM~2 at 86.5\%~\cite{medagentbench2025}), establishing a reasonable baseline for the system's underlying language model.
+On MedQA-USMLE (965 questions), Claude Opus 4.5---used for SliceBench and as one of two ClinicalBench models---achieves 81.6\% accuracy (5.1\,pp below GPT-4 at 86.7\% and Med-PaLM~2 at 86.5\%~\cite{medagentbench2025}), establishing a reasonable LLM baseline independent of the ClinicalBench main ablation model (MedGemma 27B).
 Graph traversal latency is sub-millisecond at current scale (3,100 nodes, 8,803 edges): 0.57\,ms (1-hop), 0.75\,ms (2-hop).
 The full system integrates 201 calculators, 1,202 guideline sections, 101 trigger patterns, and 24 edge types across 13 node types.

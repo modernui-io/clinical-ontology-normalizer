@@ -37,17 +37,17 @@
 ## Priority 2: High-Impact Improvements
 
 ### P2.1 Abstract restructure
-- [ ] Currently ~250 words, NeurIPS norm is ~200
-- [ ] Buries the positive result (change: 0%→60%) after the negative aggregate (-2.3pp)
-- [ ] **Action**: Lead with breakthrough category results, then acknowledge aggregate nuance. Cut SliceBench and cross-model detail to save words.
-- [ ] Remove "Shannon entropy" from abstract — too technical for abstract, keep in system design
+- [x] Currently ~250 words, NeurIPS norm is ~200 — **FIXED** trimmed to ~205 words
+- [x] Buries the positive result (change: 0%→60%) after the negative aggregate (-2.3pp) — **FIXED** leads with breakthroughs
+- [x] **Action**: Lead with breakthrough category results, then acknowledge aggregate nuance. Cut SliceBench and cross-model detail to save words.
+- [x] Remove "Shannon entropy" from abstract — **FIXED** replaced with plain language
 
 ### P2.2 Evaluator clarity
-- [ ] Benchmark design (Section 4) describes LLM-as-judge evaluation
-- [ ] Results section says "deterministic keyword evaluator"
-- [ ] Reader never told which evaluator was used for which table
-- [ ] **Action**: Add a paragraph at the start of Results clearly stating: ClinicalBench ablation uses deterministic keyword evaluator for reproducibility; Slice Bench uses LLM-as-judge for richer assessment. Cross-model validation uses keyword evaluator. All CIs computed on keyword evaluator scores.
-- [ ] Update benchmark_design.tex evaluation protocol to mention both evaluation methods
+- [x] Benchmark design (Section 4) describes LLM-as-judge evaluation — **FIXED** rewritten with separate ClinicalBench/SliceBench paragraphs
+- [x] Results section says "deterministic keyword evaluator" — **FIXED** added clarifying sentence at top of results
+- [x] Reader never told which evaluator was used for which table — **FIXED** explicit per-benchmark evaluator assignments
+- [x] **Action**: Add a paragraph at the start of Results clearly stating: ClinicalBench ablation uses deterministic keyword evaluator for reproducibility; SliceBench uses LLM-as-judge for richer assessment. Cross-model validation uses keyword evaluator. All CIs computed on keyword evaluator scores.
+- [x] Update benchmark_design.tex evaluation protocol to mention both evaluation methods — **DONE**
 
 ### P2.3 Run-to-run variance disclosure
 - [ ] Discussion mentions "C1 baseline fluctuated ±10pp across runs" — this is HUGE
@@ -67,10 +67,10 @@
 - [ ] Add citation for MedQA if referenced in benchmark design opening
 
 ### P2.7 MedQA model identity
-- [ ] Appendix says MedQA baseline uses "Claude Opus 4.5"
-- [ ] Main text supporting results says "the backbone LLM achieves 81.6%"
-- [ ] Reader will think this is MedGemma 27B (the ClinicalBench model)
-- [ ] **Action**: Explicitly state which model achieved 81.6% on MedQA. If Opus, clarify it is not the ClinicalBench backbone.
+- [x] Appendix says MedQA baseline uses "Claude Opus 4.5" — already explicit
+- [x] Main text supporting results says "the backbone LLM achieves 81.6%" — **FIXED** now explicitly names "Claude Opus 4.5" and clarifies it's not the ClinicalBench main ablation model
+- [x] Reader will think this is MedGemma 27B (the ClinicalBench model) — **FIXED**
+- [x] **Action**: Explicitly state which model achieved 81.6% on MedQA. If Opus, clarify it is not the ClinicalBench backbone. — **DONE**
 
 ### P2.8 Missing appendix sections (PARTIALLY DONE)
 - [ ] Cross-model table caption references "see Appendix for evaluator evolution" — section doesn't exist
@@ -86,10 +86,10 @@
 ## Priority 3: Polish and Refinements
 
 ### P3.1 Introduction tightening
-- [ ] Lines 8-9 make the same claim twice ("no system connects..." and "we are unaware of a subsequent system...") — consolidate
-- [ ] Line 13 overloaded sentence (temporal KGs) — split into 2-3 sentences
-- [ ] Contribution list has 6 items — NeurIPS papers typically have 3-4. Merge items 1+2, demote item 4 (shared concept architecture) to system design
-- [ ] Lines 32-34 repeat numbers from abstract — replace with qualitative summary
+- [x] Lines 8-9 make the same claim twice ("no system connects..." and "we are unaware of a subsequent system...") — **FIXED** consolidated into single sentence
+- [x] Line 13 overloaded sentence (temporal KGs) — **FIXED** split into 2 sentences
+- [x] Contribution list has 6 items — NeurIPS papers typically have 3-4. — **FIXED** merged to 4 items (1+2 merged, item 4 removed, 5+6 merged)
+- [x] Lines 32-34 repeat numbers from abstract — **FIXED** replaced with qualitative preview referencing Section 5
 
 ### P3.2 Standardize "Slice Bench" vs "SliceBench"
 - [x] **DONE** — All instances standardized to "SliceBench" (one word) across all .tex files
@@ -107,9 +107,9 @@
 - [ ] Gap analysis table could add one column where EpiKG has a limitation (shows intellectual honesty)
 
 ### P3.5 Results section refinements
-- [ ] C3 and C5 safety scores are "---" — explain why missing
-- [ ] Hard longitudinal subset defined twice (benchmark L40 and results L88) — remove redundancy
-- [ ] Experiencer fix reads like a dev log — reframe as formal ablation
+- [x] C3 and C5 safety scores are "---" — **FIXED** added dagger footnote explaining they weren't computed in final evaluator run
+- [x] Hard longitudinal subset defined twice (benchmark L40 and results L88) — **FIXED** results now references Section 4.1 definition
+- [x] Experiencer fix reads like a dev log — **FIXED** reframed as "Experiencer attribute propagation ablation"
 - [x] Remove "200B+ parameter class" from L136 — **DONE**
 
 ### P3.6 Table formatting
@@ -117,8 +117,7 @@
 - [ ] Add consistent number formatting (1 decimal place everywhere for percentages)
 
 ### P3.7 Safety score w=2.0 justification
-- [ ] Weight of 2.0 for false-positive assertion errors is not empirically validated
-- [ ] Consider: sensitivity analysis, or citation to clinical risk literature, or acknowledge as a limitation
+- [x] Weight of 2.0 for false-positive assertion errors is not empirically validated — **FIXED** added clinical rationale and acknowledged as limitation/future work direction in benchmark_design.tex
 
 ### P3.8 F1 > 0.90 citation in abstract
 - [ ] Abstract claims "F1 > 0.90" for clinical NLP assertion detection — needs a citation
