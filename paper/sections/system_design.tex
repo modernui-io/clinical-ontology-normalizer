@@ -28,7 +28,7 @@ OMOP excludes negated conditions entirely~\cite{omop2024}; FHIR restricts assert
 \end{equation}
 %
 This extends the i2b2 six-class taxonomy~\cite{uzuner2011i2b2assertion} by separating \textsc{Historical} from \textsc{Family\_History}, a clinically important distinction that prior work conflates.
-A rule-based classifier (101 scope-aware trigger patterns) assigns $\alpha$ with an associated confidence score.
+A rule-based classifier (101 scope-aware trigger patterns) assigns $\alpha$ with an associated confidence score; we chose rule-based classification for deterministic behavior and interpretability in clinical pipelines, though fine-tuned LLM classifiers~\cite{gul2025beyondnegation} could be substituted.
 The label is carried through every stage: from \texttt{ExtractedMention} through ensemble merging, \texttt{ClinicalFact} records, KG edge properties, and retrieval scoring.
 To our knowledge, no prior system~\cite{gul2025beyondnegation,peng2018negbio} maintains this end-to-end invariant.
 
@@ -64,7 +64,7 @@ Given a clinical question $q$ and patient $\pi$, the retrieval pipeline: (1)~ext
 \label{eq:scoring}
 \text{score}(e) = c(e) + \mathbb{1}[\text{type}(e) \in Q_{\text{rel}}] \cdot 0.2 + \mathbb{1}[\tau_a(e) = \textsc{Current}] \cdot 0.1
 \end{equation}
-and serializes the surviving subgraph into structured text preserving assertion labels (\eg ``\textsc{Absent}: pneumonia''); and (6)~composes graph evidence, temporal context, guidelines, and source documents into a single prompt.
+where the bonuses for question-relevant edge types ($0.2$) and current temporality ($0.1$) were set by manual tuning on a development set of 20 questions; the system serializes the surviving subgraph into structured text preserving assertion labels (\eg ``\textsc{Absent}: pneumonia''); and (6)~composes graph evidence, temporal context, guidelines, and source documents into a single prompt.
 
 
 \subsection{Formal Epistemic Preservation}
@@ -93,4 +93,4 @@ The module computes set differences across admission pairs $(k, k')$---concepts 
 \paragraph{Current-state and historical retrieval.}
 For \textsc{Current\_State}, the module filters to edges with $\tau_a = \textsc{Current}$ or open-ended validity, deduplicates by concept, and emits ``\textsc{Not Found}'' for missing concepts.
 For \textsc{Historical}, it selects edges with $\tau_a = \textsc{Past}$ and augments with admission-based inference (concepts in earlier admissions but absent from the latest are labeled ``resolved'').
-Each intent triggers a type-specific prompt template that structures evidence according to question semantics.
+Each intent triggers a type-specific prompt template that structures evidence according to question semantics (Appendix~\ref{app:example}).

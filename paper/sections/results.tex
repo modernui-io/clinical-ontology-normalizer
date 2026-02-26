@@ -2,8 +2,8 @@
 % NOTE: \section{Results} and \label{sec:results} are in main.tex
 
 We evaluate \epikg through two benchmarks: ClinicalBench tests assertion-sensitive and longitudinal reasoning, while SliceBench measures longitudinal QA across patient complexity tiers.
-All confidence intervals use the bias-corrected and accelerated (BCa) bootstrap ($n=2{,}000$, seed 42)~\cite{efron1993bootstrap}, resampled at the question level.
-ClinicalBench results use a deterministic keyword evaluator for reproducibility; SliceBench uses LLM-as-judge evaluation (Section~\ref{sec:bench:protocol}).
+ClinicalBench uses a deterministic keyword evaluator for reproducibility; SliceBench uses LLM-as-judge evaluation (Section~\ref{sec:bench:protocol}).
+SliceBench reports BCa bootstrap 95\% CIs ($n=2{,}000$, seed 42)~\cite{efron1993bootstrap}, resampled at the question level.
 All ClinicalBench results are \emph{within-run paired comparisons}: conditions were evaluated in the same run with the same evaluator version, ensuring deltas are internally valid even when absolute levels vary across runs (Appendix~\ref{app:reproducibility}).
 
 % ----------------------------------------------------------
@@ -31,7 +31,7 @@ C5 & + Full System & 68.2\% & ---\textsuperscript{\dag} \\
 {\footnotesize \textsuperscript{\dag}Safety scores for C3 and C5 were not computed in the final evaluator run.}
 \end{table}
 
-Adding vanilla RAG \emph{hurts}: C2 underperforms C1 by $9.0\pp$ ($0.109$ on safety).
+Adding vanilla RAG \emph{hurts}: C2 underperforms C1 by $9.0\pp$ ($-0.109$ safety score).
 Assertion-blind KG-RAG (C3) scores lowest (59.2\%)---structured paths presenting negated conditions as graph edges actively mislead the model.
 Epistemic KG-RAG (C4) recovers to 71.5\% with the highest safety score (0.775), matching C1's accuracy while producing fewer clinically dangerous errors.
 Intent-aware KG-RAG (C4g) scores 66.0\% overall---$5.5\pp$ below C1---but this aggregate masks its transformative effect on longitudinal categories.
@@ -72,7 +72,7 @@ Change & 30 & 0.0 & 0.0 & 3.3 & 3.3 & \textbf{60.0} & $\uparrow 60.0\pp$ \\
 \label{fig:radar}
 \end{figure}
 
-Table~\ref{tab:clinicalbench_categories} and Figure~\ref{fig:radar} reveal a \emph{category$\times$condition interaction}: structured epistemic context is transformative for questions requiring cross-admission normalization but can hurt where the LLM's parametric knowledge already suffices.
+Table~\ref{tab:clinicalbench_categories} and Figure~\ref{fig:radar} reveal a \emph{category$\times$condition interaction}: structured epistemic context is transformative for questions requiring cross-admission normalization but can hurt where the LLM's parametric knowledge already suffices (per-category delta chart in Figure~\ref{fig:deltas}, Appendix; full results including C5 in Table~\ref{tab:full_percategory}, Appendix).
 
 \paragraph{Where intent-aware routing excels.}
 The ``change'' category---near zero for \emph{all} conditions C1 through C5---jumps to 60.0\% under C4g ($+60.0\pp$ vs.\ C1).
@@ -114,7 +114,7 @@ However, tier-stratified point estimates show a complexity-dependent trend: $+0.
 \label{sec:results:crossmodel}
 We ran ClinicalBench with Claude Opus 4.6 alongside MedGemma 27B (Table~\ref{tab:crossmodel}).
 Under C4, MedGemma shows no aggregate change ($+0.0\pp$) and Opus shows a small regression ($-2.2\pp$).
-Both models show the same directional pattern: gains on assertion-dependent categories (uncertainty, family history for MedGemma; negation, duration for Opus) and losses where parametric knowledge suffices (Table~\ref{tab:crossmodel_categories}, Appendix).
+Both models show the same directional pattern: gains on assertion-dependent categories (uncertainty, family history for MedGemma; negation, duration for Opus) and losses where parametric knowledge suffices (Appendix Table~\ref{tab:crossmodel_categories}).
 The ``change'' category remains near zero for C4 on both models (3.3\%, 13.3\%), motivating C4g's intent-aware routing.
 
 \begin{table}[t]
