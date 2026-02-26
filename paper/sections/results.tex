@@ -33,7 +33,7 @@ C5 & + Full System & 68.2\% & ---\textsuperscript{\dag} \\
 
 Adding vanilla RAG \emph{hurts}: C2 underperforms C1 by $9.0\pp$ ($-0.109$ safety score).
 Assertion-blind KG-RAG (C3) scores lowest (59.2\%)---structured paths presenting negated conditions as graph edges actively mislead the model.
-Epistemic KG-RAG (C4) recovers to 71.5\% with the highest safety score (0.775), matching C1's accuracy while producing fewer clinically dangerous errors.
+The C3$\rightarrow$C4 transition ($+12.3\pp$) isolates the assertion preservation effect: both conditions use graph retrieval, but only C4 carries the 7-value assertion schema, recovering to 71.5\% with the highest safety score (0.775)---matching C1's accuracy while producing fewer clinically dangerous errors.
 Intent-aware KG-RAG (C4g) scores 66.0\% overall---$5.5\pp$ below C1---but this aggregate masks its transformative effect on longitudinal categories.
 
 % ----------------------------------------------------------
@@ -42,7 +42,7 @@ Intent-aware KG-RAG (C4g) scores 66.0\% overall---$5.5\pp$ below C1---but this a
 
 \begin{table}[t]
 \centering
-\caption{ClinicalBench per-category accuracy (\%) across conditions (MedGemma 27B). Hard longitudinal categories (bottom three) show the strongest category$\times$condition interaction. Best per row in \textbf{bold}.}
+\caption{ClinicalBench per-category accuracy (\%) across conditions (MedGemma 27B). Longitudinal categories (below midrule) show the strongest category$\times$condition interaction. Best per row in \textbf{bold}.}
 \label{tab:clinicalbench_categories}
 \small
 \begin{tabular}{@{}lccccccl@{}}

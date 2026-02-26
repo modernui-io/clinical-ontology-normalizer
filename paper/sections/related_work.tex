@@ -21,7 +21,7 @@ All treat assertion detection as a terminal annotation task: labels are not carr
 Assertion detection is necessary but not sufficient: labels must also be \emph{temporally situated}---the same condition may be present in one encounter and absent in the next.
 
 \paragraph{Temporal knowledge graphs.}
-MedTKG~\cite{huang2024medtkg} constructs temporal KGs with time-stamped snapshots (event time only); Graphiti~\cite{ramirez2025graphiti} implements bitemporal edges but lacks clinical ontology alignment; TEO~\cite{li2020teo} and TCL~\cite{ong2023tcl} formalize Allen's relations~\cite{allen1983temporal} as annotation ontologies or modal operators rather than KG edge attributes.
+MedTKG~\cite{huang2024medtkg} constructs temporal KGs with time-stamped snapshots (event time only); Graphiti~\cite{ramirez2025graphiti} implements bitemporal edges~\cite{snodgrass2000temporal} but lacks clinical ontology alignment; TEO~\cite{li2020teo} and TCL~\cite{ong2023tcl} formalize Allen's relations~\cite{allen1983temporal} as annotation ontologies or modal operators rather than KG edge attributes.
 Uncertainty quantification in biomedical KGs~\cite{bao2024uncertaintybiomedkg} has not been connected to assertion taxonomies.
 Two structural gaps emerge: an \emph{epistemic propagation gap} (assertion-detecting systems do not persist labels into KGs) and a \emph{temporal integration gap} (temporal formalisms operate as annotation layers, not as KG edge attributes participating in retrieval).
 \epikg closes both by carrying assertion and temporal metadata as first-class properties through every pipeline stage.

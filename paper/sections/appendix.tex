@@ -25,12 +25,22 @@ An assertion-blind pipeline collapses all mentions to $\alpha = \textsc{Present}
 The information loss is $\Delta H = H(A_c^\pi) \geq 0$~\cite{shannon1948}, with $\Delta H > 0$ strictly whenever any mention carries a non-present assertion.
 \end{proposition}
 
+\begin{proof}
+Under the assertion-blind mapping $\phi: \alpha_i \mapsto \textsc{Present}$ for all $i$, the output distribution assigns probability 1 to \textsc{Present} and 0 to all other classes, so $H(\phi(A_c^\pi)) = 0$.
+By non-negativity of Shannon entropy, $\Delta H = H(A_c^\pi) - 0 = H(A_c^\pi) \geq 0$, with equality iff all mentions already carry $\alpha = \textsc{Present}$.
+\end{proof}
+
 \begin{corollary}[Faithfulness Bound]
 \label{cor:faithfulness}
 Let $f_{\textit{np}}(c)$ denote the fraction of mentions of concept $c$ carrying a non-present assertion ($\alpha \neq \textsc{Present}$).
 Without assertion labels, the maximum assertion-faithful accuracy for any downstream task conditioned on $c$ is bounded by $1 - f_{\textit{np}}(c)$.
 In clinical records where negated and uncertain mentions are prevalent---\eg ``no pneumonia,'' ``possible CHF''---this bound can be substantially below 1.
 \end{corollary}
+
+\begin{proof}
+Without assertion labels, any predictor must assign a single assertion class to all mentions of $c$.
+Choosing $\textsc{Present}$ (the majority class in clinical text) yields accuracy $1 - f_{\textit{np}}(c)$; the $f_{\textit{np}}(c)$ non-present mentions are necessarily misclassified.
+\end{proof}
 
 
 \section{Gap Analysis}
