@@ -27,7 +27,7 @@ OMOP excludes negated conditions entirely~\cite{omop2024}; FHIR restricts assert
 \alpha \in \{\text{\scriptsize Pres., Abs., Poss., Cond., Hypo., Fam.Hx., Hist.}\}
 \end{equation}
 %
-This extends the i2b2 six-class taxonomy~\cite{uzuner2011i2b2assertion} by separating \textsc{Historical} from \textsc{Family\_History}, a clinically important distinction that prior work conflates.
+This extends the i2b2 six-class taxonomy~\cite{uzuner2011i2b2assertion} by separating \textsc{Historical} from \textsc{Family\_History}, a clinically important distinction that prior work conflates (definitions in Appendix~\ref{app:assertions}).
 A rule-based classifier (101 scope-aware trigger patterns) assigns $\alpha$ with an associated confidence score; we chose rule-based classification for deterministic behavior and interpretability in clinical pipelines, though fine-tuned LLM classifiers~\cite{gul2025beyondnegation} could be substituted.
 The label is carried through every stage: from \texttt{ExtractedMention} through ensemble merging, \texttt{ClinicalFact} records, KG edge properties, and retrieval scoring.
 To our knowledge, no prior system~\cite{gul2025beyondnegation,peng2018negbio} maintains this end-to-end invariant.
@@ -59,12 +59,19 @@ Unlike TEO~\cite{li2020teo} and TCL~\cite{ong2023tcl}, which use Allen's relatio
 \subsection{Assertion-Aware Graph-Augmented Retrieval}
 \label{sec:system:retrieval}
 
-Given a clinical question $q$ and patient $\pi$, the retrieval pipeline: (1)~extracts concepts from $q$ via NLP + OMOP enrichment; (2)~traverses 2--3 hops over patient KG edges via bidirectional BFS, also following OMOP vocabulary relationships (20M+ edges) via PostgreSQL CTEs, pruning edges with confidence $c < 0.3$; (3)~groups traversed edges into four temporal views (event timeline, current state, historical state, conflicts); (4)~retrieves matching clinical guideline sections; (5)~scores edges by:
+Given a clinical question $q$ and patient $\pi$, the retrieval pipeline proceeds in six steps.
+First, concepts are extracted from $q$ via NLP + OMOP enrichment.
+Second, the system traverses 2--3 hops over patient KG edges via bidirectional BFS, also following OMOP vocabulary relationships (20M+ edges) via PostgreSQL CTEs (multi-hop limitations in Appendix~\ref{app:drknows}), pruning edges with confidence $c < 0.3$.
+Third, traversed edges are grouped into four temporal views (event timeline, current state, historical state, conflicts).
+Fourth, matching clinical guideline sections are retrieved.
+Fifth, edges are scored by:
 \begin{equation}
 \label{eq:scoring}
 \text{score}(e) = c(e) + \mathbb{1}[\text{type}(e) \in Q_{\text{rel}}] \cdot 0.2 + \mathbb{1}[\tau_a(e) = \textsc{Current}] \cdot 0.1
 \end{equation}
-where the bonuses for question-relevant edge types ($0.2$) and current temporality ($0.1$) were set by manual tuning on a development set of 20 questions; the system serializes the surviving subgraph into structured text preserving assertion labels (\eg ``\textsc{Absent}: pneumonia''); and (6)~composes graph evidence, temporal context, guidelines, and source documents into a single prompt.
+where the bonuses for question-relevant edge types ($0.2$) and current temporality ($0.1$) were set by manual tuning on a development set of 20 questions.
+The surviving subgraph is serialized into structured text preserving assertion labels (\eg ``\textsc{Absent}: pneumonia'').
+Sixth, graph evidence, temporal context, guidelines, and source documents are composed into a single prompt.
 
 
 \subsection{Formal Epistemic Preservation}

@@ -174,41 +174,11 @@ B4 & Full System & KG-RAG + guidelines + calculators \\
 \end{table}
 
 
-\section{Supporting Results}
+\section{System Implementation Details}
 \label{app:supporting}
 
-On MedQA-USMLE (965 questions), Claude Opus 4.5 achieves 81.6\% accuracy (5.1\,pp below GPT-4 at 86.7\% and Med-PaLM~2 at 86.5\%~\cite{medagentbench2025}), establishing that the Claude model family---Sonnet 4.5 (SliceBench answerer) and Opus 4.6 (ClinicalBench cross-model, SliceBench judge)---provides a reasonable LLM baseline.
-Graph traversal latency is sub-millisecond at current scale (3,100 nodes, 8,803 edges): 0.57\,ms (1-hop), 0.75\,ms (2-hop).
-The full system integrates 201 calculators, 1,202 guideline sections, 101 trigger patterns, and 24 edge types across 13 node types.
-
-
-\section{DR.KNOWS Benchmark Results}
-\label{app:drknows}
-
-We evaluate \epikg on the DR.KNOWS diagnostic reasoning benchmark~\cite{drknows2025}, which measures knowledge graph traversal accuracy using real PostgreSQL-backed clinical data.
-
-\begin{table}[ht]
-\centering
-\small
-\begin{tabular}{lcc}
-\toprule
-\textbf{Metric} & \textbf{Score} & \textbf{\% of Baseline} \\
-\midrule
-Overall & 0.420 & 49.7\% \\
-Path Discovery & 44.4\% & --- \\
-Reasoning Accuracy & 22.2\% & --- \\
-1-hop Traversal & 50.0\% & --- \\
-2-hop Traversal & 25.0\% & --- \\
-3-hop Traversal & 0.0\% & --- \\
-\bottomrule
-\end{tabular}
-\caption{DR.KNOWS benchmark results. Multi-hop accuracy degrades due to PostgreSQL CTE limitations---an intentional tradeoff for ACID compliance.}
-\label{tab:drknows}
-\end{table}
-
-
-\section{MedQA-USMLE Baseline}
-\label{app:medqa}
+\paragraph{LLM baseline.}
+On MedQA-USMLE (965 questions), Claude Opus 4.5 achieves 81.6\% accuracy (5.1\,pp below GPT-4 at 86.7\% and Med-PaLM~2 at 86.5\%~\cite{medagentbench2025}), establishing that the Claude model family---Sonnet 4.5 (SliceBench answerer) and Opus 4.6 (ClinicalBench cross-model, SliceBench judge)---provides a reasonable LLM baseline (Table~\ref{tab:medqa}).
 
 \begin{table}[ht]
 \centering
@@ -227,52 +197,15 @@ Claude 3 Opus (2024) & 78.0\% & --- & 1{,}273 \\
 \label{tab:medqa}
 \end{table}
 
+\paragraph{KG scale and traversal latency.}
+The deployed system processes 145 documents across 85 patients, materializing 3{,}100 KG nodes and 8{,}803 edges.
+Graph traversal latency is sub-millisecond at this scale: 0.57\,ms (1-hop), 0.75\,ms (2-hop).
+The full system integrates 201 clinical calculators, 1{,}202 guideline sections, 20M+ OMOP vocabulary relationships, 101 assertion trigger patterns, and 24 edge types across 13 node types.
 
-\section{Scalability Metrics}
-\label{app:scalability}
-
-\begin{table}[ht]
-\centering
-\small
-\begin{tabular}{lr}
-\toprule
-\textbf{Metric} & \textbf{Value} \\
-\midrule
-Documents processed & 145 \\
-Patients & 85 \\
-KG nodes & 3{,}100 \\
-KG edges & 8{,}803 \\
-1-hop traversal latency & 0.57\,ms \\
-2-hop traversal latency & 0.75\,ms \\
-\bottomrule
-\end{tabular}
-\caption{Scalability metrics at current deployment scale.}
-\label{tab:scalability}
-\end{table}
-
-
-\section{System Component Scale}
-\label{app:scale}
-
-\begin{table}[ht]
-\centering
-\small
-\begin{tabular}{lr}
-\toprule
-\textbf{Component} & \textbf{Scale} \\
-\midrule
-Clinical calculators & 201 \\
-Guideline sections (RAG corpus) & 1{,}202 \\
-OMOP vocabulary relationships & 20M+ \\
-Assertion trigger patterns & 101 \\
-KG edge types & 24 \\
-KG node types & 13 \\
-Assertion classes & 7 \\
-\bottomrule
-\end{tabular}
-\caption{System component scale.}
-\label{tab:system_scale}
-\end{table}
+\paragraph{Multi-hop traversal.}
+\label{app:drknows}
+On the DR.KNOWS diagnostic reasoning benchmark~\cite{drknows2025}, which measures KG traversal accuracy using PostgreSQL-backed clinical data, \epikg achieves 0.420 overall (50\% at 1-hop, 25\% at 2-hop, 0\% at 3-hop).
+Multi-hop degradation reflects a deliberate architectural trade-off: PostgreSQL CTE-based traversal provides ACID compliance but scales poorly beyond 2~hops.
 
 
 \section{SliceBench Tier-Stratified Results}
@@ -414,7 +347,7 @@ $E_d \gets \textsc{RetrieveDocuments}(\pi, \mathcal{C})$\;
 \label{app:c5}
 
 C5 extends C4 with guideline retrieval (1{,}202 sections) and clinical calculators (201, \eg CHA$_2$DS$_2$-VASc, MELD).
-C5 achieves 68.2\% overall, below C1 and C4 (71.5\% each), likely because non-relevant components dilute the context window.
+C5 achieves 68.2\% overall, below C1 and C4 (71.5\% each), likely because non-relevant components dilute the context window with information unrelated to the question.
 
 
 \section{Illustrative Retrieval Example}
