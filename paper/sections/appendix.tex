@@ -338,11 +338,11 @@ A full two-physician blinded adjudication ($n \geq 30$) is planned but not yet c
 
 \paragraph{Models.} ClinicalBench main ablation: MedGemma 27B via Ollama with deterministic keyword evaluator. Cross-model: MedGemma 27B and Claude Opus 4.6 (claude-opus-4-20250514) with the same evaluator. SliceBench: Claude Sonnet 4.5 (claude-sonnet-4-5-20250929, answering), Claude Opus 4.6 (judging). Temperature 0 throughout.
 
-\paragraph{Evaluation.} The keyword evaluator matches temporal and assertion keywords against gold-standard categories, strips echoed evidence preambles, and uses expanded uncertainty keywords including medical hedging terms.
+\paragraph{Evaluation.} The keyword evaluator matches temporal and assertion keywords against gold-standard categories, strips echoed evidence preambles, and includes expanded uncertainty keywords (medical hedging terms).
 
 \paragraph{Bootstrap.} $n=2{,}000$ resamples, seed 42, BCa method~\cite{efron1993bootstrap}.
 
-\paragraph{Data.} De-identified MIMIC-IV clinical notes under PhysioNet Credentialed Health Data Use Agreement (v1.5.0).
+\paragraph{Data.} De-identified MIMIC-IV clinical notes under PhysioNet Credentialed Health Data Use Agreement~(v1.5.0).
 
 \paragraph{Compute.} ClinicalBench: $\sim$3.6h (single GPU); Opus cross-model: $\sim$20min (API); SliceBench: $\sim$2h (API).
 
@@ -383,8 +383,8 @@ For \textsc{Change}, edges are partitioned by \texttt{hadm\_id} and set differen
 \section{C5 Full System Methodology}
 \label{app:c5}
 
-C5 extends C4 with guideline retrieval (1{,}202 sections) and clinical calculators (201, e.g., CHA$_2$DS$_2$-VASc, MELD).
-C5 achieves 68.2\% overall, below C1 and C4 (71.5\% each), likely because non-relevant components dilute the prompt.
+C5 extends C4 with guideline retrieval (1{,}202 sections) and clinical calculators (201, \eg CHA$_2$DS$_2$-VASc, MELD).
+C5 achieves 68.2\% overall, below C1 and C4 (71.5\% each), likely because non-relevant components dilute the context window.
 
 
 \section{Ethics Statement}

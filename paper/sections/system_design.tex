@@ -28,7 +28,7 @@ OMOP excludes negated conditions entirely~\cite{omop2024}; FHIR restricts assert
 \end{equation}
 %
 This extends the i2b2 six-class taxonomy~\cite{uzuner2011i2b2assertion} by separating \textsc{Historical} from \textsc{Family\_History}, a clinically important distinction that prior work conflates.
-A rule-based classifier (101 scope-aware trigger patterns) assigns $\alpha$ with calibrated confidence.
+A rule-based classifier (101 scope-aware trigger patterns) assigns $\alpha$ with an associated confidence score.
 The label is carried through every stage: from \texttt{ExtractedMention} through ensemble merging, \texttt{ClinicalFact} records, KG edge properties, and retrieval scoring.
 To our knowledge, no prior system~\cite{gul2025beyondnegation,peng2018negbio} maintains this end-to-end invariant.
 
@@ -52,7 +52,7 @@ An edge $e = (s, p, o, \alpha, \boldsymbol{\tau}_v, \boldsymbol{\tau}_t, \tau_a,
 \end{itemize}
 \end{definition}
 
-$\mathcal{R}$ captures nine qualitative temporal relationships, a subset of Allen's 13 canonical relations~\cite{allen1983temporal} augmented with \textsc{Concurrent} and \textsc{Unknown}.
+$\mathcal{R}$ comprises seven of Allen's 13 canonical relations~\cite{allen1983temporal} plus \textsc{Concurrent} and \textsc{Unknown} (nine total).
 Unlike TEO~\cite{li2020teo} and TCL~\cite{ong2023tcl}, which use Allen's relations as annotation-ontology classes or modal operators, \epikg stores $r$ and $c$ directly on materialized edges, enabling efficient temporal filtering during traversal.
 
 

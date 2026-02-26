@@ -47,7 +47,7 @@ C4$\to$C4g isolates the \emph{intent-aware routing effect}: both carry full asse
 SliceBench tests the hypothesis that KG-augmented retrieval provides increasing benefit as patient record complexity grows.
 We select 6 MIMIC-IV patients in three tiers: \textbf{Tier~A} (2 patients, 1--2 encounters), \textbf{Tier~B} (2 patients, 5--10), and \textbf{Tier~C} (2 patients, 15+).
 Each patient receives 24 questions (including hard longitudinal categories: cross-encounter medication timelines, problem list reconciliation, causal chain tracing), yielding 144 total.
-Five conditions (B0--B4) form a monotone context progression from parametric-only to full system (Appendix~\ref{app:slicebench_tiers}).
+Five conditions (B0--B4) form a monotone context progression from parametric-only to full system (Appendix~\ref{app:slicebench_conditions}).
 The critical comparison is B2$\to$B3: both have the same documents, but B3 adds structured KG context with assertion metadata and temporal relations.
 
 \subsection{Evaluation Protocol}

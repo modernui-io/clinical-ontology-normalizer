@@ -14,18 +14,18 @@ By routing change questions to cross-admission edge partitioning and current-sta
 
 \paragraph{Model-strength interaction.}
 The cross-model results (Table~\ref{tab:crossmodel}) show that epistemic KG-RAG's benefit is inversely related to baseline model capability.
-Under the uniform C4 condition, MedGemma~27B showed no aggregate improvement over C1 ($+0\pp$), and Opus showed a small regression ($-2.2\pp$).
+Under the uniform C4 condition, MedGemma~27B showed no aggregate change ($+0\pp$) and Opus showed a small regression ($-2.2\pp$).
 However, C4g reveals a \emph{category-specific} interaction: under intent-aware routing, MedGemma gains $+60\pp$ on change and $+57\pp$ on family history while losing ground where its C1 baseline is already adequate.
-Under C4, Opus gains on assertion-dependent categories (negation~$+2.7$, duration~$+10.0$, uncertainty~$+7.5\pp$) but loses where parametric knowledge suffices (conditional~$-15.0$, family history~$-10.0\pp$).
+Under C4, Opus gains on assertion-dependent categories (negation $+2.7\pp$, duration $+10.0\pp$, uncertainty $+7.5\pp$) but regresses on conditional ($-15.0\pp$) and family history ($-10.0\pp$).
 This reveals a design trade-off: structured context is transformative for cross-admission reasoning but can override correct answers where parametric knowledge suffices.
-Model-adaptive evidence presentation (\eg confidence-gated injection, lighter context for stronger models) is a promising direction.
+Model-adaptive evidence presentation (\eg confidence-gated injection) is a promising direction.
 
 \paragraph{Limitations.}
-Sample size is modest: SliceBench covers 6 patients (144 questions) and ClinicalBench covers 45 scenarios (400 questions), both from a single site (MIMIC-IV~\cite{johnson2023mimiciv}).
+Sample size is modest: SliceBench covers 6 patients (144 questions) and ClinicalBench covers 45 patients (400 questions), both from a single site (MIMIC-IV~\cite{johnson2023mimiciv}).
 The overall B2$\rightarrow$B3 CI crosses zero (\ci{-1.5\pp}{+5.9\pp}).
 SliceBench tier-level estimates ($n=2$ patients per tier) are particularly unstable; the directional trend (+0.6 to +5.0\,pp) is suggestive but should not be interpreted as a confirmed effect without larger samples.
 Bootstrap CIs are computed at the question level; a cluster-aware bootstrap at the patient level would be more conservative and is planned for the expanded cohort.
-Calculator/guideline integration (C5, B4) showed degradation that we hypothesize results from non-relevant module activation, though we have not performed controlled ablations to confirm this mechanism; query-aware component selection is a priority for future work.
+Calculator/guideline integration (C5) showed degradation on ClinicalBench ($68.2\%$ vs.\ C4's $71.5\%$) that we hypothesize results from non-relevant module activation, though we have not performed controlled ablations to confirm this mechanism; query-aware component selection is a priority for future work.
 SliceBench's LLM-as-judge evaluation may introduce biases; a pilot human validation ($n=5$, single reviewer; Appendix~\ref{app:human}) revealed overly strict automated scoring on uncertainty and sequence categories.
 ClinicalBench uses a deterministic keyword evaluator to avoid this, but keyword matching may miss semantically correct answers that use different phrasing.
 A full two-physician blinded adjudication covering both benchmarks is planned but not yet complete.
