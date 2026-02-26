@@ -10,11 +10,14 @@ interface Question {
   expected_answer: string;
   clinical_context: string;
   difficulty: string;
+  mimic_subject_id?: number;
   metadata: {
     assertion?: string;
     domain?: string;
     section?: string;
     confidence?: number;
+    hadm_1?: string;
+    hadm_2?: string;
   };
 }
 
@@ -52,6 +55,8 @@ export interface ReviewItem {
   assertion: string;
   domain: string;
   section: string;
+  patient_id: string;
+  hadm_ids: string[];
 }
 
 interface ValidationEntry {
@@ -128,6 +133,9 @@ export async function GET() {
     for (const entry of medgemmaCheckpoint) {
       const q = questions.get(entry.question_id);
       if (!q) continue;
+      const hadmIds: string[] = [];
+      if (q.metadata?.hadm_1) hadmIds.push(q.metadata.hadm_1);
+      if (q.metadata?.hadm_2) hadmIds.push(q.metadata.hadm_2);
       items.push({
         id: `medgemma__${entry.condition}__${entry.question_id}`,
         question_id: entry.question_id,
@@ -146,12 +154,17 @@ export async function GET() {
         assertion: q.metadata?.assertion || "",
         domain: q.metadata?.domain || "",
         section: q.metadata?.section || "",
+        patient_id: q.mimic_subject_id ? String(q.mimic_subject_id) : "",
+        hadm_ids: hadmIds,
       });
     }
 
     for (const entry of opusCheckpoint) {
       const q = questions.get(entry.question_id);
       if (!q) continue;
+      const hadmIds: string[] = [];
+      if (q.metadata?.hadm_1) hadmIds.push(q.metadata.hadm_1);
+      if (q.metadata?.hadm_2) hadmIds.push(q.metadata.hadm_2);
       items.push({
         id: `opus__${entry.condition}__${entry.question_id}`,
         question_id: entry.question_id,
@@ -170,6 +183,8 @@ export async function GET() {
         assertion: q.metadata?.assertion || "",
         domain: q.metadata?.domain || "",
         section: q.metadata?.section || "",
+        patient_id: q.mimic_subject_id ? String(q.mimic_subject_id) : "",
+        hadm_ids: hadmIds,
       });
     }
 

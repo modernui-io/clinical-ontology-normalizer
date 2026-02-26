@@ -72,6 +72,7 @@ async def list_documents(
     db: DbSession,
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(10, ge=1, le=100, description="Items per page"),
+    patient_id: str | None = Query(None, description="Filter by patient ID"),
     current_user: CurrentUser | None = Depends(get_current_user_optional),
 ) -> DocumentListResponse:
     """List clinical documents with pagination.
@@ -95,6 +96,8 @@ async def list_documents(
     count_stmt = select(func.count(DocumentModel.id)).where(
         DocumentModel.deleted_at.is_(None)
     )
+    if patient_id:
+        count_stmt = count_stmt.where(DocumentModel.patient_id == patient_id)
     count_stmt = _apply_owner_filter(count_stmt, current_user)
     total_result = await db.execute(count_stmt)
     total = total_result.scalar_one()
@@ -107,6 +110,8 @@ async def list_documents(
         .offset(offset)
         .limit(page_size)
     )
+    if patient_id:
+        stmt = stmt.where(DocumentModel.patient_id == patient_id)
     stmt = _apply_owner_filter(stmt, current_user)
     result = await db.execute(stmt)
     rows = result.scalars().all()

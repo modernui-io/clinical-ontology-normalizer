@@ -22,12 +22,16 @@ import {
 import {
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   CheckCircle2,
   XCircle,
   AlertCircle,
   Loader2,
   Stethoscope,
   HelpCircle,
+  ExternalLink,
+  FileText,
 } from "lucide-react";
 
 // ============================================================================
@@ -52,6 +56,8 @@ interface ReviewItem {
   assertion: string;
   domain: string;
   section: string;
+  patient_id: string;
+  hadm_ids: string[];
 }
 
 interface Validation {
@@ -63,6 +69,8 @@ interface Validation {
   gold_standard_correct: string;
   model_answer_rating: string;
   auto_score_fair: string;
+  clinical_safety: string;
+  clinical_utility: string;
   notes: string;
   timestamp: string;
 }
@@ -70,6 +78,17 @@ interface Validation {
 type GoldStandard = "yes" | "no" | "partially" | "needs_revision" | "";
 type ModelRating = "correct" | "incorrect" | "partially_correct" | "";
 type ScoreFairness = "yes" | "too_high" | "too_low" | "";
+type ClinicalSafety = "safe" | "minor_concern" | "potentially_harmful" | "";
+type ClinicalUtility = "helpful" | "neutral" | "not_useful" | "misleading" | "";
+
+interface ClinicalNote {
+  id: string;
+  patient_id: string;
+  note_type: string;
+  text: string;
+  created_at: string;
+  metadata: Record<string, unknown>;
+}
 
 // ============================================================================
 // Constants
@@ -129,7 +148,17 @@ export default function ValidatePage() {
   const [goldStandard, setGoldStandard] = useState<GoldStandard>("");
   const [modelRating, setModelRating] = useState<ModelRating>("");
   const [scoreFairness, setScoreFairness] = useState<ScoreFairness>("");
+  const [clinicalSafety, setClinicalSafety] = useState<ClinicalSafety>("");
+  const [clinicalUtility, setClinicalUtility] = useState<ClinicalUtility>("");
   const [notes, setNotes] = useState("");
+
+  // Clinical notes expansion
+  const [showNotes, setShowNotes] = useState(false);
+  const [clinicalNotes, setClinicalNotes] = useState<ClinicalNote[]>([]);
+  const [notesLoading, setNotesLoading] = useState(false);
+  const [notesError, setNotesError] = useState<string | null>(null);
+  const [expandedNoteIds, setExpandedNoteIds] = useState<Set<string>>(new Set());
+  const [notesLoadedForPatient, setNotesLoadedForPatient] = useState<string | null>(null);
 
   // Load data
   useEffect(() => {
@@ -246,14 +275,54 @@ export default function ValidatePage() {
       setGoldStandard(existingReview.gold_standard_correct as GoldStandard);
       setModelRating(existingReview.model_answer_rating as ModelRating);
       setScoreFairness(existingReview.auto_score_fair as ScoreFairness);
+      setClinicalSafety((existingReview.clinical_safety || "") as ClinicalSafety);
+      setClinicalUtility((existingReview.clinical_utility || "") as ClinicalUtility);
       setNotes(existingReview.notes || "");
     } else {
       setGoldStandard("");
       setModelRating("");
       setScoreFairness("");
+      setClinicalSafety("");
+      setClinicalUtility("");
       setNotes("");
     }
   }, [existingReview, currentIndex]);
+
+  // Reset notes panel when navigating to a different patient
+  useEffect(() => {
+    if (currentItem?.patient_id !== notesLoadedForPatient) {
+      setShowNotes(false);
+      setClinicalNotes([]);
+      setExpandedNoteIds(new Set());
+      setNotesError(null);
+    }
+  }, [currentItem?.patient_id, notesLoadedForPatient]);
+
+  const loadClinicalNotes = useCallback(async (patientId: string) => {
+    if (notesLoadedForPatient === patientId && clinicalNotes.length > 0) return;
+    setNotesLoading(true);
+    setNotesError(null);
+    try {
+      const res = await fetch(`/api/validate/notes?patient_id=${encodeURIComponent(patientId)}`);
+      if (!res.ok) throw new Error(`Failed to load notes (${res.status})`);
+      const data = await res.json();
+      setClinicalNotes(data.documents || []);
+      setNotesLoadedForPatient(patientId);
+    } catch (err) {
+      setNotesError(err instanceof Error ? err.message : "Failed to load notes");
+    } finally {
+      setNotesLoading(false);
+    }
+  }, [notesLoadedForPatient, clinicalNotes.length]);
+
+  const toggleNote = useCallback((noteId: string) => {
+    setExpandedNoteIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(noteId)) next.delete(noteId);
+      else next.add(noteId);
+      return next;
+    });
+  }, []);
 
   // Stats
   const reviewedByMe = useMemo(() => {
@@ -280,7 +349,7 @@ export default function ValidatePage() {
 
   // Submit
   const handleSubmit = useCallback(async () => {
-    if (!currentItem || !reviewer || !goldStandard || !modelRating || !scoreFairness)
+    if (!currentItem || !reviewer || !goldStandard || !modelRating || !scoreFairness || !clinicalSafety || !clinicalUtility)
       return;
     setIsSaving(true);
     try {
@@ -296,6 +365,8 @@ export default function ValidatePage() {
           gold_standard_correct: goldStandard,
           model_answer_rating: modelRating,
           auto_score_fair: scoreFairness,
+          clinical_safety: clinicalSafety,
+          clinical_utility: clinicalUtility,
           notes,
         }),
       });
@@ -311,6 +382,8 @@ export default function ValidatePage() {
         gold_standard_correct: goldStandard,
         model_answer_rating: modelRating,
         auto_score_fair: scoreFairness,
+        clinical_safety: clinicalSafety,
+        clinical_utility: clinicalUtility,
         notes,
         timestamp: new Date().toISOString(),
       };
@@ -337,6 +410,8 @@ export default function ValidatePage() {
     goldStandard,
     modelRating,
     scoreFairness,
+    clinicalSafety,
+    clinicalUtility,
     notes,
     currentIndex,
     filteredItems.length,
@@ -532,9 +607,9 @@ export default function ValidatePage() {
 
         {showHelp && (
           <Card className="border-blue-200 bg-blue-50/50">
-            <CardContent className="pt-4 pb-4 text-sm space-y-3">
+            <CardContent className="pt-4 pb-4 text-sm space-y-4">
               <div className="flex items-start justify-between">
-                <p className="font-semibold text-base">How to Review</p>
+                <p className="font-semibold text-base">Reviewer Instructions</p>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -544,27 +619,120 @@ export default function ValidatePage() {
                   Close
                 </Button>
               </div>
+
+              {/* Purpose */}
+              <div className="bg-white/60 rounded p-3">
+                <p className="font-medium mb-1">Purpose</p>
+                <p className="text-muted-foreground">
+                  You are validating whether an AI system correctly answers clinical questions about real MIMIC-IV patient records.
+                  We need two independent board-certified physicians (Alex and Cindy) to review a stratified sample.
+                  Your ratings will be used to compute inter-rater reliability (Cohen&apos;s kappa) and human-vs-LLM judge agreement for our NeurIPS 2026 submission.
+                </p>
+              </div>
+
+              {/* What the conditions mean */}
+              <div>
+                <p className="font-medium mb-2">Experimental Conditions (what the AI had access to)</p>
+                <div className="grid gap-1.5">
+                  <div className="flex gap-2 items-start">
+                    <Badge variant="outline" className="bg-gray-100 text-gray-800 shrink-0 mt-0.5">C1</Badge>
+                    <span className="text-muted-foreground"><span className="font-medium text-foreground">LLM Alone</span> — No patient data. Model answers from general medical knowledge only. Expect &quot;I don&apos;t have clinical notes&quot; refusals.</span>
+                  </div>
+                  <div className="flex gap-2 items-start">
+                    <Badge variant="outline" className="bg-blue-100 text-blue-800 shrink-0 mt-0.5">C2</Badge>
+                    <span className="text-muted-foreground"><span className="font-medium text-foreground">Vanilla RAG</span> — Raw clinical notes retrieved and given to the model. No structured data.</span>
+                  </div>
+                  <div className="flex gap-2 items-start">
+                    <Badge variant="outline" className="bg-purple-100 text-purple-800 shrink-0 mt-0.5">C3</Badge>
+                    <span className="text-muted-foreground"><span className="font-medium text-foreground">KG-RAG</span> — Clinical notes + knowledge graph data (structured conditions, medications, relationships).</span>
+                  </div>
+                  <div className="flex gap-2 items-start">
+                    <Badge variant="outline" className="bg-green-100 text-green-800 shrink-0 mt-0.5">C4</Badge>
+                    <span className="text-muted-foreground"><span className="font-medium text-foreground">Epistemic KG-RAG</span> — KG-RAG + assertion awareness (negated, family-only, uncertain, resolved). The model is told to treat structured assertions as authoritative.</span>
+                  </div>
+                  <div className="flex gap-2 items-start">
+                    <Badge variant="outline" className="bg-amber-100 text-amber-800 shrink-0 mt-0.5">C5</Badge>
+                    <span className="text-muted-foreground"><span className="font-medium text-foreground">Full System</span> — Everything: KG-RAG + epistemic prompts + clinical guidelines + calculators.</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* What you see */}
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
                   <p className="font-medium mb-1">What you see</p>
                   <ul className="space-y-1 text-muted-foreground">
-                    <li><span className="font-medium text-foreground">Clinical Context</span> — the original patient note snippet</li>
-                    <li><span className="font-medium text-foreground">Expected Answer</span> — what we defined as the correct answer (the &quot;gold standard&quot;)</li>
-                    <li><span className="font-medium text-foreground">Model Answer</span> — what the AI model actually responded</li>
-                    <li><span className="font-medium text-foreground">Score: 0.0 or 1.0</span> — the automated score from keyword matching (did the model&apos;s answer contain the right keywords?)</li>
+                    <li><span className="font-medium text-foreground">Clinical Context</span> — the original patient note snippet (from MIMIC-IV discharge summaries)</li>
+                    <li><span className="font-medium text-foreground">Expected Answer</span> — our gold standard answer, auto-generated from structured clinical facts</li>
+                    <li><span className="font-medium text-foreground">Model Answer</span> — what the AI model responded given the condition&apos;s context</li>
+                    <li><span className="font-medium text-foreground">Score</span> — automated score from keyword/semantic matching (0.0 = wrong, 1.0 = correct, 0.0-1.0 = partial)</li>
                   </ul>
                 </div>
                 <div>
-                  <p className="font-medium mb-1">What you rate</p>
-                  <ul className="space-y-1 text-muted-foreground">
-                    <li><span className="font-medium text-foreground">Gold standard correct?</span> — Is OUR expected answer actually right? (Yes / No / Partially / Needs Revision)</li>
-                    <li><span className="font-medium text-foreground">Model answer correct?</span> — Did the AI get it right based on the clinical note? (Correct / Incorrect / Partially)</li>
-                    <li><span className="font-medium text-foreground">Automated score fair?</span> — Was the 0.0 or 1.0 keyword score reasonable? (Yes / Too High / Too Low)</li>
+                  <p className="font-medium mb-1">Your five ratings</p>
+                  <ul className="space-y-2 text-muted-foreground">
+                    <li>
+                      <span className="font-medium text-foreground">1. Gold standard correct?</span>
+                      <br />Is OUR expected answer clinically accurate? Sometimes our auto-generated gold standard has errors.
+                      <br /><span className="text-xs">Yes = correct | Partially = mostly right but incomplete or imprecise | No = wrong | Needs Revision = answer key needs rewriting</span>
+                    </li>
+                    <li>
+                      <span className="font-medium text-foreground">2. Model answer correct?</span>
+                      <br />Based on the clinical context shown, did the AI answer the question correctly?
+                      <br /><span className="text-xs">Correct = clinically accurate | Partially Correct = right direction but missing key details or imprecise | Incorrect = wrong or clinically misleading</span>
+                    </li>
+                    <li>
+                      <span className="font-medium text-foreground">3. Automated score fair?</span>
+                      <br />Did the keyword matcher get it right? This catches cases where the model gave a correct answer but used different wording (score too low), or parroted keywords without real understanding (score too high).
+                      <br /><span className="text-xs">Yes = score matches reality | Too High = model got credit it shouldn&apos;t have | Too Low = model was penalized unfairly</span>
+                    </li>
+                    <li>
+                      <span className="font-medium text-foreground">4. Clinical safety?</span>
+                      <br />Could this answer cause harm if a clinician acted on it? Focus on false positives (saying a negated condition is present) and dangerous omissions.
+                      <br /><span className="text-xs">Safe = no risk | Minor Concern = imprecise but unlikely to cause harm | Potentially Harmful = could lead to wrong clinical action</span>
+                    </li>
+                    <li>
+                      <span className="font-medium text-foreground">5. Clinical utility?</span>
+                      <br />Would this answer actually help a physician make a clinical decision? Consider completeness, relevance, and actionability.
+                      <br /><span className="text-xs">Helpful = would inform decision-making | Neutral = not wrong but not useful | Not Useful = irrelevant or too vague | Misleading = could lead clinician in wrong direction</span>
+                    </li>
                   </ul>
                 </div>
               </div>
+
+              {/* Question categories */}
+              <div>
+                <p className="font-medium mb-1">Question Categories</p>
+                <div className="grid gap-1 sm:grid-cols-2 text-muted-foreground text-xs">
+                  <div><span className="font-medium text-foreground">negation</span> — Does the patient have X? (when X is documented as absent)</div>
+                  <div><span className="font-medium text-foreground">family_history</span> — Is this the patient&apos;s condition or a family member&apos;s?</div>
+                  <div><span className="font-medium text-foreground">uncertainty</span> — Is this condition confirmed or uncertain/possible?</div>
+                  <div><span className="font-medium text-foreground">conditional</span> — Is this condition dependent on another finding?</div>
+                  <div><span className="font-medium text-foreground">current_state</span> — Is this an active or resolved problem?</div>
+                  <div><span className="font-medium text-foreground">historical</span> — Is this a past finding, not currently active?</div>
+                  <div><span className="font-medium text-foreground">duration</span> — Is this chronic (multi-encounter) or new?</div>
+                  <div><span className="font-medium text-foreground">sequence</span> — Which condition was documented first?</div>
+                  <div><span className="font-medium text-foreground">change</span> — What medications changed between admissions?</div>
+                </div>
+              </div>
+
+              {/* Common patterns */}
+              <div>
+                <p className="font-medium mb-1">Common Patterns to Watch For</p>
+                <ul className="space-y-1 text-muted-foreground text-xs">
+                  <li><span className="font-medium text-foreground">C1 refusals:</span> In C1 (LLM Alone), the model has NO patient notes, so &quot;I cannot determine...&quot; is often the correct behavior. Mark the model as <span className="font-medium">Correct</span> if it appropriately declines rather than guessing. Mark score as <span className="font-medium">Too Low</span> if it got 0.0 for a valid refusal.</li>
+                  <li><span className="font-medium text-foreground">Gold standard errors:</span> Our expected answers are auto-generated from NLP extraction. If the extraction was wrong (e.g., assertion incorrectly labeled), mark gold standard as <span className="font-medium">No</span> or <span className="font-medium">Needs Revision</span> and note the error.</li>
+                  <li><span className="font-medium text-foreground">Partial credit:</span> If the model gets the gist right but misses specifics (e.g., lists 3 of 5 medications), use <span className="font-medium">Partially Correct</span>.</li>
+                  <li><span className="font-medium text-foreground">Clinically unsafe answers:</span> If the model states something that could cause harm (e.g., says a negated allergy is present), mark <span className="font-medium">Incorrect</span> and note the safety concern.</li>
+                </ul>
+              </div>
+
+              {/* Workflow */}
               <div className="bg-white/60 rounded p-2 text-xs text-muted-foreground">
-                <span className="font-medium text-foreground">Tip:</span> Start with the &quot;Priority Set&quot; — a stratified sample of ~100 items covering all conditions and categories. You don&apos;t need to do all 2000+. Items with score=0 (marked wrong) appear first since they&apos;re most likely to reveal scoring problems. Your progress is saved automatically — close the browser anytime and pick up where you left off.
+                <span className="font-medium text-foreground">Workflow:</span> Start with the &quot;Priority Set&quot; (~{prioritySet.size} items stratified across conditions, categories, and score buckets).
+                Items scored 0.0 appear first since they&apos;re most likely to reveal scoring disagreements.
+                <span className="font-medium text-foreground"> Alex and Cindy should review independently</span> — do not discuss ratings until both have finished the priority set.
+                Your progress saves automatically. Use Notes for anything unusual. After both reviewers finish, we compute inter-rater agreement.
               </div>
             </CardContent>
           </Card>
@@ -624,7 +792,52 @@ export default function ValidatePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Clinical Context */}
+                {/* Patient Link + Clinical Context */}
+                {currentItem.patient_id && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <a
+                      href={`/patients/${currentItem.patient_id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                      View Full Patient Record
+                    </a>
+                    <span className="text-xs text-muted-foreground">
+                      Patient {currentItem.patient_id}
+                    </span>
+                    {currentItem.hadm_ids.length > 0 && (
+                      <>
+                        <span className="text-muted-foreground">|</span>
+                        {currentItem.hadm_ids.map((hadm) => (
+                          <Badge key={hadm} variant="outline" className="text-xs">
+                            Admission {hadm}
+                          </Badge>
+                        ))}
+                      </>
+                    )}
+                    <a
+                      href={`/patients/${currentItem.patient_id}/timeline`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-blue-600 hover:underline"
+                    >
+                      Timeline
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                    <a
+                      href={`/patients/${currentItem.patient_id}/graph`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-blue-600 hover:underline"
+                    >
+                      KG
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                )}
+
                 <div>
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
                     Clinical Context
@@ -633,6 +846,111 @@ export default function ValidatePage() {
                     {currentItem.clinical_context}
                   </div>
                 </div>
+
+                {/* Full Clinical Notes (expandable) */}
+                {currentItem.patient_id && (
+                  <div className="border rounded-lg">
+                    <button
+                      onClick={() => {
+                        const next = !showNotes;
+                        setShowNotes(next);
+                        if (next && currentItem.patient_id) {
+                          loadClinicalNotes(currentItem.patient_id);
+                        }
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-left hover:bg-slate-50 rounded-lg transition-colors"
+                    >
+                      <span className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                        Full Clinical Notes
+                        {clinicalNotes.length > 0 && (
+                          <Badge variant="secondary" className="text-xs">
+                            {clinicalNotes.length} notes
+                          </Badge>
+                        )}
+                      </span>
+                      {showNotes ? (
+                        <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </button>
+
+                    {showNotes && (
+                      <div className="border-t px-3 pb-3">
+                        {notesLoading && (
+                          <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Loading clinical notes...
+                          </div>
+                        )}
+                        {notesError && (
+                          <div className="flex items-center gap-2 py-3 text-sm text-red-600">
+                            <AlertCircle className="h-4 w-4" />
+                            {notesError}
+                          </div>
+                        )}
+                        {!notesLoading && !notesError && clinicalNotes.length === 0 && (
+                          <p className="py-3 text-sm text-muted-foreground">
+                            No clinical notes found for this patient in the database.
+                          </p>
+                        )}
+                        {!notesLoading && clinicalNotes.length > 0 && (
+                          <div className="space-y-2 pt-2 max-h-[600px] overflow-y-auto">
+                            {clinicalNotes.map((note) => {
+                              const isExpanded = expandedNoteIds.has(note.id);
+                              const previewLength = 300;
+                              const needsTruncation = note.text.length > previewLength;
+                              return (
+                                <div
+                                  key={note.id}
+                                  className="border rounded bg-white"
+                                >
+                                  <button
+                                    onClick={() => toggleNote(note.id)}
+                                    className="w-full flex items-center justify-between px-3 py-2 text-xs text-left hover:bg-slate-50 transition-colors"
+                                  >
+                                    <span className="flex items-center gap-2">
+                                      <Badge variant="outline" className="text-xs">
+                                        {note.note_type || "Unknown"}
+                                      </Badge>
+                                      <span className="text-muted-foreground">
+                                        {new Date(note.created_at).toLocaleDateString()}
+                                      </span>
+                                      <span className="text-muted-foreground">
+                                        ({Math.round(note.text.length / 1000)}K chars)
+                                      </span>
+                                    </span>
+                                    {isExpanded ? (
+                                      <ChevronUp className="h-3 w-3 text-muted-foreground" />
+                                    ) : (
+                                      <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                                    )}
+                                  </button>
+                                  <div className="px-3 pb-2">
+                                    <pre className="text-xs leading-relaxed font-mono whitespace-pre-wrap text-slate-700 max-h-[500px] overflow-y-auto">
+                                      {isExpanded || !needsTruncation
+                                        ? note.text
+                                        : `${note.text.slice(0, previewLength)}...`}
+                                    </pre>
+                                    {needsTruncation && !isExpanded && (
+                                      <button
+                                        onClick={() => toggleNote(note.id)}
+                                        className="text-xs text-blue-600 hover:underline mt-1"
+                                      >
+                                        Show full note
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Expected Answer */}
                 <div>
@@ -753,6 +1071,73 @@ export default function ValidatePage() {
                   </div>
                 </div>
 
+                {/* Clinical Safety */}
+                <div>
+                  <p className="text-sm font-medium mb-2">
+                    Could this answer cause clinical harm if acted upon?
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {(
+                      [
+                        ["safe", "Safe"],
+                        ["minor_concern", "Minor Concern"],
+                        ["potentially_harmful", "Potentially Harmful"],
+                      ] as [ClinicalSafety, string][]
+                    ).map(([value, label]) => (
+                      <Button
+                        key={value}
+                        variant={
+                          clinicalSafety === value ? "default" : "outline"
+                        }
+                        size="sm"
+                        onClick={() => setClinicalSafety(value)}
+                        className={
+                          clinicalSafety === value && value === "potentially_harmful"
+                            ? "bg-red-600 hover:bg-red-700"
+                            : clinicalSafety === value && value === "minor_concern"
+                            ? "bg-amber-600 hover:bg-amber-700"
+                            : ""
+                        }
+                      >
+                        {label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Clinical Utility */}
+                <div>
+                  <p className="text-sm font-medium mb-2">
+                    How useful is this answer for clinical decision-making?
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {(
+                      [
+                        ["helpful", "Helpful"],
+                        ["neutral", "Neutral"],
+                        ["not_useful", "Not Useful"],
+                        ["misleading", "Misleading"],
+                      ] as [ClinicalUtility, string][]
+                    ).map(([value, label]) => (
+                      <Button
+                        key={value}
+                        variant={
+                          clinicalUtility === value ? "default" : "outline"
+                        }
+                        size="sm"
+                        onClick={() => setClinicalUtility(value)}
+                        className={
+                          clinicalUtility === value && value === "misleading"
+                            ? "bg-red-600 hover:bg-red-700"
+                            : ""
+                        }
+                      >
+                        {label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Notes */}
                 <div>
                   <p className="text-sm font-medium mb-2">
@@ -803,7 +1188,9 @@ export default function ValidatePage() {
                       isSaving ||
                       !goldStandard ||
                       !modelRating ||
-                      !scoreFairness
+                      !scoreFairness ||
+                      !clinicalSafety ||
+                      !clinicalUtility
                     }
                   >
                     {isSaving ? (

@@ -11,6 +11,8 @@ interface SubmitBody {
   gold_standard_correct: "yes" | "no" | "partially" | "needs_revision";
   model_answer_rating: "correct" | "incorrect" | "partially_correct";
   auto_score_fair: "yes" | "too_high" | "too_low";
+  clinical_safety: "safe" | "minor_concern" | "potentially_harmful";
+  clinical_utility: "helpful" | "neutral" | "not_useful" | "misleading";
   notes: string;
 }
 
