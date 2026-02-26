@@ -1070,6 +1070,44 @@ class QAEvaluationService:
                 score = min(score + 0.1, 1.0)
             correct = score >= 0.25
 
+        # --- Task E: Clinical decision protocol categories ---
+        elif question.category in ("stroke_tpa", "vte_prophylaxis", "periop_cardiac",
+                                    "sepsis_bundle", "trauma_surgical"):
+            # Multi-step protocol questions scored on:
+            # 1. Key clinical terms overlap (conditions, medications, labs)
+            # 2. Decision keywords (eligible, contraindicated, risk, etc.)
+            # 3. Cross-admission reasoning language
+            expected_terms = set(expected_lower.split()) - {
+                "the", "a", "an", "is", "of", "in", "to", "for", "was", "and",
+                "this", "with", "that", "from", "data", "required", "across",
+                "based", "on", "patient", "admissions",
+            }
+            predicted_terms = set(predicted_lower.split())
+            overlap = expected_terms & predicted_terms
+            term_score = len(overlap) / max(len(expected_terms), 1)
+
+            # Bonus for clinical decision language
+            decision_kw = ["eligible", "contraindicated", "risk", "recommend",
+                           "score", "criteria", "exclude", "inclusion", "exclusion",
+                           "not eligible", "conditional", "proceed", "defer", "hold",
+                           "modify", "adjustment", "clearance"]
+            _dec_patterns = [re.compile(r'\b' + re.escape(kw) + r'\b') for kw in decision_kw]
+            has_decision = any(p.search(predicted_lower) for p in _dec_patterns)
+
+            # Bonus for cross-admission reasoning
+            longitudinal_kw = ["across admissions", "prior admission", "previous",
+                               "history of", "longitudinal", "trend", "over time",
+                               "prior to", "documented in", "multiple"]
+            _long_patterns = [re.compile(r'\b' + re.escape(kw) + r'\b') for kw in longitudinal_kw]
+            has_longitudinal = any(p.search(predicted_lower) for p in _long_patterns)
+
+            score = term_score
+            if has_decision:
+                score = min(score + 0.15, 1.0)
+            if has_longitudinal:
+                score = min(score + 0.1, 1.0)
+            correct = score >= 0.25
+
         else:
             # General scoring: check if key terms from expected answer appear
             expected_terms = set(expected_lower.split()) - {"the", "a", "an", "is", "of", "in", "to", "for"}

@@ -23,6 +23,7 @@ import time
 from dataclasses import dataclass, field
 
 import httpx
+from sqlalchemy.exc import OperationalError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.core.database import get_sync_engine
@@ -208,6 +209,8 @@ class QARunConfig:
     max_paths: int = 10
     # NeurIPS ablation extensions
     raw_note_only: bool = False  # C1: bypass RAG, send raw note text to LLM
+    long_context: bool = False  # C6: dump ALL patient notes into prompt (no retrieval, no KG)
+    deterministic_only: bool = False  # C7: structured KG queries only, no LLM
     calculator_enabled: bool = False  # C5: run clinical calculators on KG data
     guidelines_enabled: bool = False  # C5: include guideline retrieval
     use_llm_judge: bool = False  # Use LLM judge for scoring instead of keyword matching
@@ -258,10 +261,22 @@ async def _call_ollama(
         },
     }
 
-    async with httpx.AsyncClient(timeout=120.0) as client:
-        resp = await client.post(f"{base_url}/api/chat", json=payload)
-        resp.raise_for_status()
-        data = resp.json()
+    max_retries = 3
+    data = {}
+    async with httpx.AsyncClient(timeout=180.0) as client:
+        for attempt in range(max_retries):
+            try:
+                resp = await client.post(f"{base_url}/api/chat", json=payload)
+                resp.raise_for_status()
+                data = resp.json()
+                break
+            except (httpx.ConnectError, httpx.ReadTimeout, httpx.HTTPStatusError) as exc:
+                if attempt < max_retries - 1:
+                    wait = 2 ** attempt
+                    logger.warning("Ollama call failed (attempt %d/%d): %s — retrying in %ds", attempt + 1, max_retries, exc, wait)
+                    await asyncio.sleep(wait)
+                else:
+                    raise
 
     content = data.get("message", {}).get("content", "")
     eval_count = data.get("eval_count", 0)
@@ -335,8 +350,36 @@ class QAExperimentExecutor:
                 question.metadata.get("patient_id") or config.patient_id
             )
 
+            # === C7: Deterministic KG queries only — no LLM ===
+            if config.deterministic_only:
+                evidence = self._get_deterministic_kg_answer(
+                    effective_patient_id, question, rag_service,
+                )
+                latency_ms = (time.perf_counter() - t0) * 1000
+                # Score directly — no LLM call
+                result = self.qa_service.score_answer(
+                    question, evidence, config.condition,
+                )
+                result.latency_ms = latency_ms
+                result.reasoning_trace = "Deterministic KG query — no LLM"
+                return result
+
+            # === C6: Long context — dump ALL notes into prompt ===
+            if config.long_context:
+                evidence = self._get_all_notes_context(effective_patient_id, rag_service)
+                user_prompt = (
+                    f"Below are ALL clinical notes for this patient, in chronological order.\n"
+                    f"There are multiple admission records spanning their full history.\n\n"
+                    f"{evidence}\n\n"
+                    f"Question: {question.question}\n\n"
+                    f"Answer concisely based on ALL the notes above. Synthesize information "
+                    f"across multiple admissions if needed."
+                )
+                evidence_pieces = evidence.count("---")
+                graph_path_count = 0
+
             # === C1 bypass: raw note → LLM, no RAG ===
-            if config.raw_note_only:
+            elif config.raw_note_only:
                 evidence = self._get_raw_note_context(effective_patient_id, rag_service)
                 user_prompt = (
                     f"Clinical note:\n{evidence}\n\n"
@@ -510,9 +553,114 @@ class QAExperimentExecutor:
                     (d.text[:2000] if d.text else "") for d in docs
                 )
             return "No clinical notes available for this patient."
-        except Exception as exc:
+        except (SQLAlchemyError, OperationalError) as exc:
             logger.warning("Raw note retrieval failed: %s", exc)
             return "No clinical notes available for this patient."
+
+    def _get_all_notes_context(
+        self,
+        patient_id: str,
+        rag_service: GraphAugmentedRAGService,
+        max_chars: int = 180_000,
+    ) -> str:
+        """Get ALL clinical notes for a patient (C6 long-context condition).
+
+        Retrieves every document for the patient, sorted chronologically,
+        concatenated up to max_chars. This simulates the "dump everything into
+        a 200K context window" approach.
+        """
+        try:
+            from sqlalchemy import select
+            from app.models.document import Document
+
+            stmt = (
+                select(Document)
+                .where(Document.patient_id == patient_id)
+                .order_by(Document.note_date.asc().nulls_last(), Document.created_at.asc())
+            )
+            result = rag_service._session.execute(stmt)
+            docs = list(result.scalars().all())
+
+            if not docs:
+                return "No clinical notes available for this patient."
+
+            parts = []
+            total_chars = 0
+            for i, doc in enumerate(docs):
+                text = doc.text or ""
+                note_type = doc.note_type or "Unknown"
+                note_date = str(doc.note_date) if doc.note_date else "Unknown date"
+                header = f"--- Note {i+1}/{len(docs)} | {note_type} | {note_date} ---"
+                entry = f"{header}\n{text}"
+
+                if total_chars + len(entry) > max_chars:
+                    # Truncate last note to fit
+                    remaining = max_chars - total_chars
+                    if remaining > 200:
+                        parts.append(f"{header}\n{text[:remaining]}...[TRUNCATED]")
+                        omitted = len(docs) - i - 1
+                    else:
+                        omitted = len(docs) - i
+                    if omitted > 0:
+                        parts.append(f"\n[{omitted} additional notes omitted due to context limit]")
+                    break
+
+                parts.append(entry)
+                total_chars += len(entry)
+
+            return "\n\n".join(parts)
+
+        except (SQLAlchemyError, OperationalError) as exc:
+            logger.warning("All-notes retrieval failed for %s: %s", patient_id, exc)
+            return "No clinical notes available for this patient."
+
+    def _get_deterministic_kg_answer(
+        self,
+        patient_id: str,
+        question: QAQuestion,
+        rag_service: GraphAugmentedRAGService,
+    ) -> str:
+        """Generate a deterministic answer from KG data only (C7 — no LLM).
+
+        Queries the knowledge graph for relevant edges and formats a structured
+        answer from raw facts. No language model reasoning.
+        """
+        try:
+            # Retrieve KG context with full assertion + temporal
+            context = rag_service.retrieve_context(
+                query=question.question,
+                patient_id=patient_id,
+                max_hops=2,
+                max_paths=15,
+                assertion_mode="full",
+                temporal_mode="full_bitemporal",
+                retrieval_mode="graph_plus_doc",
+            )
+
+            # Format as structured facts (no prose)
+            facts = []
+            for path in context.graph_paths:
+                for edge in path.edges:
+                    assertion = ""
+                    if hasattr(edge, "assertion") and edge.assertion:
+                        assertion = f" [{edge.assertion}]"
+                    temporality = ""
+                    if hasattr(edge, "temporality") and edge.temporality:
+                        temporality = f" ({edge.temporality})"
+                    facts.append(
+                        f"{edge.source_label} --{edge.edge_type}--> "
+                        f"{edge.target_label}{assertion}{temporality}"
+                    )
+
+            if not facts:
+                return "No relevant knowledge graph edges found for this patient."
+
+            # Return raw facts — the scorer will check if they match expected answer
+            return "KG Facts:\n" + "\n".join(facts[:30])
+
+        except (SQLAlchemyError, OperationalError, ValueError) as exc:
+            logger.warning("Deterministic KG query failed for %s: %s", patient_id, exc)
+            return "No relevant knowledge graph data found."
 
     def _get_calculator_context(
         self,

@@ -13,7 +13,7 @@ Options (via env vars):
     LLM_PROVIDER       Provider (default: ollama)
     OLLAMA_BASE_URL    Ollama URL (default: http://host.docker.internal:11434)
     QUESTION_LIMIT     Limit questions per task for testing (default: all)
-    TASKS              Comma-separated tasks: a,b,c,d (default: all)
+    TASKS              Comma-separated tasks: a,b,c,d,e (default: all)
     CONDITIONS         Comma-separated condition IDs (default: all 5)
     USE_LLM_JUDGE      Use LLM judge scoring (default: 0)
     OUTPUT_DIR         Output directory (default: data/benchmarks/results)
@@ -54,6 +54,7 @@ def load_benchmark_questions(
         "b": "data/benchmarks/task_b.json",
         "c": "data/benchmarks/task_c.json",
         "d": "data/benchmarks/task_d.json",
+        "e": "data/benchmarks/task_e.json",
     }
 
     for task_key in tasks:
@@ -124,7 +125,7 @@ async def main() -> None:
     llm_provider = os.environ.get("LLM_PROVIDER", "ollama")
     ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://host.docker.internal:11434")
     question_limit = int(os.environ.get("QUESTION_LIMIT", "0")) or None
-    tasks_str = os.environ.get("TASKS", "a,b,c,d")
+    tasks_str = os.environ.get("TASKS", "a,b,c,d,e")
     tasks = [t.strip() for t in tasks_str.split(",") if t.strip()]
     conditions_str = os.environ.get("CONDITIONS", "")
     condition_ids = [c.strip() for c in conditions_str.split(",") if c.strip()] or None

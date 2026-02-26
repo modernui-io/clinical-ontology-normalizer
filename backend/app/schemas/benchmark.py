@@ -22,12 +22,13 @@ from pydantic import BaseModel, Field
 
 
 class BenchmarkTask(str, Enum):
-    """The four benchmark tasks in ClinicalIntelligenceBench."""
+    """The five benchmark tasks in ClinicalIntelligenceBench."""
 
     TASK_A_NEGATION = "task_a_negation"
     TASK_B_TEMPORAL = "task_b_temporal"
     TASK_C_CALCULATOR = "task_c_calculator"
     TASK_D_FUSION = "task_d_fusion"
+    TASK_E_PROTOCOL = "task_e_protocol"
 
 
 class QuestionDifficulty(str, Enum):
@@ -76,14 +77,26 @@ class FusionType(str, Enum):
     CROSS_NOTE_DISCORDANCE = "cross_note_discordance"
 
 
+class ProtocolType(str, Enum):
+    """Clinical decision protocol subtypes for Task E."""
+
+    STROKE_TPA = "stroke_tpa"
+    VTE_PROPHYLAXIS = "vte_prophylaxis"
+    PERIOP_CARDIAC = "periop_cardiac"
+    SEPSIS_BUNDLE = "sepsis_bundle"
+    TRAUMA_SURGICAL = "trauma_surgical"
+
+
 class AblationCondition(str, Enum):
-    """The 5 ablation conditions."""
+    """The 7 ablation conditions (C1-C5 in paper, C6-C7 experimental)."""
 
     C1_LLM_ALONE = "C1_llm_alone"
     C2_VANILLA_RAG = "C2_vanilla_rag"
     C3_KG_RAG = "C3_kg_rag"
     C4_EPISTEMIC_KG_RAG = "C4_epistemic_kg_rag"
     C5_FULL_SYSTEM = "C5_full_system"
+    C6_LONG_CONTEXT = "C6_long_context"
+    C7_DETERMINISTIC = "C7_deterministic"
 
 
 # ============================================================================
@@ -256,6 +269,28 @@ class FusionMetrics(BaseModel):
     )
     discordance_detection: float = Field(
         0.0, description="Did the model detect discordance between sources"
+    )
+
+
+class ProtocolMetrics(BaseModel):
+    """Task E metrics: multi-step clinical protocol accuracy.
+
+    Evaluates whether the system can synthesize longitudinal data to make
+    complex clinical decisions (eligibility, risk scores, treatment protocols).
+    """
+
+    total: int = 0
+    correct: int = 0
+    accuracy: float = 0.0
+    criteria_recall: float = Field(
+        0.0, description="Fraction of relevant inclusion/exclusion criteria identified"
+    )
+    decision_accuracy: float = Field(
+        0.0, description="Correct final eligibility/risk decision"
+    )
+    per_protocol: dict[str, float] = Field(
+        default_factory=dict,
+        description="Accuracy per protocol type",
     )
 
 

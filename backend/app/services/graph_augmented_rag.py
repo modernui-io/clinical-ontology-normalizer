@@ -2744,33 +2744,48 @@ def _classify_question_intent(query: str, metadata: dict | None = None) -> str |
     # Use benchmark metadata if available (most reliable)
     if metadata:
         subtype = metadata.get("subtype", "")
+        # Task A assertion subtypes — always use generic retrieval
+        if subtype in ("negation", "conditional", "uncertainty", "family_history"):
+            return None
+        # Task B temporal subtypes — use targeted retrieval
         if subtype in ("change",):
             return "change"
         if subtype in ("current_state",):
             return "current_state"
         if subtype in ("historical",):
             return "historical"
+        # Task B subtypes that don't need targeted retrieval
+        if subtype in ("sequence", "duration"):
+            return None
+        # Task E protocol subtypes — use generic retrieval (they need full KG)
+        if subtype in ("stroke_tpa", "vte_prophylaxis", "periop_cardiac",
+                        "sepsis_bundle", "trauma_surgical"):
+            return None
 
     # Runtime keyword classification (for production use)
+    # NOTE: These are intentionally narrow to avoid false positives.
+    # Generic questions like "does the patient have X" are NOT temporal
+    # questions — they should use generic retrieval.
     q = query.lower()
 
     change_kw = (
-        "difference", "changed", "compared to", "between admission",
-        "between visit", "new medication", "discontinued", "added", "removed",
+        "changed between", "compared to previous", "between admission",
+        "between visit", "new medication since", "discontinued since",
+        "what was added", "what was removed", "difference between",
     )
     if any(kw in q for kw in change_kw):
         return "change"
 
     current_kw = (
-        "currently", "active problem", "still have", "still on",
-        "does the patient have", "is the patient on", "present problem",
+        "currently active", "still have", "still on",
+        "current status for", "current problem list",
     )
     if any(kw in q for kw in current_kw):
         return "current_state"
 
     historical_kw = (
-        "used to", "former", "resolved", "no longer", "past medical",
-        "history of", "previously had",
+        "used to have", "formerly had", "resolved condition",
+        "no longer has", "past medical history of", "previously had",
     )
     if any(kw in q for kw in historical_kw):
         return "historical"

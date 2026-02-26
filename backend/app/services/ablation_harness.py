@@ -140,10 +140,10 @@ ABLATION_CONDITIONS: dict[str, dict[str, Any]] = {
     },
     "C4g_intent_aware": {
         "label": "LLM + Intent-Aware KG-RAG",
-        "description": "C4 + question-type-specific graph retrieval for temporal categories",
+        "description": "C4b baseline + question-type-specific graph retrieval for temporal categories",
         "raw_note_only": False,
         "retrieval_mode": "graph_plus_doc",
-        "assertion_mode": "full",
+        "assertion_mode": "full_v2",
         "temporal_mode": "full_bitemporal",
         "calculator_enabled": False,
         "guidelines_enabled": False,
@@ -158,6 +158,28 @@ ABLATION_CONDITIONS: dict[str, dict[str, Any]] = {
         "temporal_mode": "full_bitemporal",
         "calculator_enabled": True,
         "guidelines_enabled": True,
+    },
+    "C6_long_context": {
+        "label": "LLM + All Notes (Long Context)",
+        "description": "Dump ALL patient notes into prompt — no retrieval, no KG. Tests brute-force long context window.",
+        "raw_note_only": False,
+        "long_context": True,
+        "retrieval_mode": "doc_only",  # not used when long_context=True
+        "assertion_mode": "none",
+        "temporal_mode": "no_temporal",
+        "calculator_enabled": False,
+        "guidelines_enabled": False,
+    },
+    "C7_deterministic": {
+        "label": "Deterministic KG (No LLM)",
+        "description": "Structured KG queries only, no LLM reasoning. Returns raw facts from graph edges.",
+        "raw_note_only": False,
+        "deterministic_only": True,
+        "retrieval_mode": "graph_plus_doc",
+        "assertion_mode": "full",
+        "temporal_mode": "full_bitemporal",
+        "calculator_enabled": False,
+        "guidelines_enabled": False,
     },
 }
 
@@ -411,6 +433,8 @@ class AblationHarness:
                 llm_provider=llm_provider,
                 ollama_base_url=ollama_base_url,
                 raw_note_only=cond_def.get("raw_note_only", False),
+                long_context=cond_def.get("long_context", False),
+                deterministic_only=cond_def.get("deterministic_only", False),
                 calculator_enabled=cond_def.get("calculator_enabled", False),
                 guidelines_enabled=cond_def.get("guidelines_enabled", False),
                 use_llm_judge=use_llm_judge,
@@ -439,8 +463,11 @@ class AblationHarness:
                     "temporal_mode": config.temporal_mode,
                     "retrieval_mode": config.retrieval_mode,
                     "raw_note_only": config.raw_note_only,
+                    "long_context": config.long_context,
+                    "deterministic_only": config.deterministic_only,
                     "calculator_enabled": config.calculator_enabled,
                     "guidelines_enabled": config.guidelines_enabled,
+                    "intent_aware": config.intent_aware,
                 },
             )
 
