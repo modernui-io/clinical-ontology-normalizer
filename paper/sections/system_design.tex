@@ -84,7 +84,7 @@ The multi-hop BFS described above treats all questions uniformly, yet different 
 A \emph{change} question requires cross-admission set differencing; a \emph{current-state} question needs filtering to the most recent valid edges; a \emph{historical} question must recover resolved conditions.
 
 \paragraph{Intent classifier.}
-A lightweight rule-based classifier maps each question to one of four intents---\textsc{Change}, \textsc{Current\_State}, \textsc{Historical}, or \textsc{Default}---using question metadata with keyword-pattern fallback (Appendix~\ref{app:routing}).
+A lightweight rule-based classifier maps each question to one of four intents---\textsc{Change}, \textsc{Current\_State}, \textsc{Historical}, or \textsc{Default}---using question metadata with keyword-pattern fallback (Algorithm~\ref{alg:c4g}, Appendix~\ref{app:routing}).
 
 \paragraph{Change retrieval.}
 For $\iota = \textsc{Change}$, edges are partitioned by admission (\texttt{hadm\_id}).

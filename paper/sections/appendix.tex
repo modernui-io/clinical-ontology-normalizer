@@ -376,8 +376,38 @@ A full two-physician blinded adjudication ($n \geq 30$) is planned but not yet c
 \section{Intent-Aware Routing Algorithm}
 \label{app:routing}
 
-The C4g classifier is rule-based, mapping questions to \textsc{Change}, \textsc{Current\_State}, \textsc{Historical}, or \textsc{Default} using keyword patterns (e.g., ``changed'', ``new since'' trigger \textsc{Change}).
-For \textsc{Change}, edges are partitioned by \texttt{hadm\_id} and set differences computed. For \textsc{Current\_State}, edges are filtered to current validity and deduplicated. For \textsc{Historical}, edges with past temporality are augmented with admission-based inference. Default questions use the C4 pipeline.
+The C4g classifier is rule-based, mapping questions to one of four intents using keyword patterns (\eg ``changed'', ``new since'' trigger \textsc{Change}; ``currently'', ``active problem'' trigger \textsc{Current\_State}).
+Algorithm~\ref{alg:c4g} details the full retrieval procedure.
+
+\begin{algorithm}[ht]
+\caption{Intent-Aware Retrieval (C4g)}\label{alg:c4g}
+\KwIn{Question $q$, patient $\pi$}
+\KwOut{Structured evidence $E$}
+$\mathcal{C} \gets \textsc{ExtractConcepts}(q)$ \tcp*{NLP + OMOP enrichment}
+$\iota \gets \textsc{ClassifyIntent}(q)$ \tcp*{$\in \{\textsc{Change}, \textsc{CurrSt}, \textsc{Hist}, \textsc{Default}\}$}
+\uIf{$\iota = \textsc{Change}$}{
+  Partition edges by admission: $\mathcal{E}_k \gets \{e \mid \texttt{hadm\_id}(e) = k\}$\;
+  \ForEach{admission pair $(k, k')$ with $k < k'$}{
+    $\mathcal{A} \gets \mathcal{C}_{k'} \setminus \mathcal{C}_k$; \quad
+    $\mathcal{R} \gets \mathcal{C}_k \setminus \mathcal{C}_{k'}$; \quad
+    $\mathcal{S} \gets \mathcal{C}_k \cap \mathcal{C}_{k'}$\;
+  }
+  $E_g \gets \textsc{FormatChange}(\mathcal{A}, \mathcal{R}, \mathcal{S})$\;
+}
+\uElseIf{$\iota = \textsc{CurrSt}$}{
+  $E_g \gets \textsc{FilterEdges}(\pi, \mathcal{C},\; \tau_a\!=\!\textsc{Current} \lor \text{open validity})$\;
+  Deduplicate by concept; emit ``\textsc{Not Found}'' for missing $c \in \mathcal{C}$\;
+}
+\uElseIf{$\iota = \textsc{Hist}$}{
+  $E_g \gets \textsc{FilterEdges}(\pi, \mathcal{C},\; \tau_a\!=\!\textsc{Past})$\;
+  Augment: concepts in earlier admissions but absent from latest $\to$ ``resolved''\;
+}
+\Else{
+  $E_g \gets \textsc{BidirectionalBFS}(\pi, \mathcal{C},\; \text{hops}=2\text{--}3,\; c_{\min}=0.3)$\;
+}
+$E_d \gets \textsc{RetrieveDocuments}(\pi, \mathcal{C})$\;
+\Return $\textsc{Compose}(E_g, E_d,\; \text{template}(\iota))$\;
+\end{algorithm}
 
 
 \section{C5 Full System Methodology}
@@ -385,6 +415,24 @@ For \textsc{Change}, edges are partitioned by \texttt{hadm\_id} and set differen
 
 C5 extends C4 with guideline retrieval (1{,}202 sections) and clinical calculators (201, \eg CHA$_2$DS$_2$-VASc, MELD).
 C5 achieves 68.2\% overall, below C1 and C4 (71.5\% each), likely because non-relevant components dilute the context window.
+
+
+\section{Illustrative Retrieval Example}
+\label{app:example}
+
+To illustrate why intent-aware routing matters, consider a change question: \emph{``What medications changed between this patient's first and second admissions?''}
+
+\paragraph{C1 (LLM alone).}
+The model sees only the current note, which mentions metoprolol, atorvastatin, and ``discontinued lisinopril.'' Without prior admission records, it cannot determine what was \emph{added} vs.\ \emph{continued}, and may hallucinate prior medication lists.
+
+\paragraph{C4g (intent-aware KG-RAG).}
+The intent classifier routes to \textsc{Change} retrieval, which partitions KG edges by \texttt{hadm\_id} and computes set differences:
+\begin{itemize}[nosep,leftmargin=1.5em]
+\item \textbf{Added} (admission~2 only): atorvastatin~40mg [\textsc{Present}]
+\item \textbf{Removed} (admission~1 only): lisinopril~10mg [\textsc{Present}$\to$\textsc{Absent}]
+\item \textbf{Continued}: metoprolol~25mg [\textsc{Present}, both admissions]
+\end{itemize}
+The assertion labels (\textsc{Present}, \textsc{Absent}) disambiguate: ``discontinued lisinopril'' is not a current medication but a historical one whose status changed---exactly the distinction the epistemic schema preserves.
 
 
 \section{Ethics Statement}
