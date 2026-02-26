@@ -15,10 +15,10 @@ By routing change questions to cross-admission edge partitioning and current-sta
 \paragraph{Model-strength interaction.}
 The cross-model results (Table~\ref{tab:crossmodel}) show that epistemic KG-RAG's benefit is inversely related to baseline model capability.
 Under the uniform C4 condition, MedGemma~27B showed no aggregate improvement over C1 ($+0\pp$), and Opus showed a small regression ($-2.2\pp$).
-However, C4g reveals that the model-strength interaction is \emph{category-specific}: MedGemma gains $+60\pp$ on change and $+57\pp$ on family history under intent-aware routing, while losing ground on categories where its C1 baseline is already adequate.
-Opus gains on assertion-dependent categories (negation $+2.7\pp$, duration $+10.0\pp$, uncertainty $+7.5\pp$) but loses on categories where its parametric knowledge is already strong (conditional $-15.0\pp$, family history $-10.0\pp$).
-This suggests a design trade-off: structured context provides transformative gains on categories requiring cross-admission reasoning, but can override correct reasoning for categories where the model's parametric knowledge suffices.
-Model-adaptive evidence presentation---\eg lighter context for high-capability models, or confidence-gated evidence injection---is a promising direction.
+However, C4g reveals a \emph{category-specific} interaction: under intent-aware routing, MedGemma gains $+60\pp$ on change and $+57\pp$ on family history while losing ground where its C1 baseline is already adequate.
+Under C4, Opus gains on assertion-dependent categories (negation~$+2.7$, duration~$+10.0$, uncertainty~$+7.5\pp$) but loses where parametric knowledge suffices (conditional~$-15.0$, family history~$-10.0\pp$).
+This reveals a design trade-off: structured context is transformative for cross-admission reasoning but can override correct answers where parametric knowledge suffices.
+Model-adaptive evidence presentation (\eg confidence-gated injection, lighter context for stronger models) is a promising direction.
 
 \paragraph{Limitations.}
 Sample size is modest: SliceBench covers 6 patients (144 questions) and ClinicalBench covers 45 scenarios (400 questions), both from a single site (MIMIC-IV~\cite{johnson2023mimiciv}).
@@ -34,7 +34,7 @@ C4g's aggregate accuracy ($-5.5\pp$ vs.\ C1) illustrates a key tension: structur
 Four directions follow: (1)~model-adaptive evidence presentation to address the regression on strong-baseline categories (conditional $-35.0\pp$, duration~$-53.3\pp$ under C4g), (2)~improving historical-question retrieval, where C4g degrades from 94\% (C1) to 40\%, suggesting evidence formatting rather than retrieval coverage is the bottleneck---C4g's intent-aware routing already solves the formerly near-zero change category ($0\% \to 60\%$), but the 60\% ceiling and historical regression indicate that formatting and evidence selection need further refinement, (3)~expanding Tier~C to 20+ patients for sufficient statistical power, and (4)~two-physician blinded adjudication on a stratified hard subset.
 
 \paragraph{Conclusion.}
-The epistemic propagation gap---the systematic loss of assertion, temporality, and experiencer metadata between NLP extraction and downstream reasoning---is a real and measurable phenomenon: assertion entropy analysis on MIMIC-IV confirms that collapsing non-present assertions to present destroys recoverable clinical information (Proposition~\ref{prop:entropy}).
+The epistemic propagation gap---the systematic loss of assertion, temporality, and experiencer metadata between NLP extraction and downstream reasoning---is a real and measurable phenomenon: the information-theoretic bound (Proposition~\ref{prop:entropy}) shows that collapsing non-present assertions to present destroys recoverable clinical information, and our ClinicalBench results confirm the empirical consequence---assertion-blind retrieval (C2) degrades accuracy by $9.0\pp$ while assertion-aware retrieval (C4) preserves it.
 \epikg addresses this gap through end-to-end epistemic preservation combined with intent-aware retrieval that matches graph traversal strategy to question semantics.
 The resulting benefit is category-specific and transformative rather than uniformly positive: change questions improve from 0\% to 60\% and family history from 0\% to 57\% under C4g, while categories where the LLM's parametric knowledge already suffices can regress.
 This category$\times$condition interaction---not aggregate accuracy---is the right lens for evaluating clinical KG-RAG systems, and we argue that future benchmarks should report category-stratified effects as the primary outcome.

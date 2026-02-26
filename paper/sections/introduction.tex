@@ -16,11 +16,11 @@ We present \epikg, a clinical KG system that closes both gaps by preserving epis
 Our contributions:
 
 \begin{enumerate}[leftmargin=*, topsep=4pt, itemsep=2pt]
-  \item \textbf{Epistemic preservation invariant and implementation.} We formalize the requirement that assertion status assigned at extraction must be recoverable at every downstream stage, give an information-theoretic characterization of the loss incurred by assertion-blind pipelines (Section~\ref{sec:system:formal}), and realize the invariant with a seven-value assertion schema extending i2b2~\cite{uzuner2011i2b2assertion}, carried intact from NLP extraction through OMOP mapping, fact construction, KG materialization, and RAG context serialization.
+  \item \textbf{Epistemic preservation invariant.} We formalize the requirement that assertion status be recoverable at every downstream stage, give an information-theoretic bound on the loss from assertion-blind pipelines (Section~\ref{sec:system:formal}), and realize the invariant with a seven-value schema extending i2b2~\cite{uzuner2011i2b2assertion}, carried from extraction through OMOP mapping, fact construction, KG materialization, and RAG serialization.
 
   \item \textbf{Tri-temporal KG with Allen's interval algebra.} Edges carry valid time, transaction time, and NLP-asserted temporality alongside nine Allen's relations as first-class attributes, enabling temporal reasoning over longitudinal records.
 
-  \item \textbf{Seven-condition evaluation with bookend baselines.} We evaluate seven retrieval conditions---C1 (no retrieval) through C5 (full system with calculators and guidelines)---plus bookend baselines C6 (brute-force full-context) and C7 (structured-only, no LLM), bounding the achievable performance of both unstructured retrieval and pure KG reasoning.
+  \item \textbf{Five-condition ablation with bookend baselines.} We evaluate five retrieval conditions---C1 (no retrieval) through C4g (intent-aware KG-RAG)---on ClinicalBench and SliceBench.  Two bookend baselines, C6 (brute-force full-context) and C7 (structured-only, no LLM), are defined to bound the design space; their evaluation is planned as future work.
 
   \item \textbf{ClinicalBench with physician adjudication.} A 400-question benchmark across 9 epistemic categories targets the propagation gap, with hard longitudinal questions (change, cross-admission, temporal) as the primary endpoint. Blinded physician adjudication validates automated scoring on a stratified sample.
 \end{enumerate}

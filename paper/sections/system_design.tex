@@ -127,7 +127,7 @@ In clinical records where negated and uncertain mentions are prevalent---\eg ``n
 
 \noindent
 Proposition~\ref{prop:entropy} and Corollary~\ref{cor:faithfulness} motivate the end-to-end preservation invariant: any pipeline stage that strips assertion labels irreversibly destroys clinical information.
-We measure $\Delta H$ empirically on MIMIC-IV data in Section~\ref{sec:results}.
+The empirical consequences are measured via category-stratified accuracy in Section~\ref{sec:results}.
 
 
 \subsection{Intent-Aware Retrieval (C4g)}
@@ -143,7 +143,7 @@ A lightweight rule-based classifier maps each question to one of four intents---
 \paragraph{Change retrieval.}
 For $\iota = \textsc{Change}$, edges are partitioned by hospital admission identifier (\texttt{hadm\_id}).
 Let $\mathcal{C}_k$ denote the set of OMOP concept IDs on edges within admission $k$.
-The retrieval module computes set differences across admission pairs $(k, k')$: concepts \emph{added} ($\mathcal{C}_{k'} \setminus \mathcal{C}_k$), \emph{removed} ($\mathcal{C}_k \setminus \mathcal{C}_{k'}$), and \emph{continued} ($\mathcal{C}_k \cap \mathcal{C}_{k'}$), returning structured evidence for each category.
+The retrieval module computes set differences across admission pairs $(k, k')$---concepts \emph{added} ($\mathcal{C}_{k'} \!\setminus\! \mathcal{C}_k$), \emph{removed} ($\mathcal{C}_k \!\setminus\! \mathcal{C}_{k'}$), and \emph{continued} ($\mathcal{C}_k \!\cap\! \mathcal{C}_{k'}$)---and returns structured evidence.
 
 \paragraph{Current-state retrieval.}
 For $\iota = \textsc{Current\_State}$, the module filters to edges satisfying $\tau_a = \textsc{Current}$ or $(\textit{valid\_to} = \texttt{NULL} \wedge \tau_a \neq \textsc{Past})$, deduplicates by concept, and emits an explicit ``\textsc{Not Found}'' signal for queried concepts absent from the filtered set, avoiding hallucinated affirmations.

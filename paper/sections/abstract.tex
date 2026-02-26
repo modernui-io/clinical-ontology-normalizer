@@ -3,8 +3,8 @@
 
 Clinical NLP pipelines detect assertion status---negation, uncertainty, family history---with $F_1 > 0.90$~\cite{gul2025beyondnegation}, yet no existing system propagates these labels through knowledge graph construction into retrieval-augmented generation.
 We call this the \emph{epistemic propagation gap}: when assertion labels are discarded during graph construction, downstream generation cannot faithfully represent the epistemic state of clinical findings.
-We present \epikg, a clinical knowledge graph that closes this gap with a 7-value assertion schema on every edge, a tri-temporal model (document, event, and ingestion time), and an intent-aware retrieval layer that dispatches change, current-state, and historical questions to specialized graph-traversal strategies.
+We present \epikg, a clinical knowledge graph that closes this gap with a 7-value assertion schema on every edge, a tri-temporal model (valid time, transaction time, and NLP-asserted temporality), and an intent-aware retrieval layer that dispatches change, current-state, and historical questions to specialized graph-traversal strategies.
 On ClinicalBench ($n=400$, MIMIC-IV, MedGemma~27B), \epikg\ unlocks reasoning categories that are otherwise inaccessible: change-detection accuracy rises from $0\%$ to $60\%$ ($+60\pp$), family-history from $0\%$ to $57\%$ ($+57\pp$), and current-state from $64\%$ to $76\%$ ($+12\pp$).
-These gains are concentrated: in aggregate, KG-RAG does not lift overall accuracy ($-2.3\pp$), because retrieval introduces noise in categories where the LLM is already strong.
+These gains are concentrated: in aggregate, intent-aware KG-RAG does not lift overall accuracy ($-5.5\pp$), because retrieval introduces noise in categories where the LLM is already strong.
 Notably, vanilla RAG \emph{without} epistemic structure drops accuracy by $9.0\pp$---assertion-blind retrieval is strictly worse than no retrieval.
 These results establish that the right evaluation lens for clinical KG-RAG is the category$\times$condition interaction, not the aggregate, and that epistemic structure is the difference between retrieval that helps and retrieval that harms.

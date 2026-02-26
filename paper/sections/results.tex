@@ -166,7 +166,7 @@ Commercial & Claude Opus 4.6 & 72.5\% & 70.2\% & $-2.2\pp$ \\
 \end{table}
 
 Table~\ref{tab:crossmodel} shows that epistemic KG-RAG (C4) matches C1 for MedGemma ($+0.0\pp$) and produces a small regression for Opus ($-2.2\pp$).
-The near-zero aggregate deltas mask category-level effects visible in Table~\ref{tab:crossmodel_categories}: both models gain on assertion-dependent categories (uncertainty, duration for Opus; negation for both) and lose where parametric knowledge was already strong.
+The near-zero aggregate deltas mask category-level effects visible in Table~\ref{tab:crossmodel_categories}: both models gain on assertion-dependent categories (uncertainty and family history for MedGemma; negation, uncertainty, and duration for Opus) and lose where parametric knowledge was already strong.
 
 \begin{table}[t]
 \centering
@@ -231,6 +231,6 @@ The fix improved family history by $+10.0\pp$ with zero regressions on guard cat
 \subsection{Supporting Results}
 \label{sec:results:supporting}
 
-On MedQA-USMLE (965 questions), Claude Opus 4.5---used for SliceBench and as one of two ClinicalBench models---achieves 81.6\% accuracy (5.1\,pp below GPT-4 at 86.7\% and Med-PaLM~2 at 86.5\%~\cite{medagentbench2025}), establishing a reasonable LLM baseline independent of the ClinicalBench main ablation model (MedGemma 27B).
+On MedQA-USMLE (965 questions), Claude Opus 4.5 achieves 81.6\% accuracy (5.1\,pp below GPT-4 at 86.7\% and Med-PaLM~2 at 86.5\%~\cite{medagentbench2025}), establishing that the Claude model family---Sonnet 4.5 (SliceBench answerer) and Opus 4.6 (ClinicalBench cross-model, SliceBench judge)---provides a reasonable LLM baseline.
 Graph traversal latency is sub-millisecond at current scale (3,100 nodes, 8,803 edges): 0.57\,ms (1-hop), 0.75\,ms (2-hop).
 The full system integrates 201 calculators, 1,202 guideline sections, 101 trigger patterns, and 24 edge types across 13 node types.
