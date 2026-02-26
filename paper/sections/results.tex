@@ -75,14 +75,21 @@ Change & 30 & 0.0 & 0.0 & 3.3 & 3.3 & \textbf{60.0} & $\uparrow 60.0\pp$ \\
 \begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/fig2_radar.pdf}
-\caption{ClinicalBench per-category accuracy. C4g (solid blue) produces the largest gains on change and current state but loses on historical, duration, and conditional where LLM parametric knowledge already suffices. The overall aggregate ($-5.5\pp$) masks a strong category$\times$condition interaction.}
+\caption{ClinicalBench per-category accuracy across four conditions (all 9 categories). C4g (dark solid) uniquely unlocks change detection ($+60\pp$) but loses on historical ($-54\pp$) and duration---the category$\times$condition interaction that aggregate accuracy obscures.}
 \label{fig:radar}
 \end{figure}
 
-Table~\ref{tab:clinicalbench_categories} and Figure~\ref{fig:radar} reveal that the central finding is not ``system X beats system Y'' but a \emph{category$\times$condition interaction}: structured epistemic context is transformative for questions requiring cross-admission normalization but can hurt where the LLM's parametric knowledge already suffices.
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/fig5_category_deltas.pdf}
+\caption{C1$\rightarrow$C4g per-category accuracy change. Intent-aware KG-RAG produces large gains on categories requiring cross-admission normalization (change, family history) and losses on categories where the LLM's parametric knowledge already suffices (historical, duration, conditional). Sample sizes per category shown.}
+\label{fig:deltas}
+\end{figure}
+
+Table~\ref{tab:clinicalbench_categories} and Figures~\ref{fig:radar}--\ref{fig:deltas} reveal that the central finding is not ``system X beats system Y'' but a \emph{category$\times$condition interaction}: structured epistemic context is transformative for questions requiring cross-admission normalization but can hurt where the LLM's parametric knowledge already suffices.
 
 \paragraph{Where intent-aware routing excels.}
-The ``change'' category---near zero for \emph{all} conditions C1 through C5 (0.0--3.3\%)---jumps to 60.0\% under C4g ($+60.0\pp$ vs.\ C1).
+The ``change'' category---near zero for \emph{all} conditions C1 through C5 (0.0--3.3\%)---jumps to 60.0\% under C4g ($+60.0\pp$ vs.\ C1, Figure~\ref{fig:deltas}).
 This is the paper's central result: change questions require comparing a clinical concept across two admissions, which is impossible from a single note (C1), missed by chunk-level retrieval (C2), and lost in assertion-unaware graph paths (C3).
 Even C4's epistemic metadata is insufficient because it retrieves paths without partitioning by admission; C4g's intent classifier detects question type and routes to admission-partitioned retrieval.
 Current state also benefits ($+12.0\pp$), as does sequence ($+10.0\pp$), both requiring temporal awareness.

@@ -1,49 +1,60 @@
 """Figure 3: Complexity-Dependent KG Benefit — B2->B3 delta by tier.
-   Camera-ready: neutral color, sample note, no decorative emphasis."""
+
+Improvements: gradient coloring by tier, overall CI annotation, cleaner styling.
+"""
 
 import matplotlib.pyplot as plt
 import numpy as np
 
-plt.rcParams['font.family'] = 'serif'
-plt.rcParams['font.size'] = 10
-plt.rcParams['pdf.fonttype'] = 42
-plt.rcParams['ps.fonttype'] = 42
+plt.rcParams.update({
+    'font.family': 'serif',
+    'font.serif': ['Times', 'Times New Roman', 'DejaVu Serif'],
+    'font.size': 10,
+    'pdf.fonttype': 42,
+    'ps.fonttype': 42,
+})
 
-# Data — point estimates (per-tier CIs not available; overall B2→B3 CI: [-1.5, +5.9])
+# Data
 tiers = ['Tier A\n(1\u20132 enc.)', 'Tier B\n(5\u201310 enc.)', 'Tier C\n(15+ enc.)']
 deltas = [0.6, 1.0, 5.0]
 
-# One neutral bar color for all tiers
-bar_color = '#2C7DA0'
+# Gradient colors — darker = more complex
+bar_colors = ['#A8D0E6', '#4A96B5', '#1B5E8C']
 
-fig, ax = plt.subplots(figsize=(4.4, 3.1))
+fig, ax = plt.subplots(figsize=(4.2, 3.0))
 fig.patch.set_facecolor('white')
 ax.set_facecolor('white')
 
-bars = ax.bar(range(len(tiers)), deltas, color=bar_color, edgecolor='white',
+bars = ax.bar(range(len(tiers)), deltas, color=bar_colors, edgecolor='white',
               linewidth=0.8, width=0.55, zorder=3)
 
 # Value labels on top
-for bar, val in zip(bars, deltas):
-    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.10,
-            f'+{val:.1f} pp', ha='center', va='bottom', fontsize=8,
-            fontweight='bold', color='#1A202C')
+for bar, val, color in zip(bars, deltas, bar_colors):
+    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.15,
+            f'+{val:.1f} pp', ha='center', va='bottom', fontsize=8.5,
+            fontweight='bold', color=color)
 
-# Horizontal line at 0
-ax.axhline(y=0, color='#999999', linestyle='-', linewidth=0.5, zorder=1)
+# Zero line
+ax.axhline(y=0, color='#AAAAAA', linestyle='-', linewidth=0.5, zorder=1)
 
-# Sample note — bottom right inside plot
-ax.text(0.98, 0.02, 'n=2 patients/tier, 24 Q/patient',
+# Overall CI band
+ci_lo, ci_hi = -1.5, 5.9
+ax.axhspan(ci_lo, ci_hi, alpha=0.06, color='#1B5E8C', zorder=0)
+ax.axhline(y=2.2, color='#1B5E8C', linestyle=':', linewidth=0.8, alpha=0.5, zorder=1)
+ax.text(2.35, 2.2, 'Overall: +2.2 pp\n(CI: [-1.5, +5.9])',
+        ha='left', va='bottom', fontsize=6, color='#1B5E8C', fontstyle='italic')
+
+# Sample note
+ax.text(0.98, 0.02, 'n = 2 patients/tier, 24 Q/patient\nPoint estimates; per-tier CIs not available',
         transform=ax.transAxes, ha='right', va='bottom',
-        fontsize=7, color='#4B5563')
+        fontsize=5.5, color='#888888', linespacing=1.3)
 
 ax.set_xticks(range(len(tiers)))
 ax.set_xticklabels(tiers, fontsize=8.5)
-ax.set_ylabel('B2 \u2192 B3 Accuracy Gain (pp)', fontsize=10)
-ax.set_ylim(-0.5, 6.0)
-ax.tick_params(axis='y', labelsize=8.5)
+ax.set_ylabel(r'B2 $\rightarrow$ B3 Accuracy Gain (pp)', fontsize=9)
+ax.set_ylim(-2.0, 7.0)
+ax.tick_params(axis='y', labelsize=8)
 
-# Remove top and right spines
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
 ax.spines['left'].set_color('#CCCCCC')

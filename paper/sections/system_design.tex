@@ -102,7 +102,7 @@ The central claim is that assertion metadata constitutes recoverable clinical in
 
 \begin{definition}[Epistemic State]
 \label{def:epistemic}
-For a clinical mention $m$, the \emph{epistemic state} is the tuple $e(m) = (c, \alpha, \xi, \tau)$, where $c$ is the OMOP concept identifier, $\alpha \in \{\textsc{Present}, \textsc{Absent}, \textsc{Possible}, \textsc{Conditional}, \textsc{Hypothetical}, \textsc{Family\_History}, \textsc{Historical}\}$ is the 7-value assertion label (Eq.~\ref{eq:assertion}), $\xi \in \{\textsc{Patient}, \textsc{Family}\}$ is the experiencer, and $\tau \in \{\textsc{Current}, \textsc{Past}, \textsc{Future}\}$ is the temporality.
+For a clinical mention $m$, the \emph{epistemic state} is the tuple $e(m) = (c, \alpha, \xi, \tau)$, where $c$ is the OMOP concept identifier, $\alpha \in \mathcal{A}$ is the 7-value assertion label (Eq.~\ref{eq:assertion}), $\xi \in \{\textsc{Patient}, \textsc{Family}\}$ is the experiencer, and $\tau \in \{\textsc{Current}, \textsc{Past}, \textsc{Future}\}$ is the temporality.
 A pipeline $P$ \emph{epistemically preserves} mention $m$ if $P(e(m)) = e(m)$; that is, the epistemic state at the output of every pipeline stage is identical to the state at extraction.
 \end{definition}
 
@@ -138,7 +138,7 @@ A \emph{change} question (``Did the patient's creatinine trend worsen between ad
 Applying a single traversal strategy to all three yields poor recall on longitudinal reasoning tasks.
 
 \paragraph{Intent classifier.}
-A lightweight rule-based classifier maps each question to an intent $\iota \in \{\textsc{Change}, \textsc{Current\_State}, \textsc{Historical}, \textsc{Default}\}$ using question metadata (explicit \texttt{question\_type} annotations) with keyword-pattern fallback (\eg ``compared to,'' ``change in,'' ``new since'' $\to$ \textsc{Change}; ``current,'' ``active'' $\to$ \textsc{Current\_State}; ``history of,'' ``previously'' $\to$ \textsc{Historical}).
+A lightweight rule-based classifier maps each question to one of four intents---\textsc{Change}, \textsc{Current\_State}, \textsc{Historical}, or \textsc{Default}---using question metadata with keyword-pattern fallback (Appendix~\ref{app:routing}).
 
 \paragraph{Change retrieval.}
 For $\iota = \textsc{Change}$, edges are partitioned by hospital admission identifier (\texttt{hadm\_id}).
