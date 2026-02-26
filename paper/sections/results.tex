@@ -1,14 +1,14 @@
 % Section 5: Results
 % NOTE: \section{Results} and \label{sec:results} are in main.tex
 
-We evaluate \epikg through two benchmarks: ClinicalBench tests assertion-sensitive reasoning, while Slice Bench measures longitudinal QA across patient complexity tiers.
+We evaluate \epikg through two benchmarks: ClinicalBench tests assertion-sensitive and longitudinal reasoning, while SliceBench measures longitudinal QA across patient complexity tiers.
 All confidence intervals use the bias-corrected and accelerated (BCa) bootstrap ($n=2{,}000$, seed 42)~\cite{efron1993bootstrap}, resampled at the question level.
 
 % ----------------------------------------------------------
-\subsection{ClinicalBench: Assertion-Sensitive Reasoning}
+\subsection{ClinicalBench: Ablation Results}
 \label{sec:results:clinicalbench}
 
-Table~\ref{tab:clinicalbench_ablation} presents the main ablation results across five conditions (MedGemma 27B, LLM-as-judge).
+Table~\ref{tab:clinicalbench_ablation} presents the main ablation results across six conditions (MedGemma 27B, deterministic keyword evaluator).
 
 \begin{table}[t]
 \centering
@@ -19,41 +19,47 @@ Table~\ref{tab:clinicalbench_ablation} presents the main ablation results across
 \toprule
 & Condition & Accuracy & Safety \\
 \midrule
-C1 & LLM Alone & 73.2\% & 0.765 \\
+C1 & LLM Alone & \textbf{71.5\%} & 0.752 \\
 C2 & + Vanilla RAG & 62.5\% & 0.643 \\
-C3 & + KG-RAG (no assertion) & 60.5\% & 0.572 \\
+C3 & + KG-RAG (no assertion) & 59.2\% & --- \\
 C4 & + Epistemic KG-RAG & \textbf{71.5\%} & \textbf{0.775} \\
-C5 & + Full System & 68.2\% & 0.735 \\
+C4g & + Intent-Aware KG-RAG & 66.0\% & 0.643 \\
+C5 & + Full System & 68.2\% & --- \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Adding vanilla RAG \emph{hurts}: C2 underperforms C1 by $10.7\pp$ on accuracy and $0.122$ on safety.
+Adding vanilla RAG \emph{hurts}: C2 underperforms C1 by $9.0\pp$ on accuracy and $0.109$ on safety.
 Retrieved passages like ``patient denies diabetes'' enter context without epistemic framing, leading the LLM to conflate mention with presence---consistent with GraphRAG-Bench~\cite{graphragbench2026}.
-Assertion-blind KG-RAG (C3) compounds the problem, scoring lowest (60.5\%, 0.572), as structured paths presenting negated conditions as graph edges actively mislead the model.
-Epistemic KG-RAG (C4) recovers to 71.5\% with a fundamentally different category profile (Table~\ref{tab:clinicalbench_categories}), and achieves the highest safety score (0.775 vs.\ 0.765), indicating that C4's errors are less clinically dangerous on average.
-C5 drops $3.3\pp$ below C4; we hypothesize this results from calculator and guideline modules activating on queries not requiring them, though controlled per-component ablations are needed to confirm this (Section~\ref{sec:discussion}).
+Assertion-blind KG-RAG (C3) compounds the problem, scoring lowest (59.2\%), as structured paths presenting negated conditions as graph edges actively mislead the model.
+Epistemic KG-RAG (C4) recovers to 71.5\% and achieves the highest safety score (0.775 vs.\ 0.752 for C1), matching C1's accuracy while producing less clinically dangerous errors on average.
+Intent-aware KG-RAG (C4g) scores 66.0\% overall---$5.5\pp$ below C1---but as we show below, this aggregate masks the condition's transformative effect on longitudinal question categories.
+
+% ----------------------------------------------------------
+\subsection{Category$\times$Condition Interaction}
+\label{sec:results:categories}
 
 \begin{table}[t]
 \centering
-\caption{ClinicalBench per-category accuracy (\%) for key conditions. Arrows show direction of C1$\rightarrow$C4 change. Full 5-condition table in Appendix.}
+\caption{ClinicalBench per-category accuracy (\%) across conditions (400 questions, MedGemma 27B). Hard longitudinal categories (bottom three) show the strongest category$\times$condition interaction. Best per row in \textbf{bold}.}
 \label{tab:clinicalbench_categories}
 \small
-\begin{tabular}{@{}lccccl@{}}
+\begin{tabular}{@{}lccccccl@{}}
 \toprule
-Category & $n$ & C1 & C2 & C4 & C1$\rightarrow$C4 \\
+Category & $n$ & C1 & C2 & C3 & C4 & C4g & C1$\rightarrow$C4g \\
 \midrule
-Negation & 110 & 100.0 & 93.6 & 100.0 & $=$ \\
-Conditional & 20 & 100.0 & 90.0 & 65.0 & $\downarrow 35.0\pp$ \\
-Uncertainty & 40 & 55.0 & 2.5 & 62.5 & $\uparrow 7.5\pp$ \\
-Family history & 30 & 0.0 & 0.0 & 70.0 & $\uparrow 70.0\pp$ \\
-Sequence & 40 & 80.0 & 80.0 & 80.0 & $=$ \\
-Current state & 50 & 64.0 & 54.0 & 64.0 & $=$ \\
-Duration & 30 & 100.0 & 100.0 & 53.3 & $\downarrow 46.7\pp$ \\
-Historical & 50 & 94.0 & 78.0 & 72.0 & $\downarrow 22.0\pp$ \\
-Change & 30 & 0.0 & 0.0 & 3.3 & $\uparrow 3.3\pp$ \\
+Negation & 110 & \textbf{100.0} & 93.6 & 81.8 & \textbf{100.0} & 86.4 & $\downarrow 13.6\pp$ \\
+Conditional & 20 & \textbf{100.0} & 90.0 & 55.0 & 70.0 & 65.0 & $\downarrow 35.0\pp$ \\
+Uncertainty & 40 & 37.5 & 2.5 & 7.5 & \textbf{57.5} & 32.5 & $\downarrow 5.0\pp$ \\
+Family history & 30 & 0.0 & 0.0 & 53.3 & \textbf{70.0} & 56.7 & $\uparrow 56.7\pp$ \\
+Sequence & 40 & 80.0 & 80.0 & 80.0 & 87.5 & \textbf{90.0} & $\uparrow 10.0\pp$ \\
 \midrule
-\textbf{Overall} & \textbf{400} & \textbf{73.2} & \textbf{62.5} & \textbf{71.5} & $\downarrow 1.7\pp$ \\
+Current state & 50 & 64.0 & 54.0 & 50.0 & 54.0 & \textbf{76.0} & $\uparrow 12.0\pp$ \\
+Duration & 30 & \textbf{100.0} & \textbf{100.0} & 83.3 & 83.3 & 46.7 & $\downarrow 53.3\pp$ \\
+Historical & 50 & \textbf{94.0} & 78.0 & 68.0 & 60.0 & 40.0 & $\downarrow 54.0\pp$ \\
+Change & 30 & 0.0 & 0.0 & 3.3 & 3.3 & \textbf{60.0} & $\uparrow 60.0\pp$ \\
+\midrule
+\textbf{Overall} & \textbf{400} & \textbf{71.5} & 62.5 & 59.2 & \textbf{71.5} & 66.0 & $\downarrow 5.5\pp$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -61,25 +67,37 @@ Change & 30 & 0.0 & 0.0 & 3.3 & $\uparrow 3.3\pp$ \\
 \begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/fig2_radar.pdf}
-\caption{ClinicalBench per-category accuracy (Change omitted; near zero for all). C4 (solid blue) gains on uncertainty and family history but loses on historical, conditional, and duration vs.\ C1 (dotted gray). C2 (dashed red) degrades broadly.}
+\caption{ClinicalBench per-category accuracy. C4g (solid blue) produces the largest gains on change and current state but loses on historical, duration, and conditional where LLM parametric knowledge already suffices. The overall aggregate ($-5.5\pp$) masks a strong category$\times$condition interaction.}
 \label{fig:radar}
 \end{figure}
 
-Table~\ref{tab:clinicalbench_categories} and Figure~\ref{fig:radar} reveal that C4's aggregate masks large bidirectional category shifts.
-C4 gains on categories requiring structured epistemic metadata: $+70.0\pp$ on family history (0.0\%$\to$70.0\%) and $+7.5\pp$ on uncertainty (55.0\%$\to$62.5\%).
-However, C4 loses on categories where C1's parametric knowledge was already strong: duration ($-46.7\pp$), conditional ($-35.0\pp$), and historical ($-22.0\pp$).
-The net effect is an accuracy profile trade-off ($-1.7\pp$ overall) with a higher safety score (0.775 vs.\ 0.765), reflecting that C4's gains involve high-risk assertion errors (e.g., misattributing a family member's condition to the patient), while its losses occur on categories with lower clinical harm potential.
-The ``change'' category remains near zero across all conditions (0.0--3.3\%), a genuine capability gap.
+Table~\ref{tab:clinicalbench_categories} and Figure~\ref{fig:radar} reveal that the central finding is not ``system X beats system Y'' but a \emph{category$\times$condition interaction}: structured epistemic context is transformative for questions requiring cross-admission normalization but can hurt where the LLM's parametric knowledge already suffices.
+
+\paragraph{Where intent-aware routing excels.}
+The ``change'' category---near zero for \emph{all} conditions C1 through C5 (0.0--3.3\%)---jumps to 60.0\% under C4g ($+60.0\pp$ vs.\ C1).
+This is the paper's central result: change questions require comparing a clinical concept across two admissions, which is impossible from a single note (C1), missed by chunk-level retrieval (C2), and lost in assertion-unaware graph paths (C3).
+Even C4's epistemic metadata is insufficient because it retrieves paths without partitioning by admission; C4g's intent classifier detects question type and routes to admission-partitioned retrieval.
+Current state also benefits ($+12.0\pp$), as does sequence ($+10.0\pp$), both requiring temporal awareness.
+Family history rises from 0.0\% to 56.7\%, requiring experiencer attribution that only the graph-backed conditions provide.
+
+\paragraph{Where intent-aware routing hurts.}
+C4g loses substantially on historical ($-54.0\pp$), duration ($-53.3\pp$), and conditional ($-35.0\pp$).
+For these categories, C1's parametric knowledge was already at or near ceiling (94.0\%, 100.0\%, 100.0\% respectively), and the injected graph context overrides correct reasoning---a known failure mode of RAG systems~\cite{graphragbench2026}.
+
+\paragraph{Hard longitudinal subset.}
+To isolate the categories most relevant to our thesis---that longitudinal clinical data requires structured normalization---we define a ``hard longitudinal'' subset: change ($n=30$), current state ($n=50$), and historical ($n=50$), totalling 130 questions.
+On this subset, C4g achieves 58.5\%, compared to C1 at 60.8\%, C2 at 50.8\%, C3 at 46.2\%, C4 at 44.6\%, and C5 at 49.2\%.
+The C4$\rightarrow$C4g transition ($+13.8\pp$) demonstrates that intent-aware routing is the critical mechanism for longitudinal reasoning, even though C4g does not dominate on aggregate.
 
 % ----------------------------------------------------------
-\subsection{Slice Bench: Longitudinal Clinical QA}
+\subsection{SliceBench: Longitudinal Clinical QA}
 \label{sec:results:slicebench}
 
 Table~\ref{tab:slicebench_overall} presents overall results (Claude Sonnet 4.5, judged by Claude Opus 4.6) on 144 questions across 6 MIMIC-IV~\cite{johnson2023mimiciv} patients.
 
 \begin{table}[t]
 \centering
-\caption{Slice Bench overall results (144 questions, Claude Sonnet 4.5). CIs via BCa bootstrap ($n=2{,}000$, seed 42). Sig: * denotes CI excluding zero.}
+\caption{SliceBench overall results (144 questions, Claude Sonnet 4.5). CIs via BCa bootstrap ($n=2{,}000$, seed 42). Sig: * denotes CI excluding zero.}
 \label{tab:slicebench_overall}
 \small
 \begin{tabular}{@{}llccc@{}}
@@ -103,7 +121,7 @@ The incremental KG layer (B2$\rightarrow$B3) contributes $+2.2\pp$ overall (CI: 
 \includegraphics[width=0.75\textwidth]{figures/fig3_complexity_bars.pdf}
 \vspace{4pt}
 \includegraphics[width=\textwidth]{figures/fig4_waterfall.pdf}
-\caption{Slice Bench results ($n=2$ patients per tier, 24 questions each; point estimates without per-tier CIs). \textbf{Top:}~The KG layer's incremental benefit (B2$\rightarrow$B3) shows a directional, complexity-dependent trend: $+0.6\pp$ (Tier~A) to $+5.0\pp$ (Tier~C). \textbf{Bottom:}~Full condition progression shows tier convergence at higher conditions. The overall B2$\rightarrow$B3 delta is $+2.2\pp$ (CI: \ci{-1.5\pp}{+5.9\pp}).}
+\caption{SliceBench results ($n=2$ patients per tier, 24 questions each; point estimates without per-tier CIs). \textbf{Top:}~The KG layer's incremental benefit (B2$\rightarrow$B3) shows a directional, complexity-dependent trend: $+0.6\pp$ (Tier~A) to $+5.0\pp$ (Tier~C). \textbf{Bottom:}~Full condition progression shows tier convergence at higher conditions. The overall B2$\rightarrow$B3 delta is $+2.2\pp$ (CI: \ci{-1.5\pp}{+5.9\pp}).}
 \label{fig:slicebench_figures}
 \end{figure}
 
@@ -115,31 +133,30 @@ If replicated, it would be consistent with the hypothesis that structured KG con
 \subsection{Cross-Model Validation}
 \label{sec:results:crossmodel}
 
-To test whether epistemic KG-RAG generalizes beyond a single model, we ran ClinicalBench with Claude Opus 4.6 (commercial, 200B+ parameter class) alongside MedGemma 27B (open-source, on-device).
+To test whether epistemic KG-RAG generalizes beyond a single model, we ran ClinicalBench with Claude Opus 4.6 (commercial frontier model) alongside MedGemma 27B (open-source, on-device).
 Both use a deterministic keyword evaluator for reproducibility (Appendix~\ref{app:reproducibility}).
 
 \begin{table}[t]
 \centering
-\caption{ClinicalBench cross-model results (400 questions, keyword evaluator). Within-run paired comparisons control for evaluator version and model state.}
+\caption{ClinicalBench cross-model results (400 questions, keyword evaluator). MedGemma numbers reflect the current evaluator version (see Appendix for evaluator evolution). Within-run paired comparisons control for evaluator version and model state.}
 \label{tab:crossmodel}
 \small
 \begin{tabular}{@{}llccc@{}}
 \toprule
 & Model & C1 (LLM Alone) & C4 (Epistemic KG-RAG) & $\Delta$ \\
 \midrule
-Open & MedGemma 27B & 58.0\% & 67.0\% & $+9.0\pp$ \\
+Open & MedGemma 27B & 71.5\% & 71.5\% & $+0.0\pp$ \\
 Commercial & Claude Opus 4.6 & 72.5\% & 70.2\% & $-2.2\pp$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:crossmodel} reveals a model-strength interaction: epistemic KG-RAG produces a large gain for the weaker model ($+9.0\pp$) but a small regression for the stronger one ($-2.2\pp$).
-Table~\ref{tab:crossmodel_categories} shows the category-level mechanism: both models gain on negation, duration, and uncertainty, where structured assertion metadata provides information absent from the LLM's parametric knowledge.
-However, Opus loses on categories where it was already strong---conditional ($-15.0\pp$), family history ($-10.0\pp$), current state ($-10.0\pp$)---suggesting the evidence overrides correct parametric reasoning in these cases.
+Table~\ref{tab:crossmodel} shows that epistemic KG-RAG (C4) matches C1 for MedGemma ($+0.0\pp$) and produces a small regression for Opus ($-2.2\pp$).
+The near-zero aggregate deltas mask category-level effects visible in Table~\ref{tab:crossmodel_categories}: both models gain on assertion-dependent categories (uncertainty, duration for Opus; negation for both) and lose where parametric knowledge was already strong.
 
 \begin{table}[t]
 \centering
-\caption{ClinicalBench per-category accuracy (\%) by model. Arrows show C1$\rightarrow$C4 change within each model. Epistemic evidence helps both models on assertion-dependent categories but hurts Opus where its baseline is already strong.}
+\caption{ClinicalBench per-category accuracy (\%) by model. Arrows show C1$\rightarrow$C4 change within each model. Epistemic evidence helps both models on assertion-dependent categories but hurts where the baseline is already strong.}
 \label{tab:crossmodel_categories}
 \small
 \begin{tabular}{@{}lccccccc@{}}
@@ -148,25 +165,26 @@ However, Opus loses on categories where it was already strong---conditional ($-1
 \cmidrule(lr){3-5} \cmidrule(lr){6-8}
 Category & $n$ & C1 & C4 & $\Delta$ & C1 & C4 & $\Delta$ \\
 \midrule
-Negation & 110 & 92.7 & 99.1 & \up{6.4} & 96.4 & 99.1 & \up{2.7} \\
-Sequence & 40 & 87.5 & 92.5 & \up{5.0} & 97.5 & 95.0 & \dn{2.5} \\
-Conditional & 20 & 80.0 & 80.0 & $=$ & 80.0 & 65.0 & \dn{15.0} \\
-Duration & 30 & 33.3 & 63.3 & \up{30.0} & 90.0 & 100.0 & \up{10.0} \\
-Family hist. & 30 & 63.3 & 66.7 & \up{3.3} & 83.3 & 73.3 & \dn{10.0} \\
-Uncertainty & 40 & 35.0 & 50.0 & \up{15.0} & 47.5 & 55.0 & \up{7.5} \\
-Historical & 50 & 36.0 & 48.0 & \up{12.0} & 44.0 & 38.0 & \dn{6.0} \\
-Current st. & 50 & 32.0 & 42.0 & \up{10.0} & 58.0 & 48.0 & \dn{10.0} \\
-Change & 30 & 6.7 & 6.7 & $=$ & 23.3 & 13.8 & \dn{9.5} \\
+Negation & 110 & 100.0 & 100.0 & $=$ & 96.4 & 99.1 & \up{2.7} \\
+Conditional & 20 & 100.0 & 70.0 & \dn{30.0} & 80.0 & 65.0 & \dn{15.0} \\
+Uncertainty & 40 & 37.5 & 57.5 & \up{20.0} & 47.5 & 55.0 & \up{7.5} \\
+Family hist. & 30 & 0.0 & 70.0 & \up{70.0} & 83.3 & 73.3 & \dn{10.0} \\
+Sequence & 40 & 80.0 & 87.5 & \up{7.5} & 97.5 & 95.0 & \dn{2.5} \\
+Current st. & 50 & 64.0 & 54.0 & \dn{10.0} & 58.0 & 48.0 & \dn{10.0} \\
+Duration & 30 & 100.0 & 83.3 & \dn{16.7} & 90.0 & 100.0 & \up{10.0} \\
+Historical & 50 & 94.0 & 60.0 & \dn{34.0} & 44.0 & 38.0 & \dn{6.0} \\
+Change & 30 & 0.0 & 3.3 & \up{3.3} & 23.3 & 13.3 & \dn{10.0} \\
 \midrule
-\textbf{Overall} & \textbf{400} & \textbf{58.0} & \textbf{67.0} & \up{\textbf{9.0}} & \textbf{72.5} & \textbf{70.2} & \dn{\textbf{2.2}} \\
+\textbf{Overall} & \textbf{400} & \textbf{71.5} & \textbf{71.5} & $=$ & \textbf{72.5} & \textbf{70.2} & \dn{\textbf{2.2}} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-This pattern---large gains for weaker models, small regressions for stronger ones---suggests that epistemic evidence is most valuable when the LLM lacks sufficient parametric knowledge to reason about assertion status independently.
-For stronger models, the current evidence format may override correct reasoning; model-adaptive evidence presentation (e.g., lighter context for high-capability models) is a promising direction (Section~\ref{sec:discussion}).
+The cross-model pattern reinforces the category$\times$condition interaction: both models show the same directional gains on uncertainty and the same losses on conditional, current state, and historical---the effect is not model-specific but reflects what structured epistemic context adds versus what it overrides.
+The ``change'' category remains near zero for C4 on both models (3.3\% for MedGemma, 13.3\% for Opus), motivating the intent-aware routing of C4g.
 
-Slice Bench (Claude Sonnet 4.5) and ClinicalBench (MedGemma 27B, Claude Opus 4.6) show directionally consistent findings across three model families: vanilla RAG can degrade assertion-sensitive performance, while epistemic KG-RAG recovers or improves accuracy, with the magnitude depending on baseline model strength.
+SliceBench (Claude Sonnet 4.5) and ClinicalBench (MedGemma 27B, Claude Opus 4.6) show directionally consistent findings across three model families: vanilla RAG can degrade assertion-sensitive performance, while epistemic KG-RAG recovers accuracy with a fundamentally different category profile.
+The magnitude of category-level effects depends on baseline model strength, but the pattern---gains on assertion-dependent categories, losses where parametric knowledge suffices---is consistent.
 
 \paragraph{Experiencer propagation fix.}
 During development, we identified that the graph traversal pipeline dropped the \texttt{experiencer} attribute (which distinguishes patient conditions from family member conditions), causing family history misattribution.

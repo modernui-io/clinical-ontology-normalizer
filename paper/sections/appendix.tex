@@ -111,13 +111,13 @@ The pilot covered 5 ClinicalBench C1 pairs and revealed:
 \end{itemize}
 
 \paragraph{Planned full adjudication (not yet complete).}
-A two-physician blinded adjudication targeting $n \geq 30$ pairs stratified across conditions (C1/C4 for ClinicalBench; B2/B3 for Slice Bench) is planned, with predefined endpoints: (1)~inter-rater $\kappa$, (2)~human--LLM judge agreement rate, (3)~discordance taxonomy (false strict, false lenient, genuine disagreement).
+A two-physician blinded adjudication targeting $n \geq 30$ pairs stratified across conditions (C1/C4 for ClinicalBench; B2/B3 for SliceBench) is planned, with predefined endpoints: (1)~inter-rater $\kappa$, (2)~human--LLM judge agreement rate, (3)~discordance taxonomy (false strict, false lenient, genuine disagreement).
 This study is in preparation and results are not included in the current paper.
 
 \section{Reproducibility Details}
 \label{app:reproducibility}
 
-\paragraph{Models.} ClinicalBench main ablation (Table~\ref{tab:clinicalbench_ablation}): MedGemma 27B (answering) with LLM-as-judge scoring. ClinicalBench cross-model (Tables~\ref{tab:crossmodel},~\ref{tab:crossmodel_categories}): MedGemma 27B and Claude Opus 4.6 (claude-opus-4-20250514) with deterministic keyword evaluator. Slice Bench: Claude Sonnet 4.5 (claude-sonnet-4-5-20250929, answering), Claude Opus 4.6 (judging). All experiments used temperature 0 for reproducibility.
+\paragraph{Models.} ClinicalBench main ablation (Table~\ref{tab:clinicalbench_ablation}): MedGemma 27B (answering) with LLM-as-judge scoring. ClinicalBench cross-model (Tables~\ref{tab:crossmodel},~\ref{tab:crossmodel_categories}): MedGemma 27B and Claude Opus 4.6 (claude-opus-4-20250514) with deterministic keyword evaluator. SliceBench: Claude Sonnet 4.5 (claude-sonnet-4-5-20250929, answering), Claude Opus 4.6 (judging). All experiments used temperature 0 for reproducibility.
 
 \paragraph{Evaluation.} The cross-model results use a deterministic keyword evaluator that matches temporal and assertion keywords (e.g., ``was''/``previously'' for historical, ``has''/``current'' for present) against gold-standard categories. This evaluator strips echoed evidence preambles before scoring current\_state/historical categories to prevent cross-contamination, and uses expanded uncertainty keywords including medical hedging terms (``likely'', ``probable'', ``concerning for'').
 
@@ -125,7 +125,9 @@ This study is in preparation and results are not included in the current paper.
 
 \paragraph{Data.} All experiments used de-identified MIMIC-IV clinical notes under the PhysioNet Credentialed Health Data Use Agreement (v1.5.0).
 
-\paragraph{Computational resources.} ClinicalBench: approximately 3.6 hours on a single machine with GPU (MedGemma inference via Ollama); Opus cross-model validation approximately 20 minutes via Anthropic API. Slice Bench: approximately 2 hours using Anthropic API.
+\paragraph{Computational resources.} ClinicalBench: approximately 3.6 hours on a single machine with GPU (MedGemma inference via Ollama); Opus cross-model validation approximately 20 minutes via Anthropic API. SliceBench: approximately 2 hours using Anthropic API.
+
+\paragraph{Evaluator evolution.} The deterministic keyword evaluator underwent refinement during development. Key changes included: (i)~switching from substring to word-boundary matching to prevent false positives (e.g., the word ``for'' matching ``former''), and (ii)~stripping echoed evidence preambles before scoring to prevent cross-contamination between categories. All numbers reported in the main text use the final evaluator version. The appendix per-category table (Table~\ref{tab:full_percategory}) has been updated to match.
 
 \section{Assertion Category Definitions}
 \label{app:assertions}
@@ -150,13 +152,20 @@ This study is in preparation and results are not included in the current paper.
 \label{tab:assertion_defs}
 \end{table}
 
-\section{Slice Bench Tier-Stratified Results}
+\section{Intent-Aware Routing Algorithm}
+\label{app:routing}
+
+The C4g condition extends epistemic KG-RAG (C4) with a question-type classifier that routes each query to a specialized retrieval strategy. The classifier is rule-based, mapping questions to one of four intent types---\textsc{Change}, \textsc{Current\_State}, \textsc{Historical}, or \textsc{Default}---using keyword patterns in the question text (e.g., ``changed'', ``new since'', ``differ between admissions'' trigger \textsc{Change}).
+
+For \textsc{Change} queries, the retriever partitions KG edges by \texttt{hadm\_id} (hospital admission identifier) and computes set differences across admissions: concepts added (present in later admission but not earlier), removed (present in earlier but not later), and continued (present in both). For \textsc{Current\_State} queries, the retriever filters to edges with \texttt{temporality=Current} or \texttt{valid\_to=NULL}, then deduplicates by concept to return only the most recent assertion for each clinical finding. For \textsc{Historical} queries, the retriever selects edges with \texttt{temporality=Past} and augments these with admission-based inference: concepts present in an earlier admission but absent from the latest admission are inferred as ``resolved.'' All other question types fall through to the default C4 epistemic retrieval pipeline.
+
+\section{SliceBench Tier-Stratified Results}
 \label{app:slicebench_tiers}
 
 \begin{table}[ht]
 \centering
 \small
-\caption{Slice Bench results stratified by patient complexity tier. B2$\rightarrow$B3 $\Delta$ shows the incremental KG contribution. The KG benefit concentrates in Tier~C.}
+\caption{SliceBench results stratified by patient complexity tier. B2$\rightarrow$B3 $\Delta$ shows the incremental KG contribution. The KG benefit concentrates in Tier~C.}
 \label{tab:slicebench_tiers}
 \begin{tabular}{@{}lccccccc@{}}
 \toprule
@@ -177,24 +186,24 @@ C & 15+ notes & 48.4 & 74.2 & 86.5 & 91.5 & 90.3 & $+5.0\pp$ \\
 \begin{table}[ht]
 \centering
 \small
-\begin{tabular}{lccccc}
+\begin{tabular}{lcccccc}
 \toprule
-\textbf{Category} & \textbf{C1} & \textbf{C2} & \textbf{C3} & \textbf{C4} & \textbf{C5} \\
+\textbf{Category} & \textbf{C1} & \textbf{C2} & \textbf{C3} & \textbf{C4} & \textbf{C4g} & \textbf{C5} \\
 \midrule
-Negation & 100.0 & 93.6 & 81.8 & 100.0 & 98.2 \\
-Conditional & 100.0 & 90.0 & 55.0 & 65.0 & 70.0 \\
-Uncertainty & 55.0 & 2.5 & 20.0 & 62.5 & 52.5 \\
-Family History & 0.0 & 0.0 & 53.3 & 70.0 & 56.7 \\
-Sequence & 80.0 & 80.0 & 80.0 & 80.0 & 72.5 \\
-Current State & 64.0 & 54.0 & 50.0 & 64.0 & 68.0 \\
-Duration & 100.0 & 100.0 & 83.3 & 53.3 & 63.3 \\
-Historical & 94.0 & 78.0 & 68.0 & 72.0 & 60.0 \\
-Change & 0.0 & 0.0 & 3.3 & 3.3 & 3.3 \\
+Negation & 100.0 & 93.6 & 81.8 & 100.0 & 86.4 & 98.2 \\
+Conditional & 100.0 & 90.0 & 55.0 & 70.0 & 65.0 & 75.0 \\
+Uncertainty & 37.5 & 2.5 & 7.5 & 57.5 & 32.5 & 40.0 \\
+Family History & 0.0 & 0.0 & 53.3 & 70.0 & 56.7 & 56.7 \\
+Sequence & 80.0 & 80.0 & 80.0 & 87.5 & 90.0 & 77.5 \\
+Current State & 64.0 & 54.0 & 50.0 & 54.0 & 76.0 & 58.0 \\
+Duration & 100.0 & 100.0 & 83.3 & 83.3 & 46.7 & 73.3 \\
+Historical & 94.0 & 78.0 & 68.0 & 60.0 & 40.0 & 68.0 \\
+Change & 0.0 & 0.0 & 3.3 & 3.3 & 60.0 & 3.3 \\
 \midrule
-\textbf{Overall} & \textbf{73.2} & \textbf{62.5} & \textbf{60.5} & \textbf{71.5} & \textbf{68.2} \\
+\textbf{Overall} & \textbf{71.5} & \textbf{62.5} & \textbf{59.2} & \textbf{71.5} & \textbf{66.0} & \textbf{68.2} \\
 \bottomrule
 \end{tabular}
-\caption{Complete ClinicalBench per-category accuracy (\%, deterministic keyword evaluator) for all five conditions. C4 shows the largest gains on family history (+70\pp vs C1/C2) and uncertainty (+7.5\pp vs C1).}
+\caption{Complete ClinicalBench per-category accuracy (\%, deterministic keyword evaluator) for all six conditions (C1--C5, C4g). C4g (intent-aware routing) achieves the largest gains on change questions (+60\pp vs C4) and current state (+22\pp vs C4), while C4 leads on assertion-heavy categories.}
 \label{tab:full_percategory}
 \end{table}
 

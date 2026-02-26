@@ -12,7 +12,7 @@ Questions span 9 categories: \textit{negation}, \textit{conditional}, \textit{un
 
 Seven ablation conditions progressively add system components, plus two diagnostic baselines:
 
-\begin{table}[h]
+\begin{table}[t]
 \centering
 \small
 \caption{ClinicalBench ablation conditions. C1--C4g form the primary ablation ladder; C5--C7 are diagnostic conditions.}
@@ -25,7 +25,7 @@ C1 & LLM Alone & None & None & None & Parametric baseline \\
 C2 & + Vanilla RAG & Document & None & None & Standard retrieval \\
 C3 & + KG-RAG & Graph + Doc & None & None & Graph structure only \\
 C4 & + Epistemic KG-RAG & Graph + Doc & Full (7-class) & Tri-temporal & v11 primary \\
-C4g & + Intent-Aware KG-RAG & Graph + Doc (type-specific) & Full (7-class) & Tri-temporal & Question-type routing (Section~\ref{sec:intent_routing}) \\
+C4g & + Intent-Aware KG-RAG & Graph + Doc (type-specific) & Full (7-class) & Tri-temporal & Question-type routing (Section~\ref{sec:system:intentaware}) \\
 C5 & Full System & Graph + Doc + Guidelines & Full (7-class) & Tri-temporal + Calc.\ & Moved to appendix; includes calculators and guidelines \\
 \midrule
 C6 & Long-Context Brute Force & All docs in prompt & None & None & Tests whether token capacity alone suffices \\
@@ -50,17 +50,17 @@ C7 tests the converse: whether the knowledge graph alone, queried deterministica
 Together, C6 and C7 bracket the design space and justify the hybrid architecture.
 
 
-\subsection{Slice Bench: Complexity-Stratified Longitudinal QA}
+\subsection{SliceBench: Complexity-Stratified Longitudinal QA}
 \label{sec:bench:slicebench}
 
-Slice Bench tests the hypothesis that KG-augmented retrieval provides increasing benefit as patient record complexity grows.
+SliceBench tests the hypothesis that KG-augmented retrieval provides increasing benefit as patient record complexity grows.
 We select 6 MIMIC-IV patients in three tiers: \textbf{Tier~A} (2 patients, 1--2 encounters), \textbf{Tier~B} (2 patients, 5--10 encounters), and \textbf{Tier~C} (2 patients, 15+ encounters).
 Each patient receives 24 questions (categories A1--F6, where F1--F6 are hard longitudinal questions: cross-encounter medication timelines, problem list reconciliation, causal chain tracing), yielding 144 total questions.
 
-\begin{table}[h]
+\begin{table}[t]
 \centering
 \small
-\caption{Slice Bench conditions. B0--B4 form a monotone context progression.}
+\caption{SliceBench conditions. B0--B4 form a monotone context progression.}
 \label{tab:slicebench_conditions}
 \begin{tabular}{@{}clp{7.5cm}@{}}
 \toprule
@@ -80,6 +80,6 @@ B4 & Full System & KG-RAG + guidelines + calculators \\
 \subsection{Evaluation Protocol}
 \label{sec:bench:protocol}
 
-Both benchmarks use separated judge and answering models to prevent self-evaluation bias~\cite{xiong2024mirage}: MedGemma 27B / separate LLM judge (ClinicalBench) and Claude Sonnet 4.5 / Claude Opus 4.6 (Slice Bench).
+Both benchmarks use separated judge and answering models to prevent self-evaluation bias~\cite{xiong2024mirage}: MedGemma 27B / separate LLM judge (ClinicalBench) and Claude Sonnet 4.5 / Claude Opus 4.6 (SliceBench).
 We report BCa bootstrap 95\% CIs ($n=2{,}000$, seed 42) on all aggregate metrics; CIs are computed at the question level (not cluster-bootstrapped by patient).
 The safety score $S = 1 - \frac{1}{N} \sum_{i=1}^{N} w_i \cdot \mathbb{1}[\hat{y}_i \neq y_i]$ applies $w_i = 2.0$ for false-positive assertion errors (reporting a negated or absent condition as present) and $w_i = 1.0$ otherwise, capturing asymmetric clinical risk where acting on a falsely affirmed condition is more dangerous than missing a present one.

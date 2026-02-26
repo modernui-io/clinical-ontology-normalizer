@@ -28,7 +28,7 @@ OMOP excludes negated conditions entirely~\cite{omop2024}; FHIR restricts assert
 %
 This extends the i2b2 six-class taxonomy~\cite{uzuner2011i2b2assertion} by separating \textsc{Historical} from \textsc{Family\_History}, a clinically important distinction that prior work conflates.
 
-The assertion classifier outputs calibrated confidence scores across 101 trigger patterns in four categories (\textsc{Absent}: 36, \textsc{Uncertain}: 36, \textsc{Hypothetical}: 16, \textsc{Present}: 13), with scope-aware matching (forward/backward/bidirectional) and 9 pseudo-negation exception patterns.
+The assertion classifier outputs calibrated confidence scores across 101 trigger patterns in four categories (\textsc{Absent}: 36, \textsc{Possible}: 36, \textsc{Hypothetical}: 16, \textsc{Present}: 13), with scope-aware matching (forward/backward/bidirectional) and 9 pseudo-negation exception patterns.
 The label $\alpha$ is carried through every stage: attached to \texttt{ExtractedMention} during NLP, preserved through ensemble merging (agreement boosts confidence by $+0.10$), stored on \texttt{ClinicalFact} records, materialized as a KG edge property, and used for retrieval scoring (Section~\ref{sec:system:retrieval}).
 To our knowledge, no prior system~\cite{gul2025beyondnegation,peng2018negbio} maintains this end-to-end invariant.
 
@@ -53,6 +53,7 @@ An edge $e = (s, p, o, \alpha, \boldsymbol{\tau}_v, \boldsymbol{\tau}_t, \tau_a,
 \end{definition}
 
 $\mathcal{R}$ captures nine qualitative temporal relationships (\textsc{Before}, \textsc{After}, \textsc{During}, \textsc{Contains}, \textsc{Overlaps}, \textsc{Starts}, \textsc{Finishes}, \textsc{Concurrent}, \textsc{Un\-known}).
+This represents a subset of Allen's 13 canonical interval relations~\cite{allen1983temporal} (7 base relations plus 6 inverses), augmented with \textsc{Concurrent} (for simultaneous events) and \textsc{Unknown} (when temporal ordering cannot be determined from the clinical text).
 Unlike TEO~\cite{li2020teo} and TCL~\cite{ong2023tcl}, which use Allen's relations as annotation-ontology classes or modal operators, \epikg stores $r$ and $c$ directly on materialized edges with composite indexes on \texttt{(patient\_id, valid\_from)}, enabling efficient temporal filtering during traversal.
 A \texttt{TemporalContext} object assembles four views---event timeline, detected conflicts, current state, and historical state---serialized into the LLM prompt alongside graph evidence.
 
@@ -101,7 +102,7 @@ The central claim is that assertion metadata constitutes recoverable clinical in
 
 \begin{definition}[Epistemic State]
 \label{def:epistemic}
-For a clinical mention $m$, the \emph{epistemic state} is the tuple $e(m) = (c, \alpha, \xi, \tau)$, where $c$ is the OMOP concept identifier, $\alpha \in \{\textsc{Present}, \textsc{Negated}, \textsc{Uncertain}, \textsc{Conditional}, \textsc{Family}, \textsc{Hypothetical}, \textsc{Not\_Associated}\}$ is the 7-value assertion label (Eq.~\ref{eq:assertion}), $\xi \in \{\textsc{Patient}, \textsc{Family}\}$ is the experiencer, and $\tau \in \{\textsc{Current}, \textsc{Past}, \textsc{Future}\}$ is the temporality.
+For a clinical mention $m$, the \emph{epistemic state} is the tuple $e(m) = (c, \alpha, \xi, \tau)$, where $c$ is the OMOP concept identifier, $\alpha \in \{\textsc{Present}, \textsc{Absent}, \textsc{Possible}, \textsc{Conditional}, \textsc{Hypothetical}, \textsc{Family\_History}, \textsc{Historical}\}$ is the 7-value assertion label (Eq.~\ref{eq:assertion}), $\xi \in \{\textsc{Patient}, \textsc{Family}\}$ is the experiencer, and $\tau \in \{\textsc{Current}, \textsc{Past}, \textsc{Future}\}$ is the temporality.
 A pipeline $P$ \emph{epistemically preserves} mention $m$ if $P(e(m)) = e(m)$; that is, the epistemic state at the output of every pipeline stage is identical to the state at extraction.
 \end{definition}
 
