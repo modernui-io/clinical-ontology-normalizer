@@ -27,8 +27,7 @@ SliceBench tier-level estimates ($n=2$ patients per tier) are particularly unsta
 Bootstrap CIs are computed at the question level; a cluster-aware bootstrap at the patient level would be more conservative and is planned for the expanded cohort.
 Calculator/guideline integration (C5, B4) showed degradation that we hypothesize results from non-relevant module activation, though we have not performed controlled ablations to confirm this mechanism; query-aware component selection is a priority for future work.
 LLM-as-judge evaluation may introduce biases; a pilot human validation ($n=5$, single reviewer; Appendix~\ref{app:human}) revealed overly strict automated scoring on uncertainty and sequence categories, and a full two-physician blinded adjudication is planned but not yet complete.
-The keyword evaluator evolved during development (notably from substring to word-boundary matching); cross-run comparisons across evaluator versions should be treated as directional rather than exact.
-ClinicalBench MedGemma runs show measurable run-to-run variance (C1 baseline fluctuated $\pm 10\pp$ across runs); within-run paired comparisons are used as the primary evidence, with cross-run comparisons treated as secondary.
+As noted in Section~\ref{sec:results}, run-to-run variance in MedGemma results ($\pm 10\pp$) means all reported deltas rely on within-run paired comparisons; cross-run comparisons are directional only.
 C4g's aggregate accuracy ($-5.5\pp$ vs.\ C1) illustrates a key tension: structured context can \emph{hurt} in the aggregate even while providing transformative category-level gains ($+60\pp$ on change, $+57\pp$ on family history), because formatting overhead degrades categories where the LLM already performs well.
 
 \paragraph{Future work.}

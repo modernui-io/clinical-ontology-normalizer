@@ -159,6 +159,17 @@ The C4g condition extends epistemic KG-RAG (C4) with a question-type classifier 
 
 For \textsc{Change} queries, the retriever partitions KG edges by \texttt{hadm\_id} (hospital admission identifier) and computes set differences across admissions: concepts added (present in later admission but not earlier), removed (present in earlier but not later), and continued (present in both). For \textsc{Current\_State} queries, the retriever filters to edges with \texttt{temporality=Current} or \texttt{valid\_to=NULL}, then deduplicates by concept to return only the most recent assertion for each clinical finding. For \textsc{Historical} queries, the retriever selects edges with \texttt{temporality=Past} and augments these with admission-based inference: concepts present in an earlier admission but absent from the latest admission are inferred as ``resolved.'' All other question types fall through to the default C4 epistemic retrieval pipeline.
 
+\section{C5 Full System Methodology}
+\label{app:c5}
+
+The C5 condition extends C4 (epistemic KG-RAG) with two additional components: clinical guideline retrieval and clinical calculators.
+
+\paragraph{Guideline retrieval.} A corpus of 1{,}202 indexed guideline sections (covering AHA/ACC, ADA, KDIGO, and other major society guidelines) is queried using the same concept seeds as the KG traversal. Matching sections are appended to the LLM prompt after graph evidence.
+
+\paragraph{Clinical calculators.} A library of 201 clinical calculators (e.g., CHA$_2$DS$_2$-VASc, MELD, Wells criteria) is triggered when the question or graph evidence contains relevant clinical parameters. Calculator results are formatted as structured outputs and included in the prompt.
+
+\paragraph{Performance.} C5 achieves 68.2\% overall on ClinicalBench (Table~\ref{tab:full_percategory}), below both C1 (71.5\%) and C4 (71.5\%). We hypothesize that non-relevant guideline sections and calculator outputs dilute the prompt with tangential information, overriding the LLM's correct reasoning on categories where it already performs well. Query-aware component selection---activating guidelines and calculators only when they are directly relevant to the question---is a priority for future work (Section~\ref{sec:discussion}).
+
 \section{SliceBench Tier-Stratified Results}
 \label{app:slicebench_tiers}
 

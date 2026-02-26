@@ -28,8 +28,8 @@ OMOP excludes negated conditions entirely~\cite{omop2024}; FHIR restricts assert
 %
 This extends the i2b2 six-class taxonomy~\cite{uzuner2011i2b2assertion} by separating \textsc{Historical} from \textsc{Family\_History}, a clinically important distinction that prior work conflates.
 
-The assertion classifier outputs calibrated confidence scores across 101 trigger patterns in four categories (\textsc{Absent}: 36, \textsc{Possible}: 36, \textsc{Hypothetical}: 16, \textsc{Present}: 13), with scope-aware matching (forward/backward/bidirectional) and 9 pseudo-negation exception patterns.
-The label $\alpha$ is carried through every stage: attached to \texttt{ExtractedMention} during NLP, preserved through ensemble merging (agreement boosts confidence by $+0.10$), stored on \texttt{ClinicalFact} records, materialized as a KG edge property, and used for retrieval scoring (Section~\ref{sec:system:retrieval}).
+A rule-based classifier uses scope-aware trigger patterns (details in Appendix~\ref{app:scale}) to assign $\alpha$ with calibrated confidence.
+The label is carried through every stage: attached to \texttt{ExtractedMention} during NLP, preserved through ensemble merging, stored on \texttt{ClinicalFact} records, materialized as a KG edge property, and used for retrieval scoring (Section~\ref{sec:system:retrieval}).
 To our knowledge, no prior system~\cite{gul2025beyondnegation,peng2018negbio} maintains this end-to-end invariant.
 
 
@@ -54,7 +54,7 @@ An edge $e = (s, p, o, \alpha, \boldsymbol{\tau}_v, \boldsymbol{\tau}_t, \tau_a,
 
 $\mathcal{R}$ captures nine qualitative temporal relationships (\textsc{Before}, \textsc{After}, \textsc{During}, \textsc{Contains}, \textsc{Overlaps}, \textsc{Starts}, \textsc{Finishes}, \textsc{Concurrent}, \textsc{Un\-known}).
 This represents a subset of Allen's 13 canonical interval relations~\cite{allen1983temporal} (7 base relations plus 6 inverses), augmented with \textsc{Concurrent} (for simultaneous events) and \textsc{Unknown} (when temporal ordering cannot be determined from the clinical text).
-Unlike TEO~\cite{li2020teo} and TCL~\cite{ong2023tcl}, which use Allen's relations as annotation-ontology classes or modal operators, \epikg stores $r$ and $c$ directly on materialized edges with composite indexes on \texttt{(patient\_id, valid\_from)}, enabling efficient temporal filtering during traversal.
+Unlike TEO~\cite{li2020teo} and TCL~\cite{ong2023tcl}, which use Allen's relations as annotation-ontology classes or modal operators, \epikg stores $r$ and $c$ directly on materialized edges, enabling efficient temporal filtering during traversal.
 A \texttt{TemporalContext} object assembles four views---event timeline, detected conflicts, current state, and historical state---serialized into the LLM prompt alongside graph evidence.
 
 
@@ -97,7 +97,7 @@ Graph evidence, temporal context, guideline excerpts, and source documents are c
 \subsection{Formal Epistemic Preservation}
 \label{sec:system:formal}
 
-We now formalize the epistemic invariant maintained by the \epikg pipeline.
+We now formalize the epistemic invariant maintained by the \epikg pipeline, building on the ontological principle that aboutness---the relationship between information artifacts and the entities they represent---must be preserved across transformations~\cite{ceusters2015ontologyepistemology}.
 The central claim is that assertion metadata constitutes recoverable clinical information: discarding it induces a measurable entropy loss that upper-bounds the faithfulness of any downstream system.
 
 \begin{definition}[Epistemic State]

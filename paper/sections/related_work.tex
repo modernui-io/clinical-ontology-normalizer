@@ -32,6 +32,8 @@ Gul et al.~\cite{gul2025beyondnegation} fine-tuned LLMs to 0.962 accuracy (+23.4
 All treat assertion detection as a terminal annotation task: labels are consumed by NLP pipelines but not carried into knowledge graphs or retrieval systems.
 \epikg extends the i2b2 taxonomy to seven classes (separating \textsc{Historical} from \textsc{Family\_History}) and propagates labels end-to-end into KG edges and RAG context.
 
+Assertion detection is necessary but not sufficient for faithful clinical QA: assertion labels must also be \emph{temporally situated}---the same condition may be present in one encounter and absent in the next.
+
 \paragraph{Temporal knowledge graphs.}
 \label{sec:related:temporal}
 MedTKG~\cite{huang2024medtkg} constructs temporal KGs with time-stamped snapshots over SNOMED CT (event time only, no assertion status).
@@ -48,25 +50,26 @@ Uncertainty quantification in biomedical KGs has been explored~\cite{bao2024unce
 \caption{Capability comparison across representative systems. \smark{} = supported, $\circ$ = partial, \xmark{} = not supported. ``Partial'' indicates the system addresses some aspect of the capability without full coverage (see text).}
 \label{tab:gap}
 \small
-\setlength{\tabcolsep}{3.5pt}
-\begin{tabular}{@{}lccccccc@{}}
+\setlength{\tabcolsep}{3.0pt}
+\begin{tabular}{@{}lcccccccc@{}}
 \toprule
-\textbf{System} & \rotatebox{70}{\textbf{Patient KG}} & \rotatebox{70}{\textbf{OMOP mapping}} & \rotatebox{70}{\textbf{Assertion (7-class)}} & \rotatebox{70}{\textbf{Tri-temporal}} & \rotatebox{70}{\textbf{Assert.-aware RAG}} & \rotatebox{70}{\textbf{Experiencer}} & \rotatebox{70}{\textbf{Allen's algebra}} \\
+\textbf{System} & \rotatebox{70}{\textbf{Patient KG}} & \rotatebox{70}{\textbf{OMOP mapping}} & \rotatebox{70}{\textbf{Assertion (7-class)}} & \rotatebox{70}{\textbf{Tri-temporal}} & \rotatebox{70}{\textbf{Assert.-aware RAG}} & \rotatebox{70}{\textbf{Experiencer}} & \rotatebox{70}{\textbf{Allen's algebra}} & \rotatebox{70}{\textbf{Multi-hop ($\geq$3)}} \\
 \midrule
-DoctorRAG~\cite{lu2025doctorrag}         & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark \\
-GFM-RAG~\cite{luo2025gfmrag}             & $\circ$ & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark \\
-MedRAG~\cite{wang2025medrag}              & $\circ$ & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark \\
-KARE~\cite{jiang2025kare}                 & $\circ$ & \xmark & \xmark & \xmark & $\circ$ & \xmark & \xmark \\
-Multi-LLM KG~\cite{chen2026multilllmkgrag} & \xmark & \smark{} & $\circ$ & \xmark & \xmark & \xmark & \xmark \\
-MedTKG~\cite{huang2024medtkg}             & \smark{} & \xmark & \xmark & $\circ$ & \xmark & \xmark & \xmark \\
-Graphiti~\cite{ramirez2025graphiti}       & \xmark & \xmark & \xmark & $\circ$ & \xmark & \xmark & \xmark \\
+DoctorRAG~\cite{lu2025doctorrag}         & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark \\
+GFM-RAG~\cite{luo2025gfmrag}             & $\circ$ & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark & \smark{} \\
+MedRAG~\cite{wang2025medrag}              & $\circ$ & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark & $\circ$ \\
+KARE~\cite{jiang2025kare}                 & $\circ$ & \xmark & \xmark & \xmark & $\circ$ & \xmark & \xmark & \smark{} \\
+Multi-LLM KG~\cite{chen2026multilllmkgrag} & \xmark & \smark{} & $\circ$ & \xmark & \xmark & \xmark & \xmark & \xmark \\
+MedTKG~\cite{huang2024medtkg}             & \smark{} & \xmark & \xmark & $\circ$ & \xmark & \xmark & \xmark & \smark{} \\
+Graphiti~\cite{ramirez2025graphiti}       & \xmark & \xmark & \xmark & $\circ$ & \xmark & \xmark & \xmark & \smark{} \\
 \midrule
-\textbf{\epikg (ours)}                    & \smark{} & \smark{} & \smark{} & \smark{} & \smark{} & \smark{} & \smark{} \\
+\textbf{\epikg (ours)}                    & \smark{} & \smark{} & \smark{} & \smark{} & \smark{} & \smark{} & \smark{} & $\circ$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 Table~\ref{tab:gap} synthesizes capabilities across representative systems.
 Partial marks indicate limited coverage: GFM-RAG, MedRAG, and KARE build population-level or hierarchical KGs (not per-patient longitudinal graphs); KARE uses KG-augmented retrieval but without assertion awareness; Multi-LLM KG models uncertainty via entropy but not the full assertion taxonomy; MedTKG and Graphiti use temporal annotations (event-time snapshots and bitemporal edges, respectively) but not tri-temporal models.
+\epikg's partial mark on multi-hop traversal ($\geq 3$ hops) reflects a deliberate architectural trade-off: PostgreSQL CTE-based traversal provides ACID compliance and single-database deployment but degrades beyond 2~hops (Appendix~\ref{app:drknows}), unlike native graph databases used by GFM-RAG and others.
 Two structural gaps emerge: an \emph{epistemic propagation gap} (assertion-detecting systems do not persist labels into KGs; KG-building systems do not model assertions end-to-end) and a \emph{temporal integration gap} (temporal relation formalisms operate as annotation layers, not as KG edge attributes participating in retrieval).
 \epikg closes both by carrying assertion and temporal metadata as first-class properties through every pipeline stage.

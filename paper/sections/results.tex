@@ -5,6 +5,11 @@ We evaluate \epikg through two benchmarks: ClinicalBench tests assertion-sensiti
 All confidence intervals use the bias-corrected and accelerated (BCa) bootstrap ($n=2{,}000$, seed 42)~\cite{efron1993bootstrap}, resampled at the question level.
 ClinicalBench results use a deterministic keyword evaluator for reproducibility; SliceBench uses LLM-as-judge evaluation (Section~\ref{sec:bench:protocol}).
 
+\paragraph{Methodological note on variance.}
+MedGemma 27B runs via Ollama showed measurable run-to-run variance (C1 baseline fluctuated $\pm 10\pp$ across runs), attributable to evaluator refinement during development (Appendix~\ref{app:reproducibility}) and residual model non-determinism.
+All ClinicalBench results reported in this section are \emph{within-run paired comparisons}: conditions were evaluated in the same run with the same evaluator version and model state, ensuring that deltas between conditions are internally valid even when absolute levels vary across runs.
+Cross-run comparisons (e.g., between MedGemma and Opus) should be treated as directional.
+
 % ----------------------------------------------------------
 \subsection{ClinicalBench: Ablation Results}
 \label{sec:results:clinicalbench}

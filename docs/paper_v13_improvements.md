@@ -50,9 +50,9 @@
 - [x] Update benchmark_design.tex evaluation protocol to mention both evaluation methods — **DONE**
 
 ### P2.3 Run-to-run variance disclosure
-- [ ] Discussion mentions "C1 baseline fluctuated ±10pp across runs" — this is HUGE
-- [ ] All reported deltas <10pp are within noise if this is true
-- [ ] **Action**: Investigate source (evaluator version changes vs model non-determinism). If evaluator-driven, explain clearly. If model non-determinism at temp=0, investigate Ollama settings. Either way, move this disclosure to the results section (not buried in limitations).
+- [x] Discussion mentions "C1 baseline fluctuated ±10pp across runs" — **FIXED** moved disclosure to results section (methodological note paragraph) explaining variance source (evaluator refinement + residual model non-determinism) and why within-run paired comparisons remain valid
+- [x] All reported deltas <10pp are within noise if this is true — **ADDRESSED** by clarifying all reported deltas are within-run paired comparisons (same evaluator, same model state), making them internally valid
+- [x] Discussion limitation paragraph simplified to back-reference the results section disclosure
 
 ### P2.4 Remove unverifiable claims
 - [x] "200B+ parameter class" → **FIXED** to "commercial frontier model"
@@ -61,10 +61,10 @@
 - [x] neurips_2026.sty provides `\bibliographystyle{unsrtnat}` automatically — **no fix needed**
 
 ### P2.6 Cite uncited references or remove them
-- [ ] `ceusters2015ontologyepistemology` — still uncited. Consider citing in system_design formal section or remove.
+- [x] `ceusters2015ontologyepistemology` — **FIXED** cited in system_design.tex formal section (aboutness principle)
 - [x] `bao2024uncertaintybiomedkg` — **FIXED** cited in related_work.tex temporal section
 - [x] `peng2018negbio` — **FIXED** cited in related_work.tex assertion section
-- [ ] Add citation for MedQA if referenced in benchmark design opening
+- [x] Add citation for MedQA if referenced in benchmark design opening — **FIXED** added jin2021medqa bib entry and citation
 
 ### P2.7 MedQA model identity
 - [x] Appendix says MedQA baseline uses "Claude Opus 4.5" — already explicit
@@ -72,11 +72,10 @@
 - [x] Reader will think this is MedGemma 27B (the ClinicalBench model) — **FIXED**
 - [x] **Action**: Explicitly state which model achieved 81.6% on MedQA. If Opus, clarify it is not the ClinicalBench backbone. — **DONE**
 
-### P2.8 Missing appendix sections (PARTIALLY DONE)
-- [ ] Cross-model table caption references "see Appendix for evaluator evolution" — section doesn't exist
-- [ ] C4g routing algorithm — core contribution but no appendix detail
-- [ ] C5 methodology — benchmark design says "moved to appendix" but only per-category table exists
-- [ ] **Action**: Add appendix sections for evaluator refinement log, C4g routing pseudocode, C5 component details
+### P2.8 Missing appendix sections
+- [x] Cross-model table caption references "see Appendix for evaluator evolution" — **FIXED** (evaluator evolution paragraph added in round 1)
+- [x] C4g routing algorithm — **FIXED** (Intent-Aware Routing Algorithm section added in round 1)
+- [x] C5 methodology — **FIXED** added C5 Full System Methodology appendix section with guideline retrieval, calculator library, and performance analysis
 
 ### P2.9 Add conclusion section
 - [x] **DONE** — Added `\paragraph{Conclusion.}` at end of discussion.tex with 4 sentences covering gap, solution, category-specific benefit, and evaluation lens argument
@@ -95,16 +94,16 @@
 - [x] **DONE** — All instances standardized to "SliceBench" (one word) across all .tex files
 
 ### P3.3 System design length
-- [ ] 7 subsections is dense for NeurIPS. Consider moving formal preservation (3.6) to appendix — interesting but not essential for main argument
-- [ ] Line 31 implementation detail (101 trigger patterns, 4 categories) — move to appendix
-- [ ] Line 63 PostgreSQL index strategy — describe conceptual architecture, not implementation
+- [ ] 7 subsections is dense for NeurIPS. Consider moving formal preservation (3.6) to appendix — interesting but not essential for main argument (deferred — keeping for now as it's referenced from intro contribution 1)
+- [x] Line 31 implementation detail (101 trigger patterns, 4 categories) — **FIXED** replaced with brief reference to Appendix~\ref{app:scale}
+- [x] Line 63 PostgreSQL index strategy — **FIXED** removed composite index detail, kept conceptual "stores on materialized edges"
 
 ### P3.4 Related work improvements
 - [x] Line 8: "has become" → "has emerged as" — **DONE**
 - [x] NegBio citation added to assertion paragraph — **DONE**
 - [x] "to our knowledge" hedging added — **DONE**
-- [ ] Add transition sentence between assertion and temporal subsections
-- [ ] Gap analysis table could add one column where EpiKG has a limitation (shows intellectual honesty)
+- [x] Add transition sentence between assertion and temporal subsections — **FIXED** added sentence linking assertion detection to temporal situating
+- [x] Gap analysis table could add one column where EpiKG has a limitation — **FIXED** added "Multi-hop (≥3)" column where EpiKG gets partial mark ($\circ$), with explanatory text about PostgreSQL CTE trade-off
 
 ### P3.5 Results section refinements
 - [x] C3 and C5 safety scores are "---" — **FIXED** added dagger footnote explaining they weren't computed in final evaluator run
@@ -113,15 +112,14 @@
 - [x] Remove "200B+ parameter class" from L136 — **DONE**
 
 ### P3.6 Table formatting
-- [ ] benchmark_design.tex tables use `[h]` — change to `[t]` for NeurIPS style
-- [ ] Add consistent number formatting (1 decimal place everywhere for percentages)
+- [x] benchmark_design.tex tables use `[h]` — **FIXED** in round 1 (changed to `[t]`)
+- [x] Add consistent number formatting (1 decimal place everywhere for percentages) — **VERIFIED** all percentages use 1 decimal place
 
 ### P3.7 Safety score w=2.0 justification
 - [x] Weight of 2.0 for false-positive assertion errors is not empirically validated — **FIXED** added clinical rationale and acknowledged as limitation/future work direction in benchmark_design.tex
 
 ### P3.8 F1 > 0.90 citation in abstract
-- [ ] Abstract claims "F1 > 0.90" for clinical NLP assertion detection — needs a citation
-- [ ] Cite uzuner2011i2b2assertion or gul2025beyondnegation
+- [x] Abstract claims "F1 > 0.90" for clinical NLP assertion detection — **FIXED** in round 1 (cites gul2025beyondnegation)
 
 ---
 
