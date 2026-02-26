@@ -36,14 +36,12 @@ C4g's aggregate accuracy ($-5.5\pp$ vs.\ C1) illustrates a key tension: structur
 More broadly, systems like \epikg could improve clinical decision support by surfacing cross-admission patterns that clinicians may miss under time pressure; however, over-reliance on automated KG-driven summaries risks anchoring bias if the underlying NLP extraction or assertion classification introduces systematic errors, and evaluation on a single US academic medical center (MIMIC-IV) leaves generalization to other settings unvalidated (Appendix~\ref{app:ethics}).
 
 \paragraph{Future work.}
-Four directions follow:
-(1)~Model-adaptive evidence presentation to address regression on strong-baseline categories (conditional $-35.0\pp$, duration~$-53.3\pp$ under C4g).
-(2)~Improving evidence formatting for historical questions, where C4g degrades from 94\% (C1) to 40\% despite correct retrieval coverage---the 60\% change-detection ceiling similarly suggests formatting, not retrieval, as the bottleneck.
-(3)~Expanding Tier~C to 20+ patients for sufficient statistical power.
-(4)~Two-physician blinded adjudication on a stratified hard subset.
+(1)~Model-adaptive evidence presentation to reduce regressions on strong-baseline categories.
+(2)~Improving evidence formatting (the 60\% change-detection ceiling and historical's 94\%$\to$40\% drop suggest formatting, not retrieval, as the bottleneck).
+(3)~Expanding Tier~C to 20+ patients and running two-physician blinded adjudication.
 
 \paragraph{Conclusion.}
 The epistemic propagation gap---the systematic loss of assertion, temporality, and experiencer metadata between NLP extraction and downstream reasoning---is a real and measurable phenomenon: the information-theoretic bound (Proposition~\ref{prop:entropy}) shows that collapsing non-present assertions to present destroys recoverable clinical information, and our ClinicalBench results confirm the empirical consequence---assertion-blind retrieval (C2) degrades accuracy by $9.0\pp$ while assertion-aware retrieval (C4) preserves it.
 \epikg addresses this gap through end-to-end epistemic preservation combined with intent-aware retrieval that matches graph traversal strategy to question semantics.
-The resulting benefit is category-specific and transformative rather than uniformly positive: change questions improve from 0\% to 60\% and family history from 0\% to 57\% under C4g, while categories where the LLM's parametric knowledge already suffices can regress.
-This category$\times$condition interaction---not aggregate accuracy---is the right lens for evaluating clinical KG-RAG systems, and we argue that future benchmarks should report category-stratified effects as the primary outcome.
+The benefit is category-specific rather than uniform: change detection rises from 0\% to 60\% and family history from 0\% to 57\%, while categories where the LLM is already strong can regress.
+This category$\times$condition interaction---not aggregate accuracy---is the right lens for clinical KG-RAG evaluation.

@@ -28,7 +28,8 @@ OMOP excludes negated conditions entirely~\cite{omop2024}; FHIR restricts assert
 \end{equation}
 %
 This extends the i2b2 six-class taxonomy~\cite{uzuner2011i2b2assertion} by separating \textsc{Historical} from \textsc{Family\_History}, a clinically important distinction that prior work conflates (definitions in Appendix~\ref{app:assertions}).
-A rule-based classifier (101 scope-aware trigger patterns) assigns $\alpha$ with an associated confidence score; we chose rule-based classification for deterministic behavior and interpretability in clinical pipelines, though fine-tuned LLM classifiers~\cite{gul2025beyondnegation} could be substituted.
+A rule-based classifier (101 scope-aware trigger patterns) assigns $\alpha$ with an associated confidence score; we chose rule-based classification for deterministic behavior and interpretability, though fine-tuned LLM classifiers~\cite{gul2025beyondnegation} could be substituted.
+Intrinsic classifier evaluation is deferred; the end-to-end ClinicalBench ablation (C3$\to$C4) serves as a functional test of assertion propagation.
 The label is carried through every stage: from \texttt{ExtractedMention} through ensemble merging, \texttt{ClinicalFact} records, KG edge properties, and retrieval scoring.
 To our knowledge, no prior system~\cite{gul2025beyondnegation,peng2018negbio} maintains this end-to-end invariant.
 
@@ -80,7 +81,7 @@ and (6)~composes graph evidence, temporal context, guidelines, and source docume
 We formalize the epistemic invariant maintained by the \epikg pipeline, building on the ontological principle that aboutness must be preserved across transformations~\cite{ceusters2015ontologyepistemology}.
 The \emph{epistemic state} of a clinical mention $m$ is the tuple $e(m) = (c, \alpha, \xi, \tau)$: OMOP concept, 7-value assertion label, experiencer ($\{\textsc{Patient}, \textsc{Family}\}$), and temporality ($\{\textsc{Current}, \textsc{Past}, \textsc{Future}\}$).
 A pipeline \emph{epistemically preserves} $m$ if the output epistemic state equals the extraction state at every stage.
-We prove (Appendix~\ref{app:formal}) that an assertion-blind pipeline collapses the assertion distribution to a degenerate point mass, incurring entropy loss $\Delta H = H(A_c^\pi) \geq 0$~\cite{shannon1948}, and that the maximum assertion-faithful accuracy is bounded by $1 - f_{\textit{np}}(c)$, where $f_{\textit{np}}$ is the fraction of non-present assertions.
+We formalize (Appendix~\ref{app:formal}) that an assertion-blind pipeline collapses the assertion distribution to a degenerate point mass, incurring entropy loss $\Delta H = H(A_c^\pi) \geq 0$~\cite{shannon1948}, and that assertion-faithful accuracy is bounded by $1 - f_{\textit{np}}(c)$, where $f_{\textit{np}}$ is the fraction of non-present assertions.
 The empirical consequences are measured via category-stratified accuracy in Section~\ref{sec:results}.
 
 
