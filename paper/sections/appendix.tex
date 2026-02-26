@@ -2,6 +2,34 @@
 % APPENDIX
 % ============================================================
 
+\section{Notation Summary}
+\label{app:notation}
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Symbol} & \textbf{Meaning} \\
+\midrule
+$\alpha \in \mathcal{A}$ & Assertion label (7 values, Eq.~\ref{eq:assertion}) \\
+$\boldsymbol{\tau}_v$ & Valid time (event date, valid from/to) \\
+$\boldsymbol{\tau}_t$ & Transaction time (recorded at, doc date, created at) \\
+$\tau_a$ & NLP-asserted temporality (Current / Past / Future) \\
+$r \in \mathcal{R}$ & Temporal relation (9 values, Table~\ref{tab:temporal_relations}) \\
+$c$ & Confidence score $\in [0,1]$ \\
+$\xi$ & Experiencer (Patient / Family) \\
+$e(m)$ & Epistemic state tuple $(c, \alpha, \xi, \tau)$ \\
+$q, \pi$ & Clinical question, patient \\
+$\iota$ & Question intent (Change / Current\_State / Historical / Default) \\
+$f_{\textit{np}}(c)$ & Fraction of non-present assertions for concept $c$ \\
+\bottomrule
+\end{tabular}
+\caption{Key notation used throughout the paper.}
+\label{tab:notation}
+\end{table}
+
+
 \section{Formal Epistemic Preservation}
 \label{app:formal}
 
@@ -318,6 +346,34 @@ ClinicalBench conditions C1--C4g correspond to SliceBench conditions: C1$\approx
 \end{tabular}
 \caption{The 7-value assertion taxonomy, extending i2b2 by separating \textsc{historical} from \textsc{family\_history}.}
 \label{tab:assertion_defs}
+\end{table}
+
+
+\section{Temporal Relation Mapping}
+\label{app:temporal}
+
+The nine temporal relations $\mathcal{R}$ used on KG edges are derived from Allen's 13 canonical interval relations~\cite{allen1983temporal} by merging symmetric pairs.
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{$\mathcal{R}$ value} & \textbf{Allen source(s)} & \textbf{Meaning} \\
+\midrule
+\textsc{Before} & Before, Meets & $A$ ends before $B$ starts \\
+\textsc{After} & After, Met-by & $A$ starts after $B$ ends \\
+\textsc{During} & During & $A$ entirely within $B$ \\
+\textsc{Contains} & Contains & $A$ entirely contains $B$ \\
+\textsc{Overlaps} & Overlaps, Overlapped-by & $A$ and $B$ partially overlap \\
+\textsc{Starts} & Starts, Started-by & $A$ and $B$ share start time \\
+\textsc{Finishes} & Finishes, Finished-by & $A$ and $B$ share end time \\
+\textsc{Concurrent} & Equals & $A$ and $B$ have same interval \\
+\textsc{Unknown} & --- & Relation undetermined \\
+\bottomrule
+\end{tabular}
+\caption{Mapping from Allen's 13 interval relations to the 9 temporal relation values stored on KG edges.}
+\label{tab:temporal_relations}
 \end{table}
 
 
