@@ -91,3 +91,66 @@ The surviving subgraph is serialized into structured text preserving assertion l
 
 \paragraph{Step 6: Context composition.}
 Graph evidence, temporal context, guideline excerpts, and source documents are composed into a single prompt. Causal-language patterns trigger additional traversal over narrative edge types (\textsc{caused\_by}, \textsc{resulted\_in}, \textsc{precedes}).
+
+
+\subsection{Formal Epistemic Preservation}
+\label{sec:system:formal}
+
+We now formalize the epistemic invariant maintained by the \epikg pipeline.
+The central claim is that assertion metadata constitutes recoverable clinical information: discarding it induces a measurable entropy loss that upper-bounds the faithfulness of any downstream system.
+
+\begin{definition}[Epistemic State]
+\label{def:epistemic}
+For a clinical mention $m$, the \emph{epistemic state} is the tuple $e(m) = (c, \alpha, \xi, \tau)$, where $c$ is the OMOP concept identifier, $\alpha \in \{\textsc{Present}, \textsc{Negated}, \textsc{Uncertain}, \textsc{Conditional}, \textsc{Family}, \textsc{Hypothetical}, \textsc{Not\_Associated}\}$ is the 7-value assertion label (Eq.~\ref{eq:assertion}), $\xi \in \{\textsc{Patient}, \textsc{Family}\}$ is the experiencer, and $\tau \in \{\textsc{Current}, \textsc{Past}, \textsc{Future}\}$ is the temporality.
+A pipeline $P$ \emph{epistemically preserves} mention $m$ if $P(e(m)) = e(m)$; that is, the epistemic state at the output of every pipeline stage is identical to the state at extraction.
+\end{definition}
+
+\begin{proposition}[Assertion Entropy Loss]
+\label{prop:entropy}
+For concept $c$ in patient $\pi$'s record, let $A_c^\pi$ denote the assertion distribution with empirical frequencies $p(\alpha_i) = n_i / \sum_j n_j$ over the $|\mathcal{A}|$ assertion classes.
+The assertion entropy is
+\begin{equation}
+\label{eq:entropy}
+H(A_c^\pi) = -\sum_{i} p(\alpha_i) \log p(\alpha_i) \;.
+\end{equation}
+An assertion-blind pipeline collapses all mentions to $\alpha = \textsc{Present}$, yielding a degenerate distribution with $H = 0$.
+The information loss is $\Delta H = H(A_c^\pi) \geq 0$~\cite{shannon1948}, with $\Delta H > 0$ strictly whenever any mention carries a non-present assertion.
+\end{proposition}
+
+\begin{corollary}[Faithfulness Bound]
+\label{cor:faithfulness}
+Let $f_{\textit{np}}(c)$ denote the fraction of mentions of concept $c$ carrying a non-present assertion ($\alpha \neq \textsc{Present}$).
+Without assertion labels, the maximum assertion-faithful accuracy for any downstream task conditioned on $c$ is bounded by $1 - f_{\textit{np}}(c)$.
+In clinical records where negated and uncertain mentions are prevalent---\eg ``no pneumonia,'' ``possible CHF''---this bound can be substantially below 1.
+\end{corollary}
+
+\noindent
+Proposition~\ref{prop:entropy} and Corollary~\ref{cor:faithfulness} motivate the end-to-end preservation invariant: any pipeline stage that strips assertion labels irreversibly destroys clinical information.
+We measure $\Delta H$ empirically on MIMIC-IV data in Section~\ref{sec:results}.
+
+
+\subsection{Intent-Aware Retrieval (C4g)}
+\label{sec:system:intentaware}
+
+The multi-hop BFS described in Section~\ref{sec:system:retrieval} treats all questions uniformly, yet different clinical question types require fundamentally different graph operations.
+A \emph{change} question (``Did the patient's creatinine trend worsen between admissions?'') requires cross-admission set differencing; a \emph{current-state} question needs filtering to the most recent valid edges; a \emph{historical} question must recover resolved conditions.
+Applying a single traversal strategy to all three yields poor recall on longitudinal reasoning tasks.
+
+\paragraph{Intent classifier.}
+A lightweight rule-based classifier maps each question to an intent $\iota \in \{\textsc{Change}, \textsc{Current\_State}, \textsc{Historical}, \textsc{Default}\}$ using question metadata (explicit \texttt{question\_type} annotations) with keyword-pattern fallback (\eg ``compared to,'' ``change in,'' ``new since'' $\to$ \textsc{Change}; ``current,'' ``active'' $\to$ \textsc{Current\_State}; ``history of,'' ``previously'' $\to$ \textsc{Historical}).
+
+\paragraph{Change retrieval.}
+For $\iota = \textsc{Change}$, edges are partitioned by hospital admission identifier (\texttt{hadm\_id}).
+Let $\mathcal{C}_k$ denote the set of OMOP concept IDs on edges within admission $k$.
+The retrieval module computes set differences across admission pairs $(k, k')$: concepts \emph{added} ($\mathcal{C}_{k'} \setminus \mathcal{C}_k$), \emph{removed} ($\mathcal{C}_k \setminus \mathcal{C}_{k'}$), and \emph{continued} ($\mathcal{C}_k \cap \mathcal{C}_{k'}$), returning structured evidence for each category.
+
+\paragraph{Current-state retrieval.}
+For $\iota = \textsc{Current\_State}$, the module filters to edges satisfying $\tau_a = \textsc{Current}$ or $(\textit{valid\_to} = \texttt{NULL} \wedge \tau_a \neq \textsc{Past})$, deduplicates by concept, and emits an explicit ``\textsc{Not Found}'' signal for queried concepts absent from the filtered set, avoiding hallucinated affirmations.
+
+\paragraph{Historical retrieval.}
+For $\iota = \textsc{Historical}$, two complementary strategies are employed: (i)~\emph{explicit}, selecting edges with $\tau_a = \textsc{Past}$; and (ii)~\emph{admission-based inference}, identifying concepts present in an earlier admission $k$ but absent in the latest admission $k'$ and labeling them ``resolved.''
+The union provides robust historical coverage even when NLP temporality labels are sparse.
+
+\paragraph{Intent-aware formatting.}
+Each intent triggers a type-specific prompt template that structures evidence according to the question semantics (\eg change evidence is formatted as a before/after comparison table; current-state evidence highlights active vs.\ absent concepts).
+This targeted formatting reduces prompt ambiguity and enables the LLM to ground its answer in the operationally relevant subgraph.

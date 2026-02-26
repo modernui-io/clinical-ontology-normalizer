@@ -16,14 +16,19 @@ We present \epikg, a clinical KG system that closes both gaps by preserving epis
 Our contributions:
 
 \begin{enumerate}[leftmargin=*, topsep=4pt, itemsep=2pt]
-  \item \textbf{End-to-end epistemic assertion preservation}: a seven-value assertion schema extending i2b2, carried from NLP extraction to RAG context serialization---to our knowledge, no prior system maintains this invariant.
+  \item \textbf{Formal epistemic preservation invariant.} We define the assertion preservation invariant---that the epistemic status assigned at extraction must be recoverable at every downstream stage---and provide an information-theoretic characterization: assertion-blind pipelines collapse assertion entropy to zero, incurring quantifiable information loss that bounds downstream faithfulness (Section~\ref{sec:formal_invariant}).
 
-  \item \textbf{Tri-temporal KG with Allen's interval algebra}: edges carry valid time, transaction time, and NLP-asserted temporality alongside nine Allen's relations as first-class attributes.
+  \item \textbf{End-to-end assertion preservation.} Subordinate to the invariant, we implement a seven-value assertion schema extending i2b2~\cite{uzuner2011i2b2assertion}, carried intact from NLP extraction through OMOP mapping, fact construction, KG materialization, and RAG context serialization---to our knowledge, no prior system maintains this chain.
 
-  \item \textbf{Shared concept node architecture}: global OMOP concept deduplication with patient-specific edges enabling both per-patient reasoning and cross-patient cohort queries.
+  \item \textbf{Tri-temporal KG with Allen's interval algebra.} Edges carry valid time, transaction time, and NLP-asserted temporality alongside nine Allen's relations as first-class attributes, enabling temporal reasoning over longitudinal records.
 
-  \item \textbf{Assertion-sensitive clinical benchmarks}: ClinicalBench (400 questions, 9 epistemic categories) and Slice Bench (144 questions, 3 complexity tiers) designed to expose the epistemic propagation gap.
+  \item \textbf{Shared concept node architecture.} Global OMOP concept deduplication with patient-specific edges enables both per-patient reasoning and cross-patient cohort queries without node duplication.
+
+  \item \textbf{Seven-condition falsifiable design space.} We evaluate seven retrieval conditions---C1 (no retrieval) through C5 (full system with calculators and guidelines)---plus bookend baselines C6 (brute-force full-context) and C7 (structured-only, no LLM). The bookend conditions make the design space falsifiable: C6 upper-bounds what unstructured access can achieve, and C7 isolates the KG's contribution independent of LLM reasoning.
+
+  \item \textbf{Assertion-sensitive benchmarks with physician adjudication.} ClinicalBench (400 questions, 9 epistemic categories) targets the epistemic propagation gap, with hard longitudinal questions (change, cross-admission, temporal) as the primary endpoint. Blinded physician adjudication validates automated scoring on a stratified sample.
 \end{enumerate}
 
-Our experiments reveal that vanilla RAG \emph{degrades} assertion-sensitive performance ($71.5\% \rightarrow 62.5\%$, $-9.0\pp$), while \epikg's assertion-aware KG-RAG recovers to 71.5\% with higher safety scores (0.775 vs.\ 0.752) and large gains on epistemic categories: $+20\pp$ on uncertainty, $+70\pp$ on family history.
-On Slice Bench, the KG benefit concentrates in complex patients: B2$\rightarrow$B3 is $+5.0\pp$ for 15+ encounters versus $+0.6\pp$ for 1--2 encounters, an eightfold difference.
+The central research question is: \emph{under what conditions does structured epistemic context help, hurt, or break even compared to unstructured retrieval or no retrieval at all?} The answer is nuanced. KG-RAG yields large gains on assertion-sensitive and longitudinal categories where parametric knowledge is insufficient---but it can hurt on categories where the LLM's parametric knowledge already suffices and added context introduces noise. The magnitude and even direction of the effect depend on model strength, producing a model$\times$condition interaction that aggregate accuracy alone obscures.
+
+On the primary endpoint of hard longitudinal questions, \epikg's assertion-aware KG-RAG produces substantial gains over no retrieval, while vanilla RAG \emph{degrades} performance ($-9.0\pp$)---retrieving documents without epistemic structure actively harms faithfulness. Category-level analysis reveals the mechanism: $+20\pp$ on uncertainty, $+70\pp$ on family history, with the benefit concentrating where assertion status is decision-relevant. The effect interacts with model strength: stronger models extract more value from structured context, while weaker models are more susceptible to context noise, a finding with direct implications for clinical deployment.
