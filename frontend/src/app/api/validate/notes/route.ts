@@ -3,6 +3,14 @@ import { NextRequest, NextResponse } from "next/server";
 const BACKEND_URL =
   process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
+async function fetchDocs(patientId: string) {
+  const url = `${BACKEND_URL}/api/v1/documents?patient_id=${encodeURIComponent(patientId)}&page=1&page_size=100`;
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) return null;
+  const data = await res.json();
+  return data;
+}
+
 export async function GET(request: NextRequest) {
   const patientId = request.nextUrl.searchParams.get("patient_id");
   if (!patientId) {
@@ -13,15 +21,22 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const url = `${BACKEND_URL}/api/v1/documents?patient_id=${encodeURIComponent(patientId)}&page=1&page_size=100`;
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) {
+    // Try the raw patient_id first, then with MIMIC- prefix
+    let data = await fetchDocs(patientId);
+    if (!data || data.total === 0) {
+      const mimicId = patientId.startsWith("MIMIC-") ? patientId : `MIMIC-${patientId}`;
+      if (mimicId !== patientId) {
+        data = await fetchDocs(mimicId);
+      }
+    }
+
+    if (!data) {
       return NextResponse.json(
-        { error: `Backend returned ${res.status}` },
-        { status: res.status }
+        { error: "Failed to fetch documents" },
+        { status: 502 }
       );
     }
-    const data = await res.json();
+
     return NextResponse.json(data);
   } catch (error) {
     console.error("Failed to fetch patient notes:", error);

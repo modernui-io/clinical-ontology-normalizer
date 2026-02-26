@@ -299,7 +299,7 @@ export default function ValidatePage() {
   }, [currentItem?.patient_id, notesLoadedForPatient]);
 
   const loadClinicalNotes = useCallback(async (patientId: string) => {
-    if (notesLoadedForPatient === patientId && clinicalNotes.length > 0) return;
+    if (notesLoadedForPatient === patientId && clinicalNotes.length > 0 && clinicalNotes[0]?.patient_id?.includes(patientId)) return;
     setNotesLoading(true);
     setNotesError(null);
     try {
@@ -313,7 +313,7 @@ export default function ValidatePage() {
     } finally {
       setNotesLoading(false);
     }
-  }, [notesLoadedForPatient, clinicalNotes.length]);
+  }, [notesLoadedForPatient, clinicalNotes]);
 
   const toggleNote = useCallback((noteId: string) => {
     setExpandedNoteIds((prev) => {
@@ -796,7 +796,7 @@ export default function ValidatePage() {
                 {currentItem.patient_id && (
                   <div className="flex flex-wrap items-center gap-2">
                     <a
-                      href={`/patients/${currentItem.patient_id}`}
+                      href={`/patients/MIMIC-${currentItem.patient_id}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
@@ -818,7 +818,7 @@ export default function ValidatePage() {
                       </>
                     )}
                     <a
-                      href={`/patients/${currentItem.patient_id}/timeline`}
+                      href={`/patients/MIMIC-${currentItem.patient_id}/timeline`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-blue-600 hover:underline"
@@ -827,7 +827,7 @@ export default function ValidatePage() {
                       <ExternalLink className="h-3 w-3" />
                     </a>
                     <a
-                      href={`/patients/${currentItem.patient_id}/graph`}
+                      href={`/patients/MIMIC-${currentItem.patient_id}/graph`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-blue-600 hover:underline"
