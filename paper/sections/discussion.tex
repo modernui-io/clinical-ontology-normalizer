@@ -22,14 +22,16 @@ Model-adaptive evidence presentation (\eg confidence-gated injection) is a promi
 
 \paragraph{Limitations.}
 Sample size is modest: SliceBench covers 6 patients (144 questions) and ClinicalBench covers 45 patients (400 questions), both from a single site (MIMIC-IV~\cite{johnson2023mimiciv}).
-The overall B2$\rightarrow$B3 CI crosses zero (\ci{-1.5\pp}{+5.9\pp}).
-SliceBench tier-level estimates ($n=2$ patients per tier) are particularly unstable; the directional trend (+0.6 to +5.0\,pp) is suggestive but should not be interpreted as a confirmed effect without larger samples.
-Bootstrap CIs are computed at the question level; a cluster-aware bootstrap at the patient level would be more conservative and is planned for the expanded cohort.
-Calculator/guideline integration (C5) showed degradation on ClinicalBench ($68.2\%$ vs.\ C4's $71.5\%$) that we hypothesize results from non-relevant module activation, though we have not performed controlled ablations to confirm this mechanism; query-aware component selection is a priority for future work.
+The pre-registered primary endpoint (C4g vs.\ C1 on the hard longitudinal subset) was not met; category-specific gains are offset by regressions where parametric knowledge suffices.
+The overall B2$\rightarrow$B3 CI crosses zero (\ci{-1.5\pp}{+5.9\pp}); tier-level estimates ($n=2$ patients per tier) are hypothesis-generating only.
+Bootstrap CIs are at the question level; patient-level clustering would be more conservative and is planned.
+The evaluation is an ablation study; head-to-head comparisons with existing medical RAG systems~\cite{luo2025gfmrag,jiang2025kare,lu2025doctorrag} were not performed because these target population-level or factoid QA rather than patient-level longitudinal reasoning, and lack open-source MIMIC-IV implementations.
+Cross-model validation covers C4 only, not C4g; intent-aware routing generalization remains an open question.
+C5 showed degradation ($68.2\%$ vs.\ C4's $71.5\%$), likely from non-relevant module activation.
 SliceBench's LLM-as-judge evaluation may introduce biases; a pilot human validation ($n=5$, single reviewer; Appendix~\ref{app:human}) revealed overly strict automated scoring on uncertainty and sequence categories.
 ClinicalBench uses a deterministic keyword evaluator to avoid this, but keyword matching may miss semantically correct answers that use different phrasing.
 A full two-physician blinded adjudication covering both benchmarks is planned but not yet complete.
-As noted in Section~\ref{sec:results}, run-to-run variance in MedGemma results ($\pm 10\pp$) means all reported deltas rely on within-run paired comparisons; cross-run comparisons are directional only.
+Run-to-run variance in MedGemma results ($\pm 10\pp$) arises from GPU non-determinism in Ollama's quantized inference (4-bit GGUF); all reported deltas rely on within-run paired comparisons to control for this.
 C4g's aggregate accuracy ($-5.5\pp$ vs.\ C1) illustrates a key tension: structured context can \emph{hurt} in the aggregate even while providing transformative category-level gains ($+60\pp$ on change, $+57\pp$ on family history), because formatting overhead degrades categories where the LLM already performs well.
 More broadly, systems like \epikg could improve clinical decision support by surfacing cross-admission patterns that clinicians may miss under time pressure; however, over-reliance on automated KG-driven summaries risks anchoring bias if the underlying NLP extraction or assertion classification introduces systematic errors, and evaluation on a single US academic medical center (MIMIC-IV) leaves generalization to other settings unvalidated (Appendix~\ref{app:ethics}).
 

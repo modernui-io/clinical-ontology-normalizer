@@ -8,9 +8,10 @@ We introduce two complementary benchmarks built on MIMIC-IV~\cite{johnson2023mim
 \label{sec:bench:clinicalbench}
 
 ClinicalBench comprises 400 gold-standard questions over 45 MIMIC-IV patients in two tasks: \textbf{Task~A} (200 questions, negation-aware retrieval) and \textbf{Task~B} (200 questions, temporal reasoning).
-Questions span 9 categories: \textit{negation}, \textit{conditional}, \textit{uncertainty}, \textit{family\_history}, \textit{sequence}, \textit{current\_state}, \textit{duration}, \textit{historical}, and \textit{change}, each with gold-standard answers from manual chart review.
+Questions span 9 categories: \textit{negation}, \textit{conditional}, \textit{uncertainty}, \textit{family\_history}, \textit{sequence}, \textit{current\_state}, \textit{duration}, \textit{historical}, and \textit{change}.
+Gold-standard answers were created through manual chart review and verified against source documents; a pilot physician adjudication ($n=5$, Appendix~\ref{app:human}) assessed quality.
 Five ablation conditions progressively add system components (Table~\ref{tab:clinicalbench_conditions}), plus a diagnostic condition C5 (Appendix~\ref{app:c5}).
-Two bookend baselines---C6 (brute-force full-context) and C7 (deterministic KG only)---are defined to bracket the design space; their evaluation is planned as future work.
+Two bookend baselines---C6 (brute-force full-context, infeasible for MedGemma's 8K context window on complex patients) and C7 (deterministic KG only)---bracket the design space; their evaluation with long-context models is planned as future work.
 
 \begin{table}[t]
 \centering
@@ -32,9 +33,9 @@ C4g & + Intent-Aware KG-RAG & Graph + Doc (type-specific) & Full (7-class) & Tri
 \end{table}
 
 \paragraph{Endpoints.}
-The \textbf{primary endpoint} is the hard longitudinal subset (\textit{change} + \textit{current\_state} + \textit{historical}, $n=130$): C4g vs.\ C1.
+The \textbf{pre-registered primary endpoint} is the hard longitudinal subset (\textit{change} + \textit{current\_state} + \textit{historical}, $n=130$): C4g vs.\ C1 aggregate accuracy.
 The \textbf{secondary endpoint} is full 400-question ClinicalBench, C4g vs.\ C1.
-\textbf{Diagnostic endpoints} are per-category C1$\to$C4g accuracy deltas.
+\textbf{Diagnostic endpoints} are per-category C1$\to$C4g accuracy deltas and the C4$\to$C4g transition on the hard subset.
 
 \noindent\textbf{What each transition isolates.}
 C3$\to$C4 isolates the \emph{assertion preservation effect}: both use graph retrieval, but only C4 carries the 7-value assertion schema and tri-temporal model.
@@ -53,7 +54,7 @@ The critical comparison is B2$\to$B3: both have the same documents, but B3 adds 
 \subsection{Evaluation Protocol}
 \label{sec:bench:protocol}
 
-\paragraph{ClinicalBench} uses a \emph{deterministic keyword evaluator} that performs exact word-boundary matching of gold-standard assertion and temporal keywords against model answers.
+\paragraph{ClinicalBench} uses a \emph{deterministic keyword evaluator} that performs exact word-boundary matching of gold-standard assertion and temporal keywords against model answers (keyword lists in Appendix~\ref{app:reproducibility}).
 This evaluator is fully reproducible (no stochastic LLM judge) and is used for all ClinicalBench results.
 The answering model is MedGemma 27B (primary) or Claude Opus 4.6 (cross-model validation).
 
