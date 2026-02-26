@@ -26,12 +26,18 @@ The overall B2$\rightarrow$B3 CI crosses zero (\ci{-1.5\pp}{+5.9\pp}).
 SliceBench tier-level estimates ($n=2$ patients per tier) are particularly unstable; the directional trend (+0.6 to +5.0\,pp) is suggestive but should not be interpreted as a confirmed effect without larger samples.
 Bootstrap CIs are computed at the question level; a cluster-aware bootstrap at the patient level would be more conservative and is planned for the expanded cohort.
 Calculator/guideline integration (C5, B4) showed degradation that we hypothesize results from non-relevant module activation, though we have not performed controlled ablations to confirm this mechanism; query-aware component selection is a priority for future work.
-LLM-as-judge evaluation may introduce biases; a pilot human validation ($n=5$, single reviewer; Appendix~\ref{app:human}) revealed overly strict automated scoring on uncertainty and sequence categories, and a full two-physician blinded adjudication is planned but not yet complete.
+SliceBench's LLM-as-judge evaluation may introduce biases; a pilot human validation ($n=5$, single reviewer; Appendix~\ref{app:human}) revealed overly strict automated scoring on uncertainty and sequence categories.
+ClinicalBench uses a deterministic keyword evaluator to avoid this, but keyword matching may miss semantically correct answers that use different phrasing.
+A full two-physician blinded adjudication covering both benchmarks is planned but not yet complete.
 As noted in Section~\ref{sec:results}, run-to-run variance in MedGemma results ($\pm 10\pp$) means all reported deltas rely on within-run paired comparisons; cross-run comparisons are directional only.
 C4g's aggregate accuracy ($-5.5\pp$ vs.\ C1) illustrates a key tension: structured context can \emph{hurt} in the aggregate even while providing transformative category-level gains ($+60\pp$ on change, $+57\pp$ on family history), because formatting overhead degrades categories where the LLM already performs well.
 
 \paragraph{Future work.}
-Four directions follow: (1)~model-adaptive evidence presentation to address the regression on strong-baseline categories (conditional $-35.0\pp$, duration~$-53.3\pp$ under C4g), (2)~improving historical-question retrieval, where C4g degrades from 94\% (C1) to 40\%, suggesting evidence formatting rather than retrieval coverage is the bottleneck---C4g's intent-aware routing already solves the formerly near-zero change category ($0\% \to 60\%$), but the 60\% ceiling and historical regression indicate that formatting and evidence selection need further refinement, (3)~expanding Tier~C to 20+ patients for sufficient statistical power, and (4)~two-physician blinded adjudication on a stratified hard subset.
+Four directions follow:
+(1)~Model-adaptive evidence presentation to address regression on strong-baseline categories (conditional $-35.0\pp$, duration~$-53.3\pp$ under C4g).
+(2)~Improving evidence formatting for historical questions, where C4g degrades from 94\% (C1) to 40\% despite correct retrieval coverage---the 60\% change-detection ceiling similarly suggests formatting, not retrieval, as the bottleneck.
+(3)~Expanding Tier~C to 20+ patients for sufficient statistical power.
+(4)~Two-physician blinded adjudication on a stratified hard subset.
 
 \paragraph{Conclusion.}
 The epistemic propagation gap---the systematic loss of assertion, temporality, and experiencer metadata between NLP extraction and downstream reasoning---is a real and measurable phenomenon: the information-theoretic bound (Proposition~\ref{prop:entropy}) shows that collapsing non-present assertions to present destroys recoverable clinical information, and our ClinicalBench results confirm the empirical consequence---assertion-blind retrieval (C2) degrades accuracy by $9.0\pp$ while assertion-aware retrieval (C4) preserves it.

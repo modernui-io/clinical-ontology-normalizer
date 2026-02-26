@@ -6,11 +6,12 @@
 \epikg transforms unstructured clinical narratives into an assertion-aware, temporally grounded knowledge graph exposed through graph-augmented retrieval.
 The pipeline comprises six stages: (1)~document ingestion, (2)~NLP extraction, (3)~OMOP concept normalization~\cite{omop2024}, (4)~clinical fact construction with epistemic metadata, (5)~KG materialization with shared concept nodes, and (6)~assertion-aware retrieval.
 The key invariant is that \textit{epistemic assertion status} is a first-class attribute at every stage, not an NLP annotation discarded after extraction (Figure~\ref{fig:architecture}).
+Clinical concepts are stored once as shared global nodes; patient-specific semantics (assertion status, temporality, confidence) reside on edges, enabling cohort queries via edge scans.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/fig1_architecture.pdf}
-\caption{The \epikg pipeline. Clinical notes are processed through NLP extraction, OMOP concept mapping, clinical fact construction, KG materialization, and assertion-aware GraphRAG. The assertion label $\alpha$ (highlighted) is preserved as a first-class attribute at every stage.}
+\caption{The \epikg pipeline. The assertion label $\alpha$ (highlighted) is preserved as a first-class attribute from NLP extraction through OMOP mapping, fact construction, KG materialization, and assertion-aware GraphRAG.}
 \label{fig:architecture}
 \end{figure}
 
@@ -27,9 +28,8 @@ OMOP excludes negated conditions entirely~\cite{omop2024}; FHIR restricts assert
 \end{equation}
 %
 This extends the i2b2 six-class taxonomy~\cite{uzuner2011i2b2assertion} by separating \textsc{Historical} from \textsc{Family\_History}, a clinically important distinction that prior work conflates.
-
-A rule-based classifier uses scope-aware trigger patterns (details in Appendix~\ref{app:scale}) to assign $\alpha$ with calibrated confidence.
-The label is carried through every stage: attached to \texttt{ExtractedMention} during NLP, preserved through ensemble merging, stored on \texttt{ClinicalFact} records, materialized as a KG edge property, and used for retrieval scoring (Section~\ref{sec:system:retrieval}).
+A rule-based classifier (101 scope-aware trigger patterns) assigns $\alpha$ with calibrated confidence.
+The label is carried through every stage: from \texttt{ExtractedMention} through ensemble merging, \texttt{ClinicalFact} records, KG edge properties, and retrieval scoring.
 To our knowledge, no prior system~\cite{gul2025beyondnegation,peng2018negbio} maintains this end-to-end invariant.
 
 
@@ -52,106 +52,45 @@ An edge $e = (s, p, o, \alpha, \boldsymbol{\tau}_v, \boldsymbol{\tau}_t, \tau_a,
 \end{itemize}
 \end{definition}
 
-$\mathcal{R}$ captures nine qualitative temporal relationships (\textsc{Before}, \textsc{After}, \textsc{During}, \textsc{Contains}, \textsc{Overlaps}, \textsc{Starts}, \textsc{Finishes}, \textsc{Concurrent}, \textsc{Un\-known}).
-This represents a subset of Allen's 13 canonical interval relations~\cite{allen1983temporal} (7 base relations plus 6 inverses), augmented with \textsc{Concurrent} (for simultaneous events) and \textsc{Unknown} (when temporal ordering cannot be determined from the clinical text).
+$\mathcal{R}$ captures nine qualitative temporal relationships, a subset of Allen's 13 canonical relations~\cite{allen1983temporal} augmented with \textsc{Concurrent} and \textsc{Unknown}.
 Unlike TEO~\cite{li2020teo} and TCL~\cite{ong2023tcl}, which use Allen's relations as annotation-ontology classes or modal operators, \epikg stores $r$ and $c$ directly on materialized edges, enabling efficient temporal filtering during traversal.
-A \texttt{TemporalContext} object assembles four views---event timeline, detected conflicts, current state, and historical state---serialized into the LLM prompt alongside graph evidence.
-
-
-\subsection{Shared Concept Node Architecture}
-\label{sec:system:shared}
-
-\epikg uses a \textit{shared concept node} architecture: clinical concepts (\eg ``Type 2 Diabetes,'' OMOP 201826) are stored once as global nodes (\texttt{patient\_id = NULL}) with a unique partial index on \texttt{(node\_type, omop\_concept\_id)}, while patient-specific semantics (assertion status, temporality, confidence) reside on edges.
-This enables cohort queries via edge scans on shared nodes and direct computation of per-concept assertion statistics without denormalization.
 
 
 \subsection{Assertion-Aware Graph-Augmented Retrieval}
 \label{sec:system:retrieval}
 
-Given a clinical question $q$ and patient $\pi$, the retrieval pipeline executes six steps:
-
-\paragraph{Step 1: Hybrid concept extraction.}
-Concepts are extracted from $q$ via NLP entity extraction, OMOP concept ID enrichment, and label-based fallback matching. The union seeds graph traversal.
-
-\paragraph{Step 2: Multi-hop KG traversal.}
-Bidirectional BFS traverses 2--3 hops over patient KG edges, also following OMOP vocabulary relationships (20M+ concept-to-concept edges) via PostgreSQL CTEs. Edges with temporal confidence below $c_{\min} = 0.3$ are pruned.
-
-\paragraph{Step 3: Temporal context assembly.}
-Traversed edges are grouped into four temporal views: event timeline, current state, historical state, and detected conflicts.
-
-\paragraph{Step 4: Clinical guideline retrieval.}
-Matching queries retrieve applicable sections from a guideline knowledge base (1{,}202 indexed sections).
-
-\paragraph{Step 5: Assertion-aware scoring.}
-Edges are scored by:
+Given a clinical question $q$ and patient $\pi$, the retrieval pipeline: (1)~extracts concepts from $q$ via NLP + OMOP enrichment; (2)~traverses 2--3 hops over patient KG edges via bidirectional BFS, also following OMOP vocabulary relationships (20M+ edges) via PostgreSQL CTEs, pruning edges with confidence $c < 0.3$; (3)~groups traversed edges into four temporal views (event timeline, current state, historical state, conflicts); (4)~retrieves matching clinical guideline sections; (5)~scores edges by:
 \begin{equation}
 \label{eq:scoring}
 \text{score}(e) = c(e) + \mathbb{1}[\text{type}(e) \in Q_{\text{rel}}] \cdot 0.2 + \mathbb{1}[\tau_a(e) = \textsc{Current}] \cdot 0.1
 \end{equation}
-The surviving subgraph is serialized into structured text preserving assertion labels (\eg ``\textsc{Absent}: pneumonia''), temporal qualifiers, and confidence scores.
-
-\paragraph{Step 6: Context composition.}
-Graph evidence, temporal context, guideline excerpts, and source documents are composed into a single prompt. Causal-language patterns trigger additional traversal over narrative edge types (\textsc{caused\_by}, \textsc{resulted\_in}, \textsc{precedes}).
+and serializes the surviving subgraph into structured text preserving assertion labels (\eg ``\textsc{Absent}: pneumonia''); and (6)~composes graph evidence, temporal context, guidelines, and source documents into a single prompt.
 
 
 \subsection{Formal Epistemic Preservation}
 \label{sec:system:formal}
 
-We now formalize the epistemic invariant maintained by the \epikg pipeline, building on the ontological principle that aboutness---the relationship between information artifacts and the entities they represent---must be preserved across transformations~\cite{ceusters2015ontologyepistemology}.
-The central claim is that assertion metadata constitutes recoverable clinical information: discarding it induces a measurable entropy loss that upper-bounds the faithfulness of any downstream system.
-
-\begin{definition}[Epistemic State]
-\label{def:epistemic}
-For a clinical mention $m$, the \emph{epistemic state} is the tuple $e(m) = (c, \alpha, \xi, \tau)$, where $c$ is the OMOP concept identifier, $\alpha \in \mathcal{A}$ is the 7-value assertion label (Eq.~\ref{eq:assertion}), $\xi \in \{\textsc{Patient}, \textsc{Family}\}$ is the experiencer, and $\tau \in \{\textsc{Current}, \textsc{Past}, \textsc{Future}\}$ is the temporality.
-A pipeline $P$ \emph{epistemically preserves} mention $m$ if $P(e(m)) = e(m)$; that is, the epistemic state at the output of every pipeline stage is identical to the state at extraction.
-\end{definition}
-
-\begin{proposition}[Assertion Entropy Loss]
-\label{prop:entropy}
-For concept $c$ in patient $\pi$'s record, let $A_c^\pi$ denote the assertion distribution with empirical frequencies $p(\alpha_i) = n_i / \sum_j n_j$ over the $|\mathcal{A}|$ assertion classes.
-The assertion entropy is
-\begin{equation}
-\label{eq:entropy}
-H(A_c^\pi) = -\sum_{i} p(\alpha_i) \log p(\alpha_i) \;.
-\end{equation}
-An assertion-blind pipeline collapses all mentions to $\alpha = \textsc{Present}$, yielding a degenerate distribution with $H = 0$.
-The information loss is $\Delta H = H(A_c^\pi) \geq 0$~\cite{shannon1948}, with $\Delta H > 0$ strictly whenever any mention carries a non-present assertion.
-\end{proposition}
-
-\begin{corollary}[Faithfulness Bound]
-\label{cor:faithfulness}
-Let $f_{\textit{np}}(c)$ denote the fraction of mentions of concept $c$ carrying a non-present assertion ($\alpha \neq \textsc{Present}$).
-Without assertion labels, the maximum assertion-faithful accuracy for any downstream task conditioned on $c$ is bounded by $1 - f_{\textit{np}}(c)$.
-In clinical records where negated and uncertain mentions are prevalent---\eg ``no pneumonia,'' ``possible CHF''---this bound can be substantially below 1.
-\end{corollary}
-
-\noindent
-Proposition~\ref{prop:entropy} and Corollary~\ref{cor:faithfulness} motivate the end-to-end preservation invariant: any pipeline stage that strips assertion labels irreversibly destroys clinical information.
+We formalize the epistemic invariant maintained by the \epikg pipeline, building on the ontological principle that aboutness must be preserved across transformations~\cite{ceusters2015ontologyepistemology}.
+The \emph{epistemic state} of a clinical mention $m$ is the tuple $e(m) = (c, \alpha, \xi, \tau)$: OMOP concept, 7-value assertion label, experiencer ($\{\textsc{Patient}, \textsc{Family}\}$), and temporality ($\{\textsc{Current}, \textsc{Past}, \textsc{Future}\}$).
+A pipeline \emph{epistemically preserves} $m$ if the output epistemic state equals the extraction state at every stage.
+We prove (Appendix~\ref{app:formal}) that an assertion-blind pipeline collapses the assertion distribution to a degenerate point mass, incurring entropy loss $\Delta H = H(A_c^\pi) \geq 0$~\cite{shannon1948}, and that the maximum assertion-faithful accuracy is bounded by $1 - f_{\textit{np}}(c)$, where $f_{\textit{np}}$ is the fraction of non-present assertions.
 The empirical consequences are measured via category-stratified accuracy in Section~\ref{sec:results}.
 
 
 \subsection{Intent-Aware Retrieval (C4g)}
 \label{sec:system:intentaware}
 
-The multi-hop BFS described in Section~\ref{sec:system:retrieval} treats all questions uniformly, yet different clinical question types require fundamentally different graph operations.
-A \emph{change} question (``Did the patient's creatinine trend worsen between admissions?'') requires cross-admission set differencing; a \emph{current-state} question needs filtering to the most recent valid edges; a \emph{historical} question must recover resolved conditions.
-Applying a single traversal strategy to all three yields poor recall on longitudinal reasoning tasks.
+The multi-hop BFS described above treats all questions uniformly, yet different clinical question types require fundamentally different graph operations.
+A \emph{change} question requires cross-admission set differencing; a \emph{current-state} question needs filtering to the most recent valid edges; a \emph{historical} question must recover resolved conditions.
 
 \paragraph{Intent classifier.}
 A lightweight rule-based classifier maps each question to one of four intents---\textsc{Change}, \textsc{Current\_State}, \textsc{Historical}, or \textsc{Default}---using question metadata with keyword-pattern fallback (Appendix~\ref{app:routing}).
 
 \paragraph{Change retrieval.}
-For $\iota = \textsc{Change}$, edges are partitioned by hospital admission identifier (\texttt{hadm\_id}).
-Let $\mathcal{C}_k$ denote the set of OMOP concept IDs on edges within admission $k$.
-The retrieval module computes set differences across admission pairs $(k, k')$---concepts \emph{added} ($\mathcal{C}_{k'} \!\setminus\! \mathcal{C}_k$), \emph{removed} ($\mathcal{C}_k \!\setminus\! \mathcal{C}_{k'}$), and \emph{continued} ($\mathcal{C}_k \!\cap\! \mathcal{C}_{k'}$)---and returns structured evidence.
+For $\iota = \textsc{Change}$, edges are partitioned by admission (\texttt{hadm\_id}).
+The module computes set differences across admission pairs $(k, k')$---concepts \emph{added} ($\mathcal{C}_{k'} \!\setminus\! \mathcal{C}_k$), \emph{removed} ($\mathcal{C}_k \!\setminus\! \mathcal{C}_{k'}$), and \emph{continued} ($\mathcal{C}_k \!\cap\! \mathcal{C}_{k'}$)---and returns structured evidence.
 
-\paragraph{Current-state retrieval.}
-For $\iota = \textsc{Current\_State}$, the module filters to edges satisfying $\tau_a = \textsc{Current}$ or $(\textit{valid\_to} = \texttt{NULL} \wedge \tau_a \neq \textsc{Past})$, deduplicates by concept, and emits an explicit ``\textsc{Not Found}'' signal for queried concepts absent from the filtered set, avoiding hallucinated affirmations.
-
-\paragraph{Historical retrieval.}
-For $\iota = \textsc{Historical}$, two complementary strategies are employed: (i)~\emph{explicit}, selecting edges with $\tau_a = \textsc{Past}$; and (ii)~\emph{admission-based inference}, identifying concepts present in an earlier admission $k$ but absent in the latest admission $k'$ and labeling them ``resolved.''
-The union provides robust historical coverage even when NLP temporality labels are sparse.
-
-\paragraph{Intent-aware formatting.}
-Each intent triggers a type-specific prompt template that structures evidence according to the question semantics (\eg change evidence is formatted as a before/after comparison table; current-state evidence highlights active vs.\ absent concepts).
-This targeted formatting reduces prompt ambiguity and enables the LLM to ground its answer in the operationally relevant subgraph.
+\paragraph{Current-state and historical retrieval.}
+For \textsc{Current\_State}, the module filters to edges with $\tau_a = \textsc{Current}$ or open-ended validity, deduplicates by concept, and emits ``\textsc{Not Found}'' for missing concepts.
+For \textsc{Historical}, it selects edges with $\tau_a = \textsc{Past}$ and augments with admission-based inference (concepts in earlier admissions but absent from the latest are labeled ``resolved'').
+Each intent triggers a type-specific prompt template that structures evidence according to question semantics.

@@ -7,90 +7,58 @@ We introduce two complementary benchmarks built on MIMIC-IV~\cite{johnson2023mim
 \subsection{ClinicalBench: Assertion-Sensitive Clinical QA}
 \label{sec:bench:clinicalbench}
 
-ClinicalBench comprises 400 gold-standard questions over 45 MIMIC-IV patients in two tasks: \textbf{Task~A} (200 questions, negation-aware retrieval---answers depend on recognizing negated, uncertain, or family-attributed conditions) and \textbf{Task~B} (200 questions, temporal reasoning---current state, sequences, durations, longitudinal changes).
+ClinicalBench comprises 400 gold-standard questions over 45 MIMIC-IV patients in two tasks: \textbf{Task~A} (200 questions, negation-aware retrieval) and \textbf{Task~B} (200 questions, temporal reasoning).
 Questions span 9 categories: \textit{negation}, \textit{conditional}, \textit{uncertainty}, \textit{family\_history}, \textit{sequence}, \textit{current\_state}, \textit{duration}, \textit{historical}, and \textit{change}, each with gold-standard answers from manual chart review.
-
-Seven ablation conditions progressively add system components, plus two diagnostic baselines:
+Five ablation conditions progressively add system components (Table~\ref{tab:clinicalbench_conditions}), plus a diagnostic condition C5 (Appendix~\ref{app:c5}).
+Two bookend baselines---C6 (brute-force full-context) and C7 (deterministic KG only)---are defined to bracket the design space; their evaluation is planned as future work.
 
 \begin{table}[t]
 \centering
 \footnotesize
-\caption{ClinicalBench ablation conditions. C1--C4g form the primary ablation ladder; C5--C7 are diagnostic conditions.}
+\caption{ClinicalBench ablation conditions. C1--C4g form the primary ablation ladder.}
 \label{tab:clinicalbench_conditions}
 \setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}clcccp{3.8cm}@{}}
+\begin{tabular}{@{}clccc@{}}
 \toprule
-ID & Condition & Retrieval & Assertion & Temporal & Notes \\
+ID & Condition & Retrieval & Assertion & Temporal \\
 \midrule
-C1 & LLM Alone & None & None & None & Parametric baseline \\
-C2 & + Vanilla RAG & Document & None & None & Standard retrieval \\
-C3 & + KG-RAG & Graph + Doc & None & None & Graph structure only \\
-C4 & + Epistemic KG-RAG & Graph + Doc & Full (7-class) & Tri-temporal & v11 primary \\
-C4g & + Intent-Aware KG-RAG & Graph + Doc (type-specific) & Full (7-class) & Tri-temporal & Question-type routing (Section~\ref{sec:system:intentaware}) \\
-C5 & Full System & Graph + Doc + Guidelines & Full (7-class) & Tri-temporal + Calc.\ & Moved to appendix; includes calculators and guidelines \\
-\midrule
-C6 & Long-Context Brute Force & All docs in prompt & None & None & Tests whether token capacity alone suffices \\
-C7 & Deterministic KG Only & Structured KG query & Full (7-class) & Tri-temporal & No LLM reasoning, pure KG lookup \\
+C1 & LLM Alone & None & None & None \\
+C2 & + Vanilla RAG & Document & None & None \\
+C3 & + KG-RAG & Graph + Doc & None & None \\
+C4 & + Epistemic KG-RAG & Graph + Doc & Full (7-class) & Tri-temporal \\
+C4g & + Intent-Aware KG-RAG & Graph + Doc (type-specific) & Full (7-class) & Tri-temporal \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \paragraph{Endpoints.}
-We define three tiers of evaluation endpoints to structure the analysis:
-\begin{itemize}[nosep]
-  \item \textbf{Primary endpoint:} Hard longitudinal subset (\textit{change} + \textit{current\_state} + \textit{historical}, $n=130$). The key comparisons are C4g vs.\ C1 (does KG-RAG improve over parametric reasoning?) and C4g vs.\ C6 (does structured normalization outperform brute-force long context?).
-  \item \textbf{Secondary endpoint:} Full 400-question ClinicalBench, C4g vs.\ C1. This measures overall system benefit across both assertion-sensitive and temporal reasoning categories.
-  \item \textbf{Diagnostic endpoints:} Per-category C1$\to$C4g accuracy deltas and C6 vs.\ C4g per category, identifying which question types benefit most from structured KG context versus raw token capacity.
-\end{itemize}
+The \textbf{primary endpoint} is the hard longitudinal subset (\textit{change} + \textit{current\_state} + \textit{historical}, $n=130$): C4g vs.\ C1.
+The \textbf{secondary endpoint} is full 400-question ClinicalBench, C4g vs.\ C1.
+\textbf{Diagnostic endpoints} are per-category C1$\to$C4g accuracy deltas.
 
 \noindent\textbf{What each transition isolates.}
-The C3$\to$C4 transition isolates the \emph{assertion preservation effect}: both use graph-augmented retrieval, but only C4 carries the 7-value assertion schema and tri-temporal model.
-The C4$\to$C4g transition isolates the \emph{intent-aware routing effect}: both carry the full assertion and temporal metadata, but C4g additionally dispatches question-type-specific graph traversals (e.g., cross-admission partitioning for change questions, recency-weighted retrieval for current-state questions).
-C6 tests whether brute-force long-context prompting---concatenating all patient documents into the prompt---eliminates the need for structured KG normalization.
-C7 tests the converse: whether the knowledge graph alone, queried deterministically without LLM reasoning, suffices for clinical QA.
-Together, C6 and C7 bracket the design space and justify the hybrid architecture.
+C3$\to$C4 isolates the \emph{assertion preservation effect}: both use graph retrieval, but only C4 carries the 7-value assertion schema and tri-temporal model.
+C4$\to$C4g isolates the \emph{intent-aware routing effect}: both carry full assertion metadata, but C4g dispatches question-type-specific graph traversals.
 
 
 \subsection{SliceBench: Complexity-Stratified Longitudinal QA}
 \label{sec:bench:slicebench}
 
 SliceBench tests the hypothesis that KG-augmented retrieval provides increasing benefit as patient record complexity grows.
-We select 6 MIMIC-IV patients in three tiers: \textbf{Tier~A} (2 patients, 1--2 encounters), \textbf{Tier~B} (2 patients, 5--10 encounters), and \textbf{Tier~C} (2 patients, 15+ encounters).
-Each patient receives 24 questions (categories A1--F6, where F1--F6 are hard longitudinal questions: cross-encounter medication timelines, problem list reconciliation, causal chain tracing), yielding 144 total questions.
-
-\begin{table}[t]
-\centering
-\small
-\caption{SliceBench conditions. B0--B4 form a monotone context progression.}
-\label{tab:slicebench_conditions}
-\begin{tabular}{@{}clp{7.5cm}@{}}
-\toprule
-ID & Condition & Context Provided to LLM \\
-\midrule
-B0 & LLM Alone & Question only (parametric knowledge) \\
-B1 & Latest Note & Most recent clinical note \\
-B2 & All Notes RAG & All notes, retrieved by relevance \\
-B3 & KG-RAG & Knowledge graph context + all notes \\
-B4 & Full System & KG-RAG + guidelines + calculators \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\noindent The critical comparison is B2$\to$B3: both have access to the same documents, but B3 additionally provides structured KG context with assertion metadata and temporal relations.
+We select 6 MIMIC-IV patients in three tiers: \textbf{Tier~A} (2 patients, 1--2 encounters), \textbf{Tier~B} (2 patients, 5--10), and \textbf{Tier~C} (2 patients, 15+).
+Each patient receives 24 questions (including hard longitudinal categories: cross-encounter medication timelines, problem list reconciliation, causal chain tracing), yielding 144 total.
+Five conditions (B0--B4) form a monotone context progression from parametric-only to full system (Appendix~\ref{app:slicebench_tiers}).
+The critical comparison is B2$\to$B3: both have the same documents, but B3 adds structured KG context with assertion metadata and temporal relations.
 
 \subsection{Evaluation Protocol}
 \label{sec:bench:protocol}
 
-The two benchmarks use different evaluation strategies, chosen to match their design goals:
-
 \paragraph{ClinicalBench} uses a \emph{deterministic keyword evaluator} that performs exact word-boundary matching of gold-standard assertion and temporal keywords against model answers.
-This evaluator is fully reproducible (no stochastic LLM judge) and is used for all ClinicalBench ablation results (Table~\ref{tab:clinicalbench_ablation}), per-category breakdowns, and cross-model validation (Section~\ref{sec:results:crossmodel}).
+This evaluator is fully reproducible (no stochastic LLM judge) and is used for all ClinicalBench results.
 The answering model is MedGemma 27B (primary) or Claude Opus 4.6 (cross-model validation).
 
 \paragraph{SliceBench} uses an \emph{LLM-as-judge} protocol with separated answering and judging models to prevent self-evaluation bias~\cite{xiong2024mirage}: Claude Sonnet 4.5 generates answers and Claude Opus 4.6 judges correctness.
-This allows richer semantic assessment of the open-ended longitudinal questions in SliceBench.
 
 \paragraph{Statistical reporting.}
-We report BCa bootstrap 95\% CIs ($n=2{,}000$, seed 42) on all aggregate metrics; CIs are computed at the question level (not cluster-bootstrapped by patient).
-The safety score $S = 1 - \frac{1}{N} \sum_{i=1}^{N} w_i \cdot \mathbb{1}[\hat{y}_i \neq y_i]$ applies $w_i = 2.0$ for false-positive assertion errors (reporting a negated or absent condition as present) and $w_i = 1.0$ otherwise, capturing asymmetric clinical risk where acting on a falsely affirmed condition is more dangerous than missing a present one.
-The asymmetric weight reflects clinical practice: acting on a falsely affirmed condition (e.g., treating a negated diagnosis) carries greater immediate risk than failing to act on a present condition, which may be caught in subsequent encounters. We treat $w=2.0$ as a reasonable default; sensitivity to this choice is a direction for future work.
+We report BCa bootstrap 95\% CIs ($n=2{,}000$, seed 42) on all aggregate metrics; CIs are computed at the question level.
+A safety score with asymmetric weighting ($w=2.0$ for false-positive assertion errors) captures clinical risk (Appendix~\ref{app:safety}).

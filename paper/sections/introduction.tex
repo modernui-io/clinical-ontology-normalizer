@@ -16,13 +16,13 @@ We present \epikg, a clinical KG system that closes both gaps by preserving epis
 Our contributions:
 
 \begin{enumerate}[leftmargin=*, topsep=4pt, itemsep=2pt]
-  \item \textbf{Epistemic preservation invariant.} We formalize the requirement that assertion status be recoverable at every downstream stage, give an information-theoretic bound on the loss from assertion-blind pipelines (Section~\ref{sec:system:formal}), and realize the invariant with a seven-value schema extending i2b2~\cite{uzuner2011i2b2assertion}, carried from extraction through OMOP mapping, fact construction, KG materialization, and RAG serialization.
+  \item \textbf{Epistemic preservation invariant.} We formalize the requirement that assertion status be recoverable at every downstream stage, give an information-theoretic bound on the loss from assertion-blind pipelines (Section~\ref{sec:system:formal}, Appendix~\ref{app:formal}), and realize the invariant with a seven-value schema extending i2b2~\cite{uzuner2011i2b2assertion}, carried from extraction through OMOP mapping, fact construction, KG materialization, and RAG serialization.
 
   \item \textbf{Tri-temporal KG with Allen's interval algebra.} Edges carry valid time, transaction time, and NLP-asserted temporality alongside nine Allen's relations as first-class attributes, enabling temporal reasoning over longitudinal records.
 
   \item \textbf{Five-condition ablation with bookend baselines.} We evaluate five retrieval conditions---C1 (no retrieval) through C4g (intent-aware KG-RAG)---on ClinicalBench and SliceBench.  Two bookend baselines, C6 (brute-force full-context) and C7 (structured-only, no LLM), are defined to bound the design space; their evaluation is planned as future work.
 
-  \item \textbf{ClinicalBench with physician adjudication.} A 400-question benchmark across 9 epistemic categories targets the propagation gap, with hard longitudinal questions (change, cross-admission, temporal) as the primary endpoint. Blinded physician adjudication validates automated scoring on a stratified sample.
+  \item \textbf{ClinicalBench and SliceBench.} Two benchmarks (400 and 144 questions) across 9 epistemic categories target the propagation gap, with hard longitudinal questions (change, cross-admission, temporal) as the primary endpoint. A pilot physician adjudication ($n=5$) reveals systematic over-strictness in automated scoring; a full two-physician study is planned.
 \end{enumerate}
 
 The central research question is: \emph{under what conditions does structured epistemic context help, hurt, or break even compared to unstructured retrieval or no retrieval at all?}
