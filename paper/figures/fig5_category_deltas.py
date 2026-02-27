@@ -1,10 +1,4 @@
-"""Figure 5 (NEW): C1→C4g Per-Category Delta — diverging bar chart.
-
-This is the paper's signature visualization: shows exactly where intent-aware
-KG-RAG helps (change +60, family_history +57, current_state +12, sequence +10)
-and where it hurts (historical -54, duration -53, conditional -35, negation -14).
-The diverging bar chart makes the category×condition interaction immediately visible.
-"""
+"""Figure 5: Dual delta chart — C1 to C4g and C6 to C4g per-category accuracy change (Opus 4.6)."""
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -17,86 +11,89 @@ plt.rcParams.update({
     'ps.fonttype': 42,
 })
 
-# Data: C1→C4g deltas, sorted by magnitude
+# Categories sorted by C6 to C4g delta (most positive first)
 categories = [
-    'Change',          # +60.0
-    'Family History',  # +56.7
-    'Current State',   # +12.0
-    'Sequence',        # +10.0
-    'Uncertainty',     # -5.0
-    'Negation',        # -13.6
-    'Conditional',     # -35.0
-    'Duration',        # -53.3
-    'Historical',      # -54.0
+    'Sequence',        # C6 to C4g: +100.0
+    'Historical',      # C6 to C4g: +62.0
+    'Current State',   # C6 to C4g: +24.0
+    'Duration',        # C6 to C4g: +20.0
+    'Change',          # C6 to C4g: +20.0
+    'Uncertainty',     # C6 to C4g: +20.0
+    'Negation',        # C6 to C4g: +15.5
+    'Family History',  # C6 to C4g: +13.3
+    'Conditional',     # C6 to C4g: 0.0
 ]
 
-deltas = [60.0, 56.7, 12.0, 10.0, -5.0, -13.6, -35.0, -53.3, -54.0]
+# C6 to C4g deltas (Opus)
+c6_deltas = [+100.0, +62.0, +24.0, +20.0, +20.0, +20.0, +15.5, +13.3, 0.0]
 
-# Sample sizes for annotation
-n_questions = [30, 30, 50, 40, 40, 110, 20, 30, 50]
+# C1 to C4g deltas (Opus) — matching category order above
+c1_deltas = [0.0, +56.0, +32.0, +6.7, +73.3, +32.5, +1.8, +53.3, +30.0]
 
-# Colors: gains in blue, losses in red/coral
-colors = ['#1B5E8C' if d >= 0 else '#C44E4E' for d in deltas]
+# Sample sizes (matching category order)
+n_questions = [40, 50, 50, 30, 30, 40, 110, 30, 20]
 
-fig, ax = plt.subplots(figsize=(5.5, 3.5))
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7.0, 3.5), sharey=True)
 fig.patch.set_facecolor('white')
-ax.set_facecolor('white')
 
 y_pos = np.arange(len(categories))
-bars = ax.barh(y_pos, deltas, height=0.65, color=colors, edgecolor='white',
-               linewidth=0.5, zorder=3)
+bar_height = 0.6
 
-# Zero line
-ax.axvline(x=0, color='#444444', linewidth=0.8, zorder=2)
+# --- Left panel: C6 to C4g ---
+colors_c6 = ['#1B5E8C' if d >= 0 else '#C44E4E' for d in c6_deltas]
+bars1 = ax1.barh(y_pos, c6_deltas, height=bar_height, color=colors_c6,
+                  edgecolor='white', linewidth=0.5, zorder=3)
+ax1.axvline(x=0, color='#444444', linewidth=0.8, zorder=2)
+ax1.set_title('C6 to C4g\n(long context to KG-RAG)', fontsize=8.5, fontweight='bold', pad=8)
 
-# Value labels at end of each bar
-for i, (bar, val, n) in enumerate(zip(bars, deltas, n_questions)):
-    # Position label outside the bar
-    if val >= 0:
-        x_label = val + 1.5
-        ha = 'left'
-    else:
-        x_label = val - 1.5
-        ha = 'right'
-    ax.text(x_label, i, f'{val:+.1f} pp', ha=ha, va='center',
-            fontsize=7.5, fontweight='bold', color=colors[i])
-    # n annotation (smaller, inside or at bar base)
-    ax.text(0.5 if val >= 0 else -0.5, i, f'n={n}',
-            ha='left' if val >= 0 else 'right', va='center',
-            fontsize=5.5, color='#888888')
+for i, (val, n) in enumerate(zip(c6_deltas, n_questions)):
+    x_label = val + 1.5 if val >= 0 else val - 1.5
+    ha = 'left' if val >= 0 else 'right'
+    ax1.text(x_label, i, f'{val:+.0f}', ha=ha, va='center',
+             fontsize=7, fontweight='bold', color=colors_c6[i])
 
-# Category labels
-ax.set_yticks(y_pos)
-ax.set_yticklabels(categories, fontsize=8)
+ax1.set_yticks(y_pos)
+ax1.set_yticklabels(categories, fontsize=8)
+ax1.set_xlabel('Accuracy Change (pp)', fontsize=8)
+ax1.set_xlim(-10, 115)
+ax1.tick_params(axis='x', labelsize=7)
+ax1.spines['top'].set_visible(False)
+ax1.spines['right'].set_visible(False)
+ax1.spines['left'].set_color('#CCCCCC')
+ax1.spines['bottom'].set_color('#CCCCCC')
+ax1.invert_yaxis()
+ax1.axvspan(0, 115, alpha=0.02, color='#1B5E8C', zorder=0)
+ax1.axvspan(-10, 0, alpha=0.02, color='#C44E4E', zorder=0)
 
-# X axis
-ax.set_xlabel(r'C1 $\rightarrow$ C4g Accuracy Change (pp)', fontsize=9)
-ax.set_xlim(-70, 78)
-ax.set_xticks([-60, -40, -20, 0, 20, 40, 60])
-ax.tick_params(axis='x', labelsize=7.5)
+# --- Right panel: C1 to C4g ---
+colors_c1 = ['#1B5E8C' if d > 0 else ('#999999' if d == 0 else '#C44E4E') for d in c1_deltas]
+bars2 = ax2.barh(y_pos, c1_deltas, height=bar_height, color=colors_c1,
+                  edgecolor='white', linewidth=0.5, zorder=3)
+ax2.axvline(x=0, color='#444444', linewidth=0.8, zorder=2)
+ax2.set_title('C1 to C4g\n(LLM alone to KG-RAG)', fontsize=8.5, fontweight='bold', pad=8)
 
-# Spines
-ax.spines['top'].set_visible(False)
-ax.spines['right'].set_visible(False)
-ax.spines['left'].set_color('#CCCCCC')
-ax.spines['bottom'].set_color('#CCCCCC')
+for i, (val, n) in enumerate(zip(c1_deltas, n_questions)):
+    x_label = val + 1.5 if val >= 0 else val - 1.5
+    ha = 'left' if val >= 0 else 'right'
+    label = f'{val:+.0f}' if val != 0 else '0'
+    ax2.text(x_label, i, label, ha=ha, va='center',
+             fontsize=7, fontweight='bold', color=colors_c1[i])
+    # n annotation
+    ax2.text(0.5 if val >= 0 else -0.5, i, f'n={n}',
+             ha='left' if val >= 0 else 'right', va='center',
+             fontsize=5, color='#AAAAAA')
 
-# Invert y-axis so gains are on top
-ax.invert_yaxis()
+ax2.set_xlabel('Accuracy Change (pp)', fontsize=8)
+ax2.set_xlim(-10, 85)
+ax2.tick_params(axis='x', labelsize=7)
+ax2.spines['top'].set_visible(False)
+ax2.spines['right'].set_visible(False)
+ax2.spines['left'].set_color('#CCCCCC')
+ax2.spines['bottom'].set_color('#CCCCCC')
+ax2.axvspan(0, 85, alpha=0.02, color='#1B5E8C', zorder=0)
+ax2.axvspan(-10, 0, alpha=0.02, color='#C44E4E', zorder=0)
 
-# Region labels
-ax.text(35, -0.7, 'KG-RAG helps', ha='center', va='center',
-        fontsize=7.5, color='#1B5E8C', fontweight='bold', fontstyle='italic',
-        transform=ax.transData)
-ax.text(-35, -0.7, 'KG-RAG hurts', ha='center', va='center',
-        fontsize=7.5, color='#C44E4E', fontweight='bold', fontstyle='italic',
-        transform=ax.transData)
-
-# Subtle background shading
-ax.axvspan(0, 78, alpha=0.02, color='#1B5E8C', zorder=0)
-ax.axvspan(-70, 0, alpha=0.02, color='#C44E4E', zorder=0)
-
-plt.tight_layout()
+plt.tight_layout(w_pad=2.5)
 plt.savefig('/Users/alexstinard/projects/brainstorm/jan-14-2026/paper/figures/fig5_category_deltas.pdf',
             bbox_inches='tight', dpi=300, facecolor='white')
 plt.close()

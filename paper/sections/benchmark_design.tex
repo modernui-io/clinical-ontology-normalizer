@@ -10,24 +10,24 @@ We introduce two complementary benchmarks built on MIMIC-IV~\cite{johnson2023mim
 ClinicalBench comprises 400 gold-standard questions over 45 MIMIC-IV patients in two tasks: \textbf{Task~A} (200 questions, negation-aware retrieval) and \textbf{Task~B} (200 questions, temporal reasoning).
 Questions span 9 categories: \textit{negation}, \textit{conditional}, \textit{uncertainty}, \textit{family\_history}, \textit{sequence}, \textit{current\_state}, \textit{duration}, \textit{historical}, and \textit{change}.
 Gold-standard answers were created through manual chart review and verified against source documents; a pilot physician adjudication ($n=5$, Appendix~\ref{app:human}) assessed quality.
-Five ablation conditions progressively add system components (Table~\ref{tab:clinicalbench_conditions}), plus a diagnostic condition C5 (Appendix~\ref{app:c5}).
-Two bookend baselines---C6 (brute-force full-context, infeasible for MedGemma's 8K context window on complex patients) and C7 (deterministic KG only)---bracket the design space; their evaluation with long-context models is planned as future work.
+Three ablation conditions progressively add system components (Table~\ref{tab:clinicalbench_conditions}).
+Two bookend baselines---C6 (all notes concatenated) and C7 (deterministic KG lookup, no LLM)---bracket the design space.
 
 \begin{table}[t]
 \centering
 \footnotesize
-\caption{ClinicalBench ablation conditions. C1--C4g form the primary ablation ladder.}
+\caption{ClinicalBench conditions. C1/C4/C4g form the ablation ladder; C7 and C6 are bookend baselines.}
 \label{tab:clinicalbench_conditions}
 \setlength{\tabcolsep}{4pt}
 \begin{tabular}{@{}clccc@{}}
 \toprule
 ID & Condition & Retrieval & Assertion & Temporal \\
 \midrule
+C7 & Deterministic KG & KG lookup (no LLM) & Full & Tri-temporal \\
 C1 & LLM Alone & None & None & None \\
-C2 & + Vanilla RAG & Document & None & None \\
-C3 & + KG-RAG & Graph + Doc & None & None \\
 C4 & + Epistemic KG-RAG & Graph + Doc & Full (7-class) & Tri-temporal \\
 C4g & + Intent-Aware KG-RAG & Graph + Doc (type-specific) & Full (7-class) & Tri-temporal \\
+C6 & Long Context & All notes & None & None \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -38,8 +38,9 @@ The \textbf{secondary endpoint} is full 400-question ClinicalBench, C4g vs.\ C1.
 \textbf{Diagnostic endpoints} are per-category C1$\to$C4g accuracy deltas and the C4$\to$C4g transition on the hard subset.
 
 \noindent\textbf{What each transition isolates.}
-C3$\to$C4 isolates the \emph{assertion preservation effect}: both use graph retrieval, but only C4 carries the 7-value assertion schema and tri-temporal model.
+C1$\to$C4 isolates the \emph{epistemic retrieval effect}: C4 adds graph traversal with assertion metadata, testing whether structured context helps or hurts.
 C4$\to$C4g isolates the \emph{intent-aware routing effect}: both carry full assertion metadata, but C4g dispatches question-type-specific graph traversals.
+C4g vs.\ C6 isolates the \emph{structured-vs-unstructured retrieval effect} on the same questions.
 
 
 \subsection{SliceBench: Complexity-Stratified Longitudinal QA}
@@ -56,7 +57,7 @@ The critical comparison is B2$\to$B3: both have the same documents, but B3 adds 
 
 \paragraph{ClinicalBench} uses a \emph{deterministic keyword evaluator} that performs exact word-boundary matching of gold-standard assertion and temporal keywords against model answers (keyword lists in Appendix~\ref{app:reproducibility}).
 This evaluator is fully reproducible (no stochastic LLM judge) and is used for all ClinicalBench results.
-The answering model is MedGemma 27B (primary) or Claude Opus 4.6 (cross-model validation).
+The primary answering model is Claude Opus 4.6; cross-model validation uses MedGemma 27B and Qwen 35B under the same evaluator.
 
 \paragraph{SliceBench} uses an \emph{LLM-as-judge} protocol with separated answering and judging models to prevent self-evaluation bias~\cite{xiong2024mirage}: Claude Sonnet 4.5 generates answers and Claude Opus 4.6 judges correctness.
 
@@ -64,3 +65,12 @@ The answering model is MedGemma 27B (primary) or Claude Opus 4.6 (cross-model va
 We report BCa bootstrap 95\% CIs ($n=2{,}000$, seed 42) on SliceBench aggregate metrics (Table~\ref{tab:slicebench_overall}); CIs are computed at the question level.
 ClinicalBench results are reported as point estimates with within-run paired comparisons; CIs are omitted because the primary analysis targets condition deltas rather than absolute levels.
 A safety score with asymmetric weighting ($w=2.0$ for false-positive assertion errors) captures clinical risk (Appendix~\ref{app:safety}).
+
+\subsection{Physician Validation Protocol}
+\label{sec:bench:physician}
+
+To validate automated scoring, we preregister a two-physician blinded adjudication.
+Two board-certified emergency medicine physicians independently score a stratified sample of 168 questions under two conditions (C1 vs.\ C4g), blinded to condition assignment, using the same binary correctness rubric as the keyword evaluator.
+A third physician adjudicates disagreements; inter-rater reliability is reported as Cohen's $\kappa$.
+The protocol (Appendix~\ref{app:physician_protocol}) was finalized before examining primary results.
+Results are pending.

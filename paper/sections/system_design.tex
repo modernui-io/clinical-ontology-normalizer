@@ -18,9 +18,10 @@ Clinical concepts are stored once as shared global nodes; patient-specific seman
 \subsection{Epistemic Assertion Schema}
 \label{sec:system:assertion}
 
-Clinical notes contain qualified statements---``\textit{no evidence of pneumonia},'' ``\textit{possible CHF},'' ``\textit{mother had breast cancer}''---yet standard representations discard these qualifiers.
-OMOP excludes negated conditions entirely~\cite{omop2024}; FHIR restricts assertion metadata to conditions alone.
-\epikg defines a 7-value assertion taxonomy:
+\looseness=-1
+Clinical notes abound with qualified statements---``\textit{no evidence of pneumonia},'' ``\textit{possible CHF},'' ``\textit{mother had breast cancer}''---yet standard representations discard these qualifiers.
+OMOP excludes negated conditions entirely~\cite{omop2024}; FHIR limits assertion metadata to conditions.
+\epikg defines a seven-value assertion taxonomy:
 %
 \begin{equation}
 \label{eq:assertion}
@@ -48,7 +49,7 @@ An edge $e = (s, p, o, \alpha, \boldsymbol{\tau}_v, \boldsymbol{\tau}_t, \tau_a,
   \item $\alpha \in \mathcal{A}$ is the assertion label (Eq.~\ref{eq:assertion});
   \item $\boldsymbol{\tau}_v = (\textit{event\_date}, \textit{valid\_from}, \textit{valid\_to})$ is the \textbf{valid time} interval---when the relationship held in the real world;
   \item $\boldsymbol{\tau}_t = (\textit{recorded\_at}, \textit{doc\_date}, \textit{created\_at})$ is the \textbf{transaction time}---when it was recorded;
-  \item $\tau_a \in \{\textsc{Current}, \textsc{Past}, \textsc{Future}\}$ is the \textbf{NLP-asserted temporality};
+  \item $\tau_a \in \{\textnormal{\textsc{Current}}, \textnormal{\textsc{Past}}, \textnormal{\textsc{Future}}\}$ is the \textbf{NLP-asserted temporality};
   \item $r \in \mathcal{R}$ is an Allen interval algebra relation~\cite{allen1983temporal}; $c \in [0,1]$ is temporal confidence.
 \end{itemize}
 \end{definition}
@@ -79,7 +80,7 @@ and (6)~composes graph evidence, temporal context, guidelines, and source docume
 \label{sec:system:formal}
 
 We formalize the epistemic invariant maintained by the \epikg pipeline, building on the ontological principle that aboutness must be preserved across transformations~\cite{ceusters2015ontologyepistemology}.
-The \emph{epistemic state} of a clinical mention $m$ is the tuple $e(m) = (c, \alpha, \xi, \tau)$: OMOP concept, 7-value assertion label, experiencer ($\{\textsc{Patient}, \textsc{Family}\}$), and temporality ($\{\textsc{Current}, \textsc{Past}, \textsc{Future}\}$).
+The \emph{epistemic state} of a clinical mention $m$ is the tuple $e(m) = (c, \alpha, \xi, \tau)$: OMOP concept, 7-value assertion label, experiencer ($\{\textsc{Patient}, \textsc{Family}\}$), and temporality ($\{\textsc{Current}, \textsc{Past}, \textsc{Future}\}$); see Table~\ref{tab:notation} (Appendix) for notation summary.
 A pipeline \emph{epistemically preserves} $m$ if the output epistemic state equals the extraction state at every stage.
 We formalize (Appendix~\ref{app:formal}) that an assertion-blind pipeline collapses the assertion distribution to a degenerate point mass, incurring entropy loss $\Delta H = H(A_c^\pi) \geq 0$~\cite{shannon1948}, and that assertion-faithful accuracy is bounded by $1 - f_{\textit{np}}(c)$, where $f_{\textit{np}}$ is the fraction of non-present assertions.
 The empirical consequences are measured via category-stratified accuracy in Section~\ref{sec:results}.

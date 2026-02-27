@@ -13,7 +13,7 @@
 \item {\bf Limitations}
     \item[] Question: Does the paper discuss the limitations of the work performed by the authors?
     \item[] Answer: \answerYes{}
-    \item[] Justification: Section~\ref{sec:discussion} explicitly discusses limitations including small sample sizes (6 patients for SliceBench, 2 per tier), single-site data (MIMIC-IV), the B2$\rightarrow$B3 confidence interval crossing zero, category-level trade-offs (C4 vs C1), and the ``change'' category capability gap.
+    \item[] Justification: Section~\ref{sec:discussion} explicitly discusses limitations including small sample sizes (6 patients for SliceBench, 2 per tier), single-site data (MIMIC-IV), the B2$\rightarrow$B3 confidence interval crossing zero, model-dependent effects, and pending physician adjudication.
 
 \item {\bf Theory assumptions and proofs}
     \item[] Question: For each theoretical result, does the paper provide the full set of assumptions and a complete (correct) proof?
@@ -43,7 +43,7 @@
 \item {\bf Experiments compute resources}
     \item[] Question: For each experiment, does the paper provide sufficient information on the computer resources needed to reproduce the experiments?
     \item[] Answer: \answerYes{}
-    \item[] Justification: Appendix~\ref{app:reproducibility} reports computational requirements: ClinicalBench $\approx$3.6 hours (single GPU for MedGemma inference), SliceBench $\approx$2 hours (Anthropic API).
+    \item[] Justification: Appendix~\ref{app:reproducibility} reports computational requirements: ClinicalBench Opus $\approx$22 min per condition (API), MedGemma $\approx$3.6 hours (single GPU), SliceBench $\approx$2 hours (API).
 
 \item {\bf Code of ethics}
     \item[] Question: Does the research conducted in the paper conform, in every respect, with the NeurIPS Code of Ethics?

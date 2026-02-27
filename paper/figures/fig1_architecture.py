@@ -1,19 +1,12 @@
 """Figure 1: EpiKG System Architecture — assertion preservation pipeline.
 
-Improvements over v1:
-- α starts at NLP Extraction (not Clinical Note — assertions don't exist yet)
-- Removed redundant equation at bottom
-- Cleaner assertion class display
-- Better spacing and alignment
-- Tri-temporal annotation repositioned for clarity
+NeurIPS 2026 version — fits exactly within \textwidth (5.5in).
 """
 
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 from matplotlib.patches import FancyBboxPatch
 import numpy as np
 
-# NeurIPS-compatible styling
 plt.rcParams.update({
     'font.family': 'serif',
     'font.serif': ['Times', 'Times New Roman', 'DejaVu Serif'],
@@ -23,166 +16,163 @@ plt.rcParams.update({
     'mathtext.fontset': 'stix',
 })
 
-fig, ax = plt.subplots(figsize=(5.5, 3.2))
-ax.set_xlim(-0.3, 10.7)
-ax.set_ylim(-1.7, 3.0)
+# NeurIPS \textwidth = 5.5in; keep figure exactly that wide
+fig_w = 5.5
+fig_h = 2.3
+fig, ax = plt.subplots(figsize=(fig_w, fig_h))
+# Use exact axes filling the figure — no bbox_inches='tight' overflow
+ax.set_position([0.0, 0.0, 1.0, 1.0])
+ax.set_xlim(0, fig_w)
+ax.set_ylim(0, fig_h)
 ax.axis('off')
 fig.patch.set_facecolor('white')
 
-# Color palette — cohesive blue/gray scheme
-PIPELINE_BG = '#EBF0F7'
-PIPELINE_BORDER = '#3B4B64'
-ASSERTION_COLOR = '#1B5E8C'
-ASSERTION_BG = '#D4E8F7'
-ARROW_COLOR = '#5A6B80'
-TEMPORAL_COLOR = '#7B3FA0'
-NOTE_BG = '#F5F0E8'  # warmer for input
-NOTE_BORDER = '#8B7D6B'
-LLM_BG = '#E8F5E8'   # green tint for output
-LLM_BORDER = '#5A7B5A'
+# ── Colors ──
+BLUE_DARK  = '#1B5E8C'
+BLUE_LIGHT = '#E4EFF8'
+GRAY_DARK  = '#2D3748'
+GRAY_MED   = '#5A6B80'
+GREEN_DARK = '#2D7B4F'
+GREEN_LT   = '#EAF5EF'
+NOTE_BG    = '#FAF6EF'
+NOTE_BD    = '#A89B8A'
+PURPLE     = '#6B4FA0'
+PURPLE_LT  = '#F2ECF8'
+RED_DARK   = '#B83A3A'
+RED_LT     = '#FDECEC'
+AMBER_DARK = '#9A7200'
+AMBER_LT   = '#FFF7E0'
 
-# Pipeline stages
+# ── Pipeline stages ──
 stages = [
-    ('Clinical\nNote',   0.0,   NOTE_BG,     NOTE_BORDER),
-    ('NLP\nExtract',     1.7,   PIPELINE_BG, PIPELINE_BORDER),
-    ('OMOP\nMap',        3.4,   PIPELINE_BG, PIPELINE_BORDER),
-    ('Clinical\nFact',   5.1,   PIPELINE_BG, PIPELINE_BORDER),
-    ('KG\nEdge',         6.8,   PIPELINE_BG, PIPELINE_BORDER),
-    ('Graph\nRAG',       8.5,   PIPELINE_BG, PIPELINE_BORDER),
-    ('LLM\nAnswer',     10.0,   LLM_BG,      LLM_BORDER),
+    ('Clinical\nNote',   NOTE_BG,   NOTE_BD),
+    ('NLP\nExtract',     BLUE_LIGHT, BLUE_DARK),
+    ('OMOP\nMap',        BLUE_LIGHT, BLUE_DARK),
+    ('Clinical\nFact',   BLUE_LIGHT, BLUE_DARK),
+    ('KG\nEdge',         BLUE_LIGHT, BLUE_DARK),
+    ('Graph\nRAG',       BLUE_LIGHT, BLUE_DARK),
+    ('LLM\nAnswer',      GREEN_LT,  GREEN_DARK),
 ]
 
-box_w = 1.20
-box_h = 0.90
-pipeline_y = 1.2
+n_stages = len(stages)
+margin = 0.25
+usable = fig_w - 2 * margin
+box_w = 0.62
+gap = (usable - n_stages * box_w) / (n_stages - 1)
+box_h = 0.55
+pipeline_y = 1.68
+
+def stage_x(i):
+    return margin + i * (box_w + gap) + box_w / 2
 
 # Draw boxes
-for label, x, bg, border in stages:
+for i, (label, bg, bd) in enumerate(stages):
+    cx = stage_x(i)
     rect = FancyBboxPatch(
-        (x - box_w / 2, pipeline_y - box_h / 2),
-        box_w, box_h,
-        boxstyle="round,pad=0.10",
-        facecolor=bg,
-        edgecolor=border,
-        linewidth=1.2,
-    )
+        (cx - box_w / 2, pipeline_y - box_h / 2), box_w, box_h,
+        boxstyle="round,pad=0.06", facecolor=bg, edgecolor=bd,
+        linewidth=1.0, zorder=3)
     ax.add_patch(rect)
-    ax.text(x, pipeline_y, label, ha='center', va='center', fontsize=7.5,
-            fontweight='semibold', color='#1A202C', linespacing=1.15)
+    ax.text(cx, pipeline_y, label, ha='center', va='center',
+            fontsize=6.5, fontweight='semibold', color=GRAY_DARK,
+            linespacing=1.1, zorder=4)
 
-# Draw arrows between boxes
-for i in range(len(stages) - 1):
-    x_start = stages[i][1] + box_w / 2 + 0.05
-    x_end = stages[i + 1][1] - box_w / 2 - 0.05
-    ax.annotate('', xy=(x_end, pipeline_y), xytext=(x_start, pipeline_y),
-                arrowprops=dict(arrowstyle='->', color=ARROW_COLOR,
-                                lw=1.4, connectionstyle='arc3,rad=0'))
+# Arrows between boxes
+for i in range(n_stages - 1):
+    x1 = stage_x(i) + box_w / 2 + 0.02
+    x2 = stage_x(i + 1) - box_w / 2 - 0.02
+    ax.annotate('', xy=(x2, pipeline_y), xytext=(x1, pipeline_y),
+                arrowprops=dict(arrowstyle='->', color=GRAY_MED, lw=1.0),
+                zorder=2)
 
-# Assertion preservation chain — starts at NLP (stage 1), ends at Graph RAG (stage 5)
-# Clinical Note has no assertion; LLM Answer consumes but doesn't store it
-chain_stages = stages[1:6]  # NLP through Graph RAG
-chain_y = 0.22
-
-chain_x_start = chain_stages[0][1] - box_w / 2 - 0.05
-chain_x_end = chain_stages[-1][1] + box_w / 2 + 0.05
+# ── Assertion chain (NLP → Graph RAG, stages 1–5) ──
+# Tight vertical gap: just below pipeline boxes
+chain_y = pipeline_y - box_h / 2 - 0.28
+cx_first = stage_x(1)
+cx_last = stage_x(5)
+pad = 0.08
 chain_rect = FancyBboxPatch(
-    (chain_x_start, chain_y - 0.22),
-    chain_x_end - chain_x_start, 0.44,
-    boxstyle="round,pad=0.06",
-    facecolor=ASSERTION_BG,
-    edgecolor=ASSERTION_COLOR,
-    linewidth=1.0,
-    alpha=0.40,
-    linestyle='--',
-)
+    (cx_first - box_w / 2 - pad, chain_y - 0.14),
+    (cx_last - cx_first) + box_w + 2 * pad, 0.28,
+    boxstyle="round,pad=0.04", facecolor='#D6E9F5', edgecolor=BLUE_DARK,
+    linewidth=0.8, alpha=0.35, linestyle='--', zorder=1)
 ax.add_patch(chain_rect)
 
-# α labels under each stage in the chain
-for label, x, _, _ in chain_stages:
-    ax.text(x, chain_y, r'$\alpha$', ha='center', va='center',
-            fontsize=10, color=ASSERTION_COLOR, fontweight='bold')
-
-# Chain connecting arrows between α symbols
-for i in range(len(chain_stages) - 1):
-    x1 = chain_stages[i][1] + 0.25
-    x2 = chain_stages[i + 1][1] - 0.25
-    ax.annotate('', xy=(x2, chain_y), xytext=(x1, chain_y),
-                arrowprops=dict(arrowstyle='->', color=ASSERTION_COLOR,
-                                lw=0.8, alpha=0.5))
-
-# Chain label
-ax.text((chain_x_start + chain_x_end) / 2, chain_y + 0.36,
+# Chain label — sits on top edge of the dashed box
+ax.text((cx_first + cx_last) / 2, chain_y + 0.20,
         'Assertion Preservation Invariant', ha='center', va='center',
-        fontsize=7, color=ASSERTION_COLOR, fontweight='bold', fontstyle='italic')
+        fontsize=5.5, color=BLUE_DARK, fontweight='bold', fontstyle='italic',
+        bbox=dict(facecolor='white', edgecolor='none', pad=1.0))
 
-# Tri-temporal annotation on KG Edge box
-kg_x = 6.8
-ax.annotate(
-    'Tri-temporal edge\n(valid / transaction / NLP)',
-    xy=(kg_x, pipeline_y + box_h / 2 + 0.02),
-    xytext=(kg_x + 0.1, 2.50),
-    fontsize=6.5,
-    color=TEMPORAL_COLOR,
-    ha='center',
-    va='bottom',
-    fontweight='semibold',
-    arrowprops=dict(arrowstyle='->', color=TEMPORAL_COLOR, lw=1.0),
-)
+# α symbols
+for idx in range(1, 6):
+    ax.text(stage_x(idx), chain_y, r'$\boldsymbol{\alpha}$',
+            ha='center', va='center', fontsize=8.5, color=BLUE_DARK, zorder=4)
+# α arrows
+for idx in range(1, 5):
+    ax.annotate('', xy=(stage_x(idx + 1) - 0.18, chain_y),
+                xytext=(stage_x(idx) + 0.18, chain_y),
+                arrowprops=dict(arrowstyle='->', color=BLUE_DARK, lw=0.6, alpha=0.45),
+                zorder=2)
 
-# 7 assertion classes — compact single row with pills
-assertion_classes = ['Present', 'Absent', 'Possible', 'Conditional',
-                     'Hypothetical', 'Family Hx', 'Historical']
+# ── Tri-temporal annotation — straight down into KG Edge box ──
+kg_cx = stage_x(4)
+ax.text(kg_cx, pipeline_y + box_h / 2 + 0.14,
+        'Tri-temporal  (valid / txn / NLP)',
+        ha='center', va='bottom', fontsize=5, color=PURPLE,
+        fontweight='semibold', fontstyle='italic', zorder=5)
+ax.annotate('', xy=(kg_cx, pipeline_y + box_h / 2 + 0.01),
+            xytext=(kg_cx, pipeline_y + box_h / 2 + 0.13),
+            arrowprops=dict(arrowstyle='->', color=PURPLE, lw=0.8), zorder=5)
 
-y_pills = -0.55
-ax.text(5.0, y_pills + 0.42, '7-value assertion schema  ' + r'$\alpha \in \mathcal{A}$',
-        ha='center', va='center',
-        fontsize=7, color=ASSERTION_COLOR, fontweight='bold')
-
-# Single row of pills, evenly distributed
-n_pills = len(assertion_classes)
-pill_total_w = 10.0
-pill_start = 0.25
-pill_spacing = pill_total_w / (n_pills - 1)
-pill_w = 1.30
-pill_h = 0.32
-
-# Color-code by type: positive (green-ish), negative (red-ish), uncertain (yellow-ish), temporal (purple-ish)
+# ── 7 assertion pills ──
+pills = ['Present', 'Absent', 'Possible', 'Conditional',
+         'Hypothetical', 'Family Hx', 'Historical']
 pill_colors = {
-    'Present': ('#E8F5E8', '#3A7D3A'),
-    'Absent': ('#FDE8E8', '#B83A3A'),
-    'Possible': ('#FFF8E1', '#B8860B'),
-    'Conditional': ('#FFF8E1', '#B8860B'),
-    'Hypothetical': ('#FFF8E1', '#B8860B'),
-    'Family Hx': ('#F0E6F6', '#7B3FA0'),
-    'Historical': ('#F0E6F6', '#7B3FA0'),
+    'Present':      (GREEN_LT,  GREEN_DARK),
+    'Absent':       (RED_LT,    RED_DARK),
+    'Possible':     (AMBER_LT,  AMBER_DARK),
+    'Conditional':  (AMBER_LT,  AMBER_DARK),
+    'Hypothetical': (AMBER_LT,  AMBER_DARK),
+    'Family Hx':    (PURPLE_LT, PURPLE),
+    'Historical':   (PURPLE_LT, PURPLE),
 }
 
-for i, a in enumerate(assertion_classes):
-    x = pill_start + i * pill_spacing
-    bg, border = pill_colors[a]
-    pill = FancyBboxPatch(
-        (x - pill_w / 2, y_pills - pill_h / 2),
-        pill_w, pill_h,
-        boxstyle="round,pad=0.06",
-        facecolor=bg,
-        edgecolor=border,
-        linewidth=0.8,
-    )
-    ax.add_patch(pill)
-    ax.text(x, y_pills, a, ha='center', va='center',
-            fontsize=6, color=border, fontweight='medium')
+y_pills = 0.38
+pill_w = 0.65
+pill_h = 0.22
+n_pills = len(pills)
+pill_total = fig_w - 2 * margin
+pill_gap = (pill_total - n_pills * pill_w) / (n_pills - 1)
 
-# Subtle grouping labels
-ax.text(pill_start, y_pills - 0.32, 'affirmed', ha='center', va='top',
-        fontsize=5, color='#3A7D3A', fontstyle='italic')
-ax.text(pill_start + pill_spacing, y_pills - 0.32, 'negated', ha='center', va='top',
-        fontsize=5, color='#B83A3A', fontstyle='italic')
-ax.text(pill_start + 3 * pill_spacing, y_pills - 0.32, 'uncertain', ha='center', va='top',
-        fontsize=5, color='#B8860B', fontstyle='italic')
-ax.text(pill_start + 5.5 * pill_spacing, y_pills - 0.32, 'attributed', ha='center', va='top',
-        fontsize=5, color='#7B3FA0', fontstyle='italic')
+# Schema label
+ax.text(fig_w / 2, y_pills + 0.28,
+        r'7-value assertion schema  $\alpha \in \mathcal{A}$',
+        ha='center', va='center', fontsize=6, color=BLUE_DARK, fontweight='bold')
+
+for i, p in enumerate(pills):
+    cx = margin + i * (pill_w + pill_gap) + pill_w / 2
+    bg, bd = pill_colors[p]
+    rect = FancyBboxPatch(
+        (cx - pill_w / 2, y_pills - pill_h / 2), pill_w, pill_h,
+        boxstyle="round,pad=0.04", facecolor=bg, edgecolor=bd,
+        linewidth=0.6, zorder=3)
+    ax.add_patch(rect)
+    ax.text(cx, y_pills, p, ha='center', va='center',
+            fontsize=5, color=bd, fontweight='medium', zorder=4)
+
+# Grouping labels
+lbl_y = y_pills - 0.19
+ax.text(margin + pill_w / 2, lbl_y, 'affirmed',
+        ha='center', va='top', fontsize=4, color=GREEN_DARK, fontstyle='italic')
+ax.text(margin + (pill_w + pill_gap) + pill_w / 2, lbl_y, 'negated',
+        ha='center', va='top', fontsize=4, color=RED_DARK, fontstyle='italic')
+ax.text(margin + 3 * (pill_w + pill_gap) + pill_w / 2, lbl_y, 'uncertain',
+        ha='center', va='top', fontsize=4, color=AMBER_DARK, fontstyle='italic')
+ax.text(margin + 5.5 * (pill_w + pill_gap) + pill_w / 2, lbl_y, 'attributed',
+        ha='center', va='top', fontsize=4, color=PURPLE, fontstyle='italic')
 
 plt.savefig('/Users/alexstinard/projects/brainstorm/jan-14-2026/paper/figures/fig1_architecture.pdf',
-            bbox_inches='tight', dpi=300, facecolor='white')
+            dpi=300, facecolor='white')
 plt.close()
 print("fig1_architecture.pdf generated successfully")

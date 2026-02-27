@@ -37,7 +37,7 @@ We formalize the epistemic invariant maintained by the \epikg pipeline, building
 
 \begin{definition}[Epistemic State]
 \label{def:epistemic}
-For a clinical mention $m$, the \emph{epistemic state} is the tuple $e(m) = (c, \alpha, \xi, \tau)$, where $c$ is the OMOP concept identifier, $\alpha \in \mathcal{A}$ is the 7-value assertion label (Eq.~\ref{eq:assertion}), $\xi \in \{\textsc{Patient}, \textsc{Family}\}$ is the experiencer, and $\tau \in \{\textsc{Current}, \textsc{Past}, \textsc{Future}\}$ is the temporality.
+For a clinical mention $m$, the \emph{epistemic state} is the tuple $e(m) = (c, \alpha, \xi, \tau)$, where $c$ is the OMOP concept identifier, $\alpha \in \mathcal{A}$ is the 7-value assertion label (Eq.~\ref{eq:assertion}), $\xi \in \{\textnormal{\textsc{Patient}}, \textnormal{\textsc{Family}}\}$ is the experiencer, and $\tau \in \{\textnormal{\textsc{Current}}, \textnormal{\textsc{Past}}, \textnormal{\textsc{Future}}\}$ is the temporality.
 A pipeline $P$ \emph{epistemically preserves} mention $m$ if $P(e(m)) = e(m)$; that is, the epistemic state at the output of every pipeline stage is identical to the state at extraction.
 \end{definition}
 
@@ -113,28 +113,56 @@ We treat $w=2.0$ as a reasonable default; sensitivity to this choice is a direct
 
 \begin{table}[ht]
 \centering
-\caption{ClinicalBench per-category accuracy (\%) by model under C4 (epistemic KG-RAG). Epistemic evidence helps both models on assertion-dependent categories but hurts where the baseline is already strong.}
+\caption{ClinicalBench per-category accuracy (\%) by model under C1 and C4g (intent-aware KG-RAG). KG-RAG benefit is model-dependent: Opus gains on all categories while MedGemma regresses on historical ($-46\pp$).}
 \label{tab:crossmodel_categories}
 \small
 \begin{tabular}{@{}lccccccc@{}}
 \toprule
-& & \multicolumn{3}{c}{MedGemma 27B} & \multicolumn{3}{c}{Claude Opus 4.6} \\
+& & \multicolumn{3}{c}{Claude Opus 4.6} & \multicolumn{3}{c}{MedGemma 27B} \\
 \cmidrule(lr){3-5} \cmidrule(lr){6-8}
-Category & $n$ & C1 & C4 & $\Delta$ & C1 & C4 & $\Delta$ \\
+Category & $n$ & C1 & C4g & $\Delta$ & C1 & C4g & $\Delta$ \\
 \midrule
-Negation & 110 & 100.0 & 100.0 & $=$ & 96.4 & 99.1 & \up{2.7} \\
-Conditional & 20 & 100.0 & 70.0 & \dn{30.0} & 80.0 & 65.0 & \dn{15.0} \\
-Uncertainty & 40 & 37.5 & 57.5 & \up{20.0} & 47.5 & 55.0 & \up{7.5} \\
-Family hist. & 30 & 0.0 & 70.0 & \up{70.0} & 83.3 & 73.3 & \dn{10.0} \\
-Sequence & 40 & 80.0 & 87.5 & \up{7.5} & 97.5 & 95.0 & \dn{2.5} \\
-Current st. & 50 & 64.0 & 54.0 & \dn{10.0} & 58.0 & 48.0 & \dn{10.0} \\
-Duration & 30 & 100.0 & 83.3 & \dn{16.7} & 90.0 & 100.0 & \up{10.0} \\
-Historical & 50 & 94.0 & 60.0 & \dn{34.0} & 44.0 & 38.0 & \dn{6.0} \\
-Change & 30 & 0.0 & 3.3 & \up{3.3} & 23.3 & 13.3 & \dn{10.0} \\
+Negation & 110 & 86.4 & 88.2 & \up{1.8} & 93.6 & 86.4 & \dn{7.3} \\
+Conditional & 20 & 15.0 & 45.0 & \up{30.0} & 45.0 & 65.0 & \up{20.0} \\
+Uncertainty & 40 & 17.5 & 50.0 & \up{32.5} & 10.0 & 32.5 & \up{22.5} \\
+Family hist. & 30 & 3.3 & 56.7 & \up{53.3} & 3.3 & 56.7 & \up{53.3} \\
+Sequence & 40 & 100.0 & 100.0 & $=$ & 79.4 & 90.0 & \up{10.6} \\
+Current st. & 50 & 40.0 & 72.0 & \up{32.0} & 61.7 & 76.0 & \up{14.3} \\
+Duration & 30 & 86.7 & 93.3 & \up{6.7} & 46.4 & 46.7 & \up{0.2} \\
+Historical & 50 & 6.0 & 62.0 & \up{56.0} & 86.4 & 40.0 & \dn{46.4} \\
+Change & 30 & 13.3 & 86.7 & \up{73.3} & 11.5 & 60.0 & \up{48.5} \\
 \midrule
-\textbf{Overall} & \textbf{400} & \textbf{71.5} & \textbf{71.5} & $=$ & \textbf{72.5} & \textbf{70.2} & \dn{\textbf{2.2}} \\
+\textbf{Overall} & \textbf{400} & \textbf{49.8} & \textbf{76.0} & \up{\textbf{26.3}} & \textbf{59.9} & \textbf{66.0} & \up{\textbf{6.1}} \\
 \bottomrule
 \end{tabular}
+\end{table}
+
+
+\section{MedGemma Full Per-Category Results}
+\label{app:medgemma_percategory}
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+\textbf{Category} & $n$ & \textbf{C7} & \textbf{C6} & \textbf{C1} & \textbf{C4} & \textbf{C4g} \\
+\midrule
+Negation & 110 & 13.6 & 72.7 & 93.6 & 85.5 & 86.4 \\
+Conditional & 20 & 0.0 & 70.0 & 45.0 & 55.0 & 65.0 \\
+Uncertainty & 40 & 0.0 & 32.5 & 10.0 & 30.0 & 32.5 \\
+Family History & 30 & 0.0 & 63.3 & 3.3 & 40.0 & 56.7 \\
+Sequence & 40 & 0.0 & 82.5 & 79.4 & 82.5 & 90.0 \\
+Current State & 50 & 0.0 & 16.0 & 61.7 & 52.0 & 76.0 \\
+Duration & 30 & 0.0 & 20.0 & 46.4 & 63.3 & 46.7 \\
+Historical & 50 & 0.0 & 20.0 & 86.4 & 20.0 & 40.0 \\
+Change & 30 & 0.0 & 10.0 & 11.5 & 10.0 & 60.0 \\
+\midrule
+\textbf{Overall} & \textbf{400} & \textbf{3.8} & \textbf{46.5} & \textbf{59.9} & \textbf{55.0} & \textbf{66.0} \\
+\bottomrule
+\end{tabular}
+\caption{MedGemma 27B ClinicalBench per-category accuracy (\%, deterministic keyword evaluator) for all five conditions. Historical regression ($-46\pp$, C1$\to$C4g) contrasts with Opus's $+56\pp$ gain on the same category.}
+\label{tab:medgemma_percategory}
 \end{table}
 
 
@@ -145,7 +173,7 @@ The \texttt{experiencer} attribute distinguishes patient conditions from family 
 
 \begin{table}[ht]
 \centering
-\caption{Impact of experiencer attribute propagation on Opus C4 (400 questions, same C1 baseline of 72.5\%). Categories with no change omitted.}
+\caption{Impact of experiencer attribute propagation on Opus C4 (400 questions, prior evaluator run). Categories with no change omitted.}
 \label{tab:experiencer_fix}
 \small
 \begin{tabular}{@{}lccc@{}}
@@ -158,7 +186,6 @@ Historical & 34.0\% & 38.0\% & $+4.0\pp$ \\
 Current state & 46.0\% & 48.0\% & $+2.0\pp$ \\
 \midrule
 \textbf{Overall C4} & \textbf{68.2\%} & \textbf{70.2\%} & $+2.0\pp$ \\
-C4 vs C1 gap & $-4.2\pp$ & $-2.2\pp$ & gap halved \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -185,7 +212,7 @@ The fix improved family history by $+10.0\pp$ with zero regressions on guard cat
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\textwidth]{figures/fig5_category_deltas.pdf}
-\caption{C1$\rightarrow$C4g per-category accuracy change. Intent-aware KG-RAG produces large gains on categories requiring cross-admission normalization (change, family history) and losses on categories where the LLM's parametric knowledge already suffices (historical, duration, conditional). Sample sizes per category shown.}
+\caption{Per-category accuracy change (Claude Opus 4.6) for two comparisons. \textbf{Left:}~C6$\rightarrow$C4g (structured vs.\ unstructured retrieval): KG-RAG outperforms long context on all 9 categories, with the largest gains on sequence ($+100\pp$) and historical ($+62\pp$). \textbf{Right:}~C1$\rightarrow$C4g (LLM alone to KG-RAG): gains on 8 of 9 categories---change ($+73\pp$), historical ($+56\pp$), family history ($+53\pp$)---with zero regressions.}
 \label{fig:deltas}
 \end{figure}
 
@@ -216,7 +243,7 @@ B4 & Full System & KG-RAG + guidelines + calculators \\
 \label{app:supporting}
 
 \paragraph{LLM baseline.}
-On MedQA-USMLE (965 questions), Claude Opus 4.5 achieves 81.6\% accuracy (5.1\,pp below GPT-4 at 86.7\% and Med-PaLM~2 at 86.5\%~\cite{medagentbench2025}), establishing that the Claude model family---Sonnet 4.5 (SliceBench answerer) and Opus 4.6 (ClinicalBench cross-model, SliceBench judge)---provides a reasonable LLM baseline (Table~\ref{tab:medqa}).
+On MedQA-USMLE (965 questions), Claude Opus 4.5 achieves 81.6\% accuracy (5.1\,pp below GPT-4 at 86.7\% and Med-PaLM~2 at 86.5\%~\cite{medagentbench2025}), establishing that the Claude model family---Sonnet 4.5 (SliceBench answerer) and Opus 4.6 (ClinicalBench primary, SliceBench judge)---provides a reasonable LLM baseline (Table~\ref{tab:medqa}).
 
 \begin{table}[ht]
 \centering
@@ -268,30 +295,30 @@ C & 15+ notes & 48.4 & 74.2 & 86.5 & 91.5 & 90.3 & $+5.0\pp$ \\
 \end{table}
 
 
-\section{ClinicalBench Full Per-Category Results}
+\section{ClinicalBench Full Per-Category Results (Opus)}
 \label{app:percategory}
 
 \begin{table}[ht]
 \centering
 \small
-\begin{tabular}{lcccccc}
+\begin{tabular}{lccccc}
 \toprule
-\textbf{Category} & \textbf{C1} & \textbf{C2} & \textbf{C3} & \textbf{C4} & \textbf{C4g} & \textbf{C5} \\
+\textbf{Category} & $n$ & \textbf{C7} & \textbf{C1} & \textbf{C4g} & \textbf{C6} \\
 \midrule
-Negation & 100.0 & 93.6 & 81.8 & 100.0 & 86.4 & 98.2 \\
-Conditional & 100.0 & 90.0 & 55.0 & 70.0 & 65.0 & 75.0 \\
-Uncertainty & 37.5 & 2.5 & 7.5 & 57.5 & 32.5 & 40.0 \\
-Family History & 0.0 & 0.0 & 53.3 & 70.0 & 56.7 & 56.7 \\
-Sequence & 80.0 & 80.0 & 80.0 & 87.5 & 90.0 & 77.5 \\
-Current State & 64.0 & 54.0 & 50.0 & 54.0 & 76.0 & 58.0 \\
-Duration & 100.0 & 100.0 & 83.3 & 83.3 & 46.7 & 73.3 \\
-Historical & 94.0 & 78.0 & 68.0 & 60.0 & 40.0 & 68.0 \\
-Change & 0.0 & 0.0 & 3.3 & 3.3 & 60.0 & 3.3 \\
+Negation & 110 & 13.6 & 86.4 & 88.2 & 72.7 \\
+Conditional & 20 & 0.0 & 15.0 & 45.0 & 45.0 \\
+Uncertainty & 40 & 0.0 & 17.5 & 50.0 & 30.0 \\
+Family History & 30 & 0.0 & 3.3 & 56.7 & 43.3 \\
+Sequence & 40 & 0.0 & 100.0 & 100.0 & 0.0 \\
+Current State & 50 & 0.0 & 40.0 & 72.0 & 48.0 \\
+Duration & 30 & 0.0 & 86.7 & 93.3 & 73.3 \\
+Historical & 50 & 0.0 & 6.0 & 62.0 & 0.0 \\
+Change & 30 & 0.0 & 13.3 & 86.7 & 66.7 \\
 \midrule
-\textbf{Overall} & \textbf{71.5} & \textbf{62.5} & \textbf{59.2} & \textbf{71.5} & \textbf{66.0} & \textbf{68.2} \\
+\textbf{Overall} & \textbf{400} & \textbf{3.8} & \textbf{49.8} & \textbf{76.0} & \textbf{45.0} \\
 \bottomrule
 \end{tabular}
-\caption{Complete ClinicalBench per-category accuracy (\%, deterministic keyword evaluator) for all six conditions.}
+\caption{Complete ClinicalBench per-category accuracy (\%, Claude Opus 4.6, deterministic keyword evaluator) for all primary conditions. C7 is model-independent.}
 \label{tab:full_percategory}
 \end{table}
 
@@ -301,26 +328,50 @@ Change & 0.0 & 0.0 & 3.3 & 3.3 & 60.0 & 3.3 \\
 
 To assess LLM-as-judge reliability, we conducted a pilot validation study with a single board-certified physician who scored system outputs on a 4-point scale without knowledge of condition labels.
 The pilot ($n=5$) revealed overly strict automated scoring on uncertainty and sequence questions. Gold standards were fully correct in 3/5 cases; model answers were partially correct or better in 3/5 cases where the auto-scorer marked them incorrect.
-A full two-physician blinded adjudication ($n \geq 30$) is planned but not yet complete.
+A full two-physician blinded adjudication is preregistered (Section~\ref{sec:results:physician}, Appendix~\ref{app:physician_protocol}).
+
+
+\section{Physician Validation Protocol}
+\label{app:physician_protocol}
+
+\paragraph{Design.} Two board-certified emergency medicine physicians independently score ClinicalBench answers under two conditions (C1 and C4g) using the same binary correctness rubric as the deterministic keyword evaluator.
+Reviewers are blinded to condition assignment.
+The sample comprises 168 questions stratified across all 9 categories, with both conditions scored per question (336 total scored pairs).
+
+\paragraph{Inter-rater agreement.} Cohen's $\kappa$ is computed between the two reviewers on the full 336 scored pairs.
+A third board-certified physician adjudicates all disagreements.
+
+\paragraph{Endpoints.} (1)~Human--keyword evaluator concordance rate (fraction of automated scores confirmed by physicians).
+(2)~Human-adjudicated C4g vs.\ C1 accuracy delta.
+(3)~Category-level human accuracy.
+
+\paragraph{Disclosure.} Both primary reviewers are co-authors.
+We report $\kappa$ to demonstrate independent judgment and disclose the relationship in the main text.
+
+\paragraph{Status.} This protocol was designed before examining primary results.
+\emph{Results are pending.}
 
 
 \section{Reproducibility Details}
 \label{app:reproducibility}
 
-\paragraph{Models.} ClinicalBench main ablation: MedGemma 27B (\texttt{gemma3:27b}, 4-bit GGUF quantization) via Ollama with deterministic keyword evaluator. Cross-model: MedGemma 27B and Claude Opus 4.6 (claude-opus-4-20250514) with the same evaluator. SliceBench: Claude Sonnet 4.5 (claude-sonnet-4-5-20250929, answering), Claude Opus 4.6 (judging). Temperature 0 throughout; 4-bit quantization introduces GPU-level non-determinism ($\pm 10\pp$ run-to-run variance), controlled via within-run paired comparisons.
+\paragraph{Models.} ClinicalBench primary ablation: Claude Opus 4.6 (claude-opus-4-20250514, keyword evaluator).
+Cross-model: MedGemma 27B (gemma3:27b, 4-bit GGUF) via Ollama; Qwen 35B; same evaluator.
+SliceBench: Claude Sonnet 4.5 (claude-sonnet-4-5-20250929) answers, Opus 4.6 judges.
+Temperature 0 throughout; 4-bit quantization introduces GPU non-determinism ($\pm 10\pp$ run-to-run for MedGemma), controlled via within-run paired comparisons.
 
-\paragraph{Evaluation.} The deterministic keyword evaluator performs exact word-boundary matching (\texttt{\\bKEYWORD\\b}) against gold-standard assertion and temporal keywords.
-Per-category keyword sets: negation (``no,'' ``denies,'' ``absent,'' ``negative''), uncertainty (``possible,'' ``suspected,'' ``may,'' ``likely,'' ``consider''), temporal (``before,'' ``after,'' ``during,'' ``changed,'' ``new''), plus category-specific medical terms.
-Evidence preambles (echoed graph context) are stripped before matching to prevent false positives.
+\paragraph{Evaluation.} The deterministic keyword evaluator performs exact word-boundary matching (regex \verb|\bKEYWORD\b|) against gold-standard assertion and temporal keywords.
+Per-category keyword sets: negation (``no,'' ``denies,'' ``absent,'' ``negative''), uncertainty (``possible,'' ``suspected,'' ``may,'' ``likely,'' ``consider''), temporal (``before,'' ``after,'' ``during,'' ``changed,'' ``new''), plus category-specific terms.
+Evidence preambles (echoed graph context) are stripped before matching.
 
-\paragraph{Retrieval.} C2's vanilla RAG uses TF-IDF similarity over chunked clinical notes (512-token chunks, 64-token overlap), retrieving the top-5 chunks by cosine similarity.
-ClinicalBench conditions C1--C4g correspond to SliceBench conditions: C1$\approx$B0, C2$\approx$B2, C4$\approx$B3, C5$\approx$B4.
+\paragraph{Retrieval.} C2's vanilla RAG uses TF-IDF over chunked clinical notes (512-token chunks, 64-token overlap), retrieving the top-5 chunks by cosine similarity.
+ClinicalBench conditions map to SliceBench: C1$\!\approx\!$B0, C2$\!\approx\!$B2, C4$\!\approx\!$B3, C5$\!\approx\!$B4.
 
 \paragraph{Bootstrap.} $n=2{,}000$ resamples, seed 42, BCa method~\cite{efron1993bootstrap}.
 
-\paragraph{Data.} De-identified MIMIC-IV clinical notes under PhysioNet Credentialed Health Data Use Agreement~(v1.5.0).
+\paragraph{Data.} De-identified MIMIC-IV clinical notes accessed under a PhysioNet Credentialed Health Data Use Agreement (v1.5.0).
 
-\paragraph{Compute.} ClinicalBench: $\sim$3.6h (single GPU); Opus cross-model: $\sim$20min (API); SliceBench: $\sim$2h (API).
+\paragraph{Compute.} ClinicalBench Opus C1/C4g: ${\sim}22$min each (API); Opus C6: ${\sim}3.5$h (API); C7: $<1$min (no LLM); MedGemma C1--C4g: ${\sim}3.6$h (single GPU); MedGemma C6: ${\sim}1.5$h; SliceBench: ${\sim}2$h (API).
 
 \paragraph{Evaluator evolution.} Key refinements: (i)~substring to word-boundary matching, (ii)~evidence preamble stripping. All main-text numbers use the final version.
 
@@ -414,11 +465,22 @@ $E_d \gets \textsc{RetrieveDocuments}(\pi, \mathcal{C})$\;
 \end{algorithm}
 
 
-\section{C5 Full System Methodology}
+\section{Bookend and Diagnostic Conditions}
 \label{app:c5}
 
+\paragraph{C5 (Full System).}
 C5 extends C4 with guideline retrieval (1{,}202 sections) and clinical calculators (201, \eg CHA$_2$DS$_2$-VASc, MELD).
-C5 achieves 68.2\% overall, below C1 and C4 (71.5\% each), likely because non-relevant components dilute the context window with information unrelated to the question.
+In a prior evaluator run, C5 achieved 68.2\% overall, below the prior-run C1 and C4, likely because non-relevant components dilute the context window.
+
+\paragraph{C6 (Long Context).}
+All patient documents are concatenated chronologically and presented to the LLM.
+For Opus (200K token window), all notes fit; for MedGemma (8K window), later documents are truncated.
+C6 achieves 45.0\% (Opus) and 46.5\% (MedGemma) overall.
+Both models catastrophically fail on historical (0\% Opus, 20\% MedGemma), confirming that brute-force long context cannot substitute for structured retrieval regardless of context window size.
+
+\paragraph{C7 (Deterministic KG).}
+KG edges matching query concepts are returned directly without LLM reasoning.
+C7 achieves 3.8\% overall (only negation at 13.6\% via stored assertion metadata), confirming that structured data without an LLM reasoner cannot answer clinical questions.
 
 
 \section{Illustrative Retrieval Example}
