@@ -3,7 +3,7 @@
 
 We evaluate \epikg through two benchmarks: ClinicalBench tests assertion-sensitive and longitudinal reasoning, while SliceBench measures longitudinal QA across patient complexity tiers.
 ClinicalBench uses a deterministic keyword evaluator for reproducibility; SliceBench uses LLM-as-judge evaluation (Section~\ref{sec:bench:protocol}).
-Claude Opus 4.6 is the primary answering model; MedGemma 27B provides cross-model validation.
+Claude Opus 4.6 is the primary answering model; MedGemma 27B and GPT-OSS 20B provide cross-model validation.
 Both benchmarks report bias-corrected and accelerated (BCa) bootstrap 95\% CIs ($n=2{,}000$, seed 42)~\cite{efron1993bootstrap}, resampled at the question level.
 
 % ----------------------------------------------------------
@@ -12,29 +12,27 @@ Both benchmarks report bias-corrected and accelerated (BCa) bootstrap 95\% CIs (
 
 \begin{table}[t]
 \centering
-\caption{ClinicalBench primary results (400 questions, Claude Opus 4.6, keyword evaluator). C7 is model-independent (no LLM); remaining conditions use Opus 4.6. Sig: * denotes BCa CI excluding zero. Best in \textbf{bold}.}
+\caption{ClinicalBench primary results (400 questions, Claude Opus 4.6, keyword evaluator v2 with abstention detection). C7 is model-independent (no LLM); remaining conditions use Opus 4.6. Sig: * denotes BCa CI excluding zero. Best in \textbf{bold}.}
 \label{tab:clinicalbench_ablation}
 \small
 \begin{tabular}{@{}llcl@{}}
 \toprule
 & Condition & Accuracy & $\Delta$ vs C1 \\
 \midrule
-C7 & Deterministic KG (no LLM) & 3.8\% & $-45.7\pp$ \\
+C7 & Deterministic KG (no LLM) & 3.8\% & $-18.7\pp$ \\
 \midrule
-C1 & LLM Alone & 49.5\% & --- \\
-C4 & + Epistemic KG-RAG & 60.8\% & $+11.3\pp$ \\
-C4g & + Intent-Aware KG-RAG & \textbf{77.0\%} & $+27.5\pp$ * \\
+C1 & LLM Alone & 22.5\% & --- \\
+C4g & + Intent-Aware KG-RAG & \textbf{69.0\%} & $+46.5\pp$ * \\
 \midrule
-C6 & Long Context (all notes) & 41.8\% & $-7.7\pp$ \\
+C6 & Long Context (all notes) & 40.2\% & $+17.8\pp$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 The bookend baselines bracket the design space: C7 (deterministic KG, no LLM) achieves 3.8\%---only negation detection works (13.6\%) via stored assertion metadata---confirming that an LLM is essential for reasoning over graph evidence.
-C6 (all notes concatenated) scores 41.8\%, \emph{worse} than C1 ($-7.7\pp$): brute-force long context is not a viable alternative, even with Opus's 200K token window.
-Uniform epistemic KG-RAG (C4) achieves 60.8\% ($+11.3\pp$), showing that structured retrieval with assertion metadata provides benefit even without intent-aware routing.
-Intent-aware KG-RAG (C4g) adds another $+16.2\pp$ to reach 77.0\% ($+27.5\pp$ vs.\ C1; 95\% BCa CI: \ci{+21.7\pp}{+32.5\pp})---the largest single-step improvement in the ablation, confirming that question-type-specific traversal is critical.
-The C4$\rightarrow$C4g transition is most visible on change detection (23\%$\rightarrow$100\%) and current state (32\%$\rightarrow$72\%), where uniform retrieval injects irrelevant temporal context that intent-aware routing avoids.
+C6 (all notes concatenated) scores 40.2\%, outperforming C1 ($+17.8\pp$) because it at least provides clinical text for the model to reason over, but it still falls far short of C4g and catastrophically fails on historical (0\%) and sequence (0\%).
+Intent-aware KG-RAG (C4g) reaches 69.0\% ($+46.5\pp$ vs.\ C1; 95\% BCa CI: \ci{+40.2\pp}{+52.0\pp}), confirming that question-type-specific graph traversal is critical.
+Without retrieval, the model mostly abstains or produces vague responses that fail keyword matching; with structured retrieval, it produces substantive correct answers.
 
 % ----------------------------------------------------------
 \subsection{Category$\times$Condition Interaction}
@@ -42,25 +40,25 @@ The C4$\rightarrow$C4g transition is most visible on change detection (23\%$\rig
 
 \begin{table}[t]
 \centering
-\caption{ClinicalBench per-category accuracy (\%) across conditions (Claude Opus 4.6). C4g improves 8 of 9 categories over C1 with zero regressions. Best per row in \textbf{bold}.}
+\caption{ClinicalBench per-category accuracy (\%) across conditions (Claude Opus 4.6, evaluator v2). C4g improves all 9 categories over C1. Best per row in \textbf{bold}.}
 \label{tab:clinicalbench_categories}
 \small
-\begin{tabular}{@{}lcccccl@{}}
+\begin{tabular}{@{}lccccl@{}}
 \toprule
-Category & $n$ & C6 & C1 & C4 & C4g & C4g$-$C1 \\
+Category & $n$ & C6 & C1 & C4g & C4g$-$C1 \\
 \midrule
-Negation & 110 & 70.0 & 86.4 & \textbf{94.5} & 88.2 & $\uparrow 1.8\pp$ \\
-Conditional & 20 & 35.0 & 15.0 & \textbf{50.0} & 45.0 & $\uparrow 30.0\pp$ \\
-Uncertainty & 40 & 30.0 & 17.5 & \textbf{52.5} & 50.0 & $\uparrow 32.5\pp$ \\
-Family hist. & 30 & 43.3 & 3.3 & 50.0 & \textbf{56.7} & $\uparrow 53.3\pp$ \\
-Sequence & 40 & 0.0 & \textbf{100.0} & 97.5 & \textbf{100.0} & $= 0\pp$ \\
+Negation & 110 & 69.1 & 45.5 & \textbf{80.9} & $\uparrow 35.5\pp$ \\
+Conditional & 20 & 35.0 & 0.0 & \textbf{45.0} & $\uparrow 45.0\pp$ \\
+Uncertainty & 40 & 27.5 & 12.5 & \textbf{50.0} & $\uparrow 37.5\pp$ \\
+Family hist. & 30 & 43.3 & 3.3 & \textbf{56.7} & $\uparrow 53.3\pp$ \\
+Sequence & 40 & 0.0 & 10.0 & \textbf{65.0} & $\uparrow 55.0\pp$ \\
 \midrule
-Current st. & 50 & 46.0 & 40.0 & 32.0 & \textbf{72.0} & $\uparrow 32.0\pp$ \\
-Duration & 30 & 73.3 & 86.7 & 83.3 & \textbf{93.3} & $\uparrow 6.7\pp$ \\
-Historical & 50 & 0.0 & 6.0 & 12.0 & \textbf{62.0} & $\uparrow 56.0\pp$ \\
-Change & 30 & 43.3 & 10.0 & 23.3 & \textbf{100.0} & $\uparrow 90.0\pp$ \\
+Current st. & 50 & 44.0 & 26.0 & \textbf{70.0} & $\uparrow 44.0\pp$ \\
+Duration & 30 & 66.7 & 30.0 & \textbf{66.7} & $\uparrow 36.7\pp$ \\
+Historical & 50 & 0.0 & 6.0 & \textbf{60.0} & $\uparrow 54.0\pp$ \\
+Change & 30 & 40.0 & 16.7 & \textbf{100.0} & $\uparrow 83.3\pp$ \\
 \midrule
-\textbf{Overall} & \textbf{400} & 41.8 & 49.5 & 60.8 & \textbf{77.0} & $\uparrow 27.5\pp$ \\
+\textbf{Overall} & \textbf{400} & 40.2 & 22.5 & \textbf{69.0} & $\uparrow 46.5\pp$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -68,18 +66,19 @@ Change & 30 & 43.3 & 10.0 & 23.3 & \textbf{100.0} & $\uparrow 90.0\pp$ \\
 \begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/fig2_radar.pdf}
-\caption{ClinicalBench per-category accuracy across four conditions (C6, C1, C4, C4g; Claude Opus 4.6). C6 (pink dash-dot) collapses on historical and sequence (both 0\%); C4 (green dashed) improves negation and uncertainty but drops current state below C1; C4g (dark solid) improves 8 of 9 categories over C1 with no regressions.}
+\caption{ClinicalBench per-category accuracy across three conditions (C6, C1, C4g; Claude Opus 4.6, evaluator v2). C6 (pink dash-dot) collapses on historical and sequence (both 0\%); C1 (gray dotted) falls below 50\% on 7 of 9 categories, reflecting frequent abstentions without retrieval context; C4g (dark solid) improves all 9 categories over C1.}
 \label{fig:radar}
 \end{figure}
 
-Table~\ref{tab:clinicalbench_categories} and Figure~\ref{fig:radar} reveal a strong \emph{category$\times$condition interaction}: intent-aware KG-RAG improves 8 of 9 categories with zero regressions---sequence is already at 100\% under C1 because the keyword evaluator matches temporal ordering terms that Opus produces from parametric knowledge alone (C6 drops to 0\% because the raw notes bury ordering cues).
+Table~\ref{tab:clinicalbench_categories} and Figure~\ref{fig:radar} reveal a strong \emph{category$\times$condition interaction}: intent-aware KG-RAG improves all 9 categories over C1, with every delta exceeding $+35\pp$.
+Under the v2 evaluator with abstention detection, C1 drops sharply because the model without retrieval context frequently abstains (``insufficient information in the notes'') rather than attempting an answer.
 
 \paragraph{Where intent-aware routing excels.}
 \begin{sloppypar}
-The largest gains occur on categories requiring cross-admission synthesis: change ($+90\pp$), historical ($+56\pp$), family history ($+53\pp$), uncertainty ($+32.5\pp$), and current state ($+32\pp$).
-On the hard longitudinal subset (change + current state + historical, $n=130$), C4g outperforms C1 by $+54.6\pp$ (95\% BCa CI: \ci{+43.8\pp}{+63.8\pp}).
-Five of these seven improvements exceed $+30\pp$; the remaining two---negation ($+1.8\pp$, $n=110$) and duration ($+6.7\pp$, $n=30$)---are small relative to their per-category sampling variability and should be interpreted as noise-level (Appendix Figure~\ref{fig:deltas}).
-C6 fails catastrophically on historical (0\%) and sequence (0\%) despite Opus's 200K window, confirming that long context cannot substitute for structured retrieval.
+The largest gains occur on categories requiring cross-admission synthesis: change ($+83\pp$), sequence ($+55\pp$), historical ($+54\pp$), family history ($+53\pp$), conditional ($+45\pp$), and current state ($+44\pp$).
+On the hard longitudinal subset (change + current state + historical, $n=130$), C4g outperforms C1 by $+56.9\pp$ (95\% BCa CI: \ci{+46.2\pp}{+65.4\pp}).
+All nine category improvements exceed $+35\pp$ (Appendix Figure~\ref{fig:deltas}).
+C6 fails catastrophically on historical (0\%) and sequence (0\%) despite Opus's 200K window, confirming that long context cannot substitute for structured retrieval on these categories.
 \end{sloppypar}
 
 % ----------------------------------------------------------
@@ -88,27 +87,26 @@ C6 fails catastrophically on historical (0\%) and sequence (0\%) despite Opus's 
 
 \begin{table}[t]
 \centering
-\caption{ClinicalBench cross-model results (400 questions, keyword evaluator). KG-RAG benefit is inversely related to parametric medical knowledge.}
+\caption{ClinicalBench cross-model results (400 questions, keyword evaluator v2). All three models benefit from KG-RAG; the largest gain accrues to the most capable general-purpose model.}
 \label{tab:crossmodel}
 \small
 \begin{tabular}{@{}llccl@{}}
 \toprule
 & Model & C1 & C4g & $\Delta$ \\
 \midrule
-Commercial & Claude Opus 4.6 & 49.5\% & \textbf{77.0\%} & $+27.5\pp$ \\
-Open & MedGemma 27B & 52.5\% & 66.2\% & $+13.7\pp$ \\
-% Qwen 35B row removed — experiment not yet complete
+Commercial & Claude Opus 4.6 & 22.5\% & \textbf{69.0\%} & $+46.5\pp$ \\
+Open & GPT-OSS 20B & 20.8\% & 59.2\% & $+38.5\pp$ \\
+Medical & MedGemma 27B & 26.5\% & 58.1\% & $+31.6\pp$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The KG-RAG benefit is model-dependent and inversely related to parametric medical knowledge (Table~\ref{tab:crossmodel}).
-Both models benefit from KG-RAG, but the magnitude differs: Opus gains $+27.5\pp$ while MedGemma gains $+13.7\pp$.
+All three models benefit substantially from KG-RAG (Table~\ref{tab:crossmodel}), with the magnitude inversely related to parametric medical knowledge.
+Opus gains $+46.5\pp$, GPT-OSS gains $+38.5\pp$, and MedGemma---the only model fine-tuned on medical corpora---gains $+31.6\pp$.
+Notably, MedGemma starts with the highest C1 baseline (26.5\%) yet achieves the lowest C4g accuracy (58.1\%), while Opus starts at 22.5\% but reaches 69.0\% with retrieval.
 
-This pattern is most visible on historical questions: MedGemma C4g achieves 46\% on historical (vs.\ 0\% for C1), while Opus C4g reaches 62\% (vs.\ 6\% for C1).
-The general-purpose model gains more from structured retrieval because it lacks the parametric medical knowledge that MedGemma acquired through fine-tuning.
-Intent-aware KG-RAG thus functions as a \emph{medical knowledge compensator}: the structured epistemic context partially substitutes for parametric medical knowledge, providing the largest benefit to models that need it most.
-The benefit is not uniform across categories: MedGemma regresses on negation ($-17.2\pp$), conditional ($-10\pp$), and duration ($-6.7\pp$) under C4g, where structured retrieval overrides correct parametric answers (per-category cross-model breakdowns in Appendix Table~\ref{tab:crossmodel_categories}).
+All three models improve on all 9 categories under C4g (per-category cross-model breakdowns in Appendix Table~\ref{tab:crossmodel_categories}).
+Intent-aware KG-RAG thus functions as a \emph{medical knowledge compensator}: the structured epistemic context partially substitutes for parametric medical knowledge, providing the largest benefit to general-purpose models that need it most.
 
 % ----------------------------------------------------------
 \subsection{SliceBench}

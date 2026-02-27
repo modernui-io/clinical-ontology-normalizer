@@ -1,4 +1,4 @@
-"""Figure 2: ClinicalBench Radar Chart — per-category accuracy for C6, C1, C4, C4g (Claude Opus 4.6)."""
+"""Figure 2: ClinicalBench Radar Chart — per-category accuracy for C6, C1, C4g (Claude Opus 4.6, evaluator v2)."""
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -19,18 +19,16 @@ categories = [
 ]
 N = len(categories)
 
-# Opus 4.6 data (400 questions, keyword evaluator, re-scored)
-c6_vals  = [ 70.0, 35.0, 30.0, 43.3,  0.0, 46.0, 73.3,  0.0, 43.3]
-c1_vals  = [ 86.4, 15.0, 17.5,  3.3, 100.0, 40.0, 86.7,  6.0, 10.0]
-c4_vals  = [ 94.5, 50.0, 52.5, 50.0, 97.5, 32.0, 83.3, 12.0, 23.3]
-c4g_vals = [ 88.2, 45.0, 50.0, 56.7, 100.0, 72.0, 93.3, 62.0, 100.0]
+# Opus 4.6 data (400 questions, keyword evaluator v2 with abstention detection)
+c6_vals  = [ 69.1, 35.0, 27.5, 43.3,  0.0, 44.0, 66.7,  0.0, 40.0]
+c1_vals  = [ 45.5,  0.0, 12.5,  3.3, 10.0, 26.0, 30.0,  6.0, 16.7]
+c4g_vals = [ 80.9, 45.0, 50.0, 56.7, 65.0, 70.0, 66.7, 60.0, 100.0]
 
 # Compute angles
 angles = np.linspace(0, 2 * np.pi, N, endpoint=False).tolist()
 angles += angles[:1]
 c6_vals += c6_vals[:1]
 c1_vals += c1_vals[:1]
-c4_vals += c4_vals[:1]
 c4g_vals += c4g_vals[:1]
 
 fig, ax = plt.subplots(figsize=(5.5, 5.0), subplot_kw=dict(polar=True))
@@ -51,7 +49,7 @@ ax.set_xticks(angles[:-1])
 ax.set_xticklabels(categories, fontsize=7.5, fontweight='medium', color='#333333')
 ax.tick_params(axis='x', pad=14)
 
-# Plot C6 — orange dash-dot (long context bookend)
+# Plot C6 — pink dash-dot (long context bookend)
 ax.plot(angles, c6_vals, color='#CC79A7', linewidth=1.4,
         linestyle='dashdot', marker='v', markersize=3.5, alpha=0.8, zorder=2)
 ax.fill(angles, c6_vals, color='#CC79A7', alpha=0.05, zorder=1)
@@ -61,31 +59,15 @@ ax.plot(angles, c1_vals, color='#999999', linewidth=1.3,
         linestyle='dotted', marker='o', markersize=3, alpha=0.7, zorder=3)
 ax.fill(angles, c1_vals, color='#999999', alpha=0.04, zorder=1)
 
-# Plot C4 — green dashed (uniform KG-RAG)
-ax.plot(angles, c4_vals, color='#2E8B57', linewidth=1.5,
-        linestyle='dashed', marker='s', markersize=3.5, alpha=0.8, zorder=4)
-ax.fill(angles, c4_vals, color='#2E8B57', alpha=0.05, zorder=1)
-
 # Plot C4g — dark blue solid (intent-aware, best condition)
 ax.plot(angles, c4g_vals, color='#1B5E8C', linewidth=2.2,
         linestyle='solid', marker='D', markersize=4, alpha=0.95, zorder=5)
 ax.fill(angles, c4g_vals, color='#1B5E8C', alpha=0.08, zorder=1)
 
-# Annotate C4 weakness on current state
-cur_angle = angles[5]
-ax.annotate(
-    'C4: 32%\n(< C1)',
-    xy=(cur_angle, 34),
-    xytext=(cur_angle + 0.30, 15),
-    fontsize=6.5, fontweight='bold', color='#D64545',
-    arrowprops=dict(arrowstyle='->', color='#D64545', lw=0.8),
-    ha='left', va='bottom', zorder=10,
-)
-
 # Annotate C4g on change (100%)
 change_angle = angles[8]
 ax.annotate(
-    '+77 pp\n(C4->C4g)',
+    '+83 pp\n(C1->C4g)',
     xy=(change_angle, c4g_vals[8]),
     xytext=(change_angle + 0.25, c4g_vals[8] + 8),
     fontsize=7, fontweight='bold', color='#1B5E8C',
@@ -104,16 +86,25 @@ ax.annotate(
     ha='left', va='bottom', zorder=10,
 )
 
+# Annotate C1 collapse on conditional
+cond_angle = angles[1]
+ax.annotate(
+    'C1: 0%',
+    xy=(cond_angle, 2),
+    xytext=(cond_angle + 0.30, 22),
+    fontsize=6.5, fontweight='bold', color='#D64545',
+    arrowprops=dict(arrowstyle='->', color='#D64545', lw=0.8),
+    ha='left', va='bottom', zorder=10,
+)
+
 # Legend
 legend_elements = [
     Line2D([0], [0], color='#CC79A7', linestyle='dashdot', linewidth=1.4,
-           marker='v', markersize=3.5, label='C6: Long Context (41.8%)'),
+           marker='v', markersize=3.5, label='C6: Long Context (40.2%)'),
     Line2D([0], [0], color='#999999', linestyle='dotted', linewidth=1.3,
-           marker='o', markersize=3.5, label='C1: LLM Alone (49.5%)'),
-    Line2D([0], [0], color='#2E8B57', linestyle='dashed', linewidth=1.5,
-           marker='s', markersize=3.5, label='C4: Epistemic KG-RAG (60.8%)'),
+           marker='o', markersize=3.5, label='C1: LLM Alone (22.5%)'),
     Line2D([0], [0], color='#1B5E8C', linestyle='solid', linewidth=2.2,
-           marker='D', markersize=4, label='C4g: +Intent-Aware (77.0%)'),
+           marker='D', markersize=4, label='C4g: +Intent-Aware (69.0%)'),
 ]
 ax.legend(handles=legend_elements, loc='upper right',
           bbox_to_anchor=(1.38, 1.12), fontsize=7, frameon=True,
