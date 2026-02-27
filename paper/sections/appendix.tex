@@ -2,6 +2,10 @@
 % APPENDIX
 % ============================================================
 
+% Force floats to appear before the next \section (prevents empty section headers)
+\let\oldsection\section
+\renewcommand{\section}{\FloatBarrier\oldsection}
+
 \section{Notation Summary}
 \label{app:notation}
 
@@ -212,7 +216,7 @@ The fix improved family history by $+10.0\pp$ with zero regressions on guard cat
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\textwidth]{figures/fig5_category_deltas.pdf}
-\caption{Per-category accuracy change (Claude Opus 4.6) for two comparisons. \textbf{Left:}~C6$\rightarrow$C4g (structured vs.\ unstructured retrieval): KG-RAG outperforms long context on all 9 categories, with the largest gains on sequence ($+100\pp$) and historical ($+62\pp$). \textbf{Right:}~C1$\rightarrow$C4g (LLM alone to KG-RAG): gains on 8 of 9 categories---change ($+73\pp$), historical ($+56\pp$), family history ($+53\pp$)---with zero regressions.}
+\caption{Per-category accuracy change (Claude Opus 4.6) for two comparisons. \textbf{Left:}~C6$\rightarrow$C4g (structured vs.\ unstructured retrieval): KG-RAG outperforms long context on all 9 categories, with the largest gains on sequence ($+100\pp$) and historical ($+62\pp$). \textbf{Right:}~C1$\rightarrow$C4g (LLM alone to KG-RAG): gains on 8 of 9 categories---change ($+90\pp$), historical ($+56\pp$), family history ($+53\pp$)---with zero regressions.}
 \label{fig:deltas}
 \end{figure}
 
@@ -375,7 +379,7 @@ ClinicalBench conditions map to SliceBench: C1$\!\approx\!$B0, C2$\!\approx\!$B2
 
 \paragraph{Evaluator evolution.} Key refinements: (i)~substring to word-boundary matching, (ii)~evidence preamble stripping. All main-text numbers use the final version.
 
-\paragraph{Reproducibility package.} A standalone reproducibility package is included as supplementary material (\texttt{epikg-benchmark/}). It contains all 400 ClinicalBench questions with gold answers, raw model predictions for all six condition$\times$model combinations (Opus C1/C4/C4g/C6, MedGemma C1/C4g), and the 284-line deterministic keyword evaluator. Running the evaluator requires only Python~3.10+ with no external dependencies. All six accuracy numbers in Tables~\ref{tab:ablation} and~\ref{tab:crossmodel} are independently reproducible from this package. MIMIC-IV patient identifiers are included so that PhysioNet-credentialed reviewers can trace predictions back to source clinical notes.
+\paragraph{Reproducibility package.} A standalone reproducibility package is included as supplementary material (\texttt{epikg-benchmark/}). It contains all 400 ClinicalBench questions with gold answers, raw model predictions for all six condition$\times$model combinations (Opus C1/C4/C4g/C6, MedGemma C1/C4g), and the 284-line deterministic keyword evaluator. Running the evaluator requires only Python~3.10+ with no external dependencies. All six accuracy numbers in Tables~\ref{tab:clinicalbench_ablation} and~\ref{tab:crossmodel} are independently reproducible from this package. MIMIC-IV patient identifiers are included so that PhysioNet-credentialed reviewers can trace predictions back to source clinical notes.
 
 
 \section{Assertion Category Definitions}
