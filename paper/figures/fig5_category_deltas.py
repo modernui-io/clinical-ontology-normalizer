@@ -15,23 +15,23 @@ plt.rcParams.update({
 categories = [
     'Sequence',        # C6 to C4g: +100.0
     'Historical',      # C6 to C4g: +62.0
-    'Current State',   # C6 to C4g: +24.0
+    'Change',          # C6 to C4g: +56.7
+    'Current State',   # C6 to C4g: +26.0
     'Duration',        # C6 to C4g: +20.0
-    'Change',          # C6 to C4g: +20.0
     'Uncertainty',     # C6 to C4g: +20.0
-    'Negation',        # C6 to C4g: +15.5
+    'Negation',        # C6 to C4g: +18.2
     'Family History',  # C6 to C4g: +13.3
-    'Conditional',     # C6 to C4g: 0.0
+    'Conditional',     # C6 to C4g: +10.0
 ]
 
-# C6 to C4g deltas (Opus)
-c6_deltas = [+100.0, +62.0, +24.0, +20.0, +20.0, +20.0, +15.5, +13.3, 0.0]
+# C6 to C4g deltas (Opus, re-scored)
+c6_deltas = [+100.0, +62.0, +56.7, +26.0, +20.0, +20.0, +18.2, +13.3, +10.0]
 
-# C1 to C4g deltas (Opus) — matching category order above
-c1_deltas = [0.0, +56.0, +32.0, +6.7, +73.3, +32.5, +1.8, +53.3, +30.0]
+# C1 to C4g deltas (Opus, re-scored) — matching category order above
+c1_deltas = [0.0, +56.0, +90.0, +32.0, +6.7, +32.5, +1.8, +53.3, +30.0]
 
 # Sample sizes (matching category order)
-n_questions = [40, 50, 50, 30, 30, 40, 110, 30, 20]
+n_questions = [40, 50, 30, 50, 30, 40, 110, 30, 20]
 
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7.0, 3.5), sharey=True)
 fig.patch.set_facecolor('white')
@@ -84,13 +84,13 @@ for i, (val, n) in enumerate(zip(c1_deltas, n_questions)):
              fontsize=5, color='#AAAAAA')
 
 ax2.set_xlabel('Accuracy Change (pp)', fontsize=8)
-ax2.set_xlim(-10, 85)
+ax2.set_xlim(-10, 100)
 ax2.tick_params(axis='x', labelsize=7)
 ax2.spines['top'].set_visible(False)
 ax2.spines['right'].set_visible(False)
 ax2.spines['left'].set_color('#CCCCCC')
 ax2.spines['bottom'].set_color('#CCCCCC')
-ax2.axvspan(0, 85, alpha=0.02, color='#1B5E8C', zorder=0)
+ax2.axvspan(0, 100, alpha=0.02, color='#1B5E8C', zorder=0)
 ax2.axvspan(-10, 0, alpha=0.02, color='#C44E4E', zorder=0)
 
 plt.tight_layout(w_pad=2.5)

@@ -19,11 +19,11 @@ categories = [
 ]
 N = len(categories)
 
-# Opus 4.6 data (400 questions, keyword evaluator)
-c6_vals  = [ 72.7, 45.0, 30.0, 43.3,  0.0, 48.0, 73.3,  0.0, 66.7]
-c1_vals  = [ 86.4, 15.0, 17.5,  3.3, 100.0, 40.0, 86.7,  6.0, 13.3]
-c4_vals  = [100.0, 70.0, 57.5, 70.0, 87.5, 54.0, 83.3, 60.0,  3.3]
-c4g_vals = [ 88.2, 45.0, 50.0, 56.7, 100.0, 72.0, 93.3, 62.0, 86.7]
+# Opus 4.6 data (400 questions, keyword evaluator, re-scored)
+c6_vals  = [ 70.0, 35.0, 30.0, 43.3,  0.0, 46.0, 73.3,  0.0, 43.3]
+c1_vals  = [ 86.4, 15.0, 17.5,  3.3, 100.0, 40.0, 86.7,  6.0, 10.0]
+c4_vals  = [ 94.5, 50.0, 52.5, 50.0, 97.5, 32.0, 83.3, 12.0, 23.3]
+c4g_vals = [ 88.2, 45.0, 50.0, 56.7, 100.0, 72.0, 93.3, 62.0, 100.0]
 
 # Compute angles
 angles = np.linspace(0, 2 * np.pi, N, endpoint=False).tolist()
@@ -71,22 +71,23 @@ ax.plot(angles, c4g_vals, color='#1B5E8C', linewidth=2.2,
         linestyle='solid', marker='D', markersize=4, alpha=0.95, zorder=5)
 ax.fill(angles, c4g_vals, color='#1B5E8C', alpha=0.08, zorder=1)
 
-# Annotate C4 collapse on change
-change_angle = angles[8]
+# Annotate C4 weakness on current state
+cur_angle = angles[5]
 ax.annotate(
-    'C4: 3%',
-    xy=(change_angle, 5),
-    xytext=(change_angle + 0.30, 28),
+    'C4: 32%\n(< C1)',
+    xy=(cur_angle, 34),
+    xytext=(cur_angle + 0.30, 15),
     fontsize=6.5, fontweight='bold', color='#D64545',
     arrowprops=dict(arrowstyle='->', color='#D64545', lw=0.8),
     ha='left', va='bottom', zorder=10,
 )
 
-# Annotate C4g recovery on change
+# Annotate C4g on change (100%)
+change_angle = angles[8]
 ax.annotate(
-    '+83 pp\n(C4->C4g)',
+    '+77 pp\n(C4->C4g)',
     xy=(change_angle, c4g_vals[8]),
-    xytext=(change_angle + 0.25, c4g_vals[8] + 15),
+    xytext=(change_angle + 0.25, c4g_vals[8] + 8),
     fontsize=7, fontweight='bold', color='#1B5E8C',
     arrowprops=dict(arrowstyle='->', color='#1B5E8C', lw=1.0),
     ha='left', va='bottom', zorder=10,
@@ -106,13 +107,13 @@ ax.annotate(
 # Legend
 legend_elements = [
     Line2D([0], [0], color='#E8871E', linestyle='dashdot', linewidth=1.4,
-           marker='v', markersize=3.5, label='C6: Long Context (45.0%)'),
+           marker='v', markersize=3.5, label='C6: Long Context (41.8%)'),
     Line2D([0], [0], color='#999999', linestyle='dotted', linewidth=1.3,
-           marker='o', markersize=3.5, label='C1: LLM Alone (49.8%)'),
+           marker='o', markersize=3.5, label='C1: LLM Alone (49.5%)'),
     Line2D([0], [0], color='#2E8B57', linestyle='dashed', linewidth=1.5,
-           marker='s', markersize=3.5, label='C4: Epistemic KG-RAG (71.5%)'),
+           marker='s', markersize=3.5, label='C4: Epistemic KG-RAG (60.8%)'),
     Line2D([0], [0], color='#1B5E8C', linestyle='solid', linewidth=2.2,
-           marker='D', markersize=4, label='C4g: +Intent-Aware (76.0%)'),
+           marker='D', markersize=4, label='C4g: +Intent-Aware (77.0%)'),
 ]
 ax.legend(handles=legend_elements, loc='upper right',
           bbox_to_anchor=(1.38, 1.12), fontsize=7, frameon=True,

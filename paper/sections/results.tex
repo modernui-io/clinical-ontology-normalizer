@@ -19,22 +19,22 @@ SliceBench reports BCa bootstrap 95\% CIs ($n=2{,}000$, seed 42)~\cite{efron1993
 \toprule
 & Condition & Accuracy & $\Delta$ vs C1 \\
 \midrule
-C7 & Deterministic KG (no LLM) & 3.8\% & $-46.0\pp$ \\
+C7 & Deterministic KG (no LLM) & 3.8\% & $-45.7\pp$ \\
 \midrule
-C1 & LLM Alone & 49.8\% & --- \\
-C4 & + Epistemic KG-RAG & 71.5\% & $+21.7\pp$ \\
-C4g & + Intent-Aware KG-RAG & \textbf{76.0\%} & $+26.3\pp$ \\
+C1 & LLM Alone & 49.5\% & --- \\
+C4 & + Epistemic KG-RAG & 60.8\% & $+11.3\pp$ \\
+C4g & + Intent-Aware KG-RAG & \textbf{77.0\%} & $+27.5\pp$ \\
 \midrule
-C6 & Long Context (all notes) & 45.0\% & $-4.8\pp$ \\
+C6 & Long Context (all notes) & 41.8\% & $-7.7\pp$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 The bookend baselines bracket the design space: C7 (deterministic KG, no LLM) achieves 3.8\%---only negation detection works (13.6\%) via stored assertion metadata---confirming that an LLM is essential for reasoning over graph evidence.
-C6 (all notes concatenated) scores 45.0\%, \emph{worse} than C1 ($-4.8\pp$): brute-force long context is not a viable alternative, even with Opus's 200K token window.
-Uniform epistemic KG-RAG (C4) achieves 71.5\% ($+21.7\pp$), showing that structured retrieval with assertion metadata provides substantial benefit even without intent-aware routing.
-Intent-aware KG-RAG (C4g) adds another $+4.5\pp$ to reach 76.0\%.
-The C4$\rightarrow$C4g transition is most visible on change detection: C4 drops to 3.3\% (worse than C1's 13.3\%) because uniform retrieval injects irrelevant temporal context, while C4g recovers to 86.7\% via question-type-specific traversal.
+C6 (all notes concatenated) scores 41.8\%, \emph{worse} than C1 ($-7.7\pp$): brute-force long context is not a viable alternative, even with Opus's 200K token window.
+Uniform epistemic KG-RAG (C4) achieves 60.8\% ($+11.3\pp$), showing that structured retrieval with assertion metadata provides benefit even without intent-aware routing.
+Intent-aware KG-RAG (C4g) adds another $+16.2\pp$ to reach 77.0\%---the largest single-step improvement in the ablation, confirming that question-type-specific traversal is critical.
+The C4$\rightarrow$C4g transition is most visible on change detection (23\%$\rightarrow$100\%) and current state (32\%$\rightarrow$72\%), where uniform retrieval injects irrelevant temporal context that intent-aware routing avoids.
 
 % ----------------------------------------------------------
 \subsection{Category$\times$Condition Interaction}
@@ -49,18 +49,18 @@ The C4$\rightarrow$C4g transition is most visible on change detection: C4 drops 
 \toprule
 Category & $n$ & C6 & C1 & C4 & C4g & C4g$-$C1 \\
 \midrule
-Negation & 110 & 72.7 & 86.4 & \textbf{100.0} & 88.2 & $\uparrow 1.8\pp$ \\
-Conditional & 20 & 45.0 & 15.0 & \textbf{70.0} & 45.0 & $\uparrow 30.0\pp$ \\
-Uncertainty & 40 & 30.0 & 17.5 & \textbf{57.5} & 50.0 & $\uparrow 32.5\pp$ \\
-Family hist. & 30 & 43.3 & 3.3 & 70.0 & \textbf{56.7} & $\uparrow 53.3\pp$ \\
-Sequence & 40 & 0.0 & \textbf{100.0} & 87.5 & \textbf{100.0} & $= 0\pp$ \\
+Negation & 110 & 70.0 & 86.4 & \textbf{94.5} & 88.2 & $\uparrow 1.8\pp$ \\
+Conditional & 20 & 35.0 & 15.0 & \textbf{50.0} & 45.0 & $\uparrow 30.0\pp$ \\
+Uncertainty & 40 & 30.0 & 17.5 & \textbf{52.5} & 50.0 & $\uparrow 32.5\pp$ \\
+Family hist. & 30 & 43.3 & 3.3 & 50.0 & \textbf{56.7} & $\uparrow 53.3\pp$ \\
+Sequence & 40 & 0.0 & \textbf{100.0} & 97.5 & \textbf{100.0} & $= 0\pp$ \\
 \midrule
-Current st. & 50 & 48.0 & 40.0 & 54.0 & \textbf{72.0} & $\uparrow 32.0\pp$ \\
+Current st. & 50 & 46.0 & 40.0 & 32.0 & \textbf{72.0} & $\uparrow 32.0\pp$ \\
 Duration & 30 & 73.3 & 86.7 & 83.3 & \textbf{93.3} & $\uparrow 6.7\pp$ \\
-Historical & 50 & 0.0 & 6.0 & 60.0 & \textbf{62.0} & $\uparrow 56.0\pp$ \\
-Change & 30 & 66.7 & 13.3 & 3.3 & \textbf{86.7} & $\uparrow 73.3\pp$ \\
+Historical & 50 & 0.0 & 6.0 & 12.0 & \textbf{62.0} & $\uparrow 56.0\pp$ \\
+Change & 30 & 43.3 & 10.0 & 23.3 & \textbf{100.0} & $\uparrow 90.0\pp$ \\
 \midrule
-\textbf{Overall} & \textbf{400} & 45.0 & 49.8 & 71.5 & \textbf{76.0} & $\uparrow 26.3\pp$ \\
+\textbf{Overall} & \textbf{400} & 41.8 & 49.5 & 60.8 & \textbf{77.0} & $\uparrow 27.5\pp$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -68,7 +68,7 @@ Change & 30 & 66.7 & 13.3 & 3.3 & \textbf{86.7} & $\uparrow 73.3\pp$ \\
 \begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/fig2_radar.pdf}
-\caption{ClinicalBench per-category accuracy across four conditions (C6, C1, C4, C4g; Claude Opus 4.6). C6 (orange dash-dot) collapses on historical and sequence (both 0\%); C4 (green dashed) improves most categories but drops change to 3\%; C4g (dark solid) improves 8 of 9 categories over C1 with no regressions.}
+\caption{ClinicalBench per-category accuracy across four conditions (C6, C1, C4, C4g; Claude Opus 4.6). C6 (orange dash-dot) collapses on historical and sequence (both 0\%); C4 (green dashed) improves negation and uncertainty but drops current state below C1; C4g (dark solid) improves 8 of 9 categories over C1 with no regressions.}
 \label{fig:radar}
 \end{figure}
 
@@ -76,7 +76,7 @@ Table~\ref{tab:clinicalbench_categories} and Figure~\ref{fig:radar} reveal a str
 
 \paragraph{Where intent-aware routing excels.}
 \begin{sloppypar}
-The largest gains occur on categories requiring cross-admission synthesis: change ($+73\pp$), historical ($+56\pp$), family history ($+53\pp$), uncertainty ($+33\pp$), and current state ($+32\pp$).
+The largest gains occur on categories requiring cross-admission synthesis: change ($+90\pp$), historical ($+56\pp$), family history ($+53\pp$), uncertainty ($+33\pp$), and current state ($+32\pp$).
 C6 fails catastrophically on historical (0\%) and sequence (0\%) despite Opus's 200K window, confirming that long context cannot substitute for structured retrieval.
 \end{sloppypar}
 
@@ -93,19 +93,18 @@ C6 fails catastrophically on historical (0\%) and sequence (0\%) despite Opus's 
 \toprule
 & Model & C1 & C4g & $\Delta$ \\
 \midrule
-Commercial & Claude Opus 4.6 & 49.8\% & \textbf{76.0\%} & $+26.3\pp$ \\
-Open & MedGemma 27B & 59.9\% & 66.0\% & $+6.1\pp$ \\
+Commercial & Claude Opus 4.6 & 49.5\% & \textbf{77.0\%} & $+27.5\pp$ \\
+Open & MedGemma 27B & 52.5\% & 66.2\% & $+13.7\pp$ \\
 Open & Qwen 35B & ---\% & ---\% & ---\,$\pp$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 The KG-RAG benefit is model-dependent and inversely related to parametric medical knowledge (Table~\ref{tab:crossmodel}).
-MedGemma~27B, fine-tuned on medical corpora, achieves a higher C1 baseline (59.9\% vs.\ 49.8\%) but gains only $+6.1\pp$ from KG-RAG.
-Opus, a general-purpose model with lower medical baseline, gains $+26.3\pp$---KG-RAG compensates for the knowledge gap.
+Both models benefit from KG-RAG, but the magnitude differs: Opus gains $+27.5\pp$ while MedGemma gains $+13.7\pp$.
 
-This pattern is most visible on historical questions: MedGemma achieves 86\% on C1 (it identifies historical status parametrically) but \emph{regresses} under MedGemma C4g ($-46\pp$) because structured retrieval formatting overrides correct parametric reasoning.
-Opus starts at 6\% on C1 and gains $+56\pp$ under C4g---the epistemic KG provides knowledge the model lacks.
+This pattern is most visible on historical questions: MedGemma C4g achieves 46\% on historical (vs.\ 0\% for C1), while Opus C4g reaches 62\% (vs.\ 6\% for C1).
+The general-purpose model gains more from structured retrieval because it lacks the parametric medical knowledge that MedGemma acquired through fine-tuning.
 Intent-aware KG-RAG thus functions as a \emph{medical knowledge equalizer}, providing the largest benefit to models that need it most.
 Per-category cross-model breakdowns appear in Appendix Table~\ref{tab:crossmodel_categories}.
 

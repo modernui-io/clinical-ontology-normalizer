@@ -1,0 +1,3207 @@
+{
+  "model": "gemma3:27b (4-bit GGUF)",
+  "condition": "C1_llm_alone",
+  "n_predictions": 400,
+  "predictions": [
+    {
+      "question_id": "bench_a_conditional_084fc490",
+      "predicted_answer": "The provided evidence does not mention whether the patient is experiencing vomiting or requires treatment for it. Therefore, I cannot determine if the patient should receive treatment for vomiting.",
+      "correct": true,
+      "score": 1.0,
+      "category": "conditional",
+      "latency_ms": 8474.722963001113
+    },
+    {
+      "question_id": "bench_a_conditional_0e65a291",
+      "predicted_answer": "The provided clinical notes do not mention dizziness as a diagnosis or symptom for this patient.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional",
+      "latency_ms": 9141.210044996114
+    },
+    {
+      "question_id": "bench_a_conditional_178b9eb5",
+      "predicted_answer": "The provided evidence does not contain information about the patient's mental status or ammonia levels, which are typically used to assess for hepatic encephalopathy (HE). Therefore, it is not possible to determine if HE is an active concern based solely on the given information.",
+      "correct": true,
+      "score": 1.0,
+      "category": "conditional",
+      "latency_ms": 23173.78867699881
+    },
+    {
+      "question_id": "bench_a_conditional_309600b2",
+      "predicted_answer": "The provided evidence does not mention constipation or any related symptoms, diagnoses, or medications. Therefore, it is not possible to determine if the patient should receive treatment for constipation based on the given information.",
+      "correct": true,
+      "score": 1.0,
+      "category": "conditional",
+      "latency_ms": 10205.902588000754
+    },
+    {
+      "question_id": "bench_a_conditional_3eb03d40",
+      "predicted_answer": "The provided evidence does not contain information about the patient's weight or whether weight management is needed.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional",
+      "latency_ms": 12193.308214002172
+    },
+    {
+      "question_id": "bench_a_conditional_568cb9c0",
+      "predicted_answer": "Yes, the patient is on warfarin (Coumadin) at home, as listed in the medication reconciliation notes for stays 30527790 and 33232311.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional",
+      "latency_ms": 9770.737797000038
+    },
+    {
+      "question_id": "bench_a_conditional_787343d7",
+      "predicted_answer": "Yes, the patient has a diagnosis of postprocedural fever in admission 22187210.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional",
+      "latency_ms": 17328.020340995863
+    },
+    {
+      "question_id": "bench_a_conditional_79224dcd",
+      "predicted_answer": "The provided evidence does not mention stomach pain as a diagnosis or symptom for this patient.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional",
+      "latency_ms": 11546.199171993067
+    },
+    {
+      "question_id": "bench_a_conditional_7c798644",
+      "predicted_answer": "The provided notes do not mention headache as a diagnosis, symptom, or reason for admission. Therefore, it is not possible to determine if the patient needs management for headache based on this information.",
+      "correct": true,
+      "score": 1.0,
+      "category": "conditional",
+      "latency_ms": 11367.210005999368
+    },
+    {
+      "question_id": "bench_a_conditional_8a1a4b9e",
+      "predicted_answer": "The provided clinical notes do not mention the patient's temperature or any indication of fever. Therefore, it is impossible to determine if the patient needs management for fever based on this information.",
+      "correct": true,
+      "score": 1.0,
+      "category": "conditional",
+      "latency_ms": 12211.444422006025
+    },
+    {
+      "question_id": "bench_a_conditional_98cef13a",
+      "predicted_answer": "The provided clinical notes do not mention aspirin or any related concerns for this patient.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional",
+      "latency_ms": 9530.776379004237
+    },
+    {
+      "question_id": "bench_a_conditional_a761e242",
+      "predicted_answer": "The provided clinical notes do not mention the patient's temperature or any indication of fever. Therefore, it is impossible to determine if the patient should receive treatment for fever based on this information.",
+      "correct": true,
+      "score": 1.0,
+      "category": "conditional",
+      "latency_ms": 11753.990172001068
+    },
+    {
+      "question_id": "bench_a_conditional_aca13f49",
+      "predicted_answer": "The provided clinical notes do not mention vomiting or any related diagnoses. Therefore, it is not possible to determine if the patient needs management for vomiting based on this information.",
+      "correct": true,
+      "score": 1.0,
+      "category": "conditional",
+      "latency_ms": 11721.427297001355
+    },
+    {
+      "question_id": "bench_a_conditional_b0479c71",
+      "predicted_answer": "The provided evidence does not contain information about the patient's current temperature or clinical presentation, so it is impossible to determine if they should receive treatment for fever.",
+      "correct": true,
+      "score": 1.0,
+      "category": "conditional",
+      "latency_ms": 9417.623462002666
+    },
+    {
+      "question_id": "bench_a_conditional_b7b33db2",
+      "predicted_answer": "The provided clinical notes do not mention fever as a diagnosis or active concern for this patient.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional",
+      "latency_ms": 13830.44121399871
+    },
+    {
+      "question_id": "bench_a_conditional_b9464ee7",
+      "predicted_answer": "Yes, the patient has a diagnosis of Human immunodeficiency virus [HIV] disease (ICD-10: B20).",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional",
+      "latency_ms": 3974.0971689971047
+    },
+    {
+      "question_id": "bench_a_conditional_e9039cad",
+      "predicted_answer": "Yes, the patient has a diagnosis of postprocedural fever in admission 22187210.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional",
+      "latency_ms": 9118.328128999565
+    },
+    {
+      "question_id": "bench_a_conditional_f36d9cd4",
+      "predicted_answer": "Yes, the patient was prescribed medications via PO/NG route, including Aluminum-Magnesium Hydrox.-Simethicone, Lactulose, Senna, and Ranitidine, suggesting vomiting or gastrointestinal issues were a concern.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional",
+      "latency_ms": 22170.24242700427
+    },
+    {
+      "question_id": "bench_a_conditional_f726e827",
+      "predicted_answer": "Yes, the patient has diagnoses of portal vein thrombosis and thrombosis due to vascular prosthetic devices, implants and grafts.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional",
+      "latency_ms": 13093.937298006495
+    },
+    {
+      "question_id": "bench_a_conditional_f84ce693",
+      "predicted_answer": "The patient has a diagnosis of chronic hepatitis C without mention of hepatic coma (ICD-9: 07054). The note does not provide information about the stage or severity of the hepatitis C, nor does it mention current treatment status or contraindications. Therefore, based solely on the provided information, it is not possible to determine if the patient should receive treatment for HCV.",
+      "correct": true,
+      "score": 1.0,
+      "category": "conditional",
+      "latency_ms": 13394.399047996558
+    },
+    {
+      "question_id": "bench_a_family_04048280",
+      "predicted_answer": "The provided evidence is insufficient to determine if the patient should be treated for colon cancer. The notes only list the patient's home medications and do not contain any information about cancer screening, diagnosis, or risk factors.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history",
+      "latency_ms": 15112.605756003177
+    },
+    {
+      "question_id": "bench_a_family_080e16ca",
+      "predicted_answer": "The provided evidence is a list of the patient's home medications from three different hospital stays. This information does not include any diagnosis or clinical findings related to leukemia. Therefore, it is impossible to determine if the patient has leukemia based on the provided note.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history",
+      "latency_ms": 16309.29642499541
+    },
+    {
+      "question_id": "bench_a_family_0997e312",
+      "predicted_answer": "The provided evidence does not contain information about whether the patient has breast cancer.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history",
+      "latency_ms": 8058.420086999831
+    },
+    {
+      "question_id": "bench_a_family_1d1c4d1c",
+      "predicted_answer": "Yes, the patient is taking gemfibrozil, which is used to treat hyperlipidemia.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history",
+      "latency_ms": 6009.302918995672
+    },
+    {
+      "question_id": "bench_a_family_240897df",
+      "predicted_answer": "The provided evidence does not mention Lymphoma. Therefore, I cannot determine if the patient should be treated for it.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history",
+      "latency_ms": 8396.592920005787
+    },
+    {
+      "question_id": "bench_a_family_2a6d3070",
+      "predicted_answer": "No, dementia is not listed in the provided diagnosis lists for either admission.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history",
+      "latency_ms": 10693.75321300322
+    },
+    {
+      "question_id": "bench_a_family_52945d44",
+      "predicted_answer": "The provided evidence does not indicate the patient is currently being treated for or diagnosed with myocardial infarction.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history",
+      "latency_ms": 20875.63334299921
+    },
+    {
+      "question_id": "bench_a_family_560de630",
+      "predicted_answer": "Yes, the patient has a history of atrial fibrillation. This is listed in both the diagnosis list from admission 28661809 (diagnosis #19) and the diagnosis list from admission 20626031 (diagnosis #3).",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history",
+      "latency_ms": 38712.28064199386
+    },
+    {
+      "question_id": "bench_a_family_57033e90",
+      "predicted_answer": "Yes, the patient has a diagnosis of Epilepsy, unspecified, without mention of intractable epilepsy (ICD-9: 34590) during admission 24016413.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history",
+      "latency_ms": 11749.712630000431
+    },
+    {
+      "question_id": "bench_a_family_60efbaa6",
+      "predicted_answer": "The patient has a diagnosis of lumbago (ICD-9: 7242) during admission 28289260. Lumbago is another term for back pain. Therefore, the patient should be treated for back pain.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history",
+      "latency_ms": 16101.647925002908
+    },
+    {
+      "question_id": "bench_a_family_83019bb5",
+      "predicted_answer": "The patient has a family history of malignant neoplasm of the trachea, bronchus, and lung (ICD-9: V161). The note does not state the patient has lung cancer.",
+      "correct": true,
+      "score": 1.0,
+      "category": "family_history",
+      "latency_ms": 9703.837086999556
+    },
+    {
+      "question_id": "bench_a_family_83f2914e",
+      "predicted_answer": "No, diabetes is not listed in the provided diagnoses or medication lists.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history",
+      "latency_ms": 5021.006752998801
+    },
+    {
+      "question_id": "bench_a_family_92abe3c7",
+      "predicted_answer": "No, lung cancer is not listed in the patient's diagnoses or home medications.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history",
+      "latency_ms": 7236.050461004197
+    },
+    {
+      "question_id": "bench_a_family_a66f568f",
+      "predicted_answer": "Yes, the patient has a history of aortocoronary bypass graft.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history",
+      "latency_ms": 13225.61879800196
+    },
+    {
+      "question_id": "bench_a_family_ac587eb0",
+      "predicted_answer": "The provided evidence is a list of the patient's home medications from different hospital stays. It does not contain any information about the patient's current condition, physical examination findings, or signs/symptoms suggestive of cellulitis. Therefore, I cannot determine if the patient should be treated for cellulitis based on this information.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history",
+      "latency_ms": 12081.587505999778
+    },
+    {
+      "question_id": "bench_a_family_b357e0c4",
+      "predicted_answer": "The provided clinical notes do not mention hypothyroidism. Therefore, I cannot determine if the patient has hypothyroidism based on this information.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history",
+      "latency_ms": 7733.8232539987075
+    },
+    {
+      "question_id": "bench_a_family_b807c369",
+      "predicted_answer": "No, stroke is not listed in the patient's diagnosis lists from either admission.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history",
+      "latency_ms": 8768.480628998077
+    },
+    {
+      "question_id": "bench_a_family_bb61feaa",
+      "predicted_answer": "The provided evidence does not contain information about the patient's cardiac status or whether they have mitral regurgitation. Therefore, I cannot determine if the patient should be treated for this condition.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history",
+      "latency_ms": 9714.42692099663
+    },
+    {
+      "question_id": "bench_a_family_c12f9ed9",
+      "predicted_answer": "The provided evidence is insufficient to determine if the patient should be treated for cancer. The notes only list the patient's home medications and do not contain any information about cancer diagnosis, symptoms, or risk factors.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history",
+      "latency_ms": 9797.477505002462
+    },
+    {
+      "question_id": "bench_a_family_c406e4ba",
+      "predicted_answer": "Yes, the patient has a diagnosis of Hyperlipidemia, unspecified (ICD-10: E785) listed in both admission diagnosis lists.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history",
+      "latency_ms": 23552.7733859999
+    },
+    {
+      "question_id": "bench_a_family_c973d63a",
+      "predicted_answer": "The provided evidence does not contain information about the patient's cognitive status or diagnosis of dementia. Therefore, I cannot determine if the patient should be treated for dementia.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history",
+      "latency_ms": 9749.20738000219
+    },
+    {
+      "question_id": "bench_a_family_cc28a974",
+      "predicted_answer": "The provided evidence does not mention diabetes in the patient's medical history. The medication list includes levothyroxine, which is used for thyroid conditions, and venlafaxine and trazodone, which are antidepressants, but no medications specifically for diabetes.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history",
+      "latency_ms": 8920.421421003994
+    },
+    {
+      "question_id": "bench_a_family_d18c55c9",
+      "predicted_answer": "Yes, the patient has a diagnosis of Migraine, unspecified, not intractable, without status migrainosus (ICD-10: G43909) listed in the diagnosis list for admission 27988844.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history",
+      "latency_ms": 8681.084379000822
+    },
+    {
+      "question_id": "bench_a_family_d67e82f4",
+      "predicted_answer": "Yes, the patient has diagnoses of alcohol abuse with intoxication delirium (F10121) and alcohol abuse, uncomplicated (F1010).",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history",
+      "latency_ms": 14669.130381000286
+    },
+    {
+      "question_id": "bench_a_family_e5d23003",
+      "predicted_answer": "The provided medication lists do not contain information about a breast cancer diagnosis.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history",
+      "latency_ms": 6559.295419996488
+    },
+    {
+      "question_id": "bench_a_family_ebad349d",
+      "predicted_answer": "The provided evidence does not indicate that the patient has colorectal cancer. The diagnoses listed include multiple malignant neoplasms, including pancreatic cancer and secondary neoplasms in various locations, but not colorectal cancer.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history",
+      "latency_ms": 26778.16259500105
+    },
+    {
+      "question_id": "bench_a_family_f02d2f93",
+      "predicted_answer": "No, the provided clinical notes do not mention breast cancer.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history",
+      "latency_ms": 7118.485836996115
+    },
+    {
+      "question_id": "bench_a_family_fa01d58d",
+      "predicted_answer": "Yes, the patient has diabetes mellitus. Both the home medication list (metformin) and the diagnosis lists (ICD-9: 25000, ICD-10: E119) indicate diabetes mellitus.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history",
+      "latency_ms": 13343.379713995091
+    },
+    {
+      "question_id": "bench_a_family_fc035c9e",
+      "predicted_answer": "The provided evidence lists home medications including diltiazem HCl, hydrochlorothiazide, and isosorbide mononitrate. These medications are commonly used to treat hypertension.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history",
+      "latency_ms": 13690.94225599838
+    },
+    {
+      "question_id": "bench_a_family_fded0cbd",
+      "predicted_answer": "The provided evidence does not mention allergies in the patient's medical history.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history",
+      "latency_ms": 11040.951921997475
+    },
+    {
+      "question_id": "bench_a_negation_01a73bf1",
+      "predicted_answer": "The provided clinical notes contain medication lists but do not include any information about the patient's diagnosis or symptoms related to bowel obstruction. Therefore, I cannot determine if the patient suffers from bowel obstruction based on this information.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 7884.082504002436
+    },
+    {
+      "question_id": "bench_a_negation_0307e908",
+      "predicted_answer": "The provided evidence does not contain information about the patient's status regarding pulmonary embolism.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 4526.061627002491
+    },
+    {
+      "question_id": "bench_a_negation_05b38a01",
+      "predicted_answer": "Yes, the patient is taking ondansetron HCl according to the home medication list.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation",
+      "latency_ms": 25280.06817899586
+    },
+    {
+      "question_id": "bench_a_negation_0c96eb95",
+      "predicted_answer": "No, edema has not been diagnosed in this patient based on the provided information. The diagnosis list includes diverticulitis, constipation, nonspecific abdominal findings, and essential hypertension, but not edema.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 9151.803253997059
+    },
+    {
+      "question_id": "bench_a_negation_0de6708e",
+      "predicted_answer": "No, edema has not been diagnosed in this patient based on the provided evidence. The diagnosis list includes dehydration (ICD-10: E860), but not edema.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 11004.811671002244
+    },
+    {
+      "question_id": "bench_a_negation_0e18ae69",
+      "predicted_answer": "No, there is no evidence of fracture in the provided notes.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 8588.034004002111
+    },
+    {
+      "question_id": "bench_a_negation_101fe4b1",
+      "predicted_answer": "No, the provided evidence consists of medication reconciliation notes and does not mention abdominal pain.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 6549.923711994779
+    },
+    {
+      "question_id": "bench_a_negation_106dd7e2",
+      "predicted_answer": "The provided clinical notes do not mention whether the patient suffers from acute distress.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 17462.091966001026
+    },
+    {
+      "question_id": "bench_a_negation_130970cd",
+      "predicted_answer": "The provided evidence does not mention hypertension. Therefore, it cannot be determined if hypertension should be included on the patient's active problem list.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 8983.457879003254
+    },
+    {
+      "question_id": "bench_a_negation_13d53907",
+      "predicted_answer": "The provided medication lists do not include leukocytes. Therefore, I cannot determine if the patient has leukocytes based on this information.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 7517.523627997434
+    },
+    {
+      "question_id": "bench_a_negation_1403b8e4",
+      "predicted_answer": "The provided evidence consists of medication reconciliation notes from three different hospital stays for patient MIMIC-10000935. None of the notes mention pulmonary embolus or provide information relevant to diagnosing or treating it. Therefore, I cannot determine if pulmonary embolus should be included on this patient's active problem list based on the given information.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 14987.202590004017
+    },
+    {
+      "question_id": "bench_a_negation_14a95ee6",
+      "predicted_answer": "The provided evidence does not mention pulmonary edema.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 6570.502670001588
+    },
+    {
+      "question_id": "bench_a_negation_16195e06",
+      "predicted_answer": "The provided evidence does not mention the patient's status regarding intracranial hemorrhage.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 9950.093922001543
+    },
+    {
+      "question_id": "bench_a_negation_179dfa67",
+      "predicted_answer": "The provided evidence does not mention hematemesis. The patient has nausea with vomiting.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 6966.684045000875
+    },
+    {
+      "question_id": "bench_a_negation_1e6ae1bc",
+      "predicted_answer": "The provided clinical notes do not mention the patient's status regarding edema.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 7802.110878001258
+    },
+    {
+      "question_id": "bench_a_negation_20397dbf",
+      "predicted_answer": "The provided clinical notes do not mention respiratory distress.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 24246.21026100067
+    },
+    {
+      "question_id": "bench_a_negation_21c8c64d",
+      "predicted_answer": "The provided evidence does not mention intracranial hemorrhage. The diagnoses list includes intracranial abscess, compression of brain, and cerebral edema, but not hemorrhage.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 8577.155170998594
+    },
+    {
+      "question_id": "bench_a_negation_2267edf5",
+      "predicted_answer": "The provided evidence consists of medication reconciliation notes from different hospital stays. There is no mention of palpitations in these notes.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 6478.0945439997595
+    },
+    {
+      "question_id": "bench_a_negation_235e2a87",
+      "predicted_answer": "The patient has diagnoses of systolic heart failure (ICD-9: 42820) and congestive heart failure (ICD-9: 4280). Heart failure is a common cause of edema.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation",
+      "latency_ms": 16623.047007000423
+    },
+    {
+      "question_id": "bench_a_negation_23c212a7",
+      "predicted_answer": "The provided evidence consists of medication reconciliation lists from three different hospital stays for patient MIMIC-10000980. None of the lists mention rales or any respiratory symptoms. Therefore, based solely on the provided information, it is not possible to determine if rales should be included on the patient's active problem list.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 15822.927007000544
+    },
+    {
+      "question_id": "bench_a_negation_23cc9ce7",
+      "predicted_answer": "The provided evidence consists of medication reconciliation notes from different hospital stays for patient MIMIC-10003637. These notes list the patient's home medications but do not include any diagnoses, including chest pain. Therefore, based on the provided evidence, it is not possible to determine if chest pain has been diagnosed in this patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 11714.607339003123
+    },
+    {
+      "question_id": "bench_a_negation_249c840f",
+      "predicted_answer": "The provided evidence does not mention acute distress. Therefore, it cannot be determined if acute distress should be included on this patient's active problem list.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 11295.230629999423
+    },
+    {
+      "question_id": "bench_a_negation_2911192f",
+      "predicted_answer": "No, paroxysmal nocturnal dyspnea has not been diagnosed in this patient. The diagnoses listed do not include paroxysmal nocturnal dyspnea.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 11094.24738099915
+    },
+    {
+      "question_id": "bench_a_negation_293d4ffe",
+      "predicted_answer": "There is no evidence of acute distress in the provided notes. The notes include medication reconciliation and a diagnosis list, which do not mention acute distress.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 7204.129378005746
+    },
+    {
+      "question_id": "bench_a_negation_2e78b44f",
+      "predicted_answer": "The provided evidence does not mention whether the patient has wheezes.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 9053.888879992883
+    },
+    {
+      "question_id": "bench_a_negation_3276c129",
+      "predicted_answer": "The provided evidence does not mention a diagnosis of peripheral edema for this patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 4464.815127001202
+    },
+    {
+      "question_id": "bench_a_negation_33b33f87",
+      "predicted_answer": "The provided evidence does not mention the patient's status regarding obstructive sleep apnea.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 7722.2282939983415
+    },
+    {
+      "question_id": "bench_a_negation_36dc36ff",
+      "predicted_answer": "The provided evidence is a list of the patient's home medications from different hospital stays. It does not contain any information about the patient's medical conditions, including pneumonia status.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 4898.374960997899
+    },
+    {
+      "question_id": "bench_a_negation_3904ad35",
+      "predicted_answer": "The provided clinical notes contain medication reconciliation lists but do not mention any clinical findings or diagnoses, including Jugular Venous Distension (JVD). Therefore, it is impossible to determine if the patient suffers from JVD based on this information.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 11101.747879001778
+    },
+    {
+      "question_id": "bench_a_negation_3fad7aa3",
+      "predicted_answer": "The provided clinical notes detail the patient's medications but do not mention any physical examination findings like wheezes. Therefore, it is impossible to determine if the patient suffers from wheezes based on this information.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 12511.891672002093
+    },
+    {
+      "question_id": "bench_a_negation_40db7f62",
+      "predicted_answer": "The provided text does not contain information about the patient's gender or sex. Therefore, their status regarding \"he\" cannot be determined.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 23166.13142699498
+    },
+    {
+      "question_id": "bench_a_negation_4138bbc9",
+      "predicted_answer": "No.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 22730.352759994275
+    },
+    {
+      "question_id": "bench_a_negation_42c8d97e",
+      "predicted_answer": "No, wheezes have not been diagnosed in this patient based on the provided notes. The notes contain diagnosis lists and medication reconciliation, but neither mentions wheezes.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 15261.411089995818
+    },
+    {
+      "question_id": "bench_a_negation_43343ed2",
+      "predicted_answer": "The provided evidence does not contain information about the patient's distress status.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 22947.47300999734
+    },
+    {
+      "question_id": "bench_a_negation_4861b394",
+      "predicted_answer": "The provided evidence does not mention the patient's status regarding reflux.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 8006.301879002422
+    },
+    {
+      "question_id": "bench_a_negation_4ac02e8d",
+      "predicted_answer": "The provided evidence does not state whether the patient has chest pain. The notes are medication reconciliations.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 10063.959129001887
+    },
+    {
+      "question_id": "bench_a_negation_4b4c1918",
+      "predicted_answer": "Yes, the patient has been diagnosed with coronary atherosclerosis of native coronary artery (ICD-9: 41401) in admission 20626031 and atherosclerotic heart disease of native coronary artery without angina pectoris (ICD-10: I2510) in admission 28661809.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation",
+      "latency_ms": 39593.173892004415
+    },
+    {
+      "question_id": "bench_a_negation_4e2a8187",
+      "predicted_answer": "The provided evidence is medication reconciliation notes. These notes do not contain information about the patient's diagnoses or medical conditions, including aortic stenosis. Therefore, I cannot determine if aortic stenosis should be included on the patient's active problem list.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 16363.425674004247
+    },
+    {
+      "question_id": "bench_a_negation_4e7987f4",
+      "predicted_answer": "The provided evidence does not mention edema. Therefore, it cannot be determined if edema should be included on the patient's active problem list.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 23754.63242799742
+    },
+    {
+      "question_id": "bench_a_negation_513de8bf",
+      "predicted_answer": "Yes, the diagnosis list includes \"Suicidal ideation (ICD-9: V6284)\".",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation",
+      "latency_ms": 8394.038754006033
+    },
+    {
+      "question_id": "bench_a_negation_52386b31",
+      "predicted_answer": "There is no mention of crackles in the provided medication reconciliation notes.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 11725.883755003451
+    },
+    {
+      "question_id": "bench_a_negation_57112dd0",
+      "predicted_answer": "The provided evidence consists of medication reconciliation notes from three different hospital stays for the patient MIMIC-10002013. These notes list the patient's home medications but do not contain any diagnostic information, including whether pleural effusions have been diagnosed. Therefore, I cannot answer the question.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 17368.37367500266
+    },
+    {
+      "question_id": "bench_a_negation_571402c6",
+      "predicted_answer": "The provided evidence consists of medication reconciliation notes from different hospital stays for patient MIMIC-10001338. These notes list the patient's home medications but do not include any diagnoses, including chest pain. Therefore, I cannot determine if chest pain has been diagnosed in this patient based on the given information.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 12333.135756001866
+    },
+    {
+      "question_id": "bench_a_negation_5e397dc9",
+      "predicted_answer": "The provided evidence is a list of the patient's home medications during different hospital stays. It does not contain any information about diagnoses, including acute distress.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 5775.232544001483
+    },
+    {
+      "question_id": "bench_a_negation_61a7e4c2",
+      "predicted_answer": "There is no evidence of wheezes in the provided notes.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 22302.50050900213
+    },
+    {
+      "question_id": "bench_a_negation_623b94ec",
+      "predicted_answer": "The provided evidence consists of medication reconciliation notes from different hospital stays for patient MIMIC-10000935. These notes list the patient's home medications but do not contain any diagnostic information, including whether pleural effusion has been diagnosed. Therefore, I cannot answer the question.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 12708.136255998397
+    },
+    {
+      "question_id": "bench_a_negation_645e608e",
+      "predicted_answer": "The provided evidence is a list of the patient's home medications during different hospital stays. It does not contain any information about the patient's current condition, including whether they are experiencing acute distress.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 8207.212711000466
+    },
+    {
+      "question_id": "bench_a_negation_682baac8",
+      "predicted_answer": "The provided evidence does not mention the patient's status regarding bowel obstruction.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 12958.51188099914
+    },
+    {
+      "question_id": "bench_a_negation_68d98585",
+      "predicted_answer": "The provided evidence does not mention whether the patient has swelling.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 7177.736628997081
+    },
+    {
+      "question_id": "bench_a_negation_696df2d6",
+      "predicted_answer": "The provided evidence does not contain information about the patient's status regarding TEE (Transesophageal Echocardiogram).",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 7471.042586999829
+    },
+    {
+      "question_id": "bench_a_negation_6ad5d7aa",
+      "predicted_answer": "The provided evidence does not mention edema.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 13625.093882001238
+    },
+    {
+      "question_id": "bench_a_negation_6c26bc17",
+      "predicted_answer": "No, there is no evidence of small bowel obstruction in the provided notes.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 23755.263594001008
+    },
+    {
+      "question_id": "bench_a_negation_6e31efd4",
+      "predicted_answer": "The provided evidence does not mention wheezes. Therefore, it is not possible to determine if wheezes should be included on this patient's active problem list.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 6224.614168997505
+    },
+    {
+      "question_id": "bench_a_negation_6f8ef34c",
+      "predicted_answer": "There is no evidence of weakness mentioned in the provided clinical notes. The notes include medication lists and a diagnosis list, but neither mentions weakness.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 8586.892544997681
+    },
+    {
+      "question_id": "bench_a_negation_7c1a4038",
+      "predicted_answer": "The provided medication lists include trazodone, which is often used to treat depression, but the notes do not explicitly state a diagnosis of depression.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 12562.846838998666
+    },
+    {
+      "question_id": "bench_a_negation_7d948b18",
+      "predicted_answer": "The provided evidence consists of medication reconciliation lists from different hospital stays for patient MIMIC-10000032. It does not contain information about the patient's current symptoms, diagnoses, or active problems, including acute distress. Therefore, I cannot determine if acute distress should be included on the patient's active problem list.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 13392.151506006485
+    },
+    {
+      "question_id": "bench_a_negation_7ee3c757",
+      "predicted_answer": "There is no mention of pitting edema in the provided medication reconciliation notes.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 7897.512878997077
+    },
+    {
+      "question_id": "bench_a_negation_820b44df",
+      "predicted_answer": "The provided evidence does not mention whether the patient has edema.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 4023.4153769997647
+    },
+    {
+      "question_id": "bench_a_negation_8404b54e",
+      "predicted_answer": "The provided evidence is a list of the patient's home medications during different hospital stays. It does not contain any information about diagnoses, including lower extremity edema.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 7321.423171000788
+    },
+    {
+      "question_id": "bench_a_negation_84a2e98b",
+      "predicted_answer": "The provided evidence does not contain information about the patient's edema status.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 6524.531836003007
+    },
+    {
+      "question_id": "bench_a_negation_85011728",
+      "predicted_answer": "The provided evidence consists of medication reconciliation notes from different hospital stays. These notes list the patient's home medications but do not contain information about the patient's current condition or signs of acute distress. Therefore, I cannot determine if there is evidence of acute distress in this patient's chart based on the provided information.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 11317.504504004319
+    },
+    {
+      "question_id": "bench_a_negation_89a2a540",
+      "predicted_answer": "The patient is taking warfarin, which is an anticoagulant used to treat and prevent venous thrombosis. Therefore, the patient likely suffers from venous thrombosis.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation",
+      "latency_ms": 10990.83300500206
+    },
+    {
+      "question_id": "bench_a_negation_8a621be9",
+      "predicted_answer": "No, there is no mention of pleural effusions in the provided clinical notes.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 9361.74537899933
+    },
+    {
+      "question_id": "bench_a_negation_8c3e3535",
+      "predicted_answer": "The provided clinical notes do not mention peripheral edema.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 9011.305920997984
+    },
+    {
+      "question_id": "bench_a_negation_932876c3",
+      "predicted_answer": "The provided evidence does not mention melena.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 8378.580420998333
+    },
+    {
+      "question_id": "bench_a_negation_9473ed98",
+      "predicted_answer": "The provided evidence does not contain information about the patient's wheezing status.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 6938.870919999317
+    },
+    {
+      "question_id": "bench_a_negation_956540b2",
+      "predicted_answer": "The provided evidence is a list of medications. There is no information about a diagnosis of carcinoma.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 7467.551919995458
+    },
+    {
+      "question_id": "bench_a_negation_971c89dd",
+      "predicted_answer": "The provided evidence is a list of the patient's home medications from different hospital stays. This information does not indicate whether the patient has pulmonary edema.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 8092.682670998329
+    },
+    {
+      "question_id": "bench_a_negation_97d5979a",
+      "predicted_answer": "The provided evidence does not contain information about the patient's active problem list or any history of deep venous thrombosis. Therefore, I cannot determine if deep venous thrombosis should be included.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 10689.495005004574
+    },
+    {
+      "question_id": "bench_a_negation_9a3f583a",
+      "predicted_answer": "The provided evidence is a list of the patient's home medications from different hospital stays. It does not contain any information about the patient's symptoms, including dizziness.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 5427.558001996658
+    },
+    {
+      "question_id": "bench_a_negation_a5af105f",
+      "predicted_answer": "Yes, the patient has insulin. The medication reconciliation lists Humalog U-100 Insulin and insulin glargine (Lantus) as home medications, and the diagnosis list includes \"Long term (current) use of insulin\".",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation",
+      "latency_ms": 12175.86863100587
+    },
+    {
+      "question_id": "bench_a_negation_a94bed8f",
+      "predicted_answer": "The provided evidence consists of medication reconciliation notes from three different hospital stays for the patient MIMIC-10004322. Hematochezia is not mentioned in any of the notes. Therefore, I cannot determine if hematochezia should be included on the patient's active problem list based on the given information.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 12285.219796998717
+    },
+    {
+      "question_id": "bench_a_negation_b0779d1a",
+      "predicted_answer": "The provided clinical notes do not mention LOC (Level of Consciousness).",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 10081.256213001325
+    },
+    {
+      "question_id": "bench_a_negation_b3cdd3b2",
+      "predicted_answer": "The provided clinical notes do not contain information about the patient's status regarding PND (Pulmonary Nocardial Disease).",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 7694.23537900002
+    },
+    {
+      "question_id": "bench_a_negation_badb881d",
+      "predicted_answer": "There is no evidence of acute distress in the provided notes. The notes include medication reconciliation and a diagnosis list, neither of which mention acute distress.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 14702.608339001017
+    },
+    {
+      "question_id": "bench_a_negation_c2fa4a95",
+      "predicted_answer": "The provided evidence is a list of the patient's home medications from three different hospital stays. This information does not include any clinical findings such as wheezes.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 13255.188798000745
+    },
+    {
+      "question_id": "bench_a_negation_c8173932",
+      "predicted_answer": "The provided clinical notes do not mention pleural effusion.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 21083.860302001995
+    },
+    {
+      "question_id": "bench_a_negation_c8226f8e",
+      "predicted_answer": "The provided evidence does not contain information about the patient's status regarding rales.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 5972.923417997663
+    },
+    {
+      "question_id": "bench_a_negation_c9423896",
+      "predicted_answer": "The provided evidence does not mention ascites. Therefore, it cannot be determined if ascites should be included on the patient's active problem list.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 11747.424005996436
+    },
+    {
+      "question_id": "bench_a_negation_cad47ef1",
+      "predicted_answer": "The provided evidence does not mention crackles. Therefore, it's impossible to determine if they should be included on the patient's active problem list.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 13010.02804699965
+    },
+    {
+      "question_id": "bench_a_negation_cbf1cffe",
+      "predicted_answer": "The provided clinical notes do not mention any diagnosis or history of fracture for this patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 7567.500378994737
+    },
+    {
+      "question_id": "bench_a_negation_d0d73973",
+      "predicted_answer": "No, there is no mention of edema in the provided clinical notes.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 9575.195921999693
+    },
+    {
+      "question_id": "bench_a_negation_d10e395d",
+      "predicted_answer": "The provided evidence consists of medication reconciliation notes from different hospital stays for patient MIMIC-10002221. These notes list the patient's home medications but do not contain any diagnostic information, including whether pyelonephritis has been diagnosed. Therefore, I cannot answer the question.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 13975.779797998257
+    },
+    {
+      "question_id": "bench_a_negation_d249558e",
+      "predicted_answer": "The provided clinical notes do not mention the patient's status regarding edema.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 13015.574589997414
+    },
+    {
+      "question_id": "bench_a_negation_d4219eba",
+      "predicted_answer": "The provided evidence is medication reconciliation notes. These notes do not contain diagnostic information, including whether the patient has rales.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 10417.983170998923
+    },
+    {
+      "question_id": "bench_a_negation_d77aa1a3",
+      "predicted_answer": "No, there is no evidence of osteomyelitis in the provided medication reconciliation notes.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 6956.882711005164
+    },
+    {
+      "question_id": "bench_a_negation_d847293f",
+      "predicted_answer": "No, the provided evidence consists of medication reconciliation lists from different hospital stays and does not contain information about the patient's symptoms, physical examination findings, or imaging results that would indicate a small bowel obstruction.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 10666.494420998788
+    },
+    {
+      "question_id": "bench_a_negation_d9248c83",
+      "predicted_answer": "The provided evidence is medication reconciliation notes, not active problem lists or clinical assessments for edema. Therefore, I cannot determine if edema should be included on the patient's active problem list based on this information.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 14175.260381001863
+    },
+    {
+      "question_id": "bench_a_negation_d94f12ab",
+      "predicted_answer": "No, there is no evidence of DVT in the provided notes.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 9851.542838005116
+    },
+    {
+      "question_id": "bench_a_negation_dd042427",
+      "predicted_answer": "The provided clinical notes do not mention osteomyelitis.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 6453.876878003939
+    },
+    {
+      "question_id": "bench_a_negation_dd685a2b",
+      "predicted_answer": "The provided evidence does not mention crackles as a diagnosis for this patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 5945.191293998505
+    },
+    {
+      "question_id": "bench_a_negation_e092d16b",
+      "predicted_answer": "The provided evidence consists of medication reconciliation notes from different hospital stays. These notes do not contain information about the patient's acute distress status.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 9130.682546005119
+    },
+    {
+      "question_id": "bench_a_negation_e0d14e20",
+      "predicted_answer": "The provided notes do not mention hematochezia. The patient has diagnoses related to the gastrointestinal tract, including gastritis, gastroduodenitis, duodenitis, esophagitis, diverticulosis, and unspecified GI hemorrhage, but hematochezia (bright red blood per rectum) is not listed.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 13232.622089002689
+    },
+    {
+      "question_id": "bench_a_negation_e47c8755",
+      "predicted_answer": "No, the provided medication lists do not include canagliflozin.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 9164.57142100262
+    },
+    {
+      "question_id": "bench_a_negation_e78da7e6",
+      "predicted_answer": "No, there is no mention of edema in the provided clinical notes.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 6505.224086999078
+    },
+    {
+      "question_id": "bench_a_negation_e8f8698f",
+      "predicted_answer": "The provided clinical notes do not contain information about the patient's level of distress.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 33644.637058001535
+    },
+    {
+      "question_id": "bench_a_negation_f407afe0",
+      "predicted_answer": "The provided clinical notes do not mention the term \"echo\" or any related conditions like echocardiogram results. Therefore, I cannot determine if the patient suffers from echo based on this information.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 37479.76097499486
+    },
+    {
+      "question_id": "bench_a_negation_f4e295fe",
+      "predicted_answer": "The provided evidence is a list of the patient's home medications during different hospital stays. It does not contain any information about diagnoses, including distress.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 7567.833462002454
+    },
+    {
+      "question_id": "bench_a_negation_f500d64e",
+      "predicted_answer": "The provided evidence does not mention whether the patient has crackles.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 11095.08850400016
+    },
+    {
+      "question_id": "bench_a_negation_f5180c2d",
+      "predicted_answer": "The provided clinical notes do not mention swelling.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 8812.690504004422
+    },
+    {
+      "question_id": "bench_a_negation_f6537c21",
+      "predicted_answer": "The provided evidence includes medication lists from three different hospital stays for patient MIMIC-10000032. The patient is taking furosemide and spironolactone, which are diuretics often used to treat edema. However, the notes do not explicitly state the patient has edema or that it should be on the active problem list.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 14611.94284100202
+    },
+    {
+      "question_id": "bench_a_negation_f6b96944",
+      "predicted_answer": "The provided evidence does not mention wheezes. Therefore, I cannot determine if wheezes should be included on the patient's active problem list.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 9458.152838000387
+    },
+    {
+      "question_id": "bench_a_negation_f7e82d5c",
+      "predicted_answer": "The provided clinical notes detail the patient's home medications during different hospital stays but do not mention any symptoms, including abdominal pain. Therefore, I cannot determine if the patient suffers from abdominal pain based on this information.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 8830.145462001383
+    },
+    {
+      "question_id": "bench_a_negation_f913fb0a",
+      "predicted_answer": "The provided evidence does not contain information about the patient's status regarding CT.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 8036.506795004243
+    },
+    {
+      "question_id": "bench_a_negation_f98d6227",
+      "predicted_answer": "The provided evidence is a list of the patient's home medications from three different hospital stays. This information does not indicate whether the patient has pulmonary edema.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 13259.412839004654
+    },
+    {
+      "question_id": "bench_a_negation_fb05d352",
+      "predicted_answer": "The provided clinical notes do not contain information about the patient's symptoms, including palpitations. Therefore, it is impossible to determine if the patient suffers from palpitations based on this evidence.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 11618.095755002287
+    },
+    {
+      "question_id": "bench_a_negation_fb21a2c7",
+      "predicted_answer": "The provided evidence does not mention venous thrombosis.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 9227.006129003712
+    },
+    {
+      "question_id": "bench_a_negation_fd91174a",
+      "predicted_answer": "The provided evidence does not mention acute distress.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 9477.28971199831
+    },
+    {
+      "question_id": "bench_a_negation_fda15327",
+      "predicted_answer": "Yes, the patient has multiple diagnoses related to fractures during admission 29646384, including cervical, thoracic, and sternal fractures. These diagnoses indicate the presence of fractures.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation",
+      "latency_ms": 16389.445091001107
+    },
+    {
+      "question_id": "bench_a_negation_fef1ecbe",
+      "predicted_answer": "The provided clinical notes do not contain information about the patient's ankle edema status.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation",
+      "latency_ms": 4408.1179599961615
+    },
+    {
+      "question_id": "bench_a_uncertainty_06127456",
+      "predicted_answer": "The provided evidence consists of medication reconciliation notes from different hospital stays for patient MIMIC-10000935. These notes list the patient's home medications but do not contain any clinical information about the patient's symptoms, signs, or diagnoses, such as shortness of breath. Therefore, shortness of breath is not confirmed in this patient based on the provided evidence.",
+      "correct": true,
+      "score": 1.0,
+      "category": "uncertainty",
+      "latency_ms": 9183.295003997046
+    },
+    {
+      "question_id": "bench_a_uncertainty_123f4464",
+      "predicted_answer": "The provided evidence does not explicitly state a diagnosis of dementia. However, the patient is taking donepezil (Aricept), which is commonly prescribed for Alzheimer's disease, a type of dementia.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 10982.681629997387
+    },
+    {
+      "question_id": "bench_a_uncertainty_1c0c6ece",
+      "predicted_answer": "The provided evidence does not contain information about the diagnostic certainty for PICC.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 11930.139089003205
+    },
+    {
+      "question_id": "bench_a_uncertainty_1d230654",
+      "predicted_answer": "Yes, dehydration (ICD-10: E860) is listed as a diagnosis for this patient in both admission diagnosis lists provided.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 25962.33638800186
+    },
+    {
+      "question_id": "bench_a_uncertainty_1ffb8dc8",
+      "predicted_answer": "The provided evidence does not mention acetaminophen. Therefore, the diagnostic certainty for acetaminophen cannot be determined.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 5930.900044004375
+    },
+    {
+      "question_id": "bench_a_uncertainty_20e90dbf",
+      "predicted_answer": "The provided evidence does not definitively state whether the patient has been diagnosed with congestive heart failure. The medication lists include drugs like diltiazem, lisinopril, isosorbide mononitrate, and torsemide, which are commonly used to treat heart failure, but medication use alone does not confirm a diagnosis.",
+      "correct": true,
+      "score": 1.0,
+      "category": "uncertainty",
+      "latency_ms": 14850.123299002007
+    },
+    {
+      "question_id": "bench_a_uncertainty_23f60748",
+      "predicted_answer": "No, edema has not been definitively diagnosed in this patient based on the provided notes. While the patient has diagnoses related to heart failure (which can cause edema) and takes torsemide (a diuretic often used to treat edema), edema itself is not listed as a specific diagnosis.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 14723.813549004262
+    },
+    {
+      "question_id": "bench_a_uncertainty_2705ec9f",
+      "predicted_answer": "The provided evidence includes medication lists from different hospital stays. The patient is taking bupropion HCl and sertraline, which are commonly used to treat depression. However, the notes do not explicitly state a diagnosis of depression.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 11852.502171001106
+    },
+    {
+      "question_id": "bench_a_uncertainty_2bcdd5ac",
+      "predicted_answer": "The provided evidence does not contain any information about a diagnosis of ileus for this patient.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 6895.762377993378
+    },
+    {
+      "question_id": "bench_a_uncertainty_2f1a4469",
+      "predicted_answer": "The provided evidence does not confirm urinary frequency in this patient.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 13190.175256997463
+    },
+    {
+      "question_id": "bench_a_uncertainty_34cca5f5",
+      "predicted_answer": "The provided evidence consists of medication reconciliation notes from different hospital stays for patient MIMIC-10003502. These notes list the patient's home medications but do not include diagnoses. Therefore, it is impossible to determine if syncope is an established diagnosis for this patient based on the given information.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 13668.74267199455
+    },
+    {
+      "question_id": "bench_a_uncertainty_3d8cd3fc",
+      "predicted_answer": "Yes, the patient has a diagnosis of Age-related osteoporosis without current pathological fracture (ICD-10: M810) listed in the current admission's diagnosis list.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 7472.252712002955
+    },
+    {
+      "question_id": "bench_a_uncertainty_426541c7",
+      "predicted_answer": "The provided evidence does not mention \"Volume overload\" as a diagnosis or finding. Therefore, the diagnostic certainty cannot be determined from the given information.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 7905.052877998969
+    },
+    {
+      "question_id": "bench_a_uncertainty_42910b3f",
+      "predicted_answer": "The provided evidence does not mention any diagnosis of dementia for this patient.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 7543.274796000333
+    },
+    {
+      "question_id": "bench_a_uncertainty_45a842fd",
+      "predicted_answer": "The provided evidence consists of medication reconciliation notes from three different hospital stays for the patient MIMIC-10002013. These notes list the patient's home medications but do not contain any information about the patient's symptoms, diagnoses, or clinical findings, such as chest pain. Therefore, it is impossible to determine if chest pain is confirmed in this patient based on the provided evidence.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 18255.764007000835
+    },
+    {
+      "question_id": "bench_a_uncertainty_4a24e140",
+      "predicted_answer": "No, bipolar disorder is not listed in the patient's diagnosis list. The diagnoses provided include anxiety, depression, PTSD, and eating disorder, among others.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 5243.958835999365
+    },
+    {
+      "question_id": "bench_a_uncertainty_4d840683",
+      "predicted_answer": "The provided evidence does not contain information about the patient's alcohol use or diagnosis. Therefore, the diagnostic certainty for alcohol cannot be determined from this note.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 7130.560420002439
+    },
+    {
+      "question_id": "bench_a_uncertainty_50872b09",
+      "predicted_answer": "The provided clinical notes contain medication reconciliation lists for the patient but do not include any diagnostic information about Vascular dementia. Therefore, the diagnostic certainty for Vascular dementia cannot be determined from this evidence.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 11303.962796999258
+    },
+    {
+      "question_id": "bench_a_uncertainty_66ce4150",
+      "predicted_answer": "The provided evidence consists of medication reconciliation notes from three different hospital stays for patient MIMIC-10002013. These notes list the patient's home medications but do not contain any diagnostic information, including whether osteomyelitis has been diagnosed. Therefore, I cannot determine if osteomyelitis is an established diagnosis for this patient based on the given information.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 18956.001633996493
+    },
+    {
+      "question_id": "bench_a_uncertainty_6a3e32c7",
+      "predicted_answer": "The provided evidence does not contain information about the diagnostic certainty for cardiorenal syndrome.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 10720.786170997599
+    },
+    {
+      "question_id": "bench_a_uncertainty_6ac1b034",
+      "predicted_answer": "The provided evidence does not mention appendicitis. Therefore, the diagnostic certainty for appendicitis cannot be determined from the given information.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 10011.702421004884
+    },
+    {
+      "question_id": "bench_a_uncertainty_7c8a132d",
+      "predicted_answer": "Yes, furosemide is listed as a home medication in all three provided medication reconciliation notes for this patient. Furosemide is also known as Lasix.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 13693.155631000991
+    },
+    {
+      "question_id": "bench_a_uncertainty_7f556b28",
+      "predicted_answer": "Yes, the patient is on insulin NPH & regular human [Humulin 70/30] and uses blood sugar diagnostic tools (lancets, blood sugar diagnostic, OneTouch Ultra Test, OneTouch UltraSoft Lancets, BD Insulin Pen Needle UF Short), indicating a diagnosis of diabetes mellitus.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 8690.942878994974
+    },
+    {
+      "question_id": "bench_a_uncertainty_8ecc1d7c",
+      "predicted_answer": "The provided evidence consists of medication reconciliation notes from different hospital stays for patient MIMIC-10004322. These notes list the patient's home medications but do not contain any diagnostic information, including whether the patient has been diagnosed with foley. Therefore, I cannot determine if the patient has been definitively diagnosed with foley based on this information.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 10227.301421000448
+    },
+    {
+      "question_id": "bench_a_uncertainty_94a62330",
+      "predicted_answer": "The provided evidence does not mention any diagnoses for the patient, including weight-related diagnoses.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 7807.615544996224
+    },
+    {
+      "question_id": "bench_a_uncertainty_a00a0522",
+      "predicted_answer": "The provided notes do not contain a definitive diagnosis of constipation for this patient. However, the patient was taking docusate sodium, polyethylene glycol 3350, and sennosides during admission 29399017 and polyethylene glycol 3350 and sennosides during admission 20237862, which are medications commonly used to treat constipation.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 8727.148505000514
+    },
+    {
+      "question_id": "bench_a_uncertainty_ad024aba",
+      "predicted_answer": "The provided evidence consists of medication reconciliation notes from different hospital stays for patient MIMIC-10000935. These notes list the patient's home medications but do not include diagnoses. Therefore, it is impossible to determine if weakness is an established diagnosis for this patient based on the given information.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 12786.243921997084
+    },
+    {
+      "question_id": "bench_a_uncertainty_b9c4f4da",
+      "predicted_answer": "The provided evidence is medication reconciliation notes and does not contain information about the diagnostic certainty for DNR (Do Not Resuscitate).",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 9504.854838000028
+    },
+    {
+      "question_id": "bench_a_uncertainty_bb90a843",
+      "predicted_answer": "The provided evidence consists of medication reconciliation lists from different hospital stays. It does not include laboratory results or diagnostic information regarding the patient's sodium levels. Therefore, it is impossible to determine if low sodium has been definitively diagnosed.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 11504.168380997726
+    },
+    {
+      "question_id": "bench_a_uncertainty_c5a5ba78",
+      "predicted_answer": "No, ischemic cardiomyopathy is not confirmed in this patient. The diagnoses list mentions atherosclerotic heart disease of native coronary artery without angina pectoris (I2510) and heart failure, unspecified (I509), but not ischemic cardiomyopathy.",
+      "correct": true,
+      "score": 1.0,
+      "category": "uncertainty",
+      "latency_ms": 15289.958298002603
+    },
+    {
+      "question_id": "bench_a_uncertainty_d5f6cea3",
+      "predicted_answer": "The provided evidence does not contain information about whether the patient has malignancy.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 8303.80642000091
+    },
+    {
+      "question_id": "bench_a_uncertainty_d6b5569b",
+      "predicted_answer": "The provided clinical notes contain medication reconciliation information for patient MIMIC-10002428 across three different hospital stays. There is no information about colonoscopy or its diagnostic certainty in these notes.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 8605.811670000548
+    },
+    {
+      "question_id": "bench_a_uncertainty_e2f40386",
+      "predicted_answer": "The provided evidence does not mention carcinoma or its certainty.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 35521.87793399935
+    },
+    {
+      "question_id": "bench_a_uncertainty_e55a99fb",
+      "predicted_answer": "The diagnosis list includes \"Unspecified acquired hypothyroidism (ICD-9: 2449)\". Therefore, hypothyroidism is listed as a diagnosis for this patient.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 8949.11833700462
+    },
+    {
+      "question_id": "bench_a_uncertainty_e88c624f",
+      "predicted_answer": "The provided evidence consists of medication reconciliation notes from different hospital stays for patient MIMIC-10000935. These notes list the patient's home medications but do not contain any information about diagnoses, including pneumonia (PNA). Therefore, it is impossible to determine if PNA is confirmed in this patient based on the given evidence.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 13603.271173000394
+    },
+    {
+      "question_id": "bench_a_uncertainty_eab1a2aa",
+      "predicted_answer": "No, small bowel obstruction is not confirmed in the provided notes.",
+      "correct": true,
+      "score": 1.0,
+      "category": "uncertainty",
+      "latency_ms": 11984.402005000447
+    },
+    {
+      "question_id": "bench_a_uncertainty_f04bcd77",
+      "predicted_answer": "The provided evidence does not state whether nausea is an established diagnosis for this patient. However, the patient was prescribed ondansetron HCl and prochlorperazine maleate during two separate hospital stays, which are medications commonly used to treat nausea.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 11560.462047003966
+    },
+    {
+      "question_id": "bench_a_uncertainty_f732cfb2",
+      "predicted_answer": "The provided evidence consists of medication reconciliation notes for a patient. These notes list the patient's home medications but do not include diagnoses. Therefore, it is impossible to determine if abdominal pain is an established diagnosis for this patient based on the given information.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 10473.596087998885
+    },
+    {
+      "question_id": "bench_a_uncertainty_f7ea98b9",
+      "predicted_answer": "The provided evidence consists of medication reconciliation lists from different hospital stays for patient MIMIC-10000980. These lists detail the patient's home medications but do not include diagnoses like orthopnea. Therefore, I cannot determine if orthopnea is an established diagnosis for this patient based on the given information.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 14859.582424003747
+    },
+    {
+      "question_id": "bench_a_uncertainty_ff0b7361",
+      "predicted_answer": "The provided evidence consists of medication reconciliation notes from different hospital stays for the patient MIMIC-10004322. These notes list the patient's home medications but do not contain any information about diagnoses, lab results, or clinical findings related to a urinary tract infection. Therefore, it is impossible to determine if a urinary tract infection is confirmed in this patient based on the given information.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty",
+      "latency_ms": 13512.845755998569
+    },
+    {
+      "question_id": "bench_b_chg_16bf0d62",
+      "predicted_answer": "The patient's home medications differ between the two visits. In the first visit (Stay 39300221), the home medications listed are Mapap (acetaminophen), ceftriaxone, docusate sodium, levetiracetam, metronidazole, and oxycodone. In the second visit (Stay 39866888), the only listed home medication is ibuprofen.",
+      "correct": false,
+      "score": 0.2,
+      "category": "change",
+      "latency_ms": 41410.60097800073
+    },
+    {
+      "question_id": "bench_b_chg_3af4dea4",
+      "predicted_answer": "The patient's home medications have varied across admissions. Specifically, oxycodone-acetaminophen was listed in one admission (stay 30527790) but not the others, while warfarin was listed in two admissions (stays 33232311 and 30527790) but not the third (stay 33927820).",
+      "correct": false,
+      "score": 0.0,
+      "category": "change",
+      "latency_ms": 12686.376381003356
+    },
+    {
+      "question_id": "bench_b_chg_3b4387cb",
+      "predicted_answer": "The provided evidence only includes the patient's home medications from one admission (Stay 34163344). Therefore, I cannot determine the differences in medication between the two visits.",
+      "correct": false,
+      "score": 0.0,
+      "category": "change",
+      "latency_ms": 10215.977004998422
+    },
+    {
+      "question_id": "bench_b_chg_4394e1c9",
+      "predicted_answer": "The provided evidence only includes medication lists for a single admission (Admission 27849136). Therefore, it is impossible to determine how the patient's medication management has changed between admissions.",
+      "correct": false,
+      "score": 0.2,
+      "category": "change",
+      "latency_ms": 38180.37768400245
+    },
+    {
+      "question_id": "bench_b_chg_4b1262d4",
+      "predicted_answer": "The patient's home medications changed between admissions. In the first admission, the home medications listed were buspirone, lorazepam, norgestimate-ethinyl estradiol, and spironolactone. In the second admission, the home medications listed were Vitamin B-12, buspirone, ferrous sulfate, and lorazepam.",
+      "correct": true,
+      "score": 0.4222222222222222,
+      "category": "change",
+      "latency_ms": 11856.152378997649
+    },
+    {
+      "question_id": "bench_b_chg_4ce4b0e5",
+      "predicted_answer": "The provided evidence does not contain information about the patient's medication management during the admissions. It only lists the home medications reported for both admissions.",
+      "correct": false,
+      "score": 0.0,
+      "category": "change",
+      "latency_ms": 7632.351544001722
+    },
+    {
+      "question_id": "bench_b_chg_551986f4",
+      "predicted_answer": "The provided evidence only includes the patient's home medications from one visit (Stay 35991939) and diagnoses from two different admissions (25656545 and 23384508). There is no information about the patient's medications during the second admission (25656545) or any differences between the two visits.",
+      "correct": false,
+      "score": 0.0,
+      "category": "change",
+      "latency_ms": 16003.362632000062
+    },
+    {
+      "question_id": "bench_b_chg_55fcfc07",
+      "predicted_answer": "The provided evidence only includes the patient's home medications from one admission (Stay 35971695) and diagnoses from two admissions (24631981 and 28912598). It does not include medication lists from the second admission or any information about changes in medication management between admissions. Therefore, I cannot answer the question.",
+      "correct": false,
+      "score": 0.1,
+      "category": "change",
+      "latency_ms": 13018.955047999043
+    },
+    {
+      "question_id": "bench_b_chg_5675cecb",
+      "predicted_answer": "The patient's home medications have varied across the three admissions. The most recent admission (Stay 37474338) lists 10 medications, including Calcium Citrate, almotriptan, clonazepam, fluticasone, nabumetone, pregabalin, propranolol, pseudoephedrine, tizanidine, and tramadol. A previous admission (Stay 36472815) listed 12 medications, including Calcium Citrate, Multivitamin, almotriptan, clonazepam, estradiol, fluticasone, nabumetone, pregabalin, propranolol, pseudoephedrine, tizanidine, and",
+      "correct": false,
+      "score": 0.16666666666666666,
+      "category": "change",
+      "latency_ms": 27168.54530300043
+    },
+    {
+      "question_id": "bench_b_chg_56805338",
+      "predicted_answer": "The provided evidence only lists the patient's home medications for one admission (Stay 31790611). It does not list medications for the other admission (27481198) or any medications administered during either stay. Therefore, I cannot determine the differences in the patient's medication between the two visits.",
+      "correct": false,
+      "score": 0.0,
+      "category": "change",
+      "latency_ms": 14791.91975700087
+    },
+    {
+      "question_id": "bench_b_chg_63fd19b7",
+      "predicted_answer": "The provided text includes medication lists from three different hospital stays for the same patient. To answer the question about differences between two visits, please specify which two visits you would like me to compare.",
+      "correct": false,
+      "score": 0.0,
+      "category": "change",
+      "latency_ms": 13521.768298000097
+    },
+    {
+      "question_id": "bench_b_chg_799b8ee4",
+      "predicted_answer": "The patient was taking Augmentin, HumaLOG, Lantus, Percocet, aspirin, atenolol, atorvastatin, and losartan during the first visit (Stay 38227149). During the second visit (Stay 32602179), the patient was taking Humalog U-100 Insulin, atenolol, atorvastatin, insulin glargine, and losartan. The differences are the absence of Augmentin, Lantus, Percocet, and aspirin in the second visit, and the presence of Humalog U-100 Insulin and insulin glargine instead of HumaLOG and Lantus, respectively.",
+      "correct": false,
+      "score": 0.2833333333333333,
+      "category": "change",
+      "latency_ms": 21168.54388399952
+    },
+    {
+      "question_id": "bench_b_chg_7bfd6ae3",
+      "predicted_answer": "The patient's home medications differ between the two visits. In the first visit (Stay 30289867), the patient was taking aspirin, atorvastatin, carvedilol, digoxin, iron, losartan, spironolactone, torsemide, and warfarin. In the second visit (Stay 30011135), the patient was taking only aspirin and metoprolol succinate.",
+      "correct": false,
+      "score": 0.2,
+      "category": "change",
+      "latency_ms": 14316.768632001185
+    },
+    {
+      "question_id": "bench_b_chg_7eaa968e",
+      "predicted_answer": "The patient's home medications differ between the two visits. In the first visit (Stay 37237892), the home medications listed are alprazolam, atorvastatin, furosemide, levothyroxine, losartan, and multivitamin. In the second and third visits (Stays 38405263 and 37607159), the home medications listed are ascorbic acid, atorvastatin, ciprofloxacin HCl, enoxaparin, ferrous sulfate, levothyroxine, and multivitamin.",
+      "correct": false,
+      "score": 0.2,
+      "category": "change",
+      "latency_ms": 16935.897465999005
+    },
+    {
+      "question_id": "bench_b_chg_8710f477",
+      "predicted_answer": "The provided evidence consists of diagnosis lists for different hospital admissions and does not include any information about the patient's medication management. Therefore, it is impossible to determine how the patient's medication management has changed between admissions.",
+      "correct": false,
+      "score": 0.1,
+      "category": "change",
+      "latency_ms": 11805.772462997993
+    },
+    {
+      "question_id": "bench_b_chg_9b769505",
+      "predicted_answer": "The patient's medication list varies across the three provided medication reconciliation notes. For example, the first note lists 16 home medications including acetaminophen, benzonatate, cetirizine, clotrimazole, fluticasone, polyethylene glycol 3350, sennosides, and tramadol, while the second note lists 9 home medications including Aspirin, Fish Oil, Multiple Vitamin, lovastatin, and excludes medications listed in the first note. The third note lists 17 home medications including enoxaparin, e",
+      "correct": false,
+      "score": 0.2,
+      "category": "change",
+      "latency_ms": 21386.381718002667
+    },
+    {
+      "question_id": "bench_b_chg_9fe27a5b",
+      "predicted_answer": "The provided evidence only includes a medication list for one admission (20470681). There is no medication list for the other admission (24274954) to compare. Therefore, I cannot determine the differences in medication between the two visits.",
+      "correct": false,
+      "score": 0.0,
+      "category": "change",
+      "latency_ms": 23301.092969995807
+    },
+    {
+      "question_id": "bench_b_chg_a2d2f2df",
+      "predicted_answer": "The provided evidence lists diagnoses for different admissions but does not include information about the patient's medication management. Therefore, it is impossible to determine how the patient's medication management has changed between admissions.",
+      "correct": false,
+      "score": 0.1111111111111111,
+      "category": "change",
+      "latency_ms": 16626.8549660017
+    },
+    {
+      "question_id": "bench_b_chg_b05d1279",
+      "predicted_answer": "The patient's home medications differ between the three provided visits. Specifically, the first visit lists prednisone, ferrous sulfate, and docusate sodium, while the second and third visits list Eliquis and Xarelto respectively, along with cod liver oil and tramadol (only in the third visit).",
+      "correct": false,
+      "score": 0.2,
+      "category": "change",
+      "latency_ms": 15542.335299003753
+    },
+    {
+      "question_id": "bench_b_chg_b34b5572",
+      "predicted_answer": "The provided evidence only lists the patient's home medications from one admission (Stay 35853287). It does not include medication lists from the other admission (Admission 20355325) or information about changes between admissions. Therefore, I cannot determine how the patient's medication management has changed.",
+      "correct": false,
+      "score": 0.1,
+      "category": "change",
+      "latency_ms": 13098.748340002203
+    },
+    {
+      "question_id": "bench_b_chg_beb2c0ab",
+      "predicted_answer": "The provided evidence lists diagnoses for different admissions but does not include information about the patient's medication management. Therefore, it is impossible to determine how the patient's medication management has changed between admissions.",
+      "correct": false,
+      "score": 0.09090909090909091,
+      "category": "change",
+      "latency_ms": 21492.289802001324
+    },
+    {
+      "question_id": "bench_b_chg_bf95749e",
+      "predicted_answer": "The provided evidence only lists the patient's home medications during one admission (Stay 37038627) and diagnoses for two admissions (25679292 and 21320596). It does not provide information about medication changes between admissions.",
+      "correct": false,
+      "score": 0.09090909090909091,
+      "category": "change",
+      "latency_ms": 13564.491213997826
+    },
+    {
+      "question_id": "bench_b_chg_c1ed937c",
+      "predicted_answer": "The patient was taking quetiapine during admission 24015009 but was not taking it during admission 24979738. The patient was taking warfarin during admission 24015009 but was not taking it during admission 24979738.",
+      "correct": false,
+      "score": 0.0,
+      "category": "change",
+      "latency_ms": 16613.235132994305
+    },
+    {
+      "question_id": "bench_b_chg_c86d8b22",
+      "predicted_answer": "The patient's home medication list has varied significantly across different admissions. The number of home medications reported ranged from 2 to 13. Specific medications like Lidoderm, lactulose, multivitamin, bisacodyl, calcium carbonate-vitamin D3, famotidine, fentanyl, magnesium hydroxide, oxycodone, polyethylene glycol 3350, potassium chloride, and sulfamethoxazole-trimethoprim appeared in different medication lists but not consistently across all admissions.",
+      "correct": false,
+      "score": 0.0,
+      "category": "change",
+      "latency_ms": 14224.483756996051
+    },
+    {
+      "question_id": "bench_b_chg_d41272ec",
+      "predicted_answer": "The patient's medication list differs between the two visits. The first visit lists Citracal + D, Probiotic, modafinil, solifenacin, and trazodone, while the second visit lists acetaminophen, calcium carbonate, cyclosporine, minocycline, omeprazole, topiramate, and trospium.",
+      "correct": true,
+      "score": 0.38181818181818183,
+      "category": "change",
+      "latency_ms": 11748.300129998825
+    },
+    {
+      "question_id": "bench_b_chg_d68a2fcd",
+      "predicted_answer": "The provided evidence only includes a medication list from one admission (Admission 20626031). Therefore, it is impossible to determine how the patient's medication management has changed between admissions.",
+      "correct": false,
+      "score": 0.09090909090909091,
+      "category": "change",
+      "latency_ms": 31139.24105499609
+    },
+    {
+      "question_id": "bench_b_chg_d8ecd86b",
+      "predicted_answer": "The provided evidence only includes the patient's home medications from one visit (Stay 32642808), which is omeprazole magnesium. There is no information about medications during the other visit (Admission 22927623) to compare.",
+      "correct": false,
+      "score": 0.0,
+      "category": "change",
+      "latency_ms": 13052.756673001568
+    },
+    {
+      "question_id": "bench_b_chg_e347a4fe",
+      "predicted_answer": "The patient was taking Genvoya and amitriptyline during one visit, but Norvir, Prezista, Truvada, amitriptyline, and ferrous gluconate during another visit. The medications Genvoya and ferrous gluconate are unique to each visit, respectively, while amitriptyline was present in both lists.",
+      "correct": false,
+      "score": 0.0,
+      "category": "change",
+      "latency_ms": 11607.059547000972
+    },
+    {
+      "question_id": "bench_b_chg_e934a618",
+      "predicted_answer": "Based on the provided medication reconciliation notes, the patient was taking 11 home medications during stay 37303323 and 12 home medications during stay 31293660. The medications differ between the two lists, with some medications present in one list but not the other (e.g., ferrous sulfate, potassium chloride, sertraline, torsemide in the first list vs. Crestor, Dyazide, cefdinir, losartan, omeprazole in the second list).",
+      "correct": true,
+      "score": 0.30000000000000004,
+      "category": "change",
+      "latency_ms": 19281.391717006045
+    },
+    {
+      "question_id": "bench_b_chg_fd1db324",
+      "predicted_answer": "The patient's home medication list has increased in length between the three stays, from 9 medications in stay 37290428 to 16 medications in stay 37499077 and 14 medications in stay 37059738. Specific medications added or removed are not explicitly stated in the provided notes.",
+      "correct": false,
+      "score": 0.09090909090909091,
+      "category": "change",
+      "latency_ms": 14017.441506999603
+    },
+    {
+      "question_id": "bench_b_current_state_0136c1a6",
+      "predicted_answer": "Yes, the patient has a diagnosis of Major depressive disorder, single episode, unspecified (ICD-10: F329).",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state",
+      "latency_ms": 9044.192753994139
+    },
+    {
+      "question_id": "bench_b_current_state_0579e25a",
+      "predicted_answer": "Yes, the patient is taking multiple medications commonly used for COPD, including albuterol sulfate, fluticasone-salmeterol, tiotropium bromide, and theophylline.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state",
+      "latency_ms": 12627.205006996519
+    },
+    {
+      "question_id": "bench_b_current_state_0a964177",
+      "predicted_answer": "The provided evidence does not mention the patient's status for lung cancer.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state",
+      "latency_ms": 5737.07629400451
+    },
+    {
+      "question_id": "bench_b_current_state_0e1ad5ef",
+      "predicted_answer": "The provided evidence does not contain information about the patient's pleural effusions.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state",
+      "latency_ms": 5755.618836003123
+    },
+    {
+      "question_id": "bench_b_current_state_18236822",
+      "predicted_answer": "The provided evidence does not contain information about the patient's current medical conditions, including whether they have a CVA (cerebrovascular accident, or stroke). The notes only list medications.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state",
+      "latency_ms": 4708.441002003383
+    },
+    {
+      "question_id": "bench_b_current_state_1b767c4a",
+      "predicted_answer": "The provided medication lists include several medications related to bowel function, such as lactulose, bisacodyl, magnesium hydroxide, polyethylene glycol 3350, and oxycodone. However, the notes do not explicitly state whether the patient has a bowel obstruction.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state",
+      "latency_ms": 9378.38875399757
+    },
+    {
+      "question_id": "bench_b_current_state_1d916acd",
+      "predicted_answer": "The patient has multiple diagnoses related to malignant neoplasms, including primary pancreatic cancer (C250, C259), intrahepatic bile duct carcinoma (C221), and multiple secondary malignant neoplasms affecting the retroperitoneum, peritoneum, liver, mediastinum, and intrathoracic lymph nodes (C786, C787, C781, C771).",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state",
+      "latency_ms": 28952.26505499886
+    },
+    {
+      "question_id": "bench_b_current_state_1f2194cb",
+      "predicted_answer": "The provided evidence does not mention cancer as an active problem for this patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state",
+      "latency_ms": 6835.202043999743
+    },
+    {
+      "question_id": "bench_b_current_state_21894283",
+      "predicted_answer": "The provided evidence is a list of the patient's home medications during different hospital stays. This information does not provide any details about the patient's current status for pulmonary vascular congestion.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state",
+      "latency_ms": 10561.061546999554
+    },
+    {
+      "question_id": "bench_b_current_state_29384c98",
+      "predicted_answer": "Yes, respiratory failure is listed as a diagnosis for admission 29646384.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state",
+      "latency_ms": 12558.209964001435
+    },
+    {
+      "question_id": "bench_b_current_state_2c71ab72",
+      "predicted_answer": "The provided evidence does not list constipation as an active diagnosis for this patient in either admission note. However, the patient takes polyethylene glycol 3350 [Miralax], which is used to treat constipation.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state",
+      "latency_ms": 10043.279462995997
+    },
+    {
+      "question_id": "bench_b_current_state_2f92af44",
+      "predicted_answer": "The provided evidence consists of medication lists from different hospital stays. It does not contain any information about the patient's physical examination findings, such as the presence or absence of a systolic murmur. Therefore, I cannot answer the question.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state",
+      "latency_ms": 8495.997712001554
+    },
+    {
+      "question_id": "bench_b_current_state_326ba4c8",
+      "predicted_answer": "No, endocarditis is not listed as a diagnosis for this patient in the provided notes.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state",
+      "latency_ms": 11852.22679599974
+    },
+    {
+      "question_id": "bench_b_current_state_351fb38e",
+      "predicted_answer": "The provided evidence is a list of the patient's home medications during different hospital stays. It does not contain any information about the patient's current status for lung cancer.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state",
+      "latency_ms": 7183.982545000617
+    },
+    {
+      "question_id": "bench_b_current_state_3d4c282b",
+      "predicted_answer": "No. Schizophrenia is not listed in the diagnoses.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state",
+      "latency_ms": 6404.290003003553
+    },
+    {
+      "question_id": "bench_b_current_state_3fad479a",
+      "predicted_answer": "The patient has a diagnosis of \"Other and unspecified alcohol dependence, continuous\" (ICD-9: 30391) in multiple admissions.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state",
+      "latency_ms": 12406.134756005486
+    },
+    {
+      "question_id": "bench_b_current_state_48d18a00",
+      "predicted_answer": "Yes, atrial fibrillation is listed as a diagnosis in the patient's admission note from 20626031.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state",
+      "latency_ms": 31548.268972997903
+    },
+    {
+      "question_id": "bench_b_current_state_4e36b2bb",
+      "predicted_answer": "Yes, the patient is taking amlodipine, atenolol, and lisinopril, which are all medications commonly used to treat hypertension.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state",
+      "latency_ms": 7501.548877997266
+    },
+    {
+      "question_id": "bench_b_current_state_50d8fed0",
+      "predicted_answer": "The provided evidence does not contain information about the patient's current status regarding depression.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state",
+      "latency_ms": 17444.973008001398
+    },
+    {
+      "question_id": "bench_b_current_state_57ee4127",
+      "predicted_answer": "The provided evidence consists of medication reconciliation notes from different hospital stays for patient MIMIC-10003019. These notes list the patient's home medications but do not contain any information about the patient's current physical examination findings, such as bibasilar crackles. Therefore, I cannot answer the question about the patient's current status for bibasilar crackles.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state",
+      "latency_ms": 13154.523422002967
+    },
+    {
+      "question_id": "bench_b_current_state_5e677ee6",
+      "predicted_answer": "The provided evidence does not mention osteoarthritis as an active problem for this patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state",
+      "latency_ms": 5424.05025199696
+    },
+    {
+      "question_id": "bench_b_current_state_6053376a",
+      "predicted_answer": "The provided evidence does not explicitly state whether the patient currently has CHF. However, the patient is taking furosemide and metoprolol succinate, which are commonly used to treat CHF.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state",
+      "latency_ms": 9638.344212005904
+    },
+    {
+      "question_id": "bench_b_current_state_6824e5ae",
+      "predicted_answer": "The patient has a history of a closed fracture of the unspecified part of the neck of the right femur. The note does not specify the current status of the fracture.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state",
+      "latency_ms": 10070.992963002936
+    },
+    {
+      "question_id": "bench_b_current_state_6c5caba6",
+      "predicted_answer": "Yes, the patient has a diagnosis of heart failure, unspecified (ICD-10: I509).",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state",
+      "latency_ms": 10043.434712999442
+    },
+    {
+      "question_id": "bench_b_current_state_7080eb03",
+      "predicted_answer": "The patient is taking diltiazem HCl, hydrochlorothiazide, and isosorbide mononitrate, which are medications commonly used to treat hypertension. Therefore, the patient likely has hypertension.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state",
+      "latency_ms": 13625.547631003428
+    },
+    {
+      "question_id": "bench_b_current_state_821bb864",
+      "predicted_answer": "The patient has an unspecified intracapsular fracture of the left femur.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state",
+      "latency_ms": 8914.605088000826
+    },
+    {
+      "question_id": "bench_b_current_state_83fa18c5",
+      "predicted_answer": "The patient is taking simvastatin, which is used to treat hyperlipidemia.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state",
+      "latency_ms": 7244.135377994098
+    },
+    {
+      "question_id": "bench_b_current_state_89423fc7",
+      "predicted_answer": "The patient has a family history of malignant neoplasm of the trachea, bronchus, and lung (ICD-9: V161). The note does not indicate the patient's current status for lung cancer.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state",
+      "latency_ms": 9749.66758699884
+    },
+    {
+      "question_id": "bench_b_current_state_8a04029e",
+      "predicted_answer": "The provided evidence does not contain information about the patient's current status for heart failure.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state",
+      "latency_ms": 8408.581795003556
+    },
+    {
+      "question_id": "bench_b_current_state_9453ec83",
+      "predicted_answer": "The provided evidence does not mention lower extremity edema. Therefore, I cannot determine if the patient currently has it.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state",
+      "latency_ms": 12882.98888099962
+    },
+    {
+      "question_id": "bench_b_current_state_96ef4bd2",
+      "predicted_answer": "The provided clinical notes do not contain information about the patient's breast cancer status.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state",
+      "latency_ms": 6886.592169998039
+    },
+    {
+      "question_id": "bench_b_current_state_9a0fed0b",
+      "predicted_answer": "The provided evidence does not contain information about whether the patient has colon cancer.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state",
+      "latency_ms": 19216.149799998675
+    },
+    {
+      "question_id": "bench_b_current_state_a49952ca",
+      "predicted_answer": "The provided clinical notes do not mention osteopenia.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state",
+      "latency_ms": 7758.138668999891
+    },
+    {
+      "question_id": "bench_b_current_state_a9a50ac4",
+      "predicted_answer": "The provided evidence does not mention Paroxysmal atrial fibrillation. Therefore, I cannot determine if the patient currently has this condition.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state",
+      "latency_ms": 5886.607585998718
+    },
+    {
+      "question_id": "bench_b_current_state_ab1c0783",
+      "predicted_answer": "The provided evidence does not state whether the patient currently has colon cancer. The patient has a history of colonic polyps and diverticulitis of the colon.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state",
+      "latency_ms": 8084.764170998824
+    },
+    {
+      "question_id": "bench_b_current_state_b15b05f6",
+      "predicted_answer": "The provided clinical notes do not contain information about the patient's status for aortic stenosis.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state",
+      "latency_ms": 8094.336419999308
+    },
+    {
+      "question_id": "bench_b_current_state_b4ef73e0",
+      "predicted_answer": "The provided evidence is a list of the patient's home medications from different hospital stays. This information does not include any clinical findings or diagnoses, such as aortic stenosis. Therefore, I cannot determine if the patient currently has aortic stenosis.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state",
+      "latency_ms": 10229.639713004872
+    },
+    {
+      "question_id": "bench_b_current_state_b69620a8",
+      "predicted_answer": "The patient has a history of congestive heart failure, specifically acute on chronic diastolic heart failure and unspecified congestive heart failure, documented in a previous admission (Admission 21320596). The current admission's diagnosis list (Admission 25679292) does not include congestive heart failure.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state",
+      "latency_ms": 15483.646965003572
+    },
+    {
+      "question_id": "bench_b_current_state_c72071fe",
+      "predicted_answer": "The provided evidence does not mention cholelithiasis as a diagnosis or medication. Therefore, it is not possible to determine if cholelithiasis is an active problem for this patient based on the given information.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state",
+      "latency_ms": 9226.414045995625
+    },
+    {
+      "question_id": "bench_b_current_state_cd3a6d9f",
+      "predicted_answer": "The provided evidence does not contain information about the patient's current status for Depression.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state",
+      "latency_ms": 13563.671381001768
+    },
+    {
+      "question_id": "bench_b_current_state_cd6e0903",
+      "predicted_answer": "The provided evidence does not indicate whether myocardial infarction is an active problem for this patient. The notes only list medications.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state",
+      "latency_ms": 8379.445919999853
+    },
+    {
+      "question_id": "bench_b_current_state_cf722731",
+      "predicted_answer": "The provided evidence is a list of the patient's home medications from three different hospital stays. This information does not indicate whether osteomyelitis is an active problem for the patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state",
+      "latency_ms": 13171.683505999681
+    },
+    {
+      "question_id": "bench_b_current_state_dd21fc0b",
+      "predicted_answer": "The provided evidence does not contain information about the patient's nutritional status or whether malnutrition is an active problem.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state",
+      "latency_ms": 5968.791711005906
+    },
+    {
+      "question_id": "bench_b_current_state_df7d349b",
+      "predicted_answer": "The provided clinical notes do not mention acid reflux.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state",
+      "latency_ms": 7438.32891999773
+    },
+    {
+      "question_id": "bench_b_current_state_dfa75737",
+      "predicted_answer": "Yes, the patient has a diagnosis of hypothyroidism, unspecified (ICD-10: E039) listed in the admission diagnosis list from Admission 20850584.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state",
+      "latency_ms": 24274.319052005012
+    },
+    {
+      "question_id": "bench_b_current_state_e60414c9",
+      "predicted_answer": "The provided evidence does not mention aortic stenosis.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state",
+      "latency_ms": 10277.855546002684
+    },
+    {
+      "question_id": "bench_b_current_state_e84d9e91",
+      "predicted_answer": "The provided evidence does not contain information about the patient's breast cancer status.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state",
+      "latency_ms": 5792.254668995156
+    },
+    {
+      "question_id": "bench_b_current_state_ea719b94",
+      "predicted_answer": "The provided evidence does not mention anaphylactic shock. Therefore, it is not possible to determine if the patient currently has anaphylactic shock based on the given information.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state",
+      "latency_ms": 8965.602588003094
+    },
+    {
+      "question_id": "bench_b_current_state_fe80e1f3",
+      "predicted_answer": "The provided evidence lists furosemide and spironolactone as home medications across multiple stays. These medications are commonly used to treat hypertension and fluid retention. Therefore, hypertension is likely an active problem for this patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state",
+      "latency_ms": 8230.719628998486
+    },
+    {
+      "question_id": "bench_b_current_state_fe918698",
+      "predicted_answer": "The patient is taking atorvastatin, which is used to treat hyperlipidemia.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state",
+      "latency_ms": 6746.22171199735
+    },
+    {
+      "question_id": "bench_b_dur_023d1fb6",
+      "predicted_answer": "The provided evidence consists of medication reconciliation notes from different hospital stays. These notes do not contain information about the patient's fever, its duration, or whether it is chronic or new.",
+      "correct": true,
+      "score": 0.5,
+      "category": "duration",
+      "latency_ms": 9093.324421002762
+    },
+    {
+      "question_id": "bench_b_dur_04bba7f9",
+      "predicted_answer": "The provided evidence does not contain information about the patient's ascites status or duration. Therefore, it is impossible to determine if the condition is chronic or new.",
+      "correct": true,
+      "score": 0.5,
+      "category": "duration",
+      "latency_ms": 9579.45871300035
+    },
+    {
+      "question_id": "bench_b_dur_1058f8b7",
+      "predicted_answer": "The provided evidence does not contain information about the patient's bowel habits or history of constipation. Therefore, it is impossible to determine if the patient has constipation, or if it is a chronic or new condition.",
+      "correct": false,
+      "score": 0.15384615384615385,
+      "category": "duration",
+      "latency_ms": 10509.081839001738
+    },
+    {
+      "question_id": "bench_b_dur_2483a94a",
+      "predicted_answer": "The patient has a history of pure hypercholesterolemia, unspecified (ICD-10: E7800) listed in the current admission's diagnosis list. The patient is also on omeprazole magnesium, which is often used for GERD, another listed diagnosis. This suggests the hypercholesterolemia is a chronic condition.",
+      "correct": false,
+      "score": 0.07692307692307693,
+      "category": "duration",
+      "latency_ms": 16564.61667399708
+    },
+    {
+      "question_id": "bench_b_dur_3155170d",
+      "predicted_answer": "The provided evidence does not contain information about the patient's HCV status.",
+      "correct": false,
+      "score": 0.07692307692307693,
+      "category": "duration",
+      "latency_ms": 7614.680295002472
+    },
+    {
+      "question_id": "bench_b_dur_3585eef3",
+      "predicted_answer": "The provided evidence does not contain information about whether the patient has cancer, nor does it specify if it is a chronic or new condition.",
+      "correct": false,
+      "score": 0.15384615384615385,
+      "category": "duration",
+      "latency_ms": 8423.165963002248
+    },
+    {
+      "question_id": "bench_b_dur_3efd8123",
+      "predicted_answer": "The provided evidence consists of medication reconciliation notes from different hospital stays. These notes list the patient's home medications but do not contain information about the patient's medical history, diagnoses, or the duration of any conditions like CAP (Community-Acquired Pneumonia). Therefore, it is impossible to determine how long the patient has had CAP or if it is chronic or new based on this information.",
+      "correct": true,
+      "score": 0.5,
+      "category": "duration",
+      "latency_ms": 14007.984671996383
+    },
+    {
+      "question_id": "bench_b_dur_44f27bb7",
+      "predicted_answer": "The provided evidence does not contain information about the patient's allergies. Therefore, it is impossible to determine if the patient has allergies or if it is a chronic or new condition.",
+      "correct": false,
+      "score": 0.23076923076923078,
+      "category": "duration",
+      "latency_ms": 13626.64634000248
+    },
+    {
+      "question_id": "bench_b_dur_5143ceff",
+      "predicted_answer": "The provided clinical notes do not contain information about the patient's allergies. Therefore, it is not possible to determine the duration or chronicity of any allergies.",
+      "correct": true,
+      "score": 0.5,
+      "category": "duration",
+      "latency_ms": 4268.489877002139
+    },
+    {
+      "question_id": "bench_b_dur_5423a583",
+      "predicted_answer": "The provided evidence consists of medication reconciliation notes from three different hospital stays. These notes list the patient's home medications but do not contain information about the duration or nature of abdominal pain. Therefore, it is impossible to determine how long the patient has had abdominal pain or if it is chronic or new based on this information.",
+      "correct": true,
+      "score": 0.5,
+      "category": "duration",
+      "latency_ms": 12527.9488390006
+    },
+    {
+      "question_id": "bench_b_dur_57a305bc",
+      "predicted_answer": "The provided evidence does not contain information about the patient's diagnosis of DJD (Degenerative Joint Disease) or its duration.",
+      "correct": true,
+      "score": 0.5,
+      "category": "duration",
+      "latency_ms": 8687.87604499812
+    },
+    {
+      "question_id": "bench_b_dur_61f47488",
+      "predicted_answer": "The provided evidence does not contain information about the patient's allergies. Therefore, it is impossible to determine how long the patient has had allergies or if it is a chronic or new condition.",
+      "correct": false,
+      "score": 0.23076923076923078,
+      "category": "duration",
+      "latency_ms": 10310.156670995639
+    },
+    {
+      "question_id": "bench_b_dur_6c498e2a",
+      "predicted_answer": "The provided evidence consists of medication reconciliation notes from three different hospital stays. These notes list the patient's home medications but do not contain information about the patient's mental status, whether it is altered, or its duration. Therefore, I cannot determine how long the patient has had altered mental status or if it is chronic or new.",
+      "correct": true,
+      "score": 0.5,
+      "category": "duration",
+      "latency_ms": 14096.006339997984
+    },
+    {
+      "question_id": "bench_b_dur_7321b24c",
+      "predicted_answer": "The provided evidence includes home medication lists from three different encounters for patient MIMIC-10000935. The medication lists include sertraline and trazodone, which are commonly used to treat depression. The presence of these medications in the home medication lists suggests the patient has been taking them, implying depression is likely a chronic condition, although the duration is not explicitly stated.",
+      "correct": true,
+      "score": 0.5,
+      "category": "duration",
+      "latency_ms": 14886.779715001467
+    },
+    {
+      "question_id": "bench_b_dur_765d3190",
+      "predicted_answer": "The provided clinical notes do not mention hypertension (HTN) or its duration. Therefore, it is impossible to determine how long the patient has had HTN or if it is chronic or new based on this information.",
+      "correct": true,
+      "score": 0.5,
+      "category": "duration",
+      "latency_ms": 12549.63975600549
+    },
+    {
+      "question_id": "bench_b_dur_79178b50",
+      "predicted_answer": "The patient has a diagnosis of Gastro-esophageal reflux disease without esophagitis (ICD-10: K219) listed in both the current admission's diagnosis list and the home medication list (omeprazole). This indicates the patient has had GERD for some time, suggesting it is a chronic condition.",
+      "correct": false,
+      "score": 0.15384615384615385,
+      "category": "duration",
+      "latency_ms": 15005.502339998202
+    },
+    {
+      "question_id": "bench_b_dur_99a99dcb",
+      "predicted_answer": "The provided evidence does not contain information about the patient's condition \"Obese\" or its duration.",
+      "correct": true,
+      "score": 0.5,
+      "category": "duration",
+      "latency_ms": 7412.965420997352
+    },
+    {
+      "question_id": "bench_b_dur_9a7579d3",
+      "predicted_answer": "The provided evidence includes medication lists from different hospital stays. Lactulose and rifaximin are commonly used to treat hepatic encephalopathy. The patient was taking these medications during at least two of the stays (39399961 and 38112554), suggesting it is a chronic condition.",
+      "correct": false,
+      "score": 0.14285714285714285,
+      "category": "duration",
+      "latency_ms": 20069.27750899922
+    },
+    {
+      "question_id": "bench_b_dur_9aac4d9f",
+      "predicted_answer": "The provided clinical notes do not mention dementia. Therefore, it is impossible to determine how long the patient has had dementia or if it is a chronic or new condition.",
+      "correct": false,
+      "score": 0.23076923076923078,
+      "category": "duration",
+      "latency_ms": 11555.559629996424
+    },
+    {
+      "question_id": "bench_b_dur_a8089cad",
+      "predicted_answer": "The patient is taking emtricitabine-tenofovir and raltegravir, which are medications used to treat HIV. This indicates the patient has HIV, and the use of these medications suggests it is a chronic condition.",
+      "correct": false,
+      "score": 0.07692307692307693,
+      "category": "duration",
+      "latency_ms": 10716.58575499896
+    },
+    {
+      "question_id": "bench_b_dur_adcd04fb",
+      "predicted_answer": "The provided evidence includes medication lists from multiple hospital stays. The patient is taking albuterol sulfate, ipratropium bromide, fluticasone, and tiotropium bromide, which are commonly used to treat COPD. This suggests the patient has COPD, and the presence of these medications across multiple admissions implies it is a chronic condition.",
+      "correct": false,
+      "score": 0.07692307692307693,
+      "category": "duration",
+      "latency_ms": 13277.177130999917
+    },
+    {
+      "question_id": "bench_b_dur_b14b3517",
+      "predicted_answer": "The provided evidence does not contain information about the patient's cirrhosis status, duration, or chronicity.",
+      "correct": true,
+      "score": 0.5,
+      "category": "duration",
+      "latency_ms": 7516.283087003103
+    },
+    {
+      "question_id": "bench_b_dur_c8b1f3aa",
+      "predicted_answer": "The patient has age-related osteoporosis without current pathological fracture listed as a diagnosis in both the current admission (22927623) and a previous admission (27988844). This indicates it is a chronic condition.",
+      "correct": false,
+      "score": 0.15384615384615385,
+      "category": "duration",
+      "latency_ms": 13800.430005001544
+    },
+    {
+      "question_id": "bench_b_dur_d4e27cc6",
+      "predicted_answer": "The provided evidence consists of medication reconciliation notes from different hospital stays. These notes list the patient's home medications but do not contain information about the duration or nature (chronic vs. new) of the patient's weakness. Therefore, I cannot determine how long the patient has had weakness or if it is chronic or new.",
+      "correct": true,
+      "score": 0.5,
+      "category": "duration",
+      "latency_ms": 12701.058546997956
+    },
+    {
+      "question_id": "bench_b_dur_e06e4775",
+      "predicted_answer": "The provided evidence does not contain information about the patient's potassium levels or history of hyperkalemia. Therefore, it is impossible to determine if the patient has hyperkalemia, or if it is a chronic or new condition.",
+      "correct": false,
+      "score": 0.15384615384615385,
+      "category": "duration",
+      "latency_ms": 11667.423004997545
+    },
+    {
+      "question_id": "bench_b_dur_e750dcc2",
+      "predicted_answer": "The provided evidence consists of medication reconciliation notes from three different hospital stays. These notes list the patient's home medications but do not contain any information about the patient's medical history, diagnoses, or the duration of any conditions like pneumonia (PNA). Therefore, it is impossible to determine how long the patient has had PNA or if it is chronic or new based on this information.",
+      "correct": true,
+      "score": 0.5,
+      "category": "duration",
+      "latency_ms": 9769.315420999192
+    },
+    {
+      "question_id": "bench_b_dur_e7e5e5f1",
+      "predicted_answer": "The provided evidence indicates the patient has a diagnosis of \"Migraine, unspecified, not intractable, without status migrainosus\" (ICD-10: G43909) listed under the \"DIAGNOSIS LIST \u2014 Admission 27988844\". The note does not specify the duration or chronicity of the migraine.",
+      "correct": true,
+      "score": 0.5,
+      "category": "duration",
+      "latency_ms": 15310.525423003128
+    },
+    {
+      "question_id": "bench_b_dur_efdc513d",
+      "predicted_answer": "The provided evidence does not contain information about whether the patient has cancer, nor does it specify if it is a chronic or new condition.",
+      "correct": false,
+      "score": 0.15384615384615385,
+      "category": "duration",
+      "latency_ms": 8716.223962997901
+    },
+    {
+      "question_id": "bench_b_dur_f5120145",
+      "predicted_answer": "The provided evidence does not contain information about the patient's history of Small Bowel Obstruction (SBO) or whether it is a chronic or new condition.",
+      "correct": false,
+      "score": 0.15384615384615385,
+      "category": "duration",
+      "latency_ms": 8493.320629000664
+    },
+    {
+      "question_id": "bench_b_dur_f717e466",
+      "predicted_answer": "The provided evidence does not contain information about the patient's diagnosis of Bipolar disorder or its duration.",
+      "correct": true,
+      "score": 0.5,
+      "category": "duration",
+      "latency_ms": 7902.700045997335
+    },
+    {
+      "question_id": "bench_b_historical_09d3ea63",
+      "predicted_answer": "The provided evidence consists of medication reconciliation notes from three different hospital stays for the patient MIMIC-10004322. None of these notes mention syncope or provide information about the patient's active problem list. Therefore, I cannot determine if syncope should be on the patient's active problem list based on the given information.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 11810.294796996459
+    },
+    {
+      "question_id": "bench_b_historical_1080e564",
+      "predicted_answer": "The provided evidence does not mention constipation as a diagnosis or medication. Therefore, it is not possible to determine if constipation is an active problem for this patient based on the given information.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 9283.372505000443
+    },
+    {
+      "question_id": "bench_b_historical_18b62e05",
+      "predicted_answer": "Yes, the patient has an \"Anxiety state, unspecified\" diagnosis listed in both the current admission (24856862) and a previous admission (20355325).",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 10416.64121299982
+    },
+    {
+      "question_id": "bench_b_historical_1c8bd655",
+      "predicted_answer": "The patient has heart failure, unspecified (ICD-10: I509). The note does not specify if it is systolic or diastolic heart failure.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 12151.275796997652
+    },
+    {
+      "question_id": "bench_b_historical_20d74443",
+      "predicted_answer": "Yes, constipation, unspecified is listed as one of the patient's diagnoses for admission 21049284.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical",
+      "latency_ms": 7614.01921200013
+    },
+    {
+      "question_id": "bench_b_historical_272efd04",
+      "predicted_answer": "The provided evidence does not contain information about the patient's active problem list or whether they have peripheral vascular disease. Therefore, I cannot answer the question.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 10323.755212994001
+    },
+    {
+      "question_id": "bench_b_historical_28252ff2",
+      "predicted_answer": "The provided evidence does not mention whether the patient is morbidly obese or if it is an active problem.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 6605.476627999451
+    },
+    {
+      "question_id": "bench_b_historical_2dc77dfe",
+      "predicted_answer": "The provided evidence does not mention hypertension as an active problem for this patient. The medication list includes solifenacin (Vesicare) and trospium, which are used for overactive bladder, and calcium carbonate, which is a supplement. There are no antihypertensive medications listed.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 10148.079086997313
+    },
+    {
+      "question_id": "bench_b_historical_2eebdbb4",
+      "predicted_answer": "The provided evidence does not mention chronic cough. Therefore, I cannot determine if it should be on the patient's active problem list.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 8708.238004001032
+    },
+    {
+      "question_id": "bench_b_historical_321a5bbe",
+      "predicted_answer": "Yes. The patient is taking lisinopril, carvedilol, nifedipine, atenolol, and hydrochlorothiazide, which are all medications commonly used to treat hypertension.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical",
+      "latency_ms": 10482.781712998985
+    },
+    {
+      "question_id": "bench_b_historical_36e6e499",
+      "predicted_answer": "The provided evidence does not mention diarrhea.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical",
+      "latency_ms": 8391.846544996952
+    },
+    {
+      "question_id": "bench_b_historical_38cdc8ef",
+      "predicted_answer": "Yes. The patient has multiple diagnoses related to malignant neoplasms, including pancreatic cancer, intrahepatic bile duct carcinoma, and secondary malignant neoplasms in various locations (retroperitoneum, peritoneum, liver, mediastinum, intrathoracic lymph nodes, lungs).",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 24240.087968995795
+    },
+    {
+      "question_id": "bench_b_historical_3ba61094",
+      "predicted_answer": "The provided evidence does not mention poor appetite as an active problem for this patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 20125.81759299792
+    },
+    {
+      "question_id": "bench_b_historical_4162c093",
+      "predicted_answer": "The patient is taking ferrous sulfate [Feosol] during stay 33706525. Ferrous sulfate is used to treat iron deficiency anemia. Therefore, anemia should be on the patient's active problem list.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 10723.795837999205
+    },
+    {
+      "question_id": "bench_b_historical_4290eb4f",
+      "predicted_answer": "The patient is taking loperamide, which is an anti-diarrheal medication. This suggests diarrhea might be a relevant issue for the patient.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical",
+      "latency_ms": 22234.019593000994
+    },
+    {
+      "question_id": "bench_b_historical_444cc10a",
+      "predicted_answer": "The provided evidence does not mention weakness as a diagnosis or symptom for this patient. Therefore, it is not possible to determine if weakness is an active problem.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 8121.132254003896
+    },
+    {
+      "question_id": "bench_b_historical_47333321",
+      "predicted_answer": "Yes, the patient has a diagnosis of esophageal reflux listed in both the current admission (28912598) and a previous admission (24631981).",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 9916.312004002975
+    },
+    {
+      "question_id": "bench_b_historical_4c647635",
+      "predicted_answer": "Yes, the patient has ascites. The diagnosis \"Other ascites\" (ICD-9: 78959) is listed for all three admissions.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 12360.560172004625
+    },
+    {
+      "question_id": "bench_b_historical_4d8e2ad9",
+      "predicted_answer": "The patient's diagnoses include \"Intestinal infection due to Clostridium difficile\" and \"Other and unspecified noninfectious gastroenteritis and colitis\". These conditions can cause diarrhea.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical",
+      "latency_ms": 10501.407338000718
+    },
+    {
+      "question_id": "bench_b_historical_50b91d5e",
+      "predicted_answer": "The provided evidence does not state whether nausea is an active problem for the patient. It lists medications like ondansetron HCl and prochlorperazine maleate, which are used to treat nausea, but this does not confirm the patient is currently experiencing it.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 10183.538338998915
+    },
+    {
+      "question_id": "bench_b_historical_635032b4",
+      "predicted_answer": "The provided evidence lists the patient's home medications, including insulin aspart, insulin detemir, and a blood glucose meter, suggesting diabetes management. However, the notes do not contain information about the patient's current condition or active problems like DKA.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 14894.78229899396
+    },
+    {
+      "question_id": "bench_b_historical_651babd4",
+      "predicted_answer": "Yes, the patient has a diagnosis of abdominal pain, generalized (ICD-9: 78907) listed in the current admission's diagnosis list.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 4305.797419001465
+    },
+    {
+      "question_id": "bench_b_historical_757a7f78",
+      "predicted_answer": "The provided evidence consists of medication reconciliation lists from three different hospital stays for the patient. It does not contain any information about the patient's symptoms, physical examination findings, or diagnoses, including whether they have dyspnea. Therefore, I cannot determine if dyspnea should be on the patient's active problem list.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 15136.580590995436
+    },
+    {
+      "question_id": "bench_b_historical_7e91845c",
+      "predicted_answer": "The provided evidence does not contain information about the patient's current blood pressure or whether they have hypotension.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 8114.00675400364
+    },
+    {
+      "question_id": "bench_b_historical_8b923b7c",
+      "predicted_answer": "The provided evidence does not contain information about the patient's active problem list or a diagnosis of ischemic cardiomyopathy. Therefore, I cannot determine if ischemic cardiomyopathy should be on the patient's active problem list.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 7403.4543779998785
+    },
+    {
+      "question_id": "bench_b_historical_96300f55",
+      "predicted_answer": "The provided evidence does not state whether the patient currently has atrial fibrillation. The medication list includes dabigatran etexilate [Pradaxa], which is an anticoagulant often used for atrial fibrillation, but this does not confirm the diagnosis.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 10469.161838002037
+    },
+    {
+      "question_id": "bench_b_historical_982731de",
+      "predicted_answer": "The provided evidence is a list of the patient's home medications from three different hospital stays. This information does not indicate whether the patient currently has metabolic acidosis.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 12770.368505996885
+    },
+    {
+      "question_id": "bench_b_historical_99912897",
+      "predicted_answer": "The provided evidence does not mention emesis. Therefore, it cannot be determined if emesis should be on the patient's active problem list.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 8938.32675399608
+    },
+    {
+      "question_id": "bench_b_historical_a29de042",
+      "predicted_answer": "The provided medication lists include several medications related to bowel function, such as lactulose, bisacodyl, magnesium hydroxide, polyethylene glycol 3350, and oxycodone. However, the notes do not explicitly state whether the patient has a bowel obstruction.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 9513.32862900017
+    },
+    {
+      "question_id": "bench_b_historical_a3143fbf",
+      "predicted_answer": "The provided evidence does not mention cellulitis as a diagnosis or medication. Therefore, it is not possible to determine if cellulitis is an active problem for this patient based on the given information.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 9398.276379004528
+    },
+    {
+      "question_id": "bench_b_historical_a5b0cd1f",
+      "predicted_answer": "Yes, the patient has a diagnosis of Paroxysmal atrial fibrillation (ICD-10: I480).",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 10558.699880006316
+    },
+    {
+      "question_id": "bench_b_historical_a701eaf4",
+      "predicted_answer": "No, colon cancer is not listed on the patient's active problem list. The provided diagnoses list includes conditions like leiomyoma of the uterus, disorders of plasma-protein metabolism, bladder disorders, ovarian cysts, pelvic adhesions, absence of ovaries/genital organs, stress incontinence, allergic rhinitis, and major depressive disorder, but not colon cancer.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 13355.422507003823
+    },
+    {
+      "question_id": "bench_b_historical_aa62353e",
+      "predicted_answer": "The provided clinical notes do not mention whether the patient currently has weakness.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 6394.268169999123
+    },
+    {
+      "question_id": "bench_b_historical_b14ec163",
+      "predicted_answer": "The provided evidence does not mention abdominal pain. Therefore, it cannot be determined if abdominal pain should be on the patient's active problem list.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 21101.216634000593
+    },
+    {
+      "question_id": "bench_b_historical_b16478e7",
+      "predicted_answer": "Yes, leukocytosis, unspecified (ICD-9: 28860) is listed as a diagnosis for admission 27481198.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical",
+      "latency_ms": 10610.420628996508
+    },
+    {
+      "question_id": "bench_b_historical_b2d36cd9",
+      "predicted_answer": "The provided evidence does not contain information about the patient's diagnoses or medical history, including whether they have HFpEF. Therefore, I cannot determine if HFpEF is an active problem for this patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 11171.990630005894
+    },
+    {
+      "question_id": "bench_b_historical_b41b0643",
+      "predicted_answer": "The provided evidence does not contain information about whether the patient currently has cirrhosis.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 7601.845837001747
+    },
+    {
+      "question_id": "bench_b_historical_b7386de2",
+      "predicted_answer": "The provided evidence does not mention cancer as an active problem for this patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 7761.913586997252
+    },
+    {
+      "question_id": "bench_b_historical_b9ce115e",
+      "predicted_answer": "Yes. The patient has a diagnosis of Essential (primary) hypertension (ICD-10: I10) in the admission diagnosis list from admission 20850584.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 22733.80151099991
+    },
+    {
+      "question_id": "bench_b_historical_be870c2d",
+      "predicted_answer": "Yes, the patient has diabetes. The patient is on insulin NPH and regular human [Humulin 70/30], blood sugar diagnostic [OneTouch Ultra Test], lancets [OneTouch UltraSoft Lancets], and pen needle, diabetic [BD Insulin Pen Needle UF Short] in at least one medication reconciliation.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 13620.07254800119
+    },
+    {
+      "question_id": "bench_b_historical_bf929993",
+      "predicted_answer": "The provided evidence does not mention diarrhea as a diagnosis or active problem for this patient. Therefore, I cannot determine if diarrhea should be on the patient's active problem list.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 9061.846295000578
+    },
+    {
+      "question_id": "bench_b_historical_c9f4d6b7",
+      "predicted_answer": "The provided evidence does not mention dyspnea as an active problem or diagnosis for this patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 9358.094754999911
+    },
+    {
+      "question_id": "bench_b_historical_cfd13383",
+      "predicted_answer": "Yes. The patient is taking clozapine, which is an antipsychotic medication commonly used to treat schizophrenia.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical",
+      "latency_ms": 6891.000420000637
+    },
+    {
+      "question_id": "bench_b_historical_d786bffa",
+      "predicted_answer": "The provided evidence does not mention vomiting. Therefore, it cannot be determined if vomiting should be on the patient's active problem list.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 23013.380094998865
+    },
+    {
+      "question_id": "bench_b_historical_dd28f2b3",
+      "predicted_answer": "The provided evidence is a list of the patient's home medications during different hospital stays. It does not contain information about the patient's current active problems, including metabolic acidosis. Therefore, I cannot determine if metabolic acidosis should be on the patient's active problem list.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 12455.441671998415
+    },
+    {
+      "question_id": "bench_b_historical_e8241796",
+      "predicted_answer": "The provided evidence does not mention weakness as an active problem for this patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 12111.31092299911
+    },
+    {
+      "question_id": "bench_b_historical_f0c21b59",
+      "predicted_answer": "The provided evidence does not state whether the patient currently has hypertension.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 19403.722259005008
+    },
+    {
+      "question_id": "bench_b_historical_f27baba4",
+      "predicted_answer": "The provided evidence consists of medication lists from different hospital stays. None of the medication lists mention a fracture or medications typically used for fracture treatment (like bisphosphonates or specific pain medications for bone pain). Therefore, based solely on this information, it is not possible to determine if the patient currently has a fracture.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 10335.832462995313
+    },
+    {
+      "question_id": "bench_b_historical_fa44308d",
+      "predicted_answer": "The provided evidence does not mention cholelithiasis. Therefore, it is not possible to determine if the patient currently has cholelithiasis based on the given information.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 7999.58208600583
+    },
+    {
+      "question_id": "bench_b_historical_fb74ed07",
+      "predicted_answer": "Yes, the patient has a diagnosis of Other hyperlipidemia (ICD-10: E7849) listed in the current admission's diagnosis list.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical",
+      "latency_ms": 22802.881884999806
+    },
+    {
+      "question_id": "bench_b_seq_02b5c47c",
+      "predicted_answer": "The provided evidence consists of medication reconciliation lists from different hospital stays for patient MIMIC-10003502. It does not contain any information about the patient's symptoms, diagnoses, or the order in which they occurred, such as nausea or pulmonary edema. Therefore, I cannot answer the question.",
+      "correct": false,
+      "score": 0.25,
+      "category": "sequence",
+      "latency_ms": 11979.762254995876
+    },
+    {
+      "question_id": "bench_b_seq_08a5bc5c",
+      "predicted_answer": "The provided notes do not specify the order in which anemia or depression were documented. They only list the diagnoses present during admission 23193578.",
+      "correct": false,
+      "score": 0.2857142857142857,
+      "category": "sequence",
+      "latency_ms": 9234.315295005217
+    },
+    {
+      "question_id": "bench_b_seq_0ae41c1a",
+      "predicted_answer": "The provided evidence does not contain information about VRE or chronic cough. Therefore, I cannot determine which was documented first.",
+      "correct": true,
+      "score": 0.575,
+      "category": "sequence",
+      "latency_ms": 8132.370794002782
+    },
+    {
+      "question_id": "bench_b_seq_0c691eb8",
+      "predicted_answer": "The provided evidence is a list of the patient's home medications from different hospital stays. It does not contain information about the patient's symptoms like cold or vomiting. Therefore, I cannot determine which symptom was documented first.",
+      "correct": true,
+      "score": 0.4857142857142857,
+      "category": "sequence",
+      "latency_ms": 10058.879213000182
+    },
+    {
+      "question_id": "bench_b_seq_0db29eb5",
+      "predicted_answer": "The provided evidence consists of medication reconciliation notes from different hospital stays for patient MIMIC-10000935. These notes list home medications but do not contain information about ascites or coagulopathy. Therefore, it is impossible to determine which condition was documented first based on this evidence.",
+      "correct": true,
+      "score": 0.7714285714285714,
+      "category": "sequence",
+      "latency_ms": 11420.087380996847
+    },
+    {
+      "question_id": "bench_b_seq_13e249a4",
+      "predicted_answer": "The provided clinical notes do not mention \"painful\" or \"chest pain\". Therefore, the order in which they were identified cannot be determined from this information.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence",
+      "latency_ms": 15950.132090998522
+    },
+    {
+      "question_id": "bench_b_seq_2fc0d0e1",
+      "predicted_answer": "The provided evidence does not mention osteomyelitis or vomiting. Therefore, I cannot determine the order in which they were identified.",
+      "correct": true,
+      "score": 0.6666666666666666,
+      "category": "sequence",
+      "latency_ms": 8111.285753999255
+    },
+    {
+      "question_id": "bench_b_seq_3399e938",
+      "predicted_answer": "The provided clinical notes do not mention diarrhea. Urinary frequency was documented in admission 22376572.",
+      "correct": true,
+      "score": 0.375,
+      "category": "sequence",
+      "latency_ms": 9287.689630000386
+    },
+    {
+      "question_id": "bench_b_seq_3896bfc0",
+      "predicted_answer": "The provided evidence lists diagnoses for two separate admissions. Congestive heart failure is listed in the second admission (Admission 21320596). Fever is not mentioned in either admission's diagnosis list. Therefore, based on the provided information, it is impossible to determine which condition was documented first.",
+      "correct": true,
+      "score": 0.9777777777777779,
+      "category": "sequence",
+      "latency_ms": 13673.187130996666
+    },
+    {
+      "question_id": "bench_b_seq_429a73f8",
+      "predicted_answer": "The provided evidence lists medications but does not mention the order in which \"lightheaded\" or \"CKD\" (Chronic Kidney Disease) were identified for this patient. Therefore, I cannot answer the question.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence",
+      "latency_ms": 8323.894171000575
+    },
+    {
+      "question_id": "bench_b_seq_4acb1eb0",
+      "predicted_answer": "The provided evidence is a list of medications. It does not contain information about malnutrition or back pain. Therefore, I cannot determine which condition was documented first.",
+      "correct": true,
+      "score": 0.575,
+      "category": "sequence",
+      "latency_ms": 7050.370461998682
+    },
+    {
+      "question_id": "bench_b_seq_50429da1",
+      "predicted_answer": "The provided evidence does not mention anxiety or sleep apnea. Therefore, it is impossible to determine which condition was documented first.",
+      "correct": true,
+      "score": 0.575,
+      "category": "sequence",
+      "latency_ms": 7035.53012899647
+    },
+    {
+      "question_id": "bench_b_seq_553c0b7e",
+      "predicted_answer": "The provided evidence does not mention UTI or weakness. Therefore, I cannot determine the order in which they were identified.",
+      "correct": true,
+      "score": 0.6666666666666666,
+      "category": "sequence",
+      "latency_ms": 6085.87487800105
+    },
+    {
+      "question_id": "bench_b_seq_56a31237",
+      "predicted_answer": "The provided note does not mention PE (pulmonary embolism). It documents hypoxia in the primary diagnosis list for admission 28661809. The note does not specify the order in which diagnoses were documented.",
+      "correct": false,
+      "score": 0.2857142857142857,
+      "category": "sequence",
+      "latency_ms": 31506.078347003495
+    },
+    {
+      "question_id": "bench_b_seq_5afdd873",
+      "predicted_answer": "Neither chest pain nor heartburn is documented in the provided notes.",
+      "correct": true,
+      "score": 0.375,
+      "category": "sequence",
+      "latency_ms": 6971.3510450019385
+    },
+    {
+      "question_id": "bench_b_seq_6a58114f",
+      "predicted_answer": "The evidence provided does not specify the order in which fracture and CAP (Chronic Airway Obstruction/COPD) were identified. The notes list diagnoses for two different admissions (23384508 and 25656545), but do not detail the timeline of diagnosis within the patient's history.",
+      "correct": true,
+      "score": 0.3333333333333333,
+      "category": "sequence",
+      "latency_ms": 14981.181590002961
+    },
+    {
+      "question_id": "bench_b_seq_6a9703ee",
+      "predicted_answer": "The provided notes do not specify the order in which CKD (Chronic Kidney Disease) and diarrhea were identified.",
+      "correct": true,
+      "score": 0.3333333333333333,
+      "category": "sequence",
+      "latency_ms": 83051.35670500022
+    },
+    {
+      "question_id": "bench_b_seq_6e5dfbac",
+      "predicted_answer": "The provided evidence does not contain information about \"ra\" or \"Anemia\" being documented. Therefore, I cannot determine which was documented first.",
+      "correct": true,
+      "score": 0.34285714285714286,
+      "category": "sequence",
+      "latency_ms": 17380.99450700247
+    },
+    {
+      "question_id": "bench_b_seq_75335843",
+      "predicted_answer": "The provided clinical notes detail the patient's home medications during different hospital stays but do not mention the identification of PNA (Pneumonia) or DVT (Deep Vein Thrombosis). Therefore, the order in which they were identified cannot be determined from this information.",
+      "correct": true,
+      "score": 0.3333333333333333,
+      "category": "sequence",
+      "latency_ms": 12514.771296999243
+    },
+    {
+      "question_id": "bench_b_seq_76233349",
+      "predicted_answer": "The provided evidence does not mention dizziness or ACS. Therefore, it is impossible to determine which was documented first.",
+      "correct": true,
+      "score": 0.4857142857142857,
+      "category": "sequence",
+      "latency_ms": 7015.156754001509
+    },
+    {
+      "question_id": "bench_b_seq_7f016097",
+      "predicted_answer": "Based on the provided admission notes, Coronary atherosclerosis of native coronary artery (CAD) was documented first. It appears in admission 29176490, while Personal history of malignant neoplasm of prostate (Prostate Cancer) appears in admissions 25239799 and 29496232.",
+      "correct": true,
+      "score": 0.825,
+      "category": "sequence",
+      "latency_ms": 26854.239220003365
+    },
+    {
+      "question_id": "bench_b_seq_8877125e",
+      "predicted_answer": "Neither chest pain nor stroke is documented in the provided notes.",
+      "correct": true,
+      "score": 0.375,
+      "category": "sequence",
+      "latency_ms": 1852.4754169993685
+    },
+    {
+      "question_id": "bench_b_seq_8edc10b0",
+      "predicted_answer": "The provided clinical notes do not contain information about the frequency or smoking status of the patient.",
+      "correct": true,
+      "score": 0.3333333333333333,
+      "category": "sequence",
+      "latency_ms": 6874.343210998632
+    },
+    {
+      "question_id": "bench_b_seq_95635373",
+      "predicted_answer": "The provided evidence does not mention Anemia or Paroxysmal atrial fibrillation. Therefore, I cannot determine the order in which they were identified.",
+      "correct": true,
+      "score": 0.8,
+      "category": "sequence",
+      "latency_ms": 6832.9935029978515
+    },
+    {
+      "question_id": "bench_b_seq_9c168c92",
+      "predicted_answer": "The provided evidence does not mention ascites or hepatitis. Therefore, the order in which they were identified cannot be determined from this information.",
+      "correct": true,
+      "score": 0.6666666666666666,
+      "category": "sequence",
+      "latency_ms": 20396.08517599845
+    },
+    {
+      "question_id": "bench_b_seq_9d3c7a86",
+      "predicted_answer": "The provided evidence does not mention MR or headache. Therefore, I cannot determine the order in which they were identified.",
+      "correct": true,
+      "score": 0.6666666666666666,
+      "category": "sequence",
+      "latency_ms": 6515.121169999475
+    },
+    {
+      "question_id": "bench_b_seq_a6bac5fb",
+      "predicted_answer": "The provided evidence is a list of home medications for patient MIMIC-10002769 during different hospital stays. It does not contain information about C. diff or chest pain. Therefore, I cannot determine which was documented first.",
+      "correct": true,
+      "score": 0.6444444444444444,
+      "category": "sequence",
+      "latency_ms": 8785.647086995596
+    },
+    {
+      "question_id": "bench_b_seq_b0d0c8a4",
+      "predicted_answer": "The provided evidence lists home medications but does not mention the order in which deep vein thrombosis (DVT) or nausea were identified. Therefore, I cannot answer the question.",
+      "correct": true,
+      "score": 0.6,
+      "category": "sequence",
+      "latency_ms": 12984.598631999688
+    },
+    {
+      "question_id": "bench_b_seq_b2053490",
+      "predicted_answer": "The provided clinical notes list diagnoses but do not include the sequence or timing of symptoms or diagnoses. Therefore, it is impossible to determine which was documented first, chest pain or atrial fibrillation (afib).",
+      "correct": true,
+      "score": 0.575,
+      "category": "sequence",
+      "latency_ms": 16663.268381998932
+    },
+    {
+      "question_id": "bench_b_seq_b53f6c33",
+      "predicted_answer": "The provided clinical notes do not mention Iron deficiency anemia or hypokalemia. Therefore, I cannot determine the order in which they were identified.",
+      "correct": true,
+      "score": 0.8,
+      "category": "sequence",
+      "latency_ms": 9094.26762899966
+    },
+    {
+      "question_id": "bench_b_seq_b8f793c1",
+      "predicted_answer": "The provided clinical notes do not mention constipation or chest pain. Therefore, it is impossible to determine which was documented first based on this information.",
+      "correct": true,
+      "score": 0.825,
+      "category": "sequence",
+      "latency_ms": 9473.192712997843
+    },
+    {
+      "question_id": "bench_b_seq_bb930318",
+      "predicted_answer": "The provided evidence is a list of home medications for patient MIMIC-10005858 during different hospital stays. It does not contain information about the identification of RASH or mitral regurgitation. Therefore, I cannot answer the question.",
+      "correct": true,
+      "score": 0.75,
+      "category": "sequence",
+      "latency_ms": 10539.97487900051
+    },
+    {
+      "question_id": "bench_b_seq_c3ffaa9b",
+      "predicted_answer": "The provided clinical notes do not mention \"tired\" or when anxiety was identified.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence",
+      "latency_ms": 9670.164087001467
+    },
+    {
+      "question_id": "bench_b_seq_d481f0fa",
+      "predicted_answer": "The provided evidence does not mention proteinuria or depression. Therefore, I cannot determine which was documented first.",
+      "correct": true,
+      "score": 0.4857142857142857,
+      "category": "sequence",
+      "latency_ms": 15186.774841000442
+    },
+    {
+      "question_id": "bench_b_seq_d701be1b",
+      "predicted_answer": "The provided evidence does not mention ascites or cold. Therefore, I cannot determine the order in which they were identified.",
+      "correct": true,
+      "score": 0.6666666666666666,
+      "category": "sequence",
+      "latency_ms": 11518.124754999008
+    },
+    {
+      "question_id": "bench_b_seq_dbe2e232",
+      "predicted_answer": "The provided evidence does not mention \"Confused\" or \"CLOSTRIDIUM DIFFICILE\". Therefore, I cannot determine the order in which they were identified.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence",
+      "latency_ms": 8903.95875399554
+    },
+    {
+      "question_id": "bench_b_seq_e2ff5594",
+      "predicted_answer": "The provided notes do not mention HCV. Alcohol abuse is documented in both admission notes.",
+      "correct": false,
+      "score": 0.2857142857142857,
+      "category": "sequence",
+      "latency_ms": 12716.353755997261
+    },
+    {
+      "question_id": "bench_b_seq_e3d7e0d1",
+      "predicted_answer": "The provided evidence lists the patient's home medications but does not mention the order in which constipation and weakness were identified. Therefore, I cannot answer the question.",
+      "correct": true,
+      "score": 0.3333333333333333,
+      "category": "sequence",
+      "latency_ms": 7688.9916290019755
+    },
+    {
+      "question_id": "bench_b_seq_ee9cbddb",
+      "predicted_answer": "The provided clinical notes contain medication reconciliation information but do not mention sepsis or MR (Methicillin-resistant Staphylococcus aureus). Therefore, the order in which they were identified cannot be determined from this evidence.",
+      "correct": true,
+      "score": 0.3333333333333333,
+      "category": "sequence",
+      "latency_ms": 27312.107304001984
+    },
+    {
+      "question_id": "bench_b_seq_fe472053",
+      "predicted_answer": "The provided clinical notes do not mention melena or vomiting. Therefore, the order in which they were identified cannot be determined from this information.",
+      "correct": true,
+      "score": 0.6666666666666666,
+      "category": "sequence",
+      "latency_ms": 9427.62242200115
+    }
+  ]
+}

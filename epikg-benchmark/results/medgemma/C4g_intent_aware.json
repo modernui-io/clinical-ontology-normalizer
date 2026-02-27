@@ -1,0 +1,2807 @@
+{
+  "model": "gemma3:27b (4-bit GGUF)",
+  "condition": "C4g_intent_aware",
+  "n_predictions": 400,
+  "predictions": [
+    {
+      "question_id": "bench_a_conditional_084fc490",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_0e65a291",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_178b9eb5",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_309600b2",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_3eb03d40",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_568cb9c0",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_787343d7",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_79224dcd",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_7c798644",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_8a1a4b9e",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_98cef13a",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_a761e242",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_aca13f49",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_b0479c71",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_b7b33db2",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_b9464ee7",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_e9039cad",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_f36d9cd4",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_f726e827",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_f84ce693",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_family_04048280",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_080e16ca",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_0997e312",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_1d1c4d1c",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_240897df",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_2a6d3070",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_52945d44",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_560de630",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_57033e90",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_60efbaa6",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_83019bb5",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_83f2914e",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_92abe3c7",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_a66f568f",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_ac587eb0",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_b357e0c4",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_b807c369",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_bb61feaa",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_c12f9ed9",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_c406e4ba",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_c973d63a",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_cc28a974",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_d18c55c9",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_d67e82f4",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_e5d23003",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_ebad349d",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_f02d2f93",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_fa01d58d",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_fc035c9e",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_fded0cbd",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_negation_01a73bf1",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_0307e908",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_05b38a01",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_0c96eb95",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_0de6708e",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_0e18ae69",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_101fe4b1",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_106dd7e2",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_130970cd",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_13d53907",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_1403b8e4",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_14a95ee6",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_16195e06",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_179dfa67",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_1e6ae1bc",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_20397dbf",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_21c8c64d",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_2267edf5",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_235e2a87",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_23c212a7",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_23cc9ce7",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_249c840f",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_2911192f",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_293d4ffe",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_2e78b44f",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_3276c129",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_33b33f87",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_36dc36ff",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_3904ad35",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_3fad7aa3",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_40db7f62",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_4138bbc9",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_42c8d97e",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_43343ed2",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_4861b394",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_4ac02e8d",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_4b4c1918",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_4e2a8187",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_4e7987f4",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_513de8bf",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_52386b31",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_57112dd0",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_571402c6",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_5e397dc9",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_61a7e4c2",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_623b94ec",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_645e608e",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_682baac8",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_68d98585",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_696df2d6",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_6ad5d7aa",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_6c26bc17",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_6e31efd4",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_6f8ef34c",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_7c1a4038",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_7d948b18",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_7ee3c757",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_820b44df",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_8404b54e",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_84a2e98b",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_85011728",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_89a2a540",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_8a621be9",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_8c3e3535",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_932876c3",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_9473ed98",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_956540b2",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_971c89dd",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_97d5979a",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_9a3f583a",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_a5af105f",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_a94bed8f",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_b0779d1a",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_b3cdd3b2",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_badb881d",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_c2fa4a95",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_c8173932",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_c8226f8e",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_c9423896",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_cad47ef1",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_cbf1cffe",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_d0d73973",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_d10e395d",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_d249558e",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_d4219eba",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_d77aa1a3",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_d847293f",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_d9248c83",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_d94f12ab",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_dd042427",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_dd685a2b",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_e092d16b",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_e0d14e20",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_e47c8755",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_e78da7e6",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_e8f8698f",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_f407afe0",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_f4e295fe",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_f500d64e",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_f5180c2d",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_f6537c21",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_f6b96944",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_f7e82d5c",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_f913fb0a",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_f98d6227",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_fb05d352",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_fb21a2c7",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_fd91174a",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_fda15327",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_fef1ecbe",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_uncertainty_06127456",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_123f4464",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_1c0c6ece",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_1d230654",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_1ffb8dc8",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_20e90dbf",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_23f60748",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_2705ec9f",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_2bcdd5ac",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_2f1a4469",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_34cca5f5",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_3d8cd3fc",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_426541c7",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_42910b3f",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_45a842fd",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_4a24e140",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_4d840683",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_50872b09",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_66ce4150",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_6a3e32c7",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_6ac1b034",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_7c8a132d",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_7f556b28",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_8ecc1d7c",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_94a62330",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_a00a0522",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_ad024aba",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_b9c4f4da",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_bb90a843",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_c5a5ba78",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_d5f6cea3",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_d6b5569b",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_e2f40386",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_e55a99fb",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_e88c624f",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_eab1a2aa",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_f04bcd77",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_f732cfb2",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_f7ea98b9",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_ff0b7361",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_b_chg_16bf0d62",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_3af4dea4",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.4444444444444444,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_3b4387cb",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.3111111111111111,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_4394e1c9",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.2,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_4b1262d4",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.1111111111111111,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_4ce4b0e5",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.4727272727272727,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_551986f4",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.1111111111111111,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_55fcfc07",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.5,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_5675cecb",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.5,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_56805338",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.3,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_63fd19b7",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.45454545454545453,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_799b8ee4",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.3333333333333333,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_7bfd6ae3",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.2,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_7eaa968e",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.3,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_8710f477",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.3,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_9b769505",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.2,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_9fe27a5b",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.3,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_a2d2f2df",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.3333333333333333,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_b05d1279",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.2,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_b34b5572",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.1,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_beb2c0ab",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.45454545454545453,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_bf95749e",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.45454545454545453,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_c1ed937c",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.4727272727272727,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_c86d8b22",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.3333333333333333,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_d41272ec",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.18181818181818182,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_d68a2fcd",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.45454545454545453,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_d8ecd86b",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.14285714285714285,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_e347a4fe",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.36363636363636365,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_e934a618",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.1,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_fd1db324",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.18181818181818182,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_current_state_0136c1a6",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_0579e25a",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_0a964177",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_0e1ad5ef",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_18236822",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_1b767c4a",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_1d916acd",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_1f2194cb",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_21894283",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_29384c98",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_2c71ab72",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_2f92af44",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_326ba4c8",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_351fb38e",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_3d4c282b",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_3fad479a",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_48d18a00",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_4e36b2bb",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_50d8fed0",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_57ee4127",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_5e677ee6",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_6053376a",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_6824e5ae",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_6c5caba6",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_7080eb03",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_821bb864",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_83fa18c5",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_89423fc7",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_8a04029e",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_9453ec83",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_96ef4bd2",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_9a0fed0b",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_a49952ca",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_a9a50ac4",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_ab1c0783",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_b15b05f6",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_b4ef73e0",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_b69620a8",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_c72071fe",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_cd3a6d9f",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_cd6e0903",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_cf722731",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_dd21fc0b",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_df7d349b",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_dfa75737",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_e60414c9",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_e84d9e91",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_ea719b94",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_fe80e1f3",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_fe918698",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_dur_023d1fb6",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.5,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_04bba7f9",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.38461538461538464,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_1058f8b7",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.5,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_2483a94a",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.23076923076923078,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_3155170d",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.3076923076923077,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_3585eef3",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.07692307692307693,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_3efd8123",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.5,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_44f27bb7",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_5143ceff",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.23076923076923078,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_5423a583",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.5,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_57a305bc",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.3076923076923077,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_61f47488",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_6c498e2a",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.3333333333333333,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_7321b24c",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.5,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_765d3190",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.23076923076923078,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_79178b50",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.23076923076923078,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_99a99dcb",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.23076923076923078,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_9a7579d3",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.42857142857142855,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_9aac4d9f",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.23076923076923078,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_a8089cad",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.23076923076923078,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_adcd04fb",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.15384615384615385,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_b14b3517",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.3076923076923077,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_c8b1f3aa",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.38461538461538464,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_d4e27cc6",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.23076923076923078,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_e06e4775",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.23076923076923078,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_e750dcc2",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.23076923076923078,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_e7e5e5f1",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.15384615384615385,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_efdc513d",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.5,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_f5120145",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.07692307692307693,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_f717e466",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.38461538461538464,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_historical_09d3ea63",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_1080e564",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_18b62e05",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_1c8bd655",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_20d74443",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_272efd04",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_28252ff2",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_2dc77dfe",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_2eebdbb4",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_321a5bbe",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_36e6e499",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_38cdc8ef",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_3ba61094",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_4162c093",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_4290eb4f",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_444cc10a",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_47333321",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_4c647635",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_4d8e2ad9",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_50b91d5e",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_635032b4",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_651babd4",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_757a7f78",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_7e91845c",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_8b923b7c",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_96300f55",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_982731de",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_99912897",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_a29de042",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_a3143fbf",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_a5b0cd1f",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_a701eaf4",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_aa62353e",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_b14ec163",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_b16478e7",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_b2d36cd9",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_b41b0643",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_b7386de2",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_b9ce115e",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_be870c2d",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_bf929993",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_c9f4d6b7",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_cfd13383",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_d786bffa",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_dd28f2b3",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_e8241796",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_f0c21b59",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_f27baba4",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_fa44308d",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_fb74ed07",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_seq_02b5c47c",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.575,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_08a5bc5c",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.6285714285714286,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_0ae41c1a",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.45,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_0c691eb8",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.34285714285714286,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_0db29eb5",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.6285714285714286,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_13e249a4",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_2fc0d0e1",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.6666666666666666,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_3399e938",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.575,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_3896bfc0",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.6444444444444444,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_429a73f8",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.3333333333333333,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_4acb1eb0",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.575,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_50429da1",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.575,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_553c0b7e",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.6666666666666666,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_56a31237",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.6285714285714286,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_5afdd873",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.325,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_6a58114f",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.3333333333333333,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_6a9703ee",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.3333333333333333,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_6e5dfbac",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.6285714285714286,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_75335843",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_76233349",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.7714285714285714,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_7f016097",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.7,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_8877125e",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.7,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_8edc10b0",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.6666666666666666,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_95635373",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.8,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_9c168c92",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_9d3c7a86",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.5333333333333333,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_a6bac5fb",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.8666666666666667,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_b0d0c8a4",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.8,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_b2053490",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.825,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_b53f6c33",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.6,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_b8f793c1",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.575,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_bb930318",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.75,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_c3ffaa9b",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_d481f0fa",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.6285714285714286,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_d701be1b",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.6666666666666666,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_dbe2e232",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.5,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_e2ff5594",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.6285714285714286,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_e3d7e0d1",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.8666666666666667,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_ee9cbddb",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.3333333333333333,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_fe472053",
+      "predicted_answer": "",
+      "correct": true,
+      "score": 0.6666666666666666,
+      "category": "sequence"
+    }
+  ]
+}

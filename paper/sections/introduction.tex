@@ -20,13 +20,13 @@ Our contributions:
 
   \item \textbf{Tri-temporal KG with Allen's interval algebra.} Edges carry valid time, transaction time, and NLP-asserted temporality alongside nine temporal relations (seven from Allen's algebra~\cite{allen1983temporal} plus \textsc{Concurrent} and \textsc{Unknown}) as first-class attributes, enabling temporal reasoning over longitudinal records.
 
-  \item \textbf{Five-condition ablation with bookend baselines.} We evaluate five retrieval conditions---from C7 (deterministic KG, no LLM; 3.8\%) through C4g (intent-aware KG-RAG; 76.0\%, $+26\pp$ vs.\ LLM alone)---on ClinicalBench and SliceBench.  Bookend baselines C6 (brute-force long context; 45.0\%) and C7 bracket the design space.  Intent-aware KG-RAG improves 8 of 9 categories with zero regressions; neither more context nor structured data alone can substitute for LLM + epistemic KG-RAG.
+  \item \textbf{Five-condition ablation with bookend baselines.} We evaluate five retrieval conditions---from C7 (deterministic KG, no LLM; 3.8\%) through C4g (intent-aware KG-RAG; 77.0\%, $+28\pp$ vs.\ LLM alone)---on ClinicalBench and SliceBench.  Bookend baselines C6 (brute-force long context; 41.8\%) and C7 bracket the design space.  Intent-aware KG-RAG improves 8 of 9 categories with zero regressions; neither more context nor structured data alone can substitute for LLM + epistemic KG-RAG.
 
   \item \textbf{ClinicalBench, SliceBench, and cross-model validation.} Two benchmarks (400 and 144 questions) across 9 epistemic categories target the propagation gap, with hard longitudinal questions (change, cross-admission, temporal) as the primary endpoint.  Cross-model validation on MedGemma 27B and Qwen 35B reveals that KG-RAG benefit is inversely related to parametric medical knowledge; a two-physician blinded adjudication is preregistered (Appendix~\ref{app:physician_protocol}).
 \end{enumerate}
 
 The central research question is: \emph{under what conditions does structured epistemic context help, hurt, or break even compared to unstructured retrieval or no retrieval at all?}
-The answer is decisive: intent-aware KG-RAG lifts aggregate accuracy by $+26\pp$, improving 8 of 9 categories---change detection ($+73\pp$), historical reasoning ($+56\pp$), family-history attribution ($+53\pp$)---with zero regressions.
-Brute-force long context ($-5\pp$) performs \emph{worse} than no retrieval at all.
-The benefit is model-dependent: MedGemma 27B gains only $+6\pp$ from the same pipeline, with a historical regression ($-46\pp$) where it already performs well---suggesting that KG-RAG benefit is inversely related to parametric medical knowledge.
+The answer is decisive: intent-aware KG-RAG lifts aggregate accuracy by $+28\pp$, improving 8 of 9 categories---change detection ($+90\pp$), historical reasoning ($+56\pp$), family-history attribution ($+53\pp$)---with zero regressions.
+Brute-force long context ($-8\pp$) performs \emph{worse} than no retrieval at all.
+The benefit is model-dependent: MedGemma 27B gains $+14\pp$ from the same pipeline vs.\ Opus's $+28\pp$, suggesting that KG-RAG benefit is inversely related to parametric medical knowledge.
 The magnitude and direction of the effect are both category- and model-specific, producing interactions that aggregate accuracy alone obscures (Section~\ref{sec:results}).
