@@ -375,6 +375,8 @@ ClinicalBench conditions map to SliceBench: C1$\!\approx\!$B0, C2$\!\approx\!$B2
 
 \paragraph{Evaluator evolution.} Key refinements: (i)~substring to word-boundary matching, (ii)~evidence preamble stripping. All main-text numbers use the final version.
 
+\paragraph{Reproducibility package.} A standalone reproducibility package is included as supplementary material (\texttt{epikg-benchmark/}). It contains all 400 ClinicalBench questions with gold answers, raw model predictions for all six condition$\times$model combinations (Opus C1/C4/C4g/C6, MedGemma C1/C4g), and the 284-line deterministic keyword evaluator. Running the evaluator requires only Python~3.10+ with no external dependencies. All six accuracy numbers in Tables~\ref{tab:ablation} and~\ref{tab:crossmodel} are independently reproducible from this package. MIMIC-IV patient identifiers are included so that PhysioNet-credentialed reviewers can trace predictions back to source clinical notes.
+
 
 \section{Assertion Category Definitions}
 \label{app:assertions}
