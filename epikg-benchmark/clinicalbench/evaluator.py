@@ -60,6 +60,45 @@ def _strip_evidence_echo(text: str) -> str:
     return text
 
 
+# ── Abstention detection ──
+
+# Patterns indicating the model is saying info is unavailable in the notes
+_ABSTENTION_PATTERNS = [
+    re.compile(r'\b(?:notes?|records?|documentation)\b.*\b(?:do(?:es)?\s+not|lack[s]?|fail[s]?\s+to)\s+(?:mention|contain|include|provide|document|address|specify)', re.IGNORECASE),
+    re.compile(r'\bno\s+(?:mention|information|data)\s+(?:of|about|regarding|concerning)\b', re.IGNORECASE),
+    re.compile(r'\b(?:cannot|can\'?t|unable\s+to)\s+(?:determine|assess|evaluate|answer|ascertain|establish)\b', re.IGNORECASE),
+    re.compile(r'\b(?:insufficient|inadequate)\s+(?:evidence|information|data|documentation)\b', re.IGNORECASE),
+    re.compile(r'\bnot\s+(?:mentioned|documented|provided|available|specified|addressed|included)\b', re.IGNORECASE),
+    re.compile(r'\b(?:information|evidence|data)\s+is\s+(?:missing|unavailable|lacking|absent|not\s+available)\b', re.IGNORECASE),
+    re.compile(r'\b(?:provided|available)\s+(?:notes?|records?)\s+do(?:es)?\s+not\b', re.IGNORECASE),
+]
+
+# Clinical claim patterns that override abstention (checked in first ~200 chars)
+_CLINICAL_CLAIM_PATTERNS = [
+    re.compile(r'\bpatient\s+(?:does\s+not|has\s+not|is\s+not|did\s+not)\b', re.IGNORECASE),
+    re.compile(r'\b(?:denies|denied|ruled\s+out)\b', re.IGNORECASE),
+    re.compile(r'\bno\s+evidence\s+of\b', re.IGNORECASE),
+    re.compile(r'\bpatient\s+has\s+no\b', re.IGNORECASE),
+    re.compile(r'^No[.,]', re.IGNORECASE),
+]
+
+
+def _is_abstention(text: str) -> bool:
+    """Detect if model answer is an abstention (info unavailable) rather than a clinical claim."""
+    # Strip markdown bold/italic markers for pattern matching
+    clean = re.sub(r'\*+', '', text)
+    # Check first ~200 chars for clinical claims that override abstention
+    lead = clean[:200]
+    for pat in _CLINICAL_CLAIM_PATTERNS:
+        if pat.search(lead):
+            return False
+    # Check full text for abstention patterns
+    for pat in _ABSTENTION_PATTERNS:
+        if pat.search(clean):
+            return True
+    return False
+
+
 # ── Scoring ──
 
 def _make_patterns(keywords: list[str]) -> list[re.Pattern]:
@@ -75,6 +114,10 @@ def score_answer(category: str, expected_answer: str, predicted_answer: str) -> 
     expected_lower = expected_answer.lower()
     predicted_clean = _strip_evidence_echo(predicted_answer)
     predicted_lower = predicted_clean.lower()
+
+    # Abstention gate: "I don't know" / "not mentioned" is always wrong
+    if _is_abstention(predicted_clean):
+        return False, 0.0
 
     if category == "negation":
         negation_keywords = [
@@ -150,7 +193,7 @@ def score_answer(category: str, expected_answer: str, predicted_answer: str) -> 
             correct = is_historical
         return correct, 1.0 if correct else 0.0
 
-    elif category in ("sequence", "change"):
+    elif category == "sequence":
         strip_punct = re.compile(r'[^\w\s]')
         exp_clean = strip_punct.sub('', expected_lower)
         pred_clean = strip_punct.sub('', predicted_lower)
@@ -167,9 +210,30 @@ def score_answer(category: str, expected_answer: str, predicted_answer: str) -> 
         order_keywords = ["first", "then", "followed", "before", "after", "prior",
                           "subsequently", "later"]
         order_patterns = _make_patterns(order_keywords)
-        if _has_match(predicted_lower, order_patterns):
-            score = min(score + 0.2, 1.0)
-        correct = score >= 0.3
+        has_order = _has_match(predicted_lower, order_patterns)
+        correct = score >= 0.3 and has_order
+        return correct, score
+
+    elif category == "change":
+        strip_punct = re.compile(r'[^\w\s]')
+        exp_clean = strip_punct.sub('', expected_lower)
+        pred_clean = strip_punct.sub('', predicted_lower)
+        stop_words = {
+            "the", "a", "an", "is", "of", "in", "to", "for", "was", "and",
+            "then", "by", "first", "followed", "identified", "before", "after",
+            "key", "changes", "new", "medications", "discontinued", "between",
+            "admissions", "noted", "patients", "medication", "differences",
+        }
+        exp_terms = set(exp_clean.split()) - stop_words
+        pred_terms = set(pred_clean.split())
+        overlap = exp_terms & pred_terms
+        score = len(overlap) / max(len(exp_terms), 1)
+        change_keywords = ["added", "removed", "discontinued", "new", "changed",
+                           "started", "stopped", "replaced", "switched",
+                           "initiated", "modified"]
+        change_patterns = _make_patterns(change_keywords)
+        has_change = _has_match(predicted_lower, change_patterns)
+        correct = score >= 0.3 and has_change
         return correct, score
 
     elif category == "duration":
@@ -190,7 +254,7 @@ def score_answer(category: str, expected_answer: str, predicted_answer: str) -> 
         pred_terms = set(predicted_lower.split())
         overlap = exp_terms & pred_terms
         term_score = len(overlap) / max(len(exp_terms), 1)
-        score = max(term_score, 0.5 if has_duration else 0.0)
+        score = term_score
         if chronicity_match:
             score = max(score, 0.8)
         correct = score >= 0.3

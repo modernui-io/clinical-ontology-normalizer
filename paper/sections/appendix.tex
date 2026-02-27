@@ -130,13 +130,13 @@ Negation & 110 & 45.5 & 80.9 & \up{35.5} & 57.3 & 76.4 & \up{19.1} & 46.4 & 80.0
 Conditional & 20 & 0.0 & 45.0 & \up{45.0} & 15.0 & 35.0 & \up{20.0} & 0.0 & 15.0 & \up{15.0} \\
 Uncertainty & 40 & 12.5 & 50.0 & \up{37.5} & 7.5 & 32.5 & \up{25.0} & 5.0 & 30.0 & \up{25.0} \\
 Family hist. & 30 & 3.3 & 56.7 & \up{53.3} & 3.3 & 40.0 & \up{36.7} & 3.3 & 40.0 & \up{36.7} \\
-Sequence & 40 & 10.0 & 65.0 & \up{55.0} & 7.5 & 50.0 & \up{42.5} & 15.0 & 52.5 & \up{37.5} \\
+Sequence & 40 & 10.0 & 65.0 & \up{55.0} & 7.5 & 47.5 & \up{40.0} & 12.5 & 42.5 & \up{30.0} \\
 Current st. & 50 & 26.0 & 70.0 & \up{44.0} & 32.0 & 58.0 & \up{26.0} & 36.0 & 56.0 & \up{20.0} \\
 Duration & 30 & 30.0 & 66.7 & \up{36.7} & 53.3 & 70.0 & \up{16.7} & 16.7 & 70.0 & \up{53.3} \\
 Historical & 50 & 6.0 & 60.0 & \up{54.0} & 0.0 & 46.0 & \up{46.0} & 0.0 & 60.0 & \up{60.0} \\
-Change & 30 & 16.7 & 100.0 & \up{83.3} & 3.3 & 79.3 & \up{76.0} & 0.0 & 73.3 & \up{73.3} \\
+Change & 30 & 6.7 & 100.0 & \up{93.3} & 0.0 & 79.3 & \up{79.3} & 0.0 & 70.0 & \up{70.0} \\
 \midrule
-\textbf{Overall} & \textbf{400} & \textbf{22.5} & \textbf{69.0} & \up{\textbf{46.5}} & \textbf{26.5} & \textbf{58.1} & \up{\textbf{31.6}} & \textbf{20.8} & \textbf{59.2} & \up{\textbf{38.5}} \\
+\textbf{Overall} & \textbf{400} & \textbf{21.8} & \textbf{69.0} & \up{\textbf{47.2}} & \textbf{26.2} & \textbf{57.9} & \up{\textbf{31.7}} & \textbf{20.5} & \textbf{58.0} & \up{\textbf{37.5}} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -156,16 +156,16 @@ Negation & 110 & 13.6 & 57.3 & 76.4 \\
 Conditional & 20 & 0.0 & 15.0 & 35.0 \\
 Uncertainty & 40 & 0.0 & 7.5 & 32.5 \\
 Family History & 30 & 0.0 & 3.3 & 40.0 \\
-Sequence & 40 & 0.0 & 7.5 & 50.0 \\
+Sequence & 40 & 0.0 & 7.5 & 47.5 \\
 Current State & 50 & 0.0 & 32.0 & 58.0 \\
 Duration & 30 & 0.0 & 53.3 & 70.0 \\
 Historical & 50 & 0.0 & 0.0 & 46.0 \\
-Change & 30 & 0.0 & 3.3 & 79.3 \\
+Change & 30 & 0.0 & 0.0 & 79.3 \\
 \midrule
-\textbf{Overall} & \textbf{400} & \textbf{3.8} & \textbf{26.5} & \textbf{58.1} \\
+\textbf{Overall} & \textbf{400} & \textbf{3.8} & \textbf{26.2} & \textbf{57.9} \\
 \bottomrule
 \end{tabular}
-\caption{MedGemma 27B ClinicalBench per-category accuracy (\%, keyword evaluator v2) for three conditions. MedGemma gains $+32\pp$ overall under C4g, with all 9 categories improving. Strongest improvements on change ($+76\pp$) and historical ($+46\pp$).}
+\caption{MedGemma 27B ClinicalBench per-category accuracy (\%, keyword evaluator v2) for three conditions. MedGemma gains $+32\pp$ overall under C4g, with all 9 categories improving. Strongest improvements on change ($+79\pp$) and historical ($+46\pp$).}
 \label{tab:medgemma_percategory}
 \end{table}
 
@@ -216,7 +216,7 @@ The fix improved family history by $+10.0\pp$ with zero regressions on guard cat
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\textwidth]{figures/fig5_category_deltas.pdf}
-\caption{Per-category accuracy change (Claude Opus 4.6, evaluator v2) for two comparisons. \textbf{Left:}~C6$\rightarrow$C4g (structured vs.\ unstructured retrieval): KG-RAG outperforms long context on all 9 categories, with the largest gains on sequence ($+65\pp$) and historical ($+60\pp$). \textbf{Right:}~C1$\rightarrow$C4g (LLM alone to KG-RAG): all 9 categories improve---change ($+83\pp$), sequence ($+55\pp$), historical ($+54\pp$).}
+\caption{Per-category accuracy change (Claude Opus 4.6, evaluator v2) for two comparisons. \textbf{Left:}~C6$\rightarrow$C4g (structured vs.\ unstructured retrieval): KG-RAG outperforms long context on all 9 categories, with the largest gains on sequence ($+65\pp$) and historical ($+60\pp$). \textbf{Right:}~C1$\rightarrow$C4g (LLM alone to KG-RAG): all 9 categories improve---change ($+93\pp$), sequence ($+55\pp$), historical ($+54\pp$).}
 \label{fig:deltas}
 \end{figure}
 
@@ -317,12 +317,12 @@ Sequence & 40 & 0.0 & 0.0 & 10.0 & 65.0 \\
 Current State & 50 & 0.0 & 44.0 & 26.0 & 70.0 \\
 Duration & 30 & 0.0 & 66.7 & 30.0 & 66.7 \\
 Historical & 50 & 0.0 & 0.0 & 6.0 & 60.0 \\
-Change & 30 & 0.0 & 40.0 & 16.7 & 100.0 \\
+Change & 30 & 0.0 & 23.3 & 6.7 & 100.0 \\
 \midrule
-\textbf{Overall} & \textbf{400} & \textbf{3.8} & \textbf{40.2} & \textbf{22.5} & \textbf{69.0} \\
+\textbf{Overall} & \textbf{400} & \textbf{3.8} & \textbf{39.0} & \textbf{21.8} & \textbf{69.0} \\
 \bottomrule
 \end{tabular}
-\caption{Complete ClinicalBench per-category accuracy (\%, Claude Opus 4.6, keyword evaluator v2) for all conditions. C7 is model-independent. All 9 categories improve from C1 to C4g; the largest gains occur on change ($+83\pp$), sequence ($+55\pp$), and historical ($+54\pp$).}
+\caption{Complete ClinicalBench per-category accuracy (\%, Claude Opus 4.6, keyword evaluator v2) for all conditions. C7 is model-independent. All 9 categories improve from C1 to C4g; the largest gains occur on change ($+93\pp$), sequence ($+55\pp$), and historical ($+54\pp$).}
 \label{tab:full_percategory}
 \end{table}
 
@@ -481,7 +481,7 @@ In a prior evaluator run, C5 achieved 68.2\% overall, below the prior-run C1 and
 \paragraph{C6 (Long Context).}
 All patient documents are concatenated chronologically and presented to the LLM.
 For Opus (200K token window), all notes fit; for MedGemma (8K window), later documents are truncated.
-C6 achieves 40.2\% (Opus) overall---better than C1 (22.5\%) but far below C4g (69.0\%).
+C6 achieves 39.0\% (Opus) overall---better than C1 (21.8\%) but far below C4g (69.0\%).
 Opus catastrophically fails on historical (0\%) and sequence (0\%) under C6, confirming that brute-force long context cannot substitute for structured retrieval on categories requiring cross-encounter synthesis.
 
 \paragraph{C7 (Deterministic KG).}

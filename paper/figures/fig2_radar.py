@@ -20,8 +20,8 @@ categories = [
 N = len(categories)
 
 # Opus 4.6 data (400 questions, keyword evaluator v2 with abstention detection)
-c6_vals  = [ 69.1, 35.0, 27.5, 43.3,  0.0, 44.0, 66.7,  0.0, 40.0]
-c1_vals  = [ 45.5,  0.0, 12.5,  3.3, 10.0, 26.0, 30.0,  6.0, 16.7]
+c6_vals  = [ 69.1, 35.0, 27.5, 43.3,  0.0, 44.0, 66.7,  0.0, 23.3]
+c1_vals  = [ 45.5,  0.0, 12.5,  3.3, 10.0, 26.0, 30.0,  6.0,  6.7]
 c4g_vals = [ 80.9, 45.0, 50.0, 56.7, 65.0, 70.0, 66.7, 60.0, 100.0]
 
 # Compute angles
@@ -67,7 +67,7 @@ ax.fill(angles, c4g_vals, color='#1B5E8C', alpha=0.08, zorder=1)
 # Annotate C4g on change (100%)
 change_angle = angles[8]
 ax.annotate(
-    '+83 pp\n(C1->C4g)',
+    '+93 pp\n(C1->C4g)',
     xy=(change_angle, c4g_vals[8]),
     xytext=(change_angle + 0.25, c4g_vals[8] + 8),
     fontsize=7, fontweight='bold', color='#1B5E8C',
@@ -100,9 +100,9 @@ ax.annotate(
 # Legend
 legend_elements = [
     Line2D([0], [0], color='#CC79A7', linestyle='dashdot', linewidth=1.4,
-           marker='v', markersize=3.5, label='C6: Long Context (40.2%)'),
+           marker='v', markersize=3.5, label='C6: Long Context (39.0%)'),
     Line2D([0], [0], color='#999999', linestyle='dotted', linewidth=1.3,
-           marker='o', markersize=3.5, label='C1: LLM Alone (22.5%)'),
+           marker='o', markersize=3.5, label='C1: LLM Alone (21.8%)'),
     Line2D([0], [0], color='#1B5E8C', linestyle='solid', linewidth=2.2,
            marker='D', markersize=4, label='C4g: +Intent-Aware (69.0%)'),
 ]

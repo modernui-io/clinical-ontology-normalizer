@@ -2,21 +2,21 @@
 % NOTE: \section{Discussion and Limitations} and \label{sec:discussion} are in main.tex
 
 \paragraph{Why long context underperforms.}
-Brute-force long context (C6) scores 40.2\%, outperforming C1 ($+17.8\pp$) because it at least provides clinical text for the model to draw on, but it still falls far short of C4g (69.0\%) and catastrophically fails on historical (0\%) and sequence (0\%).
+Brute-force long context (C6) scores 39.0\%, outperforming C1 ($+17.2\pp$) because it at least provides clinical text for the model to draw on, but it still falls far short of C4g (69.0\%) and catastrophically fails on historical (0\%) and sequence (0\%).
 C6 concatenates all notes chronologically without retrieval or selection; more sophisticated long-context strategies (hierarchical summarization, temporal segmentation) might perform better, but C6's category-level failures---consistent with the ``lost in the middle'' phenomenon~\cite{liu2024lostmiddle}---demonstrate that raw context dumping cannot substitute for structured retrieval.
 Historical questions require distinguishing resolved from active conditions across admissions; sequence questions require strict temporal ordering---both are implicit in raw text but explicit in the epistemic KG.
-C6 handles change detection reasonably (40\%) because the relevant information appears explicitly in the text, but KG-RAG achieves $100\%$ ($+60\pp$).
+C6 handles change detection modestly (23\%) because the relevant information appears explicitly in the text, but KG-RAG achieves $100\%$ ($+77\pp$).
 
 \paragraph{Model-dependent KG benefit.}
 The most striking finding is that KG-RAG benefit is inversely related to parametric medical knowledge (Table~\ref{tab:crossmodel}).
-Opus, a general-purpose model, gains $+47\pp$ from intent-aware KG-RAG; GPT-OSS~20B gains $+39\pp$; MedGemma~27B, fine-tuned on medical corpora, gains $+32\pp$.
-All three models benefit substantially, but the magnitude differs: MedGemma starts with the highest C1 baseline (26.5\%) yet achieves the lowest C4g accuracy (58.1\%), while Opus starts at 22.5\% but reaches 69.0\%.
+Opus, a general-purpose model, gains $+47\pp$ from intent-aware KG-RAG; GPT-OSS~20B gains $+38\pp$; MedGemma~27B, fine-tuned on medical corpora, gains $+32\pp$.
+All three models benefit substantially, but the magnitude differs: MedGemma starts with the highest C1 baseline (26.2\%) yet achieves the lowest C4g accuracy (57.9\%), while Opus starts at 21.8\% but reaches 69.0\%.
 Intent-aware KG-RAG thus functions as a \emph{medical knowledge compensator}: the structured epistemic context partially substitutes for parametric medical knowledge, providing the largest benefit to models that need it most.
 This has practical implications: the same RAG system may help or hurt differently depending on the downstream model, and evaluation on a single model understates or overstates the system's value.
 
 \paragraph{When KG context matters.}
 The complexity-dependent SliceBench effect (Tier~C: $+5.0\pp$ vs.\ Tier~A: $+0.6\pp$) suggests structured epistemic context is most valuable when: (a)~document volume overwhelms chunk-level retrieval, (b)~questions require cross-encounter synthesis where the same concept appears with different assertion states, and (c)~assertion status evolves across encounters.
-C4g's intent-aware routing provides direct evidence: the ``change'' category jumps from 17\% (C1) to 100\% ($+83\pp$), confirming that \emph{targeted graph traversal strategy}, not text access, is the key factor.
+C4g's intent-aware routing provides direct evidence: the ``change'' category jumps from 7\% (C1) to 100\% ($+93\pp$), confirming that \emph{targeted graph traversal strategy}, not text access, is the key factor.
 
 \paragraph{Uncertainty remains weakest.}
 Uncertainty improves from 12.5\% to 50.0\% ($+37.5\pp$), but absolute accuracy remains low.
@@ -35,8 +35,8 @@ Over-reliance on KG-driven summaries risks anchoring bias if NLP extraction intr
 \end{sloppypar}
 
 \paragraph{Conclusion.}
-The epistemic propagation gap is a real and measurable phenomenon: without retrieval, models achieve only 23\% on assertion-sensitive questions, while intent-aware epistemic KG-RAG lifts accuracy to 69\% ($+47\pp$).
+The epistemic propagation gap is a real and measurable phenomenon: without retrieval, models achieve only 22\% on assertion-sensitive questions, while intent-aware epistemic KG-RAG lifts accuracy to 69\% ($+47\pp$).
 \epikg addresses this gap through end-to-end epistemic preservation combined with intent-aware retrieval that matches graph traversal strategy to question semantics.
-The benefit is category-specific: change detection rises from 17\% to 100\% ($+83\pp$), sequence from 10\% to 65\% ($+55\pp$), historical from 6\% to 60\% ($+54\pp$)---all 9 categories improve.
+The benefit is category-specific: change detection rises from 7\% to 100\% ($+93\pp$), sequence from 10\% to 65\% ($+55\pp$), historical from 6\% to 60\% ($+54\pp$)---all 9 categories improve.
 The benefit is also model-dependent: KG-RAG functions as a medical knowledge compensator across all three models tested, providing the largest gains to general-purpose models.
-Neither more context nor structured data alone suffices---C6 (40.2\%) and C7 (3.8\%) bracket the design space---confirming that the category$\times$condition interaction, not the aggregate, is the right lens for clinical KG-RAG evaluation.
+Neither more context nor structured data alone suffices---C6 (39.0\%) and C7 (3.8\%) bracket the design space---confirming that the category$\times$condition interaction, not the aggregate, is the right lens for clinical KG-RAG evaluation.

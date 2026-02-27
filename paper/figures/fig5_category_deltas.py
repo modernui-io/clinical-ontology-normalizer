@@ -12,13 +12,13 @@ plt.rcParams.update({
 })
 
 # Categories sorted by C6 to C4g delta (most positive first)
-# C6→C4g: Sequence 0→65=+65, Historical 0→60=+60, Change 40→100=+60,
-#          Current 44→70=+26, Negation 69.1→80.9=+11.8, Conditional 35→45=+10,
-#          Uncertainty 27.5→50=+22.5, Family 43.3→56.7=+13.3, Duration 66.7→66.7=0
+# C6→C4g: Change 23.3→100=+76.7, Sequence 0→65=+65, Historical 0→60=+60,
+#          Current 44→70=+26, Uncertainty 27.5→50=+22.5, Family 43.3→56.7=+13.3,
+#          Negation 69.1→80.9=+11.8, Conditional 35→45=+10, Duration 66.7→66.7=0
 categories = [
+    'Change',          # C6 to C4g: +76.7
     'Sequence',        # C6 to C4g: +65.0
     'Historical',      # C6 to C4g: +60.0
-    'Change',          # C6 to C4g: +60.0
     'Current State',   # C6 to C4g: +26.0
     'Uncertainty',     # C6 to C4g: +22.5
     'Family History',  # C6 to C4g: +13.3
@@ -28,13 +28,13 @@ categories = [
 ]
 
 # C6 to C4g deltas (Opus, evaluator v2)
-c6_deltas = [+65.0, +60.0, +60.0, +26.0, +22.5, +13.3, +11.8, +10.0, +0.0]
+c6_deltas = [+76.7, +65.0, +60.0, +26.0, +22.5, +13.3, +11.8, +10.0, +0.0]
 
 # C1 to C4g deltas (Opus, evaluator v2) — matching category order above
-c1_deltas = [+55.0, +54.0, +83.3, +44.0, +37.5, +53.3, +35.5, +45.0, +36.7]
+c1_deltas = [+93.3, +55.0, +54.0, +44.0, +37.5, +53.3, +35.5, +45.0, +36.7]
 
 # Sample sizes (matching category order)
-n_questions = [40, 50, 30, 50, 40, 30, 110, 20, 30]
+n_questions = [30, 40, 50, 50, 40, 30, 110, 20, 30]
 
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(5.5, 3.5), sharey=True)
 fig.patch.set_facecolor('white')
