@@ -151,13 +151,11 @@ def export_medgemma_results():
         out_path = os.path.join(OUT, "results", "medgemma", "C1_llm_alone.json")
         write_predictions(predictions, "gemma3:27b (4-bit GGUF)", "C1_llm_alone", out_path)
 
-    # MedGemma C4g: result file only (no answer text available)
-    c4g_result = os.path.join(RESULTS, "condition_C4g_intent_aware.json")
-    if os.path.exists(c4g_result):
-        predictions = extract_prescored(c4g_result)
-        if predictions:
-            out_path = os.path.join(OUT, "results", "medgemma", "C4g_intent_aware.json")
-            write_predictions(predictions, "gemma3:27b (4-bit GGUF)", "C4g_intent_aware", out_path)
+    # MedGemma C4g: from main checkpoint (399 entries, 398 with answer text)
+    predictions = extract_from_checkpoint(MAIN_CP, "C4g_intent_aware")
+    if predictions:
+        out_path = os.path.join(OUT, "results", "medgemma", "C4g_intent_aware.json")
+        write_predictions(predictions, "gemma3:27b (4-bit GGUF)", "C4g_intent_aware", out_path)
 
 
 def generate_checksums():

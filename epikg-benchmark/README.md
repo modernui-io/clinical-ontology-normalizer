@@ -48,6 +48,7 @@ Re-scored with the standalone evaluator (deterministic, no LLM judge):
 | C4g: Intent-Aware KG-RAG | Claude Opus 4.6 | 77.0% | 400 |
 | C6: Long Context | Claude Opus 4.6 | 41.8% | 400 |
 | C1: LLM Alone | MedGemma 27B | 52.5% | 400 |
+| C4g: Intent-Aware KG-RAG | MedGemma 27B | 66.2% | 399 |
 
 ## Evaluator Design
 
