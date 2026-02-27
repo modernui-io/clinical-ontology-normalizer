@@ -301,24 +301,24 @@ C & 15+ notes & 48.4 & 74.2 & 86.5 & 91.5 & 90.3 & $+5.0\pp$ \\
 \begin{table}[ht]
 \centering
 \small
-\begin{tabular}{lccccc}
+\begin{tabular}{lcccccc}
 \toprule
-\textbf{Category} & $n$ & \textbf{C7} & \textbf{C1} & \textbf{C4g} & \textbf{C6} \\
+\textbf{Category} & $n$ & \textbf{C7} & \textbf{C6} & \textbf{C1} & \textbf{C4} & \textbf{C4g} \\
 \midrule
-Negation & 110 & 13.6 & 86.4 & 88.2 & 72.7 \\
-Conditional & 20 & 0.0 & 15.0 & 45.0 & 45.0 \\
-Uncertainty & 40 & 0.0 & 17.5 & 50.0 & 30.0 \\
-Family History & 30 & 0.0 & 3.3 & 56.7 & 43.3 \\
-Sequence & 40 & 0.0 & 100.0 & 100.0 & 0.0 \\
-Current State & 50 & 0.0 & 40.0 & 72.0 & 48.0 \\
-Duration & 30 & 0.0 & 86.7 & 93.3 & 73.3 \\
-Historical & 50 & 0.0 & 6.0 & 62.0 & 0.0 \\
-Change & 30 & 0.0 & 13.3 & 86.7 & 66.7 \\
+Negation & 110 & 13.6 & 72.7 & 86.4 & 100.0 & 88.2 \\
+Conditional & 20 & 0.0 & 45.0 & 15.0 & 70.0 & 45.0 \\
+Uncertainty & 40 & 0.0 & 30.0 & 17.5 & 57.5 & 50.0 \\
+Family History & 30 & 0.0 & 43.3 & 3.3 & 70.0 & 56.7 \\
+Sequence & 40 & 0.0 & 0.0 & 100.0 & 87.5 & 100.0 \\
+Current State & 50 & 0.0 & 48.0 & 40.0 & 54.0 & 72.0 \\
+Duration & 30 & 0.0 & 73.3 & 86.7 & 83.3 & 93.3 \\
+Historical & 50 & 0.0 & 0.0 & 6.0 & 60.0 & 62.0 \\
+Change & 30 & 0.0 & 66.7 & 13.3 & 3.3 & 86.7 \\
 \midrule
-\textbf{Overall} & \textbf{400} & \textbf{3.8} & \textbf{49.8} & \textbf{76.0} & \textbf{45.0} \\
+\textbf{Overall} & \textbf{400} & \textbf{3.8} & \textbf{45.0} & \textbf{49.8} & \textbf{71.5} & \textbf{76.0} \\
 \bottomrule
 \end{tabular}
-\caption{Complete ClinicalBench per-category accuracy (\%, Claude Opus 4.6, deterministic keyword evaluator) for all primary conditions. C7 is model-independent.}
+\caption{Complete ClinicalBench per-category accuracy (\%, Claude Opus 4.6, deterministic keyword evaluator) for all conditions. C7 is model-independent. C4$\to$C4g: change jumps from 3.3\% to 86.7\%, isolating intent-aware routing.}
 \label{tab:full_percategory}
 \end{table}
 

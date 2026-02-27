@@ -22,6 +22,7 @@ SliceBench reports BCa bootstrap 95\% CIs ($n=2{,}000$, seed 42)~\cite{efron1993
 C7 & Deterministic KG (no LLM) & 3.8\% & $-46.0\pp$ \\
 \midrule
 C1 & LLM Alone & 49.8\% & --- \\
+C4 & + Epistemic KG-RAG & 71.5\% & $+21.7\pp$ \\
 C4g & + Intent-Aware KG-RAG & \textbf{76.0\%} & $+26.3\pp$ \\
 \midrule
 C6 & Long Context (all notes) & 45.0\% & $-4.8\pp$ \\
@@ -31,8 +32,9 @@ C6 & Long Context (all notes) & 45.0\% & $-4.8\pp$ \\
 
 The bookend baselines bracket the design space: C7 (deterministic KG, no LLM) achieves 3.8\%---only negation detection works (13.6\%) via stored assertion metadata---confirming that an LLM is essential for reasoning over graph evidence.
 C6 (all notes concatenated) scores 45.0\%, \emph{worse} than C1 ($-4.8\pp$): brute-force long context is not a viable alternative, even with Opus's 200K token window.
-Intent-aware KG-RAG (C4g) achieves 76.0\% ($+26.3\pp$ vs.\ C1), demonstrating that the combination of epistemic structure and intent-aware routing provides substantial benefit.
-For reference, uniform epistemic KG-RAG without intent-awareness (C4) showed $-4.9\pp$ in a prior MedGemma run, consistent with prior work showing that injected context can override correct reasoning~\cite{graphragbench2026}; the C4$\rightarrow$C4g transition isolates intent-aware routing as the enabling mechanism.
+Uniform epistemic KG-RAG (C4) achieves 71.5\% ($+21.7\pp$), showing that structured retrieval with assertion metadata provides substantial benefit even without intent-aware routing.
+Intent-aware KG-RAG (C4g) adds another $+4.5\pp$ to reach 76.0\%.
+The C4$\rightarrow$C4g transition is most visible on change detection: C4 drops to 3.3\% (worse than C1's 13.3\%) because uniform retrieval injects irrelevant temporal context, while C4g recovers to 86.7\% via question-type-specific traversal.
 
 % ----------------------------------------------------------
 \subsection{Category$\times$Condition Interaction}
@@ -40,25 +42,25 @@ For reference, uniform epistemic KG-RAG without intent-awareness (C4) showed $-4
 
 \begin{table}[t]
 \centering
-\caption{ClinicalBench per-category accuracy (\%) across conditions (Claude Opus 4.6). C4g improves 8 of 9 categories with zero regressions (sequence already 100\% under C1). Best per row in \textbf{bold}.}
+\caption{ClinicalBench per-category accuracy (\%) across conditions (Claude Opus 4.6). C4g improves 8 of 9 categories over C1 with zero regressions. Best per row in \textbf{bold}.}
 \label{tab:clinicalbench_categories}
 \small
-\begin{tabular}{@{}lccccl@{}}
+\begin{tabular}{@{}lcccccl@{}}
 \toprule
-Category & $n$ & C6 & C1 & C4g & C4g$-$C1 \\
+Category & $n$ & C6 & C1 & C4 & C4g & C4g$-$C1 \\
 \midrule
-Negation & 110 & 72.7 & 86.4 & \textbf{88.2} & $\uparrow 1.8\pp$ \\
-Conditional & 20 & 45.0 & 15.0 & \textbf{45.0} & $\uparrow 30.0\pp$ \\
-Uncertainty & 40 & 30.0 & 17.5 & \textbf{50.0} & $\uparrow 32.5\pp$ \\
-Family hist. & 30 & 43.3 & 3.3 & \textbf{56.7} & $\uparrow 53.3\pp$ \\
-Sequence & 40 & 0.0 & \textbf{100.0} & \textbf{100.0} & $= 0\pp$ \\
+Negation & 110 & 72.7 & 86.4 & \textbf{100.0} & 88.2 & $\uparrow 1.8\pp$ \\
+Conditional & 20 & 45.0 & 15.0 & \textbf{70.0} & 45.0 & $\uparrow 30.0\pp$ \\
+Uncertainty & 40 & 30.0 & 17.5 & \textbf{57.5} & 50.0 & $\uparrow 32.5\pp$ \\
+Family hist. & 30 & 43.3 & 3.3 & 70.0 & \textbf{56.7} & $\uparrow 53.3\pp$ \\
+Sequence & 40 & 0.0 & \textbf{100.0} & 87.5 & \textbf{100.0} & $= 0\pp$ \\
 \midrule
-Current st. & 50 & 48.0 & 40.0 & \textbf{72.0} & $\uparrow 32.0\pp$ \\
-Duration & 30 & 73.3 & 86.7 & \textbf{93.3} & $\uparrow 6.7\pp$ \\
-Historical & 50 & 0.0 & 6.0 & \textbf{62.0} & $\uparrow 56.0\pp$ \\
-Change & 30 & 66.7 & 13.3 & \textbf{86.7} & $\uparrow 73.3\pp$ \\
+Current st. & 50 & 48.0 & 40.0 & 54.0 & \textbf{72.0} & $\uparrow 32.0\pp$ \\
+Duration & 30 & 73.3 & 86.7 & 83.3 & \textbf{93.3} & $\uparrow 6.7\pp$ \\
+Historical & 50 & 0.0 & 6.0 & 60.0 & \textbf{62.0} & $\uparrow 56.0\pp$ \\
+Change & 30 & 66.7 & 13.3 & 3.3 & \textbf{86.7} & $\uparrow 73.3\pp$ \\
 \midrule
-\textbf{Overall} & \textbf{400} & 45.0 & 49.8 & \textbf{76.0} & $\uparrow 26.3\pp$ \\
+\textbf{Overall} & \textbf{400} & 45.0 & 49.8 & 71.5 & \textbf{76.0} & $\uparrow 26.3\pp$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -66,7 +68,7 @@ Change & 30 & 66.7 & 13.3 & \textbf{86.7} & $\uparrow 73.3\pp$ \\
 \begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/fig2_radar.pdf}
-\caption{ClinicalBench per-category accuracy across three conditions (C6, C1, C4g; Claude Opus 4.6). C6 (orange dash-dot) collapses on historical and sequence (both 0\%); C4g (dark solid) improves 8 of 9 categories over C1 with no regressions---the category$\times$condition interaction that aggregate accuracy obscures.}
+\caption{ClinicalBench per-category accuracy across four conditions (C6, C1, C4, C4g; Claude Opus 4.6). C6 (orange dash-dot) collapses on historical and sequence (both 0\%); C4 (green dashed) improves most categories but drops change to 3\%; C4g (dark solid) improves 8 of 9 categories over C1 with no regressions.}
 \label{fig:radar}
 \end{figure}
 
