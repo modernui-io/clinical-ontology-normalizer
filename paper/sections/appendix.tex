@@ -360,7 +360,7 @@ We report $\kappa$ to demonstrate independent judgment and disclose the relation
 \label{app:reproducibility}
 
 \paragraph{Models.} ClinicalBench primary ablation: Claude Opus 4.6 (claude-opus-4-20250514, keyword evaluator).
-Cross-model: MedGemma 27B (gemma3:27b, 4-bit GGUF) via Ollama; Qwen 35B; same evaluator.
+Cross-model: MedGemma 27B (gemma3:27b, 4-bit GGUF) via Ollama; same evaluator.
 SliceBench: Claude Sonnet 4.5 (claude-sonnet-4-5-20250929) answers, Opus 4.6 judges.
 Temperature 0 throughout; 4-bit quantization introduces GPU non-determinism ($\pm 10\pp$ run-to-run for MedGemma), controlled via within-run paired comparisons.
 
@@ -481,8 +481,8 @@ In a prior evaluator run, C5 achieved 68.2\% overall, below the prior-run C1 and
 \paragraph{C6 (Long Context).}
 All patient documents are concatenated chronologically and presented to the LLM.
 For Opus (200K token window), all notes fit; for MedGemma (8K window), later documents are truncated.
-C6 achieves 45.0\% (Opus) and 46.5\% (MedGemma) overall.
-Both models catastrophically fail on historical (0\% Opus, 20\% MedGemma), confirming that brute-force long context cannot substitute for structured retrieval regardless of context window size.
+C6 achieves 41.8\% (Opus) and 57.5\% (MedGemma) overall.
+Both models catastrophically fail on historical (0\% Opus, 18\% MedGemma), confirming that brute-force long context cannot substitute for structured retrieval regardless of context window size.
 
 \paragraph{C7 (Deterministic KG).}
 KG edges matching query concepts are returned directly without LLM reasoning.

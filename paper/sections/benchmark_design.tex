@@ -57,7 +57,7 @@ The critical comparison is B2$\to$B3: both have the same documents, but B3 adds 
 
 \paragraph{ClinicalBench} uses a \emph{deterministic keyword evaluator} that performs exact word-boundary matching of gold-standard assertion and temporal keywords against model answers (keyword lists in Appendix~\ref{app:reproducibility}).
 This evaluator is fully reproducible (no stochastic LLM judge) and is used for all ClinicalBench results.
-The primary answering model is Claude Opus 4.6; cross-model validation uses MedGemma 27B and Qwen 35B under the same evaluator.
+The primary answering model is Claude Opus 4.6; cross-model validation uses MedGemma 27B under the same evaluator.
 
 \paragraph{SliceBench} uses an \emph{LLM-as-judge} protocol with separated answering and judging models to prevent self-evaluation bias~\cite{xiong2024mirage}: Claude Sonnet 4.5 generates answers and Claude Opus 4.6 judges correctness.
 

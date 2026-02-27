@@ -3,7 +3,7 @@
 
 We evaluate \epikg through two benchmarks: ClinicalBench tests assertion-sensitive and longitudinal reasoning, while SliceBench measures longitudinal QA across patient complexity tiers.
 ClinicalBench uses a deterministic keyword evaluator for reproducibility; SliceBench uses LLM-as-judge evaluation (Section~\ref{sec:bench:protocol}).
-Claude Opus 4.6 is the primary answering model; MedGemma 27B and Qwen 35B provide cross-model validation.
+Claude Opus 4.6 is the primary answering model; MedGemma 27B provides cross-model validation.
 SliceBench reports BCa bootstrap 95\% CIs ($n=2{,}000$, seed 42)~\cite{efron1993bootstrap}, resampled at the question level.
 
 % ----------------------------------------------------------
@@ -76,7 +76,7 @@ Table~\ref{tab:clinicalbench_categories} and Figure~\ref{fig:radar} reveal a str
 
 \paragraph{Where intent-aware routing excels.}
 \begin{sloppypar}
-The largest gains occur on categories requiring cross-admission synthesis: change ($+90\pp$), historical ($+56\pp$), family history ($+53\pp$), uncertainty ($+33\pp$), and current state ($+32\pp$).
+The largest gains occur on categories requiring cross-admission synthesis: change ($+90\pp$), historical ($+56\pp$), family history ($+53\pp$), uncertainty ($+32.5\pp$), and current state ($+32\pp$).
 C6 fails catastrophically on historical (0\%) and sequence (0\%) despite Opus's 200K window, confirming that long context cannot substitute for structured retrieval.
 \end{sloppypar}
 
@@ -95,7 +95,7 @@ C6 fails catastrophically on historical (0\%) and sequence (0\%) despite Opus's 
 \midrule
 Commercial & Claude Opus 4.6 & 49.5\% & \textbf{77.0\%} & $+27.5\pp$ \\
 Open & MedGemma 27B & 52.5\% & 66.2\% & $+13.7\pp$ \\
-Open & Qwen 35B & ---\% & ---\% & ---\,$\pp$ \\
+% Qwen 35B row removed — experiment not yet complete
 \bottomrule
 \end{tabular}
 \end{table}
@@ -105,7 +105,7 @@ Both models benefit from KG-RAG, but the magnitude differs: Opus gains $+27.5\pp
 
 This pattern is most visible on historical questions: MedGemma C4g achieves 46\% on historical (vs.\ 0\% for C1), while Opus C4g reaches 62\% (vs.\ 6\% for C1).
 The general-purpose model gains more from structured retrieval because it lacks the parametric medical knowledge that MedGemma acquired through fine-tuning.
-Intent-aware KG-RAG thus functions as a \emph{medical knowledge equalizer}, providing the largest benefit to models that need it most.
+Intent-aware KG-RAG thus functions as a \emph{medical knowledge compensator}: the structured epistemic context partially substitutes for parametric medical knowledge, providing the largest benefit to models that need it most.
 Per-category cross-model breakdowns appear in Appendix Table~\ref{tab:crossmodel_categories}.
 
 % ----------------------------------------------------------

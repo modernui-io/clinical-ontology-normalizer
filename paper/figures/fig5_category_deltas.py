@@ -33,7 +33,7 @@ c1_deltas = [0.0, +56.0, +90.0, +32.0, +6.7, +32.5, +1.8, +53.3, +30.0]
 # Sample sizes (matching category order)
 n_questions = [40, 50, 30, 50, 30, 40, 110, 30, 20]
 
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7.0, 3.5), sharey=True)
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(5.5, 3.5), sharey=True)
 fig.patch.set_facecolor('white')
 
 y_pos = np.arange(len(categories))

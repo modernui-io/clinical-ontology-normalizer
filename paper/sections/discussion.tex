@@ -12,7 +12,7 @@ Uniform KG-RAG (C4) also underperforms intent-aware routing: 60.8\% vs.\ C4g's 7
 The most striking finding is that KG-RAG benefit is inversely related to parametric medical knowledge (Table~\ref{tab:crossmodel}).
 Opus, a general-purpose model, gains $+28\pp$ from intent-aware KG-RAG; MedGemma~27B, fine-tuned on medical corpora, gains $+14\pp$.
 Both models benefit, but the magnitude differs: Opus starts at 50\% on C1 while MedGemma starts at 53\%, yet Opus's absolute C4g performance (77\%) exceeds MedGemma's (66\%) because the epistemic KG context compensates more effectively for knowledge the general-purpose model lacks.
-Intent-aware KG-RAG thus functions as a \emph{medical knowledge equalizer}: the structured epistemic context provides the largest benefit to models that need it most.
+Intent-aware KG-RAG thus functions as a \emph{medical knowledge compensator}: the structured epistemic context partially substitutes for parametric medical knowledge, providing the largest benefit to models that need it most.
 This has practical implications: the same RAG system may help or hurt differently depending on the downstream model, and evaluation on a single model understates or overstates the system's value.
 
 \paragraph{When KG context matters.}
@@ -39,5 +39,5 @@ Over-reliance on KG-driven summaries risks anchoring bias if NLP extraction intr
 The epistemic propagation gap is a real and measurable phenomenon: brute-force long context degrades accuracy by $8\pp$, while intent-aware epistemic KG-RAG improves it by $28\pp$.
 \epikg addresses this gap through end-to-end epistemic preservation combined with intent-aware retrieval that matches graph traversal strategy to question semantics.
 The benefit is category-specific: change detection rises from 10\% to 100\% ($+90\pp$), historical from 6\% to 62\% ($+56\pp$), family history from 3\% to 57\% ($+53\pp$)---8 of 9 categories improve with zero regressions.
-The benefit is also model-dependent: KG-RAG functions as a medical knowledge equalizer, providing the largest gains to models that need it most.
+The benefit is also model-dependent: KG-RAG functions as a medical knowledge compensator, providing the largest gains to models that need it most.
 Neither more context nor structured data alone suffices---C6 and C7 (3.8\%) bracket the design space---confirming that the category$\times$condition interaction, not the aggregate, is the right lens for clinical KG-RAG evaluation.
