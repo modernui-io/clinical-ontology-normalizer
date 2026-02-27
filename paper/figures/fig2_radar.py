@@ -52,9 +52,9 @@ ax.set_xticklabels(categories, fontsize=7.5, fontweight='medium', color='#333333
 ax.tick_params(axis='x', pad=14)
 
 # Plot C6 — orange dash-dot (long context bookend)
-ax.plot(angles, c6_vals, color='#E8871E', linewidth=1.4,
+ax.plot(angles, c6_vals, color='#CC79A7', linewidth=1.4,
         linestyle='dashdot', marker='v', markersize=3.5, alpha=0.8, zorder=2)
-ax.fill(angles, c6_vals, color='#E8871E', alpha=0.05, zorder=1)
+ax.fill(angles, c6_vals, color='#CC79A7', alpha=0.05, zorder=1)
 
 # Plot C1 — gray dotted baseline
 ax.plot(angles, c1_vals, color='#999999', linewidth=1.3,
@@ -106,7 +106,7 @@ ax.annotate(
 
 # Legend
 legend_elements = [
-    Line2D([0], [0], color='#E8871E', linestyle='dashdot', linewidth=1.4,
+    Line2D([0], [0], color='#CC79A7', linestyle='dashdot', linewidth=1.4,
            marker='v', markersize=3.5, label='C6: Long Context (41.8%)'),
     Line2D([0], [0], color='#999999', linestyle='dotted', linewidth=1.3,
            marker='o', markersize=3.5, label='C1: LLM Alone (49.5%)'),

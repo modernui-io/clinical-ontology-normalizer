@@ -6,6 +6,7 @@ We organize prior work along four axes and synthesize the gaps that \epikg addre
 \paragraph{Medical RAG systems.}
 Graph-augmented retrieval has emerged as a leading paradigm for medical QA.
 GraphRAG~\cite{edge2024graphrag} introduced community-based summarization; GFM-RAG~\cite{luo2025gfmrag} trained an 8M-parameter graph foundation model across 60 KGs (14M+ triples); KARE~\cite{jiang2025kare} adapted community retrieval to clinical decision support; DoctorRAG~\cite{lu2025doctorrag} emulates physician reasoning; MedRAG~\cite{wang2025medrag} constructs hierarchical diagnostic KGs; Medical-Graph-RAG~\cite{wu2025medicalgraphrag} links documents via triple graphs.
+Concurrent work addresses EHR-specific retrieval: EHR-RAG~\cite{cao2026ehrrag} evaluates retrieval strategies over structured EHR tables, and MediGRAF~\cite{thio2025medigraf} builds medical KGs via multi-agent extraction.
 Yet no published medical RAG system models assertion status or temporal context; GFM-RAG and KARE build population-level graphs rather than patient-level graphs from clinical text, and a recent survey~\cite{graphragsurvey2025} confirms no system incorporates epistemic metadata into the retrieval graph.
 
 \paragraph{Clinical KG construction.}

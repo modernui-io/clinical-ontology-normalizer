@@ -6,7 +6,7 @@ Clinical NLP can detect these assertions accurately~\cite{uzuner2011i2b2assertio
 We call this the \emph{epistemic propagation gap}---the systematic loss of assertion status as clinical information moves from extraction through storage to retrieval.
 
 The gap persists because no system, to our knowledge, propagates assertion labels beyond the extraction stage into knowledge representation or retrieval.
-OMOP excludes negated conditions from \texttt{CONDITION\_OCCURRENCE}~\cite{omop2024}; FHIR provides \texttt{verificationStatus} for conditions only.
+OMOP (Observational Medical Outcomes Partnership) excludes negated conditions from \texttt{CONDITION\_OCCURRENCE}~\cite{omop2024}; FHIR (Fast Healthcare Interoperability Resources) provides \texttt{verificationStatus} for \texttt{Condition} resources only, covering a fraction of the clinical data model.
 Graph-augmented RAG systems---GraphRAG~\cite{edge2024graphrag}, GFM-RAG~\cite{luo2025gfmrag}, KARE~\cite{jiang2025kare}, Medical-Graph-RAG~\cite{wu2025medicalgraphrag}---build KGs that discard the metadata distinguishing ``patient has diabetes'' from ``rule out diabetes.''
 Two KG surveys~\cite{alkhatib2024pckgsurvey,abusalih2023healthcarekg} do not identify assertion preservation as a concern.
 A parallel \emph{temporal integration gap} exists: clinical events span three time dimensions (valid time, transaction time, NLP-asserted temporality), yet existing systems model at most two~\cite{huang2024medtkg,ramirez2025graphiti}.

@@ -28,7 +28,7 @@ OMOP excludes negated conditions entirely~\cite{omop2024}; FHIR limits assertion
 \alpha \in \{\text{\scriptsize Pres., Abs., Poss., Cond., Hypo., Fam.Hx., Hist.}\}
 \end{equation}
 %
-This extends the i2b2 six-class taxonomy~\cite{uzuner2011i2b2assertion} by separating \textsc{Historical} from \textsc{Family\_History}, a clinically important distinction that prior work conflates (definitions in Appendix~\ref{app:assertions}).
+This extends the i2b2 (Informatics for Integrating Biology and the Bedside) six-class taxonomy~\cite{uzuner2011i2b2assertion} by separating \textsc{Historical} from \textsc{Family\_History}, a clinically important distinction that prior work conflates (definitions in Appendix~\ref{app:assertions}).
 A rule-based classifier (101 scope-aware trigger patterns) assigns $\alpha$ with an associated confidence score; we chose rule-based classification for deterministic behavior and interpretability, though fine-tuned LLM classifiers~\cite{gul2025beyondnegation} could be substituted.
 Intrinsic classifier evaluation is deferred; the end-to-end ClinicalBench ablation (C3$\to$C4) serves as a functional test of assertion propagation.
 The label is carried through every stage: from \texttt{ExtractedMention} through ensemble merging, \texttt{ClinicalFact} records, KG edge properties, and retrieval scoring.
@@ -63,7 +63,7 @@ Unlike TEO~\cite{li2020teo} and TCL~\cite{ong2023tcl}, which use Allen's relatio
 
 Given a clinical question $q$ and patient $\pi$, the retrieval pipeline:
 (1)~extracts concepts from $q$ via NLP + OMOP enrichment;
-(2)~traverses 2--3 hops via bidirectional BFS over patient KG edges and OMOP vocabulary relationships (20M+ edges) via PostgreSQL CTEs (Appendix~\ref{app:drknows}), pruning edges with $c < 0.3$;
+(2)~traverses 2--3 hops via bidirectional breadth-first search (BFS) over patient KG edges and OMOP vocabulary relationships (20M+ edges) via PostgreSQL common table expressions (CTEs) (Appendix~\ref{app:drknows}), pruning edges with $c < 0.3$;
 (3)~groups edges into four temporal views (event timeline, current state, historical, conflicts);
 (4)~retrieves matching guideline sections;
 (5)~scores edges by:

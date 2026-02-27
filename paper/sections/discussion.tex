@@ -3,7 +3,8 @@
 
 \paragraph{Why long context fails.}
 Brute-force long context (C6) scores $-7.7\pp$ below LLM alone, even with Opus's 200K token window.
-C6 catastrophically fails on historical (0\%) and sequence (0\%): concatenating all notes chronologically buries temporal distinctions that are critical for these categories.
+C6 concatenates all notes chronologically without retrieval or selection; more sophisticated long-context strategies (hierarchical summarization, temporal segmentation) might perform better, but the result establishes that raw context dumping is not a viable shortcut.
+C6 catastrophically fails on historical (0\%) and sequence (0\%), consistent with the ``lost in the middle'' phenomenon~\cite{liu2024lostmiddle}: critical temporal distinctions are buried in the middle of lengthy contexts.
 Historical questions require distinguishing resolved from active conditions across admissions; sequence questions require strict temporal ordering---both are implicit in raw text but explicit in the epistemic KG.
 C6 handles change detection reasonably (43\%) because the relevant information appears explicitly in the text, but KG-RAG achieves $100\%$ ($+57\pp$).
 Uniform KG-RAG (C4) also underperforms intent-aware routing: 60.8\% vs.\ C4g's 77.0\%, with current state (32\%) actually \emph{below} C1 (40\%), consistent with GraphRAG-Bench~\cite{graphragbench2026}: uniform graph traversal can inject context that overrides correct parametric reasoning.
@@ -30,8 +31,8 @@ The B2$\rightarrow$B3 CI crosses zero (\ci{-1.5\pp}{+5.9\pp}); tier-level estima
 Model-dependent effects mean headline gains ($+28\pp$) are specific to Opus~+~C4g; MedGemma shows $+14\pp$ with smaller absolute improvement.
 The keyword evaluator may miss semantically correct answers; physician adjudication (Section~\ref{sec:results:physician}) will address this.
 This is an ablation study; comparisons with medical RAG systems~\cite{luo2025gfmrag,jiang2025kare,lu2025doctorrag} were not performed because these target factoid QA rather than patient-level longitudinal reasoning.
-Bootstrap CIs are question-level; patient-level clustering is planned.
-MedGemma run-to-run variance ($\pm 10\pp$) arises from GPU non-determinism in 4-bit GGUF inference.
+Bootstrap CIs are question-level; patient-level clustering (accounting for within-patient correlation) is planned.
+MedGemma run-to-run variance ($\pm 10\pp$) arises from GPU non-determinism in 4-bit GGUF (GPT-Generated Unified Format) inference.
 Over-reliance on KG-driven summaries risks anchoring bias if NLP extraction introduces systematic errors; single-site evaluation (US academic center) leaves generalization unvalidated (Appendix~\ref{app:ethics}).
 \end{sloppypar}
 

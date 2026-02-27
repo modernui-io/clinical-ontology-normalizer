@@ -62,8 +62,7 @@ The primary answering model is Claude Opus 4.6; cross-model validation uses MedG
 \paragraph{SliceBench} uses an \emph{LLM-as-judge} protocol with separated answering and judging models to prevent self-evaluation bias~\cite{xiong2024mirage}: Claude Sonnet 4.5 generates answers and Claude Opus 4.6 judges correctness.
 
 \paragraph{Statistical reporting.}
-We report BCa bootstrap 95\% CIs ($n=2{,}000$, seed 42) on SliceBench aggregate metrics (Table~\ref{tab:slicebench_overall}); CIs are computed at the question level.
-ClinicalBench results are reported as point estimates with within-run paired comparisons; CIs are omitted because the primary analysis targets condition deltas rather than absolute levels.
+We report BCa bootstrap 95\% CIs ($n=2{,}000$, seed 42) on both benchmarks, resampled at the question level: ClinicalBench CIs appear on primary deltas (overall C4g$-$C1 and hard longitudinal subset); SliceBench CIs appear on all conditions (Table~\ref{tab:slicebench_overall}).
 A safety score with asymmetric weighting ($w=2.0$ for false-positive assertion errors) captures clinical risk (Appendix~\ref{app:safety}).
 
 \subsection{Physician Validation Protocol}
