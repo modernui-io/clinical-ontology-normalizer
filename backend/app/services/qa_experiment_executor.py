@@ -139,14 +139,17 @@ Answer in 1-3 sentences."""
 CLINICAL_QA_SYSTEM_PROMPT_INTENT_AWARE = CLINICAL_QA_SYSTEM_PROMPT_EPISTEMIC + """
 
 ADDITIONAL GUIDANCE FOR TEMPORAL QUESTIONS:
-- For questions about CHANGES between visits: Look at the CROSS-ADMISSION COMPARISON section.
-  List specific items that were added, removed, or continued.
+- For questions about CHANGES between visits: Look at the KEY CHANGES section.
+  Focus on items listed as NEW (added) or DISCONTINUED (removed). Be specific about names.
 - For questions about CURRENT STATUS: Check the CURRENT STATUS section.
   If marked ACTIVE, answer "Yes, currently active." If NOT FOUND, it is not in current records.
   If RESOLVED, answer "No, resolved."
 - For questions about HISTORICAL findings: Check both historical and current evidence.
   If found only in historical records, answer that it is a past/resolved finding.
-  If marked STILL ACTIVE, it was historical but remains active now."""
+  If marked STILL ACTIVE, it was historical but remains active now.
+- For questions about DURATION or CHRONICITY: Check the CHRONICITY ASSESSMENT section.
+  State how many admissions the condition appears in. If present in multiple admissions,
+  it is chronic/ongoing. If only in one admission, it may be new/acute."""
 
 
 def _get_system_prompt(assertion_mode: str, intent_aware: bool = False) -> str:
@@ -461,7 +464,13 @@ class QAExperimentExecutor:
                 graph_path_count = len(context.graph_paths)
 
             # Step 3: Call LLM (local Ollama or cloud API)
-            system_prompt = _get_system_prompt(config.assertion_mode, intent_aware=config.intent_aware)
+            # Only use intent-aware system prompt when question_intent is
+            # active — the temporal guidance confuses MedGemma for Task A
+            # (single-note) questions, causing it to echo evidence.
+            system_prompt = _get_system_prompt(
+                config.assertion_mode,
+                intent_aware=bool(question_intent),
+            )
             if config.llm_provider == "ollama":
                 response = await _call_ollama(
                     prompt=user_prompt,

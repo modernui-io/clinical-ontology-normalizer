@@ -890,22 +890,36 @@ class QAEvaluationService:
         """Strip echoed evidence preamble from model answers.
 
         MedGemma often starts answers by repeating the 'Assertion Notes'
-        section from the evidence.  This pollutes keyword-based scoring
+        or evidence sections.  This pollutes keyword-based scoring
         because historical/negation keywords in the echo trigger false
         matches.  We strip the preamble so only the model's actual answer
         is scored.
         """
-        if not text.strip().startswith("Assertion Notes"):
+        stripped = text.strip()
+        # Detect preamble patterns: "Assertion Notes", evidence headers
+        preamble_starts = ("Assertion Notes", "=== TEMPORAL STATUS", "=== CURRENT STATUS", "=== CROSS-ADMISSION")
+        if not any(stripped.startswith(p) for p in preamble_starts):
             return text
-        # Split on first double-newline — preamble is before, answer after
-        parts = re.split(r"\n\n+", text, maxsplit=1)
-        if len(parts) > 1:
-            return parts[1].strip()
+        # Split on double-newline — find the first paragraph that looks
+        # like an actual answer (starts with a word, not a bullet/header)
+        parts = re.split(r"\n\n+", text)
+        for part in parts[1:]:
+            s = part.strip()
+            if not s:
+                continue
+            first_line = s.split("\n")[0].strip()
+            # Skip bullet lists, headers, and evidence-like lines
+            if first_line.startswith(("-", "*", ">", "=", "#", "|")):
+                continue
+            if first_line.startswith("Assertion"):
+                continue
+            # This looks like an actual answer
+            return s
         # Fallback: skip leading bullet lines
         lines = text.split("\n")
         for i, line in enumerate(lines):
             s = line.strip()
-            if i > 0 and s and not s.startswith(("-", "*", ">", "Assertion", "=")):
+            if i > 0 and s and not s.startswith(("-", "*", ">", "Assertion", "=", "#", "|")):
                 return "\n".join(lines[i:]).strip()
         return text
 
@@ -921,7 +935,11 @@ class QAEvaluationService:
         should be applied to a subset for inter-annotator agreement.
         """
         expected_lower = question.expected_answer.lower()
-        predicted_lower = predicted_answer.lower()
+        # Strip echoed evidence preamble before scoring ALL categories —
+        # MedGemma sometimes echoes "Assertion Notes:" from the evidence,
+        # polluting keyword matching across every category.
+        predicted_clean = self._strip_evidence_echo(predicted_answer)
+        predicted_lower = predicted_clean.lower()
 
         # Simple keyword-based scoring
         correct = False
@@ -987,19 +1005,36 @@ class QAEvaluationService:
 
         # --- Task B: Temporal reasoning categories ---
         elif question.category in ("current_state", "historical"):
-            # Strip echoed assertion notes — they contain historical/current
-            # keywords that cause cross-contamination between these categories.
-            cleaned = self._strip_evidence_echo(predicted_answer).lower()
-            current_kw = ["current", "active", "present", "ongoing", "documented", "has", "is on"]
-            historical_kw = ["was", "former", "previously", "history of", "resolved", "past", "discontinued", "prior"]
+            # predicted_lower already has evidence echo stripped (top of method)
+            current_kw = ["current", "active", "present", "ongoing", "is on"]
+            historical_kw = ["was", "former", "previously", "resolved", "discontinued", "prior"]
             _cur_patterns = [re.compile(r'\b' + re.escape(kw) + r'\b') for kw in current_kw]
             _hist_patterns = [re.compile(r'\b' + re.escape(kw) + r'\b') for kw in historical_kw]
-            expected_is_current = any(p.search(expected_lower) for p in _cur_patterns)
-            answer_is_current = any(p.search(cleaned) for p in _cur_patterns)
-            answer_is_historical = any(p.search(cleaned) for p in _hist_patterns)
-            if expected_is_current:
+
+            # Strip section names that cause false matches before keyword check.
+            # "Past Medical History" contains "past" and "history" but refers to
+            # a section heading, not the finding's temporal status.
+            ans_for_temporal = predicted_lower
+            section_names = ["past medical history", "history of present illness", "history of"]
+            for sn in section_names:
+                ans_for_temporal = ans_for_temporal.replace(sn, "")
+
+            answer_is_current = any(p.search(ans_for_temporal) for p in _cur_patterns)
+            answer_is_historical = any(p.search(ans_for_temporal) for p in _hist_patterns)
+
+            # Strong affirmative override: if the answer explicitly says
+            # "currently active" or "is currently" it's definitively current,
+            # even if historical section names were mentioned.
+            strong_current = re.compile(
+                r'\bcurrently active\b|\bis currently\b|\bcurrently present\b|\bis active\b'
+            )
+            if strong_current.search(predicted_lower):
+                answer_is_current = True
+                answer_is_historical = False
+
+            if question.category == "current_state":
                 correct = answer_is_current and not answer_is_historical
-            else:
+            else:  # historical
                 correct = answer_is_historical
             score = 1.0 if correct else 0.0
 
@@ -1022,17 +1057,27 @@ class QAEvaluationService:
             correct = score >= 0.3
 
         elif question.category == "duration":
-            # Check if answer references time duration concepts (word-boundary match)
+            # Check if answer references time/chronicity concepts (word-boundary match)
             duration_kw = ["day", "days", "week", "weeks", "month", "months", "year", "years",
-                           "duration", "since", "period", "length", "span"]
+                           "duration", "since", "period", "length", "span",
+                           "chronic", "ongoing", "acute", "new", "admission", "admissions",
+                           "multiple", "recurrent", "long-standing", "longstanding"]
             _dur_patterns = [re.compile(r'\b' + re.escape(kw) + r'\b') for kw in duration_kw]
             has_duration = any(p.search(predicted_lower) for p in _dur_patterns)
+            # Check if answer correctly identifies chronicity direction
+            expected_chronic = any(kw in expected_lower for kw in ["chronic", "ongoing", "multiple"])
+            expected_new = any(kw in expected_lower for kw in ["new", "acute", "single", "only 1"])
+            answer_chronic = any(kw in predicted_lower for kw in ["chronic", "ongoing", "multiple admissions", "recurrent"])
+            answer_new = any(kw in predicted_lower for kw in ["new", "acute", "single admission", "first time"])
+            chronicity_match = (expected_chronic and answer_chronic) or (expected_new and answer_new)
             # Also check key concept overlap
             expected_terms = set(expected_lower.split()) - {"the", "a", "an", "is", "of", "in", "to", "for", "was"}
             predicted_terms = set(predicted_lower.split())
             overlap = expected_terms & predicted_terms
             term_score = len(overlap) / max(len(expected_terms), 1)
             score = max(term_score, 0.5 if has_duration else 0.0)
+            if chronicity_match:
+                score = max(score, 0.8)
             correct = score >= 0.3
 
         # --- Task C: Calculator categories ---

@@ -680,11 +680,17 @@ class GraphAugmentedContext:
             return self._format_current_state_evidence(question_text)
         elif question_intent == "historical":
             return self._format_historical_evidence(question_text)
+        elif question_intent == "duration":
+            return self._format_duration_evidence(question_text)
         # Fallback to default
         return self.to_llm_prompt(assertion_mode="full")
 
     def _format_change_evidence(self, question_text: str) -> str:
-        """Format evidence as cross-admission comparison."""
+        """Format evidence as cross-admission comparison.
+
+        Emphasizes the diff (added/removed) over full concept lists to help
+        the LLM focus on key changes rather than enumerating everything.
+        """
         sections: list[str] = []
 
         # Separate admission_detail and admission_comparison paths
@@ -692,21 +698,17 @@ class GraphAugmentedContext:
         comparison_paths = [p for p in self.graph_paths if p.path_type == "admission_comparison"]
         other_paths = [p for p in self.graph_paths if p.path_type not in ("admission_detail", "admission_comparison")]
 
-        sections.append("=== CROSS-ADMISSION COMPARISON ===")
+        # Detect focus from comparison paths
+        focus_label = ""
+        if comparison_paths and comparison_paths[0].edges:
+            focus_label = comparison_paths[0].edges[0].get("focus", "")
+
+        sections.append(f"=== CROSS-ADMISSION COMPARISON{focus_label} ===")
         sections.append("")
 
-        # Per-admission details
-        for path in detail_paths:
-            adm_label = path.nodes[1]["label"] if len(path.nodes) > 1 else "Unknown"
-            concepts = path.edges[0].get("concepts", []) if path.edges else []
-            sections.append(f"{adm_label}:")
-            if concepts:
-                sections.append(f"  Findings: {', '.join(concepts)}")
-            sections.append("")
-
-        # Cross-admission diffs
+        # Show the diff FIRST (most important for answering the question)
         if comparison_paths:
-            sections.append("CHANGES BETWEEN ADMISSIONS:")
+            sections.append("KEY CHANGES:")
             for path in comparison_paths:
                 if not path.edges:
                     continue
@@ -716,14 +718,22 @@ class GraphAugmentedContext:
                 sections.append(f"  {prev_label} → {curr_label}:")
                 added = edge.get("added", [])
                 removed = edge.get("removed", [])
-                continued = edge.get("continued", [])
                 if added:
-                    sections.append(f"    Added: {', '.join(added)}")
+                    sections.append(f"    NEW (added): {', '.join(added)}")
                 if removed:
-                    sections.append(f"    Removed: {', '.join(removed)}")
-                if continued:
-                    sections.append(f"    Continued: {', '.join(continued)}")
+                    sections.append(f"    DISCONTINUED (removed): {', '.join(removed)}")
+                if not added and not removed:
+                    sections.append("    No changes detected.")
                 sections.append("")
+
+        # Per-admission details (secondary — full lists for reference)
+        if detail_paths:
+            sections.append("FULL ADMISSION DETAILS:")
+            for path in detail_paths:
+                adm_label = path.nodes[1]["label"] if len(path.nodes) > 1 else "Unknown"
+                concepts = path.edges[0].get("concepts", []) if path.edges else []
+                sections.append(f"  {adm_label}: {', '.join(concepts)}")
+            sections.append("")
 
         # Include any remaining generic paths
         if other_paths:
@@ -842,6 +852,55 @@ class GraphAugmentedContext:
 
         if not historical_findings and not current_contrast:
             sections.append("No historical or current findings found for this patient.")
+            sections.append("")
+
+        # Documents
+        if self.retrieved_documents:
+            sections.append("=== Retrieved Document Context ===")
+            for doc in self.retrieved_documents[:MAX_RETRIEVED_DOCS]:
+                source = doc.get("source", "document")
+                content = doc.get("content", "")[:MAX_DOC_CONTENT_CHARS]
+                sections.append(f"[{source}]: {content}")
+            sections.append("")
+
+        return "\n".join(sections)
+
+    def _format_duration_evidence(self, question_text: str) -> str:
+        """Format evidence as cross-admission chronicity assessment."""
+        sections: list[str] = []
+        sections.append("=== CHRONICITY ASSESSMENT ===")
+        sections.append("")
+
+        duration_paths = [p for p in self.graph_paths if p.path_type == "duration_assessment"]
+        other_paths = [p for p in self.graph_paths if p.path_type != "duration_assessment"]
+
+        if duration_paths:
+            for path in duration_paths:
+                if not path.edges:
+                    continue
+                edge = path.edges[0]
+                label = path.nodes[1]["label"] if len(path.nodes) > 1 else "?"
+                n_present = edge.get("admissions_present", 0)
+                n_total = edge.get("admissions_total", 0)
+                chronicity = edge.get("chronicity", "unknown")
+                admission_ids = edge.get("admission_ids", [])
+
+                sections.append(f"{label}:")
+                sections.append(f"  Present in {n_present} of {n_total} admissions")
+                sections.append(f"  Admission IDs: {', '.join(str(a) for a in admission_ids)}")
+                sections.append(f"  Assessment: {chronicity}")
+                sections.append("")
+        else:
+            sections.append("No cross-admission data found for the queried concept.")
+            sections.append("")
+
+        # Include generic paths as additional context
+        if other_paths:
+            sections.append("=== Additional Evidence ===")
+            for path in other_paths:
+                formatted = path.to_prompt_format(assertion_mode="full")
+                if formatted:
+                    sections.append(f"  {formatted}")
             sections.append("")
 
         # Documents
@@ -1151,13 +1210,14 @@ class GraphAugmentedRAGService:
         _used_targeted_retrieval = False
         graph_paths: list[GraphPath] = []
         temporal_context = None
-        if question_intent in ("change", "current_state", "historical") and retrieval_mode != "doc_only":
+        if question_intent in ("change", "current_state", "historical", "duration") and retrieval_mode != "doc_only":
             try:
                 targeted_paths, targeted_temporal = self._retrieve_targeted_evidence(
                     patient_id=patient_id,
                     query_concepts=query_concepts,
                     question_intent=question_intent,
                     question_metadata=question_metadata,
+                    query_text=query,
                 )
                 if targeted_paths:
                     graph_paths = targeted_paths
@@ -1852,14 +1912,17 @@ class GraphAugmentedRAGService:
         query_concepts: list[QueryConcept],
         question_intent: str,
         question_metadata: dict | None = None,
+        query_text: str = "",
     ) -> tuple[list[GraphPath], TemporalContext | None]:
         """Route to intent-specific retrieval."""
         if question_intent == "change":
-            return self._retrieve_change_evidence(patient_id, query_concepts, question_metadata)
+            return self._retrieve_change_evidence(patient_id, query_concepts, question_metadata, query_text)
         elif question_intent == "current_state":
             return self._retrieve_current_state_evidence(patient_id, query_concepts)
         elif question_intent == "historical":
             return self._retrieve_historical_evidence(patient_id, query_concepts)
+        elif question_intent == "duration":
+            return self._retrieve_duration_evidence(patient_id, query_concepts)
         return [], None
 
     def _retrieve_change_evidence(
@@ -1867,6 +1930,7 @@ class GraphAugmentedRAGService:
         patient_id: str,
         query_concepts: list[QueryConcept],
         question_metadata: dict | None = None,
+        query_text: str = "",
     ) -> tuple[list[GraphPath], TemporalContext | None]:
         """Retrieve evidence structured as cross-admission comparison.
 
@@ -1875,8 +1939,11 @@ class GraphAugmentedRAGService:
 
         If question_metadata provides hadm_1/hadm_2, compares exactly those two
         admissions. Otherwise falls back to comparing all admissions for the patient.
+
+        Filters edges by question focus (e.g. medication questions only compare
+        takes_drug edges) to reduce noise and help the LLM focus on key changes.
         """
-        # Step 1: Get ALL edges for this patient with their node labels
+        # Step 1: Get ALL edges for this patient with their node labels + types
         edge_stmt = (
             select(KGEdge, KGNode.label, KGNode.node_type)
             .join(KGNode, KGEdge.target_node_id == KGNode.id)
@@ -1888,13 +1955,34 @@ class GraphAugmentedRAGService:
         if not all_edges:
             return [], None
 
-        # Step 2: Group edges by hadm_id from properties
+        # Step 1b: Detect question focus to filter edge types
+        # Use the original question text (most reliable) with fallbacks
+        q_text = query_text.lower() if query_text else ""
+        if not q_text:
+            q_text = " ".join(c.text for c in query_concepts if c.text).lower()
+
+        # Map question keywords to edge types for focused comparison
+        focus_edge_types: set[str] | None = None
+        medication_kw = ("medication", "drug", "medicine", "prescription", "pharmacolog")
+        condition_kw = ("condition", "diagnosis", "problem", "disease")
+        if any(kw in q_text for kw in medication_kw):
+            focus_edge_types = {"takes_drug"}
+        elif any(kw in q_text for kw in condition_kw):
+            focus_edge_types = {"has_condition"}
+
+        # Step 2: Group edges by admission ID from properties, optionally filtered
+        # Check both 'hadm_id' (benchmark_seed) and 'visit_id' (mimic_iv_structured)
         edges_by_hadm: dict[str, list[tuple]] = {}
         for edge, node_label, node_type in all_edges:
             props = edge.properties or {}
-            hadm_id = props.get("hadm_id")
-            if hadm_id:
-                edges_by_hadm.setdefault(str(hadm_id), []).append((edge, node_label, node_type))
+            hadm_id = props.get("hadm_id") or props.get("visit_id")
+            if not hadm_id:
+                continue
+            # Filter by focus edge type if detected
+            edge_type_str = edge.edge_type.value if hasattr(edge.edge_type, 'value') else str(edge.edge_type)
+            if focus_edge_types and edge_type_str not in focus_edge_types:
+                continue
+            edges_by_hadm.setdefault(str(hadm_id), []).append((edge, node_label, node_type))
 
         if not edges_by_hadm:
             return [], None
@@ -1905,10 +1993,8 @@ class GraphAugmentedRAGService:
         hadm_2 = str(metadata["hadm_2"]) if metadata.get("hadm_2") else None
 
         if hadm_1 and hadm_2 and hadm_1 in edges_by_hadm and hadm_2 in edges_by_hadm:
-            # Targeted comparison: exactly these two admissions
             admission_pairs = [(hadm_1, hadm_2)]
         elif len(edges_by_hadm) >= 2:
-            # Fallback: compare all consecutive admissions (sorted by hadm_id as proxy for time)
             sorted_hadms = sorted(edges_by_hadm.keys())
             admission_pairs = [(sorted_hadms[i], sorted_hadms[i + 1]) for i in range(len(sorted_hadms) - 1)]
         else:
@@ -1935,6 +2021,12 @@ class GraphAugmentedRAGService:
             if continued:
                 diff_parts.append(f"Continued: {', '.join(sorted(continued))}")
 
+            focus_label = ""
+            if focus_edge_types == {"takes_drug"}:
+                focus_label = " (medications only)"
+            elif focus_edge_types == {"has_condition"}:
+                focus_label = " (conditions only)"
+
             prev_label = f"Admission {prev_hadm}"
             curr_label = f"Admission {curr_hadm}"
 
@@ -1956,14 +2048,18 @@ class GraphAugmentedRAGService:
                     "removed": sorted(removed),
                     "continued": sorted(continued),
                     "diff_summary": "; ".join(diff_parts),
+                    "focus": focus_label,
                 }],
                 path_type="admission_comparison",
                 confidence=1.0,
             )
             paths.append(comparison_path)
 
-            # Per-admission detail paths
-            for hadm_id, concepts in [(prev_hadm, prev_concepts), (curr_hadm, curr_concepts)]:
+            # Per-admission detail paths (only added/removed, skip continued to reduce noise)
+            for hadm_id, label, concepts in [
+                (prev_hadm, prev_label, prev_concepts),
+                (curr_hadm, curr_label, curr_concepts),
+            ]:
                 if concepts:
                     paths.append(GraphPath(
                         nodes=[
@@ -1984,6 +2080,120 @@ class GraphAugmentedRAGService:
                         path_type="admission_detail",
                         confidence=1.0,
                     ))
+
+        return paths, None
+
+    def _retrieve_duration_evidence(
+        self,
+        patient_id: str,
+        query_concepts: list[QueryConcept],
+    ) -> tuple[list[GraphPath], TemporalContext | None]:
+        """Retrieve cross-admission timeline for a concept to assess chronicity.
+
+        Counts how many distinct admissions contain each queried concept,
+        enabling the LLM to determine if a condition is chronic (multiple
+        admissions) or acute/new (single admission).
+        """
+        # Get all edges with hadm_id for this patient
+        edge_stmt = (
+            select(KGEdge, KGNode.label, KGNode.node_type)
+            .join(KGNode, KGEdge.target_node_id == KGNode.id)
+            .where(KGEdge.patient_id == patient_id)
+        )
+        edge_result = self._session.execute(edge_stmt)
+        all_edges = list(edge_result.all())
+
+        if not all_edges:
+            return [], None
+
+        # Build concept -> set of admission IDs (check both hadm_id and visit_id)
+        concept_admissions: dict[str, set[str]] = {}
+        total_admissions: set[str] = set()
+        for edge, node_label, node_type in all_edges:
+            props = edge.properties or {}
+            hadm_id = props.get("hadm_id") or props.get("visit_id")
+            if not hadm_id:
+                continue
+            hadm_str = str(hadm_id)
+            total_admissions.add(hadm_str)
+            label_lower = node_label.lower()
+            concept_admissions.setdefault(label_lower, set()).add(hadm_str)
+            # Also store with original case
+            concept_admissions.setdefault(node_label, set()).add(hadm_str)
+
+        if not total_admissions:
+            return [], None
+
+        n_total = len(total_admissions)
+
+        # Match queried concepts against KG concepts
+        query_terms = {c.text.lower() for c in query_concepts if c.text}
+        paths: list[GraphPath] = []
+
+        for concept_label, hadm_ids in concept_admissions.items():
+            # Check if this concept matches any query term
+            cl = concept_label.lower()
+            matched = any(qt in cl or cl in qt for qt in query_terms)
+            if not matched:
+                continue
+
+            n_present = len(hadm_ids)
+            if n_present > 1:
+                chronicity = "chronic/ongoing (present in multiple admissions)"
+            else:
+                chronicity = "new/acute (found in only 1 admission)"
+
+            paths.append(GraphPath(
+                nodes=[
+                    {"id": "patient", "label": f"Patient ({patient_id})", "type": "patient"},
+                    {"id": f"concept_{cl}", "label": concept_label, "type": "concept"},
+                ],
+                edges=[{
+                    "edge_type": "duration_assessment",
+                    "confidence": 1.0,
+                    "temporality": "longitudinal",
+                    "assertion": "present",
+                    "is_negated": False,
+                    "is_uncertain": False,
+                    "event_date": None,
+                    "experiencer": "patient",
+                    "admissions_present": n_present,
+                    "admissions_total": n_total,
+                    "admission_ids": sorted(hadm_ids),
+                    "chronicity": chronicity,
+                }],
+                path_type="duration_assessment",
+                confidence=1.0,
+            ))
+
+        # If no direct concept match, provide summary of all concepts across admissions
+        if not paths:
+            # Find concepts that appear in multiple admissions (likely chronic)
+            chronic = [(label, hadms) for label, hadms in concept_admissions.items()
+                       if len(hadms) > 1 and not label.islower()]
+            for label, hadm_ids in sorted(chronic, key=lambda x: -len(x[1]))[:10]:
+                paths.append(GraphPath(
+                    nodes=[
+                        {"id": "patient", "label": f"Patient ({patient_id})", "type": "patient"},
+                        {"id": f"concept_{label.lower()}", "label": label, "type": "concept"},
+                    ],
+                    edges=[{
+                        "edge_type": "duration_assessment",
+                        "confidence": 1.0,
+                        "temporality": "longitudinal",
+                        "assertion": "present",
+                        "is_negated": False,
+                        "is_uncertain": False,
+                        "event_date": None,
+                        "experiencer": "patient",
+                        "admissions_present": len(hadm_ids),
+                        "admissions_total": n_total,
+                        "admission_ids": sorted(hadm_ids),
+                        "chronicity": "chronic/ongoing (present in multiple admissions)",
+                    }],
+                    path_type="duration_assessment",
+                    confidence=1.0,
+                ))
 
         return paths, None
 
@@ -2119,7 +2329,7 @@ class GraphAugmentedRAGService:
         edges_by_hadm: dict[str, set[str]] = {}
         for edge, node_label, node_type in all_edges:
             props = edge.properties or {}
-            hadm_id = props.get("hadm_id")
+            hadm_id = props.get("hadm_id") or props.get("visit_id")
             if hadm_id:
                 edges_by_hadm.setdefault(str(hadm_id), set()).add(node_label.lower())
 
@@ -2754,8 +2964,11 @@ def _classify_question_intent(query: str, metadata: dict | None = None) -> str |
             return "current_state"
         if subtype in ("historical",):
             return "historical"
-        # Task B subtypes that don't need targeted retrieval
-        if subtype in ("sequence", "duration"):
+        # Task B subtypes with targeted retrieval
+        if subtype in ("duration",):
+            return "duration"
+        # Task B subtypes that use generic retrieval
+        if subtype in ("sequence",):
             return None
         # Task E protocol subtypes — use generic retrieval (they need full KG)
         if subtype in ("stroke_tpa", "vte_prophylaxis", "periop_cardiac",
@@ -2789,6 +3002,13 @@ def _classify_question_intent(query: str, metadata: dict | None = None) -> str |
     )
     if any(kw in q for kw in historical_kw):
         return "historical"
+
+    duration_kw = (
+        "how long has", "chronic or new", "chronic or acute",
+        "ongoing condition", "how many admissions",
+    )
+    if any(kw in q for kw in duration_kw):
+        return "duration"
 
     return None  # Use generic traversal
 

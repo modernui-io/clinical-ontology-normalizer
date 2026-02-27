@@ -38,16 +38,22 @@ _JUNK_TERMS = {
     "Between", "Three", "Small", "Mild", "Left", "Right", "Daily", "Once",
     "Twice", "Take", "Apply", "Oral", "Use", "One", "Two", "Per", "Every",
     "Day", "Time", "After", "Before", "Each", "Yes", "Active", "Acute",
+    "Your", "Pres", "Date", "Birth", "Closed", "Height", "Stated",
+    "General", "Neuro", "Respiratory", "Pain", "Service",
     # Prescription/pharmacy noise
     "Tablet", "Capsule", "Solution", "Disp", "Sig", "Refills", "Powder",
     "Cream", "Topical", "Subcutaneous", "Injection", "Pen", "Tablet Sig",
     "Powder Sig", "Topical Cream Apply", "Subcutaneous Solution",
     "Subcutaneous  Insulin Pen", "Admission",
-    # Clinical note section headers
+    # Clinical note section headers and structural terms
     "History", "Assessment", "Diagnosis", "Medications", "Allergies",
     "Physical Exam", "Hospital Course", "Review", "Systems", "Sections",
     "Discharge Instructions", "Present Illness", "Past Medical History",
-    "Relevant", "Discharge",
+    "Relevant", "Discharge", "Family History", "Social History",
+    "Chief Complaint", "Pertinent Result", "Pertinent Results",
+    "Section", "Mention", "Major Surgical", "Invasive Procedure",
+    "Attending", "Calves", "Tender", "Vitals",
+    "Demerol   Attending",  # specific multi-word junk
 }
 
 # Structured context pattern: "Admission N (ID): concept1, concept2, ..."
@@ -131,6 +137,7 @@ def _create_node_and_edge(
     nodes_to_insert: list,
     edges_to_insert: list,
     patient_root_nodes: dict,
+    experiencer: str | None = None,
 ) -> None:
     """Create a KG node + edge for a single concept, deduping as needed."""
     node_key = (patient_id, concept_text.lower())
@@ -166,11 +173,13 @@ def _create_node_and_edge(
         "edge_type": edge_type,
         "temporality": temporality,
         "source_document_id": source_doc_id,
+        "experiencer": experiencer,
         "properties": json.dumps({
             "assertion": assertion,
             "section": section,
             "source": "benchmark_seed",
             "hadm_id": hadm_id,
+            "experiencer": experiencer,
         }),
     })
 
@@ -235,6 +244,7 @@ def main():
             section = metadata.get("section", "Unknown")
             domain = metadata.get("domain", "observation")
             temporality = metadata.get("temporality")  # "current", "past", etc.
+            experiencer = metadata.get("experiencer")  # "patient", "family", etc.
 
             # Determine admission ID — questions have different field names
             hadm_id = q.get("mimic_hadm_id")
@@ -275,6 +285,16 @@ def main():
                 meta_added = metadata.get("added", [])
                 meta_removed = metadata.get("removed", [])
 
+                # Infer edge type from question text (change questions often ask about
+                # medications or conditions specifically)
+                question_text = q.get("question", "").lower()
+                if any(kw in question_text for kw in ("medication", "drug", "prescription")):
+                    change_edge_type = "takes_drug"
+                elif any(kw in question_text for kw in ("condition", "diagnosis", "problem")):
+                    change_edge_type = "has_condition"
+                else:
+                    change_edge_type = edge_type  # fallback to question-level domain
+
                 # Build per-admission concept lists
                 adm1_concepts = structured.get(str(hadm_1), [])
                 adm2_concepts = structured.get(str(hadm_2), [])
@@ -286,21 +306,25 @@ def main():
                     if c not in adm1_concepts:
                         adm1_concepts.append(c)
 
+                # Filter junk from structured context concepts
+                adm1_concepts = [c for c in adm1_concepts if c not in _JUNK_TERMS and len(c) > 2]
+                adm2_concepts = [c for c in adm2_concepts if c not in _JUNK_TERMS and len(c) > 2]
+
                 # Create edges for admission 1 concepts
                 for concept_text in adm1_concepts:
                     _create_node_and_edge(
-                        concept_text, patient_id, str(hadm_1), edge_type,
+                        concept_text, patient_id, str(hadm_1), change_edge_type,
                         assertion, section, temporality, doc_lookup,
                         seen_nodes, seen_edges, nodes_to_insert, edges_to_insert,
-                        patient_root_nodes,
+                        patient_root_nodes, experiencer=experiencer,
                     )
                 # Create edges for admission 2 concepts
                 for concept_text in adm2_concepts:
                     _create_node_and_edge(
-                        concept_text, patient_id, str(hadm_2), edge_type,
+                        concept_text, patient_id, str(hadm_2), change_edge_type,
                         assertion, section, temporality, doc_lookup,
                         seen_nodes, seen_edges, nodes_to_insert, edges_to_insert,
-                        patient_root_nodes,
+                        patient_root_nodes, experiencer=experiencer,
                     )
                 continue  # Skip the generic path below
 
@@ -378,11 +402,13 @@ def main():
                         "edge_type": edge_type,
                         "temporality": temporality,
                         "source_document_id": source_doc_id,
+                        "experiencer": experiencer,
                         "properties": json.dumps({
                             "assertion": assertion,
                             "section": section,
                             "source": "benchmark_seed",
                             "hadm_id": adm_id,
+                            "experiencer": experiencer,
                         }),
                     })
 
@@ -415,12 +441,12 @@ def main():
                 text("""
                     INSERT INTO kg_edges (
                         id, patient_id, source_node_id, target_node_id, edge_type,
-                        properties, temporality, source_document_id
+                        properties, temporality, source_document_id, experiencer
                     )
                     VALUES (
                         :id, :patient_id, :source_node_id, :target_node_id,
                         CAST(:edge_type AS edge_type), CAST(:properties AS jsonb),
-                        :temporality, :source_document_id
+                        :temporality, :source_document_id, :experiencer
                     )
                     ON CONFLICT (id) DO NOTHING
                 """),
