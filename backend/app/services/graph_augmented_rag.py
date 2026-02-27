@@ -200,12 +200,16 @@ class GraphPath:
     path_type: str  # "condition_treatment", "temporal_sequence", "comorbidity"
     confidence: float = 1.0
 
-    def to_prompt_format(self, assertion_mode: str = "full") -> str:
+    def to_prompt_format(
+        self, assertion_mode: str = "full", hide_confidence: bool = False,
+    ) -> str:
         """Format path for LLM prompt.
 
         Args:
             assertion_mode: "full" | "extracted_only" | "none".
                 When "none", assertion labels are omitted from the prompt.
+            hide_confidence: If True, omit confidence scores to avoid
+                confusing models (e.g. "conf: 0.98, POSSIBLE" is misleading).
         """
         if not self.nodes or len(self.nodes) < 2:
             return ""
@@ -227,7 +231,12 @@ class GraphPath:
                     assertion = edge.get("assertion", "present")
                     if assertion != "present":
                         assertion_str = f", {assertion.upper()}"
-                parts.append(f" --[{edge_type} (conf: {confidence:.2f}{temporal}{assertion_str})]--> ")
+                if hide_confidence:
+                    meta = f"{temporal}{assertion_str}".lstrip(", ")
+                    meta_str = f" ({meta})" if meta else ""
+                    parts.append(f" --[{edge_type}{meta_str}]--> ")
+                else:
+                    parts.append(f" --[{edge_type} (conf: {confidence:.2f}{temporal}{assertion_str})]--> ")
 
         return "".join(parts)
 
@@ -684,6 +693,109 @@ class GraphAugmentedContext:
             return self._format_duration_evidence(question_text)
         # Fallback to default
         return self.to_llm_prompt(assertion_mode="full")
+
+    def to_llm_prompt_optimized(
+        self,
+        question_text: str,
+        suppress_doc_context: bool = False,
+    ) -> str:
+        """C4h evidence format: optimized for assertion compliance.
+
+        Key changes from to_llm_prompt():
+        1. Confidence scores hidden (avoids "conf: 0.98, POSSIBLE" confusion)
+        2. Assertion callout prepended (question-relevant finding highlighted)
+        3. Document context optionally suppressed (prevents text overriding metadata)
+        """
+        sections = []
+
+        # 1. Question-subject callout FIRST (assertion status at decision point)
+        callout = self._question_subject_callout(question_text)
+        if callout:
+            sections.append(callout)
+
+        # 2. Assertion Notes Section (same as to_llm_prompt but more prominent)
+        if self.graph_paths:
+            negated_findings = []
+            uncertain_findings = []
+            family_findings = []
+            historical_findings = []
+            for path in self.graph_paths:
+                for idx, edge in enumerate(path.edges):
+                    assertion = edge.get("assertion", "present")
+                    target_label = (
+                        path.nodes[idx + 1].get("label", "?")
+                        if idx + 1 < len(path.nodes)
+                        else path.nodes[-1].get("label", "?") if path.nodes else "?"
+                    )
+                    experiencer = edge.get("experiencer", "patient")
+                    if experiencer == "family" or assertion == "family_history":
+                        family_findings.append(target_label)
+                    elif assertion == "absent":
+                        negated_findings.append(target_label)
+                    elif assertion == "possible":
+                        uncertain_findings.append(target_label)
+                    elif assertion == "historical":
+                        historical_findings.append(target_label)
+
+            if negated_findings or uncertain_findings or family_findings or historical_findings:
+                sections.append("=== IMPORTANT: Clinical Assertion Status ===")
+                sections.append("The following findings have NON-PRESENT assertion status.")
+                sections.append("You MUST use this information when answering.")
+                if negated_findings:
+                    sections.append(
+                        f">>> NEGATED (patient does NOT have): {', '.join(set(negated_findings))}"
+                    )
+                if uncertain_findings:
+                    sections.append(
+                        f">>> UNCERTAIN (suspected, NOT confirmed): {', '.join(set(uncertain_findings))}"
+                    )
+                if family_findings:
+                    sections.append(
+                        f">>> FAMILY HISTORY ONLY (relative's condition, NOT patient's): "
+                        f"{', '.join(set(family_findings))}"
+                    )
+                if historical_findings:
+                    sections.append(
+                        f">>> HISTORICAL (past/resolved, NOT current): {', '.join(set(historical_findings))}"
+                    )
+                sections.append("")
+
+        # 3. Graph Evidence (without confidence scores)
+        if self.graph_paths:
+            sections.append("=== Graph Evidence ===")
+            for i, path in enumerate(self.graph_paths, 1):
+                path_str = path.to_prompt_format(
+                    assertion_mode="full", hide_confidence=True,
+                )
+                if path_str:
+                    sections.append(f"Path {i} ({path.path_type}): {path_str}")
+            sections.append("")
+
+        # 4. Temporal Context (unchanged)
+        if self.temporal_context:
+            sections.append("=== Temporal Context ===")
+            if self.temporal_context.current_state:
+                sections.append("Current State:")
+                for key, value in self.temporal_context.current_state.items():
+                    sections.append(f"  - {key}: {value}")
+            if self.temporal_context.event_timeline:
+                sections.append("Timeline:")
+                for event in self.temporal_context.event_timeline[:10]:
+                    date_str = event.get("date", "unknown")
+                    desc = event.get("description", "")
+                    sections.append(f"  - {date_str}: {desc}")
+            sections.append("")
+
+        # 5. Document Context (suppressed for assertion-focused questions)
+        if not suppress_doc_context and self.retrieved_documents:
+            sections.append("=== Retrieved Document Context ===")
+            for doc in self.retrieved_documents[:MAX_RETRIEVED_DOCS]:
+                source = doc.get("source", "document")
+                content = doc.get("content", "")[:MAX_DOC_CONTENT_CHARS]
+                sections.append(f"[{source}]: {content}")
+            sections.append("")
+
+        return "\n".join(sections)
 
     def _format_change_evidence(self, question_text: str) -> str:
         """Format evidence as cross-admission comparison.

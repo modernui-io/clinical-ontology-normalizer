@@ -1041,11 +1041,17 @@ class QAEvaluationService:
         elif question.category in ("sequence", "change"):
             # Check if the answer identifies the correct ordering or change
             # Extract key clinical terms from expected answer
-            expected_terms = set(expected_lower.split()) - {
+            # Strip punctuation for matching (e.g., "metformin;" -> "metformin")
+            _strip_punct = re.compile(r'[^\w\s]')
+            expected_clean = _strip_punct.sub('', expected_lower)
+            predicted_clean = _strip_punct.sub('', predicted_lower)
+            expected_terms = set(expected_clean.split()) - {
                 "the", "a", "an", "is", "of", "in", "to", "for", "was", "and",
                 "then", "by", "first", "followed", "identified", "before", "after",
+                "key", "changes", "new", "medications", "discontinued", "between",
+                "admissions", "noted", "patients", "medication", "differences",
             }
-            predicted_terms = set(predicted_lower.split())
+            predicted_terms = set(predicted_clean.split())
             overlap = expected_terms & predicted_terms
             score = len(overlap) / max(len(expected_terms), 1)
             # Also check for ordering keywords (word-boundary match)

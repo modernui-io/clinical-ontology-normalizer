@@ -136,24 +136,100 @@ If evidence is insufficient or contradictory, say "insufficient evidence."
 Answer in 1-3 sentences."""
 
 
-CLINICAL_QA_SYSTEM_PROMPT_INTENT_AWARE = CLINICAL_QA_SYSTEM_PROMPT_EPISTEMIC + """
+CLINICAL_QA_SYSTEM_PROMPT_INTENT_AWARE = """\
+You are a clinical reasoning assistant answering questions about a specific patient.
+Use ONLY the provided evidence to answer. Be precise and concise.
 
-ADDITIONAL GUIDANCE FOR TEMPORAL QUESTIONS:
-- For questions about CHANGES between visits: Look at the KEY CHANGES section.
+EVIDENCE FORMAT — KNOWLEDGE GRAPH:
+The evidence comes from a structured clinical knowledge graph (KG), NOT raw clinical notes.
+Each finding is a verified EDGE connecting a patient node to a concept node (condition, drug, etc.).
+Every edge has metadata fields that were extracted and validated by clinical NLP:
+
+  - ASSERTION: present | negated | uncertain | conditional
+  - TEMPORALITY: current | historical/past
+  - EXPERIENCER: patient | family_member
+
+These metadata labels are the GROUND TRUTH for clinical status. They override any impression
+you might form from reading the surrounding text. If a finding is labeled NEGATED, the patient
+does NOT have it — even if the word appears in the notes. If labeled UNCERTAIN, it is NOT
+confirmed — even if the text describes symptoms.
+
+CRITICAL RULES — MATCH YOUR ANSWER TO THE METADATA:
+
+1. NEGATED/ABSENT: Patient does NOT have this. Answer "No."
+2. UNCERTAIN/POSSIBLE: NOT confirmed. Answer "suspected but not confirmed" or "uncertain."
+   Do NOT say "yes, confirmed" when the assertion is uncertain.
+3. FAMILY_HISTORY: A relative's condition. Answer "family history only, not the patient's."
+4. HISTORICAL/RESOLVED: Past condition. Answer "previously, but no longer active."
+   Do NOT say "yes, currently active" when temporality is historical/past.
+5. CONDITIONAL: Depends on circumstances. Use "if/when" language.
+6. PRESENT/CURRENT: Patient has this. Answer "Yes."
+
+Always check "Assertion Notes" and "IMPORTANT: Clinical Assertion Status" sections FIRST.
+
+GUIDANCE FOR TEMPORAL QUESTIONS:
+- CHANGES between visits: Look at the KEY CHANGES section.
   Focus on items listed as NEW (added) or DISCONTINUED (removed). Be specific about names.
-- For questions about CURRENT STATUS: Check the CURRENT STATUS section.
-  If marked ACTIVE, answer "Yes, currently active." If NOT FOUND, it is not in current records.
+- CURRENT STATUS: Check the CURRENT STATUS section.
+  If ACTIVE, answer "Yes, currently active." If NOT FOUND, it is not in current records.
   If RESOLVED, answer "No, resolved."
-- For questions about HISTORICAL findings: Check both historical and current evidence.
+- HISTORICAL findings: Check both historical and current evidence.
   If found only in historical records, answer that it is a past/resolved finding.
   If marked STILL ACTIVE, it was historical but remains active now.
-- For questions about DURATION or CHRONICITY: Check the CHRONICITY ASSESSMENT section.
-  State how many admissions the condition appears in. If present in multiple admissions,
-  it is chronic/ongoing. If only in one admission, it may be new/acute."""
+- DURATION/CHRONICITY: Check the CHRONICITY ASSESSMENT section.
+  State how many admissions the condition appears in. Multiple admissions = chronic/ongoing.
+
+Answer in 1-3 sentences. Do not hedge when the evidence is clear."""
 
 
-def _get_system_prompt(assertion_mode: str, intent_aware: bool = False) -> str:
+# ── Category-specific prompts for C4h (short, focused) ──────────────────
+
+_SYSTEM_PROMPT_ASSERTION = """\
+You are a clinical reasoning assistant. Answer using ONLY the provided evidence.
+
+The evidence comes from a structured knowledge graph. Each finding has a verified
+ASSERTION STATUS (present, negated, uncertain, conditional) and EXPERIENCER (patient, family).
+These metadata labels are ground truth — they override any impression from surrounding text.
+
+RULES:
+- NEGATED → patient does NOT have this. Answer "No."
+- UNCERTAIN/POSSIBLE → NOT confirmed. Answer "suspected but not confirmed."
+- FAMILY HISTORY → relative's condition, not the patient's.
+- CONDITIONAL → depends on circumstances.
+- PRESENT → patient has this. Answer "Yes."
+
+Answer in 1-3 sentences."""
+
+_SYSTEM_PROMPT_TEMPORAL = """\
+You are a clinical reasoning assistant. Answer using ONLY the provided evidence.
+
+The evidence comes from a structured knowledge graph with verified temporal metadata.
+Focus on the structured sections (KEY CHANGES, CURRENT STATUS, TEMPORAL STATUS,
+CHRONICITY ASSESSMENT) — these are the authoritative source.
+
+RULES:
+- CHANGES: List specific items NEW (added) or DISCONTINUED (removed).
+- CURRENT STATUS: ACTIVE means yes. NOT FOUND means not in records. RESOLVED means no.
+- HISTORICAL: If only in past records, it is resolved/no longer active.
+  If marked STILL ACTIVE, it remains active.
+- DURATION: Count admissions. Multiple admissions = chronic/ongoing.
+
+Answer in 1-3 sentences. Be specific about names."""
+
+
+def _get_system_prompt(
+    assertion_mode: str,
+    intent_aware: bool = False,
+    prompt_optimized: bool = False,
+    question_intent: str | None = None,
+    question_category: str | None = None,
+) -> str:
     """Return the appropriate system prompt based on assertion mode."""
+    if prompt_optimized:
+        # C4h: short, category-specific prompts
+        if question_intent in ("change", "current_state", "historical", "duration"):
+            return _SYSTEM_PROMPT_TEMPORAL
+        return _SYSTEM_PROMPT_ASSERTION
     if intent_aware:
         return CLINICAL_QA_SYSTEM_PROMPT_INTENT_AWARE
     if assertion_mode == "full_v6":
@@ -218,6 +294,7 @@ class QARunConfig:
     guidelines_enabled: bool = False  # C5: include guideline retrieval
     use_llm_judge: bool = False  # Use LLM judge for scoring instead of keyword matching
     intent_aware: bool = False  # C4g: intent-specific graph retrieval for temporal categories
+    prompt_optimized: bool = False  # C4h: category-specific prompts + assertion injection
     # Reproducibility
     random_seed: int = 42
 
@@ -415,37 +492,53 @@ class QAExperimentExecutor:
                 )
 
                 # Step 2: Build LLM prompt
-                if question_intent:
+                if config.prompt_optimized:
+                    # C4h: optimized evidence formatting
+                    # - Suppress raw doc context for assertion questions (it contradicts metadata)
+                    # - Always include assertion callout at question level
+                    suppress_docs = question_intent is None  # Task A assertion questions
+                    if question_intent:
+                        evidence = context.to_llm_prompt_intent_aware(
+                            question_text=question.question,
+                            question_intent=question_intent,
+                        )
+                    else:
+                        evidence = context.to_llm_prompt_optimized(
+                            question_text=question.question,
+                            suppress_doc_context=suppress_docs,
+                        )
+                    # Build assertion callout for injection at question level
+                    assertion_hint = context._question_subject_callout(question.question)
+                    q_section = f"Question: {question.question}"
+                    if assertion_hint:
+                        q_section += f"\n\n{assertion_hint}"
+                    user_prompt = (
+                        f"Patient evidence:\n{evidence}\n\n"
+                        f"{q_section}\n\n"
+                        f"Before answering, identify the finding's assertion status in the metadata.\n"
+                        f"Your answer MUST be consistent with that status.\n"
+                        f"Answer concisely."
+                    )
+                elif question_intent:
                     # Intent-aware formatting for C4g
                     evidence = context.to_llm_prompt_intent_aware(
                         question_text=question.question,
                         question_intent=question_intent,
                     )
-                elif config.assertion_mode == "full_v5":
-                    evidence = context.to_llm_prompt_v5(question_text=question.question)
-                elif config.assertion_mode == "full_v4":
-                    evidence = context.to_llm_prompt_v4(question_text=question.question)
-                else:
-                    evidence = context.to_llm_prompt(assertion_mode=config.assertion_mode)
-
-                # C5: Conditionally inject calculator results (only for calculator questions)
-                calculator_context = ""
-                if config.calculator_enabled and _is_calculator_question(question.question):
-                    calculator_context = self._get_calculator_context(
-                        effective_patient_id, question.question,
-                    )
-
-                if calculator_context:
-                    # Structured prompt: calculator results as supplementary context AFTER question
                     user_prompt = (
                         f"Patient evidence:\n{evidence}\n\n"
                         f"Question: {question.question}\n\n"
-                        f"Answer concisely based on the evidence above.\n\n"
-                        f"--- Supplementary: Calculator Results ---\n"
-                        f"{calculator_context}\n"
-                        f"Use these calculator results only if directly relevant to the question."
+                        f"Answer concisely based on the evidence above."
+                    )
+                elif config.assertion_mode == "full_v5":
+                    evidence = context.to_llm_prompt_v5(question_text=question.question)
+                    user_prompt = (
+                        f"Patient evidence:\n{evidence}\n\n"
+                        f"Question: {question.question}\n\n"
+                        f"Answer concisely based on the evidence above."
                     )
                 elif config.assertion_mode == "full_v4":
+                    evidence = context.to_llm_prompt_v4(question_text=question.question)
                     user_prompt = (
                         f"Patient evidence:\n{evidence}\n\n"
                         f"Question: {question.question}\n\n"
@@ -455,21 +548,35 @@ class QAExperimentExecutor:
                         f"Answer concisely based on the evidence above."
                     )
                 else:
+                    evidence = context.to_llm_prompt(assertion_mode=config.assertion_mode)
                     user_prompt = (
                         f"Patient evidence:\n{evidence}\n\n"
                         f"Question: {question.question}\n\n"
                         f"Answer concisely based on the evidence above."
                     )
+
+                # C5: Conditionally inject calculator results (only for calculator questions)
+                calculator_context = ""
+                if config.calculator_enabled and _is_calculator_question(question.question):
+                    calculator_context = self._get_calculator_context(
+                        effective_patient_id, question.question,
+                    )
+                if calculator_context:
+                    user_prompt += (
+                        f"\n\n--- Supplementary: Calculator Results ---\n"
+                        f"{calculator_context}\n"
+                        f"Use these calculator results only if directly relevant to the question."
+                    )
                 evidence_pieces = context.total_evidence_pieces
                 graph_path_count = len(context.graph_paths)
 
             # Step 3: Call LLM (local Ollama or cloud API)
-            # Only use intent-aware system prompt when question_intent is
-            # active — the temporal guidance confuses MedGemma for Task A
-            # (single-note) questions, causing it to echo evidence.
             system_prompt = _get_system_prompt(
                 config.assertion_mode,
                 intent_aware=bool(question_intent),
+                prompt_optimized=config.prompt_optimized,
+                question_intent=question_intent,
+                question_category=question.category,
             )
             if config.llm_provider == "ollama":
                 response = await _call_ollama(

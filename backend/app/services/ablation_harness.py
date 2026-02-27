@@ -149,6 +149,18 @@ ABLATION_CONDITIONS: dict[str, dict[str, Any]] = {
         "guidelines_enabled": False,
         "intent_aware": True,
     },
+    "C4h_prompt_opt": {
+        "label": "LLM + Prompt-Optimized KG-RAG",
+        "description": "C4g retrieval + category-specific prompts, assertion injection, doc suppression",
+        "raw_note_only": False,
+        "retrieval_mode": "graph_plus_doc",
+        "assertion_mode": "full_v2",
+        "temporal_mode": "full_bitemporal",
+        "calculator_enabled": False,
+        "guidelines_enabled": False,
+        "intent_aware": True,
+        "prompt_optimized": True,
+    },
     "C5_full_system": {
         "label": "Full System",
         "description": "Everything: graph + doc + guidelines + assertion + temporal + calculators",
