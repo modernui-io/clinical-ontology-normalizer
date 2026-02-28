@@ -379,7 +379,7 @@ Evidence preambles (echoed graph context) are stripped before matching.
 
 \paragraph{Retrieval.} C2's vanilla RAG uses TF-IDF over chunked clinical notes (512-token chunks, 64-token overlap), retrieving the top-5 chunks by cosine similarity.
 This is the closest analog to existing medical RAG systems (DoctorRAG, MedRAG) on patient-level longitudinal data.
-ClinicalBench conditions map to SliceBench: C1$\!\approx\!$B0, C2$\!\approx\!$B2, C4$\!\approx\!$B3, C5$\!\approx\!$B4.
+ClinicalBench conditions map to SliceBench: C1$\!\approx\!$B0, C2$\!\approx\!$B2, C4g$\!\approx\!$B3, C5$\!\approx\!$B4.
 
 \paragraph{Bootstrap.} $n=2{,}000$ resamples, seed 42, BCa method~\cite{efron1993bootstrap}.
 We report both question-level and patient-level (cluster) bootstrap CIs; the latter resample the 43 patients with replacement, including all their questions per draw, to account for within-patient correlation.
@@ -545,7 +545,7 @@ In a prior evaluator run, C5 achieved 68.2\% overall, below the prior-run C1 and
 All patient documents are concatenated chronologically and presented to the LLM.
 For Opus (200K token window), all notes fit; for MedGemma (8K window), later documents are truncated.
 C6 achieves 39.0\% (Opus) overall---better than C1 (21.8\%) but far below C4g (69.0\%).
-Opus catastrophically fails on historical (0\%) and sequence (0\%) under C6, confirming that brute-force long context cannot substitute for structured retrieval on categories requiring cross-encounter synthesis.
+Opus scores 0\% on historical and sequence under C6, confirming that brute-force long context cannot substitute for structured retrieval on categories requiring cross-encounter synthesis.
 
 \paragraph{C7 (Deterministic KG).}
 KG edges matching query concepts are returned directly without LLM reasoning.

@@ -10,8 +10,7 @@ We introduce two complementary benchmarks built on MIMIC-IV~\cite{johnson2023mim
 ClinicalBench comprises 400 gold-standard questions over 43 MIMIC-IV patients in two tasks: \textbf{Task~A} (200 questions, negation-aware retrieval) and \textbf{Task~B} (200 questions, temporal reasoning).
 Questions span 9 categories: \textit{negation}, \textit{conditional}, \textit{uncertainty}, \textit{family\_history}, \textit{sequence}, \textit{current\_state}, \textit{duration}, \textit{historical}, and \textit{change}.
 Gold-standard answers were created by a single physician (board-certified emergency medicine) through manual chart review against source MIMIC-IV documents.
-No inter-annotator agreement was computed for gold-standard creation; the preregistered two-physician adjudication (Section~\ref{sec:bench:physician}) addresses this limitation.
-A pilot adjudication ($n=5$, Appendix~\ref{app:human}) found 3/5 gold standards fully correct, motivating the full validation.
+No inter-annotator agreement was computed for gold-standard creation; the physician adjudication pilot (Section~\ref{sec:bench:physician}) addresses this limitation.
 Four ablation conditions progressively add system components (Table~\ref{tab:clinicalbench_conditions}).
 Two bookend baselines---C6 (all notes concatenated) and C7 (deterministic KG lookup, no LLM)---bracket the design space.
 
@@ -80,8 +79,6 @@ A safety score with asymmetric weighting ($w=2.0$ for false-positive assertion e
 \subsection{Physician Validation Protocol}
 \label{sec:bench:physician}
 
-To validate automated scoring, we preregister a two-physician blinded adjudication.
-Two board-certified emergency medicine physicians independently score a stratified sample of 168 questions under two conditions (C1 vs.\ C4g), blinded to condition assignment, using the same binary correctness rubric as the keyword evaluator.
-A third physician adjudicates disagreements; inter-rater reliability is reported as Cohen's $\kappa$.
-The protocol (Appendix~\ref{app:physician_protocol}) was finalized before examining primary results.
-Results are pending.
+To validate automated scoring, a board-certified physician (A.S.) reviewed a blinded, stratified pilot sample ($n=30$ ClinicalBench items across all 9 categories and both conditions, C1 vs.\ C4g).
+The physician-rated C4g--C1 delta ($+52\pp$) exceeded the auto-evaluator delta ($+47\pp$), indicating the headline effect is conservative (Section~\ref{sec:results:physician}).
+A second independent reviewer is planned; protocol details are in Appendix~\ref{app:physician_protocol}.

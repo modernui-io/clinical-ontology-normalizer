@@ -3,7 +3,7 @@
 
 We evaluate \epikg through two benchmarks: ClinicalBench tests assertion-sensitive and longitudinal reasoning, while SliceBench measures longitudinal QA across patient complexity tiers.
 ClinicalBench uses a deterministic keyword evaluator for reproducibility; SliceBench uses LLM-as-judge evaluation (Section~\ref{sec:bench:protocol}).
-Claude Opus 4.6 is the primary answering model; MedGemma 27B and GPT-OSS 20B\footnote{GPT-OSS 20B is an open-source general-purpose model run locally via Ollama (4-bit quantized). Its identity is anonymized during review; the reproducibility package includes raw predictions for verification.} provide cross-model validation.
+Claude Opus 4.6 is the primary answering model; MedGemma 27B and GPT-OSS 20B\footnote{GPT-OSS 20B is an open-source general-purpose model run locally via Ollama (4-bit quantized). We use the label GPT-OSS to avoid implying endorsement; the reproducibility package includes model identifiers and raw predictions.} provide cross-model validation.
 Both benchmarks report bias-corrected and accelerated (BCa) bootstrap 95\% CIs ($n=2{,}000$, seed 42)~\cite{efron1993bootstrap}, resampled at the question level.
 
 % ----------------------------------------------------------

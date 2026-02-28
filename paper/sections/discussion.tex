@@ -2,7 +2,7 @@
 % NOTE: \section{Discussion and Limitations} and \label{sec:discussion} are in main.tex
 
 \paragraph{Why long context underperforms.}
-Brute-force long context (C6) scores 39.0\%, outperforming C1 ($+17.2\pp$) because it at least provides clinical text for the model to draw on, but it still falls far short of C4g (69.0\%) and catastrophically fails on historical (0\%) and sequence (0\%).
+Brute-force long context (C6) scores 39.0\%, outperforming C1 ($+17.2\pp$) because it at least provides clinical text for the model to draw on, but it still falls far short of C4g (69.0\%) and fails completely on historical (0\%) and sequence (0\%).
 C6 concatenates all notes chronologically without retrieval or selection; more sophisticated long-context strategies (hierarchical summarization, temporal segmentation) might perform better, but C6's category-level failures---consistent with the ``lost in the middle'' phenomenon~\cite{liu2024lostmiddle}---demonstrate that raw context dumping cannot substitute for structured retrieval.
 Historical questions require distinguishing resolved from active conditions across admissions; sequence questions require strict temporal ordering---both are implicit in raw text but explicit in the epistemic KG.
 C6 handles change detection modestly (23\%) because the relevant information appears explicitly in the text, but KG-RAG achieves $100\%$ ($+77\pp$).
