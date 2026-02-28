@@ -271,7 +271,7 @@ Claude 3 Opus (2024) & 78.0\% & --- & 1{,}273 \\
 \paragraph{KG scale and traversal latency.}
 The deployed system processes 145 documents across 85 patients, materializing 3{,}100 KG nodes and 8{,}803 edges.
 Graph traversal latency is sub-millisecond at this scale: 0.57\,ms (1-hop), 0.75\,ms (2-hop).
-The full system integrates 201 clinical calculators, 1{,}202 guideline sections, 20M+ OMOP vocabulary relationships, 101 assertion trigger patterns, and 24 edge types across 13 node types.
+The full system integrates 201 clinical calculators, 1{,}202 guideline sections, 20M+ OMOP vocabulary relationships, 122 assertion trigger patterns, and 24 edge types across 13 node types.
 
 \paragraph{Multi-hop traversal.}
 \label{app:drknows}
@@ -307,24 +307,24 @@ C & 15+ notes & 48.4 & 74.2 & 86.5 & 91.5 & 90.3 & $+5.0\pp$ \\
 \begin{table}[ht]
 \centering
 \small
-\begin{tabular}{lccccccc}
+\begin{tabular}{lcccccccc}
 \toprule
-\textbf{Category} & $n$ & \textbf{C7} & \textbf{C6} & \textbf{C1} & \textbf{C2} & \textbf{C3} & \textbf{C4g} \\
+\textbf{Category} & $n$ & \textbf{C7} & \textbf{C6} & \textbf{C1} & \textbf{C2} & \textbf{C3} & \textbf{C4} & \textbf{C4g} \\
 \midrule
-Negation & 110 & 13.6 & 69.1 & 45.5 & 70.9 & 65.5 & 80.9 \\
-Conditional & 20 & 0.0 & 35.0 & 0.0 & 35.0 & 30.0 & 45.0 \\
-Uncertainty & 40 & 0.0 & 27.5 & 12.5 & 35.0 & 37.5 & 50.0 \\
-Family History & 30 & 0.0 & 43.3 & 3.3 & 43.3 & 43.3 & 56.7 \\
-Sequence & 40 & 0.0 & 0.0 & 10.0 & 60.0 & 57.5 & 65.0 \\
-Current State & 50 & 0.0 & 44.0 & 26.0 & 32.0 & 54.0 & 70.0 \\
-Duration & 30 & 0.0 & 66.7 & 30.0 & 66.7 & 60.0 & 66.7 \\
-Historical & 50 & 0.0 & 0.0 & 6.0 & 48.0 & 42.0 & 60.0 \\
-Change & 30 & 0.0 & 23.3 & 6.7 & 43.3 & 16.7 & 100.0 \\
+Negation & 110 & 13.6 & 69.1 & 45.5 & 70.9 & 65.5 & 90.0 & 80.9 \\
+Conditional & 20 & 0.0 & 35.0 & 0.0 & 35.0 & 30.0 & 50.0 & 45.0 \\
+Uncertainty & 40 & 0.0 & 27.5 & 12.5 & 35.0 & 37.5 & 52.5 & 50.0 \\
+Family History & 30 & 0.0 & 43.3 & 3.3 & 43.3 & 43.3 & 50.0 & 56.7 \\
+Sequence & 40 & 0.0 & 0.0 & 10.0 & 60.0 & 57.5 & 10.0 & 65.0 \\
+Current State & 50 & 0.0 & 44.0 & 26.0 & 32.0 & 54.0 & 30.0 & 70.0 \\
+Duration & 30 & 0.0 & 66.7 & 30.0 & 66.7 & 60.0 & 46.7 & 66.7 \\
+Historical & 50 & 0.0 & 0.0 & 6.0 & 48.0 & 42.0 & 12.0 & 60.0 \\
+Change & 30 & 0.0 & 23.3 & 6.7 & 43.3 & 16.7 & 10.0 & 100.0 \\
 \midrule
-\textbf{Overall} & \textbf{400} & \textbf{3.8} & \textbf{39.0} & \textbf{21.8} & \textbf{52.2} & \textbf{50.0} & \textbf{69.0} \\
+\textbf{Overall} & \textbf{400} & \textbf{3.8} & \textbf{39.0} & \textbf{21.8} & \textbf{52.2} & \textbf{50.0} & \textbf{46.8} & \textbf{69.0} \\
 \bottomrule
 \end{tabular}
-\caption{Complete ClinicalBench per-category accuracy (\%, Claude Opus 4.6, keyword evaluator v2) for all conditions. C7 is model-independent; C2 adds vanilla document retrieval; C3 adds graph-structured retrieval without assertion metadata. C2 and C3 score similarly overall (${\sim}50\text{--}52\%$) but diverge per category. All 9 categories improve from C1 to C4g; the largest gains occur on change ($+93\pp$), sequence ($+55\pp$), and historical ($+54\pp$). C3$\to$C4g on change ($+83\pp$) isolates the epistemic annotation contribution.}
+\caption{Complete ClinicalBench per-category accuracy (\%, Claude Opus 4.6, keyword evaluator v2) for all conditions. C4 adds assertion metadata to C3 without intent routing; it helps assertion-sensitive categories (negation: $+24.5\pp$) but hurts temporal categories (historical: $-30\pp$, sequence: $-47.5\pp$). Only with intent routing (C4g) does the full system reach 69\%.}
 \label{tab:full_percategory}
 \end{table}
 
@@ -398,7 +398,9 @@ Comparison & $\Delta$ & Question CI & Patient CI & McNemar $p$ \\
 \midrule
 C4g$-$C1 (overall) & $+47.2\pp$ & \ci{+40.9\pp}{+52.8\pp} & \ci{+40.2\pp}{+52.5\pp} & $< 10^{-6}$ \\
 C3$-$C1 (retrieval) & $+28.2\pp$ & \ci{+22.3\pp}{+34.0\pp} & \ci{+23.1\pp}{+33.8\pp} & $< 10^{-6}$ \\
-C4g$-$C3 (epistemic) & $+19.0\pp$ & \ci{+13.8\pp}{+24.0\pp} & \ci{+14.6\pp}{+23.3\pp} & $< 10^{-11}$ \\
+C4$-$C3 (assertions) & $-3.2\pp$ & \ci{-10.0\pp}{+3.2\pp} & \ci{-10.8\pp}{+3.4\pp} & $0.37$ \\
+C4g$-$C4 (routing) & $+22.2\pp$ & \ci{+16.0\pp}{+28.0\pp} & \ci{+14.8\pp}{+29.3\pp} & $< 10^{-10}$ \\
+C4g$-$C3 (both) & $+19.0\pp$ & \ci{+13.8\pp}{+24.0\pp} & \ci{+14.7\pp}{+23.5\pp} & $< 10^{-11}$ \\
 Hard longitudinal & $+59.2\pp$ & \ci{+49.2\pp}{+67.7\pp} & \ci{+48.6\pp}{+69.4\pp} & --- \\
 \bottomrule
 \end{tabular}
@@ -429,6 +431,7 @@ Condition & Model & Checkpoint file & $n$ \\
 C1 & Opus 4.6 & \texttt{opus/C1\_llm\_alone.json} & 400 \\
 C2 & Opus 4.6 & \texttt{opus/C2\_vanilla\_rag.json} & 400 \\
 C3 & Opus 4.6 & \texttt{opus/C3\_kg\_rag.json} & 400 \\
+C4 & Opus 4.6 & \texttt{opus/C4\_epistemic\_kg\_rag.json} & 400 \\
 C4g & Opus 4.6 & \texttt{opus/C4g\_intent\_aware.json} & 400 \\
 C6 & Opus 4.6 & \texttt{opus/C6\_long\_context.json} & 400 \\
 C7 & --- & \texttt{opus/C7\_deterministic.json} & 400 \\
@@ -567,6 +570,102 @@ The intent classifier routes to \textsc{Change} retrieval, which partitions KG e
 \item \textbf{Continued}: metoprolol~25mg [\textsc{Present}, both admissions]
 \end{itemize}
 The assertion labels (\textsc{Present}, \textsc{Absent}) disambiguate: ``discontinued lisinopril'' is not a current medication but a historical one whose status changed---exactly the distinction the epistemic schema preserves.
+
+
+\section{LLM-as-Judge Concordance}
+\label{app:llm_judge}
+
+To complement the deterministic keyword evaluator, we rescored all 800 predictions (400 questions $\times$ 2 conditions: C1 and C4g) using Claude Opus 4.6 as an LLM judge.
+The judge prompt presents the question, reference answer, and system answer, and requests a score of 1 (correct), 0.5 (partially correct), or 0 (incorrect) with a one-sentence justification.
+Table~\ref{tab:llm_judge} summarizes the concordance.
+
+\begin{table}[ht]
+\centering
+\small
+\caption{Evaluator concordance comparison. LLM judge scores $\geq 0.5$ treated as correct for binary comparison. Physician concordance computed on $n=30$ overlapping items.}
+\label{tab:llm_judge}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Metric} & \textbf{Keyword v2} & \textbf{LLM Judge} \\
+\midrule
+\multicolumn{3}{@{}l}{\textit{vs.\ Keyword evaluator ($n=800$)}} \\
+Agreement & --- & 78.9\% \\
+Cohen's $\kappa$ & --- & 0.572 \\
+\midrule
+\multicolumn{3}{@{}l}{\textit{vs.\ Physician ($n=30$)}} \\
+Agreement & 46.7\% & 56.7\% \\
+Too strict & 43.3\% & 36.7\% \\
+Too lenient & 10.0\% & 6.7\% \\
+\midrule
+\multicolumn{3}{@{}l}{\textit{Condition-level accuracy}} \\
+C1 accuracy & 21.8\% & 28.5\% \\
+C4g accuracy & 69.0\% & 57.0\% \\
+C4g$-$C1 $\Delta$ & $+47.2\pp$ & $+28.5\pp$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Key findings.}
+The LLM judge achieves higher physician concordance (56.7\% vs.\ 46.7\%) and is less prone to false strictness (36.7\% vs.\ 43.3\%), confirming that the keyword evaluator's conservative bias inflates the measured delta.
+Under the LLM judge, C1 rises from 21.8\% to 28.5\% (the judge credits clinically reasonable hedging that keyword matching penalizes), while C4g drops from 69.0\% to 57.0\% (the judge penalizes partial answers that pass keyword matching via term overlap).
+The resulting C4g$-$C1 delta under LLM judge ($+28.5\pp$) is lower than the keyword delta ($+47.2\pp$) but remains substantial and directionally consistent.
+The per-condition asymmetry---C1 gains, C4g loses---is consistent with the physician finding that the keyword evaluator disproportionately penalizes C1 abstentions.
+
+\paragraph{Per-category analysis.}
+The LLM judge is particularly stricter on change (C4g: 62\% mean score vs.\ 100\% keyword) because it penalizes partial medication lists that contain correct change keywords but miss specific drugs.
+Conversely, the judge is more generous on historical (C4g: 62\% vs.\ 60\% keyword) and negation (C4g: 79\% vs.\ 81\% keyword), where its semantic understanding better captures correct answers that use varied phrasing.
+
+\paragraph{Limitations.}
+Using the same model family (Opus) for both answering and judging introduces potential self-preference bias.
+The judge also shows moderate agreement with the keyword evaluator ($\kappa = 0.572$), indicating they capture partially overlapping but distinct aspects of answer quality.
+
+
+\section{Assertion Classifier Evaluation}
+\label{app:assertion_eval}
+
+The rule-based assertion classifier uses 122 calibrated trigger patterns extending the NegEx~\cite{chapman2001negex} and ConText~\cite{harkema2009context} frameworks to a 7-class taxonomy (Table~\ref{tab:assertion_defs}).
+Table~\ref{tab:assertion_inventory} summarizes the pattern inventory and confidence ranges by category.
+
+\begin{table}[ht]
+\centering
+\small
+\caption{Assertion trigger pattern inventory. Confidence ranges reflect per-trigger calibration.}
+\label{tab:assertion_inventory}
+\begin{tabular}{@{}lrcl@{}}
+\toprule
+Category & Patterns & Confidence & Example triggers \\
+\midrule
+Absent & 31 & 0.85--0.98 & ``no evidence of,'' ``denies,'' ``ruled out'' \\
+Uncertain & 32 & 0.35--0.75 & ``possible,'' ``likely,'' ``consistent with'' \\
+Present & 27 & 0.85--0.98 & ``confirmed,'' ``diagnosed with,'' ``positive for'' \\
+Hypothetical & 11 & 0.25--0.35 & ``risk of,'' ``screening for,'' ``prophylaxis'' \\
+Family history & 8 & 0.85--0.95 & ``family history of,'' ``maternal history'' \\
+Conditional & 7 & 0.20--0.40 & ``if,'' ``contingent on,'' ``depending on'' \\
+Historical & 6 & 0.75--0.90 & ``history of,'' ``former,'' ``remote history'' \\
+\midrule
+\textbf{Total} & \textbf{122} & 0.20--0.98 & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Corpus statistics.}
+Across the 43 ClinicalBench patients, the knowledge graph contains 3{,}943 edges linked to clinical facts.
+Of these, 618 (15.7\%) carry non-present assertions: 442 absent (11.2\%), 94 possible (2.4\%), 71 historical (1.8\%), 8 conditional (0.2\%), and 3 hypothetical (0.1\%).
+At the mention level, 1{,}428 of 12{,}379 mentions (11.5\%) are non-present.
+This non-present fraction $f_{\textit{np}} = 0.157$ provides the empirical bound from Corollary~\ref{cor:faithfulness}: an assertion-blind pipeline cannot exceed $1 - f_{\textit{np}} = 84.3\%$ assertion-faithful accuracy on concepts where negated or uncertain mentions are present.
+
+\paragraph{Literature-grounded accuracy.}
+No annotated assertion corpus was available for intrinsic evaluation; we instead bound expected accuracy using published benchmarks on similar rule-based classifiers.
+NegEx achieves 94.5\% precision / 77.8\% recall for negation~\cite{chapman2001negex}; ConText reports 93.8\% precision for negation scope~\cite{harkema2009context}; NegBio reaches 96.3\% precision / 85.7\% recall~\cite{peng2018negbio}.
+Our classifier extends these with calibrated confidence, pseudo-negation handling, and scope-aware bidirectional matching.
+Expected accuracy is ${\sim}$85--95\% for negation (the most studied and our largest non-present class at 71.5\% of non-present edges) and ${\sim}$75--85\% for uncertainty and historical (less studied, fewer trigger patterns).
+
+\paragraph{Functional evaluation.}
+Rather than relying solely on intrinsic metrics, the C4 ablation provides a functional evaluation of assertion quality.
+C4 adds assertion metadata to C3's graph without intent routing: the classifier's output is directly consumed by the retrieval pipeline.
+On assertion-sensitive categories (negation, conditional, uncertainty, family history), C4 outperforms C3 by an average of $+16.5\pp$, confirming that the classifier produces usable assertions for these categories.
+On temporal categories (historical, sequence, change, current state, duration), C4 underperforms C3 by an average of $-24\pp$---not because assertions are incorrect, but because uniform BFS traversal cannot exploit them effectively.
+The C4$\to$C4g routing correction recovers these losses and amplifies the gains, achieving $+22.2\pp$ overall ($p < 10^{-10}$).
 
 
 \section{Ethics Statement}

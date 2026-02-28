@@ -1,0 +1,30 @@
+{
+  "n_judged": 800,
+  "conditions": {
+    "C1": {
+      "n": 400,
+      "correct_strict": 70,
+      "partial": 44,
+      "wrong": 286,
+      "mean_score": 0.23
+    },
+    "C4g": {
+      "n": 400,
+      "correct_strict": 192,
+      "partial": 36,
+      "wrong": 172,
+      "mean_score": 0.525
+    }
+  },
+  "keyword_concordance": {
+    "agreement": 0.78875,
+    "kappa": 0.5717561797610449,
+    "n_paired": 800
+  },
+  "physician_concordance": {
+    "judge_agreement": 0.5666666666666667,
+    "judge_too_strict": 0.36666666666666664,
+    "keyword_agreement": 0.4666666666666667,
+    "n_items": 30
+  }
+}

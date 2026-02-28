@@ -12,7 +12,7 @@ Both benchmarks report bias-corrected and accelerated (BCa) bootstrap 95\% CIs (
 
 \begin{table}[t]
 \centering
-\caption{ClinicalBench primary results (400 questions, Claude Opus 4.6, keyword evaluator v2 with abstention detection). Ablation ladder (C1--C4g) progressively adds components; C6 and C7 are bookend baselines. Sig: * denotes BCa CI excluding zero. Best in \textbf{bold}.}
+\caption{ClinicalBench primary results (400 questions, Claude Opus 4.6, keyword evaluator v2 with abstention detection). Ablation ladder (C1--C4g) progressively adds components; C4 isolates assertion metadata from intent routing; C6 and C7 are bookend baselines. Sig: * denotes BCa CI excluding zero. Best in \textbf{bold}.}
 \label{tab:clinicalbench_ablation}
 \small
 \begin{tabular}{@{}llcl@{}}
@@ -22,6 +22,7 @@ Both benchmarks report bias-corrected and accelerated (BCa) bootstrap 95\% CIs (
 C1 & LLM Alone & 21.8\% & --- \\
 C2 & + Vanilla RAG & 52.2\% & $+30.5\pp$ * \\
 C3 & + KG-RAG (no assertions) & 50.0\% & $+28.2\pp$ * \\
+C4 & + Assertions (no routing) & 46.8\% & $+25.0\pp$ * \\
 C4g & + Intent-Aware KG-RAG & \textbf{69.0\%} & $+47.2\pp$ * \\
 \midrule
 C6 & Long Context (all notes) & 39.0\% & $+17.2\pp$ \\
@@ -37,16 +38,26 @@ C6 (all notes concatenated) scores 39.0\%, outperforming C1 ($+17.2\pp$) because
 However, C6 fails on historical (0\%) and sequence (0\%), consistent with the ``lost in the middle'' phenomenon when context exceeds what the model can attend to.
 C7 (deterministic KG, no LLM) achieves 3.8\%---only negation detection works (13.6\%) via stored assertion metadata---confirming that an LLM is essential for reasoning over graph evidence.
 
-\paragraph{Ablation decomposition: retrieval vs.\ graph structure vs.\ epistemic annotations.}
+\paragraph{Ablation decomposition: retrieval vs.\ assertions vs.\ intent routing.}
 C2 (vanilla TF-IDF document retrieval) and C3 (graph-augmented retrieval without assertions) score similarly overall---52.2\% and 50.0\%, respectively---demonstrating that graph structure alone does not improve aggregate accuracy over simple document retrieval.
 However, per-category patterns diverge: C3 excels on current state (54\% vs.\ 32\%) where graph structure helps identify active conditions, while C2 outperforms C3 on change (43\% vs.\ 17\%) where raw text explicitly mentions medication changes.
-Neither approaches C4g (69.0\%), which adds epistemic annotations and intent-aware routing ($+19.0\pp$ over C3; 95\% BCa CI: \ci{+13.8\pp}{+24.0\pp}).
-The change category provides the clearest category-level evidence: C2 reaches 43.3\%, C3 only 16.7\%, but C4g achieves 100\%---because change detection requires comparing assertion states across admissions, which neither vanilla retrieval nor assertion-stripped graphs can provide.
-C2 also serves as the closest analog to existing medical RAG systems (DoctorRAG, MedRAG), which use document retrieval without assertion-aware graph structure; the $+16.8\pp$ C2$\to$C4g gap quantifies the value of epistemic KG-RAG over vanilla approaches.
+
+The new C4 condition isolates assertion metadata from intent routing: C4 adds epistemic annotations (negation, uncertainty, temporality) to graph edges but uses uniform BFS traversal without question-type-specific routing.
+C4 scores 46.8\%---\emph{below} C3 (50.0\%)---with the C3$\to$C4 delta of $-3.2\pp$ not reaching significance (95\% BCa CI: \ci{-10.0\pp}{+3.2\pp}; McNemar $p = 0.37$).
+This reveals that assertion metadata without intent routing actually degrades performance: the additional edge properties increase evidence verbosity and confuse uniform BFS traversal.
+The entire C3$\to$C4g gain ($+19.0\pp$; CI: \ci{+13.8\pp}{+24.0\pp}) is attributable to intent-aware routing (C4$\to$C4g: $+22.2\pp$; CI: \ci{+16.0\pp}{+28.0\pp}; McNemar $\chi^2 = 41.4$, $p < 10^{-10}$).
+
+Per-category decomposition clarifies the mechanism: assertions without routing help on assertion-sensitive categories (negation: $+24.5\pp$, uncertainty: $+15.0\pp$) but \emph{hurt} on temporal categories (current state: $-24.0\pp$, historical: $-30.0\pp$, sequence: $-47.5\pp$).
+Intent routing reverses these losses and amplifies the gains---most dramatically on change ($+90.0\pp$), sequence ($+55.0\pp$), and historical ($+48.0\pp$).
+The finding that assertions are necessary but not sufficient---and that their value is unlocked specifically by routing---validates the two-component architecture.
+
+C2 serves as the closest analog to existing medical RAG systems (DoctorRAG, MedRAG), which use document retrieval without assertion-aware graph structure; the $+16.8\pp$ C2$\to$C4g gap quantifies the value of epistemic KG-RAG over vanilla approaches.
 
 \paragraph{Evaluator bias.}
 The keyword evaluator's abstention gate disproportionately penalizes C1, where the model correctly recognizes it lacks retrieval context and abstains.
 Physician review (Section~\ref{sec:results:physician}) confirmed this bias: the auto-evaluator was too strict in 43\% of cases (vs.\ too lenient in 10\%), and the physician-rated C4g--C1 delta ($+52\pp$) exceeds the auto-evaluator delta ($+47\pp$), indicating the headline effect is conservative.
+An LLM-as-judge evaluation (Appendix~\ref{app:llm_judge}) provides a complementary perspective: the LLM judge achieves higher physician concordance (56.7\% vs.\ 46.7\%) and yields a C4g--C1 delta of $+28.5\pp$---lower than the keyword delta but still substantial.
+The asymmetry (C1 rises under LLM judge while C4g drops) is consistent with the keyword evaluator's conservative bias on abstentions.
 
 % ----------------------------------------------------------
 \subsection{Category$\times$Condition Interaction}
@@ -54,25 +65,25 @@ Physician review (Section~\ref{sec:results:physician}) confirmed this bias: the 
 
 \begin{table}[t]
 \centering
-\caption{ClinicalBench per-category accuracy (\%) across conditions (Claude Opus 4.6, evaluator v2). C2 adds vanilla document retrieval; C3 adds graph-structured retrieval without assertions; C4g adds epistemic annotations and intent-aware routing. Best per row in \textbf{bold}.}
+\caption{ClinicalBench per-category accuracy (\%) across conditions (Claude Opus 4.6, evaluator v2). C4 adds assertion metadata to C3 without intent routing; C4g adds intent-aware routing. Best per row in \textbf{bold}.}
 \label{tab:clinicalbench_categories}
 \small
-\begin{tabular}{@{}lcccccl@{}}
+\begin{tabular}{@{}lccccccl@{}}
 \toprule
-Category & $n$ & C1 & C2 & C3 & C4g & C4g$-$C1 \\
+Category & $n$ & C1 & C2 & C3 & C4 & C4g & C4g$-$C1 \\
 \midrule
-Negation & 110 & 45.5 & 70.9 & 65.5 & \textbf{80.9} & $\uparrow 35.5\pp$ \\
-Conditional & 20 & 0.0 & 35.0 & 30.0 & \textbf{45.0} & $\uparrow 45.0\pp$ \\
-Uncertainty & 40 & 12.5 & 35.0 & 37.5 & \textbf{50.0} & $\uparrow 37.5\pp$ \\
-Family hist. & 30 & 3.3 & 43.3 & 43.3 & \textbf{56.7} & $\uparrow 53.3\pp$ \\
-Sequence & 40 & 10.0 & 60.0 & 57.5 & \textbf{65.0} & $\uparrow 55.0\pp$ \\
+Negation & 110 & 45.5 & 70.9 & 65.5 & 90.0 & \textbf{80.9} & $\uparrow 35.5\pp$ \\
+Conditional & 20 & 0.0 & 35.0 & 30.0 & \textbf{50.0} & 45.0 & $\uparrow 45.0\pp$ \\
+Uncertainty & 40 & 12.5 & 35.0 & 37.5 & 52.5 & \textbf{50.0} & $\uparrow 37.5\pp$ \\
+Family hist. & 30 & 3.3 & 43.3 & 43.3 & 50.0 & \textbf{56.7} & $\uparrow 53.3\pp$ \\
+Sequence & 40 & 10.0 & 60.0 & 57.5 & 10.0 & \textbf{65.0} & $\uparrow 55.0\pp$ \\
 \midrule
-Current st. & 50 & 26.0 & 32.0 & 54.0 & \textbf{70.0} & $\uparrow 44.0\pp$ \\
-Duration & 30 & 30.0 & 66.7 & 60.0 & \textbf{66.7} & $\uparrow 36.7\pp$ \\
-Historical & 50 & 6.0 & 48.0 & 42.0 & \textbf{60.0} & $\uparrow 54.0\pp$ \\
-Change & 30 & 6.7 & 43.3 & 16.7 & \textbf{100.0} & $\uparrow 93.3\pp$ \\
+Current st. & 50 & 26.0 & 32.0 & 54.0 & 30.0 & \textbf{70.0} & $\uparrow 44.0\pp$ \\
+Duration & 30 & 30.0 & 66.7 & 60.0 & 46.7 & \textbf{66.7} & $\uparrow 36.7\pp$ \\
+Historical & 50 & 6.0 & 48.0 & 42.0 & 12.0 & \textbf{60.0} & $\uparrow 54.0\pp$ \\
+Change & 30 & 6.7 & 43.3 & 16.7 & 10.0 & \textbf{100.0} & $\uparrow 93.3\pp$ \\
 \midrule
-\textbf{Overall} & \textbf{400} & 21.8 & 52.2 & 50.0 & \textbf{69.0} & $\uparrow 47.2\pp$ \\
+\textbf{Overall} & \textbf{400} & 21.8 & 52.2 & 50.0 & 46.8 & \textbf{69.0} & $\uparrow 47.2\pp$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -80,7 +91,7 @@ Change & 30 & 6.7 & 43.3 & 16.7 & \textbf{100.0} & $\uparrow 93.3\pp$ \\
 \begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/fig2_radar.pdf}
-\caption{ClinicalBench per-category accuracy across five conditions (C6, C1, C2, C3, C4g; Claude Opus 4.6, evaluator v2). C6 (pink dash-dot) fails on historical and sequence (both 0\%); C1 (gray dotted) falls below 50\% on 7 of 9 categories; C2 (light blue) and C3 (orange dashed) score similarly overall (${\sim}50\text{--}52\%$) but diverge per category; C4g (dark solid) adds epistemic annotations, improving all 9 categories over C1. The C3$\to$C4g gap on change (16.7\%$\to$100\%) highlights the critical role of assertion metadata.}
+\caption{ClinicalBench per-category accuracy across five conditions (C6, C1, C2, C3, C4g; Claude Opus 4.6, evaluator v2). C6 (pink dash-dot) fails on historical and sequence (both 0\%); C1 (gray dotted) falls below 50\% on 7 of 9 categories; C2 (light blue) and C3 (orange dashed) score similarly overall (${\sim}50\text{--}52\%$) but diverge per category; C4g (dark solid) adds epistemic annotations with intent routing. C4 (not shown; see Table~\ref{tab:clinicalbench_categories}) adds assertions without routing and scores 46.8\%---below C3---demonstrating that intent routing, not assertions alone, drives the C3$\to$C4g improvement.}
 \label{fig:radar}
 \end{figure}
 

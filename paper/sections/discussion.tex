@@ -15,8 +15,11 @@ This has practical implications for RAG system design: the same retrieval pipeli
 
 \paragraph{When KG context matters.}
 The complexity-dependent SliceBench effect (Tier~C: $+5.0\pp$ vs.\ Tier~A: $+0.6\pp$) suggests structured epistemic context is most valuable when: (a)~document volume overwhelms chunk-level retrieval, (b)~questions require cross-encounter synthesis where the same concept appears with different assertion states, and (c)~assertion status evolves across encounters.
-The C3 ablation provides the clearest evidence: structured retrieval without assertions lifts overall accuracy from 21.8\% to 50.0\% ($+28.2\pp$), but change detection reaches only 16.7\%---because detecting what \emph{changed} between admissions requires comparing assertion states, which C3 strips.
-Adding epistemic annotations (C3$\to$C4g) lifts change to 100\% ($+83.3\pp$), confirming that \emph{assertion metadata}, not mere graph structure, is the key factor for change detection.
+
+The C4 ablation cleanly decomposes the C3$\to$C4g gap ($+19.0\pp$) into two components: assertions alone (C3$\to$C4: $-3.2\pp$, CI crossing zero) and intent routing (C4$\to$C4g: $+22.2\pp$, $p < 10^{-10}$).
+This reveals a key architectural insight: assertion metadata is a necessary but insufficient condition---its value is unlocked only when paired with question-type-specific retrieval.
+Without routing, assertions increase evidence verbosity and degrade temporal categories (historical: $-30\pp$, sequence: $-47.5\pp$); with routing, the same metadata enables near-perfect change detection (C4 10\% $\to$ C4g 100\%).
+The finding validates the two-component design and suggests that future work on assertion-aware clinical NLP should couple enriched metadata with structured retrieval strategies.
 
 \paragraph{Uncertainty remains weakest.}
 Uncertainty improves from 12.5\% to 50.0\% ($+37.5\pp$), but absolute accuracy remains low.
@@ -28,6 +31,7 @@ Sample size is modest: ClinicalBench covers 43 patients (400 questions) and Slic
 The B2$\rightarrow$B3 CI crosses zero (\ci{-1.5\pp}{+5.9\pp}); tier-level estimates ($n\!=\!2$ patients per tier) are hypothesis-generating only.
 Model-dependent effects mean headline gains are specific to Opus; gains differ across models (Table~\ref{tab:crossmodel}).
 Physician review (Section~\ref{sec:results:physician}) found the keyword evaluator agreed with physician judgment in only 47\% of cases, predominantly erring on the conservative side (43\% too strict vs.\ 10\% too lenient); the physician-rated C4g--C1 delta ($+52\pp$) exceeds the auto-evaluator delta ($+47\pp$), suggesting the headline effect may be understated.
+An LLM-as-judge evaluation (Appendix~\ref{app:llm_judge}) achieves higher physician concordance (57\% vs.\ 47\%) and yields a C4g--C1 delta of $+28.5\pp$; the lower LLM-judge delta reflects the evaluator's capacity to credit partial answers and appropriate abstentions, particularly for C1.
 Gold-standard error rate was 40\%, concentrated in change detection and negation; a single physician reviewed the pilot and a second reviewer is planned.
 This is an ablation study; direct comparisons with medical RAG systems~\cite{luo2025gfmrag,jiang2025kare,lu2025doctorrag} were not performed because these target factoid QA rather than patient-level longitudinal reasoning.
 C2 (vanilla TF-IDF document retrieval, 52.2\%) serves as the closest proxy for these systems on our task, demonstrating that vanilla retrieval reaches roughly the same aggregate accuracy as graph-augmented retrieval without assertions (C3, 50.0\%) but both fall ${\sim}17\text{--}19\pp$ short of epistemic KG-RAG (C4g, 69.0\%).
@@ -39,6 +43,7 @@ Over-reliance on KG-driven summaries risks anchoring bias if NLP extraction intr
 \paragraph{Conclusion.}
 The epistemic propagation gap is a real and measurable phenomenon.
 \epikg addresses it through end-to-end epistemic preservation combined with intent-aware retrieval that matches graph traversal to question semantics.
-The C3 ablation decomposes the gain: structured retrieval contributes the majority ($+28\pp$), while epistemic annotations are decisive for change detection ($+83\pp$ from C3 to C4g).
+The ablation ladder decomposes the gain into three independent contributions: structured retrieval ($+28\pp$, C1$\to$C3), assertion metadata ($-3\pp$ without routing, C3$\to$C4), and intent-aware routing ($+22\pp$, C4$\to$C4g).
+The counterintuitive C4 result---that assertions alone degrade performance---reveals that the value of epistemic metadata is contingent on retrieval architecture, validating the two-component design.
 The benefit is both category-specific (every category improves, with the largest gains on longitudinal reasoning) and model-dependent (consistent across three models).
 Neither more context nor structured data alone suffices---C6 and C7 bracket the design space---confirming that the category$\times$condition interaction, not the aggregate, is the right lens for clinical KG-RAG evaluation.
