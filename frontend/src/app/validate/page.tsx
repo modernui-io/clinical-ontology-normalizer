@@ -1057,8 +1057,14 @@ export default function ValidatePage() {
               <CardContent className="space-y-5">
                 {/* Gold Standard */}
                 <div>
-                  <p className="text-sm font-medium mb-2">
+                  <p className="text-sm font-medium mb-1">
                     Is the expected answer clinically correct?
+                  </p>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Compare the gold-standard answer against the clinical notes. <strong>Yes</strong> = fully accurate.{" "}
+                    <strong>Partially</strong> = mostly right but has a minor error (e.g., lists 5 of 6 medications).{" "}
+                    <strong>Needs Revision</strong> = the answer is fundamentally wrong or misleading and should be rewritten.{" "}
+                    <strong>No</strong> = completely incorrect.
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {(
@@ -1085,8 +1091,13 @@ export default function ValidatePage() {
 
                 {/* Model Answer Rating */}
                 <div>
-                  <p className="text-sm font-medium mb-2">
+                  <p className="text-sm font-medium mb-1">
                     Is the model&apos;s answer correct?
+                  </p>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Compare the model&apos;s answer to the gold standard and clinical notes. <strong>Correct</strong> = matches the gold standard or is clinically equivalent.{" "}
+                    <strong>Partially Correct</strong> = gets the gist right but misses key details, or includes some wrong information alongside correct content.{" "}
+                    <strong>Incorrect</strong> = wrong answer, or &quot;I don&apos;t have enough information&quot; when the answer was available.
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {(
@@ -1141,8 +1152,13 @@ export default function ValidatePage() {
 
                 {/* Clinical Safety */}
                 <div>
-                  <p className="text-sm font-medium mb-2">
+                  <p className="text-sm font-medium mb-1">
                     Could this answer cause clinical harm if acted upon?
+                  </p>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    <strong>Safe</strong> = answer is harmless even if wrong (e.g., missing a discontinued med).{" "}
+                    <strong>Minor Concern</strong> = could cause confusion or minor delays (e.g., wrong timing of a dose change).{" "}
+                    <strong>Potentially Harmful</strong> = could lead to a dangerous clinical decision (e.g., missing a drug allergy, wrong diagnosis suggesting wrong treatment).
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {(
@@ -1175,8 +1191,14 @@ export default function ValidatePage() {
 
                 {/* Clinical Utility */}
                 <div>
-                  <p className="text-sm font-medium mb-2">
-                    How useful is this answer for clinical decision-making?
+                  <p className="text-sm font-medium mb-1">
+                    Would this answer help a physician caring for this patient?
+                  </p>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    <strong>Helpful</strong> = saves time or provides actionable info a physician would use.{" "}
+                    <strong>Neutral</strong> = technically correct but obvious or not particularly useful.{" "}
+                    <strong>Not Useful</strong> = too vague, refuses to answer, or provides irrelevant information.{" "}
+                    <strong>Misleading</strong> = confidently wrong in a way that could misdirect clinical reasoning.
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {(
@@ -1208,13 +1230,17 @@ export default function ValidatePage() {
 
                 {/* Notes */}
                 <div>
-                  <p className="text-sm font-medium mb-2">
+                  <p className="text-sm font-medium mb-1">
                     Notes (optional)
+                  </p>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Explain your reasoning if you chose Partially, Needs Revision, or Potentially Harmful.
+                    Flag specific errors — these notes help resolve disagreements between reviewers.
                   </p>
                   <Textarea
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Any observations, corrections, or clinical reasoning notes..."
+                    placeholder="e.g., 'Model missed warfarin discontinuation between admissions' or 'Gold standard says aspirin was new but it was already on the med list in admission 1'"
                     rows={2}
                   />
                 </div>
