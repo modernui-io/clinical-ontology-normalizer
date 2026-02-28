@@ -860,6 +860,47 @@ RAG_QUESTIONS: list[QAQuestion] = [
 
 
 # ============================================================================
+# Abstention detection (module-level, used by QAEvaluationService.score_answer)
+# ============================================================================
+
+# Patterns indicating the model is saying info is unavailable in the notes
+_ABSTENTION_PATTERNS = [
+    re.compile(r'\b(?:notes?|records?|documentation)\b.*\b(?:do(?:es)?\s+not|lack[s]?|fail[s]?\s+to)\s+(?:mention|contain|include|provide|document|address|specify)', re.IGNORECASE),
+    re.compile(r'\bno\s+(?:mention|information|data)\s+(?:of|about|regarding|concerning)\b', re.IGNORECASE),
+    re.compile(r'\b(?:cannot|can\'?t|unable\s+to)\s+(?:determine|assess|evaluate|answer|ascertain|establish)\b', re.IGNORECASE),
+    re.compile(r'\b(?:insufficient|inadequate)\s+(?:evidence|information|data|documentation)\b', re.IGNORECASE),
+    re.compile(r'\bnot\s+(?:mentioned|documented|provided|available|specified|addressed|included)\b', re.IGNORECASE),
+    re.compile(r'\b(?:information|evidence|data)\s+is\s+(?:missing|unavailable|lacking|absent|not\s+available)\b', re.IGNORECASE),
+    re.compile(r'\b(?:provided|available)\s+(?:notes?|records?)\s+do(?:es)?\s+not\b', re.IGNORECASE),
+]
+
+# Clinical claim patterns that override abstention (checked in first ~200 chars)
+_CLINICAL_CLAIM_PATTERNS = [
+    re.compile(r'\bpatient\s+(?:does\s+not|has\s+not|is\s+not|did\s+not)\b', re.IGNORECASE),
+    re.compile(r'\b(?:denies|denied|ruled\s+out)\b', re.IGNORECASE),
+    re.compile(r'\bno\s+evidence\s+of\b', re.IGNORECASE),
+    re.compile(r'\bpatient\s+has\s+no\b', re.IGNORECASE),
+    re.compile(r'^No[.,]', re.IGNORECASE),
+]
+
+
+def _is_abstention(text: str) -> bool:
+    """Detect if model answer is an abstention (info unavailable) rather than a clinical claim."""
+    # Strip markdown bold/italic markers for pattern matching
+    clean = re.sub(r'\*+', '', text)
+    # Check first ~200 chars for clinical claims that override abstention
+    lead = clean[:200]
+    for pat in _CLINICAL_CLAIM_PATTERNS:
+        if pat.search(lead):
+            return False
+    # Check full text for abstention patterns
+    for pat in _ABSTENTION_PATTERNS:
+        if pat.search(clean):
+            return True
+    return False
+
+
+# ============================================================================
 # QA Evaluation Service
 # ============================================================================
 
@@ -940,6 +981,18 @@ class QAEvaluationService:
         # polluting keyword matching across every category.
         predicted_clean = self._strip_evidence_echo(predicted_answer)
         predicted_lower = predicted_clean.lower()
+
+        # Abstention gate: "I don't know" / "not mentioned" is always wrong
+        if _is_abstention(predicted_clean):
+            return QAResult(
+                question_id=question.question_id,
+                category=question.category,
+                condition=condition,
+                predicted_answer=predicted_answer,
+                expected_answer=question.expected_answer,
+                correct=False,
+                score=0.0,
+            )
 
         # Simple keyword-based scoring
         correct = False
@@ -1038,29 +1091,47 @@ class QAEvaluationService:
                 correct = answer_is_historical
             score = 1.0 if correct else 0.0
 
-        elif question.category in ("sequence", "change"):
-            # Check if the answer identifies the correct ordering or change
-            # Extract key clinical terms from expected answer
-            # Strip punctuation for matching (e.g., "metformin;" -> "metformin")
+        elif question.category == "sequence":
             _strip_punct = re.compile(r'[^\w\s]')
             expected_clean = _strip_punct.sub('', expected_lower)
-            predicted_clean = _strip_punct.sub('', predicted_lower)
+            predicted_clean_s = _strip_punct.sub('', predicted_lower)
             expected_terms = set(expected_clean.split()) - {
                 "the", "a", "an", "is", "of", "in", "to", "for", "was", "and",
                 "then", "by", "first", "followed", "identified", "before", "after",
                 "key", "changes", "new", "medications", "discontinued", "between",
                 "admissions", "noted", "patients", "medication", "differences",
             }
-            predicted_terms = set(predicted_clean.split())
+            predicted_terms = set(predicted_clean_s.split())
             overlap = expected_terms & predicted_terms
             score = len(overlap) / max(len(expected_terms), 1)
-            # Also check for ordering keywords (word-boundary match)
             order_kw = ["first", "then", "followed", "before", "after", "prior", "subsequently", "later"]
             _order_patterns = [re.compile(r'\b' + re.escape(kw) + r'\b') for kw in order_kw]
-            has_ordering = any(p.search(predicted_lower) for p in _order_patterns)
-            if has_ordering:
+            has_order = any(p.search(predicted_lower) for p in _order_patterns)
+            if has_order:
                 score = min(score + 0.2, 1.0)
-            correct = score >= 0.3
+            correct = score >= 0.3 and has_order
+
+        elif question.category == "change":
+            _strip_punct = re.compile(r'[^\w\s]')
+            expected_clean = _strip_punct.sub('', expected_lower)
+            predicted_clean_c = _strip_punct.sub('', predicted_lower)
+            expected_terms = set(expected_clean.split()) - {
+                "the", "a", "an", "is", "of", "in", "to", "for", "was", "and",
+                "then", "by", "first", "followed", "identified", "before", "after",
+                "key", "changes", "new", "medications", "discontinued", "between",
+                "admissions", "noted", "patients", "medication", "differences",
+            }
+            predicted_terms = set(predicted_clean_c.split())
+            overlap = expected_terms & predicted_terms
+            score = len(overlap) / max(len(expected_terms), 1)
+            change_kw = ["added", "removed", "discontinued", "new", "changed",
+                         "started", "stopped", "replaced", "switched",
+                         "initiated", "modified"]
+            _change_patterns = [re.compile(r'\b' + re.escape(kw) + r'\b') for kw in change_kw]
+            has_change = any(p.search(predicted_lower) for p in _change_patterns)
+            if has_change:
+                score = min(score + 0.2, 1.0)
+            correct = score >= 0.3 and has_change
 
         elif question.category == "duration":
             # Check if answer references time/chronicity concepts (word-boundary match)
@@ -1081,7 +1152,7 @@ class QAEvaluationService:
             predicted_terms = set(predicted_lower.split())
             overlap = expected_terms & predicted_terms
             term_score = len(overlap) / max(len(expected_terms), 1)
-            score = max(term_score, 0.5 if has_duration else 0.0)
+            score = term_score
             if chronicity_match:
                 score = max(score, 0.8)
             correct = score >= 0.3
