@@ -9,7 +9,9 @@ We introduce two complementary benchmarks built on MIMIC-IV~\cite{johnson2023mim
 
 ClinicalBench comprises 400 gold-standard questions over 45 MIMIC-IV patients in two tasks: \textbf{Task~A} (200 questions, negation-aware retrieval) and \textbf{Task~B} (200 questions, temporal reasoning).
 Questions span 9 categories: \textit{negation}, \textit{conditional}, \textit{uncertainty}, \textit{family\_history}, \textit{sequence}, \textit{current\_state}, \textit{duration}, \textit{historical}, and \textit{change}.
-Gold-standard answers were created through manual chart review and verified against source documents; a pilot physician adjudication ($n=5$, Appendix~\ref{app:human}) assessed quality.
+Gold-standard answers were created by a single physician (board-certified emergency medicine) through manual chart review against source MIMIC-IV documents.
+No inter-annotator agreement was computed for gold-standard creation; the preregistered two-physician adjudication (Section~\ref{sec:bench:physician}) addresses this limitation.
+A pilot adjudication ($n=5$, Appendix~\ref{app:human}) found 3/5 gold standards fully correct, motivating the full validation.
 Four ablation conditions progressively add system components (Table~\ref{tab:clinicalbench_conditions}).
 Two bookend baselines---C6 (all notes concatenated) and C7 (deterministic KG lookup, no LLM)---bracket the design space.
 
@@ -66,7 +68,10 @@ The primary answering model is Claude Opus 4.6; cross-model validation uses MedG
 \paragraph{SliceBench} uses an \emph{LLM-as-judge} protocol with separated answering and judging models to prevent self-evaluation bias~\cite{xiong2024mirage}: Claude Sonnet 4.5 generates answers and Claude Opus 4.6 judges correctness.
 
 \paragraph{Statistical reporting.}
-We report BCa bootstrap 95\% CIs ($n=2{,}000$, seed 42) on both benchmarks, resampled at the question level: ClinicalBench CIs appear on primary deltas (overall C4g$-$C1 and hard longitudinal subset); SliceBench CIs appear on all conditions (Table~\ref{tab:slicebench_overall}).
+We report BCa bootstrap 95\% CIs ($n=2{,}000$, seed 42)~\cite{efron1993bootstrap} on both benchmarks.
+Question-level resampling is the primary analysis; patient-level cluster bootstrap (resampling the 43 patients with replacement, including all their questions) is reported as a sensitivity analysis to account for within-patient correlation (Appendix Table~\ref{tab:stats_summary}).
+McNemar's test~\cite{mcnemar1947note} provides a complementary non-parametric paired comparison.
+ClinicalBench CIs appear on primary deltas (overall C4g$-$C1 and hard longitudinal subset); SliceBench CIs appear on all conditions (Table~\ref{tab:slicebench_overall}).
 A safety score with asymmetric weighting ($w=2.0$ for false-positive assertion errors) captures clinical risk (Appendix~\ref{app:safety}).
 
 \subsection{Physician Validation Protocol}

@@ -1,0 +1,2807 @@
+{
+  "model": "gpt-oss-20b",
+  "condition": "C1_llm_alone",
+  "n_predictions": 400,
+  "predictions": [
+    {
+      "question_id": "bench_a_conditional_084fc490",
+      "predicted_answer": "There is no mention of vomiting or related symptoms in the medication reconciliation notes provided, so there is insufficient evidence to determine whether the patient should receive treatment for vomiting.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_0e65a291",
+      "predicted_answer": "No. The diagnoses listed for this patient do not include dizziness or any related symptom.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_178b9eb5",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_309600b2",
+      "predicted_answer": "There is no mention of constipation or related symptoms in the provided notes, so there is insufficient evidence to recommend treatment.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_3eb03d40",
+      "predicted_answer": "There is no evidence in the provided notes indicating that the patient is overweight, obese, or has a diagnosis related to weight management. Therefore, based on the available information, there is no indication that weight management is needed.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_568cb9c0",
+      "predicted_answer": "Yes. The medication reconciliation lists warfarin (Coumadin) as a home medication, so the patient should continue warfarin therapy.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_787343d7",
+      "predicted_answer": "Yes. The admission diagnoses include post\u2011procedural fever (ICD\u20119\u202f78062) and septicemia with severe sepsis, both of which require active fever management.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_79224dcd",
+      "predicted_answer": "No. The diagnosis list and medication reconciliation do not include any mention of stomach pain as an active concern.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_7c798644",
+      "predicted_answer": "There is no mention of headache or a diagnosis related to headache in the provided note, so there is no indication that the patient requires headache management.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_8a1a4b9e",
+      "predicted_answer": "There is no evidence in the provided diagnosis list indicating a fever or an infectious process that would require management.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_98cef13a",
+      "predicted_answer": "There is no indication in the provided diagnosis list that aspirin is an active concern for this patient.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_a761e242",
+      "predicted_answer": "The note does not list any diagnosis of fever or febrile illness. Therefore, based on the provided information, there is no indication that the patient should receive treatment for fever.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_aca13f49",
+      "predicted_answer": "There is no mention of vomiting or related symptoms in the diagnosis list, so the note does not indicate a need for vomiting management.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_b0479c71",
+      "predicted_answer": "There is no information in the medication reconciliation notes indicating that the patient has a fever, so there is insufficient evidence to recommend fever treatment.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_b7b33db2",
+      "predicted_answer": "No. The available diagnosis lists and medication reconciliation do not mention fever or any related condition.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_b9464ee7",
+      "predicted_answer": "Yes. The patient is diagnosed with asymptomatic HIV infection (ICD\u20119 V08) and is already on antiretroviral therapy (Genvoya, Norvir, Prezista, Truvada), indicating ongoing HIV management is required.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_e9039cad",
+      "predicted_answer": "Yes. The admission diagnosis lists a post\u2011procedural fever (ICD\u20119\u202f780.62) and the patient has had septicemia and other infections, so antipyretic treatment is indicated.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_f36d9cd4",
+      "predicted_answer": "No. The admission notes and medication list do not list vomiting as a diagnosis, symptom, or active concern for this patient.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_f726e827",
+      "predicted_answer": "Yes. The patient has portal vein thrombosis (ICD\u201110 I81) and a history of thrombosis related to vascular prosthetic devices, and is currently receiving anticoagulation (alteplase, heparin, enoxaparin), indicating that venous thromboembolism remains an active concern.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_f84ce693",
+      "predicted_answer": "Yes. The diagnosis list includes chronic hepatitis\u202fC (ICD\u20119\u202f07054), indicating the patient has HCV and should be considered for antiviral therapy.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_family_04048280",
+      "predicted_answer": "There is no information in the medication reconciliation notes indicating a diagnosis of colon cancer or any related findings. Therefore, based on the provided evidence, there is insufficient basis to recommend treatment for colon cancer.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_080e16ca",
+      "predicted_answer": "There is no mention of leukemia or related treatments in the medication reconciliation notes provided. Therefore, based on this evidence, we cannot determine that the patient has leukemia.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_0997e312",
+      "predicted_answer": "There is no mention of breast cancer in the medication reconciliation notes provided.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_1d1c4d1c",
+      "predicted_answer": "Yes. The patient is taking gemfibrozil, a medication used to treat hyperlipidemia, indicating that hyperlipidemia is part of his medical history.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_240897df",
+      "predicted_answer": "No. The admission diagnoses list includes benign neoplasms of the colon and rectum, but there is no mention of lymphoma or malignant disease. Therefore, lymphoma treatment is not indicated based on this note.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_2a6d3070",
+      "predicted_answer": "No, the provided diagnosis list does not include any dementia-related ICD\u201110 code.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_52945d44",
+      "predicted_answer": "No. The admission diagnoses list coronary atherosclerosis, angina, and other cardiovascular conditions, but there is no diagnosis of myocardial infarction or related acute event.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_560de630",
+      "predicted_answer": "Yes. The patient has atrial fibrillation documented in both admission diagnosis lists (ICD\u201110 I4891 and ICD\u20119 42731).",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_57033e90",
+      "predicted_answer": "Yes. The admission diagnosis list includes \u201cEpilepsy, unspecified\u201d (ICD\u20119\u202f34590), indicating a seizure disorder that warrants treatment.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_60efbaa6",
+      "predicted_answer": "Yes \u2013 the admission record lists lumbago (ICD\u20119\u202f7242) and other chronic pain (ICD\u20119\u202f33829), indicating back pain that should be addressed.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_83019bb5",
+      "predicted_answer": "No. The note lists only a family history of malignant neoplasm of the trachea, bronchus, and lung, not an actual diagnosis of lung cancer.",
+      "correct": true,
+      "score": 1.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_83f2914e",
+      "predicted_answer": "No. The diagnosis list and medication reconciliation do not include any mention of diabetes or diabetes\u2011related treatments.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_92abe3c7",
+      "predicted_answer": "No. The diagnosis list provided does not include any mention of lung cancer.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_a66f568f",
+      "predicted_answer": "Yes. The diagnosis list includes \u201cPresence of aortocoronary bypass graft (ICD\u201110: Z951).\u201d",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_ac587eb0",
+      "predicted_answer": "There is no evidence in the medication reconciliation notes indicating cellulitis or any related clinical findings. Therefore, based on the provided information, there is insufficient basis to treat for cellulitis.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_b357e0c4",
+      "predicted_answer": "No, the note does not list hypothyroidism or any thyroid\u2011related diagnosis.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_b807c369",
+      "predicted_answer": "No. The provided diagnosis lists do not include any stroke-related ICD\u20119 codes.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_bb61feaa",
+      "predicted_answer": "There is no information in the medication reconciliation notes indicating that the patient has mitral regurgitation or that treatment is indicated.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_c12f9ed9",
+      "predicted_answer": "There is no information in the medication reconciliation notes indicating a cancer diagnosis or treatment plan. Therefore, based on the provided evidence, there is no basis to determine that the patient should be treated for cancer.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_c406e4ba",
+      "predicted_answer": "Yes. The diagnosis list for both admissions includes \u201cHyperlipidemia, unspecified (ICD\u201110:\u202fE785).\u201d",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_c973d63a",
+      "predicted_answer": "There is no mention of dementia or dementia\u2011related medication in the provided medication reconciliation notes, so there is insufficient evidence to determine whether the patient should be treated for dementia.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_cc28a974",
+      "predicted_answer": "No. None of the listed home medications indicate treatment for diabetes, and no diabetes\u2011related drugs are mentioned in the notes.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_d18c55c9",
+      "predicted_answer": "Yes. The admission diagnosis list (27988844) includes \u201cMigraine, unspecified, not intractable, without status migrainosus (ICD\u201110: G43909).\u201d",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_d67e82f4",
+      "predicted_answer": "Yes. The diagnosis list includes \u201cAlcohol abuse, uncomplicated\u201d and \u201cAlcohol abuse with intoxication delirium,\u201d indicating a history of ethanol abuse.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_e5d23003",
+      "predicted_answer": "There is no mention of breast cancer in the medication reconciliation notes provided.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_ebad349d",
+      "predicted_answer": "No. The diagnosis lists contain no colorectal cancer; the patient\u2019s malignancies involve the pancreas, liver, and other sites, so colorectal cancer treatment is not indicated.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_f02d2f93",
+      "predicted_answer": "No, the provided diagnosis lists do not include any indication of breast cancer.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_fa01d58d",
+      "predicted_answer": "Yes. The patient has type\u202f2 diabetes mellitus listed in the admission diagnosis (ICD\u201110\u202fE119) and is taking metformin.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_fc035c9e",
+      "predicted_answer": "Yes. The patient is taking antihypertensive medications (hydrochlorothiazide and diltiazem), indicating a history of hypertension.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_fded0cbd",
+      "predicted_answer": "No, the provided notes do not list any allergies in the patient\u2019s medical history.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_negation_01a73bf1",
+      "predicted_answer": "There is no mention of bowel obstruction in the medication reconciliation notes provided.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_0307e908",
+      "predicted_answer": "The provided medication reconciliation notes do not mention pulmonary embolism or any related evaluation, so the patient\u2019s status regarding pulmonary embolism cannot be determined from this information.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_05b38a01",
+      "predicted_answer": "Yes \u2013 the patient\u2019s home medication list includes ondansetron HCl, indicating they are taking this drug.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_0c96eb95",
+      "predicted_answer": "No, the provided notes do not list edema as a diagnosis.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_0de6708e",
+      "predicted_answer": "No. The diagnosis list provided does not include any code or description indicating edema.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_0e18ae69",
+      "predicted_answer": "No, the provided notes do not mention any fracture.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_101fe4b1",
+      "predicted_answer": "No, the medication reconciliation notes provided do not mention abdominal pain.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_106dd7e2",
+      "predicted_answer": "No, the provided notes do not indicate that the patient is experiencing acute distress.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_130970cd",
+      "predicted_answer": "No. The provided medication reconciliation and diagnosis list contain no mention of hypertension or antihypertensive therapy, so there is no evidence to add it to the active problem list.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_13d53907",
+      "predicted_answer": "The note does not provide any information about leukocyte counts. Therefore, there is insufficient evidence to determine whether the patient has leukocytes.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_1403b8e4",
+      "predicted_answer": "No. The medication reconciliation notes do not mention a pulmonary embolus, so there is no evidence to add it to the active problem list.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_14a95ee6",
+      "predicted_answer": "There is no mention of pulmonary edema in the provided note.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_16195e06",
+      "predicted_answer": "No intracranial hemorrhage is documented in the patient\u2019s records; the only brain\u2011related diagnoses are a benign meningeal neoplasm and a cerebral embolic infarction.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_179dfa67",
+      "predicted_answer": "No, the notes do not indicate that the patient experienced hematemesis.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_1e6ae1bc",
+      "predicted_answer": "There is no mention of edema in the provided note, so the patient\u2019s status regarding edema cannot be determined.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_20397dbf",
+      "predicted_answer": "There is no mention of respiratory distress in the medication reconciliation or the diagnosis lists provided.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_21c8c64d",
+      "predicted_answer": "No, the note does not list an intracranial hemorrhage; the only intracranial diagnosis is an abscess.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_2267edf5",
+      "predicted_answer": "No, the medication reconciliation notes provided do not mention palpitations.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_235e2a87",
+      "predicted_answer": "No. The provided diagnosis list does not include edema, and no other note or medication list mentions it as a current problem.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_23c212a7",
+      "predicted_answer": "There is no mention of rales in the medication reconciliation notes provided, so there is insufficient evidence to add rales to the active problem list.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_23cc9ce7",
+      "predicted_answer": "No, the medication reconciliation notes do not mention a diagnosis of chest pain.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_249c840f",
+      "predicted_answer": "No. The admission diagnoses listed in the note do not include an acute distress problem, so there is no evidence to add it to the active problem list.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_2911192f",
+      "predicted_answer": "No. The diagnosis list provided does not include paroxysmal nocturnal dyspnea.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_293d4ffe",
+      "predicted_answer": "No, the provided notes do not mention any acute distress.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_2e78b44f",
+      "predicted_answer": "There is no mention of wheezes in the provided note.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_3276c129",
+      "predicted_answer": "There is no mention of peripheral edema in the medication reconciliation notes provided.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_33b33f87",
+      "predicted_answer": "The provided notes do not mention obstructive sleep apnea, so the patient\u2019s status regarding OSA cannot be determined from this information.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_36dc36ff",
+      "predicted_answer": "The note does not mention pneumonia, so there is no information on the patient\u2019s pneumonia status.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_3904ad35",
+      "predicted_answer": "There is no mention of jugular venous distension in the medication reconciliation notes provided, so the evidence is insufficient to determine whether the patient has JVD.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_3fad7aa3",
+      "predicted_answer": "There is no mention of wheezes in the medication reconciliation notes provided, so the evidence is insufficient to determine whether the patient has wheezes.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_40db7f62",
+      "predicted_answer": "The patient is currently hospitalized with acute post\u2011procedural respiratory failure and a complex hepatic\u2011vascular disease burden that includes cirrhosis, portal vein thrombosis, portal hypertension, esophageal and gastric varices, hepatic fibrosis, acute kidney failure, thrombocytopenia, and hyperlipidemia. He is receiving anticoagulation (enoxaparin, heparin), thrombolysis (alteplase), and supportive care (fluids, electrolytes, pain control, etc.).",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_4138bbc9",
+      "predicted_answer": "No. Glipizide is listed as a home medication, not as a diagnosis in the patient\u2019s record.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_42c8d97e",
+      "predicted_answer": "No. The diagnosis lists for both admissions include conditions such as respiratory failure and lung contusion, but there is no entry indicating wheezes.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_43343ed2",
+      "predicted_answer": "The patient is experiencing distress, as indicated by the diagnoses of neoplasm\u2011related pain (acute/chronic) and an unspecified anxiety disorder.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_4861b394",
+      "predicted_answer": "There is no mention of reflux in the provided notes; the patient\u2019s status regarding reflux is not documented.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_4ac02e8d",
+      "predicted_answer": "There is no mention of chest pain in the medication reconciliation notes provided.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_4b4c1918",
+      "predicted_answer": "Yes. The patient has a diagnosis of atherosclerotic coronary artery disease (ICD\u201110 I2510 and ICD\u20119 41401) and has undergone coronary bypass and angioplasty.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_4e2a8187",
+      "predicted_answer": "There is no mention of aortic stenosis in the medication reconciliation notes provided, so there is insufficient evidence to add it to the active problem list.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_4e7987f4",
+      "predicted_answer": "No. The provided diagnosis lists and medication reconciliation contain no mention of edema, so it is not indicated to add it to the active problem list.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_513de8bf",
+      "predicted_answer": "Yes. The diagnosis list includes \u201cSuicidal ideation\u201d and \u201cDepressive disorder,\u201d both of which indicate psychological distress.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_52386b31",
+      "predicted_answer": "No, the medication reconciliation notes provided do not mention crackles.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_57112dd0",
+      "predicted_answer": "There is no mention of pleural effusions in the medication reconciliation notes provided.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_571402c6",
+      "predicted_answer": "No, the medication reconciliation notes do not indicate that chest pain has been diagnosed for this patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_5e397dc9",
+      "predicted_answer": "There is no mention of an acute distress diagnosis in the medication reconciliation notes provided.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_61a7e4c2",
+      "predicted_answer": "No, the provided chart excerpts do not mention wheezes.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_623b94ec",
+      "predicted_answer": "No, the medication reconciliation notes do not indicate that a pleural effusion has been diagnosed for this patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_645e608e",
+      "predicted_answer": "The note contains only medication reconciliation information and does not mention acute distress. Therefore, there is insufficient evidence to determine whether the patient has acute distress.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_682baac8",
+      "predicted_answer": "There is no indication of a bowel obstruction in the provided admission diagnosis list or medication reconciliation.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_68d98585",
+      "predicted_answer": "The medication reconciliation notes do not mention any swelling.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_696df2d6",
+      "predicted_answer": "There is no information in the provided notes about a transesophageal echocardiogram (TEE) for this patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_6ad5d7aa",
+      "predicted_answer": "There is no mention of edema in the provided clinical note or diagnosis lists.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_6c26bc17",
+      "predicted_answer": "No, the provided medication reconciliation and diagnosis lists do not contain any mention of small bowel obstruction.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_6e31efd4",
+      "predicted_answer": "No. The provided notes list no diagnosis or symptom of wheezing, so there is no evidence to add wheezes to the active problem list.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_6f8ef34c",
+      "predicted_answer": "No, the provided notes do not mention any weakness.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_7c1a4038",
+      "predicted_answer": "Yes. The patient\u2019s home medication list includes trazodone, an antidepressant, indicating that a diagnosis of depression has been made.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_7d948b18",
+      "predicted_answer": "There is no mention of acute distress in the medication reconciliation notes provided, so there is insufficient evidence to add it to the active problem list.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_7ee3c757",
+      "predicted_answer": "No, the medication reconciliation notes provided do not mention pitting edema.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_820b44df",
+      "predicted_answer": "There is no mention of edema in the medication reconciliation notes provided.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_8404b54e",
+      "predicted_answer": "There is no mention of lower extremity edema in the medication reconciliation notes provided.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_84a2e98b",
+      "predicted_answer": "The notes do not mention edema or its severity, so there is insufficient information to determine the patient\u2019s edema status.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_85011728",
+      "predicted_answer": "No, the medication\u2011reconciliation notes provided do not mention any acute distress.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_89a2a540",
+      "predicted_answer": "There is no mention of venous thrombosis in the medication reconciliation notes provided.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_8a621be9",
+      "predicted_answer": "No, the provided notes do not mention pleural effusions.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_8c3e3535",
+      "predicted_answer": "There is no mention of peripheral edema in the listed diagnoses or clinical notes.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_932876c3",
+      "predicted_answer": "There is no mention of melena in the provided note; the patient\u2019s status regarding melena is not documented.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_9473ed98",
+      "predicted_answer": "The medication reconciliation notes do not mention wheezes, so there is no information on the patient\u2019s wheeze status.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_956540b2",
+      "predicted_answer": "No, the medication reconciliation notes do not indicate that a carcinoma has been diagnosed.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_971c89dd",
+      "predicted_answer": "There is no mention of pulmonary edema in the medication reconciliation notes provided.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_97d5979a",
+      "predicted_answer": "There is no mention of a deep venous thrombosis in the medication reconciliation notes provided, so there is insufficient evidence to add DVT to the active problem list.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_9a3f583a",
+      "predicted_answer": "There is no mention of dizziness in the medication reconciliation notes provided.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_a5af105f",
+      "predicted_answer": "Yes. The patient\u2019s home medication list includes Humalog (Humalog U\u2011100 Insulin) and Lantus (insulin glargine).",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_a94bed8f",
+      "predicted_answer": "There is no mention of hematochezia in the medication reconciliation notes provided, so there is insufficient evidence to add it to the active problem list.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_b0779d1a",
+      "predicted_answer": "There is no documentation in the provided note indicating that the patient experienced a loss of consciousness.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_b3cdd3b2",
+      "predicted_answer": "The provided medication reconciliation notes do not mention PND, so there is no information on the patient\u2019s status regarding PND.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_badb881d",
+      "predicted_answer": "No, the provided medication reconciliation and diagnosis list do not contain any mention of acute distress.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_c2fa4a95",
+      "predicted_answer": "The note does not mention wheezes, so there is insufficient evidence to determine whether the patient has wheezes.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_c8173932",
+      "predicted_answer": "There is no mention of pleural effusion in the medication reconciliation or the diagnosis lists provided.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_c8226f8e",
+      "predicted_answer": "There is no information in the provided notes about rales.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_c9423896",
+      "predicted_answer": "No. The admission diagnosis list does not include ascites, and there is no mention of ascites in the provided notes.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_cad47ef1",
+      "predicted_answer": "No. The provided diagnosis list and medication reconciliation contain no mention of crackles, and crackles are an exam finding rather than a documented problem.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_cbf1cffe",
+      "predicted_answer": "No, the provided notes do not list any fracture diagnosis or mention a fracture.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_d0d73973",
+      "predicted_answer": "No, the provided notes do not mention any edema.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_d10e395d",
+      "predicted_answer": "There is no mention of a pyelonephritis diagnosis in the medication reconciliation notes provided.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_d249558e",
+      "predicted_answer": "The provided note does not contain any information about the patient\u2019s edema status.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_d4219eba",
+      "predicted_answer": "The medication reconciliation notes do not mention any diagnosis of rales.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_d77aa1a3",
+      "predicted_answer": "No, the medication reconciliation notes provided do not mention osteomyelitis or any related diagnosis.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_d847293f",
+      "predicted_answer": "No, the medication reconciliation notes provided do not contain any mention of small bowel obstruction.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_d9248c83",
+      "predicted_answer": "There is no mention of edema in the medication reconciliation notes provided, so there is insufficient evidence to add it to the active problem list.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_d94f12ab",
+      "predicted_answer": "No, the provided notes do not contain any diagnosis, medication, or other documentation indicating a deep vein thrombosis.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_dd042427",
+      "predicted_answer": "There is no mention of osteomyelitis in the provided medication or diagnosis lists, so the evidence does not indicate that the patient has osteomyelitis.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_dd685a2b",
+      "predicted_answer": "No, the provided notes do not list crackles as a diagnosis.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_e092d16b",
+      "predicted_answer": "The note does not provide any information about the patient\u2019s acute distress status.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_e0d14e20",
+      "predicted_answer": "There is no documentation of rectal bleeding or hematochezia in the provided notes. The diagnoses mention gastrointestinal hemorrhage in a general sense, but do not specify hematochezia.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_e47c8755",
+      "predicted_answer": "No. None of the medication lists for the patient\u2019s stays include canagliflozin.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_e78da7e6",
+      "predicted_answer": "No, the provided notes do not mention any edema.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_e8f8698f",
+      "predicted_answer": "Yes. The diagnosis list includes post\u2011traumatic stress disorder (ICD\u201110\u202fF4310), a mental\u2011health condition that represents significant psychological distress.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_f407afe0",
+      "predicted_answer": "No. The admission notes and diagnosis list do not mention an echocardiogram or any echo\u2011related finding.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_f4e295fe",
+      "predicted_answer": "There is no mention of a distress diagnosis in the medication reconciliation notes provided.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_f500d64e",
+      "predicted_answer": "There is no mention of crackles in the provided note.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_f5180c2d",
+      "predicted_answer": "The provided diagnosis lists do not mention swelling. Therefore, based on the notes given, there is no evidence that the patient has swelling.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_f6537c21",
+      "predicted_answer": "There is no mention of edema in the medication reconciliation notes provided, so there is insufficient evidence to add it to the active problem list.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_f6b96944",
+      "predicted_answer": "There is no mention of wheezes in the medication reconciliation notes provided, so there is insufficient evidence to add wheezes to the active problem list.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_f7e82d5c",
+      "predicted_answer": "There is no mention of abdominal pain in the medication reconciliation notes provided.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_f913fb0a",
+      "predicted_answer": "The provided medication reconciliation notes do not contain any information about the patient\u2019s CT status.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_f98d6227",
+      "predicted_answer": "There is no information in the medication reconciliation notes indicating that the patient has pulmonary edema.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_fb05d352",
+      "predicted_answer": "There is no mention of palpitations in the medication reconciliation notes provided.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_fb21a2c7",
+      "predicted_answer": "No, the provided notes do not list any diagnosis of venous thrombosis.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_fd91174a",
+      "predicted_answer": "No. The provided notes list diagnoses and medications but contain no mention of acute distress.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_fda15327",
+      "predicted_answer": "Yes. The admission diagnosis list lists multiple acute fractures (e.g., displaced cervical vertebrae, thoracic compression fracture, sternum fracture), indicating they are current problems and should be on the active problem list.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_fef1ecbe",
+      "predicted_answer": "There is no information in the provided notes about ankle edema.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_uncertainty_06127456",
+      "predicted_answer": "The medication reconciliation notes do not mention shortness of breath, so there is no confirmation of that symptom in the provided documentation.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_123f4464",
+      "predicted_answer": "No. The admission diagnosis list includes \u201cOther persistent mental disorders due to conditions classified elsewhere\u201d (ICD\u20119\u202f294.8) but does not contain a specific dementia code, and no definitive dementia diagnosis is documented.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_1c0c6ece",
+      "predicted_answer": "There is no information in the provided note regarding a PICC line or its diagnostic certainty.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_1d230654",
+      "predicted_answer": "Yes. Dehydration (ICD\u201110:\u202fE860) is listed as a diagnosis in both admission diagnosis lists for this patient.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_1ffb8dc8",
+      "predicted_answer": "No diagnostic certainty for acetaminophen is documented in the provided note.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_20e90dbf",
+      "predicted_answer": "No, the medication reconciliation notes do not document a definitive diagnosis of congestive heart failure. The presence of furosemide suggests it may be used for fluid overload, but the notes do not explicitly state a CHF diagnosis.",
+      "correct": true,
+      "score": 1.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_23f60748",
+      "predicted_answer": "No. The provided diagnosis lists do not include an explicit diagnosis of edema.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_2705ec9f",
+      "predicted_answer": "The note does not contain an explicit diagnosis of depression. While the patient is taking sertraline, trazodone, and bupropion\u2014medications commonly used for depression\u2014this alone does not confirm a formal diagnosis.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_2bcdd5ac",
+      "predicted_answer": "There is no mention of an ileus diagnosis in the medication reconciliation notes provided.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_2f1a4469",
+      "predicted_answer": "No, the provided notes do not indicate that urinary frequency is present or has been confirmed for this patient.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_34cca5f5",
+      "predicted_answer": "There is no mention of syncope in the medication reconciliation notes provided, so the evidence does not establish syncope as a diagnosis for this patient.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_3d8cd3fc",
+      "predicted_answer": "No. The diagnosis list for this admission does not include osteoporosis.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_426541c7",
+      "predicted_answer": "There is no explicit mention of volume overload or its assessment in the provided note. Therefore, the diagnostic certainty for volume overload cannot be determined from this information.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_42910b3f",
+      "predicted_answer": "There is no mention of dementia in the medication reconciliation notes provided, so the evidence does not support an established diagnosis of dementia for this patient.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_45a842fd",
+      "predicted_answer": "There is no mention of chest pain in the medication reconciliation notes provided.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_4a24e140",
+      "predicted_answer": "No. The diagnosis list provided does not include bipolar disorder, and no other note indicates a bipolar diagnosis.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_4d840683",
+      "predicted_answer": "There is no information in the medication reconciliation notes regarding alcohol use or diagnostic certainty.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_50872b09",
+      "predicted_answer": "The note contains only medication lists and no diagnostic information; therefore, the diagnostic certainty for vascular dementia cannot be determined from this record.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_66ce4150",
+      "predicted_answer": "There is no mention of osteomyelitis in the medication reconciliation notes provided, so it is not an established diagnosis for this patient.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_6a3e32c7",
+      "predicted_answer": "There is no evidence in the provided notes of renal dysfunction or acute kidney injury, so a diagnosis of cardiorenal syndrome cannot be confirmed. The diagnostic certainty for cardiorenal is therefore low/insufficient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_6ac1b034",
+      "predicted_answer": "No evidence of appendicitis is present in the diagnosis lists; diagnostic certainty for appendicitis is effectively zero.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_7c8a132d",
+      "predicted_answer": "Yes \u2013 furosemide (Lasix) is listed as a home medication in all three ED medication reconciliation notes.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_7f556b28",
+      "predicted_answer": "Yes. The patient is prescribed insulin (Humulin\u202f70/30), which indicates a definitive diagnosis of diabetes.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_8ecc1d7c",
+      "predicted_answer": "No, the medication reconciliation notes do not mention a Foley catheter or any definitive diagnosis of Foley use.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_94a62330",
+      "predicted_answer": "There is no mention of weight or a weight\u2011related diagnosis in the medication reconciliation notes provided.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_a00a0522",
+      "predicted_answer": "No. The medication reconciliation notes list laxatives (polyethylene glycol and sennosides) but do not state a diagnosis of constipation.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_ad024aba",
+      "predicted_answer": "No, the medication reconciliation notes do not list \u201cweakness\u201d as a diagnosis for this patient.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_b9c4f4da",
+      "predicted_answer": "The note does not provide any information about a DNR status, so diagnostic certainty for DNR cannot be determined.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_bb90a843",
+      "predicted_answer": "There is no mention of sodium levels or a diagnosis of hyponatremia in the medication reconciliation notes provided.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_c5a5ba78",
+      "predicted_answer": "No. The diagnosis list does not include ischemic cardiomyopathy; it lists atherosclerotic heart disease, heart failure unspecified, and a prior bypass graft, but no explicit diagnosis of ischemic cardiomyopathy.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_d5f6cea3",
+      "predicted_answer": "There is no mention of a malignancy diagnosis in the medication reconciliation notes provided.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_d6b5569b",
+      "predicted_answer": "The provided notes contain only medication lists and do not mention a colonoscopy or any diagnostic certainty regarding it. Therefore, there is insufficient evidence to determine diagnostic certainty for colonoscopy.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_e2f40386",
+      "predicted_answer": "The note lists multiple ICD\u201110 codes for malignant neoplasms (e.g., malignant pleural effusion, neuroendocrine tumors, and a personal history of rectal carcinoma). Thus, the diagnosis of carcinoma is confirmed with high certainty.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_e55a99fb",
+      "predicted_answer": "Yes. The diagnosis list includes \u201cUnspecified acquired hypothyroidism (ICD\u20119:\u202f2449).\u201d",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_e88c624f",
+      "predicted_answer": "There is no mention of a pneumonia diagnosis in the medication reconciliation notes provided, so the confirmation of PNA cannot be determined from this evidence.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_eab1a2aa",
+      "predicted_answer": "No, the provided admission diagnosis lists do not include a diagnosis of small bowel obstruction.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_f04bcd77",
+      "predicted_answer": "No. The medication reconciliation notes list anti\u2011emetic drugs (ondansetron, prochlorperazine) but do not record nausea as an established diagnosis.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_f732cfb2",
+      "predicted_answer": "There is no mention of abdominal pain in the medication reconciliation notes provided, so it cannot be confirmed as an established diagnosis.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_f7ea98b9",
+      "predicted_answer": "No. The medication reconciliation notes do not list orthopnea as a diagnosis for this patient.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_ff0b7361",
+      "predicted_answer": "There is no mention of a urinary tract infection in the medication reconciliation notes provided.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_b_chg_16bf0d62",
+      "predicted_answer": "The first visit lists six home medications: Mapap (acetaminophen), ceftriaxone, docusate sodium, levetiracetam, metronidazole, and oxycodone. The second visit lists only ibuprofen. Thus, the first visit includes those six drugs that are absent on the second visit, while the second visit includes ibuprofen that is not listed on the first.",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_3af4dea4",
+      "predicted_answer": "Between the three admissions the patient\u2019s regimen changed as follows: in stay\u202f30527790 an oxycodone\u2011acetaminophen was added to the baseline list; by stay\u202f33927820 that medication was removed along with the silver\u2011hydrocolloid dressing, venlafaxine, and warfarin, leaving only amlodipine, atenolol, gabapentin, lisinopril, and pravastatin.",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_3b4387cb",
+      "predicted_answer": "The provided note lists only one medication list (the home medications for the ED visit). No medication list is given for the second admission, so I cannot determine any differences.",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_4394e1c9",
+      "predicted_answer": "The first admission\u2019s medication list is not provided, so there is no data to compare. Therefore, I cannot determine how medication management changed between the two admissions.",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_4b1262d4",
+      "predicted_answer": "Between the two admissions the patient\u2019s home medication list was altered by discontinuing the combined oral contraceptive (norgestimate\u2011ethinyl estradiol) and spironolactone, while adding vitamin\u202fB\u201112 and ferrous sulfate. Buspirone and lorazepam remained unchanged.",
+      "correct": false,
+      "score": 0.25,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_4ce4b0e5",
+      "predicted_answer": "The medication list remained unchanged between the two admissions: the patient continued taking Calci\u2011Chew, Ester\u2011C, amlodipine, and a multivitamin.",
+      "correct": false,
+      "score": 0.16666666666666666,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_551986f4",
+      "predicted_answer": "No medication list is provided for the second admission, so the note does not contain any information to compare or identify differences between the two visits.",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_55fcfc07",
+      "predicted_answer": "The available note lists only one medication reconciliation (the home medications). There is no medication list provided for the other admissions, so I cannot determine how medication management changed.",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_5675cecb",
+      "predicted_answer": "Between the first two stays (37474338 \u2192 36472815) the only changes were",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_56805338",
+      "predicted_answer": "No medication list is provided for the admission 27481198, so the note does not contain any information to compare with the ED medication reconciliation. Therefore, no differences can be identified.",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_63fd19b7",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_799b8ee4",
+      "predicted_answer": "The first visit\u2019s list includes Augmentin, Percocet, aspirin, and Lantus (insulin glargine brand), while the second visit\u2019s list includes insulin glargine (not listed in the first). The HumaLOG/Humalog U\u2011100 Insulin and the other shared drugs (atenolol, atorvastatin, losartan) are present on both lists.",
+      "correct": false,
+      "score": 0.2857142857142857,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_7bfd6ae3",
+      "predicted_answer": "The first visit (Stay\u202f30289867) lists nine home medications\u2014aspirin, atorvastatin, carvedilol, digoxin, iron, losartan, spironolactone, torsemide, and warfarin\u2014whereas the second visit (Stay\u202f30011135) lists only aspirin and metoprolol succinate. Thus, the second visit lacks all the other drugs and includes metoprolol succinate, which is not present in the first visit.",
+      "correct": false,
+      "score": 0.2,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_7eaa968e",
+      "predicted_answer": "The first visit lists alprazolam, furosemide, and losartan, while the second visit lists ascorbic acid (vitamin\u202fC), ciprofloxacin HCl, enoxaparin, and ferrous sulfate. All other medications (atorvastatin, levothyroxine, multivitamin) are present on both lists.",
+      "correct": false,
+      "score": 0.2,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_8710f477",
+      "predicted_answer": "The provided notes contain only diagnosis lists and no medication information, so I cannot determine how the patient\u2019s medication management changed between admissions.",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_9b769505",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_9fe27a5b",
+      "predicted_answer": "The first admission record contains no medication orders, whereas the second admission lists 28 orders (17 unique drugs), including IV fluids, acetaminophen, alteplase, bisacodyl, enoxaparin, heparin, influenza vaccine, magnesium sulfate, nadolol, pantoprazole, potassium chloride, pravastatin, senna, and others. Thus, all medications listed in the second visit are absent from the first.",
+      "correct": false,
+      "score": 0.6,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_a2d2f2df",
+      "predicted_answer": "Between the three admissions the only clear medication\u2011management change noted is the use of anticoagulants. The patient was on long\u2011term anticoagulation during the first (22187210) and third (25970245) admissions, but this was not listed during the second admission (24181354), indicating that anticoagulant therapy was temporarily discontinued and then resumed. No other medication changes are evident from the diagnosis lists.",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_b05d1279",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_b34b5572",
+      "predicted_answer": "The note only lists home medications for the most recent admission (ibuprofen, lorazepam, sertraline, trazodone). No medication information is provided for the earlier admission, so there is insufficient evidence to determine how medication management changed between admissions.",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_beb2c0ab",
+      "predicted_answer": "The note provides only diagnosis lists and no medication information, so there is no evidence to determine how medication management changed between admissions.",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_bf95749e",
+      "predicted_answer": "The available note lists only the home medications for the ED admission (Stay\u202f37038627). No medication list is provided for the other admission, so there is insufficient evidence to determine how medication management changed between admissions.",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_c1ed937c",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_c86d8b22",
+      "predicted_answer": "Between the three stays the patient\u2019s home medication list expanded and then contracted.  \n- **Stay\u202f30804580**: 5 meds (Lidoderm, furosemide, lactulose, multivitamin, spironolactone).  \n- **Stay\u202f32281632**: 13 meds \u2013 the original 5 plus bisacodyl, calcium\u2011carbonate\u202f+\u202fvit\u202fD3, famotidine, fentanyl, magnesium hydroxide, oxycodone, polyethylene glycol, potassium chloride, and sulfamethoxazole\u2011trimethoprim.  \n- **Stay\u202f34558830**: only 2 meds remain (furosemide and spironolactone).  \n\nThus, the medica",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_d41272ec",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_d68a2fcd",
+      "predicted_answer": "The medication list for the second admission (20626031) is provided, but the medication list for the first admission (28661809) is not included in the note. Therefore, there is insufficient evidence to determine how medication management changed between admissions.",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_d8ecd86b",
+      "predicted_answer": "The note only lists a home medication (omeprazole magnesium) for the first visit; no medication information is provided for the second visit, so no differences can be determined.",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_e347a4fe",
+      "predicted_answer": "The first visit lists only **Genvoya** and **amitriptyline**.  \nThe second visit lists **amitriptyline** plus **Norvir, Prezista, Truvada,** and **ferrous gluconate**.  \nThus, Genvoya was omitted, and the four antiretroviral/iron supplements (Norvir, Prezista, Truvada, ferrous gluconate) were added.",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_e934a618",
+      "predicted_answer": "Between the two admissions the patient\u2019s home regimen was altered as follows: the iron supplement (ferrous sulfate), potassium chloride, sertraline, and loop diuretic torsemide were discontinued, while a statin (Crestor), a thiazide diuretic (Dyazide), an antibiotic (cefdinir), an ARB (losartan), and a proton\u2011pump inhibitor (omeprazole) were added.",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_fd1db324",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_current_state_0136c1a6",
+      "predicted_answer": "Yes. The diagnosis list includes \u201cMajor depressive disorder, single episode, unspecified (ICD\u201110:\u202fF329),\u201d indicating depression is an active problem.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_0579e25a",
+      "predicted_answer": "Yes. The patient is taking multiple COPD\u2011specific inhalers (albuterol, ipratropium, tiotropium, fluticasone, fluticasone\u2011salmeterol), indicating that COPD is an active problem.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_0a964177",
+      "predicted_answer": "There is no mention of lung cancer in the provided notes.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_0e1ad5ef",
+      "predicted_answer": "The provided medication reconciliation notes do not mention pleural effusions, so there is no evidence in these notes that the patient currently has pleural effusions.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_18236822",
+      "predicted_answer": "No evidence in the medication reconciliation notes indicates that the patient currently has a cerebrovascular accident (CVA).",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_1b767c4a",
+      "predicted_answer": "No. The medication reconciliation lists laxatives and other bowel\u2011regulating drugs, but there is no mention of bowel obstruction as an active problem.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_1d916acd",
+      "predicted_answer": "The patient has metastatic pancreatic carcinoma with widespread secondary disease to the liver, lungs, mediastinum, retroperitoneum, peritoneum, and intrathoracic lymph nodes.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_1f2194cb",
+      "predicted_answer": "No. The medication reconciliation notes list no cancer\u2011related drugs or diagnoses, so cancer is not indicated as an active problem.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_21894283",
+      "predicted_answer": "The provided medication reconciliation notes do not contain any information regarding the patient\u2019s pulmonary vascular congestion status.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_29384c98",
+      "predicted_answer": "Yes. Respiratory failure (ICD\u201110: J9690) is listed as a diagnosis on the admission record, indicating it is an active problem.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_2c71ab72",
+      "predicted_answer": "The note does not list constipation as an active diagnosis. However, the prescription of polyethylene glycol 3350 (Miralax) indicates that constipation is being treated.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_2f92af44",
+      "predicted_answer": "The provided notes contain only medication lists and do not mention any cardiac auscultation findings. Therefore, there is insufficient evidence to determine whether the patient currently has a systolic murmur.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_326ba4c8",
+      "predicted_answer": "No. Endocarditis is not listed among the patient\u2019s current diagnoses in either admission record.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_351fb38e",
+      "predicted_answer": "The provided notes contain only medication lists and do not mention lung cancer or its status. There is insufficient evidence to determine the patient\u2019s current lung cancer status.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_3d4c282b",
+      "predicted_answer": "No. The diagnosis list provided does not include schizophrenia, and no other note indicates it as an active problem.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_3fad479a",
+      "predicted_answer": "Yes. The diagnosis list includes \u201cOther and unspecified alcohol dependence, continuous\u201d along with alcoholic cirrhosis and acute alcoholic hepatitis, indicating ongoing alcohol\u2011related disease.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_48d18a00",
+      "predicted_answer": "Yes. The admission diagnosis list lists \u201cUnspecified atrial fibrillation\u201d (ICD\u201110 I4891) and \u201cAtrial fibrillation\u201d (ICD\u20119 42731) as current diagnoses, indicating it is an active problem.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_4e36b2bb",
+      "predicted_answer": "Yes. The patient is taking multiple antihypertensive agents (amlodipine, atenolol, lisinopril, pravastatin), indicating hypertension is an active problem.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_50d8fed0",
+      "predicted_answer": "There is no evidence in the admission notes or medication list that the patient is currently depressed or receiving treatment for depression.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_57ee4127",
+      "predicted_answer": "There is no information in the provided notes regarding the patient\u2019s bibasilar crackles.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_5e677ee6",
+      "predicted_answer": "No, osteoarthritis is not listed as an active problem in the provided medication reconciliation notes.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_6053376a",
+      "predicted_answer": "There is no mention of congestive heart failure in the current admission diagnosis list or in the provided clinical note.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_6824e5ae",
+      "predicted_answer": "The record shows the patient is still in the initial encounter for a closed fracture of the right femoral neck (ICD\u201110\u202fS72.001A). No subsequent status or treatment details are documented.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_6c5caba6",
+      "predicted_answer": "Yes. The admission diagnosis list includes \u201cHeart failure, unspecified (ICD\u201110\u202fI509).\u201d",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_7080eb03",
+      "predicted_answer": "Yes. The patient is taking antihypertensive medications (diltiazem HCl and hydrochlorothiazide), indicating that hypertension is being treated.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_821bb864",
+      "predicted_answer": "The note lists an \u201cinitial encounter for a closed intracapsular fracture of the left femur\u201d (ICD\u201110 S72012A). No subsequent status or treatment details are provided, so the fracture remains an acute, untreated left femoral neck fracture.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_83fa18c5",
+      "predicted_answer": "The patient is being treated for hyperlipidemia with simvastatin, indicating that the condition is currently managed with medication.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_89423fc7",
+      "predicted_answer": "The patient has no documented lung cancer diagnosis; the only related entry is a family history of malignant neoplasm of the trachea, bronchus, and lung.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_8a04029e",
+      "predicted_answer": "The note does not provide any information about the patient\u2019s current heart\u2011failure status.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_9453ec83",
+      "predicted_answer": "There is no mention of lower extremity edema in the medication reconciliation notes provided.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_96ef4bd2",
+      "predicted_answer": "The provided medication reconciliation notes do not contain any information regarding the patient\u2019s breast cancer status.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_9a0fed0b",
+      "predicted_answer": "No. The medication reconciliation notes do not list colon cancer as an active problem.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_a49952ca",
+      "predicted_answer": "There is no mention of osteopenia in the provided diagnosis list.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_a9a50ac4",
+      "predicted_answer": "The note does not provide any information indicating that the patient currently has paroxysmal atrial fibrillation.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_ab1c0783",
+      "predicted_answer": "No. The diagnosis list lists diverticulitis, constipation, chronic kidney disease, hypertension, anemia, venous thrombosis, tobacco use, and a history of colonic polyps, but does not include any diagnosis of colon cancer.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_b15b05f6",
+      "predicted_answer": "The note does not provide any information about the patient\u2019s aortic stenosis status.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_b4ef73e0",
+      "predicted_answer": "There is no mention of aortic stenosis in the medication reconciliation notes provided.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_b69620a8",
+      "predicted_answer": "The patient is currently diagnosed with **acute on chronic diastolic heart failure** (ICD\u20119\u202f42833) and also has a concurrent unspecified congestive heart failure (ICD\u20119\u202f4280).",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_c72071fe",
+      "predicted_answer": "No. The diagnosis list provided does not include cholelithiasis, so it is not an active problem for this patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_cd3a6d9f",
+      "predicted_answer": "The notes do not provide any information about the patient\u2019s depression status.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_cd6e0903",
+      "predicted_answer": "There is no mention of myocardial infarction in the medication reconciliation notes provided, so the evidence does not indicate that MI is an active problem for this patient.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_cf722731",
+      "predicted_answer": "There is no mention of osteomyelitis in the medication reconciliation notes provided, so it is not listed as an active problem.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_dd21fc0b",
+      "predicted_answer": "The medication reconciliation notes do not mention malnutrition, so there is no evidence that it is an active problem.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_df7d349b",
+      "predicted_answer": "There is no mention of acid reflux or related diagnoses in the provided admission notes, so there is no evidence that the patient currently has acid reflux.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_dfa75737",
+      "predicted_answer": "Yes. The admission diagnosis list includes \u201cHypothyroidism, unspecified (ICD\u201110\u202fE039)\u201d and the patient is taking levothyroxine.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_e60414c9",
+      "predicted_answer": "There is no mention of aortic stenosis in the provided diagnosis list.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_e84d9e91",
+      "predicted_answer": "The provided medication reconciliation notes do not contain any information regarding breast cancer or its status.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_ea719b94",
+      "predicted_answer": "There is no evidence in the provided note that the patient is experiencing anaphylactic shock.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_fe80e1f3",
+      "predicted_answer": "No. The medication reconciliation lists diuretics (furosemide, spironolactone) but does not identify hypertension as an active problem.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_fe918698",
+      "predicted_answer": "The patient is being treated for hyperlipidemia with a statin (either atorvastatin or pravastatin).",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_dur_023d1fb6",
+      "predicted_answer": "The provided medication reconciliation notes do not mention the patient\u2019s fever or its duration. Therefore, there is insufficient evidence to determine how long the fever has persisted or whether it is chronic or new.",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_04bba7f9",
+      "predicted_answer": "There is no mention of ascites in the medication reconciliation notes provided, so the duration and chronicity of ascites cannot be determined from this information.",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_1058f8b7",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_2483a94a",
+      "predicted_answer": "The note does not provide any information about how long the patient has had hypercholesterolemia, nor does it indicate whether it is a new or chronic condition.",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_3155170d",
+      "predicted_answer": "The notes provided do not mention hepatitis\u202fC virus (HCV) diagnosis or treatment, so there is no evidence to determine how long the patient has had HCV or whether it is chronic or new.",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_3585eef3",
+      "predicted_answer": "There is no mention of cancer in the medication reconciliation notes provided, so the duration and chronicity of any cancer cannot be determined from this information.",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_3efd8123",
+      "predicted_answer": "The provided medication reconciliation notes do not mention community\u2011acquired pneumonia (CAP) or its duration. There is insufficient evidence to determine whether CAP is chronic or new.",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_44f27bb7",
+      "predicted_answer": "The provided notes do not mention any allergies, so there is no information on how long the patient has had them or whether they are chronic or new.",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_5143ceff",
+      "predicted_answer": "The note does not mention any allergies, so there is no information on how long the patient has had them or whether they are chronic or new.",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_5423a583",
+      "predicted_answer": "The provided medication reconciliation notes do not mention abdominal pain or its duration, so there is insufficient evidence to determine how long the patient has had abdominal pain or whether it is chronic or new.",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_57a305bc",
+      "predicted_answer": "The provided medication reconciliation notes do not mention degenerative joint disease (DJD) or its duration. Therefore, there is insufficient evidence to determine how long the patient has had DJD or whether it is chronic or new.",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_61f47488",
+      "predicted_answer": "The provided notes do not mention any allergies, so there is no information to determine how long the patient has had them or whether they are chronic or new.",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_6c498e2a",
+      "predicted_answer": "The provided medication reconciliation notes do not mention altered mental status, so there is insufficient evidence to determine its duration or whether it is chronic or new.",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_7321b24c",
+      "predicted_answer": "The notes do not provide any information about when the patient began taking sertraline or trazodone, so there is no evidence to determine how long the patient has had depression or whether it is chronic or new.",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_765d3190",
+      "predicted_answer": "The note does not list hypertension or any related diagnosis, so there is no information on how long the patient has had HTN or whether it is chronic or new.",
+      "correct": true,
+      "score": 0.8,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_79178b50",
+      "predicted_answer": "The note lists GERD (ICD\u201110 K219) on both admission 22927623 and the later admission 27988844, indicating it is a chronic condition. The exact duration of symptoms is not specified in the documentation.",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_99a99dcb",
+      "predicted_answer": "The provided notes contain no information about the patient\u2019s obesity status or its duration. Therefore, I cannot determine whether obesity is chronic or new.",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_9a7579d3",
+      "predicted_answer": "The patient is on lactulose and rifaximin in two separate",
+      "correct": false,
+      "score": 0.07142857142857142,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_9aac4d9f",
+      "predicted_answer": "The note does not list dementia as a diagnosis, so there is no evidence to determine its duration or whether it is chronic or new.",
+      "correct": true,
+      "score": 0.8,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_a8089cad",
+      "predicted_answer": "The patient is on antiretroviral therapy (emtricitabine\u2011tenofovir and raltegravir), indicating a diagnosis of HIV. The notes do not state when the diagnosis was made, but the ongoing use of these medications suggests it is a chronic, established condition rather than a new infection.",
+      "correct": true,
+      "score": 0.8,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_adcd04fb",
+      "predicted_answer": "The patient\u2019s medication lists include long\u2011acting bronchodilators (tiotropium) and inhaled steroids (fluticasone) as well as short\u2011acting agents (albuterol, ipratropium) on several admissions, indicating a chronic COPD diagnosis. The exact duration of the disease is not specified in the notes.",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_b14b3517",
+      "predicted_answer": "There is no mention of cirrhosis or its duration in the medication reconciliation notes provided. Therefore, I cannot determine whether the patient has had cirrhosis chronically or newly.",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_c8b1f3aa",
+      "predicted_answer": "The patient\u2019s age\u2011related osteoporosis is listed on both admission records (22927623 and 27988844), indicating it is a chronic, pre\u2011existing condition rather than a new diagnosis. The exact duration is not specified in the notes.",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_d4e27cc6",
+      "predicted_answer": "The provided medication reconciliation notes do not mention the patient\u2019s weakness or its duration. Therefore, there is insufficient evidence to determine whether the weakness is chronic or new.",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_e06e4775",
+      "predicted_answer": "The provided medication lists do not mention hyperkalemia or any related treatment, so there is no evidence in these notes to determine whether the patient has had hyperkalemia, nor whether it is chronic or new.",
+      "correct": true,
+      "score": 0.8,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_e750dcc2",
+      "predicted_answer": "The notes provided contain only medication lists and do not mention pneumonia (PNA) or its duration. There is no evidence to determine whether it is chronic or new.",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_e7e5e5f1",
+      "predicted_answer": "The note lists migraine (ICD\u201110\u202fG43909) only on admission\u202f27988844, but it gives no duration or prior history. Therefore the record does not indicate how long the patient has had migraine, nor whether it is chronic or a new onset.",
+      "correct": true,
+      "score": 0.8,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_efdc513d",
+      "predicted_answer": "There is no mention of cancer or its duration in the medication reconciliation notes provided. Therefore, I cannot determine how long the patient has had cancer or whether it is chronic or new.",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_f5120145",
+      "predicted_answer": "The provided medication reconciliation notes do not mention a small bowel obstruction (SBO) or its duration. Therefore, there is insufficient evidence to determine how long the patient has had SBO or whether it is chronic or new.",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_f717e466",
+      "predicted_answer": "The provided medication reconciliation notes do not mention any diagnosis or medication related to bipolar disorder. Therefore, there is insufficient evidence to determine how long the patient has had bipolar or whether it is chronic or new.",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_historical_09d3ea63",
+      "predicted_answer": "There is no mention of syncope in the medication reconciliation notes provided, so the evidence is insufficient to determine whether it should be on the active problem list.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_1080e564",
+      "predicted_answer": "No. The diagnosis list and medication reconciliation provided do not include constipation or any related treatment, so it is not listed as an active problem.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_18b62e05",
+      "predicted_answer": "Yes. The admission diagnosis list includes \u201cAnxiety state, unspecified\u201d (ICD\u20119\u202f30000).",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_1c8bd655",
+      "predicted_answer": "The note lists \u201cHeart failure, unspecified (I509)\u201d but does not specify systolic versus diastolic dysfunction. Therefore, there is no evidence in the provided note that the patient currently has systolic heart failure.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_20d74443",
+      "predicted_answer": "Yes. The diagnosis list for admission 21049284 includes \u201cConstipation, unspecified (ICD\u20119:\u202f56400),\u201d indicating it is an active problem.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_272efd04",
+      "predicted_answer": "There is no mention of peripheral vascular disease in the medication reconciliation notes provided, so there is insufficient evidence to determine whether it should be on the active problem list.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_28252ff2",
+      "predicted_answer": "The medication reconciliation notes do not mention morbid obesity as an active problem.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_2dc77dfe",
+      "predicted_answer": "The provided medication reconciliation notes do not list any antihypertensive drugs or mention hypertension, so there is no evidence in these notes that hypertension is an active problem.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_2eebdbb4",
+      "predicted_answer": "There is no mention of chronic cough in the medication reconciliation notes provided, so there is insufficient evidence to determine whether it should be on the active problem list.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_321a5bbe",
+      "predicted_answer": "Yes. The patient is taking multiple antihypertensive agents (e.g., lisinopril, nifedipine, atenolol, clonidine, hydrochlorothiazide, furosemide/torsemide), indicating hypertension is an active problem.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_36e6e499",
+      "predicted_answer": "There is no mention of diarrhea in the provided note.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_38cdc8ef",
+      "predicted_answer": "Yes. The admission diagnosis list lists multiple malignant neoplasms (e.g., secondary malignant neoplasm of retroperitoneum and peritoneum, malignant neoplasm of pancreas, etc.), indicating carcinoma is an active problem.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_3ba61094",
+      "predicted_answer": "No. The diagnosis lists for this admission do not include poor appetite as an active problem.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_4162c093",
+      "predicted_answer": "There is no mention of anemia in the medication reconciliation notes provided, so there is insufficient evidence to add it to the active problem list.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_4290eb4f",
+      "predicted_answer": "Yes. The admission diagnosis list includes \u201cNoninfective gastroenteritis and colitis, unspecified (ICD\u201110: K529),\u201d which represents diarrhea, so it should remain on the active problem list.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_444cc10a",
+      "predicted_answer": "No. The diagnosis list and medication reconciliation provided do not list weakness as an active problem.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_47333321",
+      "predicted_answer": "Yes. The admission diagnosis list includes esophageal reflux (ICD\u20119\u202f53081), which is the code for gastroesophageal reflux disease.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_4c647635",
+      "predicted_answer": "Yes, the patient is diagnosed with ascites (ICD\u20119\u202f78959) on all listed admissions.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_4d8e2ad9",
+      "predicted_answer": "No. The active problem list lists \u201cIntestinal infection due to Clostridium difficile\u201d and \u201cOther and unspecified noninfectious gastroenteritis and colitis,\u201d but it does not include a separate entry for diarrhea.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_50b91d5e",
+      "predicted_answer": "Yes \u2013 the presence of anti\u2011emetic medications (ondansetron, prochlorperazine) in the home medication list indicates that nausea is an active problem for this patient.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_635032b4",
+      "predicted_answer": "No. The medication reconciliation notes list insulin and other diabetes\u2011related drugs but do not mention diabetic ketoacidosis as an active problem.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_651babd4",
+      "predicted_answer": "No. The most recent admission record (ICD\u20119 20355325) does not list abdominal pain.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_757a7f78",
+      "predicted_answer": "There is no mention of dyspnea in the medication reconciliation notes provided, so there is insufficient evidence to add it to the active problem list.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_7e91845c",
+      "predicted_answer": "There is no information in the medication reconciliation notes indicating that the patient is currently experiencing hypotension.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_8b923b7c",
+      "predicted_answer": "There is no mention of ischemic cardiomyopathy in the medication reconciliation notes provided, so the evidence is insufficient to determine whether it should be on the active problem list.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_96300f55",
+      "predicted_answer": "The notes do not explicitly state that the patient has atrial fibrillation. The presence of dabigatran suggests it may be used for AF, but the documentation does not confirm the diagnosis.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_982731de",
+      "predicted_answer": "There is no information in the medication reconciliation notes indicating that the patient currently has metabolic acidosis.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_99912897",
+      "predicted_answer": "No. The admission diagnoses list includes gastritis, duodenitis, esophagitis, and other GI conditions, but there is no mention of emesis (vomiting) in the provided notes.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_a29de042",
+      "predicted_answer": "No. The medication reconciliation lists laxatives and other bowel\u2011regulating drugs, but there is no mention of bowel obstruction as an active problem.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_a3143fbf",
+      "predicted_answer": "No. The diagnosis list and medication reconciliation provided do not include cellulitis as an active problem.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_a5b0cd1f",
+      "predicted_answer": "Yes. The admission diagnosis list lists \u201cParoxysmal atrial fibrillation (ICD\u201110: I480)\u201d as a primary diagnosis.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_a701eaf4",
+      "predicted_answer": "No. The admission diagnosis list does not include colon cancer, and the only related entry is a family history of malignant neoplasm of digestive organs, not a diagnosis of colon cancer itself.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_aa62353e",
+      "predicted_answer": "There is no mention of weakness in the provided notes.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_b14ec163",
+      "predicted_answer": "No. The admission diagnosis list does not include an explicit \u201cabdominal pain\u201d code; it lists only \u201cneoplasm\u2011related pain (acute/chronic)\u201d (ICD\u201110\u202fG893). Therefore abdominal pain is not documented as an active problem.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_b16478e7",
+      "predicted_answer": "Yes. The admission diagnosis list (27481198) lists \u201cLeukocytosis, unspecified (ICD\u20119\u202f28860)\u201d as a current diagnosis, indicating it is an active problem.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_b2d36cd9",
+      "predicted_answer": "The note does not list HFpEF as an active problem. No diagnosis or problem list is provided, so there is insufficient evidence to confirm HFpEF.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_b41b0643",
+      "predicted_answer": "Yes. The use of lactulose, rifaximin, spironolactone, and furosemide indicates treatment for hepatic encephalopathy and ascites, which are typical for cirrhosis.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_b7386de2",
+      "predicted_answer": "No. The medication reconciliation notes list no cancer\u2011related drugs or diagnoses, so cancer is not indicated as an active problem.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_b9ce115e",
+      "predicted_answer": "Yes. The admission diagnosis list includes \u201cEssential (primary) hypertension\u201d (ICD\u201110: I10), indicating that hypertension is an active problem for this patient.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_be870c2d",
+      "predicted_answer": "Yes. The patient is taking insulin NPH and regular human (Humulin\u202f70/30) and has a blood\u2011sugar monitoring kit, indicating a diagnosis of diabetes.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_bf929993",
+      "predicted_answer": "No. The note lists enteritis due to norwalk virus and dehydration, but it does not list diarrhea as a separate diagnosis, so it should not be added to the active problem list.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_c9f4d6b7",
+      "predicted_answer": "No. The diagnosis list does not include dyspnea as an active problem.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_cfd13383",
+      "predicted_answer": "Yes. The patient is taking clozapine, a medication specifically used for schizophrenia, indicating that schizophrenia should be listed as an active problem.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_d786bffa",
+      "predicted_answer": "No. The provided diagnosis lists and medication reconciliation do not include vomiting as a documented problem, so it should not be added to the active problem list.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_dd28f2b3",
+      "predicted_answer": "There is no mention of metabolic acidosis in the medication reconciliation notes provided, so there is insufficient evidence to add it to the active problem list.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_e8241796",
+      "predicted_answer": "No. The diagnosis lists for both admissions do not include weakness, and no other note indicates it as an active problem.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_f0c21b59",
+      "predicted_answer": "No. The admission diagnosis list does not include hypertension, and there is no other documented evidence of a hypertensive disorder in the note.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_f27baba4",
+      "predicted_answer": "The provided medication reconciliation notes do not mention any fracture, so there is insufficient evidence to determine whether the patient currently has a fracture.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_fa44308d",
+      "predicted_answer": "There is no mention of cholelithiasis in the provided notes.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_fb74ed07",
+      "predicted_answer": "Yes. The admission diagnosis lists include hyperlipidemia (ICD\u201110 E7849 in the first list and E785 in the second list), and the patient is taking lipid\u2011lowering medications (fenofibrate, simvastatin).",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_seq_02b5c47c",
+      "predicted_answer": "The provided medication reconciliation notes do not mention either nausea or pulmonary edema, so there is no documented order for these symptoms.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_08a5bc5c",
+      "predicted_answer": "Anemia was documented first (iron deficiency anemia appears earlier in the diagnosis list than major depressive disorder).",
+      "correct": false,
+      "score": 0.2857142857142857,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_0ae41c1a",
+      "predicted_answer": "The provided medication reconciliation notes do not mention either VRE or chronic cough, so there is insufficient evidence to determine which was documented first.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_0c691eb8",
+      "predicted_answer": "The provided medication reconciliation notes do not mention either a cold or vomiting, so there is no evidence to determine which was documented first.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_0db29eb5",
+      "predicted_answer": "There is no documentation of ascites or coagulopathy in the provided notes, so it cannot be determined which was documented first.",
+      "correct": true,
+      "score": 0.42857142857142855,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_13e249a4",
+      "predicted_answer": "The provided note does not contain any diagnoses or entries labeled \u201cpainful\u201d or \u201cchest pain,\u201d so the order in which they were identified cannot be determined from this information.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_2fc0d0e1",
+      "predicted_answer": "The provided note does not contain any mention of osteomyelitis or vomiting, so the order in which they were identified cannot be determined.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_3399e938",
+      "predicted_answer": "Urinary frequency (ICD\u201110:\u202fR350) is listed in the admission diagnosis list; diarrhea is not mentioned at all. Thus urinary frequency was documented first, and diarrhea was not documented.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_3896bfc0",
+      "predicted_answer": "The note does not document a fever at all, so there is no evidence to compare the timing of congestive heart failure with fever.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_429a73f8",
+      "predicted_answer": "The provided notes do not mention lightheadedness or chronic kidney disease, so the order of their identification cannot be determined.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_4acb1eb0",
+      "predicted_answer": "The provided notes do not mention either malnutrition or back pain, so there is no evidence to determine which was documented first.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_50429da1",
+      "predicted_answer": "The note does not document sleep apnea at all, so there is no evidence to determine which was documented first.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_553c0b7e",
+      "predicted_answer": "The provided medication reconciliation notes do not mention a urinary tract infection (UTI) or weakness, so the order in which they were identified cannot be determined from this information.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_56a31237",
+      "predicted_answer": "Hypoxia is documented first (as the primary diagnosis, \u201cAcute and chronic respiratory failure with hypoxia\u201d). A pulmonary embolism (PE) is not listed in the admission diagnoses.",
+      "correct": true,
+      "score": 0.5714285714285714,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_5afdd873",
+      "predicted_answer": "The note does not contain any mention of chest pain or heartburn, so there is no documented order for these symptoms.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_6a58114f",
+      "predicted_answer": "Fracture was identified first (as the primary diagnosis on admission\u202f23384508), followed by CAP (listed as diagnosis\u202f5 on admission\u202f25656545).",
+      "correct": true,
+      "score": 1.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_6a9703ee",
+      "predicted_answer": "CKD was identified before diarrhea. In the admission diagnosis list, CKD appears at positions 16\u201118, while diarrhea (non\u2011infective gastroenteritis and colitis) is listed later at position 22.",
+      "correct": true,
+      "score": 1.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_6e5dfbac",
+      "predicted_answer": "Neither \u201cra\u201d nor \u201cAnemia\u201d appears in the diagnosis list provided, so neither was documented.",
+      "correct": false,
+      "score": 0.42857142857142855,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_75335843",
+      "predicted_answer": "The provided notes do not mention PNA or DVT, so the order in which they were identified cannot be determined from this information.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_76233349",
+      "predicted_answer": "The provided note does not contain any documentation of dizziness or acute coronary syndrome (ACS), so it is not possible to determine which was documented first.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_7f016097",
+      "predicted_answer": "CAD was documented first. The coronary atherosclerosis diagnosis appears in admission\u202f29176490, whereas the prostate cancer history appears later in admission\u202f25239799.",
+      "correct": true,
+      "score": 0.625,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_8877125e",
+      "predicted_answer": "Neither chest pain nor stroke is documented in the provided notes.",
+      "correct": false,
+      "score": 0.5,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_8edc10b0",
+      "predicted_answer": "The provided note does not contain any information about \u201cfrequency\u201d or \u201csmoking,\u201d so I cannot determine the order in which they were identified.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_95635373",
+      "predicted_answer": "The provided notes contain no mention of anemia or paroxysmal atrial fibrillation, so the order of their identification cannot be determined from this information.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_9c168c92",
+      "predicted_answer": "The provided notes do not list ascites as a diagnosis, nor do they explicitly mention hepatitis. Therefore, there is insufficient evidence to determine the order in which ascites and hepatitis were identified.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_9d3c7a86",
+      "predicted_answer": "The note does not list \u201cMR\u201d or \u201cheadache\u201d among the diagnoses, so the order in which they were identified cannot be determined from the provided information.",
+      "correct": false,
+      "score": 1.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_a6bac5fb",
+      "predicted_answer": "The provided notes contain only medication lists and do not mention either C.\u202fdiff or chest pain, so there is no evidence to determine which was documented first.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_b0d0c8a4",
+      "predicted_answer": "The provided medication\u2011reconciliation notes do not mention deep vein thrombosis or nausea, so the order in which those conditions were identified cannot be determined from this information.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_b2053490",
+      "predicted_answer": "The provided notes do not contain any mention of chest pain, so it cannot be determined from this documentation whether chest pain or atrial fibrillation was documented first.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_b53f6c33",
+      "predicted_answer": "The provided medication reconciliation notes do not mention iron deficiency anemia or hypokalemia, so there is no evidence to determine the order in which they were identified.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_b8f793c1",
+      "predicted_answer": "The provided note does not mention constipation or chest pain, so it cannot be determined which was documented first.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_bb930318",
+      "predicted_answer": "The provided medication reconciliation notes do not mention RASH or mitral regurgitation, so the order of their identification cannot be determined from this information.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_c3ffaa9b",
+      "predicted_answer": "The note does not contain any mention of \u201ctired,\u201d so the order in which it and anxiety were identified cannot be determined from the provided information.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_d481f0fa",
+      "predicted_answer": "The provided note does not contain any documentation of either proteinuria or depressed, so it is not possible to determine which was documented first.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_d701be1b",
+      "predicted_answer": "The provided note does not list ascites or cold among the diagnoses, so the order in which they were identified cannot be determined.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_dbe2e232",
+      "predicted_answer": "The provided note does not list \u201cConfused\u201d or \u201cCLOSTRIDIUM\u202fDIFFICILE,\u201d so their order of identification cannot be determined from this information.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_e2ff5594",
+      "predicted_answer": "HCV is not documented in either diagnosis list, so only alcohol (ETOH) appears. Therefore it cannot be determined which was documented first.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_e3d7e0d1",
+      "predicted_answer": "The provided medication reconciliation notes do not mention constipation or weakness, so the order in which those symptoms were identified cannot be determined from this evidence.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_ee9cbddb",
+      "predicted_answer": "The provided medication\u2011reconciliation notes do not contain any information about sepsis or MR, so the order in which they were identified cannot be determined from this evidence.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_fe472053",
+      "predicted_answer": "The provided note does not list melena or vomiting in either diagnosis list, so the order in which they were identified cannot be determined from this information.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    }
+  ]
+}

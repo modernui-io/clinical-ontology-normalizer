@@ -1,0 +1,2807 @@
+{
+  "model": "gpt-oss-20b",
+  "condition": "C4g_intent_aware",
+  "n_predictions": 400,
+  "predictions": [
+    {
+      "question_id": "bench_a_conditional_084fc490",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_0e65a291",
+      "predicted_answer": "No. The record does not indicate that the patient is currently experiencing dizziness; it only advises avoiding certain medications if dizziness or lightheadedness occurs.",
+      "correct": true,
+      "score": 1.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_178b9eb5",
+      "predicted_answer": "No.  The chart notes that the patient had no hepatic encephalopathy (HE) prior to discharge and \u201cno evidence of hepatic encephalopathy\u201d during the stay.  Lactulose was prescribed as a precaution but may be stopped at follow\u2011up, indicating that HE is not an active concern at present.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_309600b2",
+      "predicted_answer": "Yes. The patient had constipation during hospitalization and was discharged on a bowel regimen (docusate, senna) with instructions to use it while on narcotic pain medications.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_3eb03d40",
+      "predicted_answer": "Yes. The discharge plan specifically calls for monitoring weight and volume status and adjusting diuretics accordingly, indicating ongoing weight management is required.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_568cb9c0",
+      "predicted_answer": "Yes. The patient has a new left\u2011sided DVT and a history of recurrent DVTs, and the chart shows she was started on a Lovenox/Coumadin bridge. Anticoagulation with warfarin is indicated.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_787343d7",
+      "predicted_answer": "Yes. The evidence shows the patient has a fever and is already taking acetaminophen, but the discharge instructions specifically advise calling the doctor if a fever of 101\u202f\u00b0F or higher develops, indicating that fever requires active management.",
+      "correct": true,
+      "score": 1.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_79224dcd",
+      "predicted_answer": "No. The available notes describe nausea, vomiting, hematemesis, and melena, but there is no mention of abdominal or stomach pain as a current complaint.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_7c798644",
+      "predicted_answer": "Yes. Mild postoperative headache is expected after carotid endarterectomy and can be managed with ibuprofen, acetaminophen, or the prescribed pain medication. If the headache worsens, is associated with visual changes, or lasts longer than about 2\u202fhours, the patient should contact the vascular surgeon.",
+      "correct": true,
+      "score": 1.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_8a1a4b9e",
+      "predicted_answer": "No. The patient reports no fever, and the vital sign shows a temperature of 96.7\u202f\u00b0F, indicating no current fever. Therefore, no fever\u2011management is required.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_98cef13a",
+      "predicted_answer": "No. The record shows aspirin 81\u202fmg daily is prescribed and there is no evidence of bleeding, contraindication, or adverse reaction. It is not listed as an active concern for this patient.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_a761e242",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_aca13f49",
+      "predicted_answer": "No. The patient denies nausea or vomiting, and there is no evidence of current vomiting in the history or physical exam.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_b0479c71",
+      "predicted_answer": "Yes. The patient has a documented fever (102.7\u202f\u00b0F) with leukocytosis, elevated ESR, and a wound infection diagnosis, indicating an infectious process that warrants treatment.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_b7b33db2",
+      "predicted_answer": "No. The record shows the patient was febrile earlier in the stay, but at the day\u2011of\u2011discharge note the patient is afebrile and no ongoing fever work\u2011up is mentioned.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_b9464ee7",
+      "predicted_answer": "Yes. The patient is living with HIV (CD4\u202f282) and is currently on antiretroviral therapy (darunavir/ritonavir plus Truvada). Ongoing HIV management\u2014including medication adherence, monitoring of viral load and CD4 count, and regular follow\u2011up with an infectious disease specialist\u2014is required.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_e9039cad",
+      "predicted_answer": "Yes. The patient had documented fever (102\u202f\u00b0F) and was treated with antibiotics (vancomycin/aztreonam during admission and ciprofloxacin on discharge). The evidence supports that treating the temperature was appropriate.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_f36d9cd4",
+      "predicted_answer": "No. The discharge summary and clinical notes do not mention vomiting or nausea, and there is no indication that it is a current issue.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_f726e827",
+      "predicted_answer": "Yes. The patient has documented thrombus in the TIPS shunt and non\u2011occlusive thrombus in the portal vein, and the hypoxic episode was considered possibly due to VTE. Thus VTE remains an active concern.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_f84ce693",
+      "predicted_answer": "Yes \u2013 the patient has chronic HCV (genotype\u202f1) and is currently not receiving therapy. The documentation recommends that HCV treatment be started once she is psychiatrically stabilized and can be followed by a PCP.",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_family_04048280",
+      "predicted_answer": "There is no evidence in the provided records indicating a diagnosis of colon cancer, related symptoms, or any screening or imaging findings that would warrant treatment. Therefore, based on the available information, the patient should not be treated for colon cancer.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_080e16ca",
+      "predicted_answer": "No. The only leukemia mentioned is in the family history (the patient\u2019s brother). There is no evidence that the patient herself has leukemia.",
+      "correct": true,
+      "score": 1.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_0997e312",
+      "predicted_answer": "No. The evidence indicates only a family history of breast cancer (the mother), not a diagnosis in the patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_1d1c4d1c",
+      "predicted_answer": "Yes. The discharge summary notes that the patient\u2019s home gemfibrozil (used for hyperlipidemia) was held during admission and resumed at discharge, indicating a documented history of hyperlipidemia.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_240897df",
+      "predicted_answer": "No. The evidence indicates only a family history of lymphoma (MIMIC\u201110005991) and no clinical findings or diagnosis of lymphoma in the patient. Therefore lymphoma treatment is not indicated.",
+      "correct": true,
+      "score": 1.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_2a6d3070",
+      "predicted_answer": "The evidence is contradictory \u2013 some records document dementia, while other records explicitly state its absence. Therefore, there is insufficient evidence to confirm whether the",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_52945d44",
+      "predicted_answer": "No. The record states the patient was ruled out for myocardial infarction, and there is no current evidence of an acute MI.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_560de630",
+      "predicted_answer": "Yes. The patient\u2019s past medical history and clinical notes explicitly list atrial fibrillation as a diagnosed condition.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_57033e90",
+      "predicted_answer": "No. The patient is already on an antiepileptic (topiramate) and has no history of new seizures or seizure\u2011related symptoms in this admission.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_60efbaa6",
+      "predicted_answer": "Yes \u2013 the patient has documented back pain and is already receiving pain management (lidocaine patch, oxycodone PRN, and a short course of tramadol). Continue this regimen until follow\u2011up, adjusting as needed.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_83019bb5",
+      "predicted_answer": "No. The evidence indicates that the patient\u2019s mother has lung cancer (family history only); there is no indication that the patient herself has lung cancer.",
+      "correct": true,
+      "score": 1.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_83f2914e",
+      "predicted_answer": "No. The evidence indicates that diabetes is a family\u2011history condition (MIMIC\u201110002167) and is not listed in the patient\u2019s personal medical history.",
+      "correct": true,
+      "score": 1.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_92abe3c7",
+      "predicted_answer": "No. The documented history lists HTN, CKD stage\u202fIII, diverticulitis/abscess, anemia, cholelithiasis, and a DVT, but there is no mention of lung cancer.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_a66f568f",
+      "predicted_answer": "No. The only evidence links a family\u2011history observation (MIMIC\u201110002430) to bypass surgery, and the assertion status indicates that this is a relative\u2019s condition, not the patient\u2019s. Thus the patient\u2019s bypass\u2011surgery status is not confirmed.",
+      "correct": true,
+      "score": 1.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_ac587eb0",
+      "predicted_answer": "Yes. The patient developed a post\u2011operative wound infection with erythema, purulent drainage, and cultures positive for MSSA, and was appropriately treated with IV antibiotics (vancomycin \u2192 nafcillin). Continued antibiotic therapy for cellulitis is warranted.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_b357e0c4",
+      "predicted_answer": "No. The only evidence linking hypothyroidism is to the relative identified as MIMIC\u201110002528, which is marked as a family\u2011history finding, not a diagnosis in the patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_b807c369",
+      "predicted_answer": "No. The patient\u2019s medical history lists GERD and IBS only; the mention of stroke is in the family history, not the patient\u2019s own history.",
+      "correct": true,
+      "score": 1.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_bb61feaa",
+      "predicted_answer": "Yes. The patient has documented 2+ mitral regurgitation that is contributing to pulmonary edema and fluid overload. She is already receiving medical therapy\u2014afterload reduction with lisinopril and aggressive diuresis with IV/PO Lasix\u2014to manage the MR\u2011related volume status. No surgical intervention is indicated at this time.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_c12f9ed9",
+      "predicted_answer": "No. The evidence indicates only a family history of breast cancer (mother); there is no documented cancer in the patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_c406e4ba",
+      "predicted_answer": "Yes. The patient\u2019s past medical history lists chronic hyperlipidemia, and he is on pravastatin therapy for it.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_c973d63a",
+      "predicted_answer": "Yes. The patient has documented vascular dementia, so appropriate dementia\u2011management (e.g., cholinesterase inhibitors, memantine, or supportive care) should be considered.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_cc28a974",
+      "predicted_answer": "No. The only diabetes mentioned is in a family member (the patient\u2019s brother); the patient\u2019s own history does not include diabetes.",
+      "correct": true,
+      "score": 1.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_d18c55c9",
+      "predicted_answer": "Yes. The patient (MIMIC\u201110000117) has migraine documented in two admissions and listed in the past\u2011medical history.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_d67e82f4",
+      "predicted_answer": "Yes. The patient\u2019s past medical history lists \u201cETOH abuse,\u201d and the HPI also notes chronic alcohol use.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_e5d23003",
+      "predicted_answer": "No. The only breast\u2011cancer finding is a family history (the patient\u2019s mother); there is no evidence that the patient herself has been diagnosed with breast cancer.",
+      "correct": true,
+      "score": 1.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_ebad349d",
+      "predicted_answer": "There is no evidence that this patient has colorectal cancer. The documented malignancies are renal cell carcinoma, cholangiocarcinoma, and acinar cell carcinoma of the pancreas, so treatment for colorectal cancer is not indicated.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_f02d2f93",
+      "predicted_answer": "No. The only breast cancer mentioned is in the patient\u2019s family history (mother), not a diagnosis in the patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_fa01d58d",
+      "predicted_answer": "Yes. The patient\u2019s past medical history lists \u201cDM\u201d (diabetes mellitus) and the medication list includes antidiabetic drugs (glimepiride, metformin).",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_fc035c9e",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_fded0cbd",
+      "predicted_answer": "No. The record states \u201cNo Known Allergies / Adverse Drug Reactions,\u201d indicating the patient has no documented allergies.",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_negation_01a73bf1",
+      "predicted_answer": "No. The evidence indicates that the patient does **not** have a bowel obstruction (the condition is marked as absent).",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_0307e908",
+      "predicted_answer": "There is no evidence in the record that the patient has been diagnosed with a pulmonary embolism. No imaging, laboratory, or clinical findings supporting PE are documented.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_05b38a01",
+      "predicted_answer": "No. The evidence indicates the patient does not take ondansetron (takes_drug\u202fABSENT) and there is no record of ondansetron\u2011related symptoms.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_0c96eb95",
+      "predicted_answer": "No. The evidence indicates that edema was observed as absent (ABSENT) in this patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_0de6708e",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_0e18ae69",
+      "predicted_answer": "No. The chart notes that the pelvic X\u2011ray was without fracture and the impression states \u201cNo acute fracture or dislocation.\u201d",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_101fe4b1",
+      "predicted_answer": "Yes. The chart documents abdominal pain in the ED presentation (\u201cChief Complaint: Abdominal pain, distention, nausea\u201d) and in the history of present illness (\u201creturning to the ED with abdominal pain, nausea, and distension\u201d).",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_106dd7e2",
+      "predicted_answer": "No. The evidence indicates that the patient does not have acute distress (the condition MIMIC\u201110002800 is negated).",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_130970cd",
+      "predicted_answer": "No. The evidence shows the patient explicitly denies hypertension, and the assertion status is NEGATED for the condition. Therefore hypertension should not be listed as an active problem.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_13d53907",
+      "predicted_answer": "No. The evidence indicates that a leukocyte measurement (MIMIC\u201110005866) is absent for this patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_1403b8e4",
+      "predicted_answer": "No. The CTA performed on admission was negative for pulmonary embolus, and no subsequent imaging or clinical evidence confirmed a subsegmental clot. Therefore, pulmonary embolus is not a documented active problem for this patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_14a95ee6",
+      "predicted_answer": "No. The evidence indicates that pulmonary edema is absent (both the graph and the clinical note state \u201cNo pulmonary edema\u201d).",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_16195e06",
+      "predicted_answer": "No intracranial hemorrhage has been identified. The initial CT head was negative for bleed, and subsequent MRI confirmed a meningioma and a sub\u2011acute infarct but no hemorrhage.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_179dfa67",
+      "predicted_answer": "No. The evidence indicates the patient does not have hematemesis.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_1e6ae1bc",
+      "predicted_answer": "The patient does not have edema. All evidence indicates an absent observation of edema, and the physical exam notes no lower\u2011extremity edema.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_20397dbf",
+      "predicted_answer": "No. The evidence indicates that respiratory distress is absent (has_condition\u202f=\u202fABSENT).",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_21c8c64d",
+      "predicted_answer": "No. The evidence indicates that intracranial hemorrhage is absent (the patient has no acute intracranial hemorrhage).",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_2267edf5",
+      "predicted_answer": "No. The chart notes that the patient denies palpitations in both the history of present illness and the review of systems.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_235e2a87",
+      "predicted_answer": "No. The evidence shows edema is absent (physical exam notes \u201cno edema\u201d and the graph explicitly marks edema as absent). Therefore it should not be listed as an active problem.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_23c212a7",
+      "predicted_answer": "No. The clinical notes and exam report describe bilateral wheezing but make no mention of crackles or rales, and the chest X\u2011ray shows no pulmonary edema or effusion that would produce rales.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_23cc9ce7",
+      "predicted_answer": "No. The records show the patient denies chest pain and no diagnosis of chest pain is documented.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_249c840f",
+      "predicted_answer": "No. The documentation states the patient is \u201cin no acute distress\u201d and shows normal vital signs, so acute distress is absent and should not be listed as an active problem.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_2911192f",
+      "predicted_answer": "No. The records show the patient denies paroxysmal nocturnal dyspnea and there is no documentation of a PND diagnosis.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_293d4ffe",
+      "predicted_answer": "No. The chart documents an acute episode of diverticulitis, but there is no mention of the patient experiencing acute distress (e.g., tachycardia, tachypnea, agitation, or other signs of distress).",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_2e78b44f",
+      "predicted_answer": "No. The evidence indicates that wheezes were observed as absent (NEGATED) in this patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_3276c129",
+      "predicted_answer": "Yes. The record notes that the patient\u2019s only adverse reaction to calcium\u2011channel blockers was peripheral edema, indicating that peripheral edema has been diagnosed.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_33b33f87",
+      "predicted_answer": "The patient has a known history of obstructive sleep apnea and is currently using CPAP overnight. Her postoperative course was stable with no respiratory complications related to the apnea.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_36dc36ff",
+      "predicted_answer": "The evidence indicates that the patient does **not** have pneumonia (the condition is marked as absent).",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_3904ad35",
+      "predicted_answer": "No. The clinical notes and recorded observations all state that the patient has no jugular venous distension.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_3fad7aa3",
+      "predicted_answer": "No. The evidence shows that wheezes are absent (has_observation\u202fABSENT) and the related condition MIMIC\u201110000980 is negated for this patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_40db7f62",
+      "predicted_answer": "The patient has no hepatic encephalopathy.  His mental status is clear and coherent, he is alert and interactive, and the record notes no evidence of HE during this admission.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_4138bbc9",
+      "predicted_answer": "No. Glipizide is a medication, not a diagnosis. The patient is prescribed glipizide for his diabetes mellitus, as shown in his medication list.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_42c8d97e",
+      "predicted_answer": "No. The clinical record and the graph evidence both state that wheezes were absent (no wheezes noted on physical exam and the observation is marked ABSENT).",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_43343ed2",
+      "predicted_answer": "The patient is experiencing mild distress related to anxiety\u2014he took Ativan for anxiety and appears mildly lethargic, but there is no evidence of severe or acute distress.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_4861b394",
+      "predicted_answer": "Reflux has resolved. The patient\u2019s prior gastro\u2011esophageal reflux symptoms resolved after tonsillectomy, and no current reflux symptoms or evidence of reflux are reported in the postoperative course.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_4ac02e8d",
+      "predicted_answer": "No. The evidence indicates that chest pain is absent (the graph shows \u201cchest pain",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_4b4c1918",
+      "predicted_answer": "Yes. The patient\u2019s history and ICD\u201110 codes confirm a diagnosis of coronary artery disease (e.g., LAD stent and CABG, ICD\u201110 I2510).",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_4e2a8187",
+      "predicted_answer": "No. The provided evidence lists no aortic stenosis or related valvular disease, so it should not be added to the active problem list.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_4e7987f4",
+      "predicted_answer": "No. The evidence indicates that edema is absent (NEGATED) for this patient, so it should not be listed as an active problem.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_513de8bf",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_52386b31",
+      "predicted_answer": "No. The chart contains an explicit assertion that crackles are absent (has_observation\u202fABSENT).",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_57112dd0",
+      "predicted_answer": "No, pleural effusions have not been diagnosed. The chest X\u2011ray was negative for any acute cardiopulmonary processes, and no effusion was reported.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_571402c6",
+      "predicted_answer": "Yes. The record lists \u201cChest pain, unspecified (ICD\u20119: 78650)\u201d as a primary diagnosis.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_5e397dc9",
+      "predicted_answer": "No. The physical exam notes the patient was alert, oriented, and in **no acute distress**.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_61a7e4c2",
+      "predicted_answer": "No. The chart explicitly records that wheezes are absent (has_observation\u202fABSENT) and the assertion status indicates the patient does not have this finding.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_623b94ec",
+      "predicted_answer": "No. The records mention a new left\u2011sided opacity on CXR, but there is no documentation of a pleural effusion on imaging or physical exam.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_645e608e",
+      "predicted_answer": "No. The admission exam notes \u201cNo acute distress,\u201d and the graph evidence indicates that the condition linked to acute distress (MIMIC\u201110003637) is negated. Thus the patient does not have acute distress.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_682baac8",
+      "predicted_answer": "The patient has clinical evidence of a malignant small\u2011bowel obstruction (symptoms and NG\u2011tube decompression), but CT imaging with oral contrast showed no radiographic obstruction\u2014only ileitis. Thus, he is experiencing obstructive symptoms likely from tumor burden, though no definitive obstruction was seen on imaging.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_68d98585",
+      "predicted_answer": "No. The evidence indicates that swelling is absent (the observation is marked ABSENT) and the patient reports no current swelling.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_696df2d6",
+      "predicted_answer": "There is no information in the provided documents indicating that a transesophageal echocardiogram (TEE) has been performed or ordered for this patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_6ad5d7aa",
+      "predicted_answer": "No. The discharge physical exam notes \u201cno edema,\u201d and the graph evidence shows edema has an observation of MIMIC\u201110002800 marked as absent.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_6c26bc17",
+      "predicted_answer": "There is no definitive evidence of small bowel obstruction. A KUB raised concern for obstruction, but the subsequent CT abdomen/pelvis with oral contrast showed no obstruction, only ileitis.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_6e31efd4",
+      "predicted_answer": "No. The evidence shows that wheezes are absent (NEGATED) and are not a current observation or condition for the patient, so it should not be added to the active problem list.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_6f8ef34c",
+      "predicted_answer": "Yes. The chart documents left\u2011sided weakness (residual left\u2011sided weakness, left upper\u2011extremity weakness) and the graph shows a \u201cweakness\u201d condition linked to the patient.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_7c1a4038",
+      "predicted_answer": "Yes. The records list a diagnosis of major depressive disorder (ICD\u201110\u202fF329) and also a diagnosis of unspecified depression (ICD\u201110\u202fF32A).",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_7d948b18",
+      "predicted_answer": "No. The records do not document an episode of acute distress; the patient\u2019s complaints are abdominal discomfort, ascites, mild encephalopathy, and electrolyte abnormalities, none of which are described as acute distress.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_7ee3c757",
+      "predicted_answer": "Yes. The physical exam notes \u201c2+ pitting edema\u201d in the extremities, and the chart also records lower\u2011extremity edema as a current observation.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_820b44df",
+      "predicted_answer": "No. The evidence indicates that edema was observed as absent (NEGATED) in this patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_8404b54e",
+      "predicted_answer": "No. The physical exam notes \u201cNo lower extremity edema noted,\u201d indicating that lower\u2011extremity edema has not been diagnosed.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_84a2e98b",
+      "predicted_answer": "The patient does not have edema; all documented observations and the physical exam indicate its absence.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_85011728",
+      "predicted_answer": "No. The physical exam notes the patient is \u201cwell appearing in no acute distress,\u201d with afebrile, stable vital signs and well\u2011controlled pain.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_89a2a540",
+      "predicted_answer": "Yes. The records show the patient has a past diagnosis of deep\u2011vein thrombosis (DVT), including bilateral unprovoked DVTs noted in the hospital course.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_8a621be9",
+      "predicted_answer": "No, the chart does not contain any mention of pleural effusions.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_8c3e3535",
+      "predicted_answer": "No. The clinical notes and the graph evidence both state that peripheral edema is absent.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_932876c3",
+      "predicted_answer": "The patient has no evidence of melena; it is absent.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_9473ed98",
+      "predicted_answer": "The patient does not have wheezes.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_956540b2",
+      "predicted_answer": "No. The cecal mass was biopsied during colonoscopy and the pathology was negative for malignancy, and no other evidence of carcinoma is reported.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_971c89dd",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_97d5979a",
+      "predicted_answer": "Yes. The patient had bilateral unprovoked DVTs that were diagnosed and treated during this admission, so DVT remains an active problem.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_9a3f583a",
+      "predicted_answer": "No. The evidence indicates that dizziness is absent (the patient denies it and the clinical data confirm it is not present).",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_a5af105f",
+      "predicted_answer": "Yes. The patient\u2019s medication list and chart record show use of insulin (Humalog U\u2011100 and insulin glargine).",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_a94bed8f",
+      "predicted_answer": "No. The evidence shows hematuria (blood in the urine) but there is no mention of rectal bleeding or hematochezia. Therefore it should not be added to the active problem list.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_b0779d1a",
+      "predicted_answer": "No. The patient reports no loss of consciousness during the falls.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_b3cdd3b2",
+      "predicted_answer": "There is no documented information about paroxysmal nocturnal dyspnea (PND) in the provided evidence, so the patient\u2019s status regarding PND cannot be determined.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_badb881d",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_c2fa4a95",
+      "predicted_answer": "No. The evidence indicates that wheezes are absent (both the graph paths and the physical exam note state \u201cno \u2026 wheezes\u201d).",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_c8173932",
+      "predicted_answer": "No. The evidence indicates that the patient does not have a pleural effusion (the condition is marked as absent).",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_c8226f8e",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_c9423896",
+      "predicted_answer": "Yes. The imaging notes \u201cinterval development of trace ascites,\u201d indicating that ascites is currently present, so it should be listed as an active problem.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_cad47ef1",
+      "predicted_answer": "No. The evidence shows that crackles are absent (has_observation\u202fABSENT) and the patient does not have any current crackle\u2011related condition, so crackles should not be listed as an active problem.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_cbf1cffe",
+      "predicted_answer": "No. The evidence indicates that the patient does not have a fracture (the fracture node is marked ABSENT).",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_d0d73973",
+      "predicted_answer": "No. The chart shows edema is absent (the observation is marked ABSENT) and the physical exam notes \u201cno edema.\u201d",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_d10e395d",
+      "predicted_answer": "No. The records describe a urinary tract infection with dysuria and a contaminated urine culture, but there is no mention of pyelonephritis or any diagnostic findings consistent with it.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_d249558e",
+      "predicted_answer": "The patient does not have edema; the observation is documented as absent.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_d4219eba",
+      "predicted_answer": "No. The physical exam notes \u201cno wheezes, rales, rhonchi\u201d in the lungs.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_d77aa1a3",
+      "predicted_answer": "Yes. The chart documents \u201cOsteomyelitis of left hallux\u201d as an active issue and notes that the patient had osteomyelitis secondary to a diabetic foot ulcer.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_d847293f",
+      "predicted_answer": "No. The chart explicitly states \u201cNo small or large bowel obstruction\u201d and there are no other findings indicating obstruction.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_d9248c83",
+      "predicted_answer": "No. The evidence indicates that edema (MIMIC\u201110002013) is absent in this patient, so it should not be listed as an active problem.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_d94f12ab",
+      "predicted_answer": "No. The chart contains a negated observation for MIMIC\u201110001877 (the DVT code) and an explicit \u201cabsent\u201d status for DVT, and the clinical notes state that DVT was ruled out.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_dd042427",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_dd685a2b",
+      "predicted_answer": "No. The evidence shows that crackles were observed as absent (ABSENT) and therefore were not diagnosed in this patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_e092d16b",
+      "predicted_answer": "The patient is not in acute distress. At both admission and discharge, the physical exam notes \u201cGeneral \u2013 NAD\u201d (no acute distress).",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_e0d14e20",
+      "predicted_answer": "No. The evidence indicates that hematochezia is absent (the patient denies it and the clinical record lists it as absent).",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_e47c8755",
+      "predicted_answer": "No. The evidence shows that canagliflozin was stopped at discharge and the graph indicates the patient does not currently take it.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_e78da7e6",
+      "predicted_answer": "No. The chart explicitly documents that edema is absent (e.g., \u201cExt: No edema\u201d and the observation path shows edema as ABSENT).",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_e8f8698f",
+      "predicted_answer": "Yes. The notes describe progressive dyspnea, hypoxemia, and increased work of breathing, all of which indicate the patient is experiencing respiratory distress.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_f407afe0",
+      "predicted_answer": "No. The evidence indicates that the patient does not have an echo procedure (the \u201cecho\u201d node is marked as ABSENT).",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_f4e295fe",
+      "predicted_answer": "No. The available documentation does not indicate that the patient has been diagnosed with distress.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_f500d64e",
+      "predicted_answer": "No. The evidence indicates that crackles were observed as absent (NEGATED).",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_f5180c2d",
+      "predicted_answer": "No. The evidence indicates that swelling is absent (has_observation\u202fABSENT) and the clinical notes do not describe any swelling.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_f6537c21",
+      "predicted_answer": "No. The evidence shows edema is absent (no observation, no physical exam finding). Therefore it should not be listed as an active problem.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_f6b96944",
+      "predicted_answer": "No. The evidence shows wheezes are absent (no wheezes on exam and explicit \u201chas_observation\u202fABSENT\u201d), so it should not be listed as an active problem.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_f7e82d5c",
+      "predicted_answer": "No. The evidence indicates that the patient\u2019s abdominal pain is absent (abd pain has_condition\u202fMIMIC\u201110003637 with ABSENT status).",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_f913fb0a",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_f98d6227",
+      "predicted_answer": "No. The evidence indicates pulmonary edema is absent (both the graph and the clinical notes state \u201cno pulmonary edema\u201d).",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_fb05d352",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_fb21a2c7",
+      "predicted_answer": "No. The available evidence shows that the patient was evaluated for deep\u2011venous thrombosis and the work\u2011up (e.g., negative DVT screen) was negative, indicating no venous thrombosis.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_fd91174a",
+      "predicted_answer": "No. Both the dysphagia and hip\u2011fracture notes explicitly state that the patient was \u201cno acute distress.\u201d",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_fda15327",
+      "predicted_answer": "Yes. The patient has multiple acute fractures (C5\u2011C7, T2, sternal, and a possible T12 compression fracture) that are still being managed, so fracture(s) should be listed as an active problem.",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_fef1ecbe",
+      "predicted_answer": "The patient has no ankle edema.",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_uncertainty_06127456",
+      "predicted_answer": "Yes. The first document reports that the patient presented with acute shortness of breath (without frank hypoxia) that resolved during the admission.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_123f4464",
+      "predicted_answer": "Yes. The hospital record states the patient has \u201csevere advanced Alzheimer\u2019s dementia,\u201d indicating a definitive diagnosis of dementia.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_1c0c6ece",
+      "predicted_answer": "The evidence states that a PICC line was placed in the right arm, so the presence of a PICC line is confirmed.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_1d230654",
+      "predicted_answer": "No. The records indicate dehydration is suspected as a likely contributor to the patient\u2019s hypotension and prerenal azotemia, but it is not documented as a confirmed diagnosis.",
+      "correct": true,
+      "score": 1.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_1ffb8dc8",
+      "predicted_answer": "The diagnostic certainty for acetaminophen is **uncertain** \u2013 it is suspected but not confirmed.",
+      "correct": true,
+      "score": 1.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_20e90dbf",
+      "predicted_answer": "Yes. The record lists a diagnosis of diastolic heart failure (CHF) with an LVEF of 60\u202f% and notes CHF as a chronic condition in the discharge summary.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_23f60748",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_2705ec9f",
+      "predicted_answer": "Yes. The graph shows a current depression condition (Soci) and the discharge notes state the patient was continued on antidepressants (bupropion, sertraline), confirming a definitive diagnosis.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_2bcdd5ac",
+      "predicted_answer": "No. The records show no formal diagnosis of ileus; a KUB on POD\u202f3 was negative for obstruction or ileus, and no other imaging or clinical note confirms an ileus diagnosis.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_2f1a4469",
+      "predicted_answer": "Yes. The chart notes \u201cUrinary frequency Likely due to diuretic use,\u201d indicating the patient is experiencing urinary frequency.",
+      "correct": true,
+      "score": 1.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_34cca5f5",
+      "predicted_answer": "No. The available evidence indicates that syncope is only suspected (uncertain) and has not been confirmed as a diagnosis for this patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_3d8cd3fc",
+      "predicted_answer": "Yes. The patient\u2019s past medical history lists osteoporosis, and the clinical record repeatedly notes it as a chronic condition.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_426541c7",
+      "predicted_answer": "The evidence shows clear, documented volume overload (e.g., admission for fluid overload, high BNP, need for IV diuresis, discharge on high\u2011dose torsemide, and ongoing weight/volume monitoring). Diagnostic certainty for volume overload is **high**.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_42910b3f",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_45a842fd",
+      "predicted_answer": "Yes. The patient reports multiple chest\u2011pain episodes over the past two weeks, had a more severe episode that prompted the ED visit, and the history documents typical anginal symptoms.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_4a24e140",
+      "predicted_answer": "No. The records state that she has not been formally diagnosed with bipolar disorder and that she did not meet diagnostic criteria.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_4d840683",
+      "predicted_answer": "There is no evidence that the patient herself has alcohol use disorder or alcohol\u2011related problems. The only mention is a possible alcohol abuse history in her mother.",
+      "correct": true,
+      "score": 1.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_50872b09",
+      "predicted_answer": "The evidence indicates that the patient is thought to have vascular dementia, but the assertion status for the diagnosis (MIMIC\u201110003502) is **UNCERTAIN**\u2014the condition is suspected but not confirmed.",
+      "correct": true,
+      "score": 1.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_66ce4150",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_6a3e32c7",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_6ac1b034",
+      "predicted_answer": "The evidence indicates that appendicitis is **unlikely**; the appendix is small (5\u20116\u202fmm) and the diffuse inflammatory findings point to enteritis rather than appendicitis, so diagnostic certainty for appendicitis is low.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_7c8a132d",
+      "predicted_answer": "No.  Lasix was discontinued during the admission for acute kidney injury and is only planned to be restarted at discharge; it is not confirmed as an active medication at the time of the record.",
+      "correct": true,
+      "score": 1.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_7f556b28",
+      "predicted_answer": "Yes. The patient\u2019s history explicitly lists type\u202f2 diabetes mellitus (T2DM), indicating a definitive diagnosis of a blood\u2011sugar disorder.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_8ecc1d7c",
+      "predicted_answer": "Yes. The records state the patient has an indwelling Foley catheter (placed for urinary retention) and it was later replaced during the admission.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_94a62330",
+      "predicted_answer": "No. The discharge weight is recorded as a measurement (MIMIC\u201110005858) with an uncertain status, and weight is not listed as a diagnosis for the patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_a00a0522",
+      "predicted_answer": "Yes. The records state that the patient experienced constipation during her postoperative course, and she was treated with stool\u2011softening agents (docusate, polyethylene glycol, senna), indicating a definitive diagnosis of constipation.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_ad024aba",
+      "predicted_answer": "No. The evidence shows weakness as an observation (symptom) rather than a formal diagnosis. It is documented as a presenting complaint, not listed as a diagnosed condition.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_b9c4f4da",
+      "predicted_answer": "The evidence shows the patient is **not** currently DNR/DNI; she remains full\u2011code at the time of the latest discussion.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_bb90a843",
+      "predicted_answer": "Yes. Laboratory values show sodium levels of 126\u202fmmol/L and 130\u202fmmol/L, which are below the normal threshold of 135\u202fmmol/L, confirming hyponatremia.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_c5a5ba78",
+      "predicted_answer": "No. The record states that the patient\u2019s heart failure is \u201clikely ischemic cardiomyopathy\u201d based on a history of CAD, CABG, and PCI, but there is no definitive diagnostic confirmation noted.",
+      "correct": true,
+      "score": 1.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_d5f6cea3",
+      "predicted_answer": "Yes. The records state that the patient was \u201crecently diagnosed with metastatic cancer of unknown primary,\u201d and a liver core biopsy was performed to evaluate the metastatic lesions.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_d6b5569b",
+      "predicted_answer": "Diagnostic certainty for colonoscopy is low: a flexible sigmoidoscopy was performed but found no source of bleeding, and a full colonoscopy has not yet been done. Future colonoscopy may be considered if it aligns with the patient\u2019s goals of care.",
+      "correct": true,
+      "score": 1.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_e2f40386",
+      "predicted_answer": "The diagnosis of metastatic poorly\u2011differentiated high\u2011grade neuroendocrine carcinoma is confirmed\u2014biopsy demonstrated a poorly differentiated neuroendocrine tumor and imaging documented metastatic disease.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_e55a99fb",
+      "predicted_answer": "No. The record lists a \u201cquestion of hypothyroidism with elevated TSH level,\u201d indicating suspicion but not a confirmed diagnosis.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_e88c624f",
+      "predicted_answer": "No. The documentation states that after imaging and clinical review there was \u201cno concern for a pneumonia,\u201d and the antibiotics were discontinued. The CXR opacity was considered possibly related to metastatic disease rather than confirmed pneumonia.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_eab1a2aa",
+      "predicted_answer": "No. Imaging (CT abdomen/pelvis with oral contrast) did not demonstrate bowel obstruction; it showed ileitis instead. The initial KUB suggested possible obstruction, but this was not confirmed on subsequent studies.",
+      "correct": true,
+      "score": 1.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_f04bcd77",
+      "predicted_answer": "Yes. The patient\u2019s history and hospital course repeatedly document nausea (presenting complaint, HPI, and clinical notes).",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_f732cfb2",
+      "predicted_answer": "Yes. The documentation lists abdominal pain as the chief complaint and as a key symptom in the history of present illness, indicating it is an established diagnosis for this patient.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_f7ea98b9",
+      "predicted_answer": "No. The patient denies orthopnea in the initial history, and any mention of orthopnea in later notes is uncertain (\u201cpossibly had 2\u2011pillow orthopnea\u201d), so it is not an established diagnosis.",
+      "correct": true,
+      "score": 1.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_ff0b7361",
+      "predicted_answer": "Yes. Urinalysis was consistent with infection and urine culture grew ESBL\u2011producing\u202fE.\u202fcoli, confirming a urinary tract infection.",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_b_chg_16bf0d62",
+      "predicted_answer": "Between the two admissions the only medication changes were:  \n- **Heparin** was discontinued (no longer listed).  \n- **OxycoDONE** was added (newly listed).  \n\nAll other drugs\u2014Acetaminophen, Aspirin, Ceftriaxone, and Motrin\u2014remained the same.",
+      "correct": true,
+      "score": 1.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_3af4dea4",
+      "predicted_answer": "Between the two admissions the patient\u2019s regimen was altered as follows:  \n\n- **Newly added**: levofloxacin, amlodipine, and atenolol.  \n- **Discontinued**: Augmentin, Dilaudid, Lovenox, and acetaminophen.  \n\nCoumadin and Percocet remained on the list in both admissions.",
+      "correct": true,
+      "score": 1.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_3b4387cb",
+      "predicted_answer": "Between the two admissions the only medication added was **azithromycin**. All other drugs present on the first admission\u2014**Enoxaparin, Lasix, Torsemide, Tylenol, metoprolol, and zofran**\u2014were discontinued. Aspirin remained unchanged.",
+      "correct": true,
+      "score": 0.75,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_4394e1c9",
+      "predicted_answer": "Between the two admissions the patient\u2019s medication list was altered by adding Aspirin and discontinuing both Valium and Wellbutrin. No other medications were listed at admission for the second stay.",
+      "correct": false,
+      "score": 1.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_4b1262d4",
+      "predicted_answer": "Between the two admissions the patient\u2019s medication list was altered by discontinuing Lorazepam and adding a new regimen that includes Acetaminophen, Aleve, Ibuprofen, OxycoDONE, and subcutaneous heparin.",
+      "correct": true,
+      "score": 1.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_4ce4b0e5",
+      "predicted_answer": "Between the two admissions the patient\u2019s regimen was altered by adding **Augmentin, Tylenol (acetaminophen), hydrochlorothiazide, and lisinopril** while **discontinuing Ondansetron, amlodipine, ciprofloxacin, and Flagyl\u2019s partner cipro**. Flagyl remained unchanged.",
+      "correct": false,
+      "score": 0.8333333333333334,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_551986f4",
+      "predicted_answer": "Between the two admissions the patient\u2019s medication list changed as follows:\n\n**Newly added medications (Admission\u202f25656545):**  \nAlbuterol, Aspirin, Hydrochlorothiazide, glimepiride, metformin, omeprazole, tiotropium.\n\n**Medications discontinued (removed from Admission\u202f23384508):**  \nMetoprolol, OxycoDONE, acetaminophen, lovenox.",
+      "correct": true,
+      "score": 1.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_55fcfc07",
+      "predicted_answer": "Between the two admissions the patient\u2019s medication list was completely re\u2011oriented. All diabetes drugs (glimepiride, glipizide, glyburide, insulin) and the PPI (omeprazole) plus prednisone were discontinued. New medications were added: acetaminophen, ondansetron, oxycodone (OxycoDONE), albuterol, and lorazepam.",
+      "correct": true,
+      "score": 1.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_5675cecb",
+      "predicted_answer": "Between the two admissions the patient\u2019s regimen was simplified: the only new drug added was omeprazole, and all opioid analgesics (dilaudid, morphine, tramadol) and the anti\u2011emetic zofran were stopped.  The baseline medications fluticasone and Lexapro remained unchanged.",
+      "correct": true,
+      "score": 1.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_56805338",
+      "predicted_answer": "Between the two admissions the patient\u2019s regimen changed as follows:  \n- **Newly added** on the second visit: Zofran and metronidazole.  \n- **Discontinued** on the second visit (no longer present): albuterol, lorazepam, morphine, omeprazole, ondansetron, and oxycodone.  \nDilaudid remained on both visits.",
+      "correct": true,
+      "score": 1.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_63fd19b7",
+      "predicted_answer": "Between the two admissions the medication list changed as follows:\n\n**Newly added medications**: Hypertension (antihypertensive),",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_799b8ee4",
+      "predicted_answer": "Between the two admissions the patient\u2019s regimen changed as follows:  \n\n**Newly added medications** \u2013 Clotrimazole, Hydrocodone, Insulin\u202fLispro, acetaminophen,",
+      "correct": false,
+      "score": 0.14285714285714285,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_7bfd6ae3",
+      "predicted_answer": "Between the two admissions the patient\u2019s medication list changed as follows:\n\n- **Newly added**: Allopurinol, apixaban, Entresto, heparin, omeprazole, and valsartan.  \n- **Discontinued**: Losartan and warfarin.",
+      "correct": true,
+      "score": 1.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_7eaa968e",
+      "predicted_answer": "Between the two admissions the patient\u2019s medication list changed as follows:\n\n- **Newly added**: digoxin (dig), levothyroxine, and lovenox (enoxaparin).  \n- **Discontinued**: acetaminophen, lorazepam, losartan, vancomycin (vanc), and ciprofloxacin.  \n\nAll other medications (e.g., atorvastatin) remained unchanged.",
+      "correct": true,
+      "score": 1.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_8710f477",
+      "predicted_answer": "Between the two admissions the patient\u2019s regimen was altered by adding **aspirin, dilaudid, and motrin** and by discontinuing **levothyroxine and fluconazole**. All other medications (alprazolam, acetaminophen, fluticasone, hydrocodone) remained unchanged.",
+      "correct": false,
+      "score": 1.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_9b769505",
+      "predicted_answer": "Between the two admissions the patient\u2019s medication list changed as follows: six new drugs were added\u2014TraMADol, TraZODone, bactrim, heparin, oxycontin, and valium\u2014and two drugs were discontinued\u2014Dilaudid and Motrin.",
+      "correct": true,
+      "score": 0.6,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_9fe27a5b",
+      "predicted_answer": "Between the two admissions the patient\u2019s regimen changed as follows: acetaminophen was added, and pantoprazole, heparin, and lovenox were discontinued. Pravastatin remained unchanged.",
+      "correct": true,
+      "score": 0.8,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_a2d2f2df",
+      "predicted_answer": "Between the two admissions the patient\u2019s drug list was simplified: the antibiotics Cipro, vancomycin (vanco) and zosyn were stopped, and a new pain medication, OxycoDONE (oxycodone), was added. All other medications (acetaminophen, colchicine, diazepam, and metoprolol) remained unchanged.",
+      "correct": true,
+      "score": 1.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_b05d1279",
+      "predicted_answer": "Between the two admissions the patient\u2019s regimen changed as follows:  \n- **Newly added** on the second admission: Augmentin, cefepime, heparin, and vancomycin.  \n- **Discontinued** on the second admission: Bactrim and levofloxacin.",
+      "correct": true,
+      "score": 1.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_b34b5572",
+      "predicted_answer": "Between the two admissions the patient\u2019s regimen was altered as follows:  \n- **New medications added**: aspirin, oxycodone, and pantoprazole.  \n- **Medications discontinued**: naproxen and Ultram.  \nIbuprofen and lorazepam remained unchanged.",
+      "correct": true,
+      "score": 1.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_beb2c0ab",
+      "predicted_answer": "Between the two admissions the patient\u2019s drug list was altered as follows:  \n\n- **Newly added**: Dilaudid, lopressor (metoprolol), pantoprazole, and Tylenol.  \n- **Discontinued**: Furosemide, coumadin (warfarin), hydromorphone, nitroglycerin, and oxycodone.  \n\nAll other medications (acetaminophen, aspirin, atorvastatin, citalopram) remained unchanged.",
+      "correct": true,
+      "score": 1.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_bf95749e",
+      "predicted_answer": "Between the two admissions the patient\u2019s regimen was altered by adding **aspirin, motrin, lipitor, pepcid, and prilosec** and by discontinuing **dexamethasone, actos, prednisone, and warfarin** (the warfarin that had been on the prior admission). All other medications (allopurinol, glipizide, metoprolol) remained unchanged.",
+      "correct": false,
+      "score": 0.8333333333333334,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_c1ed937c",
+      "predicted_answer": "Between the two admissions the medication list changed as follows:\n\n**Newly added (not present in the first admission):**  \n- Coumadin (warfarin)  \n- Diltiazem  \n- Heparin  \n- Levofloxacin  \n- Vancomycin  \n- Zosyn (piperacillin\u2011tazobactam)\n\n**Discontinued (present in the first admission but not in the second):**  \n- Glipizide  \n- Ceftriaxone  \n- Digoxin  \n- Insulin (sliding\u2011scale)",
+      "correct": true,
+      "score": 1.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_c86d8b22",
+      "predicted_answer": "Between admissions the patient\u2019s regimen was altered by adding **Spironolactone** and **acetaminophen** and by discontinuing **Bactrim, Dilaudid, amiodarone, metoprolol, and pip\u2011tazo**. The remaining medications\u2014**Famotidine, Lasix, and Neurontin**\u2014were continued unchanged.",
+      "correct": false,
+      "score": 1.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_d41272ec",
+      "predicted_answer": "Between the two admissions the patient\u2019s medication list changed as follows:\n\n**Newly added medications (Admission\u202f29569314):**  \n- Lasix (furosemide)  \n- Venlafaxine  \n- Omeprazole  \n- Trazodone  \n\n**Medications discontinued (removed from Admission\u202f24193796):**  \n- Acetaminophen  \n- Motrin (ibuprofen)  \n- Dilaudid (hydromorphone)  \n- Narcan (naloxone)  \n- Vicodin (hydrocodone/acetaminophen)  \n\nAll other drugs (Aspirin, Levothyroxine, Percocet) remained unchanged.",
+      "correct": true,
+      "score": 1.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_d68a2fcd",
+      "predicted_answer": "Between the two admissions the patient\u2019s regimen was altered as follows:\n\n- **Newly added medications**: Diltiazem, fentanyl, hydrocodone, levofloxacin (Levaquin), levothyroxine, and rivaroxaban (Xarelto).  \n- **Medications discontinued**: aspirin (ASA), amiodarone, azithromycin, heparin, furosemide (Lasix), lisinopril, and prednisone.  \n- Acetaminophen and carvedilol remained on the list in both admissions.",
+      "correct": true,
+      "score": 1.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_d8ecd86b",
+      "predicted_answer": "Between the two admissions the patient\u2019s medication list expanded to include Acetaminophen, Lovenox, and OxyCODONE. Omeprazole was present on both visits, so the only differences are the addition of those three drugs.",
+      "correct": false,
+      "score": 1.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_e347a4fe",
+      "predicted_answer": "Between the two admissions the patient\u2019s regimen changed as follows:\n\n- **Newly added medications**: ASA, Tylenol, diazepam, and ketorolac.  \n- **Medications discontinued**: Risperdal, Seroquel, Ultram, and Zoloft.  \n\nBactrim and Haldol remained on both admissions.",
+      "correct": true,
+      "score": 1.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_e934a618",
+      "predicted_answer": "Between the two admissions the patient\u2019s regimen was altered as follows:  \n- **Newly added**: Zosyn (piperacillin\u2011tazobactam), amiodarone, rosuvastatin, spironolactone, and vancomycin (vanc).  \n- **Discontinued**: Entresto (sacubitril/valsartan) and Vasotec (enalapril).  \nAll other medications (aspirin, sertraline, torsemide) remained unchanged.",
+      "correct": true,
+      "score": 1.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_fd1db324",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_current_state_0136c1a6",
+      "predicted_answer": "Yes, depression is an active problem for this patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_0579e25a",
+      "predicted_answer": "Yes. COPD is listed as an active problem in the current status and is repeatedly referenced as an ongoing condition in the clinical notes.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_0a964177",
+      "predicted_answer": "No, lung cancer is not found in the patient\u2019s current records.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_0e1ad5ef",
+      "predicted_answer": "Yes, the patient currently has pleural effusions.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_18236822",
+      "predicted_answer": "Yes, the patient currently has an active cerebrovascular accident (CVA).",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_1b767c4a",
+      "predicted_answer": "No. The current records do not list bowel obstruction as an active problem.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_1d916acd",
+      "predicted_answer": "No, carcinoma is not found in the patient\u2019s current records.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_1f2194cb",
+      "predicted_answer": "No. The current records do not list cancer as an active problem.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_21894283",
+      "predicted_answer": "No, pulmonary vascular congestion is not found in the current records.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_29384c98",
+      "predicted_answer": "No \u2013 respiratory failure was present post\u2011operatively while the patient was intubated, but it has since resolved (the patient was extubated and is now breathing well on room air).",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_2c71ab72",
+      "predicted_answer": "No. Constipation is not listed as an active problem in the current records.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_2f92af44",
+      "predicted_answer": "Yes, the patient currently has a systolic murmur.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_326ba4c8",
+      "predicted_answer": "No.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_351fb38e",
+      "predicted_answer": "No, lung cancer is not present in the patient\u2019s current records.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_3d4c282b",
+      "predicted_answer": "No. The current records do not list schizophrenia as an active problem.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_3fad479a",
+      "predicted_answer": "Yes, the patient currently has alcohol use.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_48d18a00",
+      "predicted_answer": "No.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_4e36b2bb",
+      "predicted_answer": "Yes, hypertension is an active problem for this patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_50d8fed0",
+      "predicted_answer": "No.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_57ee4127",
+      "predicted_answer": "No, bibasilar crackles are not documented in the current records.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_5e677ee6",
+      "predicted_answer": "No.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_6053376a",
+      "predicted_answer": "Yes, the patient currently has an active diagnosis of congestive heart failure (CHF).",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_6824e5ae",
+      "predicted_answer": "The right femoral neck fracture has been surgically fixed with closed reduction and cannulated screws and is currently stable. The incision is clean, dry, and intact, pain is well controlled, and the patient is ambulating with touchdown weight\u2011bearing on the right side. No complications are noted at discharge.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_6c5caba6",
+      "predicted_answer": "The patient had CHF in the past, but there is no evidence that it is currently active.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_7080eb03",
+      "predicted_answer": "No. The current records do not list hypertension as an active finding for the patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_821bb864",
+      "predicted_answer": "The patient is post\u2011operative from a left closed\u2011reduction percutaneous pinning of a femoral neck fracture. At discharge the incision was clean and dry, pain was well controlled, and she was weight\u2011bearing as tolerated on the left lower extremity. No complications were noted.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_83fa18c5",
+      "predicted_answer": "No, hyperlipidemia is not currently documented as an active condition in the patient\u2019s records.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_89423fc7",
+      "predicted_answer": "No, the patient does not have lung cancer currently.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_8a04029e",
+      "predicted_answer": "No, resolved.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_9453ec83",
+      "predicted_answer": "Yes, the patient currently has lower extremity edema.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_96ef4bd2",
+      "predicted_answer": "No. Breast cancer is not found in the patient\u2019s current records.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_9a0fed0b",
+      "predicted_answer": "No. Colon cancer is not listed as an active problem for this patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_a49952ca",
+      "predicted_answer": "Yes, the patient currently has osteopenia.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_a9a50ac4",
+      "predicted_answer": "Yes, the patient currently has paroxysmal atrial fibrillation.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_ab1c0783",
+      "predicted_answer": "Yes, the patient currently has colon cancer.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_b15b05f6",
+      "predicted_answer": "No, aortic stenosis is not documented as an active condition in the current records.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_b4ef73e0",
+      "predicted_answer": "Yes, the patient currently has aortic stenosis.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_b69620a8",
+      "predicted_answer": "No, congestive heart failure is not documented as an active condition in the current records.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_c72071fe",
+      "predicted_answer": "No, cholelithiasis is not an active problem for this patient; it was a past condition treated with cholecystectomy.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_cd3a6d9f",
+      "predicted_answer": "Yes, depression is currently active.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_cd6e0903",
+      "predicted_answer": "No.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_cf722731",
+      "predicted_answer": "No. Osteomyelitis is not listed as an active problem in the current records.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_dd21fc0b",
+      "predicted_answer": "No. Malnutrition is not listed as an active problem in the current records.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_df7d349b",
+      "predicted_answer": "Yes, the patient currently has acid reflux.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_dfa75737",
+      "predicted_answer": "Yes, the patient currently has hypothyroidism.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_e60414c9",
+      "predicted_answer": "Yes, the patient currently has aortic stenosis.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_e84d9e91",
+      "predicted_answer": "No, breast cancer is not found in the patient\u2019s current records.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_ea719b94",
+      "predicted_answer": "Yes, the patient is currently experiencing anaphylactic shock.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_fe80e1f3",
+      "predicted_answer": "No.",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_fe918698",
+      "predicted_answer": "No, hyperlipidemia is not documented in the patient\u2019s current records.",
+      "correct": true,
+      "score": 1.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_dur_023d1fb6",
+      "predicted_answer": "The patient has had fever in both documented admissions (IDs\u202f25849114 and\u202f26381316).  This indicates a chronic/ongoing condition rather than a new onset.",
+      "correct": true,
+      "score": 0.8,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_04bba7f9",
+      "predicted_answer": "The patient has had ascites for an extended period\u2014she requires bi\u2011weekly therapeutic paracenteses for her decompensated HCV cirrhosis. This is a chronic, ongoing condition, not a new onset.",
+      "correct": true,
+      "score": 0.8,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_1058f8b7",
+      "predicted_answer": "There is no evidence in the provided data that the patient has experienced constipation. Consequently, we cannot determine a duration or classify it as chronic or new.",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_2483a94a",
+      "predicted_answer": "The evidence lists hypercholesterolemia in the patient\u2019s past medical history, but no duration or temporal qualifiers are provided.  It is recorded as a pre\u2011existing condition, implying chronicity rather than a new diagnosis.",
+      "correct": true,
+      "score": 0.8,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_3155170d",
+      "predicted_answer": "The records do not specify how long the patient has had hepatitis\u202fC.  The diagnosis is chronic cirrhosis from HCV, not a newly acquired infection.",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_3585eef3",
+      "predicted_answer": "The patient has had metastatic colon adenocarcinoma for an unspecified period\u2014long enough to have progressed to liver and lung metastases and been identified at admission. It is a chronic, established condition, not a new diagnosis.",
+      "correct": true,
+      "score": 0.8,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_3efd8123",
+      "predicted_answer": "No evidence of community\u2011acquired pneumonia is present in the records, so the patient does not have CAP.",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_44f27bb7",
+      "predicted_answer": "No evidence of allergies is present in the provided data, so the patient\u2019s allergy status cannot be determined as chronic or new.",
+      "correct": true,
+      "score": 0.8,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_5143ceff",
+      "predicted_answer": "The record lists allergies to omeprazole (and iodine/hallucinogens in a second note), but it does not state when they began. Therefore, the duration is unknown and we cannot determine whether the allergies are chronic or new.",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_5423a583",
+      "predicted_answer": "The records note that the patient has had intermittent abdominal pain, but no specific duration is documented. It is not recorded as a chronic finding, nor is it identified as a new onset, so the status remains uncertain.",
+      "correct": true,
+      "score": 0.8,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_57a305bc",
+      "predicted_answer": "There is no documented evidence of degenerative joint disease (DJD) in the patient\u2019s records, so its presence or chronicity cannot be confirmed.",
+      "correct": true,
+      "score": 0.8,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_61f47488",
+      "predicted_answer": "Allergies to Percocet/Vicodin are documented at discharge.  No earlier record of these allergies appears in the evidence, so the duration is unknown and we cannot determine whether they are chronic or newly identified.",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_6c498e2a",
+      "predicted_answer": "The patient\u2019s altered mental status is not a new finding.  Outpatient records and the discharge summary note a \u201csteady decline in decompensated cirrhosis and mental status,\u201d indicating a chronic, ongoing condition rather than an acute onset.",
+      "correct": true,
+      "score": 0.8,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_7321b24c",
+      "predicted_answer": "There is no documented evidence that the patient has depression. The available notes only suggest it as a possible contributor to altered mental status, but it is not confirmed. Therefore, the duration and chronicity of depression cannot be determined.",
+      "correct": true,
+      "score": 0.8,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_765d3190",
+      "predicted_answer": "No, the patient does not have hypertension.",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_79178b50",
+      "predicted_answer": "The record shows that the patient has a **history of GERD**, but no specific duration is documented.  It is treated as a **chronic** condition rather than a new onset.",
+      "correct": true,
+      "score": 0.8,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_99a99dcb",
+      "predicted_answer": "The patient has been identified as obese only during the current admission. It is a new, acute finding and has not been documented as a chronic or long\u2011standing condition.",
+      "correct": true,
+      "score": 0.8,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_9a7579d3",
+      "predicted_answer": "The records list hepatic encephalopathy as part of the patient\u2019s chronic cirrhosis history and note it as an ongoing issue (e.g., \u201cHCV cirrhosis\u2026 hepatic encephalopathy\u201d and \u201caltered mental status due to hepatic encephalopathy\u201d). No specific duration is given, but it is not described as a new onset. Thus, hepatic encephalopathy is a chronic, established condition.",
+      "correct": true,
+      "score": 0.8,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_9aac4d9f",
+      "predicted_answer": "The patient\u2019s dementia was first documented in the most recent admission (ID\u202f27988844) and is labeled \u201cnew/acute.\u201d  It has not been noted in prior admissions, so it is not a chronic, long\u2011standing condition.  The exact duration of symptoms is not specified in the records.",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_a8089cad",
+      "predicted_answer": "The records show the patient is on HAART with a CD4 count of 173 and an undetectable viral load, indicating a long\u2011standing HIV infection. There is no evidence of a recent diagnosis, so HIV is a chronic condition for this patient.",
+      "correct": true,
+      "score": 0.8,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_adcd04fb",
+      "predicted_answer": "The evidence shows COPD was documented only in one of two admissions and is labeled \u201cnew/acute.\u201d  It is not considered a chronic, long\u2011standing disease in this record.",
+      "correct": true,
+      "score": 0.8,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_b14b3517",
+      "predicted_answer": "The evidence indicates that cirrhosis was identified only in one of the two admissions and is labeled \u201cnew/acute.\u201d  Thus the patient has had cirrhosis for a short time and it is not a chronic, long\u2011standing condition.",
+      "correct": true,
+      "score": 0.8,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_c8b1f3aa",
+      "predicted_answer": "The records do not specify when osteoporosis began, so the exact duration is unknown. It is listed as a past medical history and has no indication of being a new diagnosis, so it is considered a chronic condition.",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_d4e27cc6",
+      "predicted_answer": "The left\u2011thigh weakness was first noted during this admission, but the documentation states its chronicity is \u201cunclear.\u201d Therefore, the duration is unknown, and it cannot be confirmed as either chronic or new.",
+      "correct": true,
+      "score": 0.8,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_e06e4775",
+      "predicted_answer": "The patient\u2019s hyperkalemia is a new, acute finding. It has been documented only in the current admission (K\u202f\u2248\u202f5.3\u20136.7\u202fmmol/L) and is not present in prior records, so it is not a chronic condition.",
+      "correct": true,
+      "score": 0.8,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_e750dcc2",
+      "predicted_answer": "The patient\u2019s pneumonia is a new, acute finding.  It was identified on the current admission\u2019s chest X\u2011ray as a new left\u2011sided opacity and treated with vancomycin/cefepime for a day\u2011and\u2011a\u2011half.  There is no evidence of prior or ongoing pneumonia, so it is not chronic.",
+      "correct": true,
+      "score": 0.8,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_e7e5e5f1",
+      "predicted_answer": "The patient has a history of migraine headaches, but it has only been documented in one of two admissions and is classified as a new/acute episode. Thus, it is not considered a chronic condition.",
+      "correct": true,
+      "score": 0.8,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_efdc513d",
+      "predicted_answer": "The patient reports a **history of skin cancer**, but the records do not specify when it was diagnosed or how long it has been present.  It is not described as a new finding, so it is considered a past (chronic) condition rather than an acute or newly diagnosed cancer.",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_f5120145",
+      "predicted_answer": "There is no evidence in the records that the patient has had a small bowel obstruction.  Therefore it is neither a chronic nor a new condition for this patient.",
+      "correct": true,
+      "score": 0.8,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_f717e466",
+      "predicted_answer": "The evidence confirms the patient has a diagnosis of bipolar affective disorder, but it does not specify when it began or whether it is a new or longstanding condition. Therefore, the duration and chronicity of the bipolar disorder are uncertain.",
+      "correct": true,
+      "score": 0.8,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_historical_09d3ea63",
+      "predicted_answer": "No. The patient\u2019s syncope was evaluated with a negative work\u2011up and is not listed as an active condition in the current records.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_1080e564",
+      "predicted_answer": "No, constipation has resolved.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_18b62e05",
+      "predicted_answer": "No. The evidence indicates that anxiety is a resolved (historical) condition and is not listed as an active finding.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_1c8bd655",
+      "predicted_answer": "No. The evidence indicates that the patient\u2019s systolic heart failure is a historical, resolved condition.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_20d74443",
+      "predicted_answer": "Yes. The clinical record lists constipation as an active issue, noting the patient\u2019s presentation with constipation and ongoing management with stool softeners.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_272efd04",
+      "predicted_answer": "No \u2013 peripheral vascular disease is listed as resolved in the historical findings, so it is not an active problem.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_28252ff2",
+      "predicted_answer": "Previously, but no longer active.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_2dc77dfe",
+      "predicted_answer": "No \u2013 hypertension is listed only as a resolved historical condition, not an active problem.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_2eebdbb4",
+      "predicted_answer": "Yes, chronic cough is currently active. The clinical notes describe a \u201cchronic cough that is not much changed,\u201d indicating an ongoing respiratory symptom that should remain on the active problem list.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_321a5bbe",
+      "predicted_answer": "No \u2013 hypertension is listed as resolved in the historical findings, so it is not an active problem for this patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_36e6e499",
+      "predicted_answer": "No, the patient\u2019s diarrhea is a resolved (historical) condition, not currently active.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_38cdc8ef",
+      "predicted_answer": "No, carcinoma is not listed as an active problem in the current evidence.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_3ba61094",
+      "predicted_answer": "No. The records do not list poor appetite as an active problem; the patient\u2019s low oral intake is noted as part of chronic malnutrition, not a current symptom.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_4162c093",
+      "predicted_answer": "No. The evidence indicates that anemia is a resolved finding, not an active problem.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_4290eb4f",
+      "predicted_answer": "Yes, diarrhea is listed as an active problem in the current findings.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_444cc10a",
+      "predicted_answer": "No. The discharge summary notes that the patient\u2019s extremities are moving normally and that weakness has improved, and there is no current documentation of weakness as an active problem.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_47333321",
+      "predicted_answer": "No, the patient\u2019s gastroesophageal reflux disease is listed as resolved in the historical findings and is not noted as an active condition in the current record.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_4c647635",
+      "predicted_answer": "No, the ascites has resolved.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_4d8e2ad9",
+      "predicted_answer": "No \u2013 the patient\u2019s watery diarrhea has resolved (the discharge notes state the symptoms were resolved after treatment).",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_50b91d5e",
+      "predicted_answer": "No. The current evidence does not list nausea as an active problem.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_635032b4",
+      "predicted_answer": "No, DKA is not an active problem for this patient. The metabolic acidosis that was present during admission has been marked as resolved, and there is no current evidence of DKA in the present findings.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_651babd4",
+      "predicted_answer": "No. The evidence lists abdominal pain as a resolved historical finding and does not list it as an active current condition.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_757a7f78",
+      "predicted_answer": "Yes. The patient is currently experiencing shortness of breath (dyspnea) as the chief complaint and acute symptom, so it should be listed as an active problem.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_7e91845c",
+      "predicted_answer": "No, the patient does not currently have hypotension; the condition is listed as resolved in the historical findings.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_8b923b7c",
+      "predicted_answer": "No. The structured evidence does not list ischemic cardiomyopathy as an active condition, and it is not marked as a historical or resolved finding.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_96300f55",
+      "predicted_answer": "Yes, the patient currently has atrial fibrillation (active).",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_982731de",
+      "predicted_answer": "No, the metabolic acidosis has resolved and is not currently active.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_99912897",
+      "predicted_answer": "No. The record notes only a single episode of emesis after the procedure, not an ongoing or current problem.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_a29de042",
+      "predicted_answer": "No. The patient\u2019s partial bowel obstruction was treated and resolved during the prior admission; there is no current evidence of an active obstruction.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_a3143fbf",
+      "predicted_answer": "No. The evidence shows that the patient\u2019s cellulitis was treated during a prior admission and is listed as resolved; it is not present in the current active problem list.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_a5b0cd1f",
+      "predicted_answer": "No. The structured evidence indicates that atrial fibrillation is a resolved condition for this patient.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_a701eaf4",
+      "predicted_answer": "No. The patient\u2019s colon cancer is only a family history (mother died of colon cancer); it is not an active problem for the patient.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_aa62353e",
+      "predicted_answer": "No. The patient\u2019s weakness was documented as a historical finding that has since resolved. It is not listed among current active conditions.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_b14ec163",
+      "predicted_answer": "Yes. The hospital course lists \u201cAbdominal pain\u201d as an acute/active problem, indicating it is currently present and should be included on the patient\u2019s active problem list.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_b16478e7",
+      "predicted_answer": "No, leukocytosis was a historical finding that has resolved.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_b2d36cd9",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_b41b0643",
+      "predicted_answer": "No, the patient\u2019s cirrhosis is a historical finding that has been resolved.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_b7386de2",
+      "predicted_answer": "No. The current evidence does not list cancer as an active problem.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_b9ce115e",
+      "predicted_answer": "No. Hypertension is listed as resolved in the historical findings and is not present on the current active problem list.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_be870c2d",
+      "predicted_answer": "Yes, the patient currently has diabetes (type\u202f2 with chronic kidney disease and other complications).",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_bf929993",
+      "predicted_answer": "No. The patient\u2019s diarrhea resolved during admission and is not listed as an active problem in the current or discharge documentation.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_c9f4d6b7",
+      "predicted_answer": "No. Dyspnea is listed as a resolved finding and there is no current evidence indicating it is an active problem.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_cfd13383",
+      "predicted_answer": "No, schizophrenia is not an active problem for this patient; it is listed as resolved in the historical findings.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_d786bffa",
+      "predicted_answer": "No. The structured evidence lists only nausea, diarrhea, and other conditions as active; vomiting is not recorded as an active problem.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_dd28f2b3",
+      "predicted_answer": "No. The evidence indicates that the patient\u2019s non\u2011anion\u2011gap metabolic acidosis was intermittent and has been described only as a past issue; there is no current documentation of an active metabolic acidosis",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_e8241796",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_f0c21b59",
+      "predicted_answer": "Yes, the patient currently has hypertension.",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_f27baba4",
+      "predicted_answer": "No, the fracture was a historical finding and has been resolved.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_fa44308d",
+      "predicted_answer": "No, the patient\u2019s cholelithiasis has been resolved and is not an active condition.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_fb74ed07",
+      "predicted_answer": "No. The patient\u2019s hyperlipidemia is listed as resolved in the historical findings and is not present in the current findings.",
+      "correct": true,
+      "score": 1.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_seq_02b5c47c",
+      "predicted_answer": "Nausea was documented first\u2014as the patient\u2019s presenting complaint\u2014while pulmonary edema was noted later on the admission chest X\u2011ray.",
+      "correct": true,
+      "score": 0.75,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_08a5bc5c",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_0ae41c1a",
+      "predicted_answer": "VRE was documented first. The VRE screen (\u201cNo VRE isolated\u201d) appears in the first document, while the chronic cough is noted only in the second document.",
+      "correct": true,
+      "score": 0.5,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_0c691eb8",
+      "predicted_answer": "Vomiting was documented first. The patient\u2019s history and review of systems explicitly state \u201cdenies vomiting,\u201d whereas no cold\u2011related symptoms (e.g., runny nose, sore throat) are recorded in the evidence.",
+      "correct": false,
+      "score": 0.2857142857142857,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_0db29eb5",
+      "predicted_answer": "There is no documented evidence of ascites in the provided data, while coagulopathy is explicitly recorded. Therefore, it cannot be determined that ascites was documented before coagulopathy.",
+      "correct": true,
+      "score": 0.42857142857142855,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_13e249a4",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_2fc0d0e1",
+      "predicted_answer": "There is no documented evidence of vomiting in the provided records, so the order of identification of osteomyelitis and vomiting cannot be determined.",
+      "correct": false,
+      "score": 1.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_3399e938",
+      "predicted_answer": "Urinary frequency was documented first. The first discharge note describes urinary symptoms (\u201cincomplete emptying\u2026frequency, urgency\u201d) before mentioning that diarrhea resolved after starting Zenpep.",
+      "correct": true,
+      "score": 0.5,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_3896bfc0",
+      "predicted_answer": "Congestive heart failure was documented; there is no record of a fever in the provided evidence.",
+      "correct": false,
+      "score": 0.5555555555555556,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_429a73f8",
+      "predicted_answer": "Light\u2011headedness was noted first in the patient\u2019s history of present illness (e.g., \u201cnausea and lightheadeness\u201d during chemotherapy and \u201clightheaded with standing\u201d on admission).  Chronic kidney disease (CKD) is not mentioned or identified in the evidence provided.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_4acb1eb0",
+      "predicted_answer": "Back pain was documented first. The observation of back pain (MIMIC\u201110005866) appears in the early clinical record, whereas the documentation of malnutrition (weight loss, TPN, tube feeds) occurs later in the hospital course.",
+      "correct": true,
+      "score": 0.5,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_50429da1",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_553c0b7e",
+      "predicted_answer": "Weakness was noted first\u2014present at the patient\u2019s arrival with hematuria.  The asymptomatic bacteruria (UTI) was identified later, after the procedural work\u2011up.",
+      "correct": true,
+      "score": 1.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_56a31237",
+      "predicted_answer": "Hypoxia was documented first. The narrative describes progressive dyspnea and hypoxemia at admission, while pulmonary embolism (PE) was noted only as an absent condition and was not documented prior to the hypoxia findings.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_5afdd873",
+      "predicted_answer": "Chest pain was documented first (the review of systems notes \u201cDenies chest pain\u201d). Heartburn was not documented in the evidence.",
+      "correct": true,
+      "score": 0.5,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_6a58114f",
+      "predicted_answer": "CAP (carotid stenosis) was identified first, as the patient had a known carotid duplex and prior endarterectomy. The fracture was identified later, after the patient fell and presented to the ED with a right femoral neck fracture.",
+      "correct": true,
+      "score": 1.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_6a9703ee",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_6e5dfbac",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_75335843",
+      "predicted_answer": "DVT was identified first (as a past condition), and pneumonia was identified later (as a current condition).",
+      "correct": true,
+      "score": 0.5,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_76233349",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_7f016097",
+      "predicted_answer": "CAD was documented first.",
+      "correct": false,
+      "score": 0.25,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_8877125e",
+      "predicted_answer": "Chest pain was documented in the patient\u2019s record; a stroke was not documented for the patient (only a family history of stroke). Thus chest pain was documented first.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_8edc10b0",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_95635373",
+      "predicted_answer": "Anemia was identified first, followed by the diagnosis of paroxysmal atrial fibrillation.",
+      "correct": true,
+      "score": 1.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_9c168c92",
+      "predicted_answer": "Hepatitis (evidenced by the transaminitis and elevated liver enzymes noted on admission) was identified first, while ascites was noted later in the hospital course when trace ascites developed.",
+      "correct": true,
+      "score": 1.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_9d3c7a86",
+      "predicted_answer": "Headache was noted first\u2014she reported a mild headache that began earlier in the week\u2014followed by the MRI, which was ordered after her ED evaluation.",
+      "correct": true,
+      "score": 0.5,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_a6bac5fb",
+      "predicted_answer": "C.\u202fdiff was documented first. The admission\u20111 record lists \u201cC.\u202fdiff\u201d before any mention of chest pain, which appears later in the same admission\u2019s",
+      "correct": true,
+      "score": 0.5555555555555556,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_b0d0c8a4",
+      "predicted_answer": "Nausea was noted (as absent) at the time of the patient\u2019s initial presentation and evaluation in the ED. The deep\u2011vein thrombosis was identified later during the hospital stay, after admission. Thus, nausea was identified before the DVT.",
+      "correct": true,
+      "score": 0.5,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_b2053490",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_b53f6c33",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_b8f793c1",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_bb930318",
+      "predicted_answer": "The evidence does not contain any mention of mitral regurgitation, so the order of identification relative to rash cannot be determined.",
+      "correct": false,
+      "score": 1.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_c3ffaa9b",
+      "predicted_answer": "",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_d481f0fa",
+      "predicted_answer": "Proteinuria was documented first. The first document notes that aspirin overdose can cause proteinuria, whereas the second document records the patient\u2019s depression.",
+      "correct": false,
+      "score": 0.2857142857142857,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_d701be1b",
+      "predicted_answer": "Ascites was identified first, followed by the small left pleural effusion.",
+      "correct": true,
+      "score": 0.5,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_dbe2e232",
+      "predicted_answer": "Confused was identified first (in Admission\u202f1), followed by CLOSTRIDIUM\u202fDIFFICILE (identified in Admission\u202f2).",
+      "correct": true,
+      "score": 1.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_e2ff5594",
+      "predicted_answer": "ETOH was documented first. The first document lists \u201cETOH abuse\u201d in the past\u2011medical history, while H",
+      "correct": false,
+      "score": 0.2857142857142857,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_e3d7e0d1",
+      "predicted_answer": "The evidence only documents that weakness was identified; there is no mention of constipation being identified, so the order cannot be determined.",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_ee9cbddb",
+      "predicted_answer": "Sepsis was recognized at admission\u2014her hypotension was attributed to sepsis from the diabetic\u2011foot osteomyelitis.  MRSA (methicillin\u2011resistant Staphylococcus aureus) was identified later, after the surgical cultures returned positive for MSSA and the antibiotic regimen was adjusted.",
+      "correct": true,
+      "score": 0.5,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_fe472053",
+      "predicted_answer": "Neither melena nor vomiting were documented in the provided evidence, so no order can be established.",
+      "correct": false,
+      "score": 1.0,
+      "category": "sequence"
+    }
+  ]
+}

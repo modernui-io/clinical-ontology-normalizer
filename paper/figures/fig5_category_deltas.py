@@ -82,10 +82,7 @@ for i, (val, n) in enumerate(zip(c1_deltas, n_questions)):
     label = f'{val:+.0f}' if val != 0 else '0'
     ax2.text(x_label, i, label, ha=ha, va='center',
              fontsize=7, fontweight='bold', color=colors_c1[i])
-    # n annotation
-    ax2.text(0.5 if val >= 0 else -0.5, i, f'n={n}',
-             ha='left' if val >= 0 else 'right', va='center',
-             fontsize=5, color='#AAAAAA')
+    # n annotations removed — too small at print resolution
 
 ax2.set_xlabel('Accuracy Change (pp)', fontsize=8)
 ax2.set_xlim(-10, 100)

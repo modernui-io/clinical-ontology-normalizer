@@ -8,11 +8,10 @@ Historical questions require distinguishing resolved from active conditions acro
 C6 handles change detection modestly (23\%) because the relevant information appears explicitly in the text, but KG-RAG achieves $100\%$ ($+77\pp$).
 
 \paragraph{Model-dependent KG benefit.}
-The most striking finding is that KG-RAG benefit is inversely related to parametric medical knowledge (Table~\ref{tab:crossmodel}).
-Opus, a general-purpose model, gains $+47\pp$ from intent-aware KG-RAG; GPT-OSS~20B gains $+38\pp$; MedGemma~27B, fine-tuned on medical corpora, gains $+32\pp$.
-All three models benefit substantially, but the magnitude differs: MedGemma starts with the highest C1 baseline (26.2\%) yet achieves the lowest C4g accuracy (57.9\%), while Opus starts at 21.8\% but reaches 69.0\%.
-Intent-aware KG-RAG thus functions as a \emph{medical knowledge compensator}: the structured epistemic context partially substitutes for parametric medical knowledge, providing the largest benefit to models that need it most.
-This has practical implications: the same RAG system may help or hurt differently depending on the downstream model, and evaluation on a single model understates or overstates the system's value.
+Across the three models tested, KG-RAG benefit is consistent with an inverse relationship to parametric medical knowledge (Table~\ref{tab:crossmodel}).
+The model with the lowest C1 baseline (Opus, 21.8\%) achieves the highest C4g accuracy (69.0\%), while the medically fine-tuned model (MedGemma) starts highest (26.2\%) but gains least under C4g.
+Intent-aware KG-RAG thus functions as a \emph{medical knowledge compensator}: the structured epistemic context partially substitutes for parametric knowledge, providing the largest benefit to models that need it most.
+This has practical implications for RAG system design: the same retrieval pipeline may yield different gains depending on the downstream model, and single-model evaluation risks overstating or understating value.
 
 \paragraph{When KG context matters.}
 The complexity-dependent SliceBench effect (Tier~C: $+5.0\pp$ vs.\ Tier~A: $+0.6\pp$) suggests structured epistemic context is most valuable when: (a)~document volume overwhelms chunk-level retrieval, (b)~questions require cross-encounter synthesis where the same concept appears with different assertion states, and (c)~assertion status evolves across encounters.
@@ -27,18 +26,17 @@ Possible and suspected conditions are linguistically subtle (``consider statin,'
 \begin{sloppypar}
 Sample size is modest: ClinicalBench covers 45 patients (400 questions) and SliceBench 6 patients (144 questions), both from MIMIC-IV~\cite{johnson2023mimiciv}.
 The B2$\rightarrow$B3 CI crosses zero (\ci{-1.5\pp}{+5.9\pp}); tier-level estimates ($n\!=\!2$ patients per tier) are hypothesis-generating only.
-Model-dependent effects mean headline gains ($+47\pp$) are specific to Opus~+~C4g; MedGemma shows $+32\pp$ with smaller absolute improvement.
+Model-dependent effects mean headline gains are specific to Opus; gains differ across models (Table~\ref{tab:crossmodel}).
 The keyword evaluator may miss semantically correct answers; physician adjudication (Section~\ref{sec:results:physician}) will address this.
 This is an ablation study; comparisons with medical RAG systems~\cite{luo2025gfmrag,jiang2025kare,lu2025doctorrag} were not performed because these target factoid QA rather than patient-level longitudinal reasoning.
-Bootstrap CIs are question-level; patient-level clustering (accounting for within-patient correlation) is planned.
-MedGemma run-to-run variance ($\pm 10\pp$) arises from GPU non-determinism in 4-bit GGUF (GPT-Generated Unified Format) inference.
+Patient-level cluster bootstrap CIs (Appendix Table~\ref{tab:stats_summary}) are slightly wider than question-level CIs but all primary endpoints remain significant; the 43-patient sample nonetheless limits generalization.
+MedGemma run-to-run variance ($\pm 10\pp$) arises from GPU non-determinism in 4-bit quantized inference.
 Over-reliance on KG-driven summaries risks anchoring bias if NLP extraction introduces systematic errors; single-site evaluation (US academic center) leaves generalization unvalidated (Appendix~\ref{app:ethics}).
 \end{sloppypar}
 
 \paragraph{Conclusion.}
-The epistemic propagation gap is a real and measurable phenomenon: without retrieval, models achieve only 22\% on assertion-sensitive questions, while intent-aware epistemic KG-RAG lifts accuracy to 69\% ($+47\pp$).
-\epikg addresses this gap through end-to-end epistemic preservation combined with intent-aware retrieval that matches graph traversal strategy to question semantics.
-An ablation decomposition via C3 (KG-RAG without assertions) shows that structured retrieval contributes $+28\pp$ and epistemic annotations contribute a further $+19\pp$---a roughly 60/40 split.
-The benefit is category-specific: change detection rises from 7\% to 100\% ($+93\pp$), sequence from 10\% to 65\% ($+55\pp$), historical from 6\% to 60\% ($+54\pp$)---all 9 categories improve.
-The benefit is also model-dependent: KG-RAG functions as a medical knowledge compensator across all three models tested, providing the largest gains to general-purpose models.
-Neither more context nor structured data alone suffices---C6 (39.0\%) and C7 (3.8\%) bracket the design space---confirming that the category$\times$condition interaction, not the aggregate, is the right lens for clinical KG-RAG evaluation.
+The epistemic propagation gap is a real and measurable phenomenon.
+\epikg addresses it through end-to-end epistemic preservation combined with intent-aware retrieval that matches graph traversal to question semantics.
+The C3 ablation decomposes the gain: structured retrieval contributes the majority ($+28\pp$), while epistemic annotations are decisive for change detection ($+83\pp$ from C3 to C4g).
+The benefit is both category-specific (all 9 improve, with the largest gains on longitudinal reasoning) and model-dependent (knowledge-compensator pattern across three models).
+Neither more context nor structured data alone suffices---C6 and C7 bracket the design space---confirming that the category$\times$condition interaction, not the aggregate, is the right lens for clinical KG-RAG evaluation.

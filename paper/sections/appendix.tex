@@ -95,6 +95,7 @@ KARE~\cite{jiang2025kare}                 & $\circ$ & \xmark & \xmark & \xmark &
 Multi-LLM KG~\cite{chen2026multilllmkgrag} & \xmark & \smark{} & $\circ$ & \xmark & \xmark & \xmark & \xmark & \xmark \\
 MedTKG~\cite{huang2024medtkg}             & \smark{} & \xmark & \xmark & $\circ$ & \xmark & \xmark & \xmark & \smark{} \\
 Graphiti~\cite{ramirez2025graphiti}       & \xmark & \xmark & \xmark & $\circ$ & \xmark & \xmark & \xmark & \smark{} \\
+MediGRAF~\cite{thio2025medigraf}          & \smark{} & \xmark & \xmark & \xmark & \xmark & \xmark & \xmark & \smark{} \\
 \midrule
 \textbf{\epikg (ours)}                    & \smark{} & \smark{} & \smark{} & \smark{} & \smark{} & \smark{} & \smark{} & $\circ$ \\
 \bottomrule
@@ -102,6 +103,7 @@ Graphiti~\cite{ramirez2025graphiti}       & \xmark & \xmark & \xmark & $\circ$ &
 \end{table}
 
 Partial marks indicate limited coverage: GFM-RAG, MedRAG, and KARE build population-level or hierarchical KGs (not per-patient longitudinal graphs); KARE uses KG-augmented retrieval but without assertion awareness; Multi-LLM KG models uncertainty via entropy but not the full assertion taxonomy; MedTKG and Graphiti use temporal annotations but not tri-temporal models.
+MediGRAF is the closest patient-level competitor, constructing per-patient medical graphs from clinical notes, but it does not preserve assertion status or temporal relations as edge attributes.
 \epikg's partial mark on multi-hop traversal ($\geq 3$ hops) reflects a deliberate architectural trade-off: PostgreSQL CTE-based traversal provides ACID compliance but degrades beyond 2~hops (Appendix~\ref{app:drknows}).
 
 
@@ -134,9 +136,9 @@ Sequence & 40 & 10.0 & 65.0 & \up{55.0} & 7.5 & 47.5 & \up{40.0} & 12.5 & 42.5 &
 Current st. & 50 & 26.0 & 70.0 & \up{44.0} & 32.0 & 58.0 & \up{26.0} & 36.0 & 56.0 & \up{20.0} \\
 Duration & 30 & 30.0 & 66.7 & \up{36.7} & 53.3 & 70.0 & \up{16.7} & 16.7 & 70.0 & \up{53.3} \\
 Historical & 50 & 6.0 & 60.0 & \up{54.0} & 0.0 & 46.0 & \up{46.0} & 0.0 & 60.0 & \up{60.0} \\
-Change & 30 & 6.7 & 100.0 & \up{93.3} & 0.0 & 79.3 & \up{79.3} & 0.0 & 70.0 & \up{70.0} \\
+Change & 30 & 6.7 & 100.0 & \up{93.3} & 0.0 & 76.7 & \up{76.7} & 0.0 & 70.0 & \up{70.0} \\
 \midrule
-\textbf{Overall} & \textbf{400} & \textbf{21.8} & \textbf{69.0} & \up{\textbf{47.2}} & \textbf{26.2} & \textbf{57.9} & \up{\textbf{31.7}} & \textbf{20.5} & \textbf{58.0} & \up{\textbf{37.5}} \\
+\textbf{Overall} & \textbf{400} & \textbf{21.8} & \textbf{69.0} & \up{\textbf{47.2}} & \textbf{26.2} & \textbf{57.8} & \up{\textbf{31.5}} & \textbf{20.5} & \textbf{58.0} & \up{\textbf{37.5}} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -160,12 +162,12 @@ Sequence & 40 & 0.0 & 7.5 & 47.5 \\
 Current State & 50 & 0.0 & 32.0 & 58.0 \\
 Duration & 30 & 0.0 & 53.3 & 70.0 \\
 Historical & 50 & 0.0 & 0.0 & 46.0 \\
-Change & 30 & 0.0 & 0.0 & 79.3 \\
+Change & 30 & 0.0 & 0.0 & 76.7 \\
 \midrule
-\textbf{Overall} & \textbf{400} & \textbf{3.8} & \textbf{26.2} & \textbf{57.9} \\
+\textbf{Overall} & \textbf{400} & \textbf{3.8} & \textbf{26.2} & \textbf{57.8} \\
 \bottomrule
 \end{tabular}
-\caption{MedGemma 27B ClinicalBench per-category accuracy (\%, keyword evaluator v2) for three conditions. MedGemma gains $+32\pp$ overall under C4g, with all 9 categories improving. Strongest improvements on change ($+79\pp$) and historical ($+46\pp$).}
+\caption{MedGemma 27B ClinicalBench per-category accuracy (\%, keyword evaluator v2) for three conditions. MedGemma gains $+32\pp$ overall under C4g, with all 9 categories improving. Strongest improvements on change ($+77\pp$) and historical ($+46\pp$).}
 \label{tab:medgemma_percategory}
 \end{table}
 
@@ -340,7 +342,8 @@ A full two-physician blinded adjudication is preregistered (Section~\ref{sec:res
 
 \paragraph{Design.} Two board-certified emergency medicine physicians independently score ClinicalBench answers under two conditions (C1 and C4g) using the same binary correctness rubric as the deterministic keyword evaluator.
 Reviewers are blinded to condition assignment.
-The sample comprises 168 questions stratified across all 9 categories, with both conditions scored per question (336 total scored pairs).
+The sample comprises 120 ClinicalBench questions stratified across all 9 categories (oversampling categories at highest evaluator error risk), with both conditions scored per question (240 total scored pairs).
+Blinded scoring sheets with randomized condition labels (A/B) are included in the supplementary materials.
 
 \paragraph{Inter-rater agreement.} Cohen's $\kappa$ is computed between the two reviewers on the full 336 scored pairs.
 A third board-certified physician adjudicates all disagreements.
@@ -372,14 +375,65 @@ Evidence preambles (echoed graph context) are stripped before matching.
 ClinicalBench conditions map to SliceBench: C1$\!\approx\!$B0, C2$\!\approx\!$B2, C4$\!\approx\!$B3, C5$\!\approx\!$B4.
 
 \paragraph{Bootstrap.} $n=2{,}000$ resamples, seed 42, BCa method~\cite{efron1993bootstrap}.
+We report both question-level and patient-level (cluster) bootstrap CIs; the latter resample the 43 patients with replacement, including all their questions per draw, to account for within-patient correlation.
+Patient-level CIs are slightly wider but all primary endpoints remain significant (Table~\ref{tab:stats_summary}).
+
+\paragraph{McNemar's test.} We supplement bootstrap CIs with McNemar's test for paired nominal data, comparing discordant pairs (C1 wrong/C4g right vs.\ C1 right/C4g wrong). All three pairwise comparisons are significant: C1 vs.\ C4g ($\chi^2 = 157.1$, $p < 10^{-6}$; discordant: 18 vs.\ 207), C1 vs.\ C3 ($\chi^2 = 73.4$, $p < 10^{-6}$; 29 vs.\ 142), and C3 vs.\ C4g ($\chi^2 = 49.3$, $p < 10^{-11}$; 19 vs.\ 95).
+
+\begin{table}[ht]
+\centering
+\small
+\caption{Statistical summary: question-level and patient-level (cluster) BCa bootstrap 95\% CIs for primary endpoints. Both levels exclude zero for all comparisons.}
+\label{tab:stats_summary}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Comparison & $\Delta$ & Question CI & Patient CI & McNemar $p$ \\
+\midrule
+C4g$-$C1 (overall) & $+47.2\pp$ & \ci{+40.9\pp}{+52.8\pp} & \ci{+40.2\pp}{+52.5\pp} & $< 10^{-6}$ \\
+C3$-$C1 (retrieval) & $+28.2\pp$ & \ci{+22.3\pp}{+34.0\pp} & \ci{+23.1\pp}{+33.8\pp} & $< 10^{-6}$ \\
+C4g$-$C3 (epistemic) & $+19.0\pp$ & \ci{+13.8\pp}{+24.0\pp} & \ci{+14.6\pp}{+23.3\pp} & $< 10^{-11}$ \\
+Hard longitudinal & $+59.2\pp$ & \ci{+49.2\pp}{+67.7\pp} & \ci{+48.6\pp}{+69.4\pp} & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \paragraph{Data.} De-identified MIMIC-IV clinical notes accessed under a PhysioNet Credentialed Health Data Use Agreement (v1.5.0).
 
 \paragraph{Compute.} ClinicalBench Opus C1/C3/C4g: ${\sim}22$min each (API); Opus C6: ${\sim}3.5$h (API); C7: $<1$min (no LLM); MedGemma C1--C4g: ${\sim}3.6$h (single GPU); MedGemma C6: ${\sim}1.5$h; SliceBench: ${\sim}2$h (API).
 
-\paragraph{Evaluator evolution.} The keyword evaluator underwent three versions: v0 (substring matching), v1 (word-boundary matching + evidence preamble stripping), and v2 (+ abstention detection gate + domain-specific keyword requirements for sequence and change). The v1 evaluator awarded false positives when models responded with ``insufficient information in the notes'' because negation and temporal keywords in the refusal text matched gold-standard patterns. The v2 evaluator adds an abstention detection layer: answers matching abstention patterns (e.g., ``cannot determine,'' ``not mentioned,'' ``insufficient evidence'') are scored as incorrect unless they contain clinical claim patterns (e.g., ``patient does not,'' ``denies''). Additionally, v2 requires sequence answers to contain ordering keywords (``first,'' ``then,'' ``before'') and change answers to contain change keywords (``added,'' ``removed,'' ``discontinued''), preventing term-overlap-only false positives. The duration category's minimum-0.5 score floor for matching duration keywords was removed. All main-text numbers use v2.
+\paragraph{Evaluator evolution.} The keyword evaluator underwent three versions: v0 (substring matching), v1 (word-boundary matching + evidence preamble stripping), and v2 (+ abstention detection gate + domain-specific keyword requirements for sequence and change). The v1 evaluator awarded false positives when models responded with ``insufficient information in the notes'' because negation and temporal keywords in the refusal text matched gold-standard patterns. The v2 evaluator adds an abstention detection layer: answers matching abstention patterns (e.g., ``cannot determine,'' ``not mentioned,'' ``insufficient evidence'') are scored as incorrect unless they contain clinical claim patterns (e.g., ``patient does not,'' ``denies''). Additionally, v2 requires sequence answers to contain ordering keywords (``first,'' ``then,'' ``before'') and change answers to contain change keywords (``added,'' ``removed,'' ``discontinued''), preventing term-overlap-only false positives. The duration category's minimum-0.5 score floor for matching duration keywords was removed.
+The v1$\to$v2 transition reduced C1 accuracy (from ${\sim}50\%$ to 21.8\% for Opus) by correctly classifying abstention responses as incorrect; C4g accuracy decreased modestly (from ${\sim}76\%$ to 69.0\%) because the model abstains less frequently when retrieval context is provided.
+All main-text numbers use v2.
 
 \paragraph{Reproducibility package.} A standalone reproducibility package is included as supplementary material (\texttt{epikg-benchmark/}). It contains all 400 ClinicalBench questions with gold answers, raw model predictions for all condition$\times$model combinations (Opus C1/C3/C4g/C6, MedGemma C1/C4g, GPT-OSS C1/C4g), and the deterministic keyword evaluator v2 with abstention detection. Running the evaluator requires only Python~3.10+ with no external dependencies. All accuracy numbers in Tables~\ref{tab:clinicalbench_ablation}, \ref{tab:clinicalbench_categories}, and~\ref{tab:crossmodel} are independently reproducible from this package. MIMIC-IV patient identifiers are included so that PhysioNet-credentialed reviewers can trace predictions back to source clinical notes.
+
+\paragraph{Results provenance.} Table~\ref{tab:provenance} maps each reported result to its source checkpoint file.
+MedGemma C4g has 399 predictions (1 timeout); the missing question is scored as incorrect ($n=400$).
+
+\begin{table}[ht]
+\centering
+\small
+\caption{Results provenance: checkpoint files for each condition$\times$model combination. All scored with keyword evaluator v2.}
+\label{tab:provenance}
+\begin{tabular}{@{}llllr@{}}
+\toprule
+Condition & Model & Checkpoint file & $n$ \\
+\midrule
+C1 & Opus 4.6 & \texttt{opus/C1\_llm\_alone.json} & 400 \\
+C3 & Opus 4.6 & \texttt{opus/C3\_kg\_rag.json} & 400 \\
+C4g & Opus 4.6 & \texttt{opus/C4g\_intent\_aware.json} & 400 \\
+C6 & Opus 4.6 & \texttt{opus/C6\_long\_context.json} & 400 \\
+C7 & --- & \texttt{opus/C7\_deterministic.json} & 400 \\
+\midrule
+C1 & MedGemma 27B & \texttt{medgemma/C1\_llm\_alone.json} & 400 \\
+C4g & MedGemma 27B & \texttt{medgemma/C4g\_intent\_aware.json} & 399* \\
+\midrule
+C1 & GPT-OSS 20B & \texttt{gptoss/C1\_llm\_alone.json} & 400 \\
+C4g & GPT-OSS 20B & \texttt{gptoss/C4g\_intent\_aware.json} & 400 \\
+\bottomrule
+\multicolumn{4}{@{}l}{\footnotesize *1 timeout; scored as incorrect for $n=400$ denominator.}
+\end{tabular}
+\end{table}
 
 
 \section{Assertion Category Definitions}

@@ -48,7 +48,7 @@ ax.xaxis.grid(True, color='#E2E2E2', linewidth=0.5)
 
 # Category labels
 ax.set_xticks(angles[:-1])
-ax.set_xticklabels(categories, fontsize=7.5, fontweight='medium', color='#333333')
+ax.set_xticklabels(categories, fontsize=9, fontweight='medium', color='#333333')
 ax.tick_params(axis='x', pad=14)
 
 # Plot C6 — pink dash-dot (long context bookend)
@@ -77,7 +77,7 @@ ax.annotate(
     '+93 pp\n(C1->C4g)',
     xy=(change_angle, c4g_vals[8]),
     xytext=(change_angle + 0.25, c4g_vals[8] + 8),
-    fontsize=7, fontweight='bold', color='#1B5E8C',
+    fontsize=8, fontweight='bold', color='#1B5E8C',
     arrowprops=dict(arrowstyle='->', color='#1B5E8C', lw=1.0),
     ha='left', va='bottom', zorder=10,
 )
@@ -87,30 +87,30 @@ ax.annotate(
     'C3: 17%',
     xy=(change_angle, c3_vals[8]),
     xytext=(change_angle - 0.30, c3_vals[8] + 18),
-    fontsize=6.5, fontweight='bold', color='#E69F00',
+    fontsize=8, fontweight='bold', color='#E69F00',
     arrowprops=dict(arrowstyle='->', color='#E69F00', lw=0.8),
     ha='right', va='bottom', zorder=10,
 )
 
-# Annotate C6 collapse on sequence
+# Annotate C6 collapse on sequence (use C6 trace color, not red)
 seq_angle = angles[4]
 ax.annotate(
     'C6: 0%',
     xy=(seq_angle, 2),
     xytext=(seq_angle + 0.30, 25),
-    fontsize=6.5, fontweight='bold', color='#D64545',
-    arrowprops=dict(arrowstyle='->', color='#D64545', lw=0.8),
+    fontsize=8, fontweight='bold', color='#CC79A7',
+    arrowprops=dict(arrowstyle='->', color='#CC79A7', lw=0.8),
     ha='left', va='bottom', zorder=10,
 )
 
-# Annotate C1 collapse on conditional
+# Annotate C1 collapse on conditional (use C1 trace color, not red)
 cond_angle = angles[1]
 ax.annotate(
     'C1: 0%',
     xy=(cond_angle, 2),
     xytext=(cond_angle + 0.30, 22),
-    fontsize=6.5, fontweight='bold', color='#D64545',
-    arrowprops=dict(arrowstyle='->', color='#D64545', lw=0.8),
+    fontsize=8, fontweight='bold', color='#999999',
+    arrowprops=dict(arrowstyle='->', color='#999999', lw=0.8),
     ha='left', va='bottom', zorder=10,
 )
 
