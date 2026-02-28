@@ -9,4 +9,5 @@ An ablation decomposition isolates two additive components: structured retrieval
 Change detection exemplifies the distinction: retrieval without assertions reaches 17\%, but adding assertion metadata lifts it to 100\%.
 Brute-force long context collapses to 0\% on historical and sequence despite a 200K token window.
 Cross-model validation on three models shows KG-RAG benefit is consistent with an inverse relationship to parametric medical knowledge, suggesting a knowledge-compensator effect.
+A blinded physician pilot ($n=30$) independently confirms the effect: KG-RAG answers were rated correct in 81\% vs.\ 29\% for LLM-alone, safe in 88\% vs.\ 50\%, and helpful in 81\% vs.\ 29\%, while revealing that 40\% of auto-generated gold standards require revision.
 The category$\times$condition interaction---not the aggregate---is the right evaluation lens for clinical KG-RAG.

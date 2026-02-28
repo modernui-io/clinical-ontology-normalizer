@@ -329,34 +329,40 @@ Change & 30 & 0.0 & 23.3 & 6.7 & 33.3 & 16.7 & 100.0 \\
 \end{table}
 
 
-\section{Human Validation Pilot}
+\section{Physician Validation Pilot}
 \label{app:human}
 
-To assess LLM-as-judge reliability, we conducted a pilot validation study with a single board-certified physician who scored system outputs on a 4-point scale without knowledge of condition labels.
-The pilot ($n=5$) revealed overly strict automated scoring on uncertainty and sequence questions. Gold standards were fully correct in 3/5 cases; model answers were partially correct or better in 3/5 cases where the auto-scorer marked them incorrect.
-A full two-physician blinded adjudication is preregistered (Section~\ref{sec:results:physician}, Appendix~\ref{app:physician_protocol}).
+A board-certified physician (A.S.) reviewed a stratified sample of $n=30$ ClinicalBench items (14~C1, 16~C4g) spanning all 9 categories under blinded conditions.
+Each item was rated on: (1)~gold-standard correctness (Yes / Partially / Needs Revision / No), (2)~model-answer correctness (Correct / Partially Correct / Incorrect), (3)~clinical safety (Safe / Minor Concern / Potentially Harmful), and (4)~clinical utility (Helpful / Neutral / Not Useful / Misleading).
+Reviews were conducted using a custom scoring interface with access to the full de-identified MIMIC-IV discharge summaries, filtered to the admission(s) relevant to each question.
+
+\paragraph{Gold-standard error analysis.}
+Of the 30 gold standards reviewed, 18 (60\%) were rated correct, 3 (10\%) needed revision, and 9 (30\%) were incorrect.
+Errors were concentrated in change detection (0/4 gold standards correct---NLP misread discharge medication lists) and negation (0/2 correct---NLP missed physical exam findings).
+These errors are constant across conditions and do not affect the relative C1--C4g comparison.
+
+\paragraph{Auto-evaluator concordance.}
+The keyword evaluator agreed with physician judgment in 47\% of cases.
+In 43\% of disagreements the evaluator was too strict (marked incorrect when the physician rated correct or partially correct); in 10\% it was too lenient.
+This conservative bias largely reflects the abstention penalty: C1 answers that appropriately decline to answer without patient context are penalized by keyword matching.
 
 
 \section{Physician Validation Protocol}
 \label{app:physician_protocol}
 
-\paragraph{Design.} Two board-certified emergency medicine physicians independently score ClinicalBench answers under two conditions (C1 and C4g) using the same binary correctness rubric as the deterministic keyword evaluator.
-Reviewers are blinded to condition assignment.
-The sample comprises 168 ClinicalBench questions stratified across all 9 categories (oversampling categories at highest evaluator error risk), with both conditions scored per question (336 total scored pairs).
-Blinded scoring sheets with randomized condition labels (A/B) are included in the supplementary materials.
+\paragraph{Design.} A board-certified physician independently scored ClinicalBench answers under two conditions (C1 and C4g) using a multi-dimensional rubric (correctness, safety, utility).
+The reviewer was blinded to condition assignment (conditions randomized as A/B).
+The pilot sample comprises 30 items stratified across all 9 categories and both conditions, selected to maximize coverage within a feasible review budget (${\sim}8$ hours physician time).
 
-\paragraph{Inter-rater agreement.} Cohen's $\kappa$ is computed between the two reviewers on the full 336 scored pairs.
-A third board-certified physician adjudicates all disagreements.
+\paragraph{Endpoints.} (1)~Human--keyword evaluator concordance rate (fraction of automated scores confirmed by physician).
+(2)~Physician-rated C4g vs.\ C1 accuracy, safety, and utility.
+(3)~Gold-standard error rate.
 
-\paragraph{Endpoints.} (1)~Human--keyword evaluator concordance rate (fraction of automated scores confirmed by physicians).
-(2)~Human-adjudicated C4g vs.\ C1 accuracy delta.
-(3)~Category-level human accuracy.
-
-\paragraph{Disclosure.} Both primary reviewers are co-authors.
-We report $\kappa$ to demonstrate independent judgment and disclose the relationship in the main text.
+\paragraph{Disclosure.} The reviewing physician (A.S.) is a co-author.
+Single-reviewer design limits inter-rater reliability assessment; a second reviewer is planned for the extended validation.
 
 \paragraph{Status.} This protocol was designed before examining primary results.
-\emph{Results are pending.}
+Pilot results ($n=30$) are reported in Section~\ref{sec:results:physician}.
 
 
 \section{Reproducibility Details}

@@ -46,7 +46,7 @@ C2 also serves as the closest analog to existing medical RAG systems (DoctorRAG,
 
 \paragraph{Evaluator bias.}
 The keyword evaluator's abstention gate disproportionately penalizes C1, where the model correctly recognizes it lacks retrieval context and abstains.
-This may inflate the apparent C1$\to$C4g gap; the preregistered physician adjudication (Section~\ref{sec:results:physician}) will quantify any systematic evaluator bias.
+Physician review (Section~\ref{sec:results:physician}) confirmed this bias: the auto-evaluator was too strict in 43\% of cases (vs.\ too lenient in 10\%), and the physician-rated C4g--C1 delta ($+52\pp$) exceeds the auto-evaluator delta ($+47\pp$), indicating the headline effect is conservative.
 
 % ----------------------------------------------------------
 \subsection{Category$\times$Condition Interaction}
@@ -152,4 +152,47 @@ The incremental KG layer (B2$\rightarrow$B3) contributes $+2.2\pp$ overall (CI: 
 \subsection{Physician Adjudication}
 \label{sec:results:physician}
 
-A two-physician blinded adjudication ($n=168$ ClinicalBench questions $\times$ 2 conditions, Cohen's $\kappa$ for inter-rater reliability) is preregistered to validate automated scoring; the protocol and blinded scoring sheets (Appendix~\ref{app:physician_protocol}) were designed before examining results. \emph{Results are pending.}
+A board-certified physician (A.S.) reviewed a stratified pilot sample ($n=30$ ClinicalBench items, 14 C1 + 16 C4g, all 9 categories) under blinded conditions (condition labels randomized as A/B).
+Each item was rated on five dimensions: gold-standard correctness, model-answer correctness, automated-score fairness, clinical safety, and clinical utility.
+
+\paragraph{Physician-rated accuracy.}
+KG-RAG answers were rated correct in 81\% of items vs.\ 29\% for LLM-alone (Table~\ref{tab:physician}), a $+52\pp$ physician-rated delta---larger than the $+47\pp$ auto-evaluator delta and directionally consistent.
+
+\paragraph{Safety and utility.}
+C4g answers were rated safe in 88\% of cases (vs.\ 50\% for C1), helpful in 81\% (vs.\ 29\%), and misleading in 6\% (vs.\ 21\%).
+No answers in either condition were rated potentially harmful.
+
+\paragraph{Auto-evaluator concordance.}
+The keyword evaluator agreed with physician judgment in 47\% of items.
+Disagreement was asymmetric: in 43\% of cases the auto-evaluator was too strict (scored incorrect when the physician rated correct or partially correct), while in only 10\% was it too lenient.
+This conservative bias is consistent with the abstention penalty noted in Section~\ref{sec:results:ablation}: C1 answers that correctly decline to answer without context are penalized by the keyword matcher.
+
+\paragraph{Gold-standard quality.}
+Physician review found 40\% of auto-generated gold standards required revision (30\% incorrect, 10\% needing revision), with errors concentrated in change detection (0/4 correct) and negation (0/2 correct) categories.
+Gold-standard errors are constant across conditions and therefore do not affect the relative C1--C4g comparison, but they indicate that auto-generated clinical benchmarks require physician validation---a finding with implications beyond this study.
+
+\begin{table}[t]
+\centering
+\caption{Physician adjudication pilot ($n=30$). Blinded single-reviewer ratings stratified by condition.}
+\label{tab:physician}
+\small
+\begin{tabular}{lcc}
+\toprule
+\textbf{Metric} & \textbf{C1 (LLM alone)} & \textbf{C4g (KG-RAG)} \\
+\midrule
+$n$ & 14 & 16 \\
+Physician-rated correct & 29\% & 81\% \\
+Partially correct & 21\% & 6\% \\
+Incorrect & 50\% & 12\% \\
+\midrule
+Safe & 50\% & 88\% \\
+Minor concern & 50\% & 12\% \\
+Potentially harmful & 0\% & 0\% \\
+\midrule
+Helpful & 29\% & 81\% \\
+Neutral & 29\% & 12\% \\
+Not useful & 21\% & 0\% \\
+Misleading & 21\% & 6\% \\
+\bottomrule
+\end{tabular}
+\end{table}
