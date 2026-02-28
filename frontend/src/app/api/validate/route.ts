@@ -11,6 +11,7 @@ interface Question {
   clinical_context: string;
   difficulty: string;
   mimic_subject_id?: number;
+  mimic_hadm_id?: number;
   metadata: {
     assertion?: string;
     domain?: string;
@@ -136,6 +137,7 @@ export async function GET() {
       const hadmIds: string[] = [];
       if (q.metadata?.hadm_1) hadmIds.push(q.metadata.hadm_1);
       if (q.metadata?.hadm_2) hadmIds.push(q.metadata.hadm_2);
+      if (hadmIds.length === 0 && q.mimic_hadm_id) hadmIds.push(String(q.mimic_hadm_id));
       items.push({
         id: `medgemma__${entry.condition}__${entry.question_id}`,
         question_id: entry.question_id,
@@ -165,6 +167,7 @@ export async function GET() {
       const hadmIds: string[] = [];
       if (q.metadata?.hadm_1) hadmIds.push(q.metadata.hadm_1);
       if (q.metadata?.hadm_2) hadmIds.push(q.metadata.hadm_2);
+      if (hadmIds.length === 0 && q.mimic_hadm_id) hadmIds.push(String(q.mimic_hadm_id));
       items.push({
         id: `opus__${entry.condition}__${entry.question_id}`,
         question_id: entry.question_id,
