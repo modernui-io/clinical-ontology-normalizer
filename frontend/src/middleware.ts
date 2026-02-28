@@ -33,6 +33,7 @@ const PUBLIC_PATHS = [
   "/careers",
   "/contact",
   "/sales-demo",
+  "/adjudicate",
 ];
 
 // Static assets and API routes to skip

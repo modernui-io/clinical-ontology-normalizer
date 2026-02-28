@@ -100,6 +100,8 @@ const CONDITION_LABELS: Record<string, string> = {
   C3_kg_rag: "C3: KG-RAG",
   C4_epistemic_kg_rag: "C4: Epistemic KG-RAG",
   C5_full_system: "C5: Full System",
+  Condition_A: "Condition A",
+  Condition_B: "Condition B",
 };
 
 const CONDITION_COLORS: Record<string, string> = {
@@ -108,6 +110,8 @@ const CONDITION_COLORS: Record<string, string> = {
   C3_kg_rag: "bg-purple-100 text-purple-800",
   C4_epistemic_kg_rag: "bg-green-100 text-green-800",
   C5_full_system: "bg-amber-100 text-amber-800",
+  Condition_A: "bg-indigo-100 text-indigo-800",
+  Condition_B: "bg-teal-100 text-teal-800",
 };
 
 // ============================================================================
@@ -143,6 +147,12 @@ export default function ValidatePage() {
   const [filterCondition, setFilterCondition] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterScope, setFilterScope] = useState("priority");
+
+  // Adjudication mode state
+  const isAdjudication = filterScope === "adjudication";
+  const [adjudicationItems, setAdjudicationItems] = useState<ReviewItem[]>([]);
+  const [adjudicationValidations, setAdjudicationValidations] = useState<Validation[]>([]);
+  const [adjudicationLoaded, setAdjudicationLoaded] = useState(false);
 
   // Current ratings
   const [goldStandard, setGoldStandard] = useState<GoldStandard>("");
@@ -185,6 +195,31 @@ export default function ValidatePage() {
     load();
   }, []);
 
+  // Load adjudication data when switching to adjudication scope
+  useEffect(() => {
+    if (filterScope !== "adjudication" || adjudicationLoaded) return;
+    async function loadAdj() {
+      try {
+        const [itemsRes, valsRes] = await Promise.all([
+          fetch("/api/validate/adjudication"),
+          fetch("/api/validate/adjudication/submit"),
+        ]);
+        if (itemsRes.ok) {
+          const data = await itemsRes.json();
+          setAdjudicationItems(data.items || []);
+        }
+        if (valsRes.ok) {
+          const data = await valsRes.json();
+          setAdjudicationValidations(data.validations || []);
+        }
+        setAdjudicationLoaded(true);
+      } catch {
+        // Fall through — adjudication items not available
+      }
+    }
+    loadAdj();
+  }, [filterScope, adjudicationLoaded]);
+
   // Build priority set: ~100 items stratified across conditions, categories, scores
   const prioritySet = useMemo(() => {
     if (items.length === 0) return new Set<string>();
@@ -206,13 +241,18 @@ export default function ValidatePage() {
     return selected;
   }, [items]);
 
+  // Active items + validations (switch data source for adjudication mode)
+  const activeItems = isAdjudication ? adjudicationItems : items;
+  const activeValidations = isAdjudication ? adjudicationValidations : validations;
+
   // Filtered items
   const filteredItems = useMemo(() => {
-    let list = items;
-    // Priority set filter
+    let list = activeItems;
+    // Priority set filter (only for non-adjudication)
     if (filterScope === "priority") {
       list = list.filter((item) => prioritySet.has(item.id));
     }
+    // Adjudication: use all adjudication items (already curated 240)
     if (filterModel !== "all") {
       list = list.filter((item) => item.model === filterModel);
     }
@@ -221,7 +261,7 @@ export default function ValidatePage() {
     }
     if (filterStatus !== "all" && reviewer) {
       const reviewedIds = new Set(
-        validations
+        activeValidations
           .filter((v) => v.reviewer === reviewer)
           .map((v) => v.item_id)
       );
@@ -232,18 +272,18 @@ export default function ValidatePage() {
       }
     }
     return list;
-  }, [items, filterModel, filterCondition, filterStatus, filterScope, prioritySet, reviewer, validations]);
+  }, [activeItems, filterModel, filterCondition, filterStatus, filterScope, prioritySet, reviewer, activeValidations]);
 
   const currentItem = filteredItems[currentIndex] || null;
 
   // Auto-jump to first unreviewed item when reviewer or filtered list changes
   const [hasAutoJumped, setHasAutoJumped] = useState(false);
   useEffect(() => {
-    if (!reviewer || filteredItems.length === 0 || validations.length === 0) return;
+    if (!reviewer || filteredItems.length === 0 || activeValidations.length === 0) return;
     // Only auto-jump once per reviewer session (not on every filter change)
     if (hasAutoJumped) return;
     const reviewedIds = new Set(
-      validations.filter((v) => v.reviewer === reviewer).map((v) => v.item_id)
+      activeValidations.filter((v) => v.reviewer === reviewer).map((v) => v.item_id)
     );
     const firstUnreviewed = filteredItems.findIndex(
       (item) => !reviewedIds.has(item.id)
@@ -252,7 +292,7 @@ export default function ValidatePage() {
       setCurrentIndex(firstUnreviewed);
     }
     setHasAutoJumped(true);
-  }, [reviewer, filteredItems, validations, hasAutoJumped]);
+  }, [reviewer, filteredItems, activeValidations, hasAutoJumped]);
 
   // Reset auto-jump when reviewer changes
   useEffect(() => {
@@ -263,11 +303,11 @@ export default function ValidatePage() {
   const existingReview = useMemo(() => {
     if (!currentItem || !reviewer) return null;
     return (
-      validations.find(
+      activeValidations.find(
         (v) => v.item_id === currentItem.id && v.reviewer === reviewer
       ) || null
     );
-  }, [currentItem, reviewer, validations]);
+  }, [currentItem, reviewer, activeValidations]);
 
   // Load existing review into form when navigating
   useEffect(() => {
@@ -328,10 +368,10 @@ export default function ValidatePage() {
   const reviewedByMe = useMemo(() => {
     if (!reviewer) return 0;
     const myIds = new Set(
-      validations.filter((v) => v.reviewer === reviewer).map((v) => v.item_id)
+      activeValidations.filter((v) => v.reviewer === reviewer).map((v) => v.item_id)
     );
     return filteredItems.filter((item) => myIds.has(item.id)).length;
-  }, [reviewer, validations, filteredItems]);
+  }, [reviewer, activeValidations, filteredItems]);
 
   const progressPercent =
     filteredItems.length > 0
@@ -349,11 +389,15 @@ export default function ValidatePage() {
 
   // Submit
   const handleSubmit = useCallback(async () => {
-    if (!currentItem || !reviewer || !goldStandard || !modelRating || !scoreFairness || !clinicalSafety || !clinicalUtility)
+    const effectiveScoreFairness = isAdjudication ? "yes" : scoreFairness;
+    if (!currentItem || !reviewer || !goldStandard || !modelRating || !effectiveScoreFairness || !clinicalSafety || !clinicalUtility)
       return;
     setIsSaving(true);
     try {
-      const res = await fetch("/api/validate/submit", {
+      const submitUrl = isAdjudication
+        ? "/api/validate/adjudication/submit"
+        : "/api/validate/submit";
+      const res = await fetch(submitUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -364,7 +408,7 @@ export default function ValidatePage() {
           model: currentItem.model,
           gold_standard_correct: goldStandard,
           model_answer_rating: modelRating,
-          auto_score_fair: scoreFairness,
+          auto_score_fair: effectiveScoreFairness,
           clinical_safety: clinicalSafety,
           clinical_utility: clinicalUtility,
           notes,
@@ -381,13 +425,14 @@ export default function ValidatePage() {
         model: currentItem.model,
         gold_standard_correct: goldStandard,
         model_answer_rating: modelRating,
-        auto_score_fair: scoreFairness,
+        auto_score_fair: effectiveScoreFairness,
         clinical_safety: clinicalSafety,
         clinical_utility: clinicalUtility,
         notes,
         timestamp: new Date().toISOString(),
       };
-      setValidations((prev) => [
+      const setValsFn = isAdjudication ? setAdjudicationValidations : setValidations;
+      setValsFn((prev) => [
         ...prev.filter(
           (v) =>
             !(v.item_id === currentItem.id && v.reviewer === reviewer)
@@ -416,6 +461,7 @@ export default function ValidatePage() {
     currentIndex,
     filteredItems.length,
     goNext,
+    isAdjudication,
   ]);
 
   // Unique models and conditions for filters
@@ -517,7 +563,7 @@ export default function ValidatePage() {
           <div>
             <h1 className="text-xl font-bold tracking-tight flex items-center gap-2">
               <Stethoscope className="h-5 w-5" />
-              ClinicalBench Validation
+              {isAdjudication ? "Physician Adjudication (Blinded)" : "ClinicalBench Validation"}
             </h1>
             <p className="text-sm text-muted-foreground">
               Reviewing as{" "}
@@ -545,6 +591,7 @@ export default function ValidatePage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="adjudication">Adjudication ({adjudicationItems.length || 240})</SelectItem>
               <SelectItem value="priority">Priority Set ({prioritySet.size})</SelectItem>
               <SelectItem value="all">All Questions ({items.length})</SelectItem>
             </SelectContent>
@@ -772,16 +819,23 @@ export default function ValidatePage() {
                       {currentItem.assertion}
                     </Badge>
                   )}
-                  <div className="ml-auto flex items-center gap-1">
-                    {currentItem.auto_correct ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-500" />
-                    ) : (
-                      <XCircle className="h-4 w-4 text-red-500" />
-                    )}
-                    <span className="text-sm font-mono">
-                      Score: {currentItem.auto_score.toFixed(1)}
-                    </span>
-                  </div>
+                  {!isAdjudication && (
+                    <div className="ml-auto flex items-center gap-1">
+                      {currentItem.auto_correct ? (
+                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      ) : (
+                        <XCircle className="h-4 w-4 text-red-500" />
+                      )}
+                      <span className="text-sm font-mono">
+                        Score: {currentItem.auto_score.toFixed(1)}
+                      </span>
+                    </div>
+                  )}
+                  {isAdjudication && (
+                    <Badge variant="outline" className="ml-auto bg-amber-50 text-amber-800 border-amber-200">
+                      Blinded
+                    </Badge>
+                  )}
                 </div>
                 <CardTitle className="text-lg">
                   {currentItem.question}
@@ -1044,32 +1098,34 @@ export default function ValidatePage() {
                   </div>
                 </div>
 
-                {/* Auto Score Fairness */}
-                <div>
-                  <p className="text-sm font-medium mb-2">
-                    Is the automated score fair?
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {(
-                      [
-                        ["yes", "Yes"],
-                        ["too_high", "Too High"],
-                        ["too_low", "Too Low"],
-                      ] as [ScoreFairness, string][]
-                    ).map(([value, label]) => (
-                      <Button
-                        key={value}
-                        variant={
-                          scoreFairness === value ? "default" : "outline"
-                        }
-                        size="sm"
-                        onClick={() => setScoreFairness(value)}
-                      >
-                        {label}
-                      </Button>
-                    ))}
+                {/* Auto Score Fairness — hidden in adjudication (score is blinded) */}
+                {!isAdjudication && (
+                  <div>
+                    <p className="text-sm font-medium mb-2">
+                      Is the automated score fair?
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {(
+                        [
+                          ["yes", "Yes"],
+                          ["too_high", "Too High"],
+                          ["too_low", "Too Low"],
+                        ] as [ScoreFairness, string][]
+                      ).map(([value, label]) => (
+                        <Button
+                          key={value}
+                          variant={
+                            scoreFairness === value ? "default" : "outline"
+                          }
+                          size="sm"
+                          onClick={() => setScoreFairness(value)}
+                        >
+                          {label}
+                        </Button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Clinical Safety */}
                 <div>
@@ -1188,7 +1244,7 @@ export default function ValidatePage() {
                       isSaving ||
                       !goldStandard ||
                       !modelRating ||
-                      !scoreFairness ||
+                      (!isAdjudication && !scoreFairness) ||
                       !clinicalSafety ||
                       !clinicalUtility
                     }
