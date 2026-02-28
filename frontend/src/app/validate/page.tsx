@@ -32,6 +32,8 @@ import {
   HelpCircle,
   ExternalLink,
   FileText,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 
 // ============================================================================
@@ -169,6 +171,7 @@ export default function ValidatePage() {
   const [notesError, setNotesError] = useState<string | null>(null);
   const [expandedNoteIds, setExpandedNoteIds] = useState<Set<string>>(new Set());
   const [notesLoadedForPatient, setNotesLoadedForPatient] = useState<string | null>(null);
+  const [notesMaximized, setNotesMaximized] = useState(false);
 
   // Load data
   useEffect(() => {
@@ -332,6 +335,7 @@ export default function ValidatePage() {
   useEffect(() => {
     if (currentItem?.patient_id !== notesLoadedForPatient) {
       setShowNotes(false);
+      setNotesMaximized(false);
       setClinicalNotes([]);
       setExpandedNoteIds(new Set());
       setNotesError(null);
@@ -901,108 +905,116 @@ export default function ValidatePage() {
                   </div>
                 </div>
 
-                {/* Full Clinical Notes (expandable) */}
+                {/* Full Clinical Notes (expandable, side-by-side) */}
                 {currentItem.patient_id && (
-                  <div className="border rounded-lg">
-                    <button
-                      onClick={() => {
-                        const next = !showNotes;
-                        setShowNotes(next);
-                        if (next && currentItem.patient_id) {
-                          loadClinicalNotes(currentItem.patient_id);
-                        }
-                      }}
-                      className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-left hover:bg-slate-50 rounded-lg transition-colors"
-                    >
-                      <span className="flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                        Full Clinical Notes
-                        {clinicalNotes.length > 0 && (
-                          <Badge variant="secondary" className="text-xs">
-                            {clinicalNotes.length} notes
-                          </Badge>
+                  <div className={`border rounded-lg ${notesMaximized ? "fixed inset-4 z-50 bg-white shadow-2xl flex flex-col" : ""}`}>
+                    {notesMaximized && (
+                      <div className="fixed inset-0 bg-black/40 z-40" onClick={() => setNotesMaximized(false)} />
+                    )}
+                    <div className={notesMaximized ? "relative z-50 flex flex-col h-full" : ""}>
+                      <div className="flex items-center justify-between px-3 py-2 text-sm font-medium hover:bg-slate-50 rounded-t-lg transition-colors">
+                        <button
+                          onClick={() => {
+                            const next = !showNotes;
+                            setShowNotes(next);
+                            if (!next) setNotesMaximized(false);
+                            if (next && currentItem.patient_id) {
+                              loadClinicalNotes(currentItem.patient_id);
+                            }
+                          }}
+                          className="flex items-center gap-2 text-left flex-1"
+                        >
+                          <FileText className="h-4 w-4 text-muted-foreground" />
+                          Full Clinical Notes
+                          {clinicalNotes.length > 0 && (
+                            <Badge variant="secondary" className="text-xs">
+                              {clinicalNotes.length} notes
+                            </Badge>
+                          )}
+                          {showNotes ? (
+                            <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                          )}
+                        </button>
+                        {showNotes && (
+                          <button
+                            onClick={() => setNotesMaximized(!notesMaximized)}
+                            className="p-1.5 hover:bg-slate-200 rounded transition-colors ml-2"
+                            title={notesMaximized ? "Minimize notes" : "Maximize notes"}
+                          >
+                            {notesMaximized ? (
+                              <Minimize2 className="h-4 w-4 text-muted-foreground" />
+                            ) : (
+                              <Maximize2 className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </button>
                         )}
-                      </span>
-                      {showNotes ? (
-                        <ChevronUp className="h-4 w-4 text-muted-foreground" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                      )}
-                    </button>
+                      </div>
 
-                    {showNotes && (
-                      <div className="border-t px-3 pb-3">
-                        {notesLoading && (
-                          <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            Loading clinical notes...
-                          </div>
-                        )}
-                        {notesError && (
-                          <div className="flex items-center gap-2 py-3 text-sm text-red-600">
-                            <AlertCircle className="h-4 w-4" />
-                            {notesError}
-                          </div>
-                        )}
-                        {!notesLoading && !notesError && clinicalNotes.length === 0 && (
-                          <p className="py-3 text-sm text-muted-foreground">
-                            No clinical notes found for this patient in the database.
-                          </p>
-                        )}
-                        {!notesLoading && clinicalNotes.length > 0 && (
-                          <div className="space-y-2 pt-2 max-h-[600px] overflow-y-auto">
-                            {clinicalNotes.map((note) => {
-                              const isExpanded = expandedNoteIds.has(note.id);
-                              const previewLength = 300;
-                              const needsTruncation = note.text.length > previewLength;
-                              return (
-                                <div
-                                  key={note.id}
-                                  className="border rounded bg-white"
-                                >
-                                  <button
-                                    onClick={() => toggleNote(note.id)}
-                                    className="w-full flex items-center justify-between px-3 py-2 text-xs text-left hover:bg-slate-50 transition-colors"
+                      {showNotes && (
+                        <div className={`border-t px-3 pb-3 ${notesMaximized ? "flex-1 overflow-hidden flex flex-col" : ""}`}>
+                          {notesLoading && (
+                            <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Loading clinical notes...
+                            </div>
+                          )}
+                          {notesError && (
+                            <div className="flex items-center gap-2 py-3 text-sm text-red-600">
+                              <AlertCircle className="h-4 w-4" />
+                              {notesError}
+                            </div>
+                          )}
+                          {!notesLoading && !notesError && clinicalNotes.length === 0 && (
+                            <p className="py-3 text-sm text-muted-foreground">
+                              No clinical notes found for this patient in the database.
+                            </p>
+                          )}
+                          {!notesLoading && clinicalNotes.length > 0 && (
+                            <div className={
+                              clinicalNotes.length >= 2
+                                ? `grid grid-cols-2 gap-3 pt-2 ${notesMaximized ? "flex-1 overflow-hidden" : ""}`
+                                : `pt-2 ${notesMaximized ? "flex-1 overflow-hidden" : ""}`
+                            }>
+                              {clinicalNotes.map((note, idx) => {
+                                const hadmId = (note.metadata as Record<string, string> | undefined)?.mimic_hadm_id;
+                                return (
+                                  <div
+                                    key={note.id}
+                                    className={`border rounded bg-white flex flex-col ${notesMaximized ? "overflow-hidden" : ""}`}
                                   >
-                                    <span className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 px-3 py-2 border-b bg-slate-50 shrink-0">
                                       <Badge variant="outline" className="text-xs">
                                         {note.note_type || "Unknown"}
                                       </Badge>
-                                      <span className="text-muted-foreground">
-                                        {new Date(note.created_at).toLocaleDateString()}
-                                      </span>
-                                      <span className="text-muted-foreground">
+                                      {hadmId && (
+                                        <Badge variant="secondary" className="text-xs">
+                                          Admission {hadmId}
+                                        </Badge>
+                                      )}
+                                      <span className="text-xs text-muted-foreground">
                                         ({Math.round(note.text.length / 1000)}K chars)
                                       </span>
-                                    </span>
-                                    {isExpanded ? (
-                                      <ChevronUp className="h-3 w-3 text-muted-foreground" />
-                                    ) : (
-                                      <ChevronDown className="h-3 w-3 text-muted-foreground" />
-                                    )}
-                                  </button>
-                                  <div className="px-3 pb-2">
-                                    <pre className="text-xs leading-relaxed font-mono whitespace-pre-wrap text-slate-700 max-h-[500px] overflow-y-auto">
-                                      {isExpanded || !needsTruncation
-                                        ? note.text
-                                        : `${note.text.slice(0, previewLength)}...`}
-                                    </pre>
-                                    {needsTruncation && !isExpanded && (
-                                      <button
-                                        onClick={() => toggleNote(note.id)}
-                                        className="text-xs text-blue-600 hover:underline mt-1"
-                                      >
-                                        Show full note
-                                      </button>
-                                    )}
+                                      {clinicalNotes.length >= 2 && (
+                                        <span className="text-xs font-medium text-muted-foreground ml-auto">
+                                          Note {idx + 1} of {clinicalNotes.length}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className={`px-3 py-2 ${notesMaximized ? "flex-1 overflow-y-auto" : "max-h-[70vh] overflow-y-auto"}`}>
+                                      <pre className="text-xs leading-relaxed font-mono whitespace-pre-wrap text-slate-700">
+                                        {note.text}
+                                      </pre>
+                                    </div>
                                   </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    )}
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
 
