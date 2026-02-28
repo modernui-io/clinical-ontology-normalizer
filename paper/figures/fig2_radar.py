@@ -1,4 +1,4 @@
-"""Figure 2: ClinicalBench Radar Chart — per-category accuracy for C6, C1, C4g (Claude Opus 4.6, evaluator v2)."""
+"""Figure 2: ClinicalBench Radar Chart — per-category accuracy for C6, C1, C3, C4g (Claude Opus 4.6, evaluator v2)."""
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -22,6 +22,7 @@ N = len(categories)
 # Opus 4.6 data (400 questions, keyword evaluator v2 with abstention detection)
 c6_vals  = [ 69.1, 35.0, 27.5, 43.3,  0.0, 44.0, 66.7,  0.0, 23.3]
 c1_vals  = [ 45.5,  0.0, 12.5,  3.3, 10.0, 26.0, 30.0,  6.0,  6.7]
+c3_vals  = [ 65.5, 30.0, 37.5, 43.3, 57.5, 54.0, 60.0, 42.0, 16.7]
 c4g_vals = [ 80.9, 45.0, 50.0, 56.7, 65.0, 70.0, 66.7, 60.0, 100.0]
 
 # Compute angles
@@ -29,6 +30,7 @@ angles = np.linspace(0, 2 * np.pi, N, endpoint=False).tolist()
 angles += angles[:1]
 c6_vals += c6_vals[:1]
 c1_vals += c1_vals[:1]
+c3_vals += c3_vals[:1]
 c4g_vals += c4g_vals[:1]
 
 fig, ax = plt.subplots(figsize=(5.5, 5.0), subplot_kw=dict(polar=True))
@@ -59,6 +61,11 @@ ax.plot(angles, c1_vals, color='#999999', linewidth=1.3,
         linestyle='dotted', marker='o', markersize=3, alpha=0.7, zorder=3)
 ax.fill(angles, c1_vals, color='#999999', alpha=0.04, zorder=1)
 
+# Plot C3 — orange dashed (KG-RAG without assertions)
+ax.plot(angles, c3_vals, color='#E69F00', linewidth=1.6,
+        linestyle='dashed', marker='s', markersize=3.5, alpha=0.85, zorder=4)
+ax.fill(angles, c3_vals, color='#E69F00', alpha=0.06, zorder=1)
+
 # Plot C4g — dark blue solid (intent-aware, best condition)
 ax.plot(angles, c4g_vals, color='#1B5E8C', linewidth=2.2,
         linestyle='solid', marker='D', markersize=4, alpha=0.95, zorder=5)
@@ -73,6 +80,16 @@ ax.annotate(
     fontsize=7, fontweight='bold', color='#1B5E8C',
     arrowprops=dict(arrowstyle='->', color='#1B5E8C', lw=1.0),
     ha='left', va='bottom', zorder=10,
+)
+
+# Annotate C3 on change (16.7%) — shows epistemic gap
+ax.annotate(
+    'C3: 17%',
+    xy=(change_angle, c3_vals[8]),
+    xytext=(change_angle - 0.30, c3_vals[8] + 18),
+    fontsize=6.5, fontweight='bold', color='#E69F00',
+    arrowprops=dict(arrowstyle='->', color='#E69F00', lw=0.8),
+    ha='right', va='bottom', zorder=10,
 )
 
 # Annotate C6 collapse on sequence
@@ -103,6 +120,8 @@ legend_elements = [
            marker='v', markersize=3.5, label='C6: Long Context (39.0%)'),
     Line2D([0], [0], color='#999999', linestyle='dotted', linewidth=1.3,
            marker='o', markersize=3.5, label='C1: LLM Alone (21.8%)'),
+    Line2D([0], [0], color='#E69F00', linestyle='dashed', linewidth=1.6,
+           marker='s', markersize=3.5, label='C3: KG-RAG no assert. (50.0%)'),
     Line2D([0], [0], color='#1B5E8C', linestyle='solid', linewidth=2.2,
            marker='D', markersize=4, label='C4g: +Intent-Aware (69.0%)'),
 ]

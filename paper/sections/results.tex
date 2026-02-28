@@ -22,6 +22,7 @@ Both benchmarks report bias-corrected and accelerated (BCa) bootstrap 95\% CIs (
 C7 & Deterministic KG (no LLM) & 3.8\% & $-18.0\pp$ \\
 \midrule
 C1 & LLM Alone & 21.8\% & --- \\
+C3 & + KG-RAG (no assertions) & 50.0\% & $+28.2\pp$ * \\
 C4g & + Intent-Aware KG-RAG & \textbf{69.0\%} & $+47.2\pp$ * \\
 \midrule
 C6 & Long Context (all notes) & 39.0\% & $+17.2\pp$ \\
@@ -34,31 +35,36 @@ C6 (all notes concatenated) scores 39.0\%, outperforming C1 ($+17.2\pp$) because
 Intent-aware KG-RAG (C4g) reaches 69.0\% ($+47.2\pp$ vs.\ C1; 95\% BCa CI: \ci{+40.9\pp}{+52.8\pp}), confirming that question-type-specific graph traversal is critical.
 Without retrieval, the model mostly abstains or produces vague responses that fail keyword matching; with structured retrieval, it produces substantive correct answers.
 
+\paragraph{Ablation decomposition: retrieval vs.\ epistemic annotations.}
+C3 (KG-RAG without assertions) scores 50.0\%, decomposing the C1$\to$C4g gain into two additive components: structured retrieval alone contributes $+28.2\pp$ (C1$\to$C3; 95\% BCa CI: \ci{+22.3\pp}{+34.0\pp}), while epistemic annotations and intent-aware routing contribute a further $+19.0\pp$ (C3$\to$C4g; CI: \ci{+13.8\pp}{+24.0\pp})---both significant, with a roughly 60/40 split.
+The change category is the smoking gun: C3 achieves only 16.7\% without assertion metadata, while C4g reaches 100\% ($+83.3\pp$ from C3), because change detection requires comparing assertion states across admissions---exactly the metadata C3 strips.
+Conversely, sequence reasoning benefits more from graph structure (C3: 57.5\%) than from assertions (C4g: 65.0\%, $+7.5\pp$), since temporal ordering is partially recoverable from document structure alone.
+
 % ----------------------------------------------------------
 \subsection{Category$\times$Condition Interaction}
 \label{sec:results:categories}
 
 \begin{table}[t]
 \centering
-\caption{ClinicalBench per-category accuracy (\%) across conditions (Claude Opus 4.6, evaluator v2). C4g improves all 9 categories over C1. Best per row in \textbf{bold}.}
+\caption{ClinicalBench per-category accuracy (\%) across conditions (Claude Opus 4.6, evaluator v2). C3 adds structured retrieval without assertions; C4g adds epistemic annotations and intent-aware routing. Best per row in \textbf{bold}.}
 \label{tab:clinicalbench_categories}
 \small
-\begin{tabular}{@{}lccccl@{}}
+\begin{tabular}{@{}lcccccl@{}}
 \toprule
-Category & $n$ & C6 & C1 & C4g & C4g$-$C1 \\
+Category & $n$ & C6 & C1 & C3 & C4g & C4g$-$C1 \\
 \midrule
-Negation & 110 & 69.1 & 45.5 & \textbf{80.9} & $\uparrow 35.5\pp$ \\
-Conditional & 20 & 35.0 & 0.0 & \textbf{45.0} & $\uparrow 45.0\pp$ \\
-Uncertainty & 40 & 27.5 & 12.5 & \textbf{50.0} & $\uparrow 37.5\pp$ \\
-Family hist. & 30 & 43.3 & 3.3 & \textbf{56.7} & $\uparrow 53.3\pp$ \\
-Sequence & 40 & 0.0 & 10.0 & \textbf{65.0} & $\uparrow 55.0\pp$ \\
+Negation & 110 & 69.1 & 45.5 & 65.5 & \textbf{80.9} & $\uparrow 35.5\pp$ \\
+Conditional & 20 & 35.0 & 0.0 & 30.0 & \textbf{45.0} & $\uparrow 45.0\pp$ \\
+Uncertainty & 40 & 27.5 & 12.5 & 37.5 & \textbf{50.0} & $\uparrow 37.5\pp$ \\
+Family hist. & 30 & 43.3 & 3.3 & 43.3 & \textbf{56.7} & $\uparrow 53.3\pp$ \\
+Sequence & 40 & 0.0 & 10.0 & 57.5 & \textbf{65.0} & $\uparrow 55.0\pp$ \\
 \midrule
-Current st. & 50 & 44.0 & 26.0 & \textbf{70.0} & $\uparrow 44.0\pp$ \\
-Duration & 30 & 66.7 & 30.0 & \textbf{66.7} & $\uparrow 36.7\pp$ \\
-Historical & 50 & 0.0 & 6.0 & \textbf{60.0} & $\uparrow 54.0\pp$ \\
-Change & 30 & 23.3 & 6.7 & \textbf{100.0} & $\uparrow 93.3\pp$ \\
+Current st. & 50 & 44.0 & 26.0 & 54.0 & \textbf{70.0} & $\uparrow 44.0\pp$ \\
+Duration & 30 & 66.7 & 30.0 & 60.0 & \textbf{66.7} & $\uparrow 36.7\pp$ \\
+Historical & 50 & 0.0 & 6.0 & 42.0 & \textbf{60.0} & $\uparrow 54.0\pp$ \\
+Change & 30 & 23.3 & 6.7 & 16.7 & \textbf{100.0} & $\uparrow 93.3\pp$ \\
 \midrule
-\textbf{Overall} & \textbf{400} & 39.0 & 21.8 & \textbf{69.0} & $\uparrow 47.2\pp$ \\
+\textbf{Overall} & \textbf{400} & 39.0 & 21.8 & 50.0 & \textbf{69.0} & $\uparrow 47.2\pp$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -66,7 +72,7 @@ Change & 30 & 23.3 & 6.7 & \textbf{100.0} & $\uparrow 93.3\pp$ \\
 \begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/fig2_radar.pdf}
-\caption{ClinicalBench per-category accuracy across three conditions (C6, C1, C4g; Claude Opus 4.6, evaluator v2). C6 (pink dash-dot) collapses on historical and sequence (both 0\%); C1 (gray dotted) falls below 50\% on 7 of 9 categories, reflecting frequent abstentions without retrieval context; C4g (dark solid) improves all 9 categories over C1.}
+\caption{ClinicalBench per-category accuracy across four conditions (C6, C1, C3, C4g; Claude Opus 4.6, evaluator v2). C6 (pink dash-dot) collapses on historical and sequence (both 0\%); C1 (gray dotted) falls below 50\% on 7 of 9 categories; C3 (orange dashed) shows structured retrieval without assertions; C4g (dark solid) adds epistemic annotations, improving all 9 categories over C1. The C3$\to$C4g gap on change (16.7\%$\to$100\%) highlights the critical role of assertion metadata.}
 \label{fig:radar}
 \end{figure}
 

@@ -16,7 +16,8 @@ This has practical implications: the same RAG system may help or hurt differentl
 
 \paragraph{When KG context matters.}
 The complexity-dependent SliceBench effect (Tier~C: $+5.0\pp$ vs.\ Tier~A: $+0.6\pp$) suggests structured epistemic context is most valuable when: (a)~document volume overwhelms chunk-level retrieval, (b)~questions require cross-encounter synthesis where the same concept appears with different assertion states, and (c)~assertion status evolves across encounters.
-C4g's intent-aware routing provides direct evidence: the ``change'' category jumps from 7\% (C1) to 100\% ($+93\pp$), confirming that \emph{targeted graph traversal strategy}, not text access, is the key factor.
+The C3 ablation provides the clearest evidence: structured retrieval without assertions lifts overall accuracy from 21.8\% to 50.0\% ($+28.2\pp$), but change detection reaches only 16.7\%---because detecting what \emph{changed} between admissions requires comparing assertion states, which C3 strips.
+Adding epistemic annotations (C3$\to$C4g) lifts change to 100\% ($+83.3\pp$), confirming that \emph{assertion metadata}, not mere graph structure, is the key factor for change detection.
 
 \paragraph{Uncertainty remains weakest.}
 Uncertainty improves from 12.5\% to 50.0\% ($+37.5\pp$), but absolute accuracy remains low.
@@ -37,6 +38,7 @@ Over-reliance on KG-driven summaries risks anchoring bias if NLP extraction intr
 \paragraph{Conclusion.}
 The epistemic propagation gap is a real and measurable phenomenon: without retrieval, models achieve only 22\% on assertion-sensitive questions, while intent-aware epistemic KG-RAG lifts accuracy to 69\% ($+47\pp$).
 \epikg addresses this gap through end-to-end epistemic preservation combined with intent-aware retrieval that matches graph traversal strategy to question semantics.
+An ablation decomposition via C3 (KG-RAG without assertions) shows that structured retrieval contributes $+28\pp$ and epistemic annotations contribute a further $+19\pp$---a roughly 60/40 split.
 The benefit is category-specific: change detection rises from 7\% to 100\% ($+93\pp$), sequence from 10\% to 65\% ($+55\pp$), historical from 6\% to 60\% ($+54\pp$)---all 9 categories improve.
 The benefit is also model-dependent: KG-RAG functions as a medical knowledge compensator across all three models tested, providing the largest gains to general-purpose models.
 Neither more context nor structured data alone suffices---C6 (39.0\%) and C7 (3.8\%) bracket the design space---confirming that the category$\times$condition interaction, not the aggregate, is the right lens for clinical KG-RAG evaluation.

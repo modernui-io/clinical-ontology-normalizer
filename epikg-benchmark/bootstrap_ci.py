@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compute BCa bootstrap 95% CIs for ClinicalBench C4g vs C1 accuracy deltas."""
+"""Compute BCa bootstrap 95% CIs for ClinicalBench C4g vs C1 (and C3) accuracy deltas."""
 
 import json
 import sys
@@ -15,6 +15,7 @@ SEED = 42
 ALPHA = 0.05
 QUESTIONS_PATH = "/Users/alexstinard/projects/brainstorm/jan-14-2026/epikg-benchmark/clinicalbench/questions.json"
 C1_PATH = "/Users/alexstinard/projects/brainstorm/jan-14-2026/epikg-benchmark/results/opus/C1_llm_alone.json"
+C3_PATH = "/Users/alexstinard/projects/brainstorm/jan-14-2026/epikg-benchmark/results/opus/C3_kg_rag.json"
 C4G_PATH = "/Users/alexstinard/projects/brainstorm/jan-14-2026/epikg-benchmark/results/opus/C4g_intent_aware.json"
 
 HARD_LONGITUDINAL = {"historical", "change", "current_state"}
@@ -28,44 +29,57 @@ with open(C1_PATH) as f:
     c1data = json.load(f)
 c1_preds = {p["question_id"]: p for p in c1data["predictions"]}
 
+with open(C3_PATH) as f:
+    c3_data = json.load(f)
+c3_preds = {p["question_id"]: p for p in c3_data["predictions"]}
+
 with open(C4G_PATH) as f:
     c4g_data = json.load(f)
 c4g_preds = {p["question_id"]: p for p in c4g_data["predictions"]}
 
 # ── Score all questions ──
-# Build arrays: qids, categories, c1_correct, c4g_correct
+# Build arrays: qids, categories, c1_correct, c3_correct, c4g_correct
 qids = []
 categories = []
 c1_scores = []
+c3_scores = []
 c4g_scores = []
 
 for qid in sorted(questions.keys()):
     q = questions[qid]
     c1_pred = c1_preds.get(qid)
+    c3_pred = c3_preds.get(qid)
     c4g_pred = c4g_preds.get(qid)
-    if not c1_pred or not c4g_pred:
+    if not c1_pred or not c3_pred or not c4g_pred:
         continue
 
     c1_ans = c1_pred.get("predicted_answer", "")
+    c3_ans = c3_pred.get("predicted_answer", "")
     c4g_ans = c4g_pred.get("predicted_answer", "")
 
     c1_correct, _ = score_answer(q["category"], q["expected_answer"], c1_ans) if c1_ans else (False, 0.0)
+    c3_correct, _ = score_answer(q["category"], q["expected_answer"], c3_ans) if c3_ans else (False, 0.0)
     c4g_correct, _ = score_answer(q["category"], q["expected_answer"], c4g_ans) if c4g_ans else (False, 0.0)
 
     qids.append(qid)
     categories.append(q["category"])
     c1_scores.append(1.0 if c1_correct else 0.0)
+    c3_scores.append(1.0 if c3_correct else 0.0)
     c4g_scores.append(1.0 if c4g_correct else 0.0)
 
 c1_scores = np.array(c1_scores)
+c3_scores = np.array(c3_scores)
 c4g_scores = np.array(c4g_scores)
 categories = np.array(categories)
 n = len(qids)
 
-print(f"Loaded {n} questions with predictions in both conditions")
+print(f"Loaded {n} questions with predictions in all three conditions")
 print(f"C1 overall: {c1_scores.mean():.1%} ({int(c1_scores.sum())}/{n})")
+print(f"C3 overall: {c3_scores.mean():.1%} ({int(c3_scores.sum())}/{n})")
 print(f"C4g overall: {c4g_scores.mean():.1%} ({int(c4g_scores.sum())}/{n})")
-print(f"Delta: {(c4g_scores.mean() - c1_scores.mean()):.1%}")
+print(f"C1->C3 delta: {(c3_scores.mean() - c1_scores.mean()):.1%}")
+print(f"C3->C4g delta: {(c4g_scores.mean() - c3_scores.mean()):.1%}")
+print(f"C1->C4g delta: {(c4g_scores.mean() - c1_scores.mean()):.1%}")
 print()
 
 # ── BCa bootstrap ──
@@ -127,8 +141,17 @@ def bca_ci(data_func, indices, n_boot=N_BOOT, alpha=ALPHA, rng=None):
 def overall_delta(idx):
     return c4g_scores[idx].mean() - c1_scores[idx].mean()
 
+def c1_to_c3_delta(idx):
+    return c3_scores[idx].mean() - c1_scores[idx].mean()
+
+def c3_to_c4g_delta(idx):
+    return c4g_scores[idx].mean() - c3_scores[idx].mean()
+
 def accuracy_c4g(idx):
     return c4g_scores[idx].mean()
+
+def accuracy_c3(idx):
+    return c3_scores[idx].mean()
 
 def accuracy_c1(idx):
     return c1_scores[idx].mean()
@@ -149,8 +172,26 @@ print()
 # Also report individual condition CIs
 theta_c1, lo_c1, hi_c1, _ = bca_ci(accuracy_c1, all_idx, rng=np.random.default_rng(SEED+1))
 theta_c4g, lo_c4g, hi_c4g, _ = bca_ci(accuracy_c4g, all_idx, rng=np.random.default_rng(SEED+2))
+theta_c3, lo_c3, hi_c3, _ = bca_ci(accuracy_c3, all_idx, rng=np.random.default_rng(SEED+10))
 print(f"   C1 accuracy:  {theta_c1:.1%} [{lo_c1:.1%}, {hi_c1:.1%}]")
+print(f"   C3 accuracy:  {theta_c3:.1%} [{lo_c3:.1%}, {hi_c3:.1%}]")
 print(f"   C4g accuracy: {theta_c4g:.1%} [{lo_c4g:.1%}, {hi_c4g:.1%}]")
+print()
+
+# 1b. C1->C3 delta (structured retrieval effect)
+theta_13, lo_13, hi_13, boot_13 = bca_ci(c1_to_c3_delta, all_idx, rng=np.random.default_rng(SEED+11))
+print("=" * 60)
+print("1b. C1->C3 DELTA (structured retrieval effect, n=400)")
+print(f"   Delta: {theta_13:.1%}")
+print(f"   95% BCa CI: [{lo_13:.1%}, {hi_13:.1%}]")
+print()
+
+# 1c. C3->C4g delta (epistemic annotation effect)
+theta_34, lo_34, hi_34, boot_34 = bca_ci(c3_to_c4g_delta, all_idx, rng=np.random.default_rng(SEED+12))
+print("=" * 60)
+print("1c. C3->C4g DELTA (epistemic annotation effect, n=400)")
+print(f"   Delta: {theta_34:.1%}")
+print(f"   95% BCa CI: [{lo_34:.1%}, {hi_34:.1%}]")
 print()
 
 # 2. Hard longitudinal subset
@@ -199,6 +240,8 @@ for cat in unique_cats:
 print()
 print("=" * 60)
 print("Summary for paper:")
-print(f"  Overall delta: +{theta:.0%} points, 95% BCa CI [{lo:.1%}, {hi:.1%}]")
+print(f"  Overall C1->C4g delta: +{theta:.0%} points, 95% BCa CI [{lo:.1%}, {hi:.1%}]")
+print(f"  C1->C3 delta (retrieval): +{theta_13:.0%} points, 95% BCa CI [{lo_13:.1%}, {hi_13:.1%}]")
+print(f"  C3->C4g delta (epistemic): +{theta_34:.0%} points, 95% BCa CI [{lo_34:.1%}, {hi_34:.1%}]")
 print(f"  Hard longitudinal delta: +{theta_h:.0%} points, 95% BCa CI [{lo_h:.1%}, {hi_h:.1%}]")
 print(f"  n_boot={N_BOOT}, seed={SEED}")

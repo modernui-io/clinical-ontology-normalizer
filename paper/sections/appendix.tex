@@ -305,24 +305,24 @@ C & 15+ notes & 48.4 & 74.2 & 86.5 & 91.5 & 90.3 & $+5.0\pp$ \\
 \begin{table}[ht]
 \centering
 \small
-\begin{tabular}{lccccc}
+\begin{tabular}{lcccccc}
 \toprule
-\textbf{Category} & $n$ & \textbf{C7} & \textbf{C6} & \textbf{C1} & \textbf{C4g} \\
+\textbf{Category} & $n$ & \textbf{C7} & \textbf{C6} & \textbf{C1} & \textbf{C3} & \textbf{C4g} \\
 \midrule
-Negation & 110 & 13.6 & 69.1 & 45.5 & 80.9 \\
-Conditional & 20 & 0.0 & 35.0 & 0.0 & 45.0 \\
-Uncertainty & 40 & 0.0 & 27.5 & 12.5 & 50.0 \\
-Family History & 30 & 0.0 & 43.3 & 3.3 & 56.7 \\
-Sequence & 40 & 0.0 & 0.0 & 10.0 & 65.0 \\
-Current State & 50 & 0.0 & 44.0 & 26.0 & 70.0 \\
-Duration & 30 & 0.0 & 66.7 & 30.0 & 66.7 \\
-Historical & 50 & 0.0 & 0.0 & 6.0 & 60.0 \\
-Change & 30 & 0.0 & 23.3 & 6.7 & 100.0 \\
+Negation & 110 & 13.6 & 69.1 & 45.5 & 65.5 & 80.9 \\
+Conditional & 20 & 0.0 & 35.0 & 0.0 & 30.0 & 45.0 \\
+Uncertainty & 40 & 0.0 & 27.5 & 12.5 & 37.5 & 50.0 \\
+Family History & 30 & 0.0 & 43.3 & 3.3 & 43.3 & 56.7 \\
+Sequence & 40 & 0.0 & 0.0 & 10.0 & 57.5 & 65.0 \\
+Current State & 50 & 0.0 & 44.0 & 26.0 & 54.0 & 70.0 \\
+Duration & 30 & 0.0 & 66.7 & 30.0 & 60.0 & 66.7 \\
+Historical & 50 & 0.0 & 0.0 & 6.0 & 42.0 & 60.0 \\
+Change & 30 & 0.0 & 23.3 & 6.7 & 16.7 & 100.0 \\
 \midrule
-\textbf{Overall} & \textbf{400} & \textbf{3.8} & \textbf{39.0} & \textbf{21.8} & \textbf{69.0} \\
+\textbf{Overall} & \textbf{400} & \textbf{3.8} & \textbf{39.0} & \textbf{21.8} & \textbf{50.0} & \textbf{69.0} \\
 \bottomrule
 \end{tabular}
-\caption{Complete ClinicalBench per-category accuracy (\%, Claude Opus 4.6, keyword evaluator v2) for all conditions. C7 is model-independent. All 9 categories improve from C1 to C4g; the largest gains occur on change ($+93\pp$), sequence ($+55\pp$), and historical ($+54\pp$).}
+\caption{Complete ClinicalBench per-category accuracy (\%, Claude Opus 4.6, keyword evaluator v2) for all conditions. C7 is model-independent; C3 adds structured retrieval without assertion metadata. All 9 categories improve from C1 to C4g; the largest gains occur on change ($+93\pp$), sequence ($+55\pp$), and historical ($+54\pp$). C3$\to$C4g on change ($+83\pp$) isolates the epistemic annotation contribution.}
 \label{tab:full_percategory}
 \end{table}
 
@@ -375,11 +375,11 @@ ClinicalBench conditions map to SliceBench: C1$\!\approx\!$B0, C2$\!\approx\!$B2
 
 \paragraph{Data.} De-identified MIMIC-IV clinical notes accessed under a PhysioNet Credentialed Health Data Use Agreement (v1.5.0).
 
-\paragraph{Compute.} ClinicalBench Opus C1/C4g: ${\sim}22$min each (API); Opus C6: ${\sim}3.5$h (API); C7: $<1$min (no LLM); MedGemma C1--C4g: ${\sim}3.6$h (single GPU); MedGemma C6: ${\sim}1.5$h; SliceBench: ${\sim}2$h (API).
+\paragraph{Compute.} ClinicalBench Opus C1/C3/C4g: ${\sim}22$min each (API); Opus C6: ${\sim}3.5$h (API); C7: $<1$min (no LLM); MedGemma C1--C4g: ${\sim}3.6$h (single GPU); MedGemma C6: ${\sim}1.5$h; SliceBench: ${\sim}2$h (API).
 
 \paragraph{Evaluator evolution.} The keyword evaluator underwent three versions: v0 (substring matching), v1 (word-boundary matching + evidence preamble stripping), and v2 (+ abstention detection gate + domain-specific keyword requirements for sequence and change). The v1 evaluator awarded false positives when models responded with ``insufficient information in the notes'' because negation and temporal keywords in the refusal text matched gold-standard patterns. The v2 evaluator adds an abstention detection layer: answers matching abstention patterns (e.g., ``cannot determine,'' ``not mentioned,'' ``insufficient evidence'') are scored as incorrect unless they contain clinical claim patterns (e.g., ``patient does not,'' ``denies''). Additionally, v2 requires sequence answers to contain ordering keywords (``first,'' ``then,'' ``before'') and change answers to contain change keywords (``added,'' ``removed,'' ``discontinued''), preventing term-overlap-only false positives. The duration category's minimum-0.5 score floor for matching duration keywords was removed. All main-text numbers use v2.
 
-\paragraph{Reproducibility package.} A standalone reproducibility package is included as supplementary material (\texttt{epikg-benchmark/}). It contains all 400 ClinicalBench questions with gold answers, raw model predictions for all condition$\times$model combinations (Opus C1/C4g/C6, MedGemma C1/C4g, GPT-OSS C1/C4g), and the deterministic keyword evaluator v2 with abstention detection. Running the evaluator requires only Python~3.10+ with no external dependencies. All accuracy numbers in Tables~\ref{tab:clinicalbench_ablation} and~\ref{tab:crossmodel} are independently reproducible from this package. MIMIC-IV patient identifiers are included so that PhysioNet-credentialed reviewers can trace predictions back to source clinical notes.
+\paragraph{Reproducibility package.} A standalone reproducibility package is included as supplementary material (\texttt{epikg-benchmark/}). It contains all 400 ClinicalBench questions with gold answers, raw model predictions for all condition$\times$model combinations (Opus C1/C3/C4g/C6, MedGemma C1/C4g, GPT-OSS C1/C4g), and the deterministic keyword evaluator v2 with abstention detection. Running the evaluator requires only Python~3.10+ with no external dependencies. All accuracy numbers in Tables~\ref{tab:clinicalbench_ablation}, \ref{tab:clinicalbench_categories}, and~\ref{tab:crossmodel} are independently reproducible from this package. MIMIC-IV patient identifiers are included so that PhysioNet-credentialed reviewers can trace predictions back to source clinical notes.
 
 
 \section{Assertion Category Definitions}
