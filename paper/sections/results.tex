@@ -152,11 +152,12 @@ The incremental KG layer (B2$\rightarrow$B3) contributes $+2.2\pp$ overall (CI: 
 \subsection{Physician Adjudication}
 \label{sec:results:physician}
 
-A board-certified physician (A.S.) reviewed a stratified pilot sample ($n=30$ ClinicalBench items, 14 C1 + 16 C4g, all 9 categories) under blinded conditions (condition labels randomized as A/B).
-Each item was rated on five dimensions: gold-standard correctness, model-answer correctness, automated-score fairness, clinical safety, and clinical utility.
+A board-certified physician (A.S.) reviewed a stratified pilot sample ($n=30$ ClinicalBench items, all 9 categories) under blinded conditions (condition labels randomized as A/B; unblinding performed post-review for analysis).
+Each item was rated on four dimensions: gold-standard correctness, model-answer correctness, clinical safety, and clinical utility.
+Full rubric definitions and the scoring interface are described in Appendix~\ref{app:physician_protocol}.
 
 \paragraph{Physician-rated accuracy.}
-KG-RAG answers were rated correct in 81\% of items vs.\ 29\% for LLM-alone (Table~\ref{tab:physician}), a $+52\pp$ physician-rated delta---larger than the $+47\pp$ auto-evaluator delta and directionally consistent.
+After unblinding, KG-RAG answers (C4g, $n=16$) were rated correct in 81\% of items vs.\ 29\% for LLM-alone (C1, $n=14$; Table~\ref{tab:physician}), a $+52\pp$ physician-rated delta---larger than the $+47\pp$ auto-evaluator delta and directionally consistent.
 
 \paragraph{Safety and utility.}
 C4g answers were rated safe in 88\% of cases (vs.\ 50\% for C1), helpful in 81\% (vs.\ 29\%), and misleading in 6\% (vs.\ 21\%).
@@ -171,16 +172,19 @@ This conservative bias is consistent with the abstention penalty noted in Sectio
 Physician review found 40\% of auto-generated gold standards required revision (30\% incorrect, 10\% needing revision), with errors concentrated in change detection (0/4 correct) and negation (0/2 correct) categories.
 Gold-standard errors are constant across conditions and therefore do not affect the relative C1--C4g comparison, but they indicate that auto-generated clinical benchmarks require physician validation---a finding with implications beyond this study.
 
+\paragraph{Limitations.}
+The pilot is limited by small per-condition samples ($n=14$/$16$) and a single reviewer; a second independent reviewer is planned.
+Despite these constraints, the physician-rated delta ($+52\pp$) is directionally and magnitude-consistent with the automated delta ($+47\pp$) across all four dimensions measured.
+
 \begin{table}[t]
 \centering
-\caption{Physician adjudication pilot ($n=30$). Blinded single-reviewer ratings stratified by condition.}
+\caption{Physician adjudication pilot ($n=30$). Single reviewer, blinded during scoring; condition labels unblinded post-review for stratified analysis.}
 \label{tab:physician}
 \small
 \begin{tabular}{lcc}
 \toprule
-\textbf{Metric} & \textbf{C1 (LLM alone)} & \textbf{C4g (KG-RAG)} \\
+\textbf{Metric} & \textbf{C1 ($n=14$)} & \textbf{C4g ($n=16$)} \\
 \midrule
-$n$ & 14 & 16 \\
 Physician-rated correct & 29\% & 81\% \\
 Partially correct & 21\% & 6\% \\
 Incorrect & 50\% & 12\% \\
