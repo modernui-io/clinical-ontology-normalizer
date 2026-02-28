@@ -1,4 +1,4 @@
-"""Figure 2: ClinicalBench Radar Chart — per-category accuracy for C6, C1, C2, C3, C4g (Claude Opus 4.6, evaluator v2)."""
+"""Figure 2: ClinicalBench Radar Chart — per-category accuracy for C6, C1, C2, C3, C4, C4g (Claude Opus 4.6, evaluator v2)."""
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -24,6 +24,7 @@ c6_vals  = [ 69.1, 35.0, 27.5, 43.3,  0.0, 44.0, 66.7,  0.0, 23.3]
 c1_vals  = [ 45.5,  0.0, 12.5,  3.3, 10.0, 26.0, 30.0,  6.0,  6.7]
 c2_vals  = [ 70.9, 35.0, 35.0, 43.3, 50.0, 32.0, 66.7, 48.0, 33.3]
 c3_vals  = [ 65.5, 30.0, 37.5, 43.3, 57.5, 54.0, 60.0, 42.0, 16.7]
+c4_vals  = [ 90.0, 50.0, 52.5, 50.0, 10.0, 30.0, 46.7, 12.0, 10.0]
 c4g_vals = [ 80.9, 45.0, 50.0, 56.7, 65.0, 70.0, 66.7, 60.0, 100.0]
 
 # Compute angles
@@ -33,6 +34,7 @@ c6_vals += c6_vals[:1]
 c1_vals += c1_vals[:1]
 c2_vals += c2_vals[:1]
 c3_vals += c3_vals[:1]
+c4_vals += c4_vals[:1]
 c4g_vals += c4g_vals[:1]
 
 fig, ax = plt.subplots(figsize=(5.5, 5.0), subplot_kw=dict(polar=True))
@@ -72,6 +74,11 @@ ax.fill(angles, c2_vals, color='#56B4E9', alpha=0.05, zorder=1)
 ax.plot(angles, c3_vals, color='#E69F00', linewidth=1.6,
         linestyle='dashed', marker='s', markersize=3.5, alpha=0.85, zorder=4)
 ax.fill(angles, c3_vals, color='#E69F00', alpha=0.06, zorder=1)
+
+# Plot C4 — red dashed (assertions without routing)
+ax.plot(angles, c4_vals, color='#B22222', linewidth=1.5,
+        linestyle=(0, (3, 2)), marker='P', markersize=4, alpha=0.85, zorder=4.5)
+ax.fill(angles, c4_vals, color='#B22222', alpha=0.05, zorder=1)
 
 # Plot C4g — dark blue solid (intent-aware, best condition)
 ax.plot(angles, c4g_vals, color='#1B5E8C', linewidth=2.2,
@@ -121,6 +128,17 @@ ax.annotate(
     ha='left', va='bottom', zorder=10,
 )
 
+# Annotate C4 negation peak (90%) — assertions help here
+neg_angle = angles[0]
+ax.annotate(
+    'C4: 90%',
+    xy=(neg_angle, c4_vals[0]),
+    xytext=(neg_angle + 0.25, c4_vals[0] + 14),
+    fontsize=7, fontweight='bold', color='#B22222',
+    arrowprops=dict(arrowstyle='->', color='#B22222', lw=0.8),
+    ha='left', va='bottom', zorder=10,
+)
+
 # Legend
 legend_elements = [
     Line2D([0], [0], color='#CC79A7', linestyle='dashdot', linewidth=1.4,
@@ -128,9 +146,11 @@ legend_elements = [
     Line2D([0], [0], color='#999999', linestyle='dotted', linewidth=1.3,
            marker='o', markersize=3.5, label='C1: LLM Alone (21.8%)'),
     Line2D([0], [0], color='#56B4E9', linestyle=(0, (5, 3)), linewidth=1.5,
-           marker='^', markersize=3.5, label='C2: Vanilla RAG (50.5%)'),
+           marker='^', markersize=3.5, label='C2: Vanilla RAG (52.2%)'),
     Line2D([0], [0], color='#E69F00', linestyle='dashed', linewidth=1.6,
            marker='s', markersize=3.5, label='C3: KG-RAG no assert. (50.0%)'),
+    Line2D([0], [0], color='#B22222', linestyle=(0, (3, 2)), linewidth=1.5,
+           marker='P', markersize=4, label='C4: +Assertions (46.8%)'),
     Line2D([0], [0], color='#1B5E8C', linestyle='solid', linewidth=2.2,
            marker='D', markersize=4, label='C4g: +Intent-Aware (69.0%)'),
 ]
