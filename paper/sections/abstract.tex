@@ -8,5 +8,5 @@ On ClinicalBench ($n=400$, MIMIC-IV, Claude Opus 4.6), intent-aware KG-RAG achie
 An ablation decomposition isolates two additive components: structured retrieval contributes $+28\pp$, epistemic annotations a further $+19\pp$---a roughly 60/40 split.
 Change detection exemplifies the distinction: retrieval without assertions reaches 17\%, but adding assertion metadata lifts it to 100\%.
 Brute-force long context collapses to 0\% on historical and sequence despite a 200K token window.
-Cross-model validation on three models shows KG-RAG benefit is inversely related to parametric medical knowledge, consistent with a knowledge-compensator effect.
+Cross-model validation on three models shows KG-RAG benefit is consistent with an inverse relationship to parametric medical knowledge, suggesting a knowledge-compensator effect.
 The category$\times$condition interaction---not the aggregate---is the right evaluation lens for clinical KG-RAG.

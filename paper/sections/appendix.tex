@@ -307,24 +307,24 @@ C & 15+ notes & 48.4 & 74.2 & 86.5 & 91.5 & 90.3 & $+5.0\pp$ \\
 \begin{table}[ht]
 \centering
 \small
-\begin{tabular}{lcccccc}
+\begin{tabular}{lccccccc}
 \toprule
-\textbf{Category} & $n$ & \textbf{C7} & \textbf{C6} & \textbf{C1} & \textbf{C3} & \textbf{C4g} \\
+\textbf{Category} & $n$ & \textbf{C7} & \textbf{C6} & \textbf{C1} & \textbf{C2} & \textbf{C3} & \textbf{C4g} \\
 \midrule
-Negation & 110 & 13.6 & 69.1 & 45.5 & 65.5 & 80.9 \\
-Conditional & 20 & 0.0 & 35.0 & 0.0 & 30.0 & 45.0 \\
-Uncertainty & 40 & 0.0 & 27.5 & 12.5 & 37.5 & 50.0 \\
-Family History & 30 & 0.0 & 43.3 & 3.3 & 43.3 & 56.7 \\
-Sequence & 40 & 0.0 & 0.0 & 10.0 & 57.5 & 65.0 \\
-Current State & 50 & 0.0 & 44.0 & 26.0 & 54.0 & 70.0 \\
-Duration & 30 & 0.0 & 66.7 & 30.0 & 60.0 & 66.7 \\
-Historical & 50 & 0.0 & 0.0 & 6.0 & 42.0 & 60.0 \\
-Change & 30 & 0.0 & 23.3 & 6.7 & 16.7 & 100.0 \\
+Negation & 110 & 13.6 & 69.1 & 45.5 & 70.9 & 65.5 & 80.9 \\
+Conditional & 20 & 0.0 & 35.0 & 0.0 & 35.0 & 30.0 & 45.0 \\
+Uncertainty & 40 & 0.0 & 27.5 & 12.5 & 35.0 & 37.5 & 50.0 \\
+Family History & 30 & 0.0 & 43.3 & 3.3 & 43.3 & 43.3 & 56.7 \\
+Sequence & 40 & 0.0 & 0.0 & 10.0 & 50.0 & 57.5 & 65.0 \\
+Current State & 50 & 0.0 & 44.0 & 26.0 & 32.0 & 54.0 & 70.0 \\
+Duration & 30 & 0.0 & 66.7 & 30.0 & 66.7 & 60.0 & 66.7 \\
+Historical & 50 & 0.0 & 0.0 & 6.0 & 48.0 & 42.0 & 60.0 \\
+Change & 30 & 0.0 & 23.3 & 6.7 & 33.3 & 16.7 & 100.0 \\
 \midrule
-\textbf{Overall} & \textbf{400} & \textbf{3.8} & \textbf{39.0} & \textbf{21.8} & \textbf{50.0} & \textbf{69.0} \\
+\textbf{Overall} & \textbf{400} & \textbf{3.8} & \textbf{39.0} & \textbf{21.8} & \textbf{50.5} & \textbf{50.0} & \textbf{69.0} \\
 \bottomrule
 \end{tabular}
-\caption{Complete ClinicalBench per-category accuracy (\%, Claude Opus 4.6, keyword evaluator v2) for all conditions. C7 is model-independent; C3 adds structured retrieval without assertion metadata. All 9 categories improve from C1 to C4g; the largest gains occur on change ($+93\pp$), sequence ($+55\pp$), and historical ($+54\pp$). C3$\to$C4g on change ($+83\pp$) isolates the epistemic annotation contribution.}
+\caption{Complete ClinicalBench per-category accuracy (\%, Claude Opus 4.6, keyword evaluator v2) for all conditions. C7 is model-independent; C2 adds vanilla document retrieval; C3 adds graph-structured retrieval without assertion metadata. C2 and C3 are nearly identical overall (${\sim}50\%$) but diverge per category. All 9 categories improve from C1 to C4g; the largest gains occur on change ($+93\pp$), sequence ($+55\pp$), and historical ($+54\pp$). C3$\to$C4g on change ($+83\pp$) isolates the epistemic annotation contribution.}
 \label{tab:full_percategory}
 \end{table}
 
@@ -342,7 +342,7 @@ A full two-physician blinded adjudication is preregistered (Section~\ref{sec:res
 
 \paragraph{Design.} Two board-certified emergency medicine physicians independently score ClinicalBench answers under two conditions (C1 and C4g) using the same binary correctness rubric as the deterministic keyword evaluator.
 Reviewers are blinded to condition assignment.
-The sample comprises 120 ClinicalBench questions stratified across all 9 categories (oversampling categories at highest evaluator error risk), with both conditions scored per question (240 total scored pairs).
+The sample comprises 168 ClinicalBench questions stratified across all 9 categories (oversampling categories at highest evaluator error risk), with both conditions scored per question (336 total scored pairs).
 Blinded scoring sheets with randomized condition labels (A/B) are included in the supplementary materials.
 
 \paragraph{Inter-rater agreement.} Cohen's $\kappa$ is computed between the two reviewers on the full 336 scored pairs.
@@ -372,6 +372,7 @@ Per-category keyword sets: negation (``no,'' ``denies,'' ``absent,'' ``negative'
 Evidence preambles (echoed graph context) are stripped before matching.
 
 \paragraph{Retrieval.} C2's vanilla RAG uses TF-IDF over chunked clinical notes (512-token chunks, 64-token overlap), retrieving the top-5 chunks by cosine similarity.
+This is the closest analog to existing medical RAG systems (DoctorRAG, MedRAG) on patient-level longitudinal data.
 ClinicalBench conditions map to SliceBench: C1$\!\approx\!$B0, C2$\!\approx\!$B2, C4$\!\approx\!$B3, C5$\!\approx\!$B4.
 
 \paragraph{Bootstrap.} $n=2{,}000$ resamples, seed 42, BCa method~\cite{efron1993bootstrap}.
@@ -420,6 +421,7 @@ MedGemma C4g has 399 predictions (1 timeout); the missing question is scored as 
 Condition & Model & Checkpoint file & $n$ \\
 \midrule
 C1 & Opus 4.6 & \texttt{opus/C1\_llm\_alone.json} & 400 \\
+C2 & Opus 4.6 & \texttt{opus/C2\_vanilla\_rag.json} & 392* \\
 C3 & Opus 4.6 & \texttt{opus/C3\_kg\_rag.json} & 400 \\
 C4g & Opus 4.6 & \texttt{opus/C4g\_intent\_aware.json} & 400 \\
 C6 & Opus 4.6 & \texttt{opus/C6\_long\_context.json} & 400 \\
@@ -431,7 +433,8 @@ C4g & MedGemma 27B & \texttt{medgemma/C4g\_intent\_aware.json} & 399* \\
 C1 & GPT-OSS 20B & \texttt{gptoss/C1\_llm\_alone.json} & 400 \\
 C4g & GPT-OSS 20B & \texttt{gptoss/C4g\_intent\_aware.json} & 400 \\
 \bottomrule
-\multicolumn{4}{@{}l}{\footnotesize *1 timeout; scored as incorrect for $n=400$ denominator.}
+\multicolumn{4}{@{}l}{\footnotesize *C2: 8 sequence questions returned empty (retrieval timeout); MedGemma C4g: 1 timeout.} \\
+\multicolumn{4}{@{}l}{\footnotesize \phantom{*}All missing answers scored as incorrect for $n=400$ denominator.}
 \end{tabular}
 \end{table}
 

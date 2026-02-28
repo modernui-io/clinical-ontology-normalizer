@@ -7,7 +7,7 @@ We introduce two complementary benchmarks built on MIMIC-IV~\cite{johnson2023mim
 \subsection{ClinicalBench: Assertion-Sensitive Clinical QA}
 \label{sec:bench:clinicalbench}
 
-ClinicalBench comprises 400 gold-standard questions over 45 MIMIC-IV patients in two tasks: \textbf{Task~A} (200 questions, negation-aware retrieval) and \textbf{Task~B} (200 questions, temporal reasoning).
+ClinicalBench comprises 400 gold-standard questions over 43 MIMIC-IV patients in two tasks: \textbf{Task~A} (200 questions, negation-aware retrieval) and \textbf{Task~B} (200 questions, temporal reasoning).
 Questions span 9 categories: \textit{negation}, \textit{conditional}, \textit{uncertainty}, \textit{family\_history}, \textit{sequence}, \textit{current\_state}, \textit{duration}, \textit{historical}, and \textit{change}.
 Gold-standard answers were created by a single physician (board-certified emergency medicine) through manual chart review against source MIMIC-IV documents.
 No inter-annotator agreement was computed for gold-standard creation; the preregistered two-physician adjudication (Section~\ref{sec:bench:physician}) addresses this limitation.
@@ -18,19 +18,21 @@ Two bookend baselines---C6 (all notes concatenated) and C7 (deterministic KG loo
 \begin{table}[t]
 \centering
 \footnotesize
-\caption{ClinicalBench conditions. C1/C3/C4g form the ablation ladder; C7 and C6 are bookend baselines.}
+\caption{ClinicalBench conditions. C1--C4g form the ablation ladder; C6 and C7 are bookend baselines.}
 \label{tab:clinicalbench_conditions}
 \setlength{\tabcolsep}{4pt}
 \begin{tabular}{@{}clccc@{}}
 \toprule
 ID & Condition & Retrieval & Assertion & Temporal \\
 \midrule
-C7 & Deterministic KG & KG lookup (no LLM) & Full & Tri-temporal \\
 C1 & LLM Alone & None & None & None \\
+C2 & + Vanilla RAG & TF-IDF doc chunks & None & None \\
 C3 & + KG-RAG (no assertions) & Graph + Doc & None & None \\
 C4 & + Epistemic KG-RAG & Graph + Doc & Full (7-class) & Tri-temporal \\
 C4g & + Intent-Aware KG-RAG & Graph + Doc (type-specific) & Full (7-class) & Tri-temporal \\
+\midrule
 C6 & Long Context & All notes & None & None \\
+C7 & Deterministic KG & KG lookup (no LLM) & Full & Tri-temporal \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -41,7 +43,8 @@ The \textbf{secondary endpoint} is full 400-question ClinicalBench, C4g vs.\ C1.
 \textbf{Diagnostic endpoints} are per-category C1$\to$C4g accuracy deltas and the C3$\to$C4g transition isolating epistemic annotation lift.
 
 \noindent\textbf{What each transition isolates.}
-C1$\to$C3 isolates the \emph{structured retrieval effect}: C3 adds graph traversal and document retrieval but strips assertion labels and temporality metadata, testing whether graph structure alone helps.
+C1$\to$C2 isolates the \emph{document retrieval effect}: C2 adds TF-IDF chunk retrieval over clinical notes, analogous to existing medical RAG systems (DoctorRAG, MedRAG).
+C2$\to$C3 isolates the \emph{graph structure effect}: both retrieve documents, but C3 replaces TF-IDF with graph traversal---testing whether structured retrieval outperforms vanilla retrieval.
 C3$\to$C4g isolates the \emph{epistemic annotation effect}: both retrieve from the same graph, but C4g carries full 7-class assertions, tri-temporal metadata, and intent-aware routing.
 C4g vs.\ C6 isolates the \emph{structured-vs-unstructured retrieval effect} on the same questions.
 

@@ -1,4 +1,4 @@
-"""Figure 2: ClinicalBench Radar Chart — per-category accuracy for C6, C1, C3, C4g (Claude Opus 4.6, evaluator v2)."""
+"""Figure 2: ClinicalBench Radar Chart — per-category accuracy for C6, C1, C2, C3, C4g (Claude Opus 4.6, evaluator v2)."""
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -22,6 +22,7 @@ N = len(categories)
 # Opus 4.6 data (400 questions, keyword evaluator v2 with abstention detection)
 c6_vals  = [ 69.1, 35.0, 27.5, 43.3,  0.0, 44.0, 66.7,  0.0, 23.3]
 c1_vals  = [ 45.5,  0.0, 12.5,  3.3, 10.0, 26.0, 30.0,  6.0,  6.7]
+c2_vals  = [ 70.9, 35.0, 35.0, 43.3, 50.0, 32.0, 66.7, 48.0, 33.3]
 c3_vals  = [ 65.5, 30.0, 37.5, 43.3, 57.5, 54.0, 60.0, 42.0, 16.7]
 c4g_vals = [ 80.9, 45.0, 50.0, 56.7, 65.0, 70.0, 66.7, 60.0, 100.0]
 
@@ -30,6 +31,7 @@ angles = np.linspace(0, 2 * np.pi, N, endpoint=False).tolist()
 angles += angles[:1]
 c6_vals += c6_vals[:1]
 c1_vals += c1_vals[:1]
+c2_vals += c2_vals[:1]
 c3_vals += c3_vals[:1]
 c4g_vals += c4g_vals[:1]
 
@@ -60,6 +62,11 @@ ax.fill(angles, c6_vals, color='#CC79A7', alpha=0.05, zorder=1)
 ax.plot(angles, c1_vals, color='#999999', linewidth=1.3,
         linestyle='dotted', marker='o', markersize=3, alpha=0.7, zorder=3)
 ax.fill(angles, c1_vals, color='#999999', alpha=0.04, zorder=1)
+
+# Plot C2 — green dash (vanilla RAG)
+ax.plot(angles, c2_vals, color='#56B4E9', linewidth=1.5,
+        linestyle=(0, (5, 3)), marker='^', markersize=3.5, alpha=0.8, zorder=3.5)
+ax.fill(angles, c2_vals, color='#56B4E9', alpha=0.05, zorder=1)
 
 # Plot C3 — orange dashed (KG-RAG without assertions)
 ax.plot(angles, c3_vals, color='#E69F00', linewidth=1.6,
@@ -92,7 +99,7 @@ ax.annotate(
     ha='right', va='bottom', zorder=10,
 )
 
-# Annotate C6 collapse on sequence (use C6 trace color, not red)
+# Annotate C6 collapse on sequence (use C6 trace color)
 seq_angle = angles[4]
 ax.annotate(
     'C6: 0%',
@@ -103,7 +110,7 @@ ax.annotate(
     ha='left', va='bottom', zorder=10,
 )
 
-# Annotate C1 collapse on conditional (use C1 trace color, not red)
+# Annotate C1 collapse on conditional (use C1 trace color)
 cond_angle = angles[1]
 ax.annotate(
     'C1: 0%',
@@ -120,6 +127,8 @@ legend_elements = [
            marker='v', markersize=3.5, label='C6: Long Context (39.0%)'),
     Line2D([0], [0], color='#999999', linestyle='dotted', linewidth=1.3,
            marker='o', markersize=3.5, label='C1: LLM Alone (21.8%)'),
+    Line2D([0], [0], color='#56B4E9', linestyle=(0, (5, 3)), linewidth=1.5,
+           marker='^', markersize=3.5, label='C2: Vanilla RAG (50.5%)'),
     Line2D([0], [0], color='#E69F00', linestyle='dashed', linewidth=1.6,
            marker='s', markersize=3.5, label='C3: KG-RAG no assert. (50.0%)'),
     Line2D([0], [0], color='#1B5E8C', linestyle='solid', linewidth=2.2,

@@ -12,37 +12,38 @@ Both benchmarks report bias-corrected and accelerated (BCa) bootstrap 95\% CIs (
 
 \begin{table}[t]
 \centering
-\caption{ClinicalBench primary results (400 questions, Claude Opus 4.6, keyword evaluator v2 with abstention detection). C7 is model-independent (no LLM); remaining conditions use Opus 4.6. Sig: * denotes BCa CI excluding zero. Best in \textbf{bold}.}
+\caption{ClinicalBench primary results (400 questions, Claude Opus 4.6, keyword evaluator v2 with abstention detection). Ablation ladder (C1--C4g) progressively adds components; C6 and C7 are bookend baselines. Sig: * denotes BCa CI excluding zero. Best in \textbf{bold}.}
 \label{tab:clinicalbench_ablation}
 \small
 \begin{tabular}{@{}llcl@{}}
 \toprule
 & Condition & Accuracy & $\Delta$ vs C1 \\
 \midrule
-C7 & Deterministic KG (no LLM) & 3.8\% & $-18.0\pp$ \\
-\midrule
 C1 & LLM Alone & 21.8\% & --- \\
+C2 & + Vanilla RAG & 50.5\% & $+28.7\pp$ * \\
 C3 & + KG-RAG (no assertions) & 50.0\% & $+28.2\pp$ * \\
 C4g & + Intent-Aware KG-RAG & \textbf{69.0\%} & $+47.2\pp$ * \\
 \midrule
 C6 & Long Context (all notes) & 39.0\% & $+17.2\pp$ \\
+C7 & Deterministic KG (no LLM) & 3.8\% & $-18.0\pp$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The bookend baselines bracket the design space: C7 (deterministic KG, no LLM) achieves 3.8\%---only negation detection works (13.6\%) via stored assertion metadata---confirming that an LLM is essential for reasoning over graph evidence.
-C6 (all notes concatenated) scores 39.0\%, outperforming C1 ($+17.2\pp$) because it at least provides clinical text for the model to reason over, but it still falls far short of C4g and catastrophically fails on historical (0\%) and sequence (0\%).
-Intent-aware KG-RAG (C4g) reaches 69.0\% ($+47.2\pp$ vs.\ C1; 95\% BCa CI: \ci{+40.9\pp}{+52.8\pp}; patient-level cluster bootstrap: \ci{+40.2\pp}{+52.5\pp}; McNemar $\chi^2 = 157.1$, $p < 10^{-6}$), confirming that question-type-specific graph traversal is critical.
+Intent-aware KG-RAG (C4g) reaches 69.0\% ($+47.2\pp$ vs.\ C1; 95\% BCa CI: \ci{+40.9\pp}{+52.8\pp}; patient-level cluster bootstrap: \ci{+40.2\pp}{+52.5\pp}; McNemar $\chi^2 = 157.1$, $p < 10^{-6}$).
 Without retrieval, the model mostly abstains or produces vague responses that fail keyword matching; with structured retrieval, it produces substantive correct answers.
+The bookend baselines bracket the design space: C6 (all notes concatenated) scores 39.0\%, outperforming C1 ($+17.2\pp$) because it provides clinical text, but catastrophically fails on historical (0\%) and sequence (0\%); C7 (deterministic KG, no LLM) achieves 3.8\%---only negation detection works (13.6\%) via stored assertion metadata---confirming that an LLM is essential for reasoning over graph evidence.
 
-\paragraph{Ablation decomposition: retrieval vs.\ epistemic annotations.}
-C3 (KG-RAG without assertions) scores 50.0\%, decomposing the C1$\to$C4g gain into two additive components: structured retrieval alone contributes $+28.2\pp$ (C1$\to$C3; 95\% BCa CI: \ci{+22.3\pp}{+34.0\pp}), while epistemic annotations and intent-aware routing contribute a further $+19.0\pp$ (C3$\to$C4g; CI: \ci{+13.8\pp}{+24.0\pp})---both significant, with a roughly 60/40 split.
-The change category is the smoking gun: C3 achieves only 16.7\% without assertion metadata, while C4g reaches 100\% ($+83.3\pp$ from C3), because change detection requires comparing assertion states across admissions---exactly the metadata C3 strips.
-Conversely, sequence reasoning benefits more from graph structure (C3: 57.5\%) than from assertions (C4g: 65.0\%, $+7.5\pp$), since temporal ordering is partially recoverable from document structure alone.
+\paragraph{Ablation decomposition: retrieval vs.\ graph structure vs.\ epistemic annotations.}
+C2 (vanilla TF-IDF document retrieval) and C3 (graph-augmented retrieval without assertions) score nearly identically overall---50.5\% and 50.0\%, respectively---demonstrating that graph structure alone does not outperform simple document retrieval in aggregate.
+However, per-category patterns diverge: C3 excels on current state (54\% vs.\ 32\%) where graph structure helps identify active conditions, while C2 outperforms C3 on change (33\% vs.\ 17\%) where raw text explicitly mentions medication changes.
+Neither approaches C4g (69.0\%), which adds epistemic annotations and intent-aware routing ($+19.0\pp$ over C3; 95\% BCa CI: \ci{+13.8\pp}{+24.0\pp}).
+The change category remains the smoking gun: C2 reaches 33.3\%, C3 only 16.7\%, but C4g achieves 100\%---because change detection requires comparing assertion states across admissions, which neither vanilla retrieval nor assertion-stripped graphs can provide.
+C2 also serves as the closest analog to existing medical RAG systems (DoctorRAG, MedRAG), which use document retrieval without assertion-aware graph structure; the $+18.5\pp$ C2$\to$C4g gap quantifies the value of epistemic KG-RAG over vanilla approaches.
 
 \paragraph{Evaluator bias.}
 The keyword evaluator's abstention gate disproportionately penalizes C1, where the model correctly recognizes it lacks retrieval context and abstains.
-This inflates the apparent C1$\to$C4g gap; the preregistered physician adjudication (Section~\ref{sec:results:physician}) will quantify any systematic evaluator bias.
+This may inflate the apparent C1$\to$C4g gap; the preregistered physician adjudication (Section~\ref{sec:results:physician}) will quantify any systematic evaluator bias.
 
 % ----------------------------------------------------------
 \subsection{Category$\times$Condition Interaction}
@@ -50,25 +51,25 @@ This inflates the apparent C1$\to$C4g gap; the preregistered physician adjudicat
 
 \begin{table}[t]
 \centering
-\caption{ClinicalBench per-category accuracy (\%) across conditions (Claude Opus 4.6, evaluator v2). C3 adds structured retrieval without assertions; C4g adds epistemic annotations and intent-aware routing. Best per row in \textbf{bold}.}
+\caption{ClinicalBench per-category accuracy (\%) across conditions (Claude Opus 4.6, evaluator v2). C2 adds vanilla document retrieval; C3 adds graph-structured retrieval without assertions; C4g adds epistemic annotations and intent-aware routing. Best per row in \textbf{bold}.}
 \label{tab:clinicalbench_categories}
 \small
 \begin{tabular}{@{}lcccccl@{}}
 \toprule
-Category & $n$ & C6 & C1 & C3 & C4g & C4g$-$C1 \\
+Category & $n$ & C1 & C2 & C3 & C4g & C4g$-$C1 \\
 \midrule
-Negation & 110 & 69.1 & 45.5 & 65.5 & \textbf{80.9} & $\uparrow 35.5\pp$ \\
-Conditional & 20 & 35.0 & 0.0 & 30.0 & \textbf{45.0} & $\uparrow 45.0\pp$ \\
-Uncertainty & 40 & 27.5 & 12.5 & 37.5 & \textbf{50.0} & $\uparrow 37.5\pp$ \\
-Family hist. & 30 & 43.3 & 3.3 & 43.3 & \textbf{56.7} & $\uparrow 53.3\pp$ \\
-Sequence & 40 & 0.0 & 10.0 & 57.5 & \textbf{65.0} & $\uparrow 55.0\pp$ \\
+Negation & 110 & 45.5 & 70.9 & 65.5 & \textbf{80.9} & $\uparrow 35.5\pp$ \\
+Conditional & 20 & 0.0 & 35.0 & 30.0 & \textbf{45.0} & $\uparrow 45.0\pp$ \\
+Uncertainty & 40 & 12.5 & 35.0 & 37.5 & \textbf{50.0} & $\uparrow 37.5\pp$ \\
+Family hist. & 30 & 3.3 & 43.3 & 43.3 & \textbf{56.7} & $\uparrow 53.3\pp$ \\
+Sequence & 40 & 10.0 & 50.0 & 57.5 & \textbf{65.0} & $\uparrow 55.0\pp$ \\
 \midrule
-Current st. & 50 & 44.0 & 26.0 & 54.0 & \textbf{70.0} & $\uparrow 44.0\pp$ \\
-Duration & 30 & 66.7 & 30.0 & 60.0 & \textbf{66.7} & $\uparrow 36.7\pp$ \\
-Historical & 50 & 0.0 & 6.0 & 42.0 & \textbf{60.0} & $\uparrow 54.0\pp$ \\
-Change & 30 & 23.3 & 6.7 & 16.7 & \textbf{100.0} & $\uparrow 93.3\pp$ \\
+Current st. & 50 & 26.0 & 32.0 & 54.0 & \textbf{70.0} & $\uparrow 44.0\pp$ \\
+Duration & 30 & 30.0 & 66.7 & 60.0 & \textbf{66.7} & $\uparrow 36.7\pp$ \\
+Historical & 50 & 6.0 & 48.0 & 42.0 & \textbf{60.0} & $\uparrow 54.0\pp$ \\
+Change & 30 & 6.7 & 33.3 & 16.7 & \textbf{100.0} & $\uparrow 93.3\pp$ \\
 \midrule
-\textbf{Overall} & \textbf{400} & 39.0 & 21.8 & 50.0 & \textbf{69.0} & $\uparrow 47.2\pp$ \\
+\textbf{Overall} & \textbf{400} & 21.8 & 50.5 & 50.0 & \textbf{69.0} & $\uparrow 47.2\pp$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -76,7 +77,7 @@ Change & 30 & 23.3 & 6.7 & 16.7 & \textbf{100.0} & $\uparrow 93.3\pp$ \\
 \begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/fig2_radar.pdf}
-\caption{ClinicalBench per-category accuracy across four conditions (C6, C1, C3, C4g; Claude Opus 4.6, evaluator v2). C6 (pink dash-dot) collapses on historical and sequence (both 0\%); C1 (gray dotted) falls below 50\% on 7 of 9 categories; C3 (orange dashed) shows structured retrieval without assertions; C4g (dark solid) adds epistemic annotations, improving all 9 categories over C1. The C3$\to$C4g gap on change (16.7\%$\to$100\%) highlights the critical role of assertion metadata.}
+\caption{ClinicalBench per-category accuracy across five conditions (C6, C1, C2, C3, C4g; Claude Opus 4.6, evaluator v2). C6 (pink dash-dot) collapses on historical and sequence (both 0\%); C1 (gray dotted) falls below 50\% on 7 of 9 categories; C2 (light blue) and C3 (orange dashed) overlap at ${\sim}50\%$ overall but diverge per category; C4g (dark solid) adds epistemic annotations, improving all 9 categories over C1. The C3$\to$C4g gap on change (16.7\%$\to$100\%) highlights the critical role of assertion metadata.}
 \label{fig:radar}
 \end{figure}
 
@@ -113,7 +114,7 @@ Medical & MedGemma 27B & 26.2\% & 57.8\% & $+31.5\pp$ \\
 \end{tabular}
 \end{table}
 
-All three models benefit substantially from KG-RAG (Table~\ref{tab:crossmodel}), with the magnitude inversely related to parametric medical knowledge.
+All three models benefit substantially from KG-RAG (Table~\ref{tab:crossmodel}), with the magnitude consistent with an inverse relationship to parametric medical knowledge.
 Opus gains $+47.2\pp$, GPT-OSS gains $+37.5\pp$, and MedGemma---the only model fine-tuned on medical corpora---gains $+31.5\pp$.
 Notably, MedGemma starts with the highest C1 baseline (26.2\%) yet achieves the lowest C4g accuracy (57.8\%), while Opus starts at 21.8\% but reaches 69.0\% with retrieval.
 
@@ -148,4 +149,4 @@ The incremental KG layer (B2$\rightarrow$B3) contributes $+2.2\pp$ overall (CI: 
 \subsection{Physician Adjudication}
 \label{sec:results:physician}
 
-A two-physician blinded adjudication ($n=120$ ClinicalBench questions $\times$ 2 conditions, Cohen's $\kappa$ for inter-rater reliability) is preregistered to validate automated scoring; the protocol and blinded scoring sheets (Appendix~\ref{app:physician_protocol}) were designed before examining results. \emph{Results are pending.}
+A two-physician blinded adjudication ($n=168$ ClinicalBench questions $\times$ 2 conditions, Cohen's $\kappa$ for inter-rater reliability) is preregistered to validate automated scoring; the protocol and blinded scoring sheets (Appendix~\ref{app:physician_protocol}) were designed before examining results. \emph{Results are pending.}

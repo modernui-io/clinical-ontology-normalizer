@@ -24,11 +24,12 @@ Possible and suspected conditions are linguistically subtle (``consider statin,'
 
 \paragraph{Limitations.}
 \begin{sloppypar}
-Sample size is modest: ClinicalBench covers 45 patients (400 questions) and SliceBench 6 patients (144 questions), both from MIMIC-IV~\cite{johnson2023mimiciv}.
+Sample size is modest: ClinicalBench covers 43 patients (400 questions) and SliceBench 6 patients (144 questions), both from MIMIC-IV~\cite{johnson2023mimiciv}.
 The B2$\rightarrow$B3 CI crosses zero (\ci{-1.5\pp}{+5.9\pp}); tier-level estimates ($n\!=\!2$ patients per tier) are hypothesis-generating only.
 Model-dependent effects mean headline gains are specific to Opus; gains differ across models (Table~\ref{tab:crossmodel}).
 The keyword evaluator may miss semantically correct answers; physician adjudication (Section~\ref{sec:results:physician}) will address this.
-This is an ablation study; comparisons with medical RAG systems~\cite{luo2025gfmrag,jiang2025kare,lu2025doctorrag} were not performed because these target factoid QA rather than patient-level longitudinal reasoning.
+This is an ablation study; direct comparisons with medical RAG systems~\cite{luo2025gfmrag,jiang2025kare,lu2025doctorrag} were not performed because these target factoid QA rather than patient-level longitudinal reasoning.
+C2 (vanilla TF-IDF document retrieval, 50.5\%) serves as the closest proxy for these systems on our task, demonstrating that vanilla retrieval reaches roughly the same aggregate accuracy as graph-augmented retrieval without assertions (C3, 50.0\%) but both fall ${\sim}19\pp$ short of epistemic KG-RAG (C4g, 69.0\%).
 Patient-level cluster bootstrap CIs (Appendix Table~\ref{tab:stats_summary}) are slightly wider than question-level CIs but all primary endpoints remain significant; the 43-patient sample nonetheless limits generalization.
 MedGemma run-to-run variance ($\pm 10\pp$) arises from GPU non-determinism in 4-bit quantized inference.
 Over-reliance on KG-driven summaries risks anchoring bias if NLP extraction introduces systematic errors; single-site evaluation (US academic center) leaves generalization unvalidated (Appendix~\ref{app:ethics}).
