@@ -5,7 +5,7 @@ A physician documents ``patient denies chest pain, sister had MI at 45, will con
 Clinical NLP can detect these assertions accurately~\cite{uzuner2011i2b2assertion, gul2025beyondnegation}, yet when a RAG system ingests the same note, assertion context is flattened: negation is lost, family attribution collapses onto the patient, and downstream reasoning may conclude the patient \emph{has} chest pain and \emph{had} an MI.
 We call this the \emph{epistemic propagation gap}---the systematic loss of assertion status as clinical information moves from extraction through storage to retrieval.
 
-The gap persists because no KG-RAG system, to our knowledge, propagates assertion labels beyond the extraction stage into graph-augmented retrieval.
+The gap persists because, to our knowledge, prior KG-RAG systems do not propagate assertion labels beyond the extraction stage into graph-augmented retrieval.
 Clinical NLP pipelines (cTAKES, John Snow Labs) detect assertions, but do not carry them as edge attributes into knowledge graph construction or retrieval.
 OMOP (Observational Medical Outcomes Partnership) excludes negated conditions from \texttt{CONDITION\_OCCURRENCE}~\cite{omop2024}; FHIR (Fast Healthcare Interoperability Resources) provides \texttt{verificationStatus} for \texttt{Condition} resources only, covering a fraction of the clinical data model.
 Graph-augmented RAG systems---GraphRAG~\cite{edge2024graphrag}, GFM-RAG~\cite{luo2025gfmrag}, KARE~\cite{jiang2025kare}, Medical-Graph-RAG~\cite{wu2025medicalgraphrag}---build KGs that discard the metadata distinguishing ``patient has diabetes'' from ``rule out diabetes.''
@@ -27,8 +27,8 @@ Our contributions:
 \end{enumerate}
 
 The central research question is: \emph{under what conditions does structured epistemic context help, hurt, or break even compared to unstructured retrieval or no retrieval at all?}
-The answer is decisive: intent-aware KG-RAG improves all 9 categories, with the largest gains on longitudinal reasoning that requires cross-admission synthesis.
+Empirically, we observe: intent-aware KG-RAG improves every category, with the largest gains on longitudinal reasoning that requires cross-admission synthesis.
 An ablation decomposition shows that structured retrieval provides the majority of the gain ($+28\pp$); epistemic annotations are critical for change detection, where assertion metadata alone accounts for an $+83\pp$ jump.
-Brute-force long context collapses on historical and sequence categories despite a 200K token window.
+Brute-force long context fails on historical and sequence categories despite a 200K token window.
 Cross-model validation shows the benefit is consistent with an inverse relationship to parametric medical knowledge, suggesting a knowledge-compensator effect.
 The magnitude and direction of the effect are both category- and model-specific, producing interactions that aggregate accuracy alone obscures (Section~\ref{sec:results}).

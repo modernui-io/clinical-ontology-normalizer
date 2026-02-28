@@ -32,13 +32,16 @@ C7 & Deterministic KG (no LLM) & 3.8\% & $-18.0\pp$ \\
 
 Intent-aware KG-RAG (C4g) reaches 69.0\% ($+47.2\pp$ vs.\ C1; 95\% BCa CI: \ci{+40.9\pp}{+52.8\pp}; patient-level cluster bootstrap: \ci{+40.2\pp}{+52.5\pp}; McNemar $\chi^2 = 157.1$, $p < 10^{-6}$).
 Without retrieval, the model mostly abstains or produces vague responses that fail keyword matching; with structured retrieval, it produces substantive correct answers.
-The bookend baselines bracket the design space: C6 (all notes concatenated) scores 39.0\%, outperforming C1 ($+17.2\pp$) because it provides clinical text, but catastrophically fails on historical (0\%) and sequence (0\%); C7 (deterministic KG, no LLM) achieves 3.8\%---only negation detection works (13.6\%) via stored assertion metadata---confirming that an LLM is essential for reasoning over graph evidence.
+The bookend baselines bracket the design space.
+C6 (all notes concatenated) scores 39.0\%, outperforming C1 ($+17.2\pp$) because it provides clinical text.
+However, C6 fails on historical (0\%) and sequence (0\%), consistent with the ``lost in the middle'' phenomenon when context exceeds what the model can attend to.
+C7 (deterministic KG, no LLM) achieves 3.8\%---only negation detection works (13.6\%) via stored assertion metadata---confirming that an LLM is essential for reasoning over graph evidence.
 
 \paragraph{Ablation decomposition: retrieval vs.\ graph structure vs.\ epistemic annotations.}
-C2 (vanilla TF-IDF document retrieval) and C3 (graph-augmented retrieval without assertions) score nearly identically overall---50.5\% and 50.0\%, respectively---demonstrating that graph structure alone does not outperform simple document retrieval in aggregate.
+C2 (vanilla TF-IDF document retrieval) and C3 (graph-augmented retrieval without assertions) score nearly identically overall---50.5\% and 50.0\%, respectively---demonstrating that graph structure alone does not improve aggregate accuracy over simple document retrieval.
 However, per-category patterns diverge: C3 excels on current state (54\% vs.\ 32\%) where graph structure helps identify active conditions, while C2 outperforms C3 on change (33\% vs.\ 17\%) where raw text explicitly mentions medication changes.
 Neither approaches C4g (69.0\%), which adds epistemic annotations and intent-aware routing ($+19.0\pp$ over C3; 95\% BCa CI: \ci{+13.8\pp}{+24.0\pp}).
-The change category remains the smoking gun: C2 reaches 33.3\%, C3 only 16.7\%, but C4g achieves 100\%---because change detection requires comparing assertion states across admissions, which neither vanilla retrieval nor assertion-stripped graphs can provide.
+The change category provides the clearest category-level evidence: C2 reaches 33.3\%, C3 only 16.7\%, but C4g achieves 100\%---because change detection requires comparing assertion states across admissions, which neither vanilla retrieval nor assertion-stripped graphs can provide.
 C2 also serves as the closest analog to existing medical RAG systems (DoctorRAG, MedRAG), which use document retrieval without assertion-aware graph structure; the $+18.5\pp$ C2$\to$C4g gap quantifies the value of epistemic KG-RAG over vanilla approaches.
 
 \paragraph{Evaluator bias.}
@@ -77,7 +80,7 @@ Change & 30 & 6.7 & 33.3 & 16.7 & \textbf{100.0} & $\uparrow 93.3\pp$ \\
 \begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/fig2_radar.pdf}
-\caption{ClinicalBench per-category accuracy across five conditions (C6, C1, C2, C3, C4g; Claude Opus 4.6, evaluator v2). C6 (pink dash-dot) collapses on historical and sequence (both 0\%); C1 (gray dotted) falls below 50\% on 7 of 9 categories; C2 (light blue) and C3 (orange dashed) overlap at ${\sim}50\%$ overall but diverge per category; C4g (dark solid) adds epistemic annotations, improving all 9 categories over C1. The C3$\to$C4g gap on change (16.7\%$\to$100\%) highlights the critical role of assertion metadata.}
+\caption{ClinicalBench per-category accuracy across five conditions (C6, C1, C2, C3, C4g; Claude Opus 4.6, evaluator v2). C6 (pink dash-dot) fails on historical and sequence (both 0\%); C1 (gray dotted) falls below 50\% on 7 of 9 categories; C2 (light blue) and C3 (orange dashed) overlap at ${\sim}50\%$ overall but diverge per category; C4g (dark solid) adds epistemic annotations, improving all 9 categories over C1. The C3$\to$C4g gap on change (16.7\%$\to$100\%) highlights the critical role of assertion metadata.}
 \label{fig:radar}
 \end{figure}
 

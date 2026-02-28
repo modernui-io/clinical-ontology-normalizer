@@ -10,7 +10,7 @@ C6 handles change detection modestly (23\%) because the relevant information app
 \paragraph{Model-dependent KG benefit.}
 Across the three models tested, KG-RAG benefit is consistent with an inverse relationship to parametric medical knowledge (Table~\ref{tab:crossmodel}).
 The model with the lowest C1 baseline (Opus, 21.8\%) achieves the highest C4g accuracy (69.0\%), while the medically fine-tuned model (MedGemma) starts highest (26.2\%) but gains least under C4g.
-Intent-aware KG-RAG thus functions as a \emph{medical knowledge compensator}: the structured epistemic context partially substitutes for parametric knowledge, providing the largest benefit to models that need it most.
+The cross-model pattern (Table~\ref{tab:crossmodel}) reinforces the knowledge-compensator interpretation: structured epistemic context partially substitutes for parametric knowledge, benefiting general-purpose models most.
 This has practical implications for RAG system design: the same retrieval pipeline may yield different gains depending on the downstream model, and single-model evaluation risks overstating or understating value.
 
 \paragraph{When KG context matters.}
@@ -39,5 +39,5 @@ Over-reliance on KG-driven summaries risks anchoring bias if NLP extraction intr
 The epistemic propagation gap is a real and measurable phenomenon.
 \epikg addresses it through end-to-end epistemic preservation combined with intent-aware retrieval that matches graph traversal to question semantics.
 The C3 ablation decomposes the gain: structured retrieval contributes the majority ($+28\pp$), while epistemic annotations are decisive for change detection ($+83\pp$ from C3 to C4g).
-The benefit is both category-specific (all 9 improve, with the largest gains on longitudinal reasoning) and model-dependent (knowledge-compensator pattern across three models).
+The benefit is both category-specific (every category improves, with the largest gains on longitudinal reasoning) and model-dependent (consistent across three models).
 Neither more context nor structured data alone suffices---C6 and C7 bracket the design space---confirming that the category$\times$condition interaction, not the aggregate, is the right lens for clinical KG-RAG evaluation.

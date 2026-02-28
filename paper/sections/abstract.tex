@@ -1,7 +1,7 @@
 % Abstract
 % NOTE: \begin{abstract} and \end{abstract} are in main.tex
 
-Clinical NLP detects assertion status---negation, uncertainty, family history---yet no KG-RAG system propagates these labels into retrieval-augmented generation.
+Clinical NLP detects assertion status---negation, uncertainty, family history---yet to our knowledge, prior KG-RAG systems do not propagate these labels into retrieval-augmented generation.
 We call this the \emph{epistemic propagation gap}.
 \epikg closes it with a 7-value assertion schema on every edge, tri-temporal modeling, and intent-aware retrieval that dispatches question-type-specific graph traversals.
 On ClinicalBench ($n=400$, MIMIC-IV, Claude Opus 4.6), intent-aware KG-RAG achieves 69\% ($+47\pp$ vs.\ LLM alone), improving all 9 categories.
