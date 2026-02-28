@@ -1,0 +1,2421 @@
+{
+  "condition_id": "C7_deterministic",
+  "label": "Deterministic KG (No LLM)",
+  "accuracy": 0.0375,
+  "correct": 15,
+  "total": 400,
+  "safety": -0.3076923076923077,
+  "category_accuracies": {
+    "negation": 0.13636363636363635,
+    "conditional": 0.0,
+    "uncertainty": 0.0,
+    "family_history": 0.0,
+    "sequence": 0.0,
+    "current_state": 0.0,
+    "duration": 0.0,
+    "historical": 0.0,
+    "change": 0.0
+  },
+  "per_question": [
+    {
+      "question_id": "bench_a_negation_f500d64e",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_conditional_b9464ee7",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_uncertainty_4d840683",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_negation_36dc36ff",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_uncertainty_3d8cd3fc",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_426541c7",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_negation_d77aa1a3",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_3276c129",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_cad47ef1",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_5e397dc9",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_uncertainty_eab1a2aa",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_conditional_e9039cad",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_uncertainty_06127456",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_negation_c9423896",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_family_f02d2f93",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_d18c55c9",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_negation_fef1ecbe",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_uncertainty_7f556b28",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_negation_14a95ee6",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_682baac8",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_family_83f2914e",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_negation_0307e908",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_820b44df",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_uncertainty_4a24e140",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_conditional_f726e827",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_family_cc28a974",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_negation_cbf1cffe",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_uncertainty_8ecc1d7c",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_negation_01a73bf1",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_6e31efd4",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_85011728",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_uncertainty_a00a0522",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_negation_e47c8755",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_68d98585",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_family_1d1c4d1c",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_negation_e092d16b",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_d0d73973",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_f7e82d5c",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_4b4c1918",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_conditional_787343d7",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_conditional_0e65a291",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_negation_c2fa4a95",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_97d5979a",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_family_fc035c9e",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_family_57033e90",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_negation_d9248c83",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_uncertainty_d6b5569b",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_20e90dbf",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_negation_101fe4b1",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_uncertainty_50872b09",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_b9c4f4da",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_negation_e0d14e20",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_uncertainty_f732cfb2",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_family_04048280",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_negation_fd91174a",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_f98d6227",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_family_080e16ca",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_negation_571402c6",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_4e7987f4",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_0c96eb95",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_uncertainty_2bcdd5ac",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_negation_f4e295fe",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_family_d67e82f4",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_conditional_568cb9c0",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_uncertainty_f7ea98b9",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_negation_9a3f583a",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_uncertainty_42910b3f",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_negation_d94f12ab",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_8404b54e",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_conditional_f36d9cd4",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_family_b357e0c4",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_conditional_084fc490",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_negation_f5180c2d",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_2e78b44f",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_family_fa01d58d",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_negation_f6b96944",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_uncertainty_e88c624f",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_negation_293d4ffe",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_13d53907",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_6ad5d7aa",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_61a7e4c2",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_uncertainty_2705ec9f",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_6ac1b034",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_1ffb8dc8",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_family_ac587eb0",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_negation_1e6ae1bc",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_fb21a2c7",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_family_e5d23003",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_uncertainty_ad024aba",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_conditional_7c798644",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_negation_f913fb0a",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_3fad7aa3",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_family_52945d44",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_uncertainty_d5f6cea3",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_family_a66f568f",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_negation_4ac02e8d",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_84a2e98b",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_conditional_8a1a4b9e",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_uncertainty_45a842fd",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_negation_b3cdd3b2",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_conditional_79224dcd",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_negation_249c840f",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_c8173932",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_conditional_b7b33db2",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_negation_4861b394",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_dd685a2b",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_uncertainty_f04bcd77",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_2f1a4469",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_negation_0de6708e",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_uncertainty_bb90a843",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_conditional_aca13f49",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_uncertainty_ff0b7361",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_negation_f6537c21",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_645e608e",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_family_c12f9ed9",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_uncertainty_23f60748",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_family_83019bb5",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_uncertainty_7c8a132d",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_34cca5f5",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_negation_16195e06",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_932876c3",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_e8f8698f",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_33b33f87",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_1403b8e4",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_family_2a6d3070",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_uncertainty_1d230654",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_negation_3904ad35",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_956540b2",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_f407afe0",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_a5af105f",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_a94bed8f",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_fb05d352",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_40db7f62",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_uncertainty_c5a5ba78",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_negation_d249558e",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_family_bb61feaa",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_negation_8a621be9",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_conditional_98cef13a",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_family_560de630",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_negation_4138bbc9",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_235e2a87",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_family_c406e4ba",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_negation_05b38a01",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_badb881d",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_23cc9ce7",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_696df2d6",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_family_92abe3c7",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_negation_d10e395d",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_179dfa67",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_513de8bf",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_uncertainty_1c0c6ece",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_uncertainty_6a3e32c7",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_negation_89a2a540",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_7ee3c757",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_23c212a7",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_2267edf5",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_971c89dd",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_52386b31",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_conditional_a761e242",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_negation_b0779d1a",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_42c8d97e",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_conditional_3eb03d40",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_negation_43343ed2",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_family_b807c369",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_negation_9473ed98",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_conditional_b0479c71",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_negation_fda15327",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_6c26bc17",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_106dd7e2",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_family_fded0cbd",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_uncertainty_123f4464",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_negation_d4219eba",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_uncertainty_66ce4150",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_negation_6f8ef34c",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_family_c973d63a",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_negation_623b94ec",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_family_0997e312",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_negation_e78da7e6",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_family_ebad349d",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_uncertainty_e2f40386",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_negation_20397dbf",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_0e18ae69",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_8c3e3535",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_d847293f",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_57112dd0",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_uncertainty_e55a99fb",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_family_60efbaa6",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_a_negation_4e2a8187",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_uncertainty_94a62330",
+      "correct": false,
+      "score": 0.0,
+      "category": "uncertainty"
+    },
+    {
+      "question_id": "bench_a_conditional_309600b2",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_negation_7c1a4038",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_conditional_f84ce693",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_negation_dd042427",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_c8226f8e",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_2911192f",
+      "correct": true,
+      "score": 1.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_7d948b18",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_conditional_178b9eb5",
+      "correct": false,
+      "score": 0.0,
+      "category": "conditional"
+    },
+    {
+      "question_id": "bench_a_negation_21c8c64d",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_negation_130970cd",
+      "correct": false,
+      "score": 0.0,
+      "category": "negation"
+    },
+    {
+      "question_id": "bench_a_family_240897df",
+      "correct": false,
+      "score": 0.0,
+      "category": "family_history"
+    },
+    {
+      "question_id": "bench_b_seq_2fc0d0e1",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_current_state_5e677ee6",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_57ee4127",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_dur_9aac4d9f",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_historical_fa44308d",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_20d74443",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_272efd04",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_seq_76233349",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_historical_47333321",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_a701eaf4",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_current_state_3fad479a",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_historical_a29de042",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_e8241796",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_chg_799b8ee4",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_historical_99912897",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_651babd4",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_chg_551986f4",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_seq_e2ff5594",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_historical_36e6e499",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_current_state_50d8fed0",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_chg_7bfd6ae3",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_historical_aa62353e",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_chg_3b4387cb",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_dur_e06e4775",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_current_state_2c71ab72",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_chg_3af4dea4",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_seq_bb930318",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_dur_1058f8b7",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_current_state_b69620a8",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_29384c98",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_dur_7321b24c",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_e750dcc2",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_seq_50429da1",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_current_state_ea719b94",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_seq_7f016097",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_current_state_b15b05f6",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_seq_a6bac5fb",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_historical_7e91845c",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_chg_d41272ec",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_seq_02b5c47c",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_dur_3585eef3",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_current_state_fe80e1f3",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_dur_765d3190",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_chg_e934a618",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_historical_4d8e2ad9",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_dur_61f47488",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_chg_9b769505",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_historical_f27baba4",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_chg_a2d2f2df",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_56805338",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_historical_4c647635",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_chg_63fd19b7",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_current_state_1b767c4a",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_historical_b2d36cd9",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_982731de",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_current_state_a49952ca",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_historical_be870c2d",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_seq_3399e938",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_dur_5423a583",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_current_state_351fb38e",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_dur_adcd04fb",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_seq_b53f6c33",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_current_state_1f2194cb",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_seq_b0d0c8a4",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_current_state_cf722731",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_historical_09d3ea63",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_current_state_89423fc7",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_historical_a5b0cd1f",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_dur_04bba7f9",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_historical_bf929993",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_c9f4d6b7",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_chg_c1ed937c",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_seq_75335843",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_d701be1b",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_4acb1eb0",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_chg_4ce4b0e5",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_chg_b34b5572",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_current_state_7080eb03",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_ab1c0783",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_dur_d4e27cc6",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_current_state_0e1ad5ef",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_1d916acd",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_b4ef73e0",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_historical_fb74ed07",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_d786bffa",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_chg_7eaa968e",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_historical_635032b4",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_b16478e7",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_seq_dbe2e232",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_current_state_dd21fc0b",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_6053376a",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_historical_96300f55",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_seq_5afdd873",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_current_state_3d4c282b",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_48d18a00",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_seq_6a58114f",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_historical_18b62e05",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_chg_8710f477",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_dur_99a99dcb",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_seq_13e249a4",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_dur_2483a94a",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_current_state_0136c1a6",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_historical_1080e564",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_seq_9c168c92",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_historical_757a7f78",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_chg_c86d8b22",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_historical_4290eb4f",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_current_state_4e36b2bb",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_seq_c3ffaa9b",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_historical_b41b0643",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_dur_79178b50",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_historical_38cdc8ef",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_current_state_dfa75737",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_historical_b7386de2",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_444cc10a",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_seq_b2053490",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_historical_f0c21b59",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_dur_9a7579d3",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_current_state_cd3a6d9f",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_dur_44f27bb7",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_current_state_326ba4c8",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_chg_4394e1c9",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_current_state_e60414c9",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_seq_6e5dfbac",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_current_state_9453ec83",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_seq_ee9cbddb",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_current_state_9a0fed0b",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_seq_6a9703ee",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_chg_16bf0d62",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_dur_e7e5e5f1",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_current_state_0579e25a",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_dur_f5120145",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_current_state_2f92af44",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_21894283",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_dur_f717e466",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_seq_553c0b7e",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_historical_2eebdbb4",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_current_state_6824e5ae",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_seq_fe472053",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_chg_5675cecb",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_historical_b9ce115e",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_dur_6c498e2a",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_historical_cfd13383",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_3ba61094",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_chg_4b1262d4",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_seq_429a73f8",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_dur_3155170d",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_seq_95635373",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_dur_57a305bc",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_current_state_c72071fe",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_chg_e347a4fe",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_historical_a3143fbf",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_dur_a8089cad",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_current_state_96ef4bd2",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_seq_8edc10b0",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_chg_fd1db324",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_dur_c8b1f3aa",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_5143ceff",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_current_state_a9a50ac4",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_18236822",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_df7d349b",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_seq_0ae41c1a",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_chg_beb2c0ab",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_current_state_cd6e0903",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_seq_e3d7e0d1",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_0db29eb5",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_3896bfc0",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_dur_b14b3517",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_current_state_821bb864",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_chg_d68a2fcd",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_historical_1c8bd655",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_chg_9fe27a5b",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_seq_08a5bc5c",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_dur_efdc513d",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_current_state_6c5caba6",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_historical_dd28f2b3",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_28252ff2",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_current_state_fe918698",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_current_state_8a04029e",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_chg_b05d1279",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_dur_023d1fb6",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_dur_3efd8123",
+      "correct": false,
+      "score": 0.0,
+      "category": "duration"
+    },
+    {
+      "question_id": "bench_b_chg_55fcfc07",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_seq_8877125e",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_historical_b14ec163",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_seq_0c691eb8",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_historical_8b923b7c",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_historical_50b91d5e",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_current_state_e84d9e91",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_historical_4162c093",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_chg_d8ecd86b",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    },
+    {
+      "question_id": "bench_b_current_state_0a964177",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_seq_b8f793c1",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_historical_2dc77dfe",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_seq_9d3c7a86",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_d481f0fa",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_seq_56a31237",
+      "correct": false,
+      "score": 0.0,
+      "category": "sequence"
+    },
+    {
+      "question_id": "bench_b_current_state_83fa18c5",
+      "correct": false,
+      "score": 0.0,
+      "category": "current_state"
+    },
+    {
+      "question_id": "bench_b_historical_321a5bbe",
+      "correct": false,
+      "score": 0.0,
+      "category": "historical"
+    },
+    {
+      "question_id": "bench_b_chg_bf95749e",
+      "correct": false,
+      "score": 0.0,
+      "category": "change"
+    }
+  ]
+}

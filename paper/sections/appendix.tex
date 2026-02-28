@@ -315,16 +315,16 @@ Negation & 110 & 13.6 & 69.1 & 45.5 & 70.9 & 65.5 & 80.9 \\
 Conditional & 20 & 0.0 & 35.0 & 0.0 & 35.0 & 30.0 & 45.0 \\
 Uncertainty & 40 & 0.0 & 27.5 & 12.5 & 35.0 & 37.5 & 50.0 \\
 Family History & 30 & 0.0 & 43.3 & 3.3 & 43.3 & 43.3 & 56.7 \\
-Sequence & 40 & 0.0 & 0.0 & 10.0 & 50.0 & 57.5 & 65.0 \\
+Sequence & 40 & 0.0 & 0.0 & 10.0 & 60.0 & 57.5 & 65.0 \\
 Current State & 50 & 0.0 & 44.0 & 26.0 & 32.0 & 54.0 & 70.0 \\
 Duration & 30 & 0.0 & 66.7 & 30.0 & 66.7 & 60.0 & 66.7 \\
 Historical & 50 & 0.0 & 0.0 & 6.0 & 48.0 & 42.0 & 60.0 \\
-Change & 30 & 0.0 & 23.3 & 6.7 & 33.3 & 16.7 & 100.0 \\
+Change & 30 & 0.0 & 23.3 & 6.7 & 43.3 & 16.7 & 100.0 \\
 \midrule
-\textbf{Overall} & \textbf{400} & \textbf{3.8} & \textbf{39.0} & \textbf{21.8} & \textbf{50.5} & \textbf{50.0} & \textbf{69.0} \\
+\textbf{Overall} & \textbf{400} & \textbf{3.8} & \textbf{39.0} & \textbf{21.8} & \textbf{52.2} & \textbf{50.0} & \textbf{69.0} \\
 \bottomrule
 \end{tabular}
-\caption{Complete ClinicalBench per-category accuracy (\%, Claude Opus 4.6, keyword evaluator v2) for all conditions. C7 is model-independent; C2 adds vanilla document retrieval; C3 adds graph-structured retrieval without assertion metadata. C2 and C3 are nearly identical overall (${\sim}50\%$) but diverge per category. All 9 categories improve from C1 to C4g; the largest gains occur on change ($+93\pp$), sequence ($+55\pp$), and historical ($+54\pp$). C3$\to$C4g on change ($+83\pp$) isolates the epistemic annotation contribution.}
+\caption{Complete ClinicalBench per-category accuracy (\%, Claude Opus 4.6, keyword evaluator v2) for all conditions. C7 is model-independent; C2 adds vanilla document retrieval; C3 adds graph-structured retrieval without assertion metadata. C2 and C3 score similarly overall (${\sim}50\text{--}52\%$) but diverge per category. All 9 categories improve from C1 to C4g; the largest gains occur on change ($+93\pp$), sequence ($+55\pp$), and historical ($+54\pp$). C3$\to$C4g on change ($+83\pp$) isolates the epistemic annotation contribution.}
 \label{tab:full_percategory}
 \end{table}
 
@@ -427,7 +427,7 @@ MedGemma C4g has 399 predictions (1 timeout); the missing question is scored as 
 Condition & Model & Checkpoint file & $n$ \\
 \midrule
 C1 & Opus 4.6 & \texttt{opus/C1\_llm\_alone.json} & 400 \\
-C2 & Opus 4.6 & \texttt{opus/C2\_vanilla\_rag.json} & 392* \\
+C2 & Opus 4.6 & \texttt{opus/C2\_vanilla\_rag.json} & 400 \\
 C3 & Opus 4.6 & \texttt{opus/C3\_kg\_rag.json} & 400 \\
 C4g & Opus 4.6 & \texttt{opus/C4g\_intent\_aware.json} & 400 \\
 C6 & Opus 4.6 & \texttt{opus/C6\_long\_context.json} & 400 \\
@@ -439,8 +439,7 @@ C4g & MedGemma 27B & \texttt{medgemma/C4g\_intent\_aware.json} & 399* \\
 C1 & GPT-OSS 20B & \texttt{gptoss/C1\_llm\_alone.json} & 400 \\
 C4g & GPT-OSS 20B & \texttt{gptoss/C4g\_intent\_aware.json} & 400 \\
 \bottomrule
-\multicolumn{4}{@{}l}{\footnotesize *C2: 8 sequence questions returned empty (retrieval timeout); MedGemma C4g: 1 timeout.} \\
-\multicolumn{4}{@{}l}{\footnotesize \phantom{*}All missing answers scored as incorrect for $n=400$ denominator.}
+\multicolumn{4}{@{}l}{\footnotesize *MedGemma C4g: 1 timeout; missing answer scored as incorrect for $n=400$ denominator.}
 \end{tabular}
 \end{table}
 
