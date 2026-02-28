@@ -104,7 +104,7 @@ Under the v2 evaluator with abstention detection, C1 drops sharply because the m
 \begin{sloppypar}
 The largest gains occur on categories requiring cross-admission synthesis: change ($+93\pp$), sequence ($+55\pp$), historical ($+54\pp$), family history ($+53\pp$), conditional ($+45\pp$), and current state ($+44\pp$).
 On the hard longitudinal subset (change + current state + historical, $n=130$), C4g outperforms C1 by $+59.2\pp$ (95\% BCa CI: \ci{+49.2\pp}{+67.7\pp}; patient-level: \ci{+48.6\pp}{+69.4\pp}).
-All nine category improvements exceed $+35\pp$ (Appendix Figure~\ref{fig:deltas}).
+All nine category improvements exceed $+35\pp$ (Appendix Figure~\ref{fig:deltas}, right panel); the left and middle panels decompose the C3$\rightarrow$C4g gain into assertion metadata (C3$\rightarrow$C4) and intent routing (C4$\rightarrow$C4g), showing that assertions alone help assertion-sensitive categories but degrade temporal ones.
 C6 fails catastrophically on historical (0\%) and sequence (0\%) despite Opus's 200K window, confirming that long context cannot substitute for structured retrieval on these categories.
 \end{sloppypar}
 
