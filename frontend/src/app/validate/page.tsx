@@ -844,6 +844,14 @@ export default function ValidatePage() {
                 <CardTitle className="text-lg">
                   {currentItem.question}
                 </CardTitle>
+                {/* Interpretation hint for longitudinal questions */}
+                {currentItem.hadm_ids && currentItem.hadm_ids.length >= 2 &&
+                  /between admissions|changed|change|differ|compar/i.test(currentItem.question) && (
+                  <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1 mt-1">
+                    <strong>Interpretation guide:</strong> Compare the <em>discharge</em> medication/problem lists from each admission.
+                    &quot;Between admissions&quot; = Discharge 1 vs Discharge 2 (not admission-to-admission).
+                  </p>
+                )}
                 <CardDescription>
                   {currentItem.question_id} | {currentItem.section || "N/A"} |{" "}
                   {currentItem.domain || "N/A"}
@@ -971,20 +979,40 @@ export default function ValidatePage() {
                               No clinical notes found for this patient in the database.
                             </p>
                           )}
-                          {!notesLoading && clinicalNotes.length > 0 && (
+                          {!notesLoading && clinicalNotes.length > 0 && (() => {
+                            // Sort notes chronologically by mimic_note_id suffix (e.g., DS-19 before DS-20)
+                            const sortedNotes = [...clinicalNotes].sort((a, b) => {
+                              const metaA = a.metadata as Record<string, string> | undefined;
+                              const metaB = b.metadata as Record<string, string> | undefined;
+                              const idA = metaA?.mimic_note_id || "";
+                              const idB = metaB?.mimic_note_id || "";
+                              const numA = parseInt(idA.split("-").pop() || "0", 10);
+                              const numB = parseInt(idB.split("-").pop() || "0", 10);
+                              return numA - numB;
+                            });
+                            const admissionLabels = ["First Admission", "Second Admission", "Third Admission", "Fourth Admission"];
+                            return (
                             <div className={
-                              clinicalNotes.length >= 2
+                              sortedNotes.length >= 2
                                 ? `grid grid-cols-2 gap-2 pt-2 ${notesMaximized ? "flex-1 overflow-hidden" : ""}`
                                 : `pt-2 ${notesMaximized ? "flex-1 overflow-hidden" : ""}`
                             }>
-                              {clinicalNotes.map((note, idx) => {
+                              {sortedNotes.map((note, idx) => {
                                 const hadmId = (note.metadata as Record<string, string> | undefined)?.mimic_hadm_id;
+                                const label = sortedNotes.length >= 2
+                                  ? admissionLabels[idx] || `Admission ${idx + 1}`
+                                  : null;
                                 return (
                                   <div
                                     key={note.id}
                                     className={`border rounded bg-white flex flex-col ${notesMaximized ? "overflow-hidden" : ""}`}
                                   >
                                     <div className="flex items-center gap-2 px-3 py-2 border-b bg-slate-50 shrink-0">
+                                      {label && (
+                                        <Badge className="text-xs bg-indigo-100 text-indigo-800 border-indigo-300">
+                                          {label}
+                                        </Badge>
+                                      )}
                                       <Badge variant="outline" className="text-xs">
                                         {note.note_type || "Unknown"}
                                       </Badge>
@@ -996,11 +1024,6 @@ export default function ValidatePage() {
                                       <span className="text-xs text-muted-foreground">
                                         ({Math.round(note.text.length / 1000)}K chars)
                                       </span>
-                                      {clinicalNotes.length >= 2 && (
-                                        <span className="text-xs font-medium text-muted-foreground ml-auto">
-                                          Note {idx + 1} of {clinicalNotes.length}
-                                        </span>
-                                      )}
                                     </div>
                                     <div className={`px-2 py-1 ${notesMaximized ? "flex-1 overflow-y-auto" : "max-h-[70vh] overflow-y-auto"}`}>
                                       <div className="text-xs leading-snug whitespace-pre-wrap text-slate-700">
@@ -1011,7 +1034,8 @@ export default function ValidatePage() {
                                 );
                               })}
                             </div>
-                          )}
+                            );
+                          })()}
                         </div>
                       )}
                     </div>
