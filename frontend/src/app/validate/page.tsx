@@ -980,8 +980,18 @@ export default function ValidatePage() {
                             </p>
                           )}
                           {!notesLoading && clinicalNotes.length > 0 && (() => {
+                            // Filter to only notes relevant to this question's hadm_ids
+                            const relevantHadms = currentItem.hadm_ids;
+                            const filteredNotes = relevantHadms && relevantHadms.length > 0
+                              ? clinicalNotes.filter((note) => {
+                                  const hadmId = (note.metadata as Record<string, string> | undefined)?.mimic_hadm_id;
+                                  return hadmId && relevantHadms.includes(hadmId);
+                                })
+                              : clinicalNotes;
+                            // Fall back to all notes if filter matched nothing
+                            const notesToShow = filteredNotes.length > 0 ? filteredNotes : clinicalNotes;
                             // Sort notes chronologically by mimic_note_id suffix (e.g., DS-19 before DS-20)
-                            const sortedNotes = [...clinicalNotes].sort((a, b) => {
+                            const sortedNotes = [...notesToShow].sort((a, b) => {
                               const metaA = a.metadata as Record<string, string> | undefined;
                               const metaB = b.metadata as Record<string, string> | undefined;
                               const idA = metaA?.mimic_note_id || "";

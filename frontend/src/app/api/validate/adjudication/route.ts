@@ -24,6 +24,7 @@ interface Question {
   clinical_context: string;
   difficulty: string;
   mimic_subject_id?: number;
+  mimic_hadm_id?: number;
   metadata: {
     assertion?: string;
     domain?: string;
@@ -87,6 +88,10 @@ export async function GET() {
       const hadmIds: string[] = [];
       if (q?.metadata?.hadm_1) hadmIds.push(q.metadata.hadm_1);
       if (q?.metadata?.hadm_2) hadmIds.push(q.metadata.hadm_2);
+      // Fallback: task_a questions have top-level mimic_hadm_id instead of hadm_1/hadm_2
+      if (hadmIds.length === 0 && q?.mimic_hadm_id) {
+        hadmIds.push(String(q.mimic_hadm_id));
+      }
 
       return {
         id: raw.item_id,
