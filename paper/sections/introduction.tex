@@ -30,5 +30,5 @@ The central research question is: \emph{under what conditions does structured ep
 Empirically, we observe: intent-aware KG-RAG improves every category, with the largest gains on longitudinal reasoning that requires cross-admission synthesis.
 An ablation decomposition shows that structured retrieval provides the majority of the gain ($+28\pp$, C1$\to$C3); a further $+19\pp$ (C3$\to$C4g) comes from epistemic annotations \emph{paired with} intent-aware routing---assertions alone degrade temporal categories, but routing unlocks their value for change detection (10\%$\to$100\%).
 Brute-force long context fails on historical and sequence categories despite a 200K token window.
-Cross-model validation shows the benefit is consistent with an inverse relationship to parametric medical knowledge, suggesting a knowledge-compensator effect.
+Cross-model validation shows a trend consistent with a knowledge-compensator effect, though with only three models the pattern is suggestive rather than conclusive.
 The magnitude and direction of the effect are both category- and model-specific, producing interactions that aggregate accuracy alone obscures (Section~\ref{sec:results}).

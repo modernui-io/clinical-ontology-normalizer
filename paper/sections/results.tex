@@ -94,7 +94,7 @@ Change & 30 & 6.7 & 43.3 & 16.7 & 10.0 & \textbf{100.0} & $\uparrow 93.3\pp$ \\
 \begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/fig2_radar.pdf}
-\caption{ClinicalBench per-category accuracy across five conditions (C6, C1, C2, C3, C4g; Claude Opus 4.6, evaluator v2). C6 (pink dash-dot) fails on historical and sequence (both 0\%); C1 (gray dotted) falls below 50\% on 7 of 9 categories; C2 (light blue) and C3 (orange dashed) score similarly overall (${\sim}50\text{--}52\%$) but diverge per category; C4g (dark solid) adds epistemic annotations with intent routing. C4 (not shown; see Table~\ref{tab:clinicalbench_categories}) adds assertions without routing and scores 46.8\%---below C3---demonstrating that intent routing, not assertions alone, drives the C3$\to$C4g improvement.}
+\caption{ClinicalBench per-category accuracy across six conditions (C6, C1, C2, C3, C4, C4g; Claude Opus 4.6, evaluator v2). C6 (pink dash-dot) fails on historical and sequence (both 0\%); C1 (gray dotted) falls below 50\% on 7 of 9 categories; C2 (light blue) and C3 (orange dashed) score similarly overall (${\sim}50\text{--}52\%$) but diverge per category; C4 (firebrick, short-dash) adds assertions without routing and scores 46.8\%---below C3---demonstrating that assertions alone are insufficient; C4g (dark solid) adds intent routing, unlocking the value of epistemic annotations.}
 \label{fig:radar}
 \end{figure}
 

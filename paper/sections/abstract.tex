@@ -9,6 +9,6 @@ An ablation decomposition isolates three components: structured retrieval ($+28\
 The counterintuitive finding---assertions alone degrade temporal categories by up to $-48\pp$---reveals that epistemic metadata is a necessary but insufficient condition, unlocked only by question-type-specific retrieval.
 Change detection exemplifies the interaction: assertions without routing score 10\%, but intent-aware routing lifts it to 100\%.
 Brute-force long context collapses to 0\% on historical and sequence despite a 200K token window.
-Cross-model validation on three models shows KG-RAG benefit is consistent with an inverse relationship to parametric medical knowledge, suggesting a knowledge-compensator effect.
+Cross-model validation on three models shows a trend consistent with a knowledge-compensator effect---models with lower standalone baselines gain more from KG-RAG---though with only three models the pattern is suggestive rather than conclusive.
 A blinded physician pilot ($n=30$) independently confirms the effect: KG-RAG answers were rated correct in 81\% vs.\ 29\% for LLM-alone, safe in 88\% vs.\ 50\%, and helpful in 81\% vs.\ 29\%, while revealing that 40\% of auto-generated gold standards require revision.
 The category$\times$condition interaction---not the aggregate---is the right evaluation lens for clinical KG-RAG.

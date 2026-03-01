@@ -40,6 +40,7 @@ MedGemma run-to-run variance ($\pm 10\pp$) arises from GPU non-determinism in 4-
 Over-reliance on KG-driven summaries risks anchoring bias if NLP extraction introduces systematic errors; single-site evaluation (US academic center) leaves generalization unvalidated (Appendix~\ref{app:ethics}).
 \end{sloppypar}
 
+\begin{sloppypar}
 \paragraph{Conclusion.}
 The epistemic propagation gap is a real and measurable phenomenon.
 \epikg addresses it through end-to-end epistemic preservation combined with intent-aware retrieval that matches graph traversal to question semantics.
@@ -47,3 +48,4 @@ The ablation ladder decomposes the gain into three independent contributions: st
 The counterintuitive C4 result---that assertions alone degrade performance---reveals that the value of epistemic metadata is contingent on retrieval architecture, validating the two-component design.
 The benefit is both category-specific (every category improves, with the largest gains on longitudinal reasoning) and model-dependent (consistent across three models).
 Neither more context nor structured data alone suffices---C6 and C7 bracket the design space---confirming that the category$\times$condition interaction, not the aggregate, is the right lens for clinical KG-RAG evaluation.
+\end{sloppypar}
