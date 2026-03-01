@@ -5,8 +5,9 @@ Clinical NLP detects assertion status---negation, uncertainty, family history---
 We call this the \emph{epistemic propagation gap}.
 \epikg closes it with a 7-value assertion schema on every edge, tri-temporal modeling, and intent-aware retrieval that dispatches question-type-specific graph traversals.
 On ClinicalBench ($n=400$, MIMIC-IV, Claude Opus 4.6), intent-aware KG-RAG achieves 69\% ($+47\pp$ vs.\ LLM alone), improving all 9 categories.
-An ablation decomposition isolates two additive components: structured retrieval contributes $+28\pp$, epistemic annotations a further $+19\pp$---a roughly 60/40 split.
-Change detection exemplifies the distinction: retrieval without assertions reaches 17\%, but adding assertion metadata lifts it to 100\%.
+An ablation decomposition isolates three components: structured retrieval ($+28\pp$, C1$\to$C3), assertion metadata ($-3\pp$ without routing, C3$\to$C4), and intent-aware routing ($+22\pp$, C4$\to$C4g).
+The counterintuitive finding---assertions alone degrade temporal categories by up to $-48\pp$---reveals that epistemic metadata is a necessary but insufficient condition, unlocked only by question-type-specific retrieval.
+Change detection exemplifies the interaction: assertions without routing score 10\%, but intent-aware routing lifts it to 100\%.
 Brute-force long context collapses to 0\% on historical and sequence despite a 200K token window.
 Cross-model validation on three models shows KG-RAG benefit is consistent with an inverse relationship to parametric medical knowledge, suggesting a knowledge-compensator effect.
 A blinded physician pilot ($n=30$) independently confirms the effect: KG-RAG answers were rated correct in 81\% vs.\ 29\% for LLM-alone, safe in 88\% vs.\ 50\%, and helpful in 81\% vs.\ 29\%, while revealing that 40\% of auto-generated gold standards require revision.

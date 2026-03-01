@@ -53,11 +53,14 @@ The finding that assertions are necessary but not sufficient---and that their va
 
 C2 serves as the closest analog to existing medical RAG systems (DoctorRAG, MedRAG), which use document retrieval without assertion-aware graph structure; the $+16.8\pp$ C2$\to$C4g gap quantifies the value of epistemic KG-RAG over vanilla approaches.
 
-\paragraph{Evaluator bias.}
-The keyword evaluator's abstention gate disproportionately penalizes C1, where the model correctly recognizes it lacks retrieval context and abstains.
-Physician review (Section~\ref{sec:results:physician}) confirmed this bias: the auto-evaluator was too strict in 43\% of cases (vs.\ too lenient in 10\%), and the physician-rated C4g--C1 delta ($+52\pp$) exceeds the auto-evaluator delta ($+47\pp$), indicating the headline effect is conservative.
-An LLM-as-judge evaluation (Appendix~\ref{app:llm_judge}) provides a complementary perspective: the LLM judge achieves higher physician concordance (56.7\% vs.\ 46.7\%) and yields a C4g--C1 delta of $+28.5\pp$---lower than the keyword delta but still substantial.
-The asymmetry (C1 rises under LLM judge while C4g drops) is consistent with the keyword evaluator's conservative bias on abstentions.
+\paragraph{Evaluator hierarchy.}
+We report three evaluators to bound the true effect size.
+The \emph{primary} evaluator is the deterministic keyword matcher (v2 with abstention detection), chosen for reproducibility: it is fully deterministic and produces the same score on every run.
+Two \emph{sensitivity analyses} probe its biases.
+First, a blinded physician pilot (Section~\ref{sec:results:physician}) found the keyword evaluator too strict in 43\% of cases (vs.\ too lenient in 10\%); the physician-rated C4g--C1 delta ($+52\pp$) exceeds the keyword delta ($+47\pp$), indicating the headline effect is conservative.
+Second, an LLM-as-judge evaluation (Appendix~\ref{app:llm_judge}) achieves higher physician concordance (56.7\% vs.\ 46.7\%) and yields a C4g--C1 delta of $+28.5\pp$---lower because the judge credits partial answers and appropriate C1 abstentions that the keyword evaluator penalizes.
+The three deltas ($+28.5\pp$, $+47.2\pp$, $+52\pp$) bound the effect: the keyword evaluator understates C1 (conservative bias), while the physician-rated delta may overstate it given small $n$.
+All three agree that C4g substantially outperforms C1; the disagreement concerns magnitude, not direction.
 
 % ----------------------------------------------------------
 \subsection{Category$\times$Condition Interaction}

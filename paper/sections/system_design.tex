@@ -29,7 +29,7 @@ OMOP excludes negated conditions entirely~\cite{omop2024}; FHIR limits assertion
 \end{equation}
 %
 This extends the i2b2 (Informatics for Integrating Biology and the Bedside) six-class taxonomy~\cite{uzuner2011i2b2assertion} by separating \textsc{Historical} from \textsc{Family\_History}, a clinically important distinction that prior work conflates (definitions in Appendix~\ref{app:assertions}).
-A rule-based classifier (101 scope-aware trigger patterns) assigns $\alpha$ with an associated confidence score; we chose rule-based classification for deterministic behavior and interpretability, though fine-tuned LLM classifiers~\cite{gul2025beyondnegation} could be substituted.
+A rule-based classifier (122 scope-aware trigger patterns) assigns $\alpha$ with an associated confidence score; we chose rule-based classification for deterministic behavior and interpretability, though fine-tuned LLM classifiers~\cite{gul2025beyondnegation} could be substituted.
 Intrinsic classifier evaluation is deferred; the end-to-end ClinicalBench ablation (C3$\to$C4g) serves as a functional test of assertion propagation.
 The label is carried through every stage: from \texttt{ExtractedMention} through ensemble merging, \texttt{ClinicalFact} records, KG edge properties, and retrieval scoring.
 To our knowledge, no prior system~\cite{gul2025beyondnegation,peng2018negbio} maintains this end-to-end invariant.
