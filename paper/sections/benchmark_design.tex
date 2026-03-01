@@ -39,12 +39,13 @@ C7 & Deterministic KG & KG lookup (no LLM) & Full & Tri-temporal \\
 \paragraph{Endpoints.}
 The \textbf{pre-registered primary endpoint} is the hard longitudinal subset (\textit{change} + \textit{current\_state} + \textit{historical}, $n=130$): C4g vs.\ C1 aggregate accuracy.
 The \textbf{secondary endpoint} is full 400-question ClinicalBench, C4g vs.\ C1.
-\textbf{Diagnostic endpoints} are per-category C1$\to$C4g accuracy deltas and the C3$\to$C4g transition isolating epistemic annotation lift.
+\textbf{Diagnostic endpoints} are per-category C1$\to$C4g accuracy deltas and the C3$\to$C4$\to$C4g decomposition isolating assertion metadata (C3$\to$C4) from intent routing (C4$\to$C4g).
 
 \noindent\textbf{What each transition isolates.}
 C1$\to$C2 isolates the \emph{document retrieval effect}: C2 adds TF-IDF chunk retrieval over clinical notes, analogous to existing medical RAG systems (DoctorRAG, MedRAG).
 C2$\to$C3 isolates the \emph{graph structure effect}: both retrieve documents, but C3 replaces TF-IDF with graph traversal---testing whether structured retrieval outperforms vanilla retrieval.
-C3$\to$C4g isolates the \emph{epistemic annotation effect}: both retrieve from the same graph, but C4g carries full 7-class assertions, tri-temporal metadata, and intent-aware routing.
+C3$\to$C4 isolates the \emph{assertion metadata effect}: C4 adds 7-class assertions and tri-temporal metadata but uses uniform BFS (no intent routing).
+C4$\to$C4g isolates the \emph{intent routing effect}: C4g adds question-type-specific graph traversal and assertion-aware filtering on top of C4's metadata.
 C4g vs.\ C6 isolates the \emph{structured-vs-unstructured retrieval effect} on the same questions.
 
 

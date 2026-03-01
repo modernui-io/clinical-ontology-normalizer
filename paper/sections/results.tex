@@ -75,14 +75,14 @@ All three agree that C4g substantially outperforms C1; the disagreement concerns
 \toprule
 Category & $n$ & C1 & C2 & C3 & C4 & C4g & C4g$-$C1 \\
 \midrule
-Negation & 110 & 45.5 & 70.9 & 65.5 & 90.0 & \textbf{80.9} & $\uparrow 35.5\pp$ \\
+Negation & 110 & 45.5 & 70.9 & 65.5 & \textbf{90.0} & 80.9 & $\uparrow 35.5\pp$ \\
 Conditional & 20 & 0.0 & 35.0 & 30.0 & \textbf{50.0} & 45.0 & $\uparrow 45.0\pp$ \\
-Uncertainty & 40 & 12.5 & 35.0 & 37.5 & 52.5 & \textbf{50.0} & $\uparrow 37.5\pp$ \\
+Uncertainty & 40 & 12.5 & 35.0 & 37.5 & \textbf{52.5} & 50.0 & $\uparrow 37.5\pp$ \\
 Family hist. & 30 & 3.3 & 43.3 & 43.3 & 50.0 & \textbf{56.7} & $\uparrow 53.3\pp$ \\
 Sequence & 40 & 10.0 & 60.0 & 57.5 & 10.0 & \textbf{65.0} & $\uparrow 55.0\pp$ \\
 \midrule
 Current st. & 50 & 26.0 & 32.0 & 54.0 & 30.0 & \textbf{70.0} & $\uparrow 44.0\pp$ \\
-Duration & 30 & 30.0 & 66.7 & 60.0 & 46.7 & \textbf{66.7} & $\uparrow 36.7\pp$ \\
+Duration & 30 & 30.0 & \textbf{66.7} & 60.0 & 46.7 & \textbf{66.7} & $\uparrow 36.7\pp$ \\
 Historical & 50 & 6.0 & 48.0 & 42.0 & 12.0 & \textbf{60.0} & $\uparrow 54.0\pp$ \\
 Change & 30 & 6.7 & 43.3 & 16.7 & 10.0 & \textbf{100.0} & $\uparrow 93.3\pp$ \\
 \midrule
@@ -131,9 +131,9 @@ Medical & MedGemma 27B & 26.2\% & 57.8\% & $+31.5\pp$ \\
 \end{tabular}
 \end{table}
 
-All three models benefit substantially from KG-RAG (Table~\ref{tab:crossmodel}), with the magnitude consistent with an inverse relationship to parametric medical knowledge.
-Opus gains $+47.2\pp$, GPT-OSS gains $+37.5\pp$, and MedGemma---the only model fine-tuned on medical corpora---gains $+31.5\pp$.
-Notably, MedGemma starts with the highest C1 baseline (26.2\%) yet achieves the lowest C4g accuracy (57.8\%), while Opus starts at 21.8\% but reaches 69.0\% with retrieval.
+All three models benefit substantially from KG-RAG (Table~\ref{tab:crossmodel}), with a consistent trend: models with lower C1 baselines gain more from structured retrieval.
+Opus and GPT-OSS start with similar C1 baselines (21.8\% and 20.5\%) but Opus gains the most ($+47.2\pp$), while MedGemma---the only model fine-tuned on medical corpora---starts highest (26.2\%) yet gains least ($+31.5\pp$).
+The pattern is consistent with a knowledge-compensator effect, though with only three models the trend is suggestive rather than conclusive.
 
 All three models improve on all 9 categories under C4g (per-category cross-model breakdowns in Appendix Table~\ref{tab:crossmodel_categories}).
 Intent-aware KG-RAG thus functions as a \emph{medical knowledge compensator}: the structured epistemic context partially substitutes for parametric medical knowledge, providing the largest benefit to general-purpose models that need it most.
@@ -180,7 +180,7 @@ No answers in either condition were rated potentially harmful.
 \paragraph{Auto-evaluator concordance.}
 The keyword evaluator agreed with physician judgment in 47\% of items.
 Disagreement was asymmetric: in 43\% of cases the auto-evaluator was too strict (scored incorrect when the physician rated correct or partially correct), while in only 10\% was it too lenient.
-This conservative bias is consistent with the abstention penalty noted in Section~\ref{sec:results:ablation}: C1 answers that correctly decline to answer without context are penalized by the keyword matcher.
+This conservative bias is consistent with the abstention penalty noted in Section~\ref{sec:results:clinicalbench}: C1 answers that correctly decline to answer without context are penalized by the keyword matcher.
 
 \paragraph{Gold-standard quality.}
 Physician review found 40\% of auto-generated gold standards required revision (30\% incorrect, 10\% needing revision), with errors concentrated in change detection (0/4 correct) and negation (0/2 correct) categories.

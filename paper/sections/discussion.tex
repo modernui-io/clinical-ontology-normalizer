@@ -8,9 +8,9 @@ Historical questions require distinguishing resolved from active conditions acro
 C6 handles change detection modestly (23\%) because the relevant information appears explicitly in the text, but KG-RAG achieves $100\%$ ($+77\pp$).
 
 \paragraph{Model-dependent KG benefit.}
-Across the three models tested, KG-RAG benefit is consistent with an inverse relationship to parametric medical knowledge (Table~\ref{tab:crossmodel}).
-The model with the lowest C1 baseline (Opus, 21.8\%) achieves the highest C4g accuracy (69.0\%), while the medically fine-tuned model (MedGemma) starts highest (26.2\%) but gains least under C4g.
-The cross-model pattern (Table~\ref{tab:crossmodel}) reinforces the knowledge-compensator interpretation: structured epistemic context partially substitutes for parametric knowledge, benefiting general-purpose models most.
+Across the three models tested, KG-RAG benefit shows a consistent trend: models with lower C1 baselines gain more (Table~\ref{tab:crossmodel}).
+The two general-purpose models (Opus 21.8\%, GPT-OSS 20.5\%) gain $+47\pp$ and $+38\pp$ respectively, while the medically fine-tuned model (MedGemma, 26.2\%) gains least ($+32\pp$).
+The pattern is consistent with a knowledge-compensator interpretation---structured epistemic context partially substitutes for parametric knowledge---though with only three models the trend is suggestive rather than conclusive.
 This has practical implications for RAG system design: the same retrieval pipeline may yield different gains depending on the downstream model, and single-model evaluation risks overstating or understating value.
 
 \paragraph{When KG context matters.}
