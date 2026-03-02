@@ -5,23 +5,40 @@ Reproducibility data and evaluation code for:
 > **EpiKG: End-to-End Epistemic Preservation in Clinical Knowledge Graphs
 > for Assertion-Aware Retrieval-Augmented Generation**
 
+**HuggingFace Dataset**: https://huggingface.co/datasets/alexstinard/epikg-clinicalbench
+
+```python
+from datasets import load_dataset
+qs = load_dataset("alexstinard/epikg-clinicalbench", "questions", split="test")
+preds = load_dataset("alexstinard/epikg-clinicalbench", "predictions_opus", split="test")
+```
+
 ## Contents
 
 ```
 epikg-benchmark/
 ├── clinicalbench/
-│   ├── questions.json          # 400 questions (9 categories, 45 MIMIC-IV patients)
-│   └── evaluator.py            # Deterministic keyword evaluator
+│   ├── questions.json          # 400 questions (9 categories, 43 MIMIC-IV patients)
+│   ├── evaluator.py            # Deterministic keyword evaluator v2
+│   └── llm_judge.py            # LLM-as-judge evaluator
 ├── results/
-│   ├── opus/                   # Claude Opus 4.6 predictions
+│   ├── opus/                   # Claude Opus 4.6 predictions (8 conditions)
 │   │   ├── C1_llm_alone.json
+│   │   ├── C2_vanilla_rag.json
+│   │   ├── C2b_dense_rag.json
+│   │   ├── C3_kg_rag.json
 │   │   ├── C4_epistemic_kg_rag.json
 │   │   ├── C4g_intent_aware.json
-│   │   └── C6_long_context.json
-│   └── medgemma/               # MedGemma 27B predictions
-│       ├── C1_llm_alone.json
-│       └── C4g_intent_aware.json
+│   │   ├── C6_long_context.json
+│   │   └── C7_deterministic.json
+│   ├── medgemma/               # MedGemma 27B (C1, C4g)
+│   ├── gptoss/                 # GPT-OSS 20B (C1, C4g)
+│   ├── qwen35/                 # Qwen3.5 35B (C1, C4g)
+│   └── llm_judge/              # LLM-as-judge results
+├── bootstrap_ci.py             # Bootstrap confidence intervals
+├── bootstrap_ci_v2.py          # Extended CIs with C4 decomposition
 ├── checksums.sha256            # SHA-256 integrity hashes
+├── croissant.json              # Croissant metadata (ML Commons)
 ├── export_benchmark.py         # Script used to generate this package
 └── README.md
 ```
@@ -39,16 +56,28 @@ python evaluator.py --questions questions.json --predictions ../results/opus/C1_
 
 ## Expected Results
 
-Re-scored with the standalone evaluator (deterministic, no LLM judge):
+Evaluator v2 results (deterministic keyword scoring with abstention detection):
 
 | Condition | Model | Accuracy | n |
 |-----------|-------|----------|---|
-| C1: LLM Alone | Claude Opus 4.6 | 49.5% | 400 |
-| C4: Epistemic KG-RAG | Claude Opus 4.6 | 60.8% | 400 |
-| C4g: Intent-Aware KG-RAG | Claude Opus 4.6 | 77.0% | 400 |
-| C6: Long Context | Claude Opus 4.6 | 41.8% | 400 |
-| C1: LLM Alone | MedGemma 27B | 52.5% | 400 |
-| C4g: Intent-Aware KG-RAG | MedGemma 27B | 66.2% | 399 |
+| C7: Deterministic KG | — | 3.8% | 400 |
+| C1: LLM Alone | Claude Opus 4.6 | 21.8% | 400 |
+| C2: Vanilla RAG (TF-IDF) | Claude Opus 4.6 | 52.2% | 400 |
+| C2b: Dense RAG (Contriever) | Claude Opus 4.6 | 50.7% | 400 |
+| C3: KG-RAG (no assertions) | Claude Opus 4.6 | 50.0% | 400 |
+| C4: KG-RAG (assertions, no routing) | Claude Opus 4.6 | 46.8% | 400 |
+| C4g: Intent-Aware KG-RAG | Claude Opus 4.6 | 69.0% | 400 |
+| C6: Long Context | Claude Opus 4.6 | 39.0% | 400 |
+| C1: LLM Alone | MedGemma 27B | 26.2% | 400 |
+| C4g: Intent-Aware KG-RAG | MedGemma 27B | 57.8% | 400 |
+| C1: LLM Alone | GPT-OSS 20B | 20.5% | 400 |
+| C4g: Intent-Aware KG-RAG | GPT-OSS 20B | 58.0% | 400 |
+| C1: LLM Alone | Qwen3.5 35B | 37.0% | 400 |
+| C4g: Intent-Aware KG-RAG | Qwen3.5 35B | 57.5% | 400 |
+
+Note: The `correct` column in prediction files contains checkpoint-recorded values
+from experiment runtime, which may differ from evaluator v2 rescoring. Use the
+standalone evaluator for authoritative accuracy numbers.
 
 ## Evaluator Design
 
@@ -121,6 +150,6 @@ sha256sum -c checksums.sha256
 
 ## License
 
-The benchmark questions, evaluator code, and model predictions are released for
-research reproducibility. MIMIC-IV data access requires separate PhysioNet credentials
-and is subject to the MIMIC-IV Data Use Agreement.
+CC-BY-4.0. The benchmark questions, evaluator code, and model predictions are released
+for research reproducibility. MIMIC-IV source data access requires separate PhysioNet
+credentials and is subject to the MIMIC-IV Data Use Agreement.
