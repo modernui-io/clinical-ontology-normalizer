@@ -25,19 +25,17 @@ The finding validates the two-component design and suggests that future work on 
 Uncertainty improves from 12.5\% to 50.0\% ($+37.5\pp$), but absolute accuracy remains low.
 Possible and suspected conditions are linguistically subtle (``consider statin,'' ``may have CHF'') and require pragmatic inference beyond keyword matching.
 
-\paragraph{Limitations.}
+\paragraph{Threats to validity and claim scope.}
 \begin{sloppypar}
-Sample size is modest: ClinicalBench covers 43 patients (400 questions) and SliceBench 6 patients (144 questions), both from MIMIC-IV~\cite{johnson2023mimiciv}.
-The B2$\rightarrow$B3 CI crosses zero (\ci{-1.5\pp}{+5.9\pp}); tier-level estimates ($n\!=\!2$ patients per tier) are hypothesis-generating only.
-Model-dependent effects mean headline gains are specific to Opus; gains differ across models (Table~\ref{tab:crossmodel}).
-Physician review (Section~\ref{sec:results:physician}) found the keyword evaluator agreed with physician judgment in only 47\% of cases, predominantly erring on the conservative side (43\% too strict vs.\ 10\% too lenient); the physician-rated C4g--C1 delta ($+52\pp$) exceeds the auto-evaluator delta ($+47\pp$), suggesting the headline effect may be understated.
-An LLM-as-judge evaluation (Appendix~\ref{app:llm_judge}) achieves higher physician concordance (57\% vs.\ 47\%) and yields a C4g--C1 delta of $+28.5\pp$; the lower LLM-judge delta reflects the evaluator's capacity to credit partial answers and appropriate abstentions, particularly for C1.
-Gold-standard error rate was 40\%, concentrated in change detection and negation; a single physician reviewed the pilot and a second reviewer is planned.
-This is an ablation study; direct comparisons with medical RAG systems~\cite{luo2025gfmrag,jiang2025kare,lu2025doctorrag} were not performed because these target factoid QA rather than patient-level longitudinal reasoning.
-C2 (vanilla TF-IDF document retrieval, 52.2\%) serves as the closest proxy for these systems on our task, demonstrating that vanilla retrieval reaches roughly the same aggregate accuracy as graph-augmented retrieval without assertions (C3, 50.0\%) but both fall ${\sim}17\text{--}19\pp$ short of epistemic KG-RAG (C4g, 69.0\%).
-Patient-level cluster bootstrap CIs (Appendix Table~\ref{tab:stats_summary}) are slightly wider than question-level CIs but all primary endpoints remain significant; the 43-patient sample nonetheless limits generalization.
-MedGemma run-to-run variance ($\pm 10\pp$) arises from GPU non-determinism in 4-bit quantized inference.
-Over-reliance on KG-driven summaries risks anchoring bias if NLP extraction introduces systematic errors; single-site evaluation (US academic center) leaves generalization unvalidated (Appendix~\ref{app:ethics}).
+Our claims are bounded by dataset, evaluator, and model scope.
+Data scope is limited: ClinicalBench uses 43 patients (400 questions) and SliceBench 6 patients (144 questions), all from MIMIC-IV~\cite{johnson2023mimiciv}; tier-level SliceBench effects remain hypothesis-generating ($n\!=\!2$ patients per tier), and B2$\rightarrow$B3 crosses zero (\ci{-1.5\pp}{+5.9\pp}).
+Evaluator uncertainty is substantial: keyword scoring agrees with physician judgment in 47\% of the pilot, LLM-as-judge reaches 57\%, and the three evaluators produce different absolute deltas.
+We therefore report all three and focus conclusions on directional agreement, not a single ``true'' effect size.
+Benchmark label quality is imperfect: physician review found a 40\% error/revision rate in auto-generated gold answers (concentrated in change and negation), and pilot adjudication used a single reviewer.
+Model dependence is real: gains vary by model (Table~\ref{tab:crossmodel}), so Opus-scale effects should not be assumed universal.
+This study is an ablation analysis rather than a head-to-head leaderboard against existing medical RAG systems~\cite{luo2025gfmrag,jiang2025kare,lu2025doctorrag}; C2 is used as a proxy baseline for document-level retrieval on our longitudinal task.
+Runtime variance from quantized local inference (e.g., MedGemma $\pm10\pp$ across runs) and single-site provenance further limit external validity.
+Finally, this work does \emph{not} establish clinical deployment readiness: it evaluates QA behavior under controlled benchmarks, not prospective patient outcomes.
 \end{sloppypar}
 
 \begin{sloppypar}
@@ -45,7 +43,7 @@ Over-reliance on KG-driven summaries risks anchoring bias if NLP extraction intr
 The epistemic propagation gap is a real and measurable phenomenon.
 \epikg addresses it through end-to-end epistemic preservation combined with intent-aware retrieval that matches graph traversal to question semantics.
 The ablation ladder decomposes the gain into three independent contributions: structured retrieval ($+28\pp$, C1$\to$C3), assertion metadata ($-3\pp$ without routing, C3$\to$C4), and intent-aware routing ($+22\pp$, C4$\to$C4g).
-The counterintuitive C4 result---that assertions alone degrade performance---reveals that the value of epistemic metadata is contingent on retrieval architecture, validating the two-component design.
-The benefit is both category-specific (every category improves, with the largest gains on longitudinal reasoning) and model-dependent (consistent across three models).
-Neither more context nor structured data alone suffices---C6 and C7 bracket the design space---confirming that the category$\times$condition interaction, not the aggregate, is the right lens for clinical KG-RAG evaluation.
+The counterintuitive C4 result---that assertions alone can degrade performance---shows that metadata enrichment without retrieval policy alignment is insufficient.
+Benefits are category-specific and model-dependent, and neither more context (C6) nor structure without reasoning (C7) closes the gap.
+The practical takeaway is a falsifiable design principle: preserve epistemic metadata \emph{and} route retrieval by question intent, then evaluate by category$\times$condition interaction rather than aggregate score alone.
 \end{sloppypar}

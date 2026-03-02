@@ -36,6 +36,41 @@ C7 & Deterministic KG & KG lookup (no LLM) & Full & Tri-temporal \\
 \end{tabular}
 \end{table}
 
+\paragraph{Cohort demographics.}
+The 43 ClinicalBench patients (Table~\ref{tab:demographics}) are drawn from a single academic medical center (Beth Israel Deaconess, Boston).
+The cohort skews female (60.5\%), White (76.7\%), and Medicare-insured (44.2\%), reflecting the source institution's patient population.
+Subgroup accuracy analyses are underpowered given the small cohort; we report them transparently in Appendix~\ref{app:demographics} rather than drawing subgroup conclusions.
+
+\begin{table}[t]
+\centering
+\footnotesize
+\caption{ClinicalBench cohort demographics ($n=43$ MIMIC-IV patients).}
+\label{tab:demographics}
+\begin{tabular}{@{}llr@{}}
+\toprule
+Characteristic & Category & $n$ (\%) \\
+\midrule
+\multirow{2}{*}{Sex} & Female & 26 (60.5\%) \\
+ & Male & 17 (39.5\%) \\
+\midrule
+\multirow{5}{*}{Age (anchor)} & 18--29 & 2 (4.7\%) \\
+ & 30--49 & 13 (30.2\%) \\
+ & 50--64 & 13 (30.2\%) \\
+ & 65--79 & 9 (20.9\%) \\
+ & 80+ & 6 (14.0\%) \\
+\midrule
+\multirow{4}{*}{Race/Ethnicity} & White & 33 (76.7\%) \\
+ & Black/African American & 6 (14.0\%) \\
+ & Asian & 1 (2.3\%) \\
+ & Other/Unknown & 3 (7.0\%) \\
+\midrule
+\multirow{3}{*}{Insurance} & Medicare & 19 (44.2\%) \\
+ & Private & 15 (34.9\%) \\
+ & Medicaid/Other & 9 (20.9\%) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \paragraph{Endpoints.}
 The \textbf{pre-registered primary endpoint} is the hard longitudinal subset (\textit{change} + \textit{current\_state} + \textit{historical}, $n=130$): C4g vs.\ C1 aggregate accuracy.
 The \textbf{secondary endpoint} is full 400-question ClinicalBench, C4g vs.\ C1.
@@ -75,7 +110,7 @@ The primary answering model is Claude Opus 4.6; cross-model validation uses MedG
 \paragraph{Statistical reporting.}
 We report BCa bootstrap 95\% CIs ($n=2{,}000$, seed 42)~\cite{efron1993bootstrap} on both benchmarks.
 Question-level resampling is the primary analysis; patient-level cluster bootstrap (resampling the 43 patients with replacement, including all their questions) is reported as a sensitivity analysis to account for within-patient correlation (Appendix Table~\ref{tab:stats_summary}).
-McNemar's test~\cite{mcnemar1947note} provides a complementary non-parametric paired comparison.
+McNemar's test~\cite{mcnemar1947note} provides a complementary non-parametric paired comparison; Benjamini--Hochberg FDR correction is applied to the family of McNemar tests (all remain significant after correction; the non-significant C3$\to$C4 comparison, $p_{\text{BH}} = 0.37$, is unaffected).
 ClinicalBench CIs appear on primary deltas (overall C4g$-$C1 and hard longitudinal subset); SliceBench CIs appear on all conditions (Table~\ref{tab:slicebench_overall}).
 A safety score with asymmetric weighting ($w=2.0$ for false-positive assertion errors) captures clinical risk (Appendix~\ref{app:safety}).
 

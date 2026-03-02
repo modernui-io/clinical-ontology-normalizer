@@ -219,10 +219,30 @@ def mcnemar(name, scores_a, scores_b):
         return chi2, p_val
     return 0, 1.0
 
-mcnemar("C3 vs C4 (assertion effect)", c3_scores, c4_scores)
-mcnemar("C4 vs C4g (routing effect)", c4_scores, c4g_scores)
-mcnemar("C3 vs C4g (combined)", c3_scores, c4g_scores)
-mcnemar("C1 vs C4g (overall)", c1_scores, c4g_scores)
+results_mcnemar = [
+    ("C3 vs C4 (assertion effect)", mcnemar("C3 vs C4 (assertion effect)", c3_scores, c4_scores)),
+    ("C4 vs C4g (routing effect)", mcnemar("C4 vs C4g (routing effect)", c4_scores, c4g_scores)),
+    ("C3 vs C4g (combined)", mcnemar("C3 vs C4g (combined)", c3_scores, c4g_scores)),
+    ("C1 vs C4g (overall)", mcnemar("C1 vs C4g (overall)", c1_scores, c4g_scores)),
+]
+
+# Benjamini-Hochberg FDR correction
+p_vals = np.array([r[1][1] for r in results_mcnemar])
+n_tests = len(p_vals)
+sorted_idx = np.argsort(p_vals)
+bh_adjusted = np.empty(n_tests)
+for i, idx in enumerate(sorted_idx):
+    bh_adjusted[idx] = min(p_vals[idx] * n_tests / (i + 1), 1.0)
+# Enforce monotonicity (adjusted p-values should be non-decreasing in sorted order)
+for i in range(n_tests - 2, -1, -1):
+    idx = sorted_idx[i]
+    idx_next = sorted_idx[i + 1]
+    bh_adjusted[idx] = min(bh_adjusted[idx], bh_adjusted[idx_next])
+
+print(f"\n  Benjamini-Hochberg FDR correction ({n_tests} tests):")
+for i, (name, (chi2, p)) in enumerate(results_mcnemar):
+    sig = "*" if bh_adjusted[i] < 0.05 else ""
+    print(f"    {name}: p_raw={p:.2e}, p_BH={bh_adjusted[i]:.2e} {sig}")
 
 print()
 

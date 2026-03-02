@@ -374,6 +374,29 @@ if b34 + c34 > 0:
     print(f"\n   McNemar C3 vs C4g: chi2={chi2_34:.1f}, p={p_34:.2e}")
     print(f"   C3 right/C4g wrong: {int(b34)}, C3 wrong/C4g right: {int(c34)}")
 
+# Benjamini-Hochberg FDR correction on all McNemar tests
+_mcn_pvals = []
+_mcn_names = []
+if b + c > 0:
+    _mcn_pvals.append(p_val); _mcn_names.append("C1 vs C4g")
+if b13 + c13 > 0:
+    _mcn_pvals.append(p_13); _mcn_names.append("C1 vs C3")
+if b34 + c34 > 0:
+    _mcn_pvals.append(p_34); _mcn_names.append("C3 vs C4g")
+if len(_mcn_pvals) > 1:
+    _p = np.array(_mcn_pvals)
+    _n = len(_p)
+    _sidx = np.argsort(_p)
+    _bh = np.empty(_n)
+    for _i, _idx in enumerate(_sidx):
+        _bh[_idx] = min(_p[_idx] * _n / (_i + 1), 1.0)
+    for _i in range(_n - 2, -1, -1):
+        _bh[_sidx[_i]] = min(_bh[_sidx[_i]], _bh[_sidx[_i + 1]])
+    print(f"\n   Benjamini-Hochberg FDR correction ({_n} tests):")
+    for _i, _name in enumerate(_mcn_names):
+        _sig = "*" if _bh[_i] < 0.05 else ""
+        print(f"     {_name}: p_raw={_mcn_pvals[_i]:.2e}, p_BH={_bh[_i]:.2e} {_sig}")
+
 print()
 print("=" * 60)
 print("Summary for paper:")

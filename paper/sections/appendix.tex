@@ -670,6 +670,45 @@ On temporal categories (historical, sequence, change, current state, duration), 
 The C4$\to$C4g routing correction recovers these losses and amplifies the gains, achieving $+22.2\pp$ overall ($p < 10^{-10}$).
 
 
+\section{Cohort Demographics and Subgroup Analysis}
+\label{app:demographics}
+
+The 43 ClinicalBench patients are drawn from MIMIC-IV~\cite{johnson2023mimiciv}, a single academic medical center (Beth Israel Deaconess Medical Center, Boston).
+Table~\ref{tab:demographics} in the main text summarizes sex, age, race/ethnicity, and insurance distributions.
+The cohort skews female (60.5\%), White (76.7\%), and Medicare-insured (44.2\%), reflecting the source institution's patient mix.
+
+\paragraph{Subgroup accuracy.}
+Table~\ref{tab:subgroup_accuracy} reports C1 and C4g accuracy by demographic group.
+Because questions are distributed unevenly across patients and group sizes are small ($n \leq 26$ patients per stratum), these comparisons are severely underpowered; we report them for transparency, not for drawing subgroup conclusions.
+No statistically significant interaction between demographic group and condition was observed, but the analysis cannot rule out meaningful effect modification.
+
+\begin{table}[ht]
+\centering
+\footnotesize
+\caption{ClinicalBench accuracy by demographic subgroup (underpowered; reported for transparency). $n_q$ = number of questions in each stratum.}
+\label{tab:subgroup_accuracy}
+\begin{tabular}{@{}llrrrr@{}}
+\toprule
+Characteristic & Group & $n_{\text{pts}}$ & $n_q$ & C1 (\%) & C4g (\%) \\
+\midrule
+\multirow{2}{*}{Sex} & Female & 26 & 249 & 22.5 & 69.9 \\
+ & Male & 17 & 151 & 20.5 & 67.5 \\
+\midrule
+\multirow{2}{*}{Age} & $<$65 & 28 & 258 & 20.5 & 69.4 \\
+ & $\geq$65 & 15 & 142 & 23.9 & 68.3 \\
+\midrule
+\multirow{2}{*}{Race} & White & 33 & 290 & 22.4 & 71.7 \\
+ & Non-White & 10 & 110 & 20.0 & 61.8 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Generalizability limitations.}
+The single-site, predominantly White cohort limits external validity.
+MIMIC-IV emergency department notes are heavily templated; performance on narrative-heavy specialties (psychiatry, palliative care) or community hospital documentation styles is unknown.
+Multi-site validation with demographically diverse cohorts is needed before deployment claims can be made.
+
+
 \section{Ethics Statement}
 \label{app:ethics}
 
