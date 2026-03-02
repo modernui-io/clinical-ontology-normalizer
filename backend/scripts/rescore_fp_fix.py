@@ -462,6 +462,8 @@ CHECKPOINT_MANIFEST: list[tuple[str, str, object]] = [
     ("MedGemma C4",  "clinicalbench_checkpoint.jsonl",                                 lambda r: "C4_epistemic" in r.get("condition", "") and "C4g" not in r.get("condition", "")),
     ("GPT-OSS C1",   "opus_compare/compare_gptoss_C1_llm_alone_checkpoint.jsonl",     None),
     ("GPT-OSS C4g",  "opus_compare/compare_gptoss_checkpoint.jsonl",                   None),
+    ("Qwen C1",      "qwen35_compare/clinicalbench_checkpoint.jsonl",                   lambda r: "C1_llm_alone" in r.get("condition", "")),
+    ("Qwen C4g",     "qwen35_compare/clinicalbench_checkpoint.jsonl",                   lambda r: "C4g_intent_aware" in r.get("condition", "")),
 ]
 
 BASE_DIR = Path(__file__).resolve().parent.parent / "data" / "benchmarks" / "results"

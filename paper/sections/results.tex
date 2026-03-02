@@ -3,7 +3,7 @@
 
 We evaluate \epikg through two benchmarks: ClinicalBench tests assertion-sensitive and longitudinal reasoning, while SliceBench measures longitudinal QA across patient complexity tiers.
 ClinicalBench uses a deterministic keyword evaluator for reproducibility; SliceBench uses LLM-as-judge evaluation (Section~\ref{sec:bench:protocol}).
-Claude Opus 4.6 is the primary answering model; MedGemma 27B and GPT-OSS 20B\footnote{GPT-OSS 20B is an open-source general-purpose model run locally via Ollama (4-bit quantized). We use the label GPT-OSS to avoid implying endorsement; the reproducibility package includes model identifiers and raw predictions.} provide cross-model validation.
+Claude Opus 4.6 is the primary answering model; MedGemma 27B, GPT-OSS 20B\footnote{GPT-OSS 20B is an open-source general-purpose model run locally via Ollama (4-bit quantized). We use the label GPT-OSS to avoid implying endorsement; the reproducibility package includes model identifiers and raw predictions.}, and Qwen3.5 35B\footnote{Qwen3.5 35B is an open-source reasoning model run locally via Ollama (4-bit quantized, thinking suppressed via template modification to ensure direct answers consistent with other models).} provide cross-model validation.
 Both benchmarks report bias-corrected and accelerated (BCa) bootstrap 95\% CIs ($n=2{,}000$, seed 42)~\cite{efron1993bootstrap}, resampled at the question level.
 
 % ----------------------------------------------------------
@@ -119,7 +119,7 @@ C6 fails catastrophically on historical (0\%) and sequence (0\%) despite Opus's 
 
 \begin{table}[t]
 \centering
-\caption{ClinicalBench cross-model results (400 questions, keyword evaluator v2). All three models benefit from KG-RAG; deltas vary by model.}
+\caption{ClinicalBench cross-model results (400 questions, keyword evaluator v2). All four models benefit from KG-RAG; deltas vary by model. McNemar's test significant for all ($p < 10^{-6}$).}
 \label{tab:crossmodel}
 \small
 \begin{tabular}{@{}llccl@{}}
@@ -129,16 +129,17 @@ C6 fails catastrophically on historical (0\%) and sequence (0\%) despite Opus's 
 Commercial & Claude Opus 4.6 & 21.8\% & \textbf{69.0\%} & $+47.2\pp$ \\
 Open & GPT-OSS 20B & 20.5\% & 58.0\% & $+37.5\pp$ \\
 Medical & MedGemma 27B & 26.2\% & 57.8\% & $+31.5\pp$ \\
+Reasoning & Qwen3.5 35B & 37.0\% & 57.5\% & $+20.5\pp$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-All three models benefit substantially from KG-RAG (Table~\ref{tab:crossmodel}), with a consistent trend: models with lower C1 baselines gain more from structured retrieval.
-Opus and GPT-OSS start with similar C1 baselines (21.8\% and 20.5\%) but Opus gains the most ($+47.2\pp$), while MedGemma---the only model fine-tuned on medical corpora---starts highest (26.2\%) yet gains least ($+31.5\pp$).
-The pattern is consistent with a knowledge-compensator effect, though with only three models the trend is suggestive rather than conclusive.
+All four models benefit substantially from KG-RAG (Table~\ref{tab:crossmodel}), with C4g accuracies clustering between 57.5\% and 69.0\% despite C1 baselines ranging from 20.5\% to 37.0\%.
+Qwen3.5---a reasoning-optimized model---achieves the highest C1 baseline (37.0\%) yet gains least ($+20.5\pp$; 95\% BCa CI: \ci{+14.9\pp}{+25.8\pp}; McNemar $\chi^2 = 45.6$, $p < 10^{-11}$), while the two general-purpose models with lowest baselines (Opus 21.8\%, GPT-OSS 20.5\%) gain most ($+47\pp$ and $+38\pp$).
+The inverse relationship between baseline strength and KG-RAG benefit holds across all four models ($r = -0.89$), consistent with a knowledge-compensator effect: structured epistemic context partially substitutes for parametric clinical knowledge.
 
-All three models improve on all 9 categories under C4g (per-category cross-model breakdowns in Appendix Table~\ref{tab:crossmodel_categories}).
-Intent-aware KG-RAG thus functions as a \emph{medical knowledge compensator}: the structured epistemic context partially substitutes for parametric medical knowledge, providing the largest benefit to general-purpose models that need it most.
+All four models improve on all 9 categories under C4g (per-category cross-model breakdowns in Appendix Table~\ref{tab:crossmodel_categories}).
+The C4g convergence---four models from different training lineages (commercial, open-source, medical, reasoning) cluster within $12\pp$ under KG-RAG despite a $17\pp$ spread at baseline---suggests the epistemic KG provides a knowledge floor that partially compensates for model-specific weaknesses.
 
 % ----------------------------------------------------------
 \subsection{SliceBench}

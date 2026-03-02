@@ -18,6 +18,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
 import re
 import time
 from dataclasses import dataclass, field
@@ -327,23 +328,65 @@ async def _call_ollama(
     """
     t0 = time.perf_counter()
 
+    is_thinking_model = "qwen" in model.lower()
+
+    def _env_int(name: str, default: int, minimum: int = 1) -> int:
+        value = os.getenv(name)
+        try:
+            parsed = int(value) if value is not None else default
+        except ValueError:
+            return default
+        return max(minimum, parsed)
+
+    def _env_float(name: str, default: float, minimum: float = 0.1) -> float:
+        value = os.getenv(name)
+        try:
+            parsed = float(value) if value is not None else default
+        except ValueError:
+            return default
+        return max(minimum, parsed)
+
+    def _env_bool(name: str, default: bool) -> bool:
+        value = os.getenv(name)
+        if value is None:
+            return default
+        return value.lower() in {"1", "true", "t", "yes", "y", "on"}
+
+    options = {
+        "temperature": temperature,
+        "seed": seed,
+        "num_predict": 512 if is_thinking_model else 512,
+    }
+
+    if is_thinking_model:
+        options["num_predict"] = _env_int("OLLAMA_QWEN_NUM_PREDICT", 1536)
+        options["num_ctx"] = _env_int("OLLAMA_QWEN_NUM_CTX", 24576)
+
+    # Disable thinking blocks for benchmark — direct answers only,
+    # consistent with how Opus/MedGemma/GPT-OSS are evaluated.
+    user_content = prompt
+    if is_thinking_model and _env_bool("OLLAMA_QWEN_NO_THINK", True):
+        user_content = prompt + " /no_think"
+
     payload = {
         "model": model,
         "messages": [
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": prompt},
+            {"role": "user", "content": user_content},
         ],
         "stream": False,
-        "options": {
-            "temperature": temperature,
-            "seed": seed,
-            "num_predict": 512,
-        },
+        "options": options,
     }
 
-    max_retries = 3
+    max_retries = _env_int("OLLAMA_MAX_RETRIES", 4, minimum=1)
     data = {}
-    async with httpx.AsyncClient(timeout=180.0) as client:
+    timeout_seconds = (
+        _env_float("OLLAMA_QWEN_TIMEOUT", 240.0)
+        if is_thinking_model
+        else _env_float("OLLAMA_TIMEOUT", 180.0)
+    )
+
+    async with httpx.AsyncClient(timeout=timeout_seconds) as client:
         for attempt in range(max_retries):
             try:
                 resp = await client.post(f"{base_url}/api/chat", json=payload)
@@ -355,10 +398,17 @@ async def _call_ollama(
                     wait = 2 ** attempt
                     logger.warning("Ollama call failed (attempt %d/%d): %s — retrying in %ds", attempt + 1, max_retries, exc, wait)
                     await asyncio.sleep(wait)
+                    if is_thinking_model and attempt == max_retries - 2 and max_retries > 2:
+                        # Final retry: reduce generation to keep the run moving.
+                        options["num_predict"] = min(options["num_predict"], 768)
                 else:
                     raise
 
     content = data.get("message", {}).get("content", "")
+    # Strip <think>...</think> blocks from thinking models (e.g., Qwen 3.5)
+    if is_thinking_model and "<think>" in content:
+        import re
+        content = re.sub(r"<think>.*?</think>\s*", "", content, flags=re.DOTALL).strip()
     eval_count = data.get("eval_count", 0)
     prompt_eval_count = data.get("prompt_eval_count", 0)
     latency_ms = (time.perf_counter() - t0) * 1000
@@ -443,6 +493,8 @@ class QAExperimentExecutor:
                 result.latency_ms = latency_ms
                 result.reasoning_trace = "Deterministic KG query — no LLM"
                 return result
+
+            question_intent = None
 
             # === C6: Long context — dump ALL notes into prompt ===
             if config.long_context:

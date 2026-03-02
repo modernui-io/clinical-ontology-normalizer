@@ -23,7 +23,7 @@ Our contributions:
 
   \item \textbf{Ablation design that isolates mechanism.} We introduce C4 (assertions without intent routing) between C3 and C4g, and include C6/C7 as bookend baselines. This separates the effect of structured retrieval, assertion metadata, and routing policy instead of reporting a single bundled gain.
 
-  \item \textbf{Multi-evaluator and cross-model validation.} We evaluate on two benchmarks (ClinicalBench, SliceBench), three models, and three evaluator views (deterministic keyword, LLM-as-judge, blinded physician pilot), reporting where estimates agree, where they diverge, and which conclusions are robust to evaluator choice.
+  \item \textbf{Multi-evaluator and cross-model validation.} We evaluate on two benchmarks (ClinicalBench, SliceBench), four models, and three evaluator views (deterministic keyword, LLM-as-judge, blinded physician pilot), reporting where estimates agree, where they diverge, and which conclusions are robust to evaluator choice.
 
   \item \textbf{A falsifiable empirical claim.} The key claim is not that ``KG-RAG is always better,'' but that epistemic metadata improves QA \emph{only when retrieval uses it}. Empirically, assertions without routing can hurt (C3$\to$C4), while routing unlocks gains (C4$\to$C4g), especially on hard longitudinal categories.
 \end{enumerate}
