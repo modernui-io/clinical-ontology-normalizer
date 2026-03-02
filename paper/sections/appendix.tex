@@ -307,24 +307,24 @@ C & 15+ notes & 48.4 & 74.2 & 86.5 & 91.5 & 90.3 & $+5.0\pp$ \\
 \begin{table}[ht]
 \centering
 \small
-\begin{tabular}{lcccccccc}
+\begin{tabular}{lccccccccc}
 \toprule
-\textbf{Category} & $n$ & \textbf{C7} & \textbf{C6} & \textbf{C1} & \textbf{C2} & \textbf{C3} & \textbf{C4} & \textbf{C4g} \\
+\textbf{Category} & $n$ & \textbf{C7} & \textbf{C6} & \textbf{C1} & \textbf{C2} & \textbf{C2b} & \textbf{C3} & \textbf{C4} & \textbf{C4g} \\
 \midrule
-Negation & 110 & 13.6 & 69.1 & 45.5 & 70.9 & 65.5 & 90.0 & 80.9 \\
-Conditional & 20 & 0.0 & 35.0 & 0.0 & 35.0 & 30.0 & 50.0 & 45.0 \\
-Uncertainty & 40 & 0.0 & 27.5 & 12.5 & 35.0 & 37.5 & 52.5 & 50.0 \\
-Family History & 30 & 0.0 & 43.3 & 3.3 & 43.3 & 43.3 & 50.0 & 56.7 \\
-Sequence & 40 & 0.0 & 0.0 & 10.0 & 60.0 & 57.5 & 10.0 & 65.0 \\
-Current State & 50 & 0.0 & 44.0 & 26.0 & 32.0 & 54.0 & 30.0 & 70.0 \\
-Duration & 30 & 0.0 & 66.7 & 30.0 & 66.7 & 60.0 & 46.7 & 66.7 \\
-Historical & 50 & 0.0 & 0.0 & 6.0 & 48.0 & 42.0 & 12.0 & 60.0 \\
-Change & 30 & 0.0 & 23.3 & 6.7 & 43.3 & 16.7 & 10.0 & 100.0 \\
+Negation & 110 & 13.6 & 69.1 & 45.5 & 70.9 & 75.5 & 65.5 & 90.0 & 80.9 \\
+Conditional & 20 & 0.0 & 35.0 & 0.0 & 35.0 & 50.0 & 30.0 & 50.0 & 45.0 \\
+Uncertainty & 40 & 0.0 & 27.5 & 12.5 & 35.0 & 32.5 & 37.5 & 52.5 & 50.0 \\
+Family History & 30 & 0.0 & 43.3 & 3.3 & 43.3 & 43.3 & 43.3 & 50.0 & 56.7 \\
+Sequence & 40 & 0.0 & 0.0 & 10.0 & 60.0 & 47.5 & 57.5 & 10.0 & 65.0 \\
+Current State & 50 & 0.0 & 44.0 & 26.0 & 32.0 & 32.0 & 54.0 & 30.0 & 70.0 \\
+Duration & 30 & 0.0 & 66.7 & 30.0 & 66.7 & 66.7 & 60.0 & 46.7 & 66.7 \\
+Historical & 50 & 0.0 & 0.0 & 6.0 & 48.0 & 46.0 & 42.0 & 12.0 & 60.0 \\
+Change & 30 & 0.0 & 23.3 & 6.7 & 43.3 & 20.0 & 16.7 & 10.0 & 100.0 \\
 \midrule
-\textbf{Overall} & \textbf{400} & \textbf{3.8} & \textbf{39.0} & \textbf{21.8} & \textbf{52.2} & \textbf{50.0} & \textbf{46.8} & \textbf{69.0} \\
+\textbf{Overall} & \textbf{400} & \textbf{3.8} & \textbf{39.0} & \textbf{21.8} & \textbf{52.2} & \textbf{50.7} & \textbf{50.0} & \textbf{46.8} & \textbf{69.0} \\
 \bottomrule
 \end{tabular}
-\caption{Complete ClinicalBench per-category accuracy (\%, Claude Opus 4.6, keyword evaluator v2) for all conditions. C4 adds assertion metadata to C3 without intent routing; it helps assertion-sensitive categories (negation: $+24.5\pp$) but hurts temporal categories (historical: $-30\pp$, sequence: $-47.5\pp$). Only with intent routing (C4g) does the full system reach 69\%.}
+\caption{Complete ClinicalBench per-category accuracy (\%, Claude Opus 4.6, keyword evaluator v2) for all conditions. C2b (Contriever dense retrieval) scores comparably to C2 (TF-IDF), confirming the retrieval method does not drive the C2$\to$C4g gap. C4 adds assertion metadata to C3 without intent routing; it helps assertion-sensitive categories (negation: $+24.5\pp$) but hurts temporal categories (historical: $-30\pp$, sequence: $-47.5\pp$). Only with intent routing (C4g) does the full system reach 69\%.}
 \label{tab:full_percategory}
 \end{table}
 
@@ -378,7 +378,8 @@ Per-category keyword sets: negation (``no,'' ``denies,'' ``absent,'' ``negative'
 Evidence preambles (echoed graph context) are stripped before matching.
 
 \paragraph{Retrieval.} C2's vanilla RAG uses TF-IDF over chunked clinical notes (512-token chunks, 64-token overlap), retrieving the top-5 chunks by cosine similarity.
-This is the closest analog to existing medical RAG systems (DoctorRAG, MedRAG) on patient-level longitudinal data.
+C2b replaces TF-IDF with Contriever~\cite{izacard2022contriever} dense embeddings (256-token chunks, 64-token overlap, top-$k$ up to 6{,}000 characters); C2b scores 50.7\% ($\Delta = -1.5\pp$ vs.\ C2; $p = 0.62$), confirming the retrieval method does not explain the C2$\to$C4g gap.
+These are the closest analogs to existing medical RAG systems (DoctorRAG, MedRAG) on patient-level longitudinal data.
 ClinicalBench conditions map to SliceBench: C1$\!\approx\!$B0, C2$\!\approx\!$B2, C4g$\!\approx\!$B3, C5$\!\approx\!$B4.
 
 \paragraph{Bootstrap.} $n=2{,}000$ resamples, seed 42, BCa method~\cite{efron1993bootstrap}.
@@ -397,6 +398,8 @@ Patient-level CIs are slightly wider but all primary endpoints remain significan
 Comparison & $\Delta$ & Question CI & Patient CI & McNemar $p$ \\
 \midrule
 C4g$-$C1 (overall) & $+47.2\pp$ & \ci{+40.9\pp}{+52.8\pp} & \ci{+40.2\pp}{+52.5\pp} & $< 10^{-6}$ \\
+C2b$-$C2 (dense vs.\ keyword) & $-1.5\pp$ & \ci{-6.6\pp}{+3.5\pp} & \ci{-5.9\pp}{+3.0\pp} & $0.62$ \\
+C4g$-$C2b (KG-RAG vs.\ dense) & $+18.2\pp$ & \ci{+12.3\pp}{+23.5\pp} & \ci{+12.9\pp}{+23.2\pp} & $< 10^{-9}$ \\
 C3$-$C1 (retrieval) & $+28.2\pp$ & \ci{+22.3\pp}{+34.0\pp} & \ci{+23.1\pp}{+33.8\pp} & $< 10^{-6}$ \\
 C4$-$C3 (assertions) & $-3.2\pp$ & \ci{-10.0\pp}{+3.2\pp} & \ci{-10.8\pp}{+3.4\pp} & $0.37$ \\
 C4g$-$C4 (routing) & $+22.2\pp$ & \ci{+16.0\pp}{+28.0\pp} & \ci{+14.8\pp}{+29.3\pp} & $< 10^{-10}$ \\
@@ -432,6 +435,7 @@ Condition & Model & Checkpoint file & $n$ \\
 \midrule
 C1 & Opus 4.6 & \texttt{opus/C1\_llm\_alone.json} & 400 \\
 C2 & Opus 4.6 & \texttt{opus/C2\_vanilla\_rag.json} & 400 \\
+C2b & Opus 4.6 & \texttt{opus/C2b\_dense\_rag.json} & 400 \\
 C3 & Opus 4.6 & \texttt{opus/C3\_kg\_rag.json} & 400 \\
 C4 & Opus 4.6 & \texttt{opus/C4\_epistemic\_kg\_rag.json} & 400 \\
 C4g & Opus 4.6 & \texttt{opus/C4g\_intent\_aware.json} & 400 \\

@@ -20,7 +20,8 @@ Both benchmarks report bias-corrected and accelerated (BCa) bootstrap 95\% CIs (
 & Condition & Accuracy & $\Delta$ vs C1 \\
 \midrule
 C1 & LLM Alone & 21.8\% & --- \\
-C2 & + Vanilla RAG & 52.2\% & $+30.5\pp$ * \\
+C2 & + Vanilla RAG (TF-IDF) & 52.2\% & $+30.5\pp$ * \\
+C2b & + Vanilla RAG (dense) & 50.7\% & $+29.0\pp$ * \\
 C3 & + KG-RAG (no assertions) & 50.0\% & $+28.2\pp$ * \\
 C4 & + Assertions (no routing) & 46.8\% & $+25.0\pp$ * \\
 C4g & + Intent-Aware KG-RAG & \textbf{69.0\%} & $+47.2\pp$ * \\
@@ -39,7 +40,8 @@ However, C6 fails on historical (0\%) and sequence (0\%), consistent with the ``
 C7 (deterministic KG, no LLM) achieves 3.8\%---only negation detection works (13.6\%) via stored assertion metadata---confirming that an LLM is essential for reasoning over graph evidence.
 
 \paragraph{Ablation decomposition: retrieval vs.\ assertions vs.\ intent routing.}
-C2 (vanilla TF-IDF document retrieval) and C3 (graph-augmented retrieval without assertions) score similarly overall---52.2\% and 50.0\%, respectively---demonstrating that graph structure alone does not improve aggregate accuracy over simple document retrieval.
+C2 (TF-IDF document retrieval) and C2b (dense retrieval via Contriever) score comparably---52.2\% and 50.7\%, respectively ($\Delta = -1.5\pp$; 95\% BCa CI: \ci{-6.6\pp}{+3.5\pp}; McNemar $p = 0.62$)---confirming that the retrieval method (keyword vs.\ dense) does not explain the C2$\to$C4g gap.
+C3 (graph-augmented retrieval without assertions) also scores similarly (50.0\%), demonstrating that graph structure alone does not improve aggregate accuracy over either retrieval baseline.
 However, per-category patterns diverge: C3 excels on current state (54\% vs.\ 32\%) where graph structure helps identify active conditions, while C2 outperforms C3 on change (43\% vs.\ 17\%) where raw text explicitly mentions medication changes.
 
 The new C4 condition isolates assertion metadata from intent routing: C4 adds epistemic annotations (negation, uncertainty, temporality) to graph edges but uses uniform BFS traversal without question-type-specific routing.
@@ -51,7 +53,7 @@ Per-category decomposition clarifies the mechanism: assertions without routing h
 Intent routing reverses these losses and amplifies the gains---most dramatically on change ($+90.0\pp$), sequence ($+55.0\pp$), and historical ($+48.0\pp$).
 The finding that assertions are necessary but not sufficient---and that their value is unlocked specifically by routing---validates the two-component architecture.
 
-C2 serves as the closest analog to existing medical RAG systems (DoctorRAG, MedRAG), which use document retrieval without assertion-aware graph structure; the $+16.8\pp$ C2$\to$C4g gap quantifies the value of epistemic KG-RAG over vanilla approaches.
+C2/C2b serve as the closest analogs to existing medical RAG systems (DoctorRAG, MedRAG), which use document retrieval without assertion-aware graph structure; the $+18.2\pp$ C2b$\to$C4g gap (CI: \ci{+12.3\pp}{+23.5\pp}; McNemar $p < 10^{-9}$) quantifies the value of epistemic KG-RAG over modern dense retrieval.
 
 \paragraph{Evaluator hierarchy.}
 We report three evaluators to bound the true effect size.
@@ -68,25 +70,25 @@ All three agree that C4g substantially outperforms C1; the disagreement concerns
 
 \begin{table}[t]
 \centering
-\caption{ClinicalBench per-category accuracy (\%) across conditions (Claude Opus 4.6, evaluator v2). C4 adds assertion metadata to C3 without intent routing; C4g adds intent-aware routing. Best per row in \textbf{bold}.}
+\caption{ClinicalBench per-category accuracy (\%) across conditions (Claude Opus 4.6, evaluator v2). C2b replaces TF-IDF with Contriever dense retrieval; C4 adds assertion metadata to C3 without intent routing; C4g adds intent-aware routing. Best per row in \textbf{bold}.}
 \label{tab:clinicalbench_categories}
 \small
-\begin{tabular}{@{}lccccccl@{}}
+\begin{tabular}{@{}lcccccccl@{}}
 \toprule
-Category & $n$ & C1 & C2 & C3 & C4 & C4g & C4g$-$C1 \\
+Category & $n$ & C1 & C2 & C2b & C3 & C4 & C4g & C4g$-$C1 \\
 \midrule
-Negation & 110 & 45.5 & 70.9 & 65.5 & \textbf{90.0} & 80.9 & $\uparrow 35.5\pp$ \\
-Conditional & 20 & 0.0 & 35.0 & 30.0 & \textbf{50.0} & 45.0 & $\uparrow 45.0\pp$ \\
-Uncertainty & 40 & 12.5 & 35.0 & 37.5 & \textbf{52.5} & 50.0 & $\uparrow 37.5\pp$ \\
-Family hist. & 30 & 3.3 & 43.3 & 43.3 & 50.0 & \textbf{56.7} & $\uparrow 53.3\pp$ \\
-Sequence & 40 & 10.0 & 60.0 & 57.5 & 10.0 & \textbf{65.0} & $\uparrow 55.0\pp$ \\
+Negation & 110 & 45.5 & 70.9 & 75.5 & 65.5 & \textbf{90.0} & 80.9 & $\uparrow 35.5\pp$ \\
+Conditional & 20 & 0.0 & 35.0 & 50.0 & 30.0 & \textbf{50.0} & 45.0 & $\uparrow 45.0\pp$ \\
+Uncertainty & 40 & 12.5 & 35.0 & 32.5 & 37.5 & \textbf{52.5} & 50.0 & $\uparrow 37.5\pp$ \\
+Family hist. & 30 & 3.3 & 43.3 & 43.3 & 43.3 & 50.0 & \textbf{56.7} & $\uparrow 53.3\pp$ \\
+Sequence & 40 & 10.0 & 60.0 & 47.5 & 57.5 & 10.0 & \textbf{65.0} & $\uparrow 55.0\pp$ \\
 \midrule
-Current st. & 50 & 26.0 & 32.0 & 54.0 & 30.0 & \textbf{70.0} & $\uparrow 44.0\pp$ \\
-Duration & 30 & 30.0 & \textbf{66.7} & 60.0 & 46.7 & \textbf{66.7} & $\uparrow 36.7\pp$ \\
-Historical & 50 & 6.0 & 48.0 & 42.0 & 12.0 & \textbf{60.0} & $\uparrow 54.0\pp$ \\
-Change & 30 & 6.7 & 43.3 & 16.7 & 10.0 & \textbf{100.0} & $\uparrow 93.3\pp$ \\
+Current st. & 50 & 26.0 & 32.0 & 32.0 & 54.0 & 30.0 & \textbf{70.0} & $\uparrow 44.0\pp$ \\
+Duration & 30 & 30.0 & \textbf{66.7} & \textbf{66.7} & 60.0 & 46.7 & \textbf{66.7} & $\uparrow 36.7\pp$ \\
+Historical & 50 & 6.0 & 48.0 & 46.0 & 42.0 & 12.0 & \textbf{60.0} & $\uparrow 54.0\pp$ \\
+Change & 30 & 6.7 & 43.3 & 20.0 & 16.7 & 10.0 & \textbf{100.0} & $\uparrow 93.3\pp$ \\
 \midrule
-\textbf{Overall} & \textbf{400} & 21.8 & 52.2 & 50.0 & 46.8 & \textbf{69.0} & $\uparrow 47.2\pp$ \\
+\textbf{Overall} & \textbf{400} & 21.8 & 52.2 & 50.7 & 50.0 & 46.8 & \textbf{69.0} & $\uparrow 47.2\pp$ \\
 \bottomrule
 \end{tabular}
 \end{table}

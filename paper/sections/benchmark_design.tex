@@ -25,7 +25,8 @@ Two bookend baselines---C6 (all notes concatenated) and C7 (deterministic KG loo
 ID & Condition & Retrieval & Assertion & Temporal \\
 \midrule
 C1 & LLM Alone & None & None & None \\
-C2 & + Vanilla RAG & TF-IDF doc chunks & None & None \\
+C2 & + Vanilla RAG (TF-IDF) & TF-IDF doc chunks & None & None \\
+C2b & + Vanilla RAG (dense) & Contriever doc chunks & None & None \\
 C3 & + KG-RAG (no assertions) & Graph + Doc & None & None \\
 C4 & + Epistemic KG-RAG & Graph + Doc & Full (7-class) & Tri-temporal \\
 C4g & + Intent-Aware KG-RAG & Graph + Doc (type-specific) & Full (7-class) & Tri-temporal \\
@@ -78,8 +79,8 @@ The \textbf{secondary endpoint} is full 400-question ClinicalBench, C4g vs.\ C1.
 
 \begin{sloppypar}
 \noindent\textbf{What each transition isolates.}
-C1$\to$C2 isolates the \emph{document retrieval effect}: C2 adds TF-IDF chunk retrieval over clinical notes, analogous to existing medical RAG systems (DoctorRAG, MedRAG).
-C2$\to$C3 isolates the \emph{graph structure effect}: both retrieve documents, but C3 replaces TF-IDF with graph traversal---testing whether structured retrieval outperforms vanilla retrieval.
+C1$\to$C2/C2b isolates the \emph{document retrieval effect}: C2 adds TF-IDF and C2b adds Contriever dense retrieval over clinical notes, analogous to existing medical RAG systems (DoctorRAG, MedRAG).
+C2/C2b$\to$C3 isolates the \emph{graph structure effect}: both retrieve documents, but C3 replaces document-level retrieval with graph traversal---testing whether structured retrieval outperforms vanilla retrieval.
 C3$\to$C4 isolates the \emph{assertion metadata effect}: C4 adds 7-class assertions and tri-temporal metadata but uses uniform BFS (no intent routing).
 C4$\to$C4g isolates the \emph{intent routing effect}: C4g adds question-type-specific graph traversal and assertion-aware filtering on top of C4's metadata.
 C4g vs.\ C6 isolates the \emph{structured-vs-unstructured retrieval effect} on the same questions.

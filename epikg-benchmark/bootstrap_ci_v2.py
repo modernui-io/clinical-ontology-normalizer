@@ -20,6 +20,8 @@ ALPHA = 0.05
 BASE = "/Users/alexstinard/projects/brainstorm/jan-14-2026/epikg-benchmark"
 QUESTIONS_PATH = f"{BASE}/clinicalbench/questions.json"
 C1_PATH = f"{BASE}/results/opus/C1_llm_alone.json"
+C2_PATH = f"{BASE}/results/opus/C2_vanilla_rag.json"
+C2B_PATH = f"{BASE}/results/opus/C2b_dense_rag.json"
 C3_PATH = f"{BASE}/results/opus/C3_kg_rag.json"
 C4_PATH = f"{BASE}/results/opus/C4_epistemic_kg_rag.json"
 C4G_PATH = f"{BASE}/results/opus/C4g_intent_aware.json"
@@ -37,6 +39,8 @@ def load_preds(path):
     return {p["question_id"]: p for p in data["predictions"]}
 
 c1_preds = load_preds(C1_PATH)
+c2_preds = load_preds(C2_PATH)
+c2b_preds = load_preds(C2B_PATH)
 c3_preds = load_preds(C3_PATH)
 c4_preds = load_preds(C4_PATH)
 c4g_preds = load_preds(C4G_PATH)
@@ -45,6 +49,8 @@ c4g_preds = load_preds(C4G_PATH)
 qids = []
 categories = []
 c1_scores = []
+c2_scores = []
+c2b_scores = []
 c3_scores = []
 c4_scores = []
 c4g_scores = []
@@ -52,10 +58,12 @@ c4g_scores = []
 for qid in sorted(questions.keys()):
     q = questions[qid]
     c1_pred = c1_preds.get(qid)
+    c2_pred = c2_preds.get(qid)
+    c2b_pred = c2b_preds.get(qid)
     c3_pred = c3_preds.get(qid)
     c4_pred = c4_preds.get(qid)
     c4g_pred = c4g_preds.get(qid)
-    if not c1_pred or not c3_pred or not c4_pred or not c4g_pred:
+    if not c1_pred or not c2_pred or not c2b_pred or not c3_pred or not c4_pred or not c4g_pred:
         continue
 
     def score(pred):
@@ -68,23 +76,30 @@ for qid in sorted(questions.keys()):
     qids.append(qid)
     categories.append(q["category"])
     c1_scores.append(score(c1_pred))
+    c2_scores.append(score(c2_pred))
+    c2b_scores.append(score(c2b_pred))
     c3_scores.append(score(c3_pred))
     c4_scores.append(score(c4_pred))
     c4g_scores.append(score(c4g_pred))
 
 c1_scores = np.array(c1_scores)
+c2_scores = np.array(c2_scores)
+c2b_scores = np.array(c2b_scores)
 c3_scores = np.array(c3_scores)
 c4_scores = np.array(c4_scores)
 c4g_scores = np.array(c4g_scores)
 categories = np.array(categories)
 n = len(qids)
 
-print(f"Loaded {n} questions with predictions in all four conditions")
+print(f"Loaded {n} questions with predictions in all six conditions")
 print(f"C1 overall:  {c1_scores.mean():.1%} ({int(c1_scores.sum())}/{n})")
+print(f"C2 overall:  {c2_scores.mean():.1%} ({int(c2_scores.sum())}/{n})")
+print(f"C2b overall: {c2b_scores.mean():.1%} ({int(c2b_scores.sum())}/{n})")
 print(f"C3 overall:  {c3_scores.mean():.1%} ({int(c3_scores.sum())}/{n})")
 print(f"C4 overall:  {c4_scores.mean():.1%} ({int(c4_scores.sum())}/{n})")
 print(f"C4g overall: {c4g_scores.mean():.1%} ({int(c4g_scores.sum())}/{n})")
 print()
+print(f"C2b-C2 delta (dense vs keyword): {(c2b_scores.mean() - c2_scores.mean()):.1%}")
 print(f"C3->C4 delta (assertions only):  {(c4_scores.mean() - c3_scores.mean()):.1%}")
 print(f"C4->C4g delta (intent routing):  {(c4g_scores.mean() - c4_scores.mean()):.1%}")
 print(f"C3->C4g delta (both):            {(c4g_scores.mean() - c3_scores.mean()):.1%}")
@@ -147,13 +162,49 @@ def overall_delta(idx):
 def c1_to_c3_delta(idx):
     return c3_scores[idx].mean() - c1_scores[idx].mean()
 
+def accuracy_c2b(idx):
+    return c2b_scores[idx].mean()
+
+def c2b_minus_c2(idx):
+    return c2b_scores[idx].mean() - c2_scores[idx].mean()
+
+def c2b_to_c4g_delta(idx):
+    return c4g_scores[idx].mean() - c2b_scores[idx].mean()
+
+def c1_to_c2b_delta(idx):
+    return c2b_scores[idx].mean() - c1_scores[idx].mean()
+
 def accuracy_c4(idx):
     return c4_scores[idx].mean()
 
 all_idx = np.arange(n)
 
 # ══════════════════════════════════════════════════════════════
-# 1. C4 ABLATION DECOMPOSITION (new)
+# 0. C2b DENSE RETRIEVAL BASELINE
+# ══════════════════════════════════════════════════════════════
+print("=" * 60)
+print("C2b DENSE RETRIEVAL (Contriever) vs C2 (TF-IDF)")
+print("=" * 60)
+
+# C2b accuracy + CI
+theta_c2b, lo_c2b, hi_c2b, _ = bca_ci(accuracy_c2b, all_idx, rng=np.random.default_rng(SEED+30))
+print(f"C2b accuracy: {theta_c2b:.1%} [{lo_c2b:.1%}, {hi_c2b:.1%}]")
+
+# C2b - C2 delta
+theta_d, lo_d, hi_d, _ = bca_ci(c2b_minus_c2, all_idx, rng=np.random.default_rng(SEED+31))
+print(f"C2b−C2 delta: {theta_d:+.1%} [{lo_d:+.1%}, {hi_d:+.1%}]")
+
+# C2b vs C1
+theta_c2b_c1, lo_c2b_c1, hi_c2b_c1, _ = bca_ci(c1_to_c2b_delta, all_idx, rng=np.random.default_rng(SEED+32))
+print(f"C2b−C1 delta: {theta_c2b_c1:+.1%} [{lo_c2b_c1:+.1%}, {hi_c2b_c1:+.1%}]")
+
+# C4g vs C2b
+theta_c4g_c2b, lo_c4g_c2b, hi_c4g_c2b, _ = bca_ci(c2b_to_c4g_delta, all_idx, rng=np.random.default_rng(SEED+33))
+print(f"C4g−C2b delta: {theta_c4g_c2b:+.1%} [{lo_c4g_c2b:+.1%}, {hi_c4g_c2b:+.1%}]")
+print()
+
+# ══════════════════════════════════════════════════════════════
+# 1. C4 ABLATION DECOMPOSITION
 # ══════════════════════════════════════════════════════════════
 print("=" * 60)
 print("C4 ABLATION DECOMPOSITION")
@@ -181,19 +232,21 @@ print()
 # 2. PER-CATEGORY BREAKDOWN (C4 vs C3 vs C4g)
 # ══════════════════════════════════════════════════════════════
 print("=" * 60)
-print("PER-CATEGORY: C3 vs C4 vs C4g")
-print(f"{'Category':<18} {'n':>4} {'C3':>7} {'C4':>7} {'C4g':>7} {'C3→C4':>8} {'C4→C4g':>8}")
-print("-" * 70)
+print("PER-CATEGORY: C2 vs C2b vs C3 vs C4 vs C4g")
+print(f"{'Category':<18} {'n':>4} {'C2':>7} {'C2b':>7} {'C3':>7} {'C4':>7} {'C4g':>7} {'C2b−C2':>8}")
+print("-" * 80)
 
 unique_cats = sorted(set(categories))
 for cat in unique_cats:
     cat_mask = categories == cat
     cat_idx = np.where(cat_mask)[0]
     n_cat = len(cat_idx)
+    c2_acc = c2_scores[cat_idx].mean()
+    c2b_acc = c2b_scores[cat_idx].mean()
     c3_acc = c3_scores[cat_idx].mean()
     c4_acc = c4_scores[cat_idx].mean()
     c4g_acc = c4g_scores[cat_idx].mean()
-    print(f"{cat:<18} {n_cat:>4} {c3_acc:>6.1%} {c4_acc:>6.1%} {c4g_acc:>6.1%} {c4_acc-c3_acc:>+7.1%} {c4g_acc-c4_acc:>+7.1%}")
+    print(f"{cat:<18} {n_cat:>4} {c2_acc:>6.1%} {c2b_acc:>6.1%} {c3_acc:>6.1%} {c4_acc:>6.1%} {c4g_acc:>6.1%} {c2b_acc-c2_acc:>+7.1%}")
 
 print()
 
@@ -220,6 +273,9 @@ def mcnemar(name, scores_a, scores_b):
     return 0, 1.0
 
 results_mcnemar = [
+    ("C2b vs C2 (dense vs keyword)", mcnemar("C2b vs C2 (dense vs keyword)", c2_scores, c2b_scores)),
+    ("C2b vs C3 (dense vs graph)", mcnemar("C2b vs C3 (dense vs graph)", c2b_scores, c3_scores)),
+    ("C2b vs C4g (dense vs full)", mcnemar("C2b vs C4g (dense vs full)", c2b_scores, c4g_scores)),
     ("C3 vs C4 (assertion effect)", mcnemar("C3 vs C4 (assertion effect)", c3_scores, c4_scores)),
     ("C4 vs C4g (routing effect)", mcnemar("C4 vs C4g (routing effect)", c4_scores, c4g_scores)),
     ("C3 vs C4g (combined)", mcnemar("C3 vs C4g (combined)", c3_scores, c4g_scores)),
@@ -301,6 +357,12 @@ def patient_cluster_boot_ci(stat_func, n_boot=N_BOOT, alpha=ALPHA, rng=None):
     ci_high = np.percentile(boot_thetas, 100 * a2)
 
     return theta_hat, ci_low, ci_high
+
+pt_c2b_c2, pt_c2b_c2_lo, pt_c2b_c2_hi = patient_cluster_boot_ci(c2b_minus_c2, rng=np.random.default_rng(SEED+198))
+print(f"  C2b−C2 (patient-level): {pt_c2b_c2:+.1%} [{pt_c2b_c2_lo:+.1%}, {pt_c2b_c2_hi:+.1%}]")
+
+pt_c4g_c2b, pt_c4g_c2b_lo, pt_c4g_c2b_hi = patient_cluster_boot_ci(c2b_to_c4g_delta, rng=np.random.default_rng(SEED+199))
+print(f"  C4g−C2b (patient-level): {pt_c4g_c2b:+.1%} [{pt_c4g_c2b_lo:+.1%}, {pt_c4g_c2b_hi:+.1%}]")
 
 pt_34, pt_34_lo, pt_34_hi = patient_cluster_boot_ci(c3_to_c4_delta, rng=np.random.default_rng(SEED+200))
 print(f"  C3→C4 (patient-level):  {pt_34:+.1%} [{pt_34_lo:+.1%}, {pt_34_hi:+.1%}]")
