@@ -9,6 +9,12 @@ GraphRAG~\cite{edge2024graphrag} introduced community-based summarization; GFM-R
 Concurrent work addresses EHR-specific retrieval: EHR-RAG~\cite{cao2026ehrrag} evaluates retrieval strategies over structured EHR tables, and MediGRAF~\cite{thio2025medigraf} builds medical KGs via multi-agent extraction.
 Yet no published medical RAG system models assertion status or temporal context; GFM-RAG and KARE build population-level graphs rather than patient-level graphs from clinical text, and a recent survey~\cite{graphragsurvey2025} confirms no system incorporates epistemic metadata into the retrieval graph.
 
+\paragraph{Clinical QA benchmarks and systems.}
+Large-scale medical QA systems have advanced rapidly: MedPaLM~2~\cite{singhal2023medpalm2} reaches 86.5\% on MedQA-USMLE via ensemble refinement; Med-Gemini~\cite{saab2024medgemini} extends to multimodal clinical reasoning; AMIE~\cite{tu2024amie} achieves specialist-level diagnostic dialogue.
+These systems target \emph{medical knowledge recall}---answering exam-style questions from parametric knowledge or medical literature.
+ClinicalBench targets a complementary task: \emph{assertion-faithful longitudinal reasoning} over real EHR records, where the challenge is not knowing that metformin treats diabetes but knowing whether \emph{this patient} is still on metformin, whether a condition was ruled out or confirmed, and how the clinical picture changed across admissions.
+EHR-specific QA benchmarks exist---emrQA~\cite{pampari2018emrqa} (1M+ question-answer pairs from clinical notes) and EHR-RAG~\cite{cao2026ehrrag} (structured EHR retrieval)---but neither evaluates assertion-sensitive reasoning or category$\times$condition interactions.
+
 \paragraph{Clinical KG construction.}
 Multi-LLM KG-RAG~\cite{chen2026multilllmkgrag} uses multi-agent LLM prompting with schema-constrained extraction for oncology, modeling uncertainty via entropy but not tracking assertion classes on edges.
 AutoRD~\cite{li2024autord} applies GPT-4 to rare disease literature; RECAP-KG~\cite{remy2024recapkg} handles messy GP notes; FHIR-Ontop-OMOP~\cite{yun2022fhirontopomop} generates virtual KGs from OMOP data.

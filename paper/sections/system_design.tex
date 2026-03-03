@@ -1,12 +1,12 @@
 % Section 3: System Design
 
-\subsection{Overview}
+\subsection{Method Overview}
 \label{sec:system:overview}
 
-\epikg transforms unstructured clinical narratives into an assertion-aware, temporally grounded knowledge graph exposed through graph-augmented retrieval.
-The pipeline comprises six stages: (1)~document ingestion, (2)~NLP extraction, (3)~OMOP concept normalization~\cite{omop2024}, (4)~clinical fact construction with epistemic metadata, (5)~KG materialization with shared concept nodes, and (6)~assertion-aware retrieval.
+\epikg implements three key ideas: (1)~end-to-end epistemic preservation, carrying assertion labels from NLP extraction through OMOP mapping, fact construction, KG materialization, and retrieval; (2)~tri-temporal edge representation, storing valid time, transaction time, and NLP-asserted temporality on every KG edge; and (3)~intent-aware routing, matching graph traversal strategy to question type.
+The first two ideas are necessary infrastructure; the third is where the performance gain originates.
 The key invariant is that \textit{epistemic assertion status} is a first-class attribute at every stage, not an NLP annotation discarded after extraction (Figure~\ref{fig:architecture}).
-Clinical concepts are stored once as shared global nodes; patient-specific semantics (assertion status, temporality, confidence) reside on edges, enabling cohort queries via edge scans.
+Clinical concepts are stored once as shared global nodes; patient-specific semantics (assertion status, temporality, confidence) reside on edges.
 
 \begin{figure}[t]
 \centering
@@ -28,53 +28,10 @@ OMOP excludes negated conditions entirely~\cite{omop2024}; FHIR limits assertion
 \alpha \in \{\text{\scriptsize Pres., Abs., Poss., Cond., Hypo., Fam.Hx., Hist.}\}
 \end{equation}
 %
-This extends the i2b2 (Informatics for Integrating Biology and the Bedside) six-class taxonomy~\cite{uzuner2011i2b2assertion} by separating \textsc{Historical} from \textsc{Family\_History}, a clinically important distinction that prior work conflates (definitions in Appendix~\ref{app:assertions}).
-A rule-based classifier (122 scope-aware trigger patterns) assigns $\alpha$ with an associated confidence score; we chose rule-based classification for deterministic behavior and interpretability, though fine-tuned LLM classifiers~\cite{gul2025beyondnegation} could be substituted.
-Intrinsic classifier evaluation is deferred; the end-to-end ClinicalBench ablation (C3$\to$C4g) serves as a functional test of assertion propagation.
+This extends the i2b2 six-class taxonomy~\cite{uzuner2011i2b2assertion} by separating \textsc{Historical} from \textsc{Family\_History}, a clinically important distinction that prior work conflates (definitions in Appendix~\ref{app:assertions}).
+A rule-based classifier (122 scope-aware trigger patterns) assigns $\alpha$ with an associated confidence score.
 The label is carried through every stage: from \texttt{ExtractedMention} through ensemble merging, \texttt{ClinicalFact} records, KG edge properties, and retrieval scoring.
-To our knowledge, no prior system~\cite{gul2025beyondnegation,peng2018negbio} maintains this end-to-end invariant.
-
-
-\subsection{Tri-Temporal Knowledge Graph Model}
-\label{sec:system:temporal}
-
-Clinical events unfold across multiple time dimensions that prior systems model incompletely~\cite{huang2024medtkg,ramirez2025graphiti}.
-Bi-temporal databases~\cite{snodgrass2000temporal} distinguish valid time from transaction time; \epikg adds a third dimension (NLP-asserted temporality) and stores all three on every KG edge:
-
-\begin{definition}[Tri-Temporal Edge]
-\label{def:edge}
-An edge $e = (s, p, o, \alpha, \boldsymbol{\tau}_v, \boldsymbol{\tau}_t, \tau_a, r, c)$ where:
-\begin{itemize}[nosep,leftmargin=1.5em]
-  \item $s, o$ are source and target nodes; $p$ is the predicate (one of 24 edge types);
-  \item $\alpha \in \mathcal{A}$ is the assertion label (Eq.~\ref{eq:assertion});
-  \item $\boldsymbol{\tau}_v = (\textit{event\_date}, \textit{valid\_from}, \textit{valid\_to})$ is the \textbf{valid time} interval---when the relationship held in the real world;
-  \item $\boldsymbol{\tau}_t = (\textit{recorded\_at}, \textit{doc\_date}, \textit{created\_at})$ is the \textbf{transaction time}---when it was recorded;
-  \item $\tau_a \in \{\textnormal{\textsc{Current}}, \textnormal{\textsc{Past}}, \textnormal{\textsc{Future}}\}$ is the \textbf{NLP-asserted temporality};
-  \item $r \in \mathcal{R}$ is an Allen interval algebra relation~\cite{allen1983temporal}; $c \in [0,1]$ is temporal confidence.
-\end{itemize}
-\end{definition}
-
-$\mathcal{R}$ comprises seven of Allen's 13 canonical relations~\cite{allen1983temporal} (merging symmetric pairs like Before/Meets) plus \textsc{Concurrent} and \textsc{Unknown} (nine total; full mapping in Appendix~\ref{app:temporal}).
-Unlike TEO~\cite{li2020teo} and TCL~\cite{ong2023tcl}, which use Allen's relations as annotation-ontology classes or modal operators, \epikg stores $r$ and $c$ directly on materialized edges, enabling efficient temporal filtering during traversal.
-
-
-\subsection{Assertion-Aware Graph-Augmented Retrieval}
-\label{sec:system:retrieval}
-
-Given a clinical question $q$ and patient $\pi$, the retrieval pipeline:
-(1)~extracts concepts from $q$ via NLP + OMOP enrichment;
-(2)~traverses 2--3 hops via bidirectional breadth-first search (BFS) over patient KG edges and OMOP vocabulary relationships (20M+ edges) via PostgreSQL common table expressions (CTEs) (Appendix~\ref{app:drknows}), pruning edges with $c < 0.3$;
-(3)~groups edges into four temporal views (event timeline, current state, historical, conflicts);
-(4)~retrieves matching guideline sections;
-(5)~scores edges by:
-\begin{equation}
-\label{eq:scoring}
-\text{score}(e) = c(e) + \mathbb{1}[\text{type}(e) \in Q_{\text{rel}}] \cdot 0.2 + \mathbb{1}[\tau_a(e) = \textsc{Current}] \cdot 0.1
-\end{equation}
-where the bonuses for question-relevant edge types ($0.2$) and current temporality ($0.1$) were set by manual tuning on a development set of 20 questions.
-The surviving subgraph is serialized into structured text preserving assertion labels (\eg ``\textsc{Absent}: pneumonia'');
-and (6)~composes graph evidence, temporal context, guidelines, and source documents into a single prompt.
-
+Additionally, each edge carries a tri-temporal representation---valid time, transaction time, and NLP-asserted temporality---with Allen-style interval relations as first-class retrieval features (formalized in Appendix~\ref{app:temporal_model}).
 
 \subsection{Formal Epistemic Preservation}
 \label{sec:system:formal}
@@ -89,7 +46,8 @@ The empirical consequences are measured via category-stratified accuracy in Sect
 \subsection{Intent-Aware Retrieval (C4g)}
 \label{sec:system:intentaware}
 
-The multi-hop BFS described above treats all questions uniformly, yet different clinical question types require fundamentally different graph operations.
+The base retrieval pipeline uses bidirectional BFS over patient KG edges and OMOP vocabulary relationships (details in Appendix~\ref{app:retrieval_details}), but treats all questions uniformly.
+Yet different clinical question types require fundamentally different graph operations.
 A \emph{change} question requires cross-admission set differencing; a \emph{current-state} question needs filtering to the most recent valid edges; a \emph{historical} question must recover resolved conditions.
 
 \paragraph{Intent classifier.}

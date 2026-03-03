@@ -7,28 +7,26 @@ We call this the \emph{epistemic propagation gap}---the systematic loss of asser
 
 The gap persists because, to our knowledge, prior KG-RAG systems do not propagate assertion labels beyond the extraction stage into graph-augmented retrieval.
 Clinical NLP pipelines (cTAKES, John Snow Labs) detect assertions, but do not carry them as edge attributes into knowledge graph construction or retrieval.
-OMOP (Observational Medical Outcomes Partnership) excludes negated conditions from \texttt{CONDITION\_OCCURRENCE}~\cite{omop2024}; FHIR (Fast Healthcare Interoperability Resources) provides \texttt{verificationStatus} for \texttt{Condition} resources only, covering a fraction of the clinical data model.
+OMOP excludes negated conditions from \texttt{CONDITION\_OCCURRENCE}~\cite{omop2024}; FHIR provides \texttt{verificationStatus} for \texttt{Condition} resources only, covering a fraction of the clinical data model.
 Graph-augmented RAG systems---GraphRAG~\cite{edge2024graphrag}, GFM-RAG~\cite{luo2025gfmrag}, KARE~\cite{jiang2025kare}, Medical-Graph-RAG~\cite{wu2025medicalgraphrag}---build KGs that discard the metadata distinguishing ``patient has diabetes'' from ``rule out diabetes.''
-Two KG surveys~\cite{alkhatib2024pckgsurvey,abusalih2023healthcarekg} do not identify assertion preservation as a concern.
+Similarly, recent clinical QA systems---MedPaLM~2~\cite{singhal2023medpalm2}, Med-Gemini~\cite{saab2024medgemini}, AMIE~\cite{tu2024amie}---excel at medical knowledge recall but are not designed for longitudinal assertion reasoning over real patient records, which is the gap ClinicalBench targets.
 A parallel \emph{temporal integration gap} exists: clinical events span three time dimensions (valid time, transaction time, NLP-asserted temporality), yet existing systems model at most two~\cite{huang2024medtkg,ramirez2025graphiti}.
-Allen's interval algebra~\cite{allen1983temporal} has been formalized as annotation ontologies~\cite{li2020teo} and modal operators~\cite{ong2023tcl}, but never as first-class KG edge attributes that participate in retrieval.
 
-We present \epikg, a clinical KG system that closes both gaps by preserving epistemic status end-to-end from NLP extraction through OMOP mapping, fact construction, KG materialization, and graph-augmented retrieval.
-Our contributions:
+We present \epikg, a clinical KG-RAG system that preserves epistemic status end-to-end, and ClinicalBench, a 400-question benchmark that exposes the propagation gap.
+Our contributions are primarily \emph{empirical findings and a design principle}, not system components:
 
 \begin{enumerate}[leftmargin=*, topsep=4pt, itemsep=2pt]
-  \item \textbf{Epistemic preservation invariant.} We formalize the requirement that assertion status remain recoverable across extraction, mapping, storage, and retrieval; derive an information-theoretic loss bound for assertion-blind pipelines (Section~\ref{sec:system:formal}, Appendix~\ref{app:formal}); and implement a seven-value assertion schema carried end-to-end.
+  \item \textbf{The epistemic propagation gap.} We identify and formalize the systematic loss of assertion metadata across clinical NLP pipelines, derive an information-theoretic loss bound (Section~\ref{sec:system:formal}, Appendix~\ref{app:formal}), and implement end-to-end preservation as a testable invariant.
 
-  \item \textbf{Tri-temporal epistemic KG.} We represent valid time, transaction time, and NLP-asserted temporality jointly on edges, with Allen-style temporal relations as first-class retrieval features, enabling longitudinal reasoning over multi-admission records.
+  \item \textbf{Assertions alone do not help; routing is the active ingredient.} Adding assertion metadata to graph edges without question-type-specific retrieval does not improve accuracy ($-3.2\pp$, C3$\to$C4; CI crossing zero, $p = 0.37$). The entire C3$\to$C4g gain ($+19.0\pp$) is attributable to intent-aware routing ($+22.2\pp$, C4$\to$C4g; $p < 10^{-10}$). Metadata enrichment without retrieval alignment is insufficient.
 
-  \item \textbf{Ablation design that isolates mechanism.} We introduce C4 (assertions without intent routing) between C3 and C4g, and include C6/C7 as bookend baselines. This separates the effect of structured retrieval, assertion metadata, and routing policy instead of reporting a single bundled gain.
+  \item \textbf{Knowledge-compensator pattern.} Across four models from distinct training lineages, models with weaker baselines gain more from KG-RAG, and all converge to 57.5--69.0\% under C4g despite C1 baselines spanning 20.5\% to 37.0\%. This convergence pattern---observed descriptively across four data points---is consistent with the epistemic KG providing a knowledge floor that partially compensates for model-specific weaknesses.
 
-  \item \textbf{Multi-evaluator and cross-model validation.} We evaluate on two benchmarks (ClinicalBench, SliceBench), four models, and three evaluator views (deterministic keyword, LLM-as-judge, blinded physician pilot), reporting where estimates agree, where they diverge, and which conclusions are robust to evaluator choice.
+  \item \textbf{ClinicalBench.} A 400-question benchmark across 9 assertion-sensitive categories (negation, uncertainty, conditional, family history, sequence, current state, duration, historical, change) that exposes category$\times$condition interactions invisible to aggregate metrics. Released with Croissant metadata on HuggingFace.
 
-  \item \textbf{A falsifiable empirical claim.} The key claim is not that ``KG-RAG is always better,'' but that epistemic metadata improves QA \emph{only when retrieval uses it}. Empirically, assertions without routing can hurt (C3$\to$C4), while routing unlocks gains (C4$\to$C4g), especially on hard longitudinal categories.
+  \item \textbf{A falsifiable design principle.} Preserve epistemic metadata \emph{and} route retrieval by question intent, then evaluate by category$\times$condition interaction rather than aggregate score. This is not a system architecture but a falsifiable constraint: any pipeline violating it should underperform on assertion-sensitive longitudinal QA.
 \end{enumerate}
 
 Our central research question is: \emph{under what conditions does structured epistemic context help, hurt, or break even relative to unstructured retrieval and no retrieval?}
 The answer is interactional rather than uniform: gains depend on question type, routing policy, and model.
-Across experiments, intent-aware KG-RAG improves all nine ClinicalBench categories, with largest effects on cross-admission longitudinal tasks; assertions without routing can degrade temporal categories; and brute-force long context does not recover these failures despite a large token window.
-These results motivate a narrower and more testable takeaway: category$\times$condition interactions are the appropriate evaluation target for clinical KG-RAG, while aggregate accuracy alone obscures mechanism (Section~\ref{sec:results}).
+Intent-aware KG-RAG improves all nine ClinicalBench categories, with largest effects on cross-admission longitudinal tasks; assertions without routing do not improve temporal categories; and brute-force long context does not recover these failures despite a large token window.

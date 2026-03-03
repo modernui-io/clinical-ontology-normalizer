@@ -8,23 +8,32 @@ Historical questions require distinguishing resolved from active conditions acro
 C6 handles change detection modestly (23\%) because the relevant information appears explicitly in the text, but KG-RAG achieves $100\%$ ($+77\pp$).
 
 \paragraph{Model-dependent KG benefit.}
-Across the four models tested, KG-RAG benefit shows a consistent inverse trend: models with lower C1 baselines gain more (Table~\ref{tab:crossmodel}; $r = -0.89$).
+Across the four models tested, KG-RAG benefit shows a consistent inverse trend: models with lower C1 baselines gain more (Table~\ref{tab:crossmodel}).
 The two general-purpose models (Opus 21.8\%, GPT-OSS 20.5\%) gain $+47\pp$ and $+38\pp$ respectively; the medically fine-tuned model (MedGemma, 26.2\%) gains $+32\pp$; and the reasoning-optimized model (Qwen3.5, 37.0\%) gains least ($+21\pp$).
 Despite a $17\pp$ spread at baseline, all four models converge to 57.5--69.0\% under C4g, consistent with the epistemic KG providing a knowledge floor that partially compensates for model-specific weaknesses.
-With four models from distinct training lineages, the knowledge-compensator pattern is strengthened, though causal claims remain premature.
+With four models from distinct training lineages, the convergence pattern is consistent across all observed data points, though $n = 4$ models is insufficient for statistical inference on the correlation; additional models are needed to confirm the trend.
 This has practical implications for RAG system design: the same retrieval pipeline may yield different gains depending on the downstream model, and single-model evaluation risks overstating or understating value.
 
 \paragraph{When KG context matters.}
 The complexity-dependent SliceBench effect (Tier~C: $+5.0\pp$ vs.\ Tier~A: $+0.6\pp$) suggests structured epistemic context is most valuable when: (a)~document volume overwhelms chunk-level retrieval, (b)~questions require cross-encounter synthesis where the same concept appears with different assertion states, and (c)~assertion status evolves across encounters.
 
 The C4 ablation cleanly decomposes the C3$\to$C4g gap ($+19.0\pp$) into two components: assertions alone (C3$\to$C4: $-3.2\pp$, CI crossing zero) and intent routing (C4$\to$C4g: $+22.2\pp$, $p < 10^{-10}$).
-This reveals a key architectural insight: assertion metadata is a necessary but insufficient condition---its value is unlocked only when paired with question-type-specific retrieval.
-Without routing, assertions increase evidence verbosity and degrade temporal categories (historical: $-30\pp$, sequence: $-47.5\pp$); with routing, the same metadata enables near-perfect change detection (C4 10\% $\to$ C4g 100\%).
+This reveals a key architectural insight: assertion metadata does not improve aggregate accuracy without question-type-specific retrieval (CI crossing zero), and its value is unlocked only when paired with routing.
+Without routing, assertions increase evidence verbosity and do not improve temporal categories (historical: $-30\pp$, sequence: $-47.5\pp$, per-category effects exploratory); with routing, the same metadata enables near-perfect change detection (C4 10\% $\to$ C4g 100\%).
 The finding validates the two-component design and suggests that future work on assertion-aware clinical NLP should couple enriched metadata with structured retrieval strategies.
 
 \paragraph{Uncertainty remains weakest.}
 Uncertainty improves from 12.5\% to 50.0\% ($+37.5\pp$), but absolute accuracy remains low.
 Possible and suspected conditions are linguistically subtle (``consider statin,'' ``may have CHF'') and require pragmatic inference beyond keyword matching.
+
+\begin{sloppypar}
+\paragraph{Implications beyond clinical NLP.}
+The finding that metadata enrichment without retrieval alignment \emph{hurts} performance may generalize beyond clinical KGs.
+Any domain where structured annotations---sentiment, stance, certainty, provenance---are extracted but not integrated into the retrieval policy faces an analogous propagation gap.
+Legal reasoning requires distinguishing holdings from dicta; financial analysis must separate confirmed earnings from guidance; scientific synthesis depends on whether a result was replicated or retracted.
+In each case, the design principle is the same: preserve domain-specific metadata end-to-end \emph{and} route retrieval by query intent.
+The ClinicalBench ablation (C3$\to$C4$\to$C4g) provides a template for evaluating this principle in other domains.
+\end{sloppypar}
 
 \paragraph{Threats to validity and claim scope.}
 \begin{sloppypar}
@@ -41,10 +50,8 @@ Finally, this work does \emph{not} establish clinical deployment readiness: it e
 
 \begin{sloppypar}
 \paragraph{Conclusion.}
-The epistemic propagation gap is a real and measurable phenomenon.
-\epikg addresses it through end-to-end epistemic preservation combined with intent-aware retrieval that matches graph traversal to question semantics.
-The ablation ladder decomposes the gain into three independent contributions: structured retrieval ($+28\pp$, C1$\to$C3), assertion metadata ($-3\pp$ without routing, C3$\to$C4), and intent-aware routing ($+22\pp$, C4$\to$C4g).
-The counterintuitive C4 result---that assertions alone can degrade performance---shows that metadata enrichment without retrieval policy alignment is insufficient.
-Benefits are category-specific and model-dependent, and neither more context (C6) nor structure without reasoning (C7) closes the gap.
-The practical takeaway is a falsifiable design principle: preserve epistemic metadata \emph{and} route retrieval by question intent, then evaluate by category$\times$condition interaction rather than aggregate score alone.
+The epistemic propagation gap is a real and measurable phenomenon: clinical NLP systems that extract assertion status but discard it before retrieval systematically misrepresent patient state.
+The key finding is that closing this gap requires two components: assertion metadata alone does not improve accuracy (C3$\to$C4: $-3.2\pp$, CI crossing zero), but intent-aware routing unlocks its value (C4$\to$C4g: $+22.2\pp$, $p < 10^{-10}$).
+This holds across four models from distinct training lineages, with a convergence pattern in which all four cluster at 57.5--69.0\% under C4g despite divergent baselines---consistent with the epistemic KG providing a knowledge floor.
+The design principle---preserve epistemic metadata, route retrieval by question intent, evaluate by category$\times$condition interaction---is falsifiable, domain-agnostic, and immediately testable in any RAG system operating over annotated structured data.
 \end{sloppypar}

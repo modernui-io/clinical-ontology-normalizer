@@ -46,12 +46,12 @@ However, per-category patterns diverge: C3 excels on current state (54\% vs.\ 32
 
 The new C4 condition isolates assertion metadata from intent routing: C4 adds epistemic annotations (negation, uncertainty, temporality) to graph edges but uses uniform BFS traversal without question-type-specific routing.
 C4 scores 46.8\%---\emph{below} C3 (50.0\%)---with the C3$\to$C4 delta of $-3.2\pp$ not reaching significance (95\% BCa CI: \ci{-10.0\pp}{+3.2\pp}; McNemar $p = 0.37$).
-This reveals that assertion metadata without intent routing actually degrades performance: the additional edge properties increase evidence verbosity and confuse uniform BFS traversal.
+This reveals that assertion metadata without intent routing does not improve---and may degrade---performance: the additional edge properties increase evidence verbosity without providing a mechanism to exploit them.
 The entire C3$\to$C4g gain ($+19.0\pp$; CI: \ci{+13.8\pp}{+24.0\pp}) is attributable to intent-aware routing (C4$\to$C4g: $+22.2\pp$; CI: \ci{+16.0\pp}{+28.0\pp}; McNemar $\chi^2 = 41.4$, $p < 10^{-10}$).
 
-Per-category decomposition clarifies the mechanism: assertions without routing help on assertion-sensitive categories (negation: $+24.5\pp$, uncertainty: $+15.0\pp$) but \emph{hurt} on temporal categories (current state: $-24.0\pp$, historical: $-30.0\pp$, sequence: $-47.5\pp$).
+Per-category decomposition clarifies the mechanism: assertions without routing help on assertion-sensitive categories (negation: $+24.5\pp$, uncertainty: $+15.0\pp$) but degrade temporal categories (current state: $-24.0\pp$, historical: $-30.0\pp$, sequence: $-47.5\pp$).
 Intent routing reverses these losses and amplifies the gains---most dramatically on change ($+90.0\pp$), sequence ($+55.0\pp$), and historical ($+48.0\pp$).
-The finding that assertions are necessary but not sufficient---and that their value is unlocked specifically by routing---validates the two-component architecture.
+The finding that assertions do not help without routing---and that their value is unlocked specifically by intent-aware retrieval---validates the two-component architecture.
 
 C2/C2b serve as the closest analogs to existing medical RAG systems (DoctorRAG, MedRAG), which use document retrieval without assertion-aware graph structure; the $+18.2\pp$ C2b$\to$C4g gap (CI: \ci{+12.3\pp}{+23.5\pp}; McNemar $p < 10^{-9}$) quantifies the value of epistemic KG-RAG over modern dense retrieval.
 
@@ -109,7 +109,7 @@ Under the v2 evaluator with abstention detection, C1 drops sharply because the m
 \begin{sloppypar}
 The largest gains occur on categories requiring cross-admission synthesis: change ($+93\pp$), sequence ($+55\pp$), historical ($+54\pp$), family history ($+53\pp$), conditional ($+45\pp$), and current state ($+44\pp$).
 On the hard longitudinal subset (change + current state + historical, $n=130$), C4g outperforms C1 by $+59.2\pp$ (95\% BCa CI: \ci{+49.2\pp}{+67.7\pp}; patient-level: \ci{+48.6\pp}{+69.4\pp}).
-All nine category improvements exceed $+35\pp$ (Appendix Figure~\ref{fig:deltas}, right panel); the left and middle panels decompose the C3$\rightarrow$C4g gain into assertion metadata (C3$\rightarrow$C4) and intent routing (C4$\rightarrow$C4g), showing that assertions alone help assertion-sensitive categories but degrade temporal ones.
+All nine category improvements exceed $+35\pp$ (Appendix Figure~\ref{fig:deltas}, right panel); the left and middle panels decompose the C3$\rightarrow$C4g gain into assertion metadata (C3$\rightarrow$C4) and intent routing (C4$\rightarrow$C4g), showing that assertions alone help assertion-sensitive categories but do not improve---and may degrade---temporal ones.
 C6 fails catastrophically on historical (0\%) and sequence (0\%) despite Opus's 200K window, confirming that long context cannot substitute for structured retrieval on these categories.
 \end{sloppypar}
 
@@ -136,7 +136,7 @@ Reasoning & Qwen3.5 35B & 37.0\% & 57.5\% & $+20.5\pp$ \\
 
 All four models benefit substantially from KG-RAG (Table~\ref{tab:crossmodel}), with C4g accuracies clustering between 57.5\% and 69.0\% despite C1 baselines ranging from 20.5\% to 37.0\%.
 Qwen3.5---a reasoning-optimized model---achieves the highest C1 baseline (37.0\%) yet gains least ($+20.5\pp$; 95\% BCa CI: \ci{+14.9\pp}{+25.8\pp}; McNemar $\chi^2 = 45.6$, $p < 10^{-11}$), while the two general-purpose models with lowest baselines (Opus 21.8\%, GPT-OSS 20.5\%) gain most ($+47\pp$ and $+38\pp$).
-The inverse relationship between baseline strength and KG-RAG benefit holds across all four models ($r = -0.89$), consistent with a knowledge-compensator effect: structured epistemic context partially substitutes for parametric clinical knowledge.
+Across all four models, weaker baselines gain more from KG-RAG---a descriptive pattern consistent with a knowledge-compensator effect in which structured epistemic context partially substitutes for parametric clinical knowledge ($n = 4$ models; the trend is descriptive and requires additional data points to confirm).
 
 All four models improve on all 9 categories under C4g (per-category cross-model breakdowns in Appendix Table~\ref{tab:crossmodel_categories}).
 The C4g convergence---four models from different training lineages (commercial, open-source, medical, reasoning) cluster within $12\pp$ under KG-RAG despite a $17\pp$ spread at baseline---suggests the epistemic KG provides a knowledge floor that partially compensates for model-specific weaknesses.
@@ -163,7 +163,8 @@ B4 & Full System & 87.6\% & \ci{83.7\%}{91.2\%} & $+37.8\pp$ * \\
 \end{tabular}
 \end{table}
 
-The incremental KG layer (B2$\rightarrow$B3) contributes $+2.2\pp$ overall (CI: \ci{-1.5\pp}{+5.9\pp}), not reaching aggregate significance, but tier-stratified estimates show a complexity-dependent trend: $+0.6\pp$ (Tier~A), $+1.0\pp$ (Tier~B), $+5.0\pp$ (Tier~C, 15+ encounters), consistent with KG context being most valuable when document volume overwhelms chunk-level retrieval (Appendix~\ref{app:slicebench_tiers}).
+The incremental KG layer (B2$\rightarrow$B3) contributes $+2.2\pp$ overall (CI: \ci{-1.5\pp}{+5.9\pp}), not reaching aggregate significance.
+However, the KG benefit is complexity-dependent: negligible for simple cases (Tier~A, 1--2 notes: $+0.6\pp$) but meaningful for complex longitudinal patients (Tier~C, 15+ encounters: $+5.0\pp$), suggesting that structured retrieval's value scales with clinical complexity as document volume overwhelms chunk-level retrieval (Appendix~\ref{app:slicebench_tiers}).
 
 % ----------------------------------------------------------
 \subsection{Physician Adjudication}

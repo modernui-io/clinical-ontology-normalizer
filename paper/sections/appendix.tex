@@ -75,6 +75,49 @@ Choosing $\textsc{Present}$ (the majority class in clinical text) yields accurac
 \end{proof}
 
 
+\section{Extended System Design}
+\label{app:system_extended}
+
+\subsection{Tri-Temporal Knowledge Graph Model}
+\label{app:temporal_model}
+
+Clinical events unfold across multiple time dimensions that prior systems model incompletely~\cite{huang2024medtkg,ramirez2025graphiti}.
+Bi-temporal databases~\cite{snodgrass2000temporal} distinguish valid time from transaction time; \epikg adds a third dimension (NLP-asserted temporality) and stores all three on every KG edge:
+
+\begin{definition}[Tri-Temporal Edge]
+\label{def:edge}
+An edge $e = (s, p, o, \alpha, \boldsymbol{\tau}_v, \boldsymbol{\tau}_t, \tau_a, r, c)$ where:
+\begin{itemize}[nosep,leftmargin=1.5em]
+  \item $s, o$ are source and target nodes; $p$ is the predicate (one of 24 edge types);
+  \item $\alpha \in \mathcal{A}$ is the assertion label (Eq.~\ref{eq:assertion});
+  \item $\boldsymbol{\tau}_v = (\textit{event\_date}, \textit{valid\_from}, \textit{valid\_to})$ is the \textbf{valid time} interval---when the relationship held in the real world;
+  \item $\boldsymbol{\tau}_t = (\textit{recorded\_at}, \textit{doc\_date}, \textit{created\_at})$ is the \textbf{transaction time}---when it was recorded;
+  \item $\tau_a \in \{\textnormal{\textsc{Current}}, \textnormal{\textsc{Past}}, \textnormal{\textsc{Future}}\}$ is the \textbf{NLP-asserted temporality};
+  \item $r \in \mathcal{R}$ is an Allen interval algebra relation~\cite{allen1983temporal}; $c \in [0,1]$ is temporal confidence.
+\end{itemize}
+\end{definition}
+
+$\mathcal{R}$ comprises seven of Allen's 13 canonical relations~\cite{allen1983temporal} (merging symmetric pairs like Before/Meets) plus \textsc{Concurrent} and \textsc{Unknown} (nine total; full mapping in Table~\ref{tab:temporal_relations}).
+Unlike TEO~\cite{li2020teo} and TCL~\cite{ong2023tcl}, which use Allen's relations as annotation-ontology classes or modal operators, \epikg stores $r$ and $c$ directly on materialized edges, enabling efficient temporal filtering during traversal.
+
+\subsection{Graph-Augmented Retrieval Details}
+\label{app:retrieval_details}
+
+Given a clinical question $q$ and patient $\pi$, the base retrieval pipeline:
+(1)~extracts concepts from $q$ via NLP + OMOP enrichment;
+(2)~traverses 2--3 hops via bidirectional breadth-first search (BFS) over patient KG edges and OMOP vocabulary relationships (20M+ edges) via PostgreSQL common table expressions (CTEs) (Appendix~\ref{app:drknows}), pruning edges with $c < 0.3$;
+(3)~groups edges into four temporal views (event timeline, current state, historical, conflicts);
+(4)~retrieves matching guideline sections;
+(5)~scores edges by:
+\begin{equation}
+\label{eq:scoring}
+\text{score}(e) = c(e) + \mathbb{1}[\text{type}(e) \in Q_{\text{rel}}] \cdot 0.2 + \mathbb{1}[\tau_a(e) = \textsc{Current}] \cdot 0.1
+\end{equation}
+where the bonuses for question-relevant edge types ($0.2$) and current temporality ($0.1$) were set by manual tuning on a development set of 20 questions.
+The surviving subgraph is serialized into structured text preserving assertion labels (\eg ``\textsc{Absent}: pneumonia'');
+and (6)~composes graph evidence, temporal context, guidelines, and source documents into a single prompt.
+
+
 \section{Gap Analysis}
 \label{app:gap}
 
