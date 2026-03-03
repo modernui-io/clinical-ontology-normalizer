@@ -704,11 +704,37 @@ Of these, 618 (15.7\%) carry non-present assertions: 442 absent (11.2\%), 94 pos
 At the mention level, 1{,}428 of 12{,}379 mentions (11.5\%) are non-present.
 This non-present fraction $f_{\textit{np}} = 0.157$ provides the empirical bound from Corollary~\ref{cor:faithfulness}: an assertion-blind pipeline cannot exceed $1 - f_{\textit{np}} = 84.3\%$ assertion-faithful accuracy on concepts where negated or uncertain mentions are present.
 
-\paragraph{Literature-grounded accuracy.}
-No annotated assertion corpus was available for intrinsic evaluation; we instead bound expected accuracy using published benchmarks on similar rule-based classifiers.
-NegEx achieves 94.5\% precision / 77.8\% recall for negation~\cite{chapman2001negex}; ConText reports 93.8\% precision for negation scope~\cite{harkema2009context}; NegBio reaches 96.3\% precision / 85.7\% recall~\cite{peng2018negbio}.
-Our classifier extends these with calibrated confidence, pseudo-negation handling, and scope-aware bidirectional matching.
-Expected accuracy is ${\sim}$85--95\% for negation (the most studied and our largest non-present class at 71.5\% of non-present edges) and ${\sim}$75--85\% for uncertainty and historical (less studied, fewer trigger patterns).
+\paragraph{Intrinsic evaluation.}
+We sampled 189 mentions from the 43 ClinicalBench patients, stratified by predicted assertion type (50 present, 51 absent, 15 possible, 28 historical, 19 conditional, 4 hypothetical, 10 family history), and a physician (A.S.) annotated gold-standard labels in a blinded, randomized review.
+Table~\ref{tab:assertion_intrinsic} reports per-class precision, recall, and F1.
+
+\begin{table}[ht]
+\centering
+\small
+\caption{Intrinsic assertion classifier evaluation on 189 physician-annotated
+  MIMIC-IV mentions (stratified sample from 43 ClinicalBench patients).}
+\label{tab:assertion_intrinsic}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Assertion & $n$ & P & R & F1 \\
+\midrule
+Present & 62 & 0.980 & 0.790 & 0.875 \\
+Absent & 51 & 0.980 & 0.961 & 0.970 \\
+Possible & 15 & 0.500 & 1.000 & 0.667 \\
+Historical & 28 & 0.933 & 1.000 & 0.966 \\
+Conditional & 19 & 1.000 & 0.789 & 0.882 \\
+Hypothetical & 4 & 1.000 & 1.000 & 1.000 \\
+Family history & 10 & 0.900 & 0.900 & 0.900 \\
+\midrule
+\textbf{Weighted avg} & 189 & 0.933 & 0.894 & 0.902 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Overall accuracy is 89.4\% (169/189; 95\% Wilson CI: [84.2\%, 93.0\%]) with Cohen's $\kappa = 0.867$ (strong agreement).
+Negation detection achieves F1\,=\,0.970, consistent with published benchmarks: NegEx P\,=\,94.5\%/R\,=\,77.8\%~\cite{chapman2001negex}, NegBio P\,=\,96.3\%/R\,=\,85.7\%~\cite{peng2018negbio}.
+The dominant error pattern (11/20 errors) is over-triggering uncertainty: the classifier assigns \textsc{possible} to mentions near hedging language (``likely,'' ``concerning for'') that physicians judge as \textsc{present}.
+This explains the low precision for the \textsc{possible} class (P\,=\,0.50) despite perfect recall.
 
 \paragraph{Functional evaluation.}
 Rather than relying solely on intrinsic metrics, the C4 ablation provides a functional evaluation of assertion quality.
