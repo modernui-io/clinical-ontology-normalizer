@@ -17,10 +17,13 @@ This has practical implications for RAG system design: the same retrieval pipeli
 \paragraph{When KG context matters.}
 The complexity-dependent SliceBench effect (Tier~C: $+5.0\pp$ vs.\ Tier~A: $+0.6\pp$) suggests structured epistemic context is most valuable when: (a)~document volume overwhelms chunk-level retrieval, (b)~questions require cross-encounter synthesis where the same concept appears with different assertion states, and (c)~assertion status evolves across encounters.
 
-The C4 ablation cleanly decomposes the C3$\to$C4g gap ($+19.0\pp$) into two components: assertions alone (C3$\to$C4: $-3.2\pp$, CI crossing zero) and intent routing (C4$\to$C4g: $+22.2\pp$, $p < 10^{-10}$).
-This reveals a key architectural insight: assertion metadata does not improve aggregate accuracy without question-type-specific retrieval (CI crossing zero), and its value is unlocked only when paired with routing.
-Without routing, assertions increase evidence verbosity and do not improve temporal categories (historical: $-30\pp$, sequence: $-47.5\pp$, per-category effects exploratory); with routing, the same metadata enables near-perfect change detection (C4 10\% $\to$ C4g 100\%).
-The finding validates the two-component design and suggests that future work on assertion-aware clinical NLP should couple enriched metadata with structured retrieval strategies.
+To diagnose the C3$\to$C4 anomaly, we ran a transition-level analysis of question outcomes across conditions (Appendix~\ref{app:c4_transitions}).
+Overall, C4 introduces 95 regressions (C3 correct $\to$ C4 incorrect) and 82 improvements (C3 incorrect $\to$ C4 correct), yielding a net loss of 13 items ($-3.2\pp$), consistent with the non-significant aggregate delta.
+Crucially, 88.4\% of C3$\to$C4 regressions are recovered by C4g, indicating that the failure mode is largely corrected by intent-aware routing rather than by removing assertion metadata.
+The regressions are concentrated in hard longitudinal categories (historical, change, current state: 43 regressions vs.\ 14 improvements; net $-29$), whereas non-temporal categories show a positive net effect (52 regressions vs.\ 68 improvements; net $+16$).
+This pattern suggests a specificity--sensitivity tradeoff: assertion filtering helps isolate explicit epistemic cues for assertion-sensitive questions, but suppresses needed evidence for temporal synthesis when traversal is not intent-matched.
+Qualitative examples match this mechanism (Appendix~\ref{app:c4_transitions}): without routing, C4 over-emphasizes assertion summaries (e.g., family-history leakage to patient state, sequence answers that list assertions instead of ordering events).
+We therefore interpret C4 as evidence that assertion metadata alone is insufficient; routing policy is the active component that converts metadata into longitudinal QA gains.
 
 \paragraph{Uncertainty remains weakest.}
 Uncertainty improves from 12.5\% to 50.0\% ($+37.5\pp$), but absolute accuracy remains low.

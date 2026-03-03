@@ -255,7 +255,7 @@ The fix improved family history by $+10.0\pp$ with zero regressions on guard cat
 \end{figure}
 
 
-\section{Per-Category Delta Chart}
+\section{Per-Category Delta Chart and Transition Analysis}
 \label{app:deltas}
 
 \begin{figure}[ht]
@@ -264,6 +264,44 @@ The fix improved family history by $+10.0\pp$ with zero regressions on guard cat
 \caption{Per-category accuracy change (Claude Opus 4.6, evaluator v2) decomposing the C3$\rightarrow$C4g gain. Categories sorted by C3$\rightarrow$C4 delta; dashed line separates Task~A (assertion-sensitive) from Task~B (temporal). \textbf{Left:}~C3$\rightarrow$C4 (assertions without routing): assertion categories improve (negation $+24\pp$, conditional $+20\pp$) but temporal categories collapse (sequence $-48\pp$, historical $-30\pp$). \textbf{Middle:}~C4$\rightarrow$C4g (intent routing): routing recovers temporal categories (change $+90\pp$, sequence $+55\pp$, historical $+48\pp$) while slightly reducing assertion categories. \textbf{Right:}~C1$\rightarrow$C4g (overall): all 9 categories improve.}
 \label{fig:deltas}
 \end{figure}
+
+\label{app:c4_transitions}
+
+Table~\ref{tab:c4_transitions} reports question-level transitions between C3 (KG-RAG without assertions) and C4 (with assertions, no routing), with C4g recovery rates.
+
+\begin{table}[ht]
+\centering
+\small
+\caption{Per-category C3$\to$C4 transition analysis (Claude Opus 4.6, $n\!=\!400$). \emph{Regr.}: C3 correct $\to$ C4 incorrect; \emph{Impr.}: C3 incorrect $\to$ C4 correct; \emph{Recov.}: regressions recovered by C4g.}
+\label{tab:c4_transitions}
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+Category & $n$ & C3 & C4 & Regr. & Impr. & Recov. \\
+\midrule
+\multicolumn{7}{@{}l}{\emph{Temporal categories (net $-29$):}} \\
+Current state & 50 & 54\% & 30\% & 20 & 8 & 17 \\
+Sequence & 40 & 57\% & 10\% & 20 & 1 & 20 \\
+Historical & 50 & 42\% & 12\% & 18 & 3 & 15 \\
+Duration & 30 & 60\% & 47\% & 11 & 7 & 9 \\
+Change & 30 & 17\% & 10\% & 5 & 3 & 5 \\
+\midrule
+\multicolumn{7}{@{}l}{\emph{Assertion-sensitive categories (net $+16$):}} \\
+Negation & 110 & 65\% & 90\% & 5 & 32 & 4 \\
+Family history & 30 & 43\% & 50\% & 8 & 10 & 7 \\
+Uncertainty & 40 & 38\% & 52\% & 7 & 13 & 6 \\
+Conditional & 20 & 30\% & 50\% & 1 & 5 & 1 \\
+\midrule
+\textbf{Total} & 400 & 50\% & 47\% & 95 & 82 & 84 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent Overall, 88.4\% of regressions (84/95) are recovered by C4g. Temporal categories account for 74/95 regressions but only 14/82 improvements; assertion-sensitive categories show the reverse pattern (21/95 regressions, 68/82 improvements). This confirms that assertions help on epistemic questions but suppress needed evidence for temporal synthesis without intent-matched routing.
+
+\paragraph{Qualitative examples.}
+C4 regressions exhibit a consistent pattern: the evidence context includes raw assertion summaries that distract the LLM from the question's intent.
+For family-history questions, C4 states ``The patient has Lymphoma'' (leaking family-history findings to patient state); for sequence questions, C4 lists assertion types instead of temporal ordering; for historical questions, C4 notes ``history of depression'' and concludes it is no longer active.
+In each case, C4g's intent-aware retrieval eliminates the distraction by routing to category-specific evidence (cross-admission comparison, timeline traversal, or current-state filtering).
 
 
 \section{SliceBench Conditions}

@@ -37,8 +37,6 @@ out/
 *.swo
 
 # Environment
-.env
-.env.local
 .env.*.local
 backend/.env
 
@@ -76,3 +74,4 @@ backend/data/athena_vocab/
 
 # Design mockups and screenshots (use Figma or asset storage)
 /*.png
+config.bat
